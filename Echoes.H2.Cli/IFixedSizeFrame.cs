@@ -10,6 +10,11 @@ namespace Echoes.H2.Cli
         void Write(Stream stream);
 
         int Length { get; }
+    }
+
+    public interface IBodyFrame : IFixedSizeFrame
+    {
+
 
         H2FrameType Type { get; }
     }

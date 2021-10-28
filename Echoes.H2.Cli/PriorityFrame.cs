@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct PriorityFrame : IFixedSizeFrame
+    public readonly struct PriorityFrame : IBodyFrame
     {
         public PriorityFrame(byte[] data)
         {

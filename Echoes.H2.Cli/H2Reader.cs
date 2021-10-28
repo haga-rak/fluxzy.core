@@ -7,6 +7,10 @@ namespace Echoes.H2.Cli
 
     public static class H2Writer
     {
+        public static async Task WriteFrameAsync(IBodyFrame bodyFrame)
+        {
+            
+        }
     }
 
     public static class H2Reader
@@ -23,17 +27,17 @@ namespace Echoes.H2.Cli
 
             await stream.ReadExact(bodyBytes, 0, bodyBytes.Length);
 
-            if (h2FrameHeader.Type == H2FrameType.Settings) // Setting Frame 
+            if (h2FrameHeader.BodyType == H2FrameType.Settings) // Setting Frame 
             {
                 return new H2FrameReadResult(h2FrameHeader, new SettingFrame(new ReadOnlySpan<byte>(bodyBytes)));
             }
 
-            if (h2FrameHeader.Type == H2FrameType.WindowUpdate) // WindowUpdate Frame 
+            if (h2FrameHeader.BodyType == H2FrameType.WindowUpdate) // WindowUpdate Frame 
             {
                 return new H2FrameReadResult(h2FrameHeader, new WindowUpdateFrame(bodyBytes));
             }
 
-            if (h2FrameHeader.Type == H2FrameType.Priority) // Priority Frame 
+            if (h2FrameHeader.BodyType == H2FrameType.Priority) // Priority Frame 
             {
                 return new H2FrameReadResult(h2FrameHeader, new PriorityFrame(bodyBytes));
             }

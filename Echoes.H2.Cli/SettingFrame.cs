@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct SettingFrame : IFixedSizeFrame
+    public readonly struct SettingFrame : IBodyFrame
     {
         public SettingFrame(ReadOnlySpan<byte> bodyBytes)
         {

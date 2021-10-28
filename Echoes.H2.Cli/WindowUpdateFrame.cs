@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct WindowUpdateFrame : IFixedSizeFrame
+    public readonly struct WindowUpdateFrame : IBodyFrame
     {
         public WindowUpdateFrame(byte [] data)
         {
