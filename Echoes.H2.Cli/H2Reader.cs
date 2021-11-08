@@ -1,48 +1,43 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-
-    public static class H2Writer
+    public interface IH2StreamReader
     {
-        public static async Task WriteFrameAsync(IBodyFrame bodyFrame)
-        {
-            
-        }
+        ValueTask<H2FrameReadResult> ReadNextFrameAsync(Stream stream, byte [] readBuffer, CancellationToken cancellationToken); 
     }
 
-    public static class H2Reader
+    public class H2Reader : IH2StreamReader
     {
-        public static async Task<H2FrameReadResult> ReadNextFrameAsync(Stream stream)
+        public async ValueTask<H2FrameReadResult> ReadNextFrameAsync(Stream stream, byte [] readBuffer, CancellationToken cancellationToken)
         {
-            byte[] header = new byte[9];
+            await stream.ReadExact(readBuffer, 0, 9, cancellationToken).ConfigureAwait(false);
 
-            await stream.ReadExact(header, 0, header.Length).ConfigureAwait(false);
+            var h2FrameHeader = new H2Frame(new ReadOnlySpan<byte>(readBuffer, 0, 9));
+            
+            await stream.ReadExact(readBuffer, 0, h2FrameHeader.BodyLength, cancellationToken).ConfigureAwait(false);
 
-            var h2FrameHeader = new H2Frame(header);
-
-            var bodyBytes = new byte[h2FrameHeader.Length];
-
-            await stream.ReadExact(bodyBytes, 0, bodyBytes.Length);
-
-            if (h2FrameHeader.BodyType == H2FrameType.Settings) // Setting Frame 
+            switch (h2FrameHeader.BodyType)
             {
-                return new H2FrameReadResult(h2FrameHeader, new SettingFrame(new ReadOnlySpan<byte>(bodyBytes)));
+                // Setting Frame 
+                case H2FrameType.Settings when h2FrameHeader.Flags == 1:
+                    // Ack 
+                    return new H2FrameReadResult(h2FrameHeader, new SettingFrame(true));
+                case H2FrameType.Settings:
+                    return new H2FrameReadResult(h2FrameHeader, new SettingFrame(new ReadOnlySpan<byte>(readBuffer, 0 , h2FrameHeader.BodyLength)));
+                // WindowUpdate Frame 
+                case H2FrameType.WindowUpdate:
+                    return new H2FrameReadResult(h2FrameHeader, new WindowUpdateFrame(new ReadOnlySpan<byte>(readBuffer, 0, h2FrameHeader.BodyLength)));
+                // Priority Frame 
+                case H2FrameType.Priority:
+                    return new H2FrameReadResult(h2FrameHeader, new PriorityFrame(new ReadOnlySpan<byte>(readBuffer, 0, h2FrameHeader.BodyLength)));
+                default:
+                    throw new InvalidOperationException();
             }
-
-            if (h2FrameHeader.BodyType == H2FrameType.WindowUpdate) // WindowUpdate Frame 
-            {
-                return new H2FrameReadResult(h2FrameHeader, new WindowUpdateFrame(bodyBytes));
-            }
-
-            if (h2FrameHeader.BodyType == H2FrameType.Priority) // Priority Frame 
-            {
-                return new H2FrameReadResult(h2FrameHeader, new PriorityFrame(bodyBytes));
-            }
-
-            throw new InvalidOperationException();
         }
     }
 }

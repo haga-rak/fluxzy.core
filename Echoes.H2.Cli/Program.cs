@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
@@ -36,19 +36,26 @@ namespace Echoes.H2.Cli
                         }
                     };
 
-                    await sslStream.AuthenticateAsClientAsync(sslAuthenticationOption);
+                    await sslStream.AuthenticateAsClientAsync(sslAuthenticationOption).ConfigureAwait(false);
 
                     byte [] buffer = new byte[1024];
+                    
+                    var channel = Channel.CreateUnbounded<int>(new UnboundedChannelOptions()
+                    {
+                        
+                    });
+                    
 
 
-                    await sslStream.WriteAsync(Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"));
 
-                   // var n = await sslStream.ReadAsync(buffer, 0, buffer.Length);
+                    await sslStream.WriteAsync(Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")).ConfigureAwait(false);
+
+                   // var n = await sslStream.ReadAsync(buffer, 0, buffer.BodyLength);
 
 
                    while (true)
                    {
-                       var frame = await H2Reader.ReadNextFrameAsync(sslStream);
+                       var frame = await H2Reader.ReadNextFrameAsync(sslStream).ConfigureAwait(false);
                     }
 
 
@@ -65,7 +72,7 @@ namespace Echoes.H2.Cli
     }
 
 
-    public class H2FrameReadResult
+    public readonly struct H2FrameReadResult
     {
         public H2FrameReadResult(H2Frame header, IFixedSizeFrame payload)
         {
@@ -76,28 +83,5 @@ namespace Echoes.H2.Cli
         public H2Frame Header { get;  }
 
         public IFixedSizeFrame Payload { get;  }
-    }
-
-    
-    public static class StreamReadHelper
-    {
-        public static async Task ReadExact(this Stream origin, byte[] buffer, int offset, int length)
-        {
-            int readen = 0;
-            int currentIndex = offset;
-            int remain = length; 
-
-            while (readen < length)
-            {
-                var currentReaden = await origin.ReadAsync(buffer, currentIndex, remain);
-
-                if (currentReaden <= 0)
-                    throw new InvalidOperationException($"Stream does not have {length} octets");
-
-                currentIndex += currentReaden; 
-                remain -= currentReaden; 
-                readen += (currentReaden); 
-            }
-        }
     }
 }

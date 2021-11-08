@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.IO;
+using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
@@ -8,7 +9,7 @@ namespace Echoes.H2.Cli
     {
         private H2Frame(int length, H2FrameType bodyType, byte flags, int streamIdentifier)
         {
-            Length = length;
+            BodyLength = length;
             BodyType = bodyType;
             Flags = flags;
             StreamIdentifier = streamIdentifier;
@@ -21,13 +22,13 @@ namespace Echoes.H2.Cli
                 throw new InvalidOperationException("Header length should always 9 octets. Hasta la vista!"); 
             }
 
-            Length = headerFrames[2] | headerFrames[1] << 8 | headerFrames[0] << 16;  // 24 premier bits == length 
+            BodyLength = headerFrames[2] | headerFrames[1] << 8 | headerFrames[0] << 16;  // 24 premier bits == length 
             BodyType = (H2FrameType) headerFrames[3];
             Flags = headerFrames[4];
             StreamIdentifier = BinaryPrimitives.ReadInt32BigEndian(headerFrames.Slice(5, 4));
         }
 
-        public int Length { get; }
+        public int BodyLength { get; }
 
         public H2FrameType BodyType { get; }
 
@@ -37,7 +38,7 @@ namespace Echoes.H2.Cli
 
         public void Write(Stream stream)
         {
-            stream.BuWrite_24(Length);
+            stream.BuWrite_24(BodyLength);
             stream.BuWrite_8((byte) BodyType);
             stream.BuWrite_8(Flags);
             stream.BuWrite_32(StreamIdentifier);

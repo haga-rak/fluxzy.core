@@ -9,7 +9,7 @@ namespace Echoes.H2.Cli
     {
         void Write(Stream stream);
 
-        int Length { get; }
+        int BodyLength { get; }
     }
 
     public interface IBodyFrame : IFixedSizeFrame
