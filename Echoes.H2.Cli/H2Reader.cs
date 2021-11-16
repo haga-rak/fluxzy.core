@@ -41,6 +41,17 @@ namespace Echoes.H2.Cli
                 // Priority Frame 
                 case H2FrameType.Priority:
                     return new H2FrameReadResult(h2FrameHeader, new PriorityFrame(bodyBuffer.Span));
+                case H2FrameType.Data:
+                    return new H2FrameReadResult(h2FrameHeader, new DataFrame(
+                        bodyBuffer, (h2FrameHeader.Flags & 0x8) != 0));
+                case H2FrameType.Headers:
+                    return new H2FrameReadResult(h2FrameHeader, new HeaderFrame(bodyBuffer, 
+                        (h2FrameHeader.Flags & 0x8) != 0, 
+                        (h2FrameHeader.Flags & 0x20) != 0, 
+                        (h2FrameHeader.Flags & 0x4) != 0, 
+                        (h2FrameHeader.Flags & 0x1) != 0
+                        )
+                        );
                 default:
                     throw new InvalidOperationException();
             }

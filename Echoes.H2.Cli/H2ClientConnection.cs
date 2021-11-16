@@ -113,8 +113,10 @@ namespace Echoes.H2.Cli
         private async Task Init()
         {
             await _baseStream.WriteAsync(Preface, _cancellationTokenSource.Token).ConfigureAwait(false);
-
             _innerReadTask = InternalReadRun();
+
+            // Wait from setting reception 
+
             _innerWriteRun = InternalWriteRun();
         }
 
@@ -159,6 +161,20 @@ namespace Echoes.H2.Cli
                         ProcessIncomingSettingFrame(settingFrame);
                         continue;
                     }
+
+                    if (frame.Payload is IHeaderHolderFrame headerHolderFrame)
+                    {
+                        var activeStream = _stateManager.GetActiveStream(frame.Header.StreamIdentifier);
+
+                        if (activeStream == null)
+                        {
+                            // TODO : Notify stream error, stream already closed 
+                            continue; 
+                        }
+
+                        activeStream.Receive(headerHolderFrame.Data)
+                    }
+
                     
                 }
                 catch

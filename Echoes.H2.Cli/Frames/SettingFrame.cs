@@ -36,8 +36,6 @@ namespace Echoes.H2.Cli
 
         public int BodyLength => Ack ? 0 : 6;
 
-        public H2FrameType Type => H2FrameType.Settings;
-
         public void Write(Stream stream)
         {
             if (Ack)

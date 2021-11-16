@@ -14,9 +14,7 @@ namespace Echoes.H2.Cli
 
         public int ErrorCode { get;  }
 
-        public int BodyLength => 4; 
-
-        public H2FrameType Type => H2FrameType.RstStream;
+        public int BodyLength => 4;
 
         public void Write(Stream stream)
         {

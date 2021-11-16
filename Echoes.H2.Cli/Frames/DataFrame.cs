@@ -26,7 +26,5 @@ namespace Echoes.H2.Cli
         public Memory<byte> Buffer { get; }
 
         public int BodyLength { get; }
-
-        public H2FrameType Type => H2FrameType.Data; 
     }
 }

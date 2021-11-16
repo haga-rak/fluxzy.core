@@ -25,8 +25,6 @@ namespace Echoes.H2.Cli
 
         public int BodyLength => 4;
 
-        public H2FrameType Type => H2FrameType.WindowUpdate;
-
         public void Write(Stream stream)
         {
             stream.BuWrite_1_31(Reserved, WindowSizeIncrement);

@@ -9,8 +9,6 @@ namespace Echoes.H2.Cli
 
         public uint ErrorCode { get; }
 
-        public H2FrameType Type => throw new NotImplementedException();
-
         public int BodyLength => throw new NotImplementedException();
 
         public void Write(Stream stream)

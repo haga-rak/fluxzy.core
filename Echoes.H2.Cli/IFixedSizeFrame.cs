@@ -14,8 +14,11 @@ namespace Echoes.H2.Cli
 
     public interface IBodyFrame : IFixedSizeFrame
     {
+    }
 
-
-        H2FrameType Type { get; }
+    public interface IHeaderHolderFrame
+    {
+        public bool EndHeader { get; }
+        public Memory<byte> Data { get; }
     }
 }
