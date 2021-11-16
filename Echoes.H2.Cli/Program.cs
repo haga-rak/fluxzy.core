@@ -79,9 +79,12 @@ namespace Echoes.H2.Cli
             Header = header;
             Payload = payload;
         }
+        
 
         public H2Frame Header { get;  }
 
         public IFixedSizeFrame Payload { get;  }
+
+        public bool HasData { get; }
     }
 }

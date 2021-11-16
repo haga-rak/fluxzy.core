@@ -113,4 +113,12 @@ namespace Echoes.H2.Cli.IO
             }
         }
     }
+
+    internal static class StreamUtils
+    {
+        public static Stream AsStream(this byte [] buffer)
+        {
+            return new MemoryStream(buffer); 
+        }
+    }
 }

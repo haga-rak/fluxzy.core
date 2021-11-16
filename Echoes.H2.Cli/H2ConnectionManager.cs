@@ -10,16 +10,17 @@ namespace Echoes.H2.Cli
     internal class H2ConnectionManager
     {
         private readonly H2StreamSetting _streamSetting;
-        private readonly ChannelWriter<Stream> _upStreamWriter;
+        private readonly UpStreamChannel _upStreamChannel;
         private readonly IDictionary<int, ActiveStream> _repository = new Dictionary<int, ActiveStream>();
         private readonly int _currentStreamCount;
 
         public H2ConnectionManager(
-            H2StreamSetting streamSetting, 
-            ChannelWriter<Stream> upStreamWriter)
+            H2StreamSetting streamSetting,
+            UpStreamChannel upStreamChannel
+            )
         {
             _streamSetting = streamSetting;
-            _upStreamWriter = upStreamWriter;
+            _upStreamChannel = upStreamChannel;
         }
 
         public ChannelReader<Stream> ReadChannel { get; set; }
@@ -29,11 +30,20 @@ namespace Echoes.H2.Cli
             channelUsage.Used = false; 
         }
 
+        public ActiveStream GetActiveStream(int streamIdentifier)
+        {
+            if (_repository.TryGetValue(streamIdentifier, out var result))
+                return result;
+
+            return null;
+        }
+            
+
         /// <summary>
         /// Get or create an active stream 
         /// </summary>
         /// <returns></returns>
-        public async Task<ActiveStream> GetOrCreateActiveStream()
+        public ActiveStream GetOrCreateActiveStream()
         {
             // Try to create a new stream 
             
@@ -57,7 +67,7 @@ namespace Echoes.H2.Cli
                 var newStreamIdentifier = _repository.Keys.DefaultIfEmpty(1).Max().NextOdd();
 
                 ActiveStream newChannel =
-                    new ActiveStream(newStreamIdentifier, _upStreamWriter); 
+                    new ActiveStream(newStreamIdentifier, _upStreamChannel, ); 
 
             }
             else

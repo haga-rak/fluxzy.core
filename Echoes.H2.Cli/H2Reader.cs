@@ -8,18 +8,24 @@ namespace Echoes.H2.Cli
 {
     public interface IH2StreamReader
     {
-        ValueTask<H2FrameReadResult> ReadNextFrameAsync(Stream stream, byte [] readBuffer, CancellationToken cancellationToken); 
+        ValueTask<H2FrameReadResult> ReadNextFrameAsync(
+            Stream stream, Memory<byte> buffer, CancellationToken cancellationToken);
     }
 
     public class H2Reader : IH2StreamReader
     {
-        public async ValueTask<H2FrameReadResult> ReadNextFrameAsync(Stream stream, byte [] readBuffer, CancellationToken cancellationToken)
+        public async ValueTask<H2FrameReadResult> ReadNextFrameAsync(
+            Stream stream, Memory<byte> buffer, CancellationToken cancellationToken)
         {
-            await stream.ReadExactAsync(readBuffer, 0, 9, cancellationToken).ConfigureAwait(false);
+            var headerBuffer = buffer.Slice(0, 9);
 
-            var h2FrameHeader = new H2Frame(new ReadOnlySpan<byte>(readBuffer, 0, 9));
-            
-            await stream.ReadExactAsync(readBuffer, 0, h2FrameHeader.BodyLength, cancellationToken).ConfigureAwait(false);
+            await stream.ReadExactAsync(headerBuffer, cancellationToken).ConfigureAwait(false);
+
+            var h2FrameHeader = new H2Frame(headerBuffer.Span);
+
+            var bodyBuffer = buffer.Slice(0, h2FrameHeader.BodyLength);
+
+            await stream.ReadExactAsync(bodyBuffer, cancellationToken).ConfigureAwait(false);
 
             switch (h2FrameHeader.BodyType)
             {
@@ -28,13 +34,13 @@ namespace Echoes.H2.Cli
                     // Ack 
                     return new H2FrameReadResult(h2FrameHeader, new SettingFrame(true));
                 case H2FrameType.Settings:
-                    return new H2FrameReadResult(h2FrameHeader, new SettingFrame(new ReadOnlySpan<byte>(readBuffer, 0 , h2FrameHeader.BodyLength)));
+                    return new H2FrameReadResult(h2FrameHeader, new SettingFrame(bodyBuffer.Span));
                 // WindowUpdate Frame 
                 case H2FrameType.WindowUpdate:
-                    return new H2FrameReadResult(h2FrameHeader, new WindowUpdateFrame(new ReadOnlySpan<byte>(readBuffer, 0, h2FrameHeader.BodyLength)));
+                    return new H2FrameReadResult(h2FrameHeader, new WindowUpdateFrame(bodyBuffer.Span));
                 // Priority Frame 
                 case H2FrameType.Priority:
-                    return new H2FrameReadResult(h2FrameHeader, new PriorityFrame(new ReadOnlySpan<byte>(readBuffer, 0, h2FrameHeader.BodyLength)));
+                    return new H2FrameReadResult(h2FrameHeader, new PriorityFrame(bodyBuffer.Span));
                 default:
                     throw new InvalidOperationException();
             }

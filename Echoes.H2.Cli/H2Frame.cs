@@ -44,11 +44,25 @@ namespace Echoes.H2.Cli
             stream.BuWrite_32(StreamIdentifier);
         }
 
+        public void Write(Span<byte> data)
+        {
+            data
+                .BuWrite_24(BodyLength)
+                .BuWrite_8((byte)BodyType)
+                .BuWrite_8(Flags)
+                .BuWrite_32(StreamIdentifier);
+        }
+
         private static void Write(Stream stream, int length, H2FrameType type, int streamIdentifier = 0,
             byte flags = 0)
         {
             var header = new H2Frame(length, type, flags, streamIdentifier); 
             header.Write(stream);
+        }
+
+        public static H2Frame BuildDataFrameHeader(int length, int streamIdentifier)
+        {
+            return new H2Frame(length, H2FrameType.Data, 0, streamIdentifier); 
         }
         
 

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -6,34 +7,36 @@ using Echoes.H2.Cli.IO;
 
 namespace Echoes.H2.Cli
 {
-    internal interface IUpStreamConnection
-    {
-        Task Write(byte[] buffer, int offset, int length, CancellationToken cancellationToken);
-    }
+    public delegate ValueTask UpStreamChannel(Memory<byte> data, CancellationToken token); 
 
     internal class ActiveStream
     {
-        private readonly byte [] _windowBuffer; 
         private readonly byte [] _buffer = new byte[1024 * 16]; 
-
-        private readonly ChannelWriter<Stream> _upStreamWriter;
-        private readonly IUpStreamConnection _upStreamConnection;
+        
+        private readonly UpStreamChannel _upStreamChannel;
+        private readonly IHeaderEncoder _headerEncoder;
         private readonly int _maxPacketSize;
 
         private readonly Channel<Stream> _downStreamChannel;
+        private readonly Memory<byte> _memoryBuffer;
 
         public ActiveStream(
             int streamIdentifier,
-            ChannelWriter<Stream> upStreamWriter,
-            IUpStreamConnection upStreamConnection,
-            int localWindowSize, int maxPacketSize)
+            UpStreamChannel upStreamChannel,
+            IHeaderEncoder headerEncoder,
+            WindowSizeHolder localWindowSize,
+            WindowSizeHolder overallRemoteWindowSize, 
+            WindowSizeHolder remoteWindowSize, 
+            int maxPacketSize)
         {
             StreamIdentifier = streamIdentifier;
-            _upStreamWriter = upStreamWriter;
-            _upStreamConnection = upStreamConnection;
+            _upStreamChannel = upStreamChannel;
+            _headerEncoder = headerEncoder;
             _maxPacketSize = maxPacketSize;
+            RemoteWindowSize = remoteWindowSize;
+            OverallRemoteWindowSize = overallRemoteWindowSize;
             LocalWindowSize = localWindowSize;
-            _windowBuffer = new byte[localWindowSize];
+            _memoryBuffer = new Memory<byte>(_buffer);
             Used = true;
 
             _downStreamChannel = Channel.CreateUnbounded<Stream>(new UnboundedChannelOptions()
@@ -49,28 +52,48 @@ namespace Echoes.H2.Cli
 
         public StreamStateType Type { get; internal set; } = StreamStateType.Idle;
 
-        public int LocalWindowSize { get; set; }
+        public WindowSizeHolder LocalWindowSize { get;  }
 
-        public int RemoteWindowSize { get; set; }
+        public WindowSizeHolder RemoteWindowSize { get;  }
 
-        public ValueTask WriteHeader(Stream t, CancellationToken cancellationToken)
+        public WindowSizeHolder OverallRemoteWindowSize { get;  }
+
+        public ValueTask WriteHeader(Memory<byte> headerBuffer, CancellationToken cancellationToken)
         {
-            return _upStreamWriter.WriteAsync(new H2HeaderEncodeStream(t), cancellationToken);
+             return _upStreamChannel(_headerEncoder.Encode(headerBuffer, _memoryBuffer), cancellationToken);
         }
 
-        /// <summary>
-        /// Lit l'entête à partir de la connexion 
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public async Task ReadHeaderFromConnection(Stream stream)
+        private async ValueTask<bool> BookWindowSize(int minimumBodyLength, CancellationToken cancellationToken)
         {
+            if (!await LocalWindowSize.BookWindowSize(minimumBodyLength, cancellationToken).ConfigureAwait(false))
+                return false; 
 
+            if (!await RemoteWindowSize.BookWindowSize(minimumBodyLength, cancellationToken).ConfigureAwait(false))
+                return false;
+
+            return true; 
         }
 
-        public ValueTask WriteBody(Stream t, CancellationToken cancellationToken)
+        public async ValueTask WriteBody(Stream t, CancellationToken cancellationToken)
         {
-            return _upStreamWriter.WriteAsync(t, cancellationToken);
+            while (true)
+            {
+                var bodyLength = await t.ReadAsync(_memoryBuffer.Slice(9, _maxPacketSize), cancellationToken).ConfigureAwait(false);
+
+                if (bodyLength == 0)
+                {
+                    // No more data to read 
+                    return; 
+                }
+
+                // Allocate a WindowSize from current stream and overall stream 
+                if (!await BookWindowSize(bodyLength, cancellationToken).ConfigureAwait(false))
+                    throw new OperationCanceledException("Stream cancellation request", cancellationToken); 
+
+                H2Frame.BuildDataFrameHeader(bodyLength, StreamIdentifier).Write(_memoryBuffer.Span);
+
+                await _upStreamChannel(_memoryBuffer.Slice(0, bodyLength + 9), cancellationToken).ConfigureAwait(false);
+            }
         }
 
         public async ValueTask ReadBody(Stream t, CancellationToken cancellationToken)
@@ -92,5 +115,4 @@ namespace Echoes.H2.Cli
         }
         
     }
-    
 }

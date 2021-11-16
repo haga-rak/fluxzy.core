@@ -62,5 +62,23 @@ namespace Echoes.H2.Cli.Helpers
                 readen += (currentReaden); 
             }
         }
+        public static async Task ReadExactAsync(this Stream origin, Memory<byte> buffer, CancellationToken cancellationToken)
+        {
+            int readen = 0;
+            int currentIndex = 0;
+            int remain = buffer.Length; 
+
+            while (readen < buffer.Length)
+            {
+                var currentReaden = await origin.ReadAsync(buffer.Slice(currentIndex, remain), cancellationToken).ConfigureAwait(false);
+
+                if (currentReaden <= 0)
+                    throw new InvalidOperationException($"Stream does not have {buffer.Length} bytes");
+
+                currentIndex += currentReaden; 
+                remain -= currentReaden; 
+                readen += (currentReaden); 
+            }
+        }
     }
 }

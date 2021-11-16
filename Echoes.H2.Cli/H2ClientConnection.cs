@@ -27,7 +27,9 @@ namespace Echoes.H2.Cli
 
         private Task _innerReadTask;
         private Task _innerWriteRun;
-        private readonly Channel<Stream> _writerChannel;
+        private readonly Channel<Memory<byte>> _writerChannel;
+
+        private readonly SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1); 
 
         private H2ClientConnection(
             Stream baseStream,
@@ -44,30 +46,36 @@ namespace Echoes.H2.Cli
             _setting = setting;
 
             _writerChannel =
-                Channel.CreateBounded<Stream>(new BoundedChannelOptions(1)
+                Channel.CreateBounded<Memory<byte>>(new BoundedChannelOptions(1)
                 {
                     SingleReader = true,
                     SingleWriter = true
                 });
 
-            _stateManager = new H2ConnectionManager(setting, _writerChannel);
+            _stateManager = new H2ConnectionManager(setting, UpStreamChannel);
 
             _innerReadTask = InternalReadRun();
             _overallState[0].StateType = StreamStateType.Open;
 
-        
 
-
-           // _upstreamChannel.Writer.WriteAsync()
+            // _upstreamChannel.Writer.WriteAsync()
         }
-
         public IH2StreamSetting Setting => _setting;
 
-        private async Task CloseRemoteConnection()
+        private async ValueTask UpStreamChannel(Memory<byte> data, CancellationToken token)
         {
-            // Echoes does not support Push 
+            try
+            {
+                // This semaphore slim is slow as it per request 
+                await _writeSemaphore.WaitAsync(token).ConfigureAwait(false);
+                await _baseStream.WriteAsync(data, _cancellationTokenSource.Token).ConfigureAwait(false);
+            }
+            finally
+            {
+                _writeSemaphore.Release(); 
+            }
         }
-
+        
         private void ProcessIncomingSettingFrame(SettingFrame settingFrame)
         {
             switch (settingFrame.SettingIdentifier)
@@ -114,10 +122,10 @@ namespace Echoes.H2.Cli
         {
             try
             {
-                await foreach (var stream in _writerChannel.Reader.ReadAllAsync(_cancellationTokenSource.Token)
+                await foreach (var buffer in _writerChannel.Reader.ReadAllAsync(_cancellationTokenSource.Token)
                     .ConfigureAwait(false))
                 {
-                    await stream.CopyToAsync(_baseStream).ConfigureAwait(false);
+                    await _baseStream.WriteAsync(buffer).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
@@ -161,7 +169,7 @@ namespace Echoes.H2.Cli
         }
         
         public async Task Go(
-            Stream requestHeaderStream, 
+            Memory<byte> requestHeader, 
             Stream requestBodyStream, 
             Stream responseHeaderStream,
             Stream responseBodyStream, 
@@ -175,7 +183,7 @@ namespace Echoes.H2.Cli
             {
                 // Should be pending 
 
-                await activeStream.WriteHeader(requestHeaderStream, linkedTokenSource.Token)
+                await activeStream.WriteHeader(requestHeader, linkedTokenSource.Token)
                     .ConfigureAwait(false);
 
                 if (requestBodyStream != null)
@@ -208,6 +216,7 @@ namespace Echoes.H2.Cli
         public async ValueTask DisposeAsync()
         {
             _cancellationTokenSource.Dispose();
+            _writeSemaphore.Dispose();
             await _innerReadTask.ConfigureAwait(false);
         }
     }
