@@ -55,7 +55,7 @@ namespace Echoes.H2.Cli
 
                    while (true)
                    {
-                       var frame = await H2Reader.ReadNextFrameAsync(sslStream).ConfigureAwait(false);
+                      // var frame = await H2Reader.ReadNextFrameAsync(sslStream).ConfigureAwait(false);
                     }
 
 

@@ -10,11 +10,11 @@ namespace Echoes.H2.Cli
         public SettingFrame(ReadOnlySpan<byte> bodyBytes)
         {
             SettingIdentifier = (SettingIdentifier) BinaryPrimitives.ReadUInt16BigEndian(bodyBytes);
-            Value = BinaryPrimitives.ReadInt32BigEndian(bodyBytes.Slice(2));
+            Value = BinaryPrimitives.ReadUInt32BigEndian(bodyBytes.Slice(2));
             Ack = true; 
         }
 
-        public SettingFrame(SettingIdentifier settingIdentifier, int value)
+        public SettingFrame(SettingIdentifier settingIdentifier, uint value)
         {
             SettingIdentifier = settingIdentifier;
             Value = value;
@@ -32,7 +32,7 @@ namespace Echoes.H2.Cli
         
         public SettingIdentifier SettingIdentifier { get;  }
 
-        public int Value { get; }
+        public uint Value { get; }
 
         public int BodyLength => Ack ? 0 : 6;
 

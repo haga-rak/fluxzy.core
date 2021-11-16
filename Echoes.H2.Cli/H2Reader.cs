@@ -15,11 +15,11 @@ namespace Echoes.H2.Cli
     {
         public async ValueTask<H2FrameReadResult> ReadNextFrameAsync(Stream stream, byte [] readBuffer, CancellationToken cancellationToken)
         {
-            await stream.ReadExact(readBuffer, 0, 9, cancellationToken).ConfigureAwait(false);
+            await stream.ReadExactAsync(readBuffer, 0, 9, cancellationToken).ConfigureAwait(false);
 
             var h2FrameHeader = new H2Frame(new ReadOnlySpan<byte>(readBuffer, 0, 9));
             
-            await stream.ReadExact(readBuffer, 0, h2FrameHeader.BodyLength, cancellationToken).ConfigureAwait(false);
+            await stream.ReadExactAsync(readBuffer, 0, h2FrameHeader.BodyLength, cancellationToken).ConfigureAwait(false);
 
             switch (h2FrameHeader.BodyType)
             {
