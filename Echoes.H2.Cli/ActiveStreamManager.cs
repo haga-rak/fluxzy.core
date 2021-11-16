@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Channels;
@@ -7,31 +6,31 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
 {
-    internal class H2ConnectionManager
+    internal class ActiveStreamManager
     {
         private readonly H2StreamSetting _streamSetting;
         private readonly UpStreamChannel _upStreamChannel;
-        private readonly IDictionary<int, ActiveStream> _repository = new Dictionary<int, ActiveStream>();
+        private readonly ActiveStream[] _repository; 
         private readonly int _currentStreamCount;
 
-        public H2ConnectionManager(
+        public ActiveStreamManager(
             H2StreamSetting streamSetting,
             UpStreamChannel upStreamChannel
             )
         {
             _streamSetting = streamSetting;
             _upStreamChannel = upStreamChannel;
+            _repository = new ActiveStream[streamSetting.Remote.SettingsMaxConcurrentStreams + 1]; 
         }
 
         public ChannelReader<Stream> ReadChannel { get; set; }
-
-        public void ReleaseActiveStream(ActiveStream channelUsage)
-        {
-            channelUsage.Used = false; 
-        }
+        
 
         public ActiveStream GetActiveStream(int streamIdentifier)
         {
+            // Todo check if out of bounds 
+            var activeStream = _repository[(streamIdentifier - 1) / 2]; 
+
             if (_repository.TryGetValue(streamIdentifier, out var result))
                 return result;
 
@@ -66,8 +65,7 @@ namespace Echoes.H2.Cli
                 // Can create another stream 
                 var newStreamIdentifier = _repository.Keys.DefaultIfEmpty(1).Max().NextOdd();
 
-                ActiveStream newChannel =
-                    new ActiveStream(newStreamIdentifier, _upStreamChannel, ); 
+                ActiveStream newChannel = new ActiveStream(newStreamIdentifier, _upStreamChannel, ); 
 
             }
             else

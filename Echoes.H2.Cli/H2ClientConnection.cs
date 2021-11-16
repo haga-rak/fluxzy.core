@@ -23,7 +23,7 @@ namespace Echoes.H2.Cli
         private readonly H2StreamSetting _setting;
         private readonly Dictionary<int, StreamState> _overallState = new Dictionary<int, StreamState>();
 
-        private readonly H2ConnectionManager _stateManager;
+        private readonly ActiveStreamManager _stateManager;
 
         private Task _innerReadTask;
         private Task _innerWriteRun;
@@ -52,7 +52,7 @@ namespace Echoes.H2.Cli
                     SingleWriter = true
                 });
 
-            _stateManager = new H2ConnectionManager(setting, UpStreamChannel);
+            _stateManager = new ActiveStreamManager(setting, UpStreamChannel);
 
             _innerReadTask = InternalReadRun();
             _overallState[0].StateType = StreamStateType.Open;
@@ -140,6 +140,10 @@ namespace Echoes.H2.Cli
             }
         }
 
+        /// <summary>
+        /// %Write and read has to use the same thread 
+        /// </summary>
+        /// <returns></returns>
         private async Task InternalReadRun()
         {
             byte[] readBuffer = new byte[_connectionSetting.ReadBuffer];
@@ -192,14 +196,16 @@ namespace Echoes.H2.Cli
             CancellationToken cancellationToken)
         {
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token);
-            
-            var activeStream = await _stateManager.GetOrCreateActiveStream().ConfigureAwait(false);
+
+            var activeStream = _stateManager.GetOrCreateActiveStream();
 
             try
             {
-                // Should be pending 
+                activeStream.Acquire();
 
-                await activeStream.WriteHeader(requestHeader, linkedTokenSource.Token)
+                   // Should be pending 
+
+                   await activeStream.WriteHeader(requestHeader, linkedTokenSource.Token)
                     .ConfigureAwait(false);
 
                 if (requestBodyStream != null)
@@ -214,7 +220,7 @@ namespace Echoes.H2.Cli
             }
             finally
             {
-                _stateManager.ReleaseActiveStream(activeStream);
+                activeStream.Release();
             }
         }
 

@@ -11,14 +11,18 @@ namespace Echoes.H2.Cli
 
     internal class ActiveStream
     {
+        /// <summary>
+        /// 16 Ko Header
+        /// </summary>
         private readonly byte [] _buffer = new byte[1024 * 16]; 
         
         private readonly UpStreamChannel _upStreamChannel;
         private readonly IHeaderEncoder _headerEncoder;
         private readonly int _maxPacketSize;
 
-        private readonly Channel<Stream> _downStreamChannel;
+        private readonly Channel<Memory<byte>> _downStreamChannel;
         private readonly Memory<byte> _memoryBuffer;
+        private int _readHeaderBufferIndex = 0; 
 
         public ActiveStream(
             int streamIdentifier,
@@ -39,7 +43,7 @@ namespace Echoes.H2.Cli
             _memoryBuffer = new Memory<byte>(_buffer);
             Used = true;
 
-            _downStreamChannel = Channel.CreateUnbounded<Stream>(new UnboundedChannelOptions()
+            _downStreamChannel = Channel.CreateUnbounded<Memory<byte>>(new UnboundedChannelOptions()
             {
                 SingleReader = true, 
                 SingleWriter = true,
@@ -48,7 +52,7 @@ namespace Echoes.H2.Cli
 
         public int StreamIdentifier { get;  }
 
-        public bool Used { get; internal set; }
+        public bool Used { get; private set; }
 
         public StreamStateType Type { get; internal set; } = StreamStateType.Idle;
 
@@ -57,6 +61,17 @@ namespace Echoes.H2.Cli
         public WindowSizeHolder RemoteWindowSize { get;  }
 
         public WindowSizeHolder OverallRemoteWindowSize { get;  }
+
+        public void Acquire()
+        {
+            _readHeaderBufferIndex = 0;
+            Used = true;
+        }
+
+        public void Release()
+        {
+            Used = false; 
+        }
 
         public ValueTask WriteHeader(Memory<byte> headerBuffer, CancellationToken cancellationToken)
         {
@@ -102,17 +117,36 @@ namespace Echoes.H2.Cli
             await bodyStream.CopyToAsync(t, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask ReadHeader(Stream t, CancellationToken cancellationToken)
+
+        private TaskCompletionSource<object> _readHeaderTask = new TaskCompletionSource<object>();
+
+        public  Task ReadHeader(Stream t, CancellationToken cancellationToken)
         {
+            _readHeaderTask = new TaskCompletionSource<object>();
+            return _readHeaderTask.Task;
+
+
+
             var bodyStream = await _downStreamChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
             await bodyStream.CopyToAsync(new H2HeaderDecodeStream(t), cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask Receive(Stream stream, CancellationToken cancellationToken)
+        public async ValueTask ReceiveHeader(Memory<byte> buffer, bool last, CancellationToken cancellationToken)
         {
+            buffer.CopyTo(_memoryBuffer.Slice(_readHeaderBufferIndex));
+            _readHeaderBufferIndex += buffer.Length;
+
+
+            if (last)
+            {
+
+            }
+
+
             await _downStreamChannel.Writer.WriteAsync(stream, cancellationToken).ConfigureAwait(false); 
         }
         
     }
+    
 }

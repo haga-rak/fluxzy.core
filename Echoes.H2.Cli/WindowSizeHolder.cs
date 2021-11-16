@@ -9,6 +9,7 @@ namespace Echoes.H2.Cli
         private int _windowSize;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         private readonly SemaphoreSlim _semaphoreRequest = new SemaphoreSlim(1);
+        private SpinLock _spinLock = new SpinLock();
 
         public WindowSizeHolder(int windowSize)
         {
@@ -30,6 +31,7 @@ namespace Echoes.H2.Cli
             if (cancellationToken.IsCancellationRequested)
                 return false;
 
+            if (_windowSize >= requestedLength)
             try
             {
                 await _semaphoreRequest.WaitAsync(cancellationToken).ConfigureAwait(false);
