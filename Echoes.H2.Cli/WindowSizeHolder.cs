@@ -21,6 +21,7 @@ namespace Echoes.H2.Cli
         public void UpdateWindowSize(int value)
         {
             Interlocked.Add(ref _windowSize, value);
+
             _semaphore.Release(_semaphore.CurrentCount); 
 
             // Wakeup at least 

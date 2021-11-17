@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -33,7 +35,7 @@ namespace Echoes.H2.Cli.IO
 
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
         {
-
+            
 
 
             return base.ReadAsync(buffer, cancellationToken);
@@ -65,4 +67,5 @@ namespace Echoes.H2.Cli.IO
         public override long Length { get; } = -1; 
         public override long Position { get; set; }
     }
+    
 }

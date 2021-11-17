@@ -43,7 +43,7 @@ namespace Echoes.H2.Cli
                     return new H2FrameReadResult(h2FrameHeader, new PriorityFrame(bodyBuffer.Span));
                 case H2FrameType.Data:
                     return new H2FrameReadResult(h2FrameHeader, new DataFrame(
-                        bodyBuffer, (h2FrameHeader.Flags & 0x8) != 0));
+                        bodyBuffer, (h2FrameHeader.Flags & 0x8) != 0, (h2FrameHeader.Flags & 0x1) != 0));
                 case H2FrameType.Headers:
                     return new H2FrameReadResult(h2FrameHeader, new HeaderFrame(bodyBuffer, 
                         (h2FrameHeader.Flags & 0x8) != 0, 

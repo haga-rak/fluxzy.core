@@ -5,8 +5,9 @@ namespace Echoes.H2.Cli
 {
     public readonly struct DataFrame : IBodyFrame
     {
-        public DataFrame(Memory<byte> bodyBytes, bool padded)
+        public DataFrame(Memory<byte> bodyBytes, bool padded, bool endStream)
         {
+            EndStream = endStream;
             var paddedLength = 0;
 
             if (padded)
@@ -19,12 +20,15 @@ namespace Echoes.H2.Cli
             Buffer = bodyBytes.Slice(0, BodyLength);
         }
 
-        public void Write(Stream stream)
-        {
-        }
+        public bool EndStream { get; }
 
         public Memory<byte> Buffer { get; }
 
         public int BodyLength { get; }
+
+        public void Write(Stream stream)
+        {
+        }
+
     }
 }

@@ -48,7 +48,7 @@ namespace Echoes.H2.Cli
         {
             data
                 .BuWrite_24(BodyLength)
-                .BuWrite_8((byte)BodyType)
+                .BuWrite_8((byte) BodyType)
                 .BuWrite_8(Flags)
                 .BuWrite_32(StreamIdentifier);
         }

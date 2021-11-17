@@ -19,11 +19,10 @@ namespace Echoes.H2.Cli
         private readonly IH2StreamReader _streamReader;
         private readonly IH2StreamWriter _streamWriter;
 
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _connectionCancellationTokenSource = new CancellationTokenSource();
         private readonly H2StreamSetting _setting;
-        private readonly Dictionary<int, StreamState> _overallState = new Dictionary<int, StreamState>();
 
-        private readonly ActiveStreamManager _stateManager;
+        private readonly StreamPool _statePool;
 
         private Task _innerReadTask;
         private Task _innerWriteRun;
@@ -52,9 +51,9 @@ namespace Echoes.H2.Cli
                     SingleWriter = true
                 });
 
-            _stateManager = new ActiveStreamManager(setting, UpStreamChannel);
+            _statePool = new StreamPool(setting, UpStreamChannel);
 
-            _innerReadTask = InternalReadRun();
+            _innerReadTask = InternalConnectionReadingLoop();
             _overallState[0].StateType = StreamStateType.Open;
 
 
@@ -68,7 +67,7 @@ namespace Echoes.H2.Cli
             {
                 // This semaphore slim is slow as it per request 
                 await _writeSemaphore.WaitAsync(token).ConfigureAwait(false);
-                await _baseStream.WriteAsync(data, _cancellationTokenSource.Token).ConfigureAwait(false);
+                await _baseStream.WriteAsync(data, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
             }
             finally
             {
@@ -112,8 +111,8 @@ namespace Echoes.H2.Cli
 
         private async Task Init()
         {
-            await _baseStream.WriteAsync(Preface, _cancellationTokenSource.Token).ConfigureAwait(false);
-            _innerReadTask = InternalReadRun();
+            await _baseStream.WriteAsync(Preface, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+            _innerReadTask = InternalConnectionReadingLoop();
 
             // Wait from setting reception 
 
@@ -124,7 +123,7 @@ namespace Echoes.H2.Cli
         {
             try
             {
-                await foreach (var buffer in _writerChannel.Reader.ReadAllAsync(_cancellationTokenSource.Token)
+                await foreach (var buffer in _writerChannel.Reader.ReadAllAsync(_connectionCancellationTokenSource.Token)
                     .ConfigureAwait(false))
                 {
                     await _baseStream.WriteAsync(buffer).ConfigureAwait(false);
@@ -144,16 +143,16 @@ namespace Echoes.H2.Cli
         /// %Write and read has to use the same thread 
         /// </summary>
         /// <returns></returns>
-        private async Task InternalReadRun()
+        private async Task InternalConnectionReadingLoop()
         {
             byte[] readBuffer = new byte[_connectionSetting.ReadBuffer];
 
-            while (!_cancellationTokenSource.IsCancellationRequested)
+            while (!_connectionCancellationTokenSource.IsCancellationRequested)
             {
                 try
                 {
                     var frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
-                        _cancellationTokenSource.Token).ConfigureAwait(false);
+                        _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
                     if (frame.Payload is SettingFrame settingFrame)
                     {
@@ -168,35 +167,32 @@ namespace Echoes.H2.Cli
 
                     if (frame.Payload is IHeaderHolderFrame headerHolderFrame)
                     {
-                        var activeStream = _stateManager.GetActiveStream(frame.Header.StreamIdentifier);
-
-                        if (activeStream == null)
+                        if (!_statePool.TryGetExistingActiveStream(frame.Header.StreamIdentifier, out var activeStream))
                         {
                             // TODO : Notify stream error, stream already closed 
-                            continue; 
+                            continue;
                         }
-
-                        await
-                            activeStream.ReceiveHeader(headerHolderFrame.Data, headerHolderFrame.EndHeader,
-                                    _cancellationTokenSource.Token)
-                                .ConfigureAwait(false);
+                        
+                        activeStream.ReceiveHeaderFragmentFromConnection(
+                            headerHolderFrame.Data,
+                            headerHolderFrame.EndHeader,
+                            _connectionCancellationTokenSource.Token);
 
                         continue; 
                     }
 
                     if (frame.Payload is DataFrame dataFrame)
                     {
-                        var activeStream = _stateManager.GetActiveStream(frame.Header.StreamIdentifier);
-
-                        if (activeStream == null)
+                        if (!_statePool.TryGetExistingActiveStream(frame.Header.StreamIdentifier, out var activeStream))
                         {
                             // TODO : Notify stream error, stream already closed 
-                            continue; 
+                            continue;
                         }
 
                         await
-                            activeStream.ReceiveHeader(headerHolderFrame.Data, headerHolderFrame.EndHeader,
-                                    _cancellationTokenSource.Token)
+                            activeStream.ReceiveBodyFragmentFromConnection(
+                                    dataFrame.Buffer, dataFrame.EndStream,
+                                    _connectionCancellationTokenSource.Token)
                                 .ConfigureAwait(false);
 
                         continue; 
@@ -211,38 +207,23 @@ namespace Echoes.H2.Cli
             }
         }
         
-        public async Task<RequestResponse> Go(
+        public async Task<H2Message> Send(
             Memory<byte> requestHeader, 
             Stream requestBodyStream, 
-            CancellationToken cancellationToken)
+            int bufferLength = 16 * 1024, 
+            CancellationToken cancellationToken = default)
         {
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token);
+            using var activeStream = await _statePool.CreateNewStreamActivity(cancellationToken).ConfigureAwait(false);
 
-            var activeStream = _stateManager.GetOrCreateActiveStream();
+            await activeStream.WriteHeader(requestHeader, cancellationToken)
+                .ConfigureAwait(false);
 
-            try
-            {
-                activeStream.Acquire();
-
-                   // Should be pending 
-
-                   await activeStream.WriteHeader(requestHeader, linkedTokenSource.Token)
+            if (requestBodyStream != null)
+                await activeStream.WriteBody(requestBodyStream, cancellationToken)
                     .ConfigureAwait(false);
 
-                if (requestBodyStream != null)
-                    await activeStream.WriteBody(requestBodyStream, linkedTokenSource.Token)
-                        .ConfigureAwait(false);
-
-                await activeStream.ReadHeader(responseHeaderStream, linkedTokenSource.Token)
-                    .ConfigureAwait(false);
-
-                await activeStream.ReadBody(responseBodyStream, linkedTokenSource.Token)
-                    .ConfigureAwait(false);
-            }
-            finally
-            {
-                activeStream.Release();
-            }
+            return await activeStream.ProcessResponse(cancellationToken)
+                .ConfigureAwait(false);
         }
 
 
@@ -256,17 +237,10 @@ namespace Echoes.H2.Cli
 
         public async ValueTask DisposeAsync()
         {
-            _cancellationTokenSource.Dispose();
+            _connectionCancellationTokenSource.Dispose();
             _writeSemaphore.Dispose();
             await _innerReadTask.ConfigureAwait(false);
         }
-    }
-
-    public class RequestResponse
-    {
-        public Stream RequestStream { get;  }
-
-        public Stream ResponseStream { get;  }
     }
 
     public class H2Stream

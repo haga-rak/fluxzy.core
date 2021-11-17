@@ -4,13 +4,6 @@ using Echoes.H2.Cli.IO;
 
 namespace Echoes.H2.Cli
 {
-    public interface IWriteJob
-    {
-        Stream Stream { get; }
-
-        int? Length { get; }
-    }
-
     public readonly struct WriteJob : IWriteJob
     {
         public WriteJob(Memory<byte> data)
