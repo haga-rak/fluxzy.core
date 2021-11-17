@@ -5,7 +5,14 @@ using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct PriorityFrame : IBodyFrame
+    public interface IPriorityFrame
+    {
+        bool Exclusive { get; }
+        uint StreamDependency { get; }
+        byte Weight { get; }
+    }
+
+    public readonly struct PriorityFrame : IBodyFrame, IPriorityFrame
     {
         public PriorityFrame(ReadOnlySpan<byte> data)
         {

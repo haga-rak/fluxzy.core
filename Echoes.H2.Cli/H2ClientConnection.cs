@@ -147,12 +147,26 @@ namespace Echoes.H2.Cli
         {
             byte[] readBuffer = new byte[_connectionSetting.ReadBuffer];
 
+
+
             while (!_connectionCancellationTokenSource.IsCancellationRequested)
             {
                 try
                 {
                     var frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+
+                    _statePool.TryGetExistingActiveStream(frame.Header.StreamIdentifier, out var activeStream); 
+
+                    if (frame.Payload is IPriorityFrame priorityFrame && priorityFrame.StreamDependency > 0)
+                    {
+                        if (activeStream == null)
+                        {
+                            continue;
+                        }
+
+                        activeStream.SetPriority(priorityFrame.Exclusive, priorityFrame.StreamDependency, priorityFrame.Weight);
+                    }
 
                     if (frame.Payload is SettingFrame settingFrame)
                     {
@@ -167,7 +181,7 @@ namespace Echoes.H2.Cli
 
                     if (frame.Payload is IHeaderHolderFrame headerHolderFrame)
                     {
-                        if (!_statePool.TryGetExistingActiveStream(frame.Header.StreamIdentifier, out var activeStream))
+                        if (activeStream == null)
                         {
                             // TODO : Notify stream error, stream already closed 
                             continue;
@@ -175,30 +189,39 @@ namespace Echoes.H2.Cli
                         
                         activeStream.ReceiveHeaderFragmentFromConnection(
                             headerHolderFrame.Data,
-                            headerHolderFrame.EndHeader,
-                            _connectionCancellationTokenSource.Token);
+                            headerHolderFrame.EndHeader);
 
                         continue; 
                     }
 
                     if (frame.Payload is DataFrame dataFrame)
                     {
-                        if (!_statePool.TryGetExistingActiveStream(frame.Header.StreamIdentifier, out var activeStream))
+                        if (activeStream == null)
                         {
-                            // TODO : Notify stream error, stream already closed 
                             continue;
                         }
 
                         await
                             activeStream.ReceiveBodyFragmentFromConnection(
-                                    dataFrame.Buffer, dataFrame.EndStream,
-                                    _connectionCancellationTokenSource.Token)
+                                    dataFrame.Buffer, dataFrame.EndStream)
                                 .ConfigureAwait(false);
 
                         continue; 
                     }
 
-                    
+
+                    if (frame.Payload is RstStreamFrame rstStreamFrame)
+                    {
+                        if (activeStream == null)
+                        {
+                            continue;
+                        }
+
+                        activeStream.ResetRequest(rstStreamFrame.ErrorCode);
+                        continue;
+                    }
+
+
                 }
                 catch
                 {
@@ -215,12 +238,8 @@ namespace Echoes.H2.Cli
         {
             using var activeStream = await _statePool.CreateNewStreamActivity(cancellationToken).ConfigureAwait(false);
 
-            await activeStream.WriteHeader(requestHeader, cancellationToken)
+            await activeStream.ProcessRequest(requestHeader, requestBodyStream)
                 .ConfigureAwait(false);
-
-            if (requestBodyStream != null)
-                await activeStream.WriteBody(requestBodyStream, cancellationToken)
-                    .ConfigureAwait(false);
 
             return await activeStream.ProcessResponse(cancellationToken)
                 .ConfigureAwait(false);

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct HeaderFrame : IBodyFrame, IHeaderHolderFrame
+    public readonly struct HeaderFrame : IPriorityFrame, IBodyFrame, IHeaderHolderFrame
     {
         public HeaderFrame(Memory<byte> bodyBytes, bool padded, bool priority, bool endHeader, bool endStream)
         {
@@ -48,7 +48,7 @@ namespace Echoes.H2.Cli
 
         public uint StreamDependency { get;  }
 
-        public ushort Weight { get;  }
+        public byte Weight { get;  }
 
         public Memory<byte> Data { get; }
 

@@ -10,7 +10,7 @@ namespace Echoes.H2.Cli
         private readonly PeerSetting _remotePeerSetting;
         private readonly IActiveStreamBuilder _activeStreamBuilder;
         
-        private readonly IDictionary<int, StreamActivity> _runningStreams = new Dictionary<int, StreamActivity>();
+        private readonly IDictionary<int, StreamProcessing> _runningStreams = new Dictionary<int, StreamProcessing>();
 
         private int _nextStreamIdentifier = 1;
 
@@ -25,12 +25,12 @@ namespace Echoes.H2.Cli
 
         }
 
-        public bool TryGetExistingActiveStream(int streamIdentifier, out StreamActivity result)
+        public bool TryGetExistingActiveStream(int streamIdentifier, out StreamProcessing result)
         {
             return _runningStreams.TryGetValue(streamIdentifier, out result); 
         }
 
-        private StreamActivity CreateActiveStream()
+        private StreamProcessing CreateActiveStream()
         {
             var activeStream = _activeStreamBuilder.Build(_nextStreamIdentifier, _remotePeerSetting);
 
@@ -45,15 +45,15 @@ namespace Echoes.H2.Cli
         /// Get or create  active stream 
         /// </summary>
         /// <returns></returns>
-        public async Task<StreamActivity> CreateNewStreamActivity(CancellationToken token)
+        public async Task<StreamProcessing> CreateNewStreamActivity(CancellationToken token)
         {
             await _barrier.WaitAsync(token).ConfigureAwait(false); 
             return CreateActiveStream(); 
         }
 
-        public void NotifyDispose(StreamActivity streamActivity)
+        public void NotifyDispose(StreamProcessing streamProcessing)
         {
-            if (_runningStreams.Remove(streamActivity.StreamIdentifier))
+            if (_runningStreams.Remove(streamProcessing.StreamIdentifier))
                 _barrier.Release();
 
         }
@@ -66,7 +66,7 @@ namespace Echoes.H2.Cli
     
     internal interface IActiveStreamBuilder
     {
-        StreamActivity Build(int streamIdentifier, PeerSetting remotePeerSetting); 
+        StreamProcessing Build(int streamIdentifier, PeerSetting remotePeerSetting); 
     }
     
 
