@@ -49,8 +49,11 @@ namespace Echoes.H2.Cli
                         (h2FrameHeader.Flags & 0x8) != 0, 
                         (h2FrameHeader.Flags & 0x20) != 0, 
                         (h2FrameHeader.Flags & 0x4) != 0, 
-                        (h2FrameHeader.Flags & 0x1) != 0
-                        )
+                        (h2FrameHeader.Flags & 0x1) != 0)
+                        );
+                case H2FrameType.Continuation:
+                    return new H2FrameReadResult(h2FrameHeader, new ContinuationFrame(bodyBuffer, 
+                        (h2FrameHeader.Flags & 0x4) != 0)
                         );
                 default:
                     throw new InvalidOperationException();

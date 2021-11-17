@@ -176,7 +176,30 @@ namespace Echoes.H2.Cli
                             continue; 
                         }
 
-                        activeStream.Receive(headerHolderFrame.Data)
+                        await
+                            activeStream.ReceiveHeader(headerHolderFrame.Data, headerHolderFrame.EndHeader,
+                                    _cancellationTokenSource.Token)
+                                .ConfigureAwait(false);
+
+                        continue; 
+                    }
+
+                    if (frame.Payload is DataFrame dataFrame)
+                    {
+                        var activeStream = _stateManager.GetActiveStream(frame.Header.StreamIdentifier);
+
+                        if (activeStream == null)
+                        {
+                            // TODO : Notify stream error, stream already closed 
+                            continue; 
+                        }
+
+                        await
+                            activeStream.ReceiveHeader(headerHolderFrame.Data, headerHolderFrame.EndHeader,
+                                    _cancellationTokenSource.Token)
+                                .ConfigureAwait(false);
+
+                        continue; 
                     }
 
                     
@@ -188,11 +211,9 @@ namespace Echoes.H2.Cli
             }
         }
         
-        public async Task Go(
+        public async Task<RequestResponse> Go(
             Memory<byte> requestHeader, 
             Stream requestBodyStream, 
-            Stream responseHeaderStream,
-            Stream responseBodyStream, 
             CancellationToken cancellationToken)
         {
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token);
@@ -229,8 +250,6 @@ namespace Echoes.H2.Cli
         {
             // Negociating streams 
 
-
-
             return null;
         }
 
@@ -241,6 +260,13 @@ namespace Echoes.H2.Cli
             _writeSemaphore.Dispose();
             await _innerReadTask.ConfigureAwait(false);
         }
+    }
+
+    public class RequestResponse
+    {
+        public Stream RequestStream { get;  }
+
+        public Stream ResponseStream { get;  }
     }
 
     public class H2Stream

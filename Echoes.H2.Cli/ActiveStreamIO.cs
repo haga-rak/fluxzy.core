@@ -117,36 +117,58 @@ namespace Echoes.H2.Cli
             await bodyStream.CopyToAsync(t, cancellationToken).ConfigureAwait(false);
         }
 
+        private StreamPromise _readHeaderPromise = null;
 
-        private TaskCompletionSource<object> _readHeaderTask = new TaskCompletionSource<object>();
 
-        public  Task ReadHeader(Stream t, CancellationToken cancellationToken)
+        private  TaskCompletionSource<Memory<byte>> _responseHeaderReady = new TaskCompletionSource<Memory<byte>>(); 
+
+
+        public async Task ReadHeader(Stream stream, CancellationToken cancellationToken)
         {
-            _readHeaderTask = new TaskCompletionSource<object>();
-            return _readHeaderTask.Task;
-
-
-
-            var bodyStream = await _downStreamChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
-
-            await bodyStream.CopyToAsync(new H2HeaderDecodeStream(t), cancellationToken).ConfigureAwait(false);
+            var data = await _responseHeaderReady.Task.ConfigureAwait(false);
+            await stream.WriteAsync(data, cancellationToken).ConfigureAwait(false); 
         }
 
         public async ValueTask ReceiveHeader(Memory<byte> buffer, bool last, CancellationToken cancellationToken)
         {
             buffer.CopyTo(_memoryBuffer.Slice(_readHeaderBufferIndex));
-            _readHeaderBufferIndex += buffer.Length;
 
+            _readHeaderBufferIndex += buffer.Length;
 
             if (last)
             {
-
+                if (_readHeaderPromise != null)
+                {
+                    await _readHeaderPromise.ResultStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+                    _readHeaderPromise.CompletionSource.SetResult(null);
+                }
             }
-
-
-            await _downStreamChannel.Writer.WriteAsync(stream, cancellationToken).ConfigureAwait(false); 
         }
         
     }
-    
+
+    internal class StreamPromise
+    {
+        public StreamPromise(Stream resultStream)
+        {
+            ResultStream = resultStream;
+            CompletionSource = new TaskCompletionSource<object>();
+        }
+
+        public Stream ResultStream { get;  }
+
+        public TaskCompletionSource<object> CompletionSource { get;  }
+    }
+
+    public class ActiveStreamContext : IDisposable
+    {
+        ///
+        public TaskCompletionSource<Memory<byte>> ResponseHeaderReady { get; } =
+            new TaskCompletionSource<Memory<byte>>(); 
+
+        public void Dispose()
+        {
+
+        }
+    }
 }
