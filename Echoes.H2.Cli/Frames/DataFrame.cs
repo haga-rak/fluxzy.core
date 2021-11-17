@@ -28,6 +28,7 @@ namespace Echoes.H2.Cli
 
         public void Write(Stream stream)
         {
+
         }
 
     }

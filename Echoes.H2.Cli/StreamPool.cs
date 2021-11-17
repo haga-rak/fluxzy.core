@@ -20,9 +20,9 @@ namespace Echoes.H2.Cli
             IActiveStreamBuilder activeStreamBuilder,
             PeerSetting remotePeerSetting)
         {
+            _activeStreamBuilder = activeStreamBuilder;
             _remotePeerSetting = remotePeerSetting;
             _barrier = new SemaphoreSlim((int) remotePeerSetting.SettingsMaxConcurrentStreams);
-
         }
 
         public bool TryGetExistingActiveStream(int streamIdentifier, out StreamProcessing result)

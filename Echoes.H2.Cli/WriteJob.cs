@@ -1,31 +1,17 @@
 ﻿using System;
-using System.IO;
-using Echoes.H2.Cli.IO;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct WriteJob : IWriteJob
+    public readonly struct WriteJob
     {
-        public WriteJob(Memory<byte> data)
+        public WriteJob(Memory<byte> data, int priority)
         {
-            Stream = new ReadonlyMemoryStream(data);
-            Length = data.Length;
+            Data = data;
+            Priority = priority;
         }
 
-        public WriteJob(Stream stream) 
-            : this(stream, null)
-        {
+        public Memory<byte> Data { get;  }
 
-        }
-
-        public WriteJob(Stream stream, int? length)
-        {
-            Stream = stream;
-            Length = length;
-        }
-
-        public Stream Stream { get;  }
-
-        public int ? Length { get;  }
+        public int Priority { get;  }
     }
 }

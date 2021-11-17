@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
@@ -16,7 +17,7 @@ namespace Echoes.H2.Cli
         private readonly Stream _baseStream;
         private readonly H2ConnectionSetting _connectionSetting;
 
-        private readonly IH2StreamReader _streamReader;
+        private readonly IH2FrameReader _streamReader;
         private readonly IH2StreamWriter _streamWriter;
 
         private readonly CancellationTokenSource _connectionCancellationTokenSource = new CancellationTokenSource();
@@ -26,15 +27,17 @@ namespace Echoes.H2.Cli
 
         private Task _innerReadTask;
         private Task _innerWriteRun;
+
         private readonly Channel<Memory<byte>> _writerChannel;
 
         private readonly SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1); 
+        
 
         private H2ClientConnection(
             Stream baseStream,
             H2ConnectionSetting connectionSetting,
             H2StreamSetting setting,
-            IH2StreamReader streamReader,
+            IH2FrameReader streamReader,
             IH2StreamWriter streamWriter
             )
         {
@@ -45,19 +48,13 @@ namespace Echoes.H2.Cli
             _setting = setting;
 
             _writerChannel =
-                Channel.CreateBounded<Memory<byte>>(new BoundedChannelOptions(1)
+                Channel.CreateBounded<Memory<byte>>(new BoundedChannelOptions(16)
                 {
                     SingleReader = true,
                     SingleWriter = true
                 });
-
+            
             _statePool = new StreamPool(setting, UpStreamChannel);
-
-            _innerReadTask = InternalConnectionReadingLoop();
-            _overallState[0].StateType = StreamStateType.Open;
-
-
-            // _upstreamChannel.Writer.WriteAsync()
         }
         public IH2StreamSetting Setting => _setting;
 
@@ -147,8 +144,6 @@ namespace Echoes.H2.Cli
         {
             byte[] readBuffer = new byte[_connectionSetting.ReadBuffer];
 
-
-
             while (!_connectionCancellationTokenSource.IsCancellationRequested)
             {
                 try
@@ -209,7 +204,6 @@ namespace Echoes.H2.Cli
                         continue; 
                     }
 
-
                     if (frame.Payload is RstStreamFrame rstStreamFrame)
                     {
                         if (activeStream == null)
@@ -220,8 +214,6 @@ namespace Echoes.H2.Cli
                         activeStream.ResetRequest(rstStreamFrame.ErrorCode);
                         continue;
                     }
-
-
                 }
                 catch
                 {
@@ -258,7 +250,9 @@ namespace Echoes.H2.Cli
         {
             _connectionCancellationTokenSource.Dispose();
             _writeSemaphore.Dispose();
+
             await _innerReadTask.ConfigureAwait(false);
+            await _innerWriteRun.ConfigureAwait(false);
         }
     }
 

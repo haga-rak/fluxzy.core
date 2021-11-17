@@ -6,13 +6,12 @@ using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-    public interface IH2StreamReader
+    public interface IH2FrameReader
     {
-        ValueTask<H2FrameReadResult> ReadNextFrameAsync(
-            Stream stream, Memory<byte> buffer, CancellationToken cancellationToken);
+        ValueTask<H2FrameReadResult> ReadNextFrameAsync(Stream stream, Memory<byte> buffer, CancellationToken cancellationToken);
     }
 
-    public class H2Reader : IH2StreamReader
+    public class H2Reader : IH2FrameReader
     {
         public async ValueTask<H2FrameReadResult> ReadNextFrameAsync(
             Stream stream, Memory<byte> buffer, CancellationToken cancellationToken)
@@ -59,5 +58,11 @@ namespace Echoes.H2.Cli
                     throw new InvalidOperationException();
             }
         }
+        
+    }
+
+    public class H2Packetizer
+    {
+
     }
 }

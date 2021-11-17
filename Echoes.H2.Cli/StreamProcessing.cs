@@ -171,9 +171,7 @@ namespace Echoes.H2.Cli
                 _responseReaden.SetResult(null);
             }
         }
-
-
-
+        
         private void OnError(Exception ex)
         {
 
