@@ -30,8 +30,8 @@ namespace Echoes.H2.Cli.Helpers
         {
             int readen = 0;
             int currentIndex = offset;
-            int remain = length; 
-
+            int remain = length;
+            
             while (readen < length)
             {
                 var currentReaden = origin.Read(buffer, currentIndex, remain);

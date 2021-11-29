@@ -4,6 +4,6 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
 {
-    public delegate ValueTask UpStreamChannel(Memory<byte> data, CancellationToken token);
+    public delegate ValueTask UpStreamChannel(WriteTask data, CancellationToken token);
     
 }

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
 {
     public interface IFixedSizeFrame
     {
-        void Write(Stream stream);
+        int Write(Span<byte> buffer, ReadOnlySpan<byte> payload = default); 
 
         int BodyLength { get; }
     }
@@ -19,6 +16,7 @@ namespace Echoes.H2.Cli
     public interface IHeaderHolderFrame
     {
         public bool EndHeader { get; }
-        public Memory<byte> Data { get; }
+
+        public ReadOnlyMemory<byte> Data { get; }
     }
 }

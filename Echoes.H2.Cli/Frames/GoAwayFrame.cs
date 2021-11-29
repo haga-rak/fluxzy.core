@@ -9,11 +9,12 @@ namespace Echoes.H2.Cli
 
         public uint ErrorCode { get; }
 
-        public int BodyLength => throw new NotImplementedException();
-
-        public void Write(Stream stream)
+        public int Write(Span<byte> buffer)
         {
-            throw new NotImplementedException();
+
         }
+
+        public int BodyLength => throw new NotImplementedException();
+        
     }
 }

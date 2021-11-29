@@ -60,9 +60,4 @@ namespace Echoes.H2.Cli
         }
         
     }
-
-    public class H2Packetizer
-    {
-
-    }
 }

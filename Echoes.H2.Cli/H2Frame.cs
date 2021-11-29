@@ -64,7 +64,20 @@ namespace Echoes.H2.Cli
         {
             return new H2Frame(length, H2FrameType.Data, 0, streamIdentifier); 
         }
-        
+
+
+        public static H2Frame BuildHeaderFrameHeader(int length, int streamIdentifier, bool first, bool endStream, bool endHeader)
+        {
+            byte flags = 0;
+
+            if (endStream)
+                flags |= 0x1;
+            if (endHeader)
+                flags |= 0x1;
+
+            return new H2Frame(length, first ? H2FrameType.Headers : H2FrameType.Continuation, flags, streamIdentifier);
+        }
+
 
     }
 }

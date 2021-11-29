@@ -38,6 +38,8 @@ namespace Echoes.H2.Cli
 
                     await sslStream.AuthenticateAsClientAsync(sslAuthenticationOption).ConfigureAwait(false);
 
+
+
                     byte [] buffer = new byte[1024];
                     
                     var channel = Channel.CreateUnbounded<int>(new UnboundedChannelOptions()

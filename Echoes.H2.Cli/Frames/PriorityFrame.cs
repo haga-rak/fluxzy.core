@@ -8,7 +8,7 @@ namespace Echoes.H2.Cli
     public interface IPriorityFrame
     {
         bool Exclusive { get; }
-        uint StreamDependency { get; }
+        int StreamDependency { get; }
         byte Weight { get; }
     }
 
@@ -17,13 +17,13 @@ namespace Echoes.H2.Cli
         public PriorityFrame(ReadOnlySpan<byte> data)
         {
             Exclusive = (data[0] >> 7) == 1;
-            StreamDependency = BinaryPrimitives.ReadUInt32BigEndian(data) & 0x7FFFFFFF;
+            StreamDependency = BinaryPrimitives.ReadInt32BigEndian(data) & 0x7FFFFFFF;
             Weight = data[4];
         }
 
         public bool Exclusive { get; }
 
-        public uint StreamDependency { get; }
+        public int StreamDependency { get; }
 
         public byte Weight { get; }
 

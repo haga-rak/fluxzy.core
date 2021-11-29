@@ -10,7 +10,7 @@ namespace Echoes.H2.Cli
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        private readonly Channel<Memory<byte>> _resultChannel = Channel.CreateBounded<Memory<byte>>(new BoundedChannelOptions(1)
+        private readonly Channel<ReadOnlyMemory<byte>> _resultChannel = Channel.CreateBounded<ReadOnlyMemory<byte>>(new BoundedChannelOptions(1)
         {
             SingleWriter = true, 
             SingleReader = true,
@@ -26,14 +26,14 @@ namespace Echoes.H2.Cli
 
         public bool Complete { get; private set; } = false;
 
-        public IAsyncEnumerable<Memory<byte>> Response => _resultChannel.Reader.ReadAllAsync(_cancellationTokenSource.Token);
+        public IAsyncEnumerable<ReadOnlyMemory<byte>> Response => _resultChannel.Reader.ReadAllAsync(_cancellationTokenSource.Token);
         
         internal void PostRequestHeader(Memory<byte> data)
         {
             Header = data; 
         }
 
-        internal async Task PostRequestBodyFragment(Memory<byte> memory, bool end,  CancellationToken cancellationToken)
+        internal async Task PostRequestBodyFragment(ReadOnlyMemory<byte> memory, bool end,  CancellationToken cancellationToken)
         {
             await _resultChannel.Writer.WriteAsync(memory, cancellationToken).ConfigureAwait(false);
 

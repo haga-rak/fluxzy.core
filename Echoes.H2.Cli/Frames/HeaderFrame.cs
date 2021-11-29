@@ -1,20 +1,25 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.IO;
+using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
     public readonly struct HeaderFrame : IPriorityFrame, IBodyFrame, IHeaderHolderFrame
     {
-        public HeaderFrame(Memory<byte> bodyBytes, bool padded, bool priority, bool endHeader, bool endStream)
+        public HeaderFrame(ReadOnlyMemory<byte> bodyBytes, bool padded, bool priority, bool endHeader, bool endStream)
         {
-            var paddedLength = 0;
+            byte paddedLength = 0;
+
+            Padded = padded;
 
             if (padded)
             {
                 paddedLength = bodyBytes.Span[0];
                 bodyBytes = bodyBytes.Slice(1);
             }
+
+            PadLength = paddedLength;
 
             Priority = priority;
             EndHeader = endHeader;
@@ -23,7 +28,7 @@ namespace Echoes.H2.Cli
             if (priority)
             {
                 Exclusive = (bodyBytes.Span[0] >> 7) == 1;
-                StreamDependency = BinaryPrimitives.ReadUInt32BigEndian(bodyBytes.Span) & 0x7FFFFFFF;
+                StreamDependency = BinaryPrimitives.ReadInt32BigEndian(bodyBytes.Span) & 0x7FFFFFFF;
                 Weight = bodyBytes.Span[4];
                 bodyBytes.Slice(5);
             }
@@ -38,6 +43,41 @@ namespace Echoes.H2.Cli
             Data = bodyBytes.Slice(0, BodyLength);
         }
 
+        public HeaderFrame(
+            bool padded, 
+            byte paddedLength, bool priority,
+            bool endHeader, bool endStream, byte weight,
+            bool exclusive, int streamDependency)
+        {
+            
+            Padded = padded;
+            Priority = priority;
+            EndHeader = endHeader;
+            EndStream = endStream;
+            Weight = weight;
+            Data = default;
+            PadLength = paddedLength;
+            Exclusive = exclusive;
+            StreamDependency = streamDependency;
+
+            var initialLength = 6;
+
+            if (!Priority)
+            {
+                initialLength -= 5;
+            }
+            if (Padded)
+            {
+                initialLength -= 1;
+            }
+
+            BodyLength = initialLength;
+        }
+
+        public byte PadLength { get; } 
+
+        public bool Padded { get; }
+
         public bool Priority { get;  }
 
         public bool Exclusive { get;  }
@@ -46,14 +86,48 @@ namespace Echoes.H2.Cli
 
         public bool EndStream { get;  }
 
-        public uint StreamDependency { get;  }
+        public int StreamDependency { get;  }
 
         public byte Weight { get;  }
 
-        public Memory<byte> Data { get; }
+        public ReadOnlyMemory<byte> Data { get; }
 
-        public void Write(Stream stream)
+        public int Write(Span<byte> buffer, ReadOnlySpan<byte> payload = default)
         {
+            var written = 0; 
+
+            if (Padded)
+            {
+                buffer = buffer.BuWrite_8(PadLength);
+                written += 1;
+            }
+
+            var dependency = StreamDependency;
+
+            if (Padded && Exclusive)
+            {
+                dependency |= (0x7FFF_FFFF);
+            }
+
+            if (Priority)
+            {
+                buffer = buffer.BuWrite_32(dependency);
+                buffer = buffer.BuWrite_8(Weight);
+
+                written += 5;
+            }
+
+            payload.CopyTo(buffer);
+            buffer = buffer.Slice(payload.Length);
+            written += payload.Length;
+
+            if (Padded && PadLength > 0)
+            {
+                buffer = buffer.Slice(PadLength);
+                written += PadLength;
+            }
+
+            return written; 
         }
 
         public int BodyLength { get; }

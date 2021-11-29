@@ -8,7 +8,7 @@ namespace Echoes.H2.Cli
     internal class StreamPool :  IDisposable
     {
         private readonly PeerSetting _remotePeerSetting;
-        private readonly IActiveStreamBuilder _activeStreamBuilder;
+        private readonly IStreamProcessingBuilder _streamProcessingBuilder;
         
         private readonly IDictionary<int, StreamProcessing> _runningStreams = new Dictionary<int, StreamProcessing>();
 
@@ -17,10 +17,10 @@ namespace Echoes.H2.Cli
         private readonly SemaphoreSlim _barrier; 
 
         public StreamPool(
-            IActiveStreamBuilder activeStreamBuilder,
+            IStreamProcessingBuilder streamProcessingBuilder,
             PeerSetting remotePeerSetting)
         {
-            _activeStreamBuilder = activeStreamBuilder;
+            _streamProcessingBuilder = streamProcessingBuilder;
             _remotePeerSetting = remotePeerSetting;
             _barrier = new SemaphoreSlim((int) remotePeerSetting.SettingsMaxConcurrentStreams);
         }
@@ -32,7 +32,7 @@ namespace Echoes.H2.Cli
 
         private StreamProcessing CreateActiveStream()
         {
-            var activeStream = _activeStreamBuilder.Build(_nextStreamIdentifier, _remotePeerSetting);
+            var activeStream = _streamProcessingBuilder.Build(_nextStreamIdentifier, _remotePeerSetting);
 
             _runningStreams[_nextStreamIdentifier] = activeStream;
 
@@ -64,7 +64,8 @@ namespace Echoes.H2.Cli
         }
     }
     
-    internal interface IActiveStreamBuilder
+
+    internal interface IStreamProcessingBuilder
     {
         StreamProcessing Build(int streamIdentifier, PeerSetting remotePeerSetting); 
     }

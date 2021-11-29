@@ -70,6 +70,12 @@ namespace Echoes.H2.Cli
 
         public int StreamIdentifier { get;  }
 
+        public byte StreamPriority { get; private set; }
+
+        public int StreamDependency { get; private set; }
+
+        public bool Exclusive { get; private set; }
+
         public WindowSizeHolder RemoteWindowSize { get;  }
         
         public WindowSizeHolder OverallRemoteWindowSize { get;  }
@@ -95,32 +101,47 @@ namespace Echoes.H2.Cli
 
         }
 
-        public void SetPriority(bool exclusive, uint streamDependency, byte weight)
+        public void SetPriority(bool exclusive, int streamDependency, byte weight)
         {
-
+            StreamDependency = streamDependency;
+            StreamPriority = weight;
+            Exclusive = exclusive; 
         }
 
-        public async  ValueTask ProcessRequest(Memory<byte> headerBuffer, Stream t)
+        public async  ValueTask ProcessRequest(ReadOnlyMemory<char> headerBuffer, Stream requestBodyStream)
         {
-             await _upStreamChannel(_headerEncoder.Encode(headerBuffer, _dataReceptionBuffer), _overCancellationTokenSource.Token).ConfigureAwait(false);
+            var readyToBeSent = _headerEncoder.Encode(new HeaderEncodingJob(headerBuffer, StreamIdentifier, StreamDependency), _dataReceptionBuffer);
+            var writeTask = new WriteTask(readyToBeSent, StreamIdentifier, StreamPriority, StreamDependency); 
+            
+             await _upStreamChannel(writeTask, _overCancellationTokenSource.Token).ConfigureAwait(false);
 
-             while (true)
-             {
-                 var bodyLength = await t.ReadAsync(_dataReceptionBuffer.Slice(9, _maxPacketSize), _overCancellationTokenSource.Token).ConfigureAwait(false);
+             // Wait for request header to be sent according to priority 
+             await writeTask.DoneTask.ConfigureAwait(false);
 
-                 if (bodyLength == 0)
-                 {
-                     // No more data to read 
-                     return;
-                 }
-                 
-                 if (!await BookWindowSize(bodyLength, _overCancellationTokenSource.Token).ConfigureAwait(false))
-                     throw new OperationCanceledException("Stream cancellation request", _overCancellationTokenSource.Token);
+            if (requestBodyStream != null)
+            {
+                while (true)
+                {
+                    var bodyLength = await requestBodyStream.ReadAsync(_dataReceptionBuffer.Slice(9, _maxPacketSize), _overCancellationTokenSource.Token).ConfigureAwait(false);
 
-                 H2Frame.BuildDataFrameHeader(bodyLength, StreamIdentifier).Write(_dataReceptionBuffer.Span);
+                    if (bodyLength == 0)
+                    {
+                        // No more request data body to send 
+                        return;
+                    }
 
-                 await _upStreamChannel(_dataReceptionBuffer.Slice(0, bodyLength + 9), _overCancellationTokenSource.Token).ConfigureAwait(false);
-             }
+                    if (!await BookWindowSize(bodyLength, _overCancellationTokenSource.Token).ConfigureAwait(false))
+                        throw new OperationCanceledException("Stream cancellation request", _overCancellationTokenSource.Token);
+
+                    H2Frame.BuildDataFrameHeader(bodyLength, StreamIdentifier).Write(_dataReceptionBuffer.Span);
+
+                    await _upStreamChannel(
+                        new WriteTask(_dataReceptionBuffer.Slice(0, bodyLength + 9),
+                            StreamIdentifier, StreamPriority, StreamDependency)
+                        , _overCancellationTokenSource.Token).ConfigureAwait(false);
+                }
+
+            }
         }
 
         public async Task<H2Message> ProcessResponse(CancellationToken cancellationToken)
@@ -143,7 +164,7 @@ namespace Echoes.H2.Cli
             }
         }
 
-        public void ReceiveHeaderFragmentFromConnection(Memory<byte> buffer, bool last)
+        public void ReceiveHeaderFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool last)
         {
             buffer.CopyTo(_headerBuffer.Slice(_readHeaderBufferIndex));
             _readHeaderBufferIndex += buffer.Length;
@@ -154,7 +175,7 @@ namespace Echoes.H2.Cli
             }
         }
 
-        public async Task ReceiveBodyFragmentFromConnection(Memory<byte> buffer, bool enStream)
+        public async Task ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool enStream)
         {
             buffer.CopyTo(_dataReceptionBuffer.Slice(_fragmentReceptionOffset));
             _fragmentReceptionOffset += buffer.Length;
