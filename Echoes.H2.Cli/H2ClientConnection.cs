@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,7 +31,8 @@ namespace Echoes.H2.Cli
 
         private readonly Channel<WriteTask> _writerChannel;
 
-        private readonly SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1); 
+        private readonly SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1);
+        private readonly StreamProcessingBuilder _streamProcessingBuilder;
 
         private H2ClientConnection(
             Stream baseStream,
@@ -41,6 +43,11 @@ namespace Echoes.H2.Cli
             _streamReader = new H2Reader();
             _setting = setting;
 
+            _streamProcessingBuilder = new StreamProcessingBuilder(_connectionCancellationTokenSource.Token,
+                UpStreamChannel,
+                _setting, ArrayPool<byte>.Shared
+            );
+
             _writerChannel =
                 Channel.CreateBounded<WriteTask>(new BoundedChannelOptions(16)
                 {
@@ -48,8 +55,14 @@ namespace Echoes.H2.Cli
                     SingleWriter = true
                 });
 
-            _statePool = new StreamPool(setting, UpStreamChannel);
+            _statePool = new StreamPool(_streamProcessingBuilder, _setting.Remote);
         }
+
+        private async ValueTask UpStreamChannel(WriteTask data, CancellationToken callerCancellationToken)
+        {
+            await _writerChannel.Writer.WriteAsync(data).ConfigureAwait(false);
+        }
+
         public H2StreamSetting Setting => _setting;
         
         private void ProcessIncomingSettingFrame(SettingFrame settingFrame)

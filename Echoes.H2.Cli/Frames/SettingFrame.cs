@@ -32,7 +32,7 @@ namespace Echoes.H2.Cli
         
         public SettingIdentifier SettingIdentifier { get;  }
 
-        public uint Value { get; }
+        public int Value { get; }
 
         public int BodyLength => Ack ? 0 : 6;
 

@@ -30,9 +30,9 @@ namespace Echoes.H2.Cli
             return _runningStreams.TryGetValue(streamIdentifier, out result); 
         }
 
-        private StreamProcessing CreateActiveStream()
+        private StreamProcessing CreateActiveStream(CancellationToken callerCancellationToken)
         {
-            var activeStream = _streamProcessingBuilder.Build(_nextStreamIdentifier, _remotePeerSetting);
+            var activeStream = _streamProcessingBuilder.Build(_nextStreamIdentifier, this, callerCancellationToken);
 
             _runningStreams[_nextStreamIdentifier] = activeStream;
 
@@ -45,17 +45,16 @@ namespace Echoes.H2.Cli
         /// Get or create  active stream 
         /// </summary>
         /// <returns></returns>
-        public async Task<StreamProcessing> CreateNewStreamActivity(CancellationToken token)
+        public async Task<StreamProcessing> CreateNewStreamActivity(CancellationToken callerCancellationToken)
         {
-            await _barrier.WaitAsync(token).ConfigureAwait(false); 
-            return CreateActiveStream(); 
+            await _barrier.WaitAsync(callerCancellationToken).ConfigureAwait(false); 
+            return CreateActiveStream(callerCancellationToken); 
         }
 
         public void NotifyDispose(StreamProcessing streamProcessing)
         {
             if (_runningStreams.Remove(streamProcessing.StreamIdentifier))
                 _barrier.Release();
-
         }
 
         public void Dispose()
@@ -65,11 +64,6 @@ namespace Echoes.H2.Cli
     }
     
 
-    internal interface IStreamProcessingBuilder
-    {
-        StreamProcessing Build(int streamIdentifier, PeerSetting remotePeerSetting); 
-    }
-    
 
     public enum StreamStateType : ushort
     {

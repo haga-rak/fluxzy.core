@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Channels;
@@ -15,11 +16,11 @@ namespace Echoes.H2.Cli
         private readonly IHeaderEncoder _headerEncoder;
         private readonly H2Message _response;
         private readonly int _maxPacketSize;
-
-        private readonly Channel<Memory<byte>> _downStreamChannel;
+        
         private readonly Memory<byte> _dataReceptionBuffer;
         private readonly Memory<byte> _headerBuffer;
         private readonly H2StreamSetting _globalSetting;
+        private readonly ArrayPool<byte> _memoryPool;
         private int _readHeaderBufferIndex = 0;
         private int _fragmentReceptionOffset; 
 
@@ -27,6 +28,8 @@ namespace Echoes.H2.Cli
         private readonly TaskCompletionSource<Memory<byte>> _responseHeaderReady = new TaskCompletionSource<Memory<byte>>();
         private readonly TaskCompletionSource<object> _responseReaden = new TaskCompletionSource<object>();
         private readonly CancellationTokenSource _overCancellationTokenSource;
+        private readonly byte[] _dataReceptionBufferbytes;
+        private readonly byte[] _headerBufferBytes;
 
 
         public StreamProcessing(
@@ -36,13 +39,9 @@ namespace Echoes.H2.Cli
             CancellationToken localCancellationToken,
             UpStreamChannel upStreamChannel,
             IHeaderEncoder headerEncoder,
-            WindowSizeHolder overallRemoteWindowSize, 
-            WindowSizeHolder remoteWindowSize, 
             H2Message response,
-            Memory<byte> dataReceptionBuffer, 
-            Memory<byte> headerBuffer,
-            H2StreamSetting globalSetting,
-            int maxPacketSize)
+            H2StreamSetting globalSetting, 
+            ArrayPool<byte> memoryPool)
         {
             StreamIdentifier = streamIdentifier;
             _parent = parent;
@@ -51,18 +50,19 @@ namespace Echoes.H2.Cli
             _upStreamChannel = upStreamChannel;
             _headerEncoder = headerEncoder;
             _response = response;
-            _maxPacketSize = maxPacketSize;
-            RemoteWindowSize = remoteWindowSize;
-            OverallRemoteWindowSize = overallRemoteWindowSize;
-            _dataReceptionBuffer = dataReceptionBuffer;
-            _headerBuffer = headerBuffer;
-            _globalSetting = globalSetting;
+            RemoteWindowSize = new WindowSizeHolder(globalSetting.Remote.WindowSize);
+            OverallRemoteWindowSize = new WindowSizeHolder(globalSetting.Remote.WindowSize); 
 
-            _downStreamChannel = Channel.CreateUnbounded<Memory<byte>>(new UnboundedChannelOptions()
-            {
-                SingleReader = true, 
-                SingleWriter = true,
-            });
+            _dataReceptionBufferbytes = memoryPool.Rent(globalSetting.ReadBufferLength);
+            _headerBufferBytes = memoryPool.Rent(globalSetting.MaxHeaderSize);
+            ;
+
+
+            _dataReceptionBuffer = _dataReceptionBufferbytes;
+            _headerBuffer = _headerBufferBytes;
+            _globalSetting = globalSetting;
+            _memoryPool = memoryPool;
+
 
             _overCancellationTokenSource =
                 CancellationTokenSource.CreateLinkedTokenSource(remoteCancellationToken, localCancellationToken); 
@@ -122,6 +122,7 @@ namespace Echoes.H2.Cli
             {
                 while (true)
                 {
+                    // TODO packetize here !!!!!!! 
                     var bodyLength = await requestBodyStream.ReadAsync(_dataReceptionBuffer.Slice(9, _maxPacketSize), _overCancellationTokenSource.Token).ConfigureAwait(false);
 
                     if (bodyLength == 0)
@@ -186,7 +187,6 @@ namespace Echoes.H2.Cli
 
             _fragmentReceptionOffset = 0;
 
-
             if (enStream)
             {
                 _responseReaden.SetResult(null);
@@ -202,6 +202,9 @@ namespace Echoes.H2.Cli
 
         public void Dispose()
         {
+            _memoryPool.Return(_dataReceptionBufferbytes);
+            _memoryPool.Return(_headerBufferBytes);
+            
             _parent.NotifyDispose(this);
             RemoteWindowSize?.Dispose();
             OverallRemoteWindowSize?.Dispose();

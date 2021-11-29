@@ -18,6 +18,9 @@ namespace Echoes.H2.Cli
         public uint SettingsHeaderTableSize { get; set; } = 4096;
 
 
+        public int MaxHeaderSize { get; set; } = 1024 * 8;
+
+
         /// <summary>
         /// Read buffer used by the connection. Should be at least MAX_FRAME_SIZE
         /// </summary>
@@ -30,7 +33,7 @@ namespace Echoes.H2.Cli
 
     public class PeerSetting
     {
-        public uint WindowSize { get; set; } = uint.MaxValue - 1;
+        public int WindowSize { get; set; } = int.MaxValue - 1;
 
         public uint MaxFrameSize { get; set; } = 0x4000;
 
