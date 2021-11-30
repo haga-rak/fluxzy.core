@@ -11,6 +11,7 @@ namespace Echoes.H2.Cli
 
     public interface IBodyFrame : IFixedSizeFrame
     {
+        int StreamIdentifier { get;  }
     }
 
     public interface IHeaderHolderFrame

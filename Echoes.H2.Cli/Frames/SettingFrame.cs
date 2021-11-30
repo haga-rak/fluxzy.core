@@ -5,20 +5,22 @@ using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct SettingFrame : IBodyFrame
+    public readonly ref struct SettingFrame
     {
-        public SettingFrame(ReadOnlySpan<byte> bodyBytes)
+        public SettingFrame(ReadOnlySpan<byte> bodyBytes, HeaderFlags flags)
         {
-            SettingIdentifier = (SettingIdentifier) BinaryPrimitives.ReadUInt16BigEndian(bodyBytes);
-            Value = BinaryPrimitives.ReadUInt32BigEndian(bodyBytes.Slice(2));
-            Ack = true; 
-        }
-
-        public SettingFrame(SettingIdentifier settingIdentifier, uint value)
-        {
-            SettingIdentifier = settingIdentifier;
-            Value = value;
-            Ack = false; 
+            if ((flags & HeaderFlags.Ack) != 0)
+            {
+                Ack = true;
+                SettingIdentifier = SettingIdentifier.Undefined;
+                Value = 0; 
+            }
+            else
+            {
+                SettingIdentifier = (SettingIdentifier)BinaryPrimitives.ReadUInt16BigEndian(bodyBytes);
+                Value = BinaryPrimitives.ReadInt32BigEndian(bodyBytes.Slice(2));
+                Ack = false; 
+            }
         }
 
         public SettingFrame(bool ack)
@@ -33,6 +35,22 @@ namespace Echoes.H2.Cli
         public SettingIdentifier SettingIdentifier { get;  }
 
         public int Value { get; }
+
+        public int Write(Span<byte> buffer, ReadOnlySpan<byte> payload = default)
+        {
+            var offset = 
+                H2Frame.Write(buffer, BodyLength, H2FrameType.Settings, Ack ? HeaderFlags.Ack : HeaderFlags.None, 0);
+
+            if (!Ack)
+            {
+                buffer = buffer.Slice(offset).BuWrite_16((ushort)SettingIdentifier);
+                buffer = buffer.BuWrite_32(Value);
+
+                return 15; 
+            }
+
+            return 9; 
+        }
 
         public int BodyLength => Ack ? 0 : 6;
 

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Buffers.Binary;
-using System.IO;
 using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct H2Frame : IFixedSizeFrame 
+    public readonly ref struct H2Frame 
     {
-        private H2Frame(int length, H2FrameType bodyType, byte flags, int streamIdentifier)
+        public H2Frame(int length, H2FrameType bodyType, HeaderFlags flags, int streamIdentifier)
         {
             BodyLength = length;
             BodyType = bodyType;
@@ -24,7 +23,7 @@ namespace Echoes.H2.Cli
 
             BodyLength = headerFrames[2] | headerFrames[1] << 8 | headerFrames[0] << 16;  // 24 premier bits == length 
             BodyType = (H2FrameType) headerFrames[3];
-            Flags = headerFrames[4];
+            Flags = (HeaderFlags) headerFrames[4];
             StreamIdentifier = BinaryPrimitives.ReadInt32BigEndian(headerFrames.Slice(5, 4));
         }
 
@@ -32,52 +31,54 @@ namespace Echoes.H2.Cli
 
         public H2FrameType BodyType { get; }
 
-        public byte Flags { get; }
+        public HeaderFlags Flags { get; }
 
         public int StreamIdentifier { get;  }
 
-        public void Write(Stream stream)
-        {
-            stream.BuWrite_24(BodyLength);
-            stream.BuWrite_8((byte) BodyType);
-            stream.BuWrite_8(Flags);
-            stream.BuWrite_32(StreamIdentifier);
-        }
-
-        public void Write(Span<byte> data)
+        public int Write(Span<byte> data)
         {
             data
                 .BuWrite_24(BodyLength)
                 .BuWrite_8((byte) BodyType)
-                .BuWrite_8(Flags)
+                .BuWrite_8((byte) Flags)
                 .BuWrite_32(StreamIdentifier);
+
+            return 9; 
         }
 
-        private static void Write(Stream stream, int length, H2FrameType type, int streamIdentifier = 0,
-            byte flags = 0)
+        public static int Write(Span<byte> buffer, int length, H2FrameType bodyType, HeaderFlags flags, int streamIdentifier)
         {
-            var header = new H2Frame(length, type, flags, streamIdentifier); 
-            header.Write(stream);
+            var frame = new H2Frame(length, bodyType, flags, streamIdentifier);
+            return frame.Write(buffer); 
         }
-
+        
         public static H2Frame BuildDataFrameHeader(int length, int streamIdentifier)
         {
-            return new H2Frame(length, H2FrameType.Data, 0, streamIdentifier); 
+            return new H2Frame(length, H2FrameType.Data, HeaderFlags.None, streamIdentifier); 
         }
-
 
         public static H2Frame BuildHeaderFrameHeader(int length, int streamIdentifier, bool first, bool endStream, bool endHeader)
         {
-            byte flags = 0;
+            HeaderFlags flags = 0;
 
             if (endStream)
-                flags |= 0x1;
+                flags |= HeaderFlags.EndStream;
             if (endHeader)
-                flags |= 0x1;
+                flags |= HeaderFlags.EndHeaders;
 
             return new H2Frame(length, first ? H2FrameType.Headers : H2FrameType.Continuation, flags, streamIdentifier);
         }
+    }
 
+    [Flags]
+    public enum HeaderFlags : byte
+    {
+        None = 0x0,
+        Ack = 0x1,
+        EndStream = 0x1 ,
+        EndHeaders = 0x4,
+        Padded = 0x8,
+        Priority = 0x20
 
     }
 }

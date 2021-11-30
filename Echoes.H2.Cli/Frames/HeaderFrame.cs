@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Buffers.Binary;
-using System.IO;
 using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct HeaderFrame : IPriorityFrame, IBodyFrame, IHeaderHolderFrame
+    public readonly ref struct HeaderFrame
     {
-        public HeaderFrame(ReadOnlyMemory<byte> bodyBytes, bool padded, bool priority, bool endHeader, bool endStream)
+        public HeaderFrame(ReadOnlyMemory<byte> bodyBytes, HeaderFlags flags)
         {
             byte paddedLength = 0;
 
-            Padded = padded;
+            Padded = flags.HasFlag(HeaderFlags.Padded);
 
-            if (padded)
+            if (Padded)
             {
                 paddedLength = bodyBytes.Span[0];
                 bodyBytes = bodyBytes.Slice(1);
@@ -21,11 +20,11 @@ namespace Echoes.H2.Cli
 
             PadLength = paddedLength;
 
-            Priority = priority;
-            EndHeader = endHeader;
-            EndStream = endStream;
+            Priority = flags.HasFlag(HeaderFlags.Priority); 
+            EndHeader = flags.HasFlag(HeaderFlags.EndHeaders);
+            EndStream = flags.HasFlag(HeaderFlags.EndStream); ;
 
-            if (priority)
+            if (Priority)
             {
                 Exclusive = (bodyBytes.Span[0] >> 7) == 1;
                 StreamDependency = BinaryPrimitives.ReadInt32BigEndian(bodyBytes.Span) & 0x7FFFFFFF;

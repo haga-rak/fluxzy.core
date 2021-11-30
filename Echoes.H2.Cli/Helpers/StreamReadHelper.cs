@@ -18,7 +18,7 @@ namespace Echoes.H2.Cli.Helpers
                 var currentReaden = origin.Read(span.Slice(currentIndex, remain));
 
                 if (currentReaden <= 0)
-                    throw new InvalidOperationException($"Stream does not have {span.Length} octets");
+                    throw new EndOfStreamException($"Stream does not have {span.Length} octets");
 
                 currentIndex += currentReaden; 
                 remain -= currentReaden; 
@@ -37,7 +37,7 @@ namespace Echoes.H2.Cli.Helpers
                 var currentReaden = origin.Read(buffer, currentIndex, remain);
 
                 if (currentReaden <= 0)
-                    throw new InvalidOperationException($"Stream does not have {length} octets");
+                    throw new EndOfStreamException($"Stream does not have {length} octets");
 
                 currentIndex += currentReaden; 
                 remain -= currentReaden; 
@@ -55,7 +55,7 @@ namespace Echoes.H2.Cli.Helpers
                 var currentReaden = await origin.ReadAsync(buffer, currentIndex, remain, cancellationToken).ConfigureAwait(false);
 
                 if (currentReaden <= 0)
-                    throw new InvalidOperationException($"Stream does not have {length} octets");
+                    throw new EndOfStreamException($"Stream does not have {length} octets");
 
                 currentIndex += currentReaden; 
                 remain -= currentReaden; 
@@ -73,7 +73,7 @@ namespace Echoes.H2.Cli.Helpers
                 var currentReaden = await origin.ReadAsync(buffer.Slice(currentIndex, remain), cancellationToken).ConfigureAwait(false);
 
                 if (currentReaden <= 0)
-                    throw new InvalidOperationException($"Stream does not have {buffer.Length} bytes");
+                    throw new EndOfStreamException($"Stream does not have {buffer.Length} bytes");
 
                 currentIndex += currentReaden; 
                 remain -= currentReaden; 

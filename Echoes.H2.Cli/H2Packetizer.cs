@@ -1,7 +1,6 @@
 // Copyright © 2021 Haga Rakotoharivelo
 
 using System;
-using System.IO;
 
 namespace Echoes.H2.Cli
 {
@@ -28,25 +27,24 @@ namespace Echoes.H2.Cli
 
             while (remains > 0)
             {
-                var writtableLength = Math.Max(maxPayload, remains);
+                var writableLength = Math.Max(maxPayload, remains);
 
                 // Build header  here 
-                var end = writtableLength == remains;
+                var end = writableLength == remains;
 
-                var frame = H2Frame.BuildHeaderFrameHeader(writtableLength, streamIdentifier, first, false, end);
+                var frame = H2Frame.BuildHeaderFrameHeader(writableLength, streamIdentifier, first, false, end);
 
                 frame.Write(buffer.Slice(currentWritten));
                 
                 currentWritten += 9;
 
-                var headerFrame = new HeaderFrame(false, 0, false, end, false, 0, false, streamDependency
-                    );
+                var headerFrame = new HeaderFrame(false, 0, false, end, false, 0, false, streamDependency);
 
-                currentWritten += headerFrame.Write(buffer.Slice(currentWritten), rawData.Slice(rawData.Length - remains, writtableLength));
+                currentWritten += headerFrame.Write(buffer.Slice(currentWritten), rawData.Slice(rawData.Length - remains, writableLength));
 
                 first = false; 
 
-                remains -= writtableLength; 
+                remains -= writableLength; 
             }
 
             return buffer.Slice(0, currentWritten); 

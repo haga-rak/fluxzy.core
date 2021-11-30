@@ -114,9 +114,16 @@ namespace Echoes.H2.Cli.Helpers
             return BuWrite_32(stream, finalData); 
         }
 
-        public static Stream BuWrite_1_31(this Stream stream, bool _1, int _31)
+
+        public static Span<byte> BuWrite_1_31(this Span<byte> buffer, bool _1, uint _31)
         {
-            return BuWrite_1_31(stream, _1, (uint)_31);
+            uint finalData = !_1 ? (_31 & 0x7FFFFFFF) : (uint) (_31 | 0x80000000);
+            return BuWrite_32(buffer, finalData); 
+        }
+
+        public static Span<byte> BuWrite_1_31(this Span<byte> buffer, bool _1, int _31)
+        {
+            return BuWrite_1_31(buffer, _1, (uint)_31);
         }
     }
 }

@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Buffers.Binary;
-using System.IO;
 using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-    public readonly struct WindowUpdateFrame : IBodyFrame
+    public readonly ref struct WindowUpdateFrame
     {
-        public WindowUpdateFrame(ReadOnlySpan<byte> data)
+        public WindowUpdateFrame(ReadOnlySpan<byte> data, int streamIdentifier)
         {
+            StreamIdentifier = streamIdentifier;
             WindowSizeIncrement = BinaryPrimitives.ReadInt32BigEndian(data);
             Reserved = false; 
         }
 
-        public WindowUpdateFrame(int windowSizeIncrement) 
+        public WindowUpdateFrame(int windowSizeIncrement, int streamIdentifier) 
         {
             WindowSizeIncrement = windowSizeIncrement;
-            Reserved = false; 
+            Reserved = false;
+            StreamIdentifier = streamIdentifier;
         }
+
+        public int StreamIdentifier { get; }
 
         public bool Reserved { get; }
         
@@ -25,9 +28,15 @@ namespace Echoes.H2.Cli
 
         public int BodyLength => 4;
 
-        public void Write(Stream stream)
+        public int Write(Span<byte> buffer)
         {
-            stream.BuWrite_1_31(Reserved, WindowSizeIncrement);
+            var offset =
+                H2Frame.Write(buffer, BodyLength, H2FrameType.WindowUpdate, HeaderFlags.None, StreamIdentifier);
+
+            buffer.Slice(offset)
+                .BuWrite_32(WindowSizeIncrement);
+
+            return 9 + 4;
         }
     }
 }

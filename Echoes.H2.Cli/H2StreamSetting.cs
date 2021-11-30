@@ -15,7 +15,7 @@ namespace Echoes.H2.Cli
 
         public PeerSetting Remote { get; set; } = new PeerSetting();
 
-        public uint SettingsHeaderTableSize { get; set; } = 4096;
+        public int SettingsHeaderTableSize { get; set; } = 4096;
 
 
         public int MaxHeaderSize { get; set; } = 1024 * 8;
@@ -35,13 +35,13 @@ namespace Echoes.H2.Cli
     {
         public int WindowSize { get; set; } = int.MaxValue - 1;
 
-        public uint MaxFrameSize { get; set; } = 0x4000;
+        public int MaxFrameSize { get; set; } = 0x4000;
 
         public bool EnablePush { get; set; } = false;
 
-        public uint MaxHeaderListSize { get; set; } = 0x4000;
+        public int MaxHeaderListSize { get; set; } = 0x4000;
 
-        public uint SettingsMaxConcurrentStreams { get; set; } = 100;
+        public int SettingsMaxConcurrentStreams { get; set; } = 100;
 
         public int MaxHeaderLine { get; set; } = 1024 * 4; 
 
