@@ -30,6 +30,13 @@ namespace Echoes.H2.Cli
             Ack = true; 
         }
 
+        public SettingFrame(SettingIdentifier settingIdentifier, int value)
+        {
+            SettingIdentifier = settingIdentifier;
+            Value = value;
+            Ack = false;
+        }
+
         public bool Ack { get; }
         
         public SettingIdentifier SettingIdentifier { get;  }
@@ -62,6 +69,14 @@ namespace Echoes.H2.Cli
 
             stream.BuWrite_16((ushort)SettingIdentifier);
             stream.BuWrite_32(Value); 
+        }
+
+        public override string ToString()
+        {
+            if (Ack)
+                return $"Setting : {Ack}";
+
+            return $"Setting : {SettingIdentifier} : {Value}"; 
         }
     }
 

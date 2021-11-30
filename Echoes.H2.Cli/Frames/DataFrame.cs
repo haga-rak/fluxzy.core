@@ -38,7 +38,6 @@ namespace Echoes.H2.Cli
         {
             var toWrite = payload.Length == 0 ? Buffer.Span : payload;
             var offset = H2Frame.Write(buffer, toWrite.Length, H2FrameType.Data, EndStream ? HeaderFlags.EndStream : HeaderFlags.None , StreamIdentifier);
-           
 
             toWrite.CopyTo(buffer.Slice(offset));
             return offset + toWrite.Length; 

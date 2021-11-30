@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
@@ -13,6 +11,8 @@ namespace Echoes.H2.Cli
         static async Task Main(string[] args)
         {
             await H2Test().ConfigureAwait(false);
+            Console.WriteLine("Terminé");
+            Console.ReadLine();
         }
 
 
@@ -38,33 +38,13 @@ namespace Echoes.H2.Cli
 
                     await sslStream.AuthenticateAsClientAsync(sslAuthenticationOption).ConfigureAwait(false);
 
+                    H2ClientConnection connection = await H2ClientConnection.Open(sslStream, new H2StreamSetting());
 
+                    var response = await connection.Send(
+                        "GET https://httpwg.org/ HTTP/1.1\r\nHost: httpwg.org\r\n\r\n".AsMemory(),
+                        null);
 
-                    byte [] buffer = new byte[1024];
-                    
-                    var channel = Channel.CreateUnbounded<int>(new UnboundedChannelOptions()
-                    {
-                        
-                    });
-                    
-
-
-
-                    await sslStream.WriteAsync(Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")).ConfigureAwait(false);
-
-                   // var n = await sslStream.ReadAsync(buffer, 0, buffer.BodyLength);
-
-
-                   while (true)
-                   {
-                      // var frame = await H2Reader.ReadNextFrameAsync(sslStream).ConfigureAwait(false);
-                    }
-
-
-                  //  var str = Encoding.UTF8.GetString(buffer, 0, n);
-
-
-                    Console.WriteLine(sslStream.NegotiatedApplicationProtocol);
+                    var responseString = await response.ResponseToString();
 
                 }
 

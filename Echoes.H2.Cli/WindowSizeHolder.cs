@@ -7,9 +7,9 @@ namespace Echoes.H2.Cli
     public class WindowSizeHolder : IDisposable
     {
         private int _windowSize;
+
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         private readonly SemaphoreSlim _semaphoreRequest = new SemaphoreSlim(1);
-        private SpinLock _spinLock = new SpinLock();
 
         public WindowSizeHolder(int windowSize)
         {
@@ -18,10 +18,9 @@ namespace Echoes.H2.Cli
 
         public int WindowSize => _windowSize;
 
-        public void UpdateWindowSize(int value)
+        public void UpdateWindowSize(int windowSizeIncrement)
         {
-            Interlocked.Add(ref _windowSize, value);
-
+            Interlocked.Add(ref _windowSize, windowSizeIncrement);
             _semaphore.Release(_semaphore.CurrentCount); 
 
             // Wakeup at least 

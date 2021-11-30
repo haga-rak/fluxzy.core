@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -14,6 +13,8 @@ namespace Echoes.H2.Cli
 {
     public class H2ClientConnection : IAsyncDisposable
     { 
+        
+
         private static readonly byte[] Preface = System.Text.Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
 
         private readonly Stream _baseStream;
@@ -34,6 +35,8 @@ namespace Echoes.H2.Cli
         private readonly SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1);
         private readonly StreamProcessingBuilder _streamProcessingBuilder;
 
+        private readonly WindowSizeHolder _overallWindowSizeHolder; 
+
         private H2ClientConnection(
             Stream baseStream,
             H2StreamSetting setting
@@ -43,9 +46,11 @@ namespace Echoes.H2.Cli
             _streamReader = new H2Reader();
             _setting = setting;
 
+            _overallWindowSizeHolder = new WindowSizeHolder(_setting.Remote.WindowSize);
+
             _streamProcessingBuilder = new StreamProcessingBuilder(_connectionCancellationTokenSource.Token,
                 UpStreamChannel,
-                _setting, ArrayPool<byte>.Shared
+                _setting, _overallWindowSizeHolder, ArrayPool<byte>.Shared
             );
 
             _writerChannel =
@@ -65,38 +70,51 @@ namespace Echoes.H2.Cli
 
         public H2StreamSetting Setting => _setting;
         
-        private void ProcessIncomingSettingFrame(SettingFrame settingFrame)
+        private bool ProcessIncomingSettingFrame(SettingFrame settingFrame)
         {
+            Logger.WriteLine(settingFrame.ToString());
+            ;
+
+            if (settingFrame.Ack)
+            {
+                if (!_waitForSettingReception.Task.IsCompleted)
+                    _waitForSettingReception.SetResult(true);
+
+                return false;
+            }
+
             switch (settingFrame.SettingIdentifier)
             {
                 case SettingIdentifier.SettingsEnablePush:
                     if (settingFrame.Value > 0)
                     {
                         // TODO Close connection on error. Push not supported 
-                        return; 
+                        return false;
                     }
-                    _setting.Remote.EnablePush = false; 
-                    return;
+                    _setting.Remote.EnablePush = false;
+                    return true;
                 case SettingIdentifier.SettingsMaxConcurrentStreams:
                     _setting.Remote.SettingsMaxConcurrentStreams = settingFrame.Value;
-                    return;
+                    return true;
 
                 case SettingIdentifier.SettingsInitialWindowSize:
                     _setting.Remote.WindowSize = settingFrame.Value;
-                    return;
+                    return true;
 
                 case SettingIdentifier.SettingsMaxFrameSize:
                     _setting.Remote.MaxFrameSize = settingFrame.Value;
-                    return;
+                    return true;
 
                 case SettingIdentifier.SettingsMaxHeaderListSize: 
                     _setting.Remote.MaxHeaderListSize = settingFrame.Value;
-                    return;
+                    return true;
 
                 case SettingIdentifier.SettingsHeaderTableSize:
                     _setting.SettingsHeaderTableSize = settingFrame.Value;
-                    return;
+                    return true;
             }
+
+            throw new InvalidOperationException("Unknow setting type");
         }
 
         private async Task RaiseExceptionIfSettingNotReceived()
@@ -107,10 +125,29 @@ namespace Echoes.H2.Cli
                 _waitForSettingReception.SetException(new H2Exception($"Server settings was not received under {(int) _setting.WaitForSettingDelay.TotalMilliseconds}."));
         }
 
+        private async Task WriteSetting()
+        {
+            byte[] settingBuffer = new byte[16];
+            int written = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0).Write(settingBuffer);
+            await _baseStream.WriteAsync(settingBuffer, 0, written);
+        }
+
+        private async Task WriteAckSetting()
+        {
+            byte[] settingBuffer = new byte[16]; 
+            int written = new SettingFrame(true).Write(settingBuffer);
+
+            await _baseStream.WriteAsync(settingBuffer, 0, written);
+
+        }
+
         private async Task Init()
         {
             await _baseStream.WriteAsync(Preface, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
-            
+
+            // Write setting 
+            await WriteSetting().ConfigureAwait(false);
+
             _innerReadTask = InternalReadingLoop();
             // Wait from setting reception 
             _innerWriteRun = InternalWriteLoop();
@@ -120,7 +157,12 @@ namespace Echoes.H2.Cli
             await _waitForSettingReception.Task.ConfigureAwait(false);
             await cancelTask; 
         }
-        
+
+        private void BreakOnGoAway(GoAwayFrame frame)
+        {
+
+        }
+
 
         private async Task InternalWriteLoop()
         {
@@ -189,36 +231,29 @@ namespace Echoes.H2.Cli
                     var frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
-                    _statePool.TryGetExistingActiveStream(frame.Header.StreamIdentifier, out var activeStream);
+                    _statePool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 
-                    if (frame.Payload is SettingFrame settingFrame)
+                    if (frame.BodyType == H2FrameType.Settings)
                     {
-                        if (settingFrame.Ack)
-                        {
-                            continue;
-                        }
+                        settingReceived = ProcessIncomingSettingFrame(frame.GetSettingFrame());
 
-                        ProcessIncomingSettingFrame(settingFrame);
-                        settingReceived = true;
+                        if (settingReceived)
+                            await WriteAckSetting().ConfigureAwait(false);
+
                         continue;
                     }
 
-                    if (settingReceived && !_waitForSettingReception.Task.IsCompleted)
-                    {
-                        _waitForSettingReception.TrySetResult(true);
-                    }
-
-                    if (frame.Payload is IPriorityFrame priorityFrame && priorityFrame.StreamDependency > 0)
+                    if (frame.BodyType == H2FrameType.Priority)
                     {
                         if (activeStream == null)
                         {
                             continue;
                         }
 
-                        activeStream.SetPriority(priorityFrame.Exclusive, priorityFrame.StreamDependency, priorityFrame.Weight);
+                        activeStream.SetPriority(frame.GetPriorityFrame());
                     }
 
-                    if (frame.Payload is IHeaderHolderFrame headerHolderFrame)
+                    if (frame.BodyType == H2FrameType.Headers)
                     {
                         if (activeStream == null)
                         {
@@ -226,14 +261,23 @@ namespace Echoes.H2.Cli
                             continue;
                         }
                         
-                        activeStream.ReceiveHeaderFragmentFromConnection(
-                            headerHolderFrame.Data,
-                            headerHolderFrame.EndHeader);
-
+                        activeStream.ReceiveHeaderFragmentFromConnection(frame.GetHeadersFrame());
                         continue; 
                     }
 
-                    if (frame.Payload is DataFrame dataFrame)
+                    if (frame.BodyType == H2FrameType.Continuation)
+                    {
+                        if (activeStream == null)
+                        {
+                            // TODO : Notify stream error, stream already closed 
+                            continue;
+                        }
+                        
+                        activeStream.ReceiveHeaderFragmentFromConnection(frame.GetContinuationFrame());
+                        continue; 
+                    }
+
+                    if (frame.BodyType == H2FrameType.Data)
                     {
                         if (activeStream == null)
                         {
@@ -242,20 +286,39 @@ namespace Echoes.H2.Cli
 
                         await
                             activeStream.ReceiveBodyFragmentFromConnection(
-                                    dataFrame.Buffer, dataFrame.EndStream)
+                                    frame.GetDataFrame().Buffer, frame.Flags.HasFlag(HeaderFlags.EndStream))
                                 .ConfigureAwait(false);
 
                         continue; 
                     }
 
-                    if (frame.Payload is RstStreamFrame rstStreamFrame)
+                    if (frame.BodyType == H2FrameType.RstStream)
                     {
                         if (activeStream == null)
                         {
                             continue;
                         }
 
-                        activeStream.ResetRequest(rstStreamFrame.ErrorCode);
+                        activeStream.ResetRequest(frame.GetRstStreamFrame().ErrorCode);
+                        continue;
+                    }
+
+                    if (frame.BodyType == H2FrameType.WindowUpdate)
+                    {
+                        if (activeStream == null)
+                        {
+                            _overallWindowSizeHolder.UpdateWindowSize(frame.GetWindowUpdateFrame().WindowSizeIncrement);
+                            continue;
+                        }
+
+                        activeStream.NotifyWindowUpdate(frame.GetWindowUpdateFrame().WindowSizeIncrement);
+                        
+                        continue;
+                    }
+
+                    if (frame.BodyType == H2FrameType.Goaway)
+                    {
+                        BreakOnGoAway(frame.GetGoAwayFrame());
                         continue;
                     }
                 }
@@ -294,6 +357,7 @@ namespace Echoes.H2.Cli
         public async ValueTask DisposeAsync()
         {
             _writerChannel.Writer.Complete();
+            _overallWindowSizeHolder.Dispose();
 
             _connectionCancellationTokenSource.Dispose();
             _writeSemaphore.Dispose();
@@ -325,5 +389,17 @@ namespace Echoes.H2.Cli
         public int WindowSize { get; set; }
     }
 
+
+    public static class Logger
+    {
+        public static void WriteLine(object line)
+        {
+            Console.WriteLine(line);
+        }
+        public static void WriteLine(string line)
+        {
+            Console.WriteLine(line);
+        }
+    }
 
 }

@@ -17,7 +17,6 @@ namespace Echoes.H2.Cli
 
         public int SettingsHeaderTableSize { get; set; } = 4096;
 
-
         public int MaxHeaderSize { get; set; } = 1024 * 8;
 
 

@@ -4,9 +4,9 @@ using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-    public readonly ref struct HeaderFrame
+    public readonly ref struct HeadersFrame
     {
-        public HeaderFrame(ReadOnlyMemory<byte> bodyBytes, HeaderFlags flags)
+        public HeadersFrame(ReadOnlyMemory<byte> bodyBytes, HeaderFlags flags)
         {
             byte paddedLength = 0;
 
@@ -21,7 +21,7 @@ namespace Echoes.H2.Cli
             PadLength = paddedLength;
 
             Priority = flags.HasFlag(HeaderFlags.Priority); 
-            EndHeader = flags.HasFlag(HeaderFlags.EndHeaders);
+            EndHeaders = flags.HasFlag(HeaderFlags.EndHeaders);
             EndStream = flags.HasFlag(HeaderFlags.EndStream); ;
 
             if (Priority)
@@ -42,16 +42,16 @@ namespace Echoes.H2.Cli
             Data = bodyBytes.Slice(0, BodyLength);
         }
 
-        public HeaderFrame(
+        public HeadersFrame(
             bool padded, 
             byte paddedLength, bool priority,
-            bool endHeader, bool endStream, byte weight,
+            bool endHeaders, bool endStream, byte weight,
             bool exclusive, int streamDependency)
         {
             
             Padded = padded;
             Priority = priority;
-            EndHeader = endHeader;
+            EndHeaders = endHeaders;
             EndStream = endStream;
             Weight = weight;
             Data = default;
@@ -81,7 +81,7 @@ namespace Echoes.H2.Cli
 
         public bool Exclusive { get;  }
 
-        public bool EndHeader { get; }
+        public bool EndHeaders { get; }
 
         public bool EndStream { get;  }
 

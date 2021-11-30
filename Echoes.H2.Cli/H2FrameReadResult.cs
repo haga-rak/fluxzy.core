@@ -5,49 +5,52 @@ namespace Echoes.H2.Cli
     /// <summary>
     /// We choose not to use a common interface for Http/2 frames to avoid boxing/unboxing. 
     /// </summary>
-    public readonly ref struct H2FrameReadResult
+    public readonly struct H2FrameReadResult
     {
         private readonly ReadOnlyMemory<byte> _bodyBytes;
 
         public H2FrameReadResult(H2Frame header, ReadOnlyMemory<byte> bodyBytes)
         {
             _bodyBytes = bodyBytes;
-            Header = header;
             BodyType = header.BodyType;
+            StreamIdentifier = header.StreamIdentifier;
+            Flags = header.Flags;
         }
 
+        public HeaderFlags Flags { get;  }
+
+        public int StreamIdentifier { get;  }
+
         public H2FrameType BodyType { get;  }
-
-        public H2Frame Header { get;  }
-
+        
         public DataFrame GetDataFrame()
         {
-            return new DataFrame(_bodyBytes, Header.Flags, Header.StreamIdentifier);
+            return new DataFrame(_bodyBytes, Flags, StreamIdentifier);
         }
 
         public SettingFrame GetSettingFrame()
         {
-            return new SettingFrame(_bodyBytes.Span, Header.Flags);
+            return new SettingFrame(_bodyBytes.Span, Flags);
         }
 
-        public HeaderFrame GetHeaderFrame()
+        public HeadersFrame GetHeadersFrame()
         {
-            return new HeaderFrame(_bodyBytes, Header.Flags);
+            return new HeadersFrame(_bodyBytes, Flags);
         }
 
         public ContinuationFrame GetContinuationFrame()
         {
-            return new ContinuationFrame(_bodyBytes, Header.Flags, Header.StreamIdentifier); 
+            return new ContinuationFrame(_bodyBytes, Flags, StreamIdentifier); 
         }
 
         public RstStreamFrame GetRstStreamFrame()
         {
-            return new RstStreamFrame(_bodyBytes.Span,  Header.StreamIdentifier); 
+            return new RstStreamFrame(_bodyBytes.Span,  StreamIdentifier); 
         }
 
         public PriorityFrame GetPriorityFrame()
         {
-            return new PriorityFrame(_bodyBytes.Span,  Header.StreamIdentifier); 
+            return new PriorityFrame(_bodyBytes.Span,  StreamIdentifier); 
         }
 
         public GoAwayFrame GetGoAwayFrame()
@@ -57,7 +60,7 @@ namespace Echoes.H2.Cli
 
         public WindowUpdateFrame GetWindowUpdateFrame()
         {
-            return new WindowUpdateFrame(_bodyBytes.Span); 
+            return new WindowUpdateFrame(_bodyBytes.Span, StreamIdentifier); 
         }
     }
 }

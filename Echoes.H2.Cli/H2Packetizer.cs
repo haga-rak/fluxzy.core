@@ -15,7 +15,7 @@ namespace Echoes.H2.Cli
         /// <param name="maxFrameSize"></param>
         /// <param name="streamDependency"></param>
         /// <returns></returns>
-        public static ReadOnlySpan<byte> Packetize(
+        public static ReadOnlySpan<byte> PacketizeHeader(
             ReadOnlySpan<byte> rawData,
             Span<byte> buffer, int streamIdentifier, 
             int maxFrameSize, int streamDependency = 0)
@@ -27,20 +27,22 @@ namespace Echoes.H2.Cli
 
             while (remains > 0)
             {
-                var writableLength = Math.Max(maxPayload, remains);
+                var writableLength = Math.Min(maxPayload, remains);
 
                 // Build header  here 
                 var end = writableLength == remains;
 
-                var frame = H2Frame.BuildHeaderFrameHeader(writableLength, streamIdentifier, first, false, end);
+                var frame = H2Frame.BuildHeaderFrameHeader(writableLength, streamIdentifier, first, end, end);
 
                 frame.Write(buffer.Slice(currentWritten));
                 
                 currentWritten += 9;
 
-                var headerFrame = new HeaderFrame(false, 0, false, end, false, 0, false, streamDependency);
+                var headerFrame = new HeadersFrame(false, 0, false, end, end, 0, false, streamDependency);
 
-                currentWritten += headerFrame.Write(buffer.Slice(currentWritten), rawData.Slice(rawData.Length - remains, writableLength));
+                var body = rawData.Slice(rawData.Length - remains, writableLength);
+
+                currentWritten += headerFrame.Write(buffer.Slice(currentWritten), body);
 
                 first = false; 
 

@@ -4,7 +4,7 @@ using Echoes.H2.Cli.Helpers;
 
 namespace Echoes.H2.Cli
 {
-    public readonly ref struct H2Frame 
+    public readonly struct H2Frame 
     {
         public H2Frame(int length, H2FrameType bodyType, HeaderFlags flags, int streamIdentifier)
         {

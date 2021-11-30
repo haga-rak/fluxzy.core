@@ -20,15 +20,7 @@ namespace Echoes.H2.Cli
         /// <param name="encodedBuffer"></param>
         /// <param name="destinationBuffer"></param>
         /// <returns></returns>
-        Memory<byte> Decode(Memory<byte> encodedBuffer, Memory<char> destinationBuffer);
-
-        /// <summary>
-        /// Remove hpack 
-        /// </summary>
-        /// <param name="encodedBuffer"></param>
-        /// <param name="destinationStream"></param>
-        /// <returns></returns>
-        Memory<byte> Decode(Memory<byte> encodedBuffer, Stream destinationStream); 
+        ReadOnlyMemory<char> Decode(ReadOnlyMemory<byte> encodedBuffer, Memory<char> destinationBuffer);
     }
 
     public readonly ref struct HeaderEncodingJob
@@ -51,11 +43,16 @@ namespace Echoes.H2.Cli
     public class HeaderEncoder : IHeaderEncoder
     {
         private readonly HPackEncoder _hpackEncoder;
+        private readonly HPackDecoder _hpackDecoder;
         private readonly H2StreamSetting _streamSetting;
 
-        public HeaderEncoder(HPackEncoder hpackEncoder, H2StreamSetting streamSetting)
+        public HeaderEncoder(
+            HPackEncoder hpackEncoder,
+            HPackDecoder hpackDecoder,
+            H2StreamSetting streamSetting)
         {
             _hpackEncoder = hpackEncoder;
+            _hpackDecoder = hpackDecoder;
             _streamSetting = streamSetting;
         }
 
@@ -64,20 +61,16 @@ namespace Echoes.H2.Cli
             Span<byte> buffer = stackalloc byte[_streamSetting.Remote.MaxHeaderLine];
             var encodedHeader = _hpackEncoder.Encode(encodingJob.Data, buffer);
 
-            var res = Packetizer.Packetize(encodedHeader, destinationBuffer.Span, encodingJob.StreamIdentifier,
+            var res = Packetizer.PacketizeHeader(encodedHeader, destinationBuffer.Span, encodingJob.StreamIdentifier,
                 (int) _streamSetting.Remote.MaxFrameSize, encodingJob.StreamDependency);
 
             return destinationBuffer.Slice(0, res.Length);
         }
 
-        public Memory<byte> Decode(Memory<byte> encodedBuffer, Memory<char> destinationBuffer)
+        public ReadOnlyMemory<char> Decode(ReadOnlyMemory<byte> encodedBuffer, Memory<char> destinationBuffer)
         {
-            throw new NotImplementedException();
-        }
-
-        public Memory<byte> Decode(Memory<byte> encodedBuffer, Stream destinationStream)
-        {
-            throw new NotImplementedException();
+            var res = _hpackDecoder.Decode(encodedBuffer.Span, destinationBuffer.Span);
+            return destinationBuffer.Slice(0, res.Length);
         }
     }
 }

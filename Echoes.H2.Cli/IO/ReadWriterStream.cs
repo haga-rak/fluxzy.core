@@ -24,7 +24,7 @@ namespace Echoes.H2.Cli.IO
         
         internal void AppendBuffer(Memory<byte> data, bool end)
         {
-            _upChannel.Writer.WriteAsync(data)
+            _upChannel.Writer.WriteAsync(data);
         }
 
         public override void Flush()
