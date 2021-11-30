@@ -61,6 +61,7 @@ namespace Echoes.Encoding.Huffman
             AllSymbols = Codes.Select((c, index) => new Symbol(c, CodeLengths[index], (byte) index)).ToArray();
         }
 
-        public Symbol [] Symbols => AllSymbols; 
+        public Symbol [] Symbols => AllSymbols;
+        public int ShortestSymbolLength => 5;
     }
 }

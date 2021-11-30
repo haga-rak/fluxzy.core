@@ -42,14 +42,7 @@ namespace Echoes.Encoding
             
             if (lengthInBits % 8 == 0)
                 return lengthInBits / 8;
-
-            lengthInBits += 30;
-
-            if (lengthInBits % 8 == 0)
-            {
-                return lengthInBits / 8; 
-            }
-
+            
             return (lengthInBits / 8) +  1;
         }
 
@@ -71,11 +64,8 @@ namespace Echoes.Encoding
             
             if (offsetBits % 8 != 0)
             {
-                // Padding needed. Insert EOS symbol 
-                offsetBits += Write(buffer, offsetBits, symbols[256]);
-
-                if (offsetBits % 8 == 0)
-                    return buffer.Slice(0, (offsetBits / 8));
+                var toFillLength = (byte) (0xFF >> (offsetBits % 8));
+                buffer[offsetBits / 8] |= toFillLength;
 
                 return buffer.Slice(0, (offsetBits / 8) + 1);
             }
@@ -96,10 +86,15 @@ namespace Echoes.Encoding
         
             Span<byte> destinationBuffer = stackalloc byte[8];
 
-            while (currentOffsetBits < (memoryInput.Length * 8))
-            {
-                var nextSpan = memoryInput.SliceBitsToNextInt32(currentOffsetBits, destinationBuffer);
+            var totalLengthBits = (memoryInput.Length * 8);
 
+            while (currentOffsetBits < totalLengthBits)
+            {
+                var nextSpan = memoryInput.SliceBitsToNextInt32(currentOffsetBits, destinationBuffer, _dictionary.ShortestSymbolLength);
+
+                if (nextSpan.IsEmpty)
+                    break;  // End of string
+                
                 var symbol = _packDecodingTree.Read(nextSpan);
 
                 if (symbol.IsEos)

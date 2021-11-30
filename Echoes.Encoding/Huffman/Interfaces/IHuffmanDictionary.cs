@@ -3,5 +3,7 @@
     public interface IHuffmanDictionary
     {
         Symbol [] Symbols { get;  }
+
+        int ShortestSymbolLength { get;  }
     }
 }

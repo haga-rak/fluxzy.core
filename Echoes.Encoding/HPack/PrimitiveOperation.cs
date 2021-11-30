@@ -147,7 +147,7 @@ namespace Echoes.Encoding.HPack
 
                 var encodedLength = _codec.GetEncodedLength(inputBytes);
 
-                huffmanEncoded = false; // encodedLength < inputBytes.Length;
+                huffmanEncoded =  encodedLength < inputBytes.Length;
 
                 buffer[0] = (byte)(huffmanEncoded ? 0x80 : 0);
 
