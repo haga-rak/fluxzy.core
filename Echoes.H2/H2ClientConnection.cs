@@ -137,10 +137,11 @@ namespace Echoes.H2
         {
             byte[] settingBuffer = new byte[16];
             int written = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0).Write(settingBuffer);
+
             await _baseStream.WriteAsync(settingBuffer, 0, written);
 
-            written = new SettingFrame(SettingIdentifier.SettingsInitialWindowSize, _setting.OverallWindowSize).Write(settingBuffer);
-            await _baseStream.WriteAsync(settingBuffer, 0, written);
+            //written = new SettingFrame(SettingIdentifier.SettingsInitialWindowSize, _setting.OverallWindowSize).Write(settingBuffer);
+            //await _baseStream.WriteAsync(settingBuffer, 0, written);
         }
 
         private async Task WriteAckSetting()
@@ -169,8 +170,13 @@ namespace Echoes.H2
             await cancelTask; 
         }
 
-        private void BreakOnGoAway(GoAwayFrame frame)
+        private void OnGoAway(GoAwayFrame frame)
         {
+            if (frame.ErrorCode != H2ErrorCode.NoError)
+            {
+                throw new H2Exception($"Had to goaway {frame.ErrorCode}"); 
+            }
+
             Logger.WriteLine($"Goaway : Error code {frame.ErrorCode} : LastStreamId {frame.LastStreamId}");
         }
 
@@ -179,7 +185,7 @@ namespace Echoes.H2
             try
             {
                 IList<WriteTask> tasks = new List<WriteTask>();
-                byte[] windowSiZebuffer = new byte[13]; 
+                byte[] windowSizeBuffer = new byte[13]; 
 
                 while (true)
                 {
@@ -193,11 +199,11 @@ namespace Echoes.H2
                             var streamId = element.Key;
                             var updateValue = element.Sum(e => e.WindowUpdateSize);
 
-                            new WindowUpdateFrame(updateValue, streamId).Write(windowSiZebuffer);
+                            new WindowUpdateFrame(updateValue, streamId).Write(windowSizeBuffer);
 
                             Logger.WriteLine($"Sending WindowUpdate : {updateValue} on {streamId} Merge : {element.Count()}");
 
-                            await _baseStream.WriteAsync(windowSiZebuffer, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+                            await _baseStream.WriteAsync(windowSizeBuffer, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
                             await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
                         }
 
@@ -350,7 +356,7 @@ namespace Echoes.H2
 
                     if (frame.BodyType == H2FrameType.Goaway)
                     {
-                        BreakOnGoAway(frame.GetGoAwayFrame());
+                        OnGoAway(frame.GetGoAwayFrame());
                         continue;
                     }
                 }

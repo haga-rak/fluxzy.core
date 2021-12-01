@@ -1,6 +1,6 @@
-using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Echoes.H2.DotNetBridge;
 using Xunit;
@@ -21,7 +21,29 @@ namespace Echoes.H2.Tests
             );
 
             var response = await httpClient.SendAsync(requestMessage);
+        }
 
+        [Fact]
+        public async Task Simple_Call_Get()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler); 
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://httpbin.org/get"
+            );
+
+            var requestMessageString = requestMessage.ToHttp11String();
+
+            var response = await httpClient.SendAsync(requestMessage);
+
+            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            var responseHeader = response.ToString();
+
+
+            var mockResponse = JsonSerializer.Deserialize<MockResponse>(contentText); 
 
 
         }

@@ -24,4 +24,8 @@
     <ProjectReference Include="..\Echoes.H2\Echoes.H2.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Bins\" />
+  </ItemGroup>
+
 </Project>

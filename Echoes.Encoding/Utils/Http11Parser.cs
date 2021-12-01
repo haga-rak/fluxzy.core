@@ -48,7 +48,7 @@ namespace Echoes.Encoding.Utils
             _memoryProvider = memoryProvider;
         }
 
-        public IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = false)
+        public IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true)
         {
             bool firstLine = true;
             
@@ -72,7 +72,7 @@ namespace Echoes.Encoding.Utils
                             // Request header block
 
                             yield return new HeaderField(MethodVerb, arrayOfValue[0]);
-                            yield return new HeaderField(PathVerb, arrayOfValue[1]);
+                            yield return new HeaderField(PathVerb, arrayOfValue[1].RemoveProtocolAndAuthority()); // Remove prefix on path
                             yield return new HeaderField(SchemeVerb, isHttps ? HttpsVerb : HttpVerb);
 
                             if (SchemeVerb.Span.StartsWith(HttpsVerb.Span))

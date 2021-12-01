@@ -6,6 +6,9 @@ namespace Echoes.Encoding.Utils
 {
     internal static class SpanCharsHelper
     {
+        private static readonly ReadOnlyMemory<char> HttpsPrefix = "https://".AsMemory();
+        private static readonly ReadOnlyMemory<char> EmptyPath = "/".AsMemory();
+
         public static IEnumerable<ReadOnlyMemory<char>> Split(this ReadOnlyMemory<char> input, HashSet<char> separator, int numberOfParts = -1)
         {
             int startString = -1;
@@ -93,6 +96,21 @@ namespace Echoes.Encoding.Utils
         public static ReadOnlyMemory<char> Trim(this ReadOnlyMemory<char> input, char @char = ' ')
         {
             return input.TrimEnd(@char).TrimStart(@char);
+        }
+
+        public static ReadOnlyMemory<char> RemoveProtocolAndAuthority(this ReadOnlyMemory<char> input)
+        {
+            if (input.Span.StartsWith(HttpsPrefix.Span, StringComparison.OrdinalIgnoreCase))
+            {
+                var indexOfPath = input.Span.Slice(HttpsPrefix.Length).IndexOf('/');
+
+                if (indexOfPath < 0)
+                    return EmptyPath;
+
+                return input.Slice(HttpsPrefix.Length + indexOfPath);
+            }
+
+            return input; 
         }
 
         public static Span<char> Concat(this Span<char> input, in ReadOnlySpan<char> addition, ref int offset)

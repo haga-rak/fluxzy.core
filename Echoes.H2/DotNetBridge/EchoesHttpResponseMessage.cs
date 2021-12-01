@@ -13,6 +13,7 @@ namespace Echoes.H2.DotNetBridge
     {
         private readonly H2Message _message;
 
+
         private static HttpStatusCode ReadStatusCode(H2Message message, 
             out Dictionary<ReadOnlyMemory<char>, List<ReadOnlyMemory<char>>> dictionaryMapping)
         {
@@ -24,8 +25,10 @@ namespace Echoes.H2.DotNetBridge
             var status = int.Parse(dictionaryMapping[":status".AsMemory()].First().Span);
             
 
-            return (HttpStatusCode)status; 
+            return (HttpStatusCode)status;
         }
+
+        public H2Message Message => _message;
 
         public EchoesHttpResponseMessage(H2Message message)
             : base(ReadStatusCode(message, out _))
@@ -49,6 +52,11 @@ namespace Echoes.H2.DotNetBridge
         {
             base.Dispose(disposing);
             _message.Dispose();
+        }
+
+        public override string ToString()
+        {
+            return _message.Header; 
         }
     }
 }

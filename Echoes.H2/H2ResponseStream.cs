@@ -62,7 +62,13 @@ namespace Echoes.H2
                 return maximumCopyable;
             }
 
-            var readen = await _resultChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+            if (!await _resultChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+                return 0; // No more data 
+
+            if (!_resultChannel.Reader.TryRead(out var readen))
+            {
+                throw new EndOfStreamException($"Channel completed prematurely"); 
+            }
 
             if (readen is null)
             {
