@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using Echoes.Encoding.Huffman;
 using Echoes.Encoding.Utils;
 using Echoes.Encoding.Utils.Interfaces;
@@ -44,6 +43,35 @@ namespace Echoes.Encoding.HPack
         public DecodingContext Context => _decodingContext;
 
         
+
+        public ReadOnlySpan<char> Decode(ReadOnlySpan<byte> headerContent, Span<char> buffer, ref IList<HeaderField> originalFields)
+        {
+            _tempEntries.Clear();
+
+            try
+            {
+                for (; ; )
+                {
+                    HeaderField tableEntry = ReadNextField(headerContent, out var readen);
+
+                    if (readen <= 0)
+                    {
+                        break;
+                    }
+
+                    _tempEntries.Add(tableEntry);
+                    originalFields.Add(tableEntry);
+
+                    headerContent = headerContent.Slice(readen);
+                }
+
+                return _parser.Write(_tempEntries, buffer);
+            }
+            finally
+            {
+                _tempEntries.Clear();
+            }
+        }
 
         public ReadOnlySpan<char> Decode(ReadOnlySpan<byte> headerContent, Span<char> buffer)
         {
