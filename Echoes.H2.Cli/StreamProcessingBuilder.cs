@@ -35,15 +35,14 @@ namespace Echoes.H2.Cli
             _hPackDecoder = HPackDecoder.Create(codecSetting);
 
             var hPackEncoder = HPackEncoder.Create(codecSetting);
-            
-
             _headerEncoder = new HeaderEncoder(hPackEncoder, _hPackDecoder, _streamSetting);
         }
 
         public StreamProcessing Build(int streamIdentifier, StreamPool parent, CancellationToken callerCancellationToken)
         {
             return new StreamProcessing(streamIdentifier, parent, callerCancellationToken, _localCancellationToken,
-                _upStreamChannel, _headerEncoder, new H2Message(_hPackDecoder), _streamSetting, _overallWindowSizeHolder, _arrayPool);
+                _upStreamChannel, _headerEncoder, _streamSetting,
+                _overallWindowSizeHolder, _arrayPool);
         }
     }
 

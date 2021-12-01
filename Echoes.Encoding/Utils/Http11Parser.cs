@@ -31,7 +31,16 @@ namespace Echoes.Encoding.Utils
         private static readonly ReadOnlyMemory<char> CookieVerb = "Cookie".AsMemory();
 
         private static readonly HashSet<ReadOnlyMemory<char>> AvoidAutoParseHttp11Headers =
-            new HashSet<ReadOnlyMemory<char>>(new[] { MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, CookieVerb, StatusVerb }, new SpanCharactersIgnoreCaseComparer());
+            new HashSet<ReadOnlyMemory<char>>(new[]
+            {
+                MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, CookieVerb, StatusVerb
+            }, new SpanCharactersIgnoreCaseComparer());
+
+        private static readonly HashSet<ReadOnlyMemory<char>> ControlHeaders =
+            new HashSet<ReadOnlyMemory<char>>(new[]
+            {
+                MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, StatusVerb
+            }, new SpanCharactersIgnoreCaseComparer());
 
         public Http11Parser(int maxHeaderLine, IMemoryProvider<char> memoryProvider)
         {
@@ -115,12 +124,11 @@ namespace Echoes.Encoding.Utils
             var length = InternalWrite(entries, buffer, cookieBuffer);
             return buffer.Slice(0, length);
         }
-        
 
         private static int InternalWrite(in ICollection<HeaderField> entries, in Span<char> buffer, in Span<char> cookieBuffer)
         {
             var mapping = entries
-                .Where(t => !t.Name.Span.Equals(CookieVerb.Span, StringComparison.OrdinalIgnoreCase))
+                .Where(t => ControlHeaders.Contains(t.Name))
                 .ToDictionary
                     (t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
 

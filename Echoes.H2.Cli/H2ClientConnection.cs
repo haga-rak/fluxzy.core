@@ -13,15 +13,13 @@ namespace Echoes.H2.Cli
 {
     public class H2ClientConnection : IAsyncDisposable
     { 
-        
-
         private static readonly byte[] Preface = System.Text.Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
 
         private readonly Stream _baseStream;
         private readonly IH2FrameReader _streamReader;
-        private readonly IH2StreamWriter _streamWriter;
 
         private readonly CancellationTokenSource _connectionCancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _settingReceptionCancellationTokenSource = new CancellationTokenSource();
         private readonly H2StreamSetting _setting;
 
         private readonly StreamPool _statePool;
@@ -54,18 +52,18 @@ namespace Echoes.H2.Cli
             );
 
             _writerChannel =
-                Channel.CreateBounded<WriteTask>(new BoundedChannelOptions(16)
+                Channel.CreateUnbounded<WriteTask>(new UnboundedChannelOptions()
                 {
                     SingleReader = true,
-                    SingleWriter = true
+                    SingleWriter = false
                 });
 
             _statePool = new StreamPool(_streamProcessingBuilder, _setting.Remote);
         }
 
-        private async ValueTask UpStreamChannel(WriteTask data, CancellationToken callerCancellationToken)
+        private void UpStreamChannel(ref WriteTask data)
         {
-            await _writerChannel.Writer.WriteAsync(data).ConfigureAwait(false);
+            _writerChannel.Writer.TryWrite(data);
         }
 
         public H2StreamSetting Setting => _setting;
@@ -73,12 +71,14 @@ namespace Echoes.H2.Cli
         private bool ProcessIncomingSettingFrame(SettingFrame settingFrame)
         {
             Logger.WriteLine(settingFrame.ToString());
-            ;
-
+            
             if (settingFrame.Ack)
             {
                 if (!_waitForSettingReception.Task.IsCompleted)
+                {
                     _waitForSettingReception.SetResult(true);
+                    _settingReceptionCancellationTokenSource.Cancel(false);
+                }
 
                 return false;
             }
@@ -119,10 +119,18 @@ namespace Echoes.H2.Cli
 
         private async Task RaiseExceptionIfSettingNotReceived()
         {
-            await Task.Delay(_setting.WaitForSettingDelay);
+            try
+            {
+                await Task.Delay(_setting.WaitForSettingDelay, _settingReceptionCancellationTokenSource.Token);
 
-            if (!_waitForSettingReception.Task.IsCompleted)
-                _waitForSettingReception.SetException(new H2Exception($"Server settings was not received under {(int) _setting.WaitForSettingDelay.TotalMilliseconds}."));
+                if (!_waitForSettingReception.Task.IsCompleted)
+                    _waitForSettingReception.SetException(new H2Exception(
+                        $"Server settings was not received under {(int)_setting.WaitForSettingDelay.TotalMilliseconds}."));
+            }
+            catch (TaskCanceledException)
+            {
+
+            }
         }
 
         private async Task WriteSetting()
@@ -160,8 +168,9 @@ namespace Echoes.H2.Cli
 
         private void BreakOnGoAway(GoAwayFrame frame)
         {
-
+            Logger.WriteLine($"Goaway : Error code {frame.ErrorCode} : LastStreamId {frame.LastStreamId}");
         }
+
 
 
         private async Task InternalWriteLoop()
@@ -169,15 +178,33 @@ namespace Echoes.H2.Cli
             try
             {
                 IList<WriteTask> tasks = new List<WriteTask>();
+                byte[] windowSiZebuffer = new byte[13]; 
 
                 while (true)
                 {
                     tasks.Clear();
                     if (_writerChannel.Reader.TryReadAll(ref tasks))
                     {
+                        foreach (var element 
+                                 in tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate)
+                                     .GroupBy(f => f.StreamIdentifier))
+                        {
+                            var streamId = element.Key;
+                            var updateValue = element.Sum(e => e.WindowUpdateSize);
+
+                            new WindowUpdateFrame(updateValue, streamId).Write(windowSiZebuffer);
+
+                            Logger.WriteLine($"Sending WindowUpdate : {updateValue} on {streamId} Merge : {element.Count()}");
+
+                            await _baseStream.WriteAsync(windowSiZebuffer, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+                            await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
+                        }
+
                         // TODO improve the priority rule 
                         foreach (var writeTask in tasks
-                                     .OrderBy(r => r.StreamDependency == 0)
+                                     .Where(t => t.FrameType != H2FrameType.WindowUpdate)
+                                     .OrderBy(r => r.FrameType != H2FrameType.Headers || r.FrameType != H2FrameType.Data)
+                                     .ThenBy(r => r.StreamDependency == 0)
                                      .ThenBy(r => r.StreamIdentifier)
                                      .ThenBy(r => r.Priority)
                                  )
@@ -185,6 +212,9 @@ namespace Echoes.H2.Cli
                             try
                             {
                                 await _baseStream.WriteAsync(writeTask.BufferBytes, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+                                await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
+                                Logger.WriteLine($"Sending {writeTask.BufferBytes.Length} on streamId {writeTask.StreamIdentifier}");
+
                                 writeTask.OnComplete(null);
                             }
                             catch (Exception ex) when (ex is SocketException || ex is IOException)
@@ -221,7 +251,8 @@ namespace Echoes.H2.Cli
         /// <returns></returns>
         private async Task InternalReadingLoop()
         {
-            byte [] readBuffer = new byte[_setting.ReadBufferLength];
+            byte [] readBuffer = new byte[_setting.Local.MaxFrameSize];
+
             var settingReceived = false; 
 
             while (!_connectionCancellationTokenSource.IsCancellationRequested)
@@ -232,6 +263,9 @@ namespace Echoes.H2.Cli
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
                     _statePool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
+                    
+
+                    Logger.WriteLine($"Receiving {frame.BodyType} ({frame.BodyLength}) on streamId {frame.StreamIdentifier} / Flags : {frame.Flags}");
 
                     if (frame.BodyType == H2FrameType.Settings)
                     {
@@ -284,10 +318,8 @@ namespace Echoes.H2.Cli
                             continue;
                         }
 
-                        await
-                            activeStream.ReceiveBodyFragmentFromConnection(
-                                    frame.GetDataFrame().Buffer, frame.Flags.HasFlag(HeaderFlags.EndStream))
-                                .ConfigureAwait(false);
+                        activeStream.ReceiveBodyFragmentFromConnection(
+                            frame.GetDataFrame().Buffer, frame.Flags.HasFlag(HeaderFlags.EndStream));
 
                         continue; 
                     }
@@ -311,7 +343,7 @@ namespace Echoes.H2.Cli
                             continue;
                         }
 
-                        activeStream.NotifyWindowUpdate(frame.GetWindowUpdateFrame().WindowSizeIncrement);
+                        activeStream.NotifyRemoteWindowUpdate(frame.GetWindowUpdateFrame().WindowSizeIncrement);
                         
                         continue;
                     }
@@ -335,7 +367,7 @@ namespace Echoes.H2.Cli
             int bufferLength = 16 * 1024, 
             CancellationToken cancellationToken = default)
         {
-            using var activeStream = await _statePool.CreateNewStreamActivity(cancellationToken).ConfigureAwait(false);
+            var activeStream = await _statePool.CreateNewStreamActivity(cancellationToken).ConfigureAwait(false);
 
             await activeStream.ProcessRequest(requestHeader, requestBodyStream)
                 .ConfigureAwait(false);
@@ -398,7 +430,7 @@ namespace Echoes.H2.Cli
         }
         public static void WriteLine(string line)
         {
-            Console.WriteLine(line);
+            // Console.WriteLine(line);
         }
     }
 

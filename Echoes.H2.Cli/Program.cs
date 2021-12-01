@@ -20,7 +20,7 @@ namespace Echoes.H2.Cli
         {
             using (var tcpClient = new TcpClient())
             {
-                var host = "httpwg.org";
+                var host = "extranet.2befficient.fr";
 
                 await tcpClient.ConnectAsync(host, 443).ConfigureAwait(false);
 
@@ -40,12 +40,21 @@ namespace Echoes.H2.Cli
 
                     H2ClientConnection connection = await H2ClientConnection.Open(sslStream, new H2StreamSetting());
 
-                    var response = await connection.Send(
-                        "GET https://httpwg.org/ HTTP/1.1\r\nHost: httpwg.org\r\n\r\n".AsMemory(),
-                        null);
+                    while (true)
+                    {
+                        using var response1 = await connection.Send(
+                            "GET https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ HTTP/1.1\r\nHost: extranet.2befficient.fr\r\n\r\n".AsMemory(),
+                            null);
 
-                    var responseString = await response.ResponseToString();
+                        using var response2 = await connection.Send(
+                            "GET https://extranet.2befficient.fr/Content/Global/Mandatory/Plugins?v=1N0a7hp5TbdWJTlXvMrIuuR-xx1KyQWnGp2I80A7L1I1 HTTP/1.1\r\nHost: extranet.2befficient.fr\r\n\r\n".AsMemory(),
+                            null);
 
+                        var t1 = response1.ResponseToString();
+                        var t2 = response2.ResponseToString();
+
+                        var responseAll = await Task.WhenAll(t1, t2).ConfigureAwait(false);
+                    }
                 }
 
             }

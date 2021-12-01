@@ -2,7 +2,6 @@
 using System.Buffers;
 using System.IO;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
@@ -18,15 +17,12 @@ namespace Echoes.H2.Cli
         private readonly Memory<char> _headerBuffer;
         private readonly H2StreamSetting _globalSetting;
         private readonly ArrayPool<byte> _memoryPool;
-        private int _fragmentReceptionOffset; 
-
         
         private readonly TaskCompletionSource<object> _responseHeaderReady = new TaskCompletionSource<object>();
         private readonly TaskCompletionSource<object> _responseReaden = new TaskCompletionSource<object>();
         private readonly CancellationTokenSource _overCancellationTokenSource;
         private readonly byte[] _dataReceptionBufferbytes;
-
-
+        
         public StreamProcessing(
             int streamIdentifier,
             StreamPool parent, 
@@ -34,7 +30,6 @@ namespace Echoes.H2.Cli
             CancellationToken localCancellationToken,
             UpStreamChannel upStreamChannel,
             IHeaderEncoder headerEncoder,
-            H2Message response,
             H2StreamSetting globalSetting, 
             WindowSizeHolder overallWindowSizeHolder,
             ArrayPool<byte> memoryPool)
@@ -43,11 +38,11 @@ namespace Echoes.H2.Cli
             _parent = parent;
             _upStreamChannel = upStreamChannel;
             _headerEncoder = headerEncoder;
-            _response = response;
+            _response = new H2Message(headerEncoder.Decoder, StreamIdentifier, MemoryPool<byte>.Shared, this);
             RemoteWindowSize = new WindowSizeHolder(globalSetting.Remote.WindowSize);
             OverallRemoteWindowSize = overallWindowSizeHolder; 
 
-            _dataReceptionBufferbytes = memoryPool.Rent(globalSetting.ReadBufferLength);
+            _dataReceptionBufferbytes = memoryPool.Rent(globalSetting.Local.WindowSize);
 
             _dataReceptionBuffer = _dataReceptionBufferbytes;
             _globalSetting = globalSetting;
@@ -81,14 +76,14 @@ namespace Echoes.H2.Cli
             return true;
         }
 
-        public void NotifyWindowUpdate(int windowSizeUpdateValue)
+        public void NotifyRemoteWindowUpdate(int windowSizeUpdateValue)
         {
             RemoteWindowSize.UpdateWindowSize(windowSizeUpdateValue);
         }
 
         public void ResetRequest(H2ErrorCode errorCode)
         {
-
+            Logger.WriteLine($"RstStream : Error code {errorCode}");
         }
 
         public void SetPriority(PriorityFrame priorityFrame)
@@ -101,12 +96,13 @@ namespace Echoes.H2.Cli
         public async  ValueTask ProcessRequest(ReadOnlyMemory<char> headerBuffer, Stream requestBodyStream)
         {
             var readyToBeSent = _headerEncoder.Encode(new HeaderEncodingJob(headerBuffer, StreamIdentifier, StreamDependency), _dataReceptionBuffer);
-            var writeTask = new WriteTask(readyToBeSent, StreamIdentifier, StreamPriority, StreamDependency); 
-            
-             await _upStreamChannel(writeTask, _overCancellationTokenSource.Token).ConfigureAwait(false);
+            var writeTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority, StreamDependency, readyToBeSent);
+
+            _upStreamChannel(ref writeTask);
+
+            await writeTask.DoneTask.ConfigureAwait(false); 
 
              // Wait for request header to be sent according to priority 
-             await writeTask.DoneTask.ConfigureAwait(false);
 
             if (requestBodyStream != null)
             {
@@ -130,82 +126,88 @@ namespace Echoes.H2.Cli
                     new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, readenLength,
                         StreamIdentifier).Write(_dataReceptionBuffer.Span);
 
-                    await _upStreamChannel(
-                        new WriteTask(_dataReceptionBuffer.Slice(0, 9 + readenLength ),
-                            StreamIdentifier, StreamPriority, StreamDependency)
-                        , _overCancellationTokenSource.Token).ConfigureAwait(false);
-                }
+                    var writeTaskBody = new WriteTask(H2FrameType.Data, StreamIdentifier, StreamPriority, StreamDependency, _dataReceptionBuffer.Slice(0, 9 + readenLength));
 
+                    _upStreamChannel(ref writeTaskBody);
+                    
+                    NotifyRemoteWindowUpdate(-readenLength);
+                }
             }
         }
 
         public async Task<H2Message> ProcessResponse(CancellationToken cancellationToken)
         {
-            try
-            {
-                await _responseHeaderReady.Task.ConfigureAwait(false);
-                
-                await _responseReaden.Task.ConfigureAwait(false);
-
-                return _response;
-            }
-            finally
-            {
-                _parent.NotifyDispose(this);
-            }
+            await _responseHeaderReady.Task.ConfigureAwait(false);
+            return _response;
         }
 
-        public void ReceiveHeaderFragmentFromConnection(HeadersFrame headersFrame)
+        internal void ReceiveHeaderFragmentFromConnection(HeadersFrame headersFrame)
         {
             ReceiveHeaderFragmentFromConnection(headersFrame.Data, headersFrame.EndHeaders);
         }
 
-        public void ReceiveHeaderFragmentFromConnection(ContinuationFrame continuationFrame)
+        internal void ReceiveHeaderFragmentFromConnection(ContinuationFrame continuationFrame)
         {
             ReceiveHeaderFragmentFromConnection(continuationFrame.Data, continuationFrame.EndHeaders);
         }
 
         private void ReceiveHeaderFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool last)
         {
-            _response.PostRequestHeader(buffer, last);
+            _response.PostResponseHeader(buffer, last);
 
             if (last)
-            {
                 _responseHeaderReady.SetResult(_headerBuffer);
-            }
         }
 
-        public async Task ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool enStream)
+
+        public void ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream)
         {
-            buffer.CopyTo(_dataReceptionBuffer.Slice(_fragmentReceptionOffset));
-            _fragmentReceptionOffset += buffer.Length;
+            // TODO : control sender of not overwhelming connection 
 
-            await _response.PostRequestBodyFragment(buffer, enStream, _overCancellationTokenSource.Token).ConfigureAwait(false);
+            if (endStream)
+            {
 
-            NotifyWindowUpdate(_fragmentReceptionOffset);
+            }
 
-            _fragmentReceptionOffset = 0;
+            _response.PostResponseBodyFragment(buffer, endStream);
 
-            if (enStream)
+            if (endStream)
             {
                 _responseReaden.SetResult(null);
+                _parent.NotifyDispose(this);
             }
         }
         
+        internal void OnDataConsumedByCaller(int dataSize)
+        {
+            if (dataSize > 0)
+            {
+                SendWindowUpdate(dataSize, StreamIdentifier);
+                SendWindowUpdate(dataSize, 0);
+            }
+        }
+
+        private void SendWindowUpdate(int windowSizeUpdateValue, int streamIdentifier)
+        {
+            var writeTask = new WriteTask(
+                H2FrameType.WindowUpdate,
+                streamIdentifier, StreamPriority, 
+                StreamDependency, Memory<byte>.Empty, windowSizeUpdateValue);
+            _upStreamChannel(ref writeTask);
+        }
+
         private void OnError(Exception ex)
         {
-
             _parent.NotifyDispose(this);
-
         }
 
         public void Dispose()
         {
             _memoryPool.Return(_dataReceptionBufferbytes);
-            _parent.NotifyDispose(this);
             RemoteWindowSize?.Dispose();
             OverallRemoteWindowSize?.Dispose();
             _overCancellationTokenSource.Dispose();
         }
     }
+    
 }

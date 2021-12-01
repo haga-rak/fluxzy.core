@@ -33,7 +33,6 @@ namespace Echoes.H2.Cli
         private StreamProcessing CreateActiveStream(CancellationToken callerCancellationToken)
         {
             var activeStream = _streamProcessingBuilder.Build(_nextStreamIdentifier, this, callerCancellationToken);
-
             _runningStreams[_nextStreamIdentifier] = activeStream;
 
             Interlocked.Add(ref _nextStreamIdentifier, 2);
@@ -54,7 +53,10 @@ namespace Echoes.H2.Cli
         public void NotifyDispose(StreamProcessing streamProcessing)
         {
             if (_runningStreams.Remove(streamProcessing.StreamIdentifier))
+            {
                 _barrier.Release();
+                streamProcessing.Dispose();
+            }
         }
 
         public void Dispose()
@@ -63,8 +65,6 @@ namespace Echoes.H2.Cli
         }
     }
     
-
-
     public enum StreamStateType : ushort
     {
         Idle = 0 ,

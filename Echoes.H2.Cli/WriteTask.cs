@@ -5,21 +5,27 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2.Cli
 {
-    internal class WriteTask
+    internal readonly struct WriteTask
     {
-        public WriteTask(ReadOnlyMemory<byte> bufferBytes, 
-            int streamIdentifier, 
-            int priority, int streamDependency)
+        private readonly TaskCompletionSource<object> _taskCompletionSource;
+
+        public WriteTask(H2FrameType frameType,
+            int streamIdentifier,
+            int priority,
+            int streamDependency,
+            ReadOnlyMemory<byte> bufferBytes,
+            int value = 0)
         {
             BufferBytes = bufferBytes;
             StreamIdentifier = streamIdentifier;
             Priority = priority;
             StreamDependency = streamDependency;
+            FrameType = frameType;
+            WindowUpdateSize = value;
+            _taskCompletionSource = new TaskCompletionSource<object>();
         }
 
-        private readonly TaskCompletionSource<object> _taskCompletionSource = new TaskCompletionSource<object>(); 
-
-        public ReadOnlyMemory<byte>  BufferBytes { get; set; }
+        public ReadOnlyMemory<byte>  BufferBytes { get;  }
         
         public void OnComplete(Exception ex)
         {
@@ -34,10 +40,14 @@ namespace Echoes.H2.Cli
 
         public Task DoneTask => _taskCompletionSource.Task;
 
-        public int StreamIdentifier { get; set; }
+        public int StreamIdentifier { get;  }
 
-        public int Priority { get; set; } = 0;
+        public int Priority { get;  }
 
-        public int StreamDependency { get; set; }
+        public int StreamDependency { get;  }
+
+        public H2FrameType FrameType { get; }
+
+        public int WindowUpdateSize { get; }
     }
 }

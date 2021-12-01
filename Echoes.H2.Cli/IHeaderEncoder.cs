@@ -1,11 +1,15 @@
 ﻿using System;
-using System.IO;
 using Echoes.Encoding.HPack;
 
 namespace Echoes.H2.Cli
 {
-    public interface IHeaderEncoder
+    internal interface IHeaderEncoder
     {
+
+        HPackEncoder Encoder { get; }
+
+        HPackDecoder Decoder { get; }
+
         /// <summary>
         /// Apply header + hpack to headerbuffer 
         /// </summary>
@@ -55,6 +59,10 @@ namespace Echoes.H2.Cli
             _hpackDecoder = hpackDecoder;
             _streamSetting = streamSetting;
         }
+
+        public HPackEncoder Encoder => _hpackEncoder;
+
+        public HPackDecoder Decoder => _hpackDecoder;
 
         public ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, Memory<byte> destinationBuffer)
         {

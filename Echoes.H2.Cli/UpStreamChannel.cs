@@ -1,9 +1,5 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Echoes.H2.Cli
+﻿namespace Echoes.H2.Cli
 {
-    internal delegate ValueTask UpStreamChannel(WriteTask data, CancellationToken token);
+    internal delegate void UpStreamChannel(ref WriteTask data);
     
 }

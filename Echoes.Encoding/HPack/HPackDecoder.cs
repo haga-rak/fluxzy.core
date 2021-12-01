@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Echoes.Encoding.Huffman;
 using Echoes.Encoding.Utils;
 using Echoes.Encoding.Utils.Interfaces;
@@ -41,6 +42,8 @@ namespace Echoes.Encoding.HPack
         }
 
         public DecodingContext Context => _decodingContext;
+
+        
 
         public ReadOnlySpan<char> Decode(ReadOnlySpan<byte> headerContent, Span<char> buffer)
         {

@@ -15,7 +15,10 @@ namespace Echoes.H2.Cli
             BodyType = header.BodyType;
             StreamIdentifier = header.StreamIdentifier;
             Flags = header.Flags;
+            BodyLength = header.BodyLength;
         }
+
+        public int BodyLength { get;  }
 
         public HeaderFlags Flags { get;  }
 

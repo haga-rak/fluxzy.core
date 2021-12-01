@@ -1,35 +1,54 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Buffers;
+using System.IO;
 using System.Text;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Echoes.Encoding.HPack;
 
 namespace Echoes.H2.Cli
 {
-    public class H2Message : IDisposable
+    public class H2Message : IDisposable, IAsyncDisposable
     {
         private readonly HPackDecoder _hPackDecoder;
+        private readonly MemoryPool<byte> _memoryPool;
+        private readonly StreamProcessing _owner;
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        private readonly Channel<ReadOnlyMemory<byte>> _resultChannel = Channel.CreateBounded<ReadOnlyMemory<byte>>(new BoundedChannelOptions(1)
-        {
-            SingleWriter = true, 
-            SingleReader = true,
-            AllowSynchronousContinuations = true
-        });
+        private  StringBuilder _headerBuilder = new StringBuilder();
+        private H2ResponseStream _lazyResponse; 
 
-        private  StringBuilder _headerBuilder = new StringBuilder(); 
-
-        internal H2Message(HPackDecoder hPackDecoder)
+        internal H2Message(
+            HPackDecoder hPackDecoder,
+            int streamIdentifier,
+            MemoryPool<byte> memoryPool, 
+            StreamProcessing owner)
         {
             _hPackDecoder = hPackDecoder;
+            _memoryPool = memoryPool;
+            _owner = owner;
+            StreamIdentifier = streamIdentifier;
         }
 
-        internal void PostRequestHeader(ReadOnlyMemory<byte> initialBytes, bool endHeader)
+        internal int StreamIdentifier { get; set; }
+
+        public string Header { get; private set; }
+
+        public bool Complete { get; private set; } = false;
+
+        public void OnDataConsumedByCaller(int dataSize)
         {
-            Span<char> buffer = stackalloc char [8192];
+            _owner.OnDataConsumedByCaller(dataSize);
+            ConsumedBodyLength += dataSize; 
+        }
+
+        public int ConsumedBodyLength { get; private set; } = 0; 
+
+        public H2ResponseStream Response => _lazyResponse ??= new H2ResponseStream(_memoryPool, this);
+
+        internal void PostResponseHeader(ReadOnlyMemory<byte> initialBytes, bool endHeader)
+        {
+            Span<char> buffer = stackalloc char[8192];
             _headerBuilder.Append(_hPackDecoder.Decode(initialBytes.Span, buffer));
 
             if (endHeader)
@@ -39,38 +58,40 @@ namespace Echoes.H2.Cli
             }
         }
 
-        public string Header { get; private set; }
-
-        public bool Complete { get; private set; } = false;
-
-        public IAsyncEnumerable<ReadOnlyMemory<byte>> Response => _resultChannel.Reader.ReadAllAsync(_cancellationTokenSource.Token);
-        
-        internal async Task PostRequestBodyFragment(ReadOnlyMemory<byte> memory, bool end,  CancellationToken cancellationToken)
+        internal void PostResponseBodyFragment(ReadOnlyMemory<byte> memory, bool end)
         {
-            await _resultChannel.Writer.WriteAsync(memory, cancellationToken).ConfigureAwait(false);
+            var response = Response; 
+            response.Feed(memory, end);
+            Complete = end; 
+        }
 
-            if (end)
+        private byte[] _buffer = new byte[1024 * 16];
+
+        public async Task<string> ResponseToString()
+        {
+            while (await Response.ReadAsync(_buffer, 0, _buffer.Length).ConfigureAwait(false) > 0)
             {
-                Complete = true; 
-                _resultChannel.Writer.Complete();
+
             }
+
+            return string.Empty; 
         }
 
         public void Dispose()
         {
             _cancellationTokenSource?.Dispose();
+            _lazyResponse.Dispose();
+            _lazyResponse = null; 
         }
 
-        public async Task<string> ResponseToString()
+
+        public async ValueTask DisposeAsync()
         {
-            StringBuilder builder = new StringBuilder();
-
-            await foreach(var memory in Response)
+            if (_lazyResponse != null)
             {
-                builder.Append(System.Text.Encoding.UTF8.GetString(memory.Span));
+                await _lazyResponse.DisposeAsync().ConfigureAwait(false);
+                _lazyResponse = null; 
             }
-
-            return builder.ToString();
         }
     }
 }
