@@ -37,15 +37,20 @@ namespace Echoes.H2.DotNetBridge
 
             Version = Version.Parse("2.0");
 
+            Content = new StreamContent(message.ResponseStream);
+
             foreach (var headerField in message.HeaderFields)
             {
                 if (headerField.Name.Span.StartsWith(":".AsSpan()))
                     continue;
-                
-                Headers.TryAddWithoutValidation(headerField.Name.ToString(), headerField.Value.ToString());
+
+                if (!Headers.TryAddWithoutValidation(headerField.Name.ToString(), headerField.Value.ToString()))
+                {
+                    Content.Headers.TryAddWithoutValidation(headerField.Name.ToString(), headerField.Value.ToString());
+                }
             }
 
-            Content = new StreamContent(message.ResponseStream);
+          
         }
 
         protected override void Dispose(bool disposing)
