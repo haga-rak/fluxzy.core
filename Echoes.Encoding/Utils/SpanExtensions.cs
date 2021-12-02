@@ -29,7 +29,7 @@ namespace Echoes.Encoding.Utils
                 byte compare = (byte) (0xFF >> sliceRemains);
 
                 if ((workBuffer[0] & compare) == compare)
-                    return ReadOnlySpan<byte>.Empty;
+                    return default;
             }
 
             workBuffer.Slice(0, workBuffer.Length < 8 ? workBuffer.Length : 8).CopyTo(destination);

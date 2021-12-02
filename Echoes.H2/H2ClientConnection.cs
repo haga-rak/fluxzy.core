@@ -22,7 +22,7 @@ namespace Echoes.H2
         private readonly CancellationTokenSource _settingReceptionCancellationTokenSource = new CancellationTokenSource();
         private readonly H2StreamSetting _setting;
 
-        private readonly StreamPool _statePool;
+        private readonly StreamPool _streamPool;
 
         private Task _innerReadTask;
         private Task _innerWriteRun;
@@ -58,7 +58,7 @@ namespace Echoes.H2
                     SingleWriter = false
                 });
 
-            _statePool = new StreamPool(_streamProcessingBuilder, _setting.Remote);
+            _streamPool = new StreamPool(_streamProcessingBuilder, _setting.Remote);
         }
 
         private void UpStreamChannel(ref WriteTask data)
@@ -125,7 +125,8 @@ namespace Echoes.H2
 
                 if (!_waitForSettingReception.Task.IsCompleted)
                     _waitForSettingReception.SetException(new H2Exception(
-                        $"Server settings was not received under {(int)_setting.WaitForSettingDelay.TotalMilliseconds}."));
+                        $"Server settings was not received under {(int)_setting.WaitForSettingDelay.TotalMilliseconds}.", 
+                        H2ErrorCode.SettingsTimeout, null));
             }
             catch (TaskCanceledException)
             {
@@ -137,8 +138,7 @@ namespace Echoes.H2
         {
             byte[] settingBuffer = new byte[16];
             int written = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0).Write(settingBuffer);
-
-            await _baseStream.WriteAsync(settingBuffer, 0, written);
+            await _baseStream.WriteAsync(settingBuffer, 0, written, _connectionCancellationTokenSource.Token);
 
             //written = new SettingFrame(SettingIdentifier.SettingsInitialWindowSize, _setting.OverallWindowSize).Write(settingBuffer);
             //await _baseStream.WriteAsync(settingBuffer, 0, written);
@@ -174,17 +174,51 @@ namespace Echoes.H2
         {
             if (frame.ErrorCode != H2ErrorCode.NoError)
             {
-                throw new H2Exception($"Had to goaway {frame.ErrorCode}"); 
+                throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
 
             Logger.WriteLine($"Goaway : Error code {frame.ErrorCode} : LastStreamId {frame.LastStreamId}");
         }
 
+        private void OnLoopEnd(Exception ex, bool releaseChannelItems)
+        {
+            // End the connection. This operation is idempotent. 
+
+            if (ex != null)
+            {
+                _streamPool.OnGoAway(ex);
+            }
+
+            _connectionCancellationTokenSource?.Cancel();
+
+            if (releaseChannelItems && _writerChannel != null)
+            {
+                _writerChannel.Writer.TryComplete();
+
+                var list = new List<WriteTask>();
+
+                if (_writerChannel.Reader.TryReadAll(ref list))
+                {
+                    foreach (var item in list)
+                    {
+                        if (!item.DoneTask.IsCompleted)
+                        {
+                            item.CompletionSource.SetCanceled();
+                        }
+                    }
+                }
+            }
+
+        }
+
+
         private async Task InternalWriteLoop()
         {
+            Exception outException = null;
+
             try
             {
-                IList<WriteTask> tasks = new List<WriteTask>();
+                List<WriteTask> tasks = new List<WriteTask>();
                 byte[] windowSizeBuffer = new byte[13];
 
                 while (true)
@@ -256,15 +290,18 @@ namespace Echoes.H2
             }
             catch (OperationCanceledException)
             {
-                // Natural death ; 
+
             }
-            catch (Exception ex) when (ex is SocketException || ex is IOException)
+            catch (Exception ex)
             {
-                throw;
+                // We catch this exception here to throw it to the
+                // caller in SendAsync() instead of Dispose() ;
+
+                outException = ex; 
             }
             finally
             {
-                _connectionCancellationTokenSource?.Cancel();
+                OnLoopEnd(outException, true);
             }
         }
 
@@ -275,6 +312,7 @@ namespace Echoes.H2
         private async Task InternalReadingLoop()
         {
             byte [] readBuffer = new byte[_setting.Local.MaxFrameSize];
+            Exception outException; 
 
             while (!_connectionCancellationTokenSource.IsCancellationRequested)
             {
@@ -283,10 +321,10 @@ namespace Echoes.H2
                     var frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
-                    _statePool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
-                    
+                    _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 
-                    Logger.WriteLine($"Receiving {frame.BodyType} ({frame.BodyLength}) on streamId {frame.StreamIdentifier} / Flags : {frame.Flags}");
+                    Logger.WriteLine(
+                        $"Receiving {frame.BodyType} ({frame.BodyLength}) on streamId {frame.StreamIdentifier} / Flags : {frame.Flags}");
 
                     if (frame.BodyType == H2FrameType.Settings)
                     {
@@ -315,9 +353,9 @@ namespace Echoes.H2
                             // TODO : Notify stream error, stream already closed 
                             continue;
                         }
-                        
+
                         activeStream.ReceiveHeaderFragmentFromConnection(frame.GetHeadersFrame());
-                        continue; 
+                        continue;
                     }
 
                     if (frame.BodyType == H2FrameType.Continuation)
@@ -327,9 +365,9 @@ namespace Echoes.H2
                             // TODO : Notify stream error, stream already closed 
                             continue;
                         }
-                        
+
                         activeStream.ReceiveHeaderFragmentFromConnection(frame.GetContinuationFrame());
-                        continue; 
+                        continue;
                     }
 
                     if (frame.BodyType == H2FrameType.Data)
@@ -342,7 +380,7 @@ namespace Echoes.H2
                         activeStream.ReceiveBodyFragmentFromConnection(
                             frame.GetDataFrame().Buffer, frame.Flags.HasFlag(HeaderFlags.EndStream));
 
-                        continue; 
+                        continue;
                     }
 
                     if (frame.BodyType == H2FrameType.RstStream)
@@ -367,7 +405,7 @@ namespace Echoes.H2
                         }
 
                         activeStream.NotifyRemoteWindowUpdate(windowSizeIncrement);
-                        
+
                         continue;
                     }
 
@@ -377,10 +415,14 @@ namespace Echoes.H2
                         continue;
                     }
                 }
-                catch
+                catch (OperationCanceledException)
                 {
-                    _connectionCancellationTokenSource?.Cancel();
-                    throw;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    OnLoopEnd(ex, false);
+                    break;
                 }
             }
         }
@@ -391,7 +433,7 @@ namespace Echoes.H2
             long bodyLength = -1,
             CancellationToken cancellationToken = default)
         {
-            var activeStream = await _statePool.CreateNewStreamActivity(cancellationToken).ConfigureAwait(false);
+            var activeStream = await _streamPool.CreateNewStreamActivity(cancellationToken).ConfigureAwait(false);
 
             await activeStream.ProcessRequest(requestHeader, requestBodyStream, bodyLength)
                 .ConfigureAwait(false);

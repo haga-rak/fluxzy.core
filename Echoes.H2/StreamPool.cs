@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +15,8 @@ namespace Echoes.H2
 
         private int _nextStreamIdentifier = 1;
 
-        private readonly SemaphoreSlim _barrier; 
+        private readonly SemaphoreSlim _barrier;
+        private bool _onError;
 
         public StreamPool(
             IStreamProcessingBuilder streamProcessingBuilder,
@@ -32,9 +34,11 @@ namespace Echoes.H2
 
         private StreamProcessing CreateActiveStream(CancellationToken callerCancellationToken)
         {
+            if (_onError)
+                throw new InvalidOperationException("This connection is on error"); 
+
             var activeStream = _streamProcessingBuilder.Build(_nextStreamIdentifier, this, callerCancellationToken);
             _runningStreams[_nextStreamIdentifier] = activeStream;
-
             Interlocked.Add(ref _nextStreamIdentifier, 2);
 
             return activeStream;
@@ -46,6 +50,9 @@ namespace Echoes.H2
         /// <returns></returns>
         public async Task<StreamProcessing> CreateNewStreamActivity(CancellationToken callerCancellationToken)
         {
+            if (_onError)
+                throw new InvalidOperationException("This connection is on error");
+
             await _barrier.WaitAsync(callerCancellationToken).ConfigureAwait(false); 
             return CreateActiveStream(callerCancellationToken); 
         }
@@ -62,6 +69,15 @@ namespace Echoes.H2
         public void Dispose()
         {
             _barrier.Dispose();
+        }
+        
+
+        internal Exception GoAwayException { get; private set; }
+
+        public void OnGoAway(Exception ex)
+        {
+            _onError = ex != null; 
+            GoAwayException = ex; 
         }
     }
     

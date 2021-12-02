@@ -5,9 +5,9 @@ using System.Threading.Channels;
 
 namespace Echoes.H2.Helpers
 {
-    public static class ChannelHelper
+    internal static class ChannelHelper
     {
-        public static bool TryReadAll<T>(this ChannelReader<T> channel, ref IList<T> refList)
+        public static bool TryReadAll<T>(this ChannelReader<T> channel, ref List<T> refList)
         {
             bool any = false; 
 

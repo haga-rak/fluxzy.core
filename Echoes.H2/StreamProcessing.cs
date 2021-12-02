@@ -9,6 +9,8 @@ namespace Echoes.H2
     internal class StreamProcessing: IDisposable
     {
         private readonly StreamPool _parent;
+        private readonly CancellationToken _callerCancellationToken;
+        private readonly CancellationToken _mainLoopCancellationToken;
         private readonly UpStreamChannel _upStreamChannel;
         private readonly IHeaderEncoder _headerEncoder;
         private readonly H2Message _response;
@@ -17,15 +19,19 @@ namespace Echoes.H2
         private readonly H2StreamSetting _globalSetting;
 
         private readonly TaskCompletionSource<object> _responseHeaderReady = new TaskCompletionSource<object>();
-        private readonly TaskCompletionSource<object> _responseReaden = new TaskCompletionSource<object>();
-        private readonly CancellationTokenSource _overCancellationTokenSource;
+        private readonly TaskCompletionSource<object> _responseBodyComplete = new TaskCompletionSource<object>();
+
+        private readonly CancellationTokenSource _currentStreamCancellationTokenSource;
         private readonly MutableMemoryOwner<byte> _receptionBufferContainer;
+
+
+        private H2ErrorCode _resetErrorCode;
 
         public StreamProcessing(
             int streamIdentifier,
             StreamPool parent, 
-            CancellationToken remoteCancellationToken,
-            CancellationToken localCancellationToken,
+            CancellationToken callerCancellationToken,
+            CancellationToken mainLoopCancellationToken,
             UpStreamChannel upStreamChannel,
             IHeaderEncoder headerEncoder,
             H2StreamSetting globalSetting, 
@@ -33,6 +39,8 @@ namespace Echoes.H2
         {
             StreamIdentifier = streamIdentifier;
             _parent = parent;
+            _callerCancellationToken = callerCancellationToken;
+            _mainLoopCancellationToken = mainLoopCancellationToken;
             _upStreamChannel = upStreamChannel;
             _headerEncoder = headerEncoder;
             _response = new H2Message(headerEncoder.Decoder, StreamIdentifier, MemoryPool<byte>.Shared, this);
@@ -45,10 +53,47 @@ namespace Echoes.H2
 
             _dataReceptionBuffer = _receptionBufferContainer.Memory;
             
-            _overCancellationTokenSource =
-                CancellationTokenSource.CreateLinkedTokenSource(remoteCancellationToken, localCancellationToken); 
+            _currentStreamCancellationTokenSource =
+                CancellationTokenSource.CreateLinkedTokenSource(callerCancellationToken, mainLoopCancellationToken);
+
+            _currentStreamCancellationTokenSource.Token.Register(OnStreamHaltRequest);
         }
 
+        private void OnStreamHaltRequest()
+        {
+            if (_resetErrorCode != H2ErrorCode.NoError)
+            {
+                // The stream was reset by remote peer.
+                // Send an exception to the caller 
+
+                var rstStreamException = new H2Exception(
+                    $"Stream id {StreamIdentifier} halt with a RST_STREAM : {_resetErrorCode}",
+                    _resetErrorCode);
+
+                _responseHeaderReady.TryEnd(rstStreamException);
+                _responseBodyComplete.TryEnd(rstStreamException);
+
+                return; 
+            }
+
+            if (_callerCancellationToken.IsCancellationRequested)
+            {
+                // The caller cancelled the request 
+
+                _responseHeaderReady.TryEnd();
+                _responseBodyComplete.TryEnd();
+                return;
+            }
+
+            // In case of exception in the main loop, we ensure that wait tasks for the caller are 
+            // properly interrupt with exception
+
+            var goAwayException = _parent.GoAwayException;
+
+            _responseHeaderReady.TryEnd(goAwayException);
+            _responseBodyComplete.TryEnd(goAwayException);
+        }
+        
         public int StreamIdentifier { get;  }
 
         public byte StreamPriority { get; private set; }
@@ -80,10 +125,11 @@ namespace Echoes.H2
             RemoteWindowSize.UpdateWindowSize(windowSizeUpdateValue);
         }
 
+
         public void ResetRequest(H2ErrorCode errorCode)
         {
-            throw new InvalidOperationException($"Rst request {errorCode}");
-            Logger.WriteLine($"RstStream : Error code {errorCode}");
+            _resetErrorCode = errorCode;
+            _currentStreamCancellationTokenSource.Cancel(true);
         }
 
         public void SetPriority(PriorityFrame priorityFrame)
@@ -97,6 +143,7 @@ namespace Echoes.H2
         {
             var readyToBeSent = _headerEncoder.Encode(
                 new HeaderEncodingJob(headerBuffer, StreamIdentifier, StreamDependency), _dataReceptionBuffer, requestBodyStream == null);
+
             var writeTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority, StreamDependency, readyToBeSent);
 
             _upStreamChannel(ref writeTask);
@@ -114,10 +161,10 @@ namespace Echoes.H2
                 {
                     var requestedSize = _globalSetting.Remote.MaxFrameSize - 9;
 
-                    var readenLength = await requestBodyStream.ReadAsync(_dataReceptionBuffer.Slice(9, requestedSize), _overCancellationTokenSource.Token).ConfigureAwait(false);
+                    var readenLength = await requestBodyStream.ReadAsync(_dataReceptionBuffer.Slice(9, requestedSize), _currentStreamCancellationTokenSource.Token).ConfigureAwait(false);
                     
-                    if (!await BookWindowSize(readenLength, _overCancellationTokenSource.Token).ConfigureAwait(false))
-                        throw new OperationCanceledException("Stream cancellation request", _overCancellationTokenSource.Token);
+                    if (!await BookWindowSize(readenLength, _currentStreamCancellationTokenSource.Token).ConfigureAwait(false))
+                        throw new OperationCanceledException("Stream cancellation request", _currentStreamCancellationTokenSource.Token);
 
                     var endStream = readenLength == 0;
 
@@ -176,7 +223,6 @@ namespace Echoes.H2
                 _responseHeaderReady.SetResult(null);
         }
 
-
         public void ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream)
         {
             // TODO : control sender of not overwhelming connection 
@@ -190,7 +236,7 @@ namespace Echoes.H2
 
             if (endStream)
             {
-                _responseReaden.SetResult(null);
+                _responseBodyComplete.SetResult(null);
                 _parent.NotifyDispose(this);
             }
         }
@@ -222,7 +268,7 @@ namespace Echoes.H2
         {
             RemoteWindowSize?.Dispose();
             OverallRemoteWindowSize?.Dispose();
-            _overCancellationTokenSource.Dispose();
+            _currentStreamCancellationTokenSource.Dispose();
             _receptionBufferContainer?.Dispose();
         }
     }

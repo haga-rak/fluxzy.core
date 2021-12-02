@@ -31,8 +31,6 @@ namespace Echoes.H2.DotNetBridge
                 _activeConnection[request.RequestUri.Authority] = connection; 
             }
 
-            
-
             var response = await connection.Send(request.ToHttp11String().AsMemory(),
                 request.Content != null ? await request.Content.ReadAsStreamAsync() : null,
                 request.Content?.Headers.ContentLength ?? -1,

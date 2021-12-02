@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2
 {
-    internal readonly struct WriteTask
+    internal readonly struct WriteTask 
     {
         private readonly TaskCompletionSource<object> _taskCompletionSource;
 
@@ -23,6 +23,7 @@ namespace Echoes.H2
             FrameType = frameType;
             WindowUpdateSize = value;
             _taskCompletionSource = new TaskCompletionSource<object>();
+            
         }
 
         public ReadOnlyMemory<byte>  BufferBytes { get;  }
@@ -49,5 +50,7 @@ namespace Echoes.H2
         public H2FrameType FrameType { get; }
 
         public int WindowUpdateSize { get; }
+
+        public TaskCompletionSource<object> CompletionSource => _taskCompletionSource;
     }
 }

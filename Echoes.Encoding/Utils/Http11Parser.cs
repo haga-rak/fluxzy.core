@@ -29,6 +29,8 @@ namespace Echoes.Encoding.Utils
         private static readonly ReadOnlyMemory<char> HttpVerb = "http".AsMemory(); 
         private static readonly ReadOnlyMemory<char> HostVerb = "host".AsMemory(); 
         private static readonly ReadOnlyMemory<char> CookieVerb = "Cookie".AsMemory();
+        private static readonly ReadOnlyMemory<char> ConnectionVerb = "Connection".AsMemory();
+        private static readonly ReadOnlyMemory<char> TransfertEncodingVerb = "Transfert-Encoding".AsMemory();
 
         private static readonly HashSet<ReadOnlyMemory<char>> AvoidAutoParseHttp11Headers =
             new HashSet<ReadOnlyMemory<char>>(new[]
@@ -40,6 +42,12 @@ namespace Echoes.Encoding.Utils
             new HashSet<ReadOnlyMemory<char>>(new[]
             {
                 MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, StatusVerb
+            }, new SpanCharactersIgnoreCaseComparer());
+
+        private static readonly HashSet<ReadOnlyMemory<char>> NonForwardableHeaders =
+            new HashSet<ReadOnlyMemory<char>>(new[]
+            {
+                ConnectionVerb, TransfertEncodingVerb
             }, new SpanCharactersIgnoreCaseComparer());
 
         public Http11Parser(int maxHeaderLine, IMemoryProvider<char> memoryProvider)
@@ -93,6 +101,10 @@ namespace Echoes.Encoding.Utils
 
 
                 var headerName = kpValue[0].Trim();
+
+                if (NonForwardableHeaders.Contains(headerName))
+                    continue; 
+
                 var headerValue = kpValue[1].Trim();
 
                 if (headerName.Span.Equals(HostVerb.Span, StringComparison.OrdinalIgnoreCase))

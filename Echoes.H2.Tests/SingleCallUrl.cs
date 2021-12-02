@@ -106,15 +106,63 @@ namespace Echoes.H2.Tests
             content.Headers.ContentLength = content.Headers.ContentLength;
 
             requestMessage.Content = content;
-
-            var str = requestMessage.ToHttp11String();
+            
+            requestMessage.ToHttp11String();
             
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-
+            
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
         }
+
+
+        [Fact]
+        public async Task Get_With_InvalidHeaders()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://httpbin.org/get"
+            );
+
+            requestMessage.Headers.Add("Connection", "Keep-alive" );
+            
+
+            var response = await httpClient.SendAsync(requestMessage);
+            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            Assert.True(response.IsSuccessStatusCode);
+        }
+
+        [Fact]
+        public async Task Get_With_Extra_Column_Header()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://httpbin.org/get"
+            );
+
+
+            requestMessage.Headers.Add("X-Header-A", "ads");
+
+            //requestMessage.Headers.Add("X-Header-2", "po ::  /:");
+            //  requestMessage.Headers.Add("X-Header-3", ":");
+
+
+            var str = requestMessage.ToHttp11String();
+
+            var response = await httpClient.SendAsync(requestMessage);
+
+            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            Assert.True(response.IsSuccessStatusCode);
+        }
+
     }
 }
