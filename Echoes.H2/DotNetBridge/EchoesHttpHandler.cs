@@ -1,6 +1,7 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -11,7 +12,10 @@ namespace Echoes.H2.DotNetBridge
     public class EchoesHttp2Handler : HttpMessageHandler
     {
         private readonly H2StreamSetting _streamSetting;
-        private Dictionary<string, H2ClientConnection> _activeConnection = new Dictionary<string, H2ClientConnection>();
+        private ConcurrentDictionary<string, H2ClientConnection>
+            _activeConnections = new ConcurrentDictionary<string, H2ClientConnection>();
+
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1); 
         
         public EchoesHttp2Handler(H2StreamSetting streamSetting = null)
         {
@@ -21,17 +25,25 @@ namespace Echoes.H2.DotNetBridge
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
-
-            if (!_activeConnection.TryGetValue(request.RequestUri.Authority, out var connection))
+            try
             {
-                connection = await H2ConnectionBuilder.Create(
-                    request.RequestUri.Host,
-                    request.RequestUri.Port, _streamSetting, cancellationToken).ConfigureAwait(false);
+                await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                _activeConnection[request.RequestUri.Authority] = connection; 
+                if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection))
+                {
+                    connection = await H2ConnectionBuilder.Create(
+                        request.RequestUri.Host,
+                        request.RequestUri.Port, _streamSetting, cancellationToken).ConfigureAwait(false);
+
+                    _activeConnections[request.RequestUri.Authority] = connection;
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
             }
 
-            var response = await connection.Send(request.ToHttp11String().AsMemory(),
+            var response = await _activeConnections[request.RequestUri.Authority].Send(request.ToHttp11String().AsMemory(),
                 request.Content != null ? await request.Content.ReadAsStreamAsync() : null,
                 request.Content?.Headers.ContentLength ?? -1,
                 cancellationToken).ConfigureAwait(false); 
@@ -42,10 +54,11 @@ namespace Echoes.H2.DotNetBridge
 
         protected override void Dispose(bool disposing)
         {
-            
             base.Dispose(disposing);
 
-            foreach (var connection in _activeConnection.Values)
+            _semaphore.Dispose();
+
+            foreach (var connection in _activeConnections.Values)
             {
                 connection.Dispose();
             }

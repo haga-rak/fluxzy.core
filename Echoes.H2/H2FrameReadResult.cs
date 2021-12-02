@@ -65,5 +65,10 @@ namespace Echoes.H2
         {
             return new WindowUpdateFrame(_bodyBytes.Span, StreamIdentifier); 
         }
+
+        public override string ToString()
+        {
+            return $"{BodyType} : streamId : {StreamIdentifier} : Length {BodyLength} : Flags : {Flags} "; 
+        }
     }
 }

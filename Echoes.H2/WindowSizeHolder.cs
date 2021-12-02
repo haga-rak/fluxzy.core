@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,21 +8,32 @@ namespace Echoes.H2
     public class WindowSizeHolder : IDisposable
     {
         private long _windowSize;
+        private readonly int _streamIdentifier;
 
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         private SemaphoreSlim _semaphoreRequest = new SemaphoreSlim(1);
 
-        public WindowSizeHolder(int windowSize)
+        public WindowSizeHolder(int windowSize, int streamIdentifier)
         {
             _windowSize = windowSize;
+            _streamIdentifier = streamIdentifier;
         }
 
         public long WindowSize => _windowSize;
 
+        public int StreamIdentifier => _streamIdentifier;
+
         public void UpdateWindowSize(int windowSizeIncrement)
         {
             Interlocked.Add(ref _windowSize, windowSizeIncrement);
-            _semaphore?.Release(_semaphore.CurrentCount); 
+            _semaphore?.Release(_semaphore.CurrentCount);
+
+
+
+            if (StreamIdentifier == 0)
+            {
+                Debug.WriteLine("Window Size : "  + _windowSize);
+            }
             // Wakeup at least 
         }
 

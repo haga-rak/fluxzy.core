@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,8 @@ namespace Echoes.H2
         private Channel<WriteTask> _writerChannel;
 
         private SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _streamCreationLock = new SemaphoreSlim(1);
+
         private readonly StreamProcessingBuilder _streamProcessingBuilder;
 
         private WindowSizeHolder _overallWindowSizeHolder; 
@@ -44,7 +47,7 @@ namespace Echoes.H2
             _streamReader = new H2Reader();
             _setting = setting;
 
-            _overallWindowSizeHolder = new WindowSizeHolder(_setting.OverallWindowSize);
+            _overallWindowSizeHolder = new WindowSizeHolder(_setting.OverallWindowSize,0);
 
             _streamProcessingBuilder = new StreamProcessingBuilder(_connectionCancellationTokenSource.Token,
                 UpStreamChannel,
@@ -160,7 +163,7 @@ namespace Echoes.H2
             // Write setting 
             await WriteSetting().ConfigureAwait(false);
 
-            _innerReadTask = InternalReadingLoop();
+            _innerReadTask = InternalReadLoop();
             // Wait from setting reception 
             _innerWriteRun = InternalWriteLoop();
             
@@ -169,6 +172,9 @@ namespace Echoes.H2
             await _waitForSettingReception.Task.ConfigureAwait(false);
             await cancelTask; 
         }
+
+
+        public List<string> Frames = new List<string>();
 
         private void OnGoAway(GoAwayFrame frame)
         {
@@ -208,9 +214,7 @@ namespace Echoes.H2
                     }
                 }
             }
-
         }
-
 
         private async Task InternalWriteLoop()
         {
@@ -241,16 +245,19 @@ namespace Echoes.H2
                             await _baseStream.WriteAsync(windowSizeBuffer, _connectionCancellationTokenSource.Token)
                                 .ConfigureAwait(false);
                             await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
+                            
+                            lock (Frames)
+                                Frames.Add("Send : " + H2FrameType.WindowUpdate);
                         }
 
                         // TODO improve the priority rule 
                         foreach (var writeTask in tasks
                                      .Where(t => t.FrameType != H2FrameType.WindowUpdate)
-                                     .OrderBy(
-                                         r => r.FrameType == H2FrameType.Headers || r.FrameType == H2FrameType.Data)
-                                     .ThenBy(r => r.StreamDependency == 0)
-                                     .ThenBy(r => r.StreamIdentifier)
-                                     .ThenBy(r => r.Priority)
+                                     //.OrderBy(
+                                     //    r => r.FrameType == H2FrameType.Headers || r.FrameType == H2FrameType.Data)
+                                     //.ThenBy(r => r.StreamDependency == 0)
+                                     //.ThenBy(r => r.StreamIdentifier)
+                                     //.ThenBy(r => r.Priority)
                                 )
                         {
                             try
@@ -259,6 +266,10 @@ namespace Echoes.H2
                                 {
 
                                 }
+
+
+                                lock (Frames)
+                                    Frames.Add($"Send : {writeTask.FrameType} : streamId {writeTask.StreamIdentifier} : Length : {writeTask.BufferBytes.Length}");
 
                                 await _baseStream
                                     .WriteAsync(writeTask.BufferBytes, _connectionCancellationTokenSource.Token)
@@ -305,21 +316,28 @@ namespace Echoes.H2
             }
         }
 
+
+
         /// <summary>
         /// %Write and read has to use the same thread 
         /// </summary>
         /// <returns></returns>
-        private async Task InternalReadingLoop()
+        private async Task InternalReadLoop()
         {
             byte [] readBuffer = new byte[_setting.Local.MaxFrameSize];
-            Exception outException; 
+            Exception outException = null;
 
-            while (!_connectionCancellationTokenSource.IsCancellationRequested)
+            try
             {
-                try
+                while (!_connectionCancellationTokenSource.IsCancellationRequested)
                 {
                     var frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+
+                    var str = frame.ToString();
+
+                    lock(Frames)
+                        Frames.Add("Received : " + str);
 
                     _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 
@@ -412,31 +430,48 @@ namespace Echoes.H2
                     if (frame.BodyType == H2FrameType.Goaway)
                     {
                         OnGoAway(frame.GetGoAwayFrame());
-                        continue;
+                        break;
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    OnLoopEnd(ex, false);
-                    break;
-                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                outException = ex;
+            }
+            finally
+            {
+                OnLoopEnd(outException, false);
             }
         }
-        
+
+
+
         public async Task<H2Message> Send(
             ReadOnlyMemory<char> requestHeader, 
             Stream requestBodyStream,
             long bodyLength = -1,
             CancellationToken cancellationToken = default)
         {
-            var activeStream = await _streamPool.CreateNewStreamActivity(cancellationToken).ConfigureAwait(false);
+            StreamProcessing activeStream;
+            Task waitForHeaderSentTask;
 
-            await activeStream.ProcessRequest(requestHeader, requestBodyStream, bodyLength)
-                .ConfigureAwait(false);
+            try
+            {
+                activeStream = await _streamPool.CreateNewStreamProcessing(cancellationToken, _streamCreationLock).ConfigureAwait(false);
+                waitForHeaderSentTask = activeStream.EnqueueRequestHeader(requestHeader, requestBodyStream, bodyLength);
+            }
+            finally
+            {
+                if (_streamCreationLock.CurrentCount == 0)
+                    _streamCreationLock.Release(); 
+            }
+
+            await waitForHeaderSentTask.ConfigureAwait(false);
+
+            await activeStream.ProcessRequestBody(requestBodyStream, bodyLength);
 
             return await activeStream.ProcessResponse(cancellationToken)
                 .ConfigureAwait(false);
@@ -482,6 +517,8 @@ namespace Echoes.H2
 
             _writeSemaphore?.Dispose();
             _writeSemaphore = null;
+            _streamCreationLock.Dispose();
         }
     }
+    
 }

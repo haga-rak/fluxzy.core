@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +46,7 @@ namespace Echoes.H2
             _upStreamChannel = upStreamChannel;
             _headerEncoder = headerEncoder;
             _response = new H2Message(headerEncoder.Decoder, StreamIdentifier, MemoryPool<byte>.Shared, this);
-            RemoteWindowSize = new WindowSizeHolder(globalSetting.OverallWindowSize);
+            RemoteWindowSize = new WindowSizeHolder(globalSetting.OverallWindowSize, streamIdentifier);
             OverallRemoteWindowSize = overallWindowSizeHolder; 
             
             _globalSetting = globalSetting;
@@ -137,22 +139,24 @@ namespace Echoes.H2
             StreamPriority = priorityFrame.Weight;
             Exclusive = priorityFrame.Exclusive; 
         }
-
-        public async  ValueTask ProcessRequest(ReadOnlyMemory<char> headerBuffer, Stream requestBodyStream, long bodyLength)
+        
+        public Task EnqueueRequestHeader(ReadOnlyMemory<char> headerBuffer, Stream requestBodyStream, long bodyLength)
         {
             var readyToBeSent = _headerEncoder.Encode(
-                new HeaderEncodingJob(headerBuffer, StreamIdentifier, StreamDependency), _dataReceptionBuffer, requestBodyStream == null);
+                new HeaderEncodingJob(headerBuffer, StreamIdentifier, StreamDependency), 
+                _dataReceptionBuffer, requestBodyStream == null);
 
-            var writeTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority, StreamDependency, readyToBeSent);
+            var writeHeaderTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority, StreamDependency, readyToBeSent);
 
-            _upStreamChannel(ref writeTask);
+            _upStreamChannel(ref writeHeaderTask);
 
-            await writeTask.DoneTask.ConfigureAwait(false);
-            
-             // Wait for request header to be sent according to priority 
+            return writeHeaderTask.DoneTask;
+        }
+        
 
-
-             var totalSent = 0; 
+        public async Task ProcessRequestBody(Stream requestBodyStream, long bodyLength)
+        {
+            var totalSent = 0;
 
             if (requestBodyStream != null)
             {
@@ -160,16 +164,19 @@ namespace Echoes.H2
                 {
                     var requestedSize = _globalSetting.Remote.MaxFrameSize - 9;
 
-                    var readenLength = await requestBodyStream.ReadAsync(_dataReceptionBuffer.Slice(9, requestedSize), _currentStreamCancellationTokenSource.Token).ConfigureAwait(false);
-                    
+                    var readenLength = await requestBodyStream
+                        .ReadAsync(_dataReceptionBuffer.Slice(9, requestedSize), _currentStreamCancellationTokenSource.Token)
+                        .ConfigureAwait(false);
+
                     if (!await BookWindowSize(readenLength, _currentStreamCancellationTokenSource.Token).ConfigureAwait(false))
-                        throw new OperationCanceledException("Stream cancellation request", _currentStreamCancellationTokenSource.Token);
+                        throw new OperationCanceledException("Stream cancellation request",
+                            _currentStreamCancellationTokenSource.Token);
 
                     var endStream = readenLength == 0;
 
                     if (bodyLength >= 0 && (totalSent + readenLength) >= bodyLength)
                     {
-                        endStream = true; 
+                        endStream = true;
                     }
 
                     new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, readenLength,
@@ -180,8 +187,8 @@ namespace Echoes.H2
                         _dataReceptionBuffer.Slice(0, 9 + readenLength));
 
                     _upStreamChannel(ref writeTaskBody);
-                    
-                   
+
+
                     totalSent += readenLength;
 
                     if (readenLength > 0)
@@ -224,13 +231,6 @@ namespace Echoes.H2
 
         public void ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream)
         {
-            // TODO : control sender of not overwhelming connection 
-
-            if (endStream)
-            {
-
-            }
-
             _response.PostResponseBodyFragment(buffer, endStream);
 
             if (endStream)
@@ -249,6 +249,7 @@ namespace Echoes.H2
             }
         }
 
+
         private void SendWindowUpdate(int windowSizeUpdateValue, int streamIdentifier)
         {
             var writeTask = new WriteTask(
@@ -261,6 +262,11 @@ namespace Echoes.H2
         private void OnError(Exception ex)
         {
             _parent.NotifyDispose(this);
+        }
+
+        public override string ToString()
+        {
+            return $"Stream Id : {StreamIdentifier} : {_responseHeaderReady.Task.Status} : {_responseBodyComplete.Task.Status}"; 
         }
 
         public void Dispose()

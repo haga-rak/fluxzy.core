@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,17 +7,23 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2
 {
-    internal class StreamPool :  IDisposable
+  
+
+    internal class StreamPool :  IDisposable, IAsyncDisposable
     {
+
         private readonly PeerSetting _remotePeerSetting;
         private readonly IStreamProcessingBuilder _streamProcessingBuilder;
         
         private readonly IDictionary<int, StreamProcessing> _runningStreams = new Dictionary<int, StreamProcessing>();
 
-        private int _nextStreamIdentifier = 1;
+        private int _nextStreamIdentifier = -1;
 
         private readonly SemaphoreSlim _barrier;
+        private readonly SemaphoreSlim _lockker = new SemaphoreSlim(1);
         private bool _onError;
+
+        private readonly FifoLock _fifoLock = new FifoLock();
 
         public StreamPool(
             IStreamProcessingBuilder streamProcessingBuilder,
@@ -32,30 +39,39 @@ namespace Echoes.H2
             return _runningStreams.TryGetValue(streamIdentifier, out result); 
         }
 
-        private StreamProcessing CreateActiveStream(CancellationToken callerCancellationToken)
+        public List<int> status = new List<int>();
+
+        private StreamProcessing CreateActiveStream(CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
         {
             if (_onError)
-                throw new InvalidOperationException("This connection is on error"); 
+                throw new InvalidOperationException("This connection is on error");
 
-            var activeStream = _streamProcessingBuilder.Build(_nextStreamIdentifier, this, callerCancellationToken);
-            _runningStreams[_nextStreamIdentifier] = activeStream;
-            Interlocked.Add(ref _nextStreamIdentifier, 2);
+            ongoingStreamInit.Wait(callerCancellationToken);
+
+            var myId = Interlocked.Add(ref _nextStreamIdentifier, 2);
+            StreamProcessing activeStream = _streamProcessingBuilder.Build(myId, this, callerCancellationToken);
+            
+            _runningStreams[myId] = activeStream;
 
             return activeStream;
+            
         }
         
         /// <summary>
         /// Get or create  active stream 
         /// </summary>
         /// <returns></returns>
-        public async Task<StreamProcessing> CreateNewStreamActivity(CancellationToken callerCancellationToken)
+        public async Task<StreamProcessing> CreateNewStreamProcessing(CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
         {
             if (_onError)
                 throw new InvalidOperationException("This connection is on error");
-
-            await _barrier.WaitAsync(callerCancellationToken).ConfigureAwait(false); 
-            return CreateActiveStream(callerCancellationToken); 
+            
+            await _barrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
+            var res = CreateActiveStream(callerCancellationToken, ongoingStreamInit);
+            return res;
         }
+
+        public ConcurrentBag<StreamProcessing> DoneStream = new ConcurrentBag<StreamProcessing>();
 
         public void NotifyDispose(StreamProcessing streamProcessing)
         {
@@ -63,14 +79,10 @@ namespace Echoes.H2
             {
                 _barrier.Release();
                 streamProcessing.Dispose();
+
+                DoneStream.Add(streamProcessing);
             }
         }
-
-        public void Dispose()
-        {
-            _barrier.Dispose();
-        }
-        
 
         internal Exception GoAwayException { get; private set; }
 
@@ -79,17 +91,15 @@ namespace Echoes.H2
             _onError = ex != null; 
             GoAwayException = ex; 
         }
-    }
-    
-    public enum StreamStateType : ushort
-    {
-        Idle = 0 ,
-        ReservedLocal ,
-        ReservedRemote,
-        Open,
-        CloseLocal,
-        CloseRemote,
-        Closed,
-        OpenAndFree
+
+        public void Dispose()
+        {
+            _barrier.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _fifoLock.DisposeAsync().ConfigureAwait(false);
+        }
     }
 }

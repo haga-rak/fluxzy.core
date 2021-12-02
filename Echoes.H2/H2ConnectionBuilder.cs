@@ -19,6 +19,7 @@ namespace Echoes.H2
             var tcpClient = new TcpClient();
 
             tcpClient.ReceiveBufferSize = 1024 * 16;
+
             await tcpClient.ConnectAsync(hostName, port).ConfigureAwait(false);
 
             var sslStream = new SslStream(tcpClient.GetStream());

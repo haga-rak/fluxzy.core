@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Echoes.H2.DotNetBridge;
 using Xunit;
@@ -116,6 +117,32 @@ namespace Echoes.H2.Tests
             AssertHelpers.ControlHeaders(contentText, requestMessage);
         }
 
+        [Fact]
+        public async Task Post_Data_Unknown_Size()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler); 
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                "https://httpbin.org/post"
+            );
+            
+            using var randomStream = new RandomDataStream(9, 1024 * 124);
+            var content = new StreamContent(randomStream, 8192);
+
+            requestMessage.Content = content;
+            
+            var response = await httpClient.SendAsync(requestMessage);
+            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            
+            Assert.True(response.IsSuccessStatusCode);
+
+            AssertHelpers
+                .ControlHeaders(contentText, requestMessage)
+                .ControlBody(randomStream.Hash);
+        }
+
 
         [Fact]
         public async Task Get_With_InvalidHeaders()
@@ -129,7 +156,6 @@ namespace Echoes.H2.Tests
             );
 
             requestMessage.Headers.Add("Connection", "Keep-alive" );
-            
 
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -148,20 +174,35 @@ namespace Echoes.H2.Tests
                 "https://httpbin.org/get"
             );
 
-
             requestMessage.Headers.Add("x-Header-a", "ads");
-
-            //requestMessage.Headers.Add("X-Header-2", "po ::  /:");
-            //  requestMessage.Headers.Add("X-Header-3", ":");
-
-
-            var str = requestMessage.ToHttp11String();
-
+            
             var response = await httpClient.SendAsync(requestMessage);
 
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             Assert.True(response.IsSuccessStatusCode);
+            AssertHelpers.ControlHeaders(contentText, requestMessage);
+        }
+
+        [Fact]
+        public async Task Get_And_Cancel()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://httpbin.org/get"
+            );
+
+            CancellationTokenSource source = new CancellationTokenSource();
+
+            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            {
+                var responsePromise = httpClient.SendAsync(requestMessage, source.Token);
+                source.Cancel();
+                await responsePromise;
+            });
         }
 
     }

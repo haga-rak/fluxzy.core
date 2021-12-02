@@ -10,10 +10,35 @@ namespace Echoes.H2.Tests.Bins
     {
         [JsonConverter(typeof(CaseInsensitiveDictionaryConverter<string>))]
         [JsonPropertyName("headers")]
-        public Dictionary<string, string> Headers { get; set; }
+        public Dictionary<string, string>? Headers { get; set; }
 
         [JsonPropertyName("url")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
+
+        [JsonPropertyName("data")]
+        public string? Data { get; set; }
+
+        public Memory<byte> GetBinary(int length)
+        {
+            if (string.IsNullOrWhiteSpace(Data))
+                return default;
+
+            var prefix = "data:application/octet-stream;base64,";
+
+            if (!Data.StartsWith(prefix))
+                return default;
+
+            var dataSpan = Data.AsSpan(prefix.Length);
+
+            Memory<byte> memory = new byte[length];
+
+            if (!Convert.TryFromBase64Chars(dataSpan, memory.Span, out _))
+            {
+                throw new InvalidOperationException("Invalid length"); 
+            }
+
+            return memory;
+        }
     }
 
     public static class HttpConstants
