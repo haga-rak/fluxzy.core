@@ -149,7 +149,7 @@ namespace Echoes.H2.Tests
             );
 
 
-            requestMessage.Headers.Add("X-Header-A", "ads");
+            requestMessage.Headers.Add("x-Header-a", "ads");
 
             //requestMessage.Headers.Add("X-Header-2", "po ::  /:");
             //  requestMessage.Headers.Add("X-Header-3", ":");

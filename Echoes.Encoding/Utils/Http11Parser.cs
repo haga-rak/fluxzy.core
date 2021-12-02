@@ -28,9 +28,9 @@ namespace Echoes.Encoding.Utils
         private static readonly ReadOnlyMemory<char> HttpsVerb = "https".AsMemory(); 
         private static readonly ReadOnlyMemory<char> HttpVerb = "http".AsMemory(); 
         private static readonly ReadOnlyMemory<char> HostVerb = "host".AsMemory(); 
-        private static readonly ReadOnlyMemory<char> CookieVerb = "Cookie".AsMemory();
-        private static readonly ReadOnlyMemory<char> ConnectionVerb = "Connection".AsMemory();
-        private static readonly ReadOnlyMemory<char> TransfertEncodingVerb = "Transfert-Encoding".AsMemory();
+        private static readonly ReadOnlyMemory<char> CookieVerb = "cookie".AsMemory();
+        private static readonly ReadOnlyMemory<char> ConnectionVerb = "connection".AsMemory();
+        private static readonly ReadOnlyMemory<char> TransfertEncodingVerb = "transfert-encoding".AsMemory();
 
         private static readonly HashSet<ReadOnlyMemory<char>> AvoidAutoParseHttp11Headers =
             new HashSet<ReadOnlyMemory<char>>(new[]
@@ -122,7 +122,7 @@ namespace Echoes.Encoding.Utils
 
                     continue; 
                 }
-
+                
                 yield return new HeaderField(headerName, headerValue);
             }
 

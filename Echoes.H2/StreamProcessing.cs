@@ -125,7 +125,6 @@ namespace Echoes.H2
             RemoteWindowSize.UpdateWindowSize(windowSizeUpdateValue);
         }
 
-
         public void ResetRequest(H2ErrorCode errorCode)
         {
             _resetErrorCode = errorCode;

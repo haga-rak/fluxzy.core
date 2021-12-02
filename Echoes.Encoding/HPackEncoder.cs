@@ -101,7 +101,10 @@ namespace Echoes.Encoding.HPack
                 var length = 1;
                 buffer[0] = 0x40;
 
-                length += InternalWriteString(entry.Name, buffer.Slice(length)).Length;
+                Span<char> lowerCaseBuffer = stackalloc char[entry.Name.Length];
+                entry.Name.Span.ToLowerInvariant(lowerCaseBuffer);
+
+                length += InternalWriteString(lowerCaseBuffer, buffer.Slice(length)).Length;
                 length += InternalWriteString(entry.Value, buffer.Slice(length)).Length;
 
                 return length;
@@ -111,10 +114,19 @@ namespace Echoes.Encoding.HPack
                 var length = 1;
                 buffer[0] = 0x0;
 
-                length += InternalWriteString(entry.Name, buffer.Slice(length)).Length;
+                Span<char> lowerCaseBuffer = stackalloc char[entry.Name.Length];
+                entry.Name.Span.ToLowerInvariant(lowerCaseBuffer);
+
+                length += InternalWriteString(lowerCaseBuffer, buffer.Slice(length)).Length;
                 length += InternalWriteString(entry.Value, buffer.Slice(length)).Length;
                 return length;
             }
+        }
+
+        private Span<byte> InternalWriteString(ReadOnlySpan<char> input, Span<byte> buffer)
+        {
+            return _primitiveOperation.WriteString(input, buffer,
+                _codecSetting.MaxLengthUncompressedString < input.Length);
         }
 
         private Span<byte> InternalWriteString(ReadOnlyMemory<char> input, Span<byte> buffer)
