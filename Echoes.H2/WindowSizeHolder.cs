@@ -6,22 +6,22 @@ namespace Echoes.H2
 {
     public class WindowSizeHolder : IDisposable
     {
-        private int _windowSize;
+        private long _windowSize;
 
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private readonly SemaphoreSlim _semaphoreRequest = new SemaphoreSlim(1);
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private SemaphoreSlim _semaphoreRequest = new SemaphoreSlim(1);
 
         public WindowSizeHolder(int windowSize)
         {
             _windowSize = windowSize;
         }
 
-        public int WindowSize => _windowSize;
+        public long WindowSize => _windowSize;
 
         public void UpdateWindowSize(int windowSizeIncrement)
         {
             Interlocked.Add(ref _windowSize, windowSizeIncrement);
-            _semaphore.Release(_semaphore.CurrentCount); 
+            _semaphore?.Release(_semaphore.CurrentCount); 
             // Wakeup at least 
         }
 
@@ -61,7 +61,9 @@ namespace Echoes.H2
         public void Dispose()
         {
             _semaphore?.Dispose();
+            _semaphore = null;
             _semaphoreRequest?.Dispose();
+            _semaphoreRequest = null;
 
 
         }

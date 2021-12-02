@@ -34,13 +34,11 @@ namespace Echoes.H2
 
         public ReadOnlyMemory<byte> Buffer { get; }
 
-        public int Write(Span<byte> buffer, ReadOnlySpan<byte> payload = default)
+        public int WriteHeaderOnly(Span<byte> buffer, int bodyLength)
         {
-            var toWrite = payload.Length == 0 ? Buffer.Span : payload;
-            var offset = H2Frame.Write(buffer, toWrite.Length, H2FrameType.Data, EndStream ? HeaderFlags.EndStream : HeaderFlags.None , StreamIdentifier);
-
-            toWrite.CopyTo(buffer.Slice(offset));
-            return offset + toWrite.Length; 
+            var offset = H2Frame.Write(buffer, bodyLength, H2FrameType.Data, EndStream ? HeaderFlags.EndStream : HeaderFlags.None , StreamIdentifier);
+            
+            return offset; 
         }
 
         public int BodyLength { get; }

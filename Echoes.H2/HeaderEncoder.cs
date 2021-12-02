@@ -25,12 +25,12 @@ namespace Echoes.H2
 
         public HPackDecoder Decoder => _hpackDecoder;
 
-        public ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, Memory<byte> destinationBuffer)
+        public ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, Memory<byte> destinationBuffer, bool endStream)
         {
             Span<byte> buffer = stackalloc byte[_streamSetting.Remote.MaxHeaderLine];
             var encodedHeader = _hpackEncoder.Encode(encodingJob.Data, buffer);
 
-            var res = Packetizer.PacketizeHeader(encodedHeader, destinationBuffer.Span, encodingJob.StreamIdentifier,
+            var res = Packetizer.PacketizeHeader(encodedHeader, destinationBuffer.Span, endStream, encodingJob.StreamIdentifier,
                 (int) _streamSetting.Remote.MaxFrameSize, encodingJob.StreamDependency);
 
             return destinationBuffer.Slice(0, res.Length);

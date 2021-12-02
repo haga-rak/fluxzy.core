@@ -23,6 +23,20 @@ namespace Echoes.H2.DotNetBridge
                 }
             }
 
+            if (message.Content?.Headers != null)
+            foreach (var header in message.Content.Headers)
+            {
+                foreach (var value in header.Value)
+                {
+                    builder.Append(header.Key);
+                    builder.Append(": ");
+                    builder.Append(value);
+                    builder.Append("\r\n");
+                }
+            }
+
+            var s = message.ToString();
+
             builder.Append("\r\n");
             return builder.ToString();
         }

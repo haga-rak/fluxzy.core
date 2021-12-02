@@ -15,8 +15,9 @@ namespace Echoes.H2
         /// </summary>
         /// <param name="encodingJob"></param>
         /// <param name="destinationBuffer"></param>
+        /// <param name="endStream"></param>
         /// <returns></returns>
-        ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, Memory<byte> destinationBuffer); 
+        ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, Memory<byte> destinationBuffer, bool endStream); 
 
         /// <summary>
         /// Remove hpack 

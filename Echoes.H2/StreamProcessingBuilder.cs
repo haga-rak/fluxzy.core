@@ -42,7 +42,7 @@ namespace Echoes.H2
         {
             return new StreamProcessing(streamIdentifier, parent, callerCancellationToken, _localCancellationToken,
                 _upStreamChannel, _headerEncoder, _streamSetting,
-                _overallWindowSizeHolder, _arrayPool);
+                _overallWindowSizeHolder);
         }
     }
 

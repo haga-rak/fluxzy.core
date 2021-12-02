@@ -49,12 +49,9 @@ namespace Echoes.H2
         public static int Write(Span<byte> buffer, int length, H2FrameType bodyType, HeaderFlags flags, int streamIdentifier)
         {
             var frame = new H2Frame(length, bodyType, flags, streamIdentifier);
-            return frame.Write(buffer); 
-        }
-        
-        public static H2Frame BuildDataFrameHeader(int length, int streamIdentifier)
-        {
-            return new H2Frame(length, H2FrameType.Data, HeaderFlags.None, streamIdentifier); 
+            var frameRes =  frame.Write(buffer);
+
+            return frameRes; 
         }
 
         public static H2Frame BuildHeaderFrameHeader(int length, int streamIdentifier, bool first, bool endStream, bool endHeader)
@@ -74,8 +71,8 @@ namespace Echoes.H2
     public enum HeaderFlags : byte
     {
         None = 0x0,
+        EndStream = 0x1,
         Ack = 0x1,
-        EndStream = 0x1 ,
         EndHeaders = 0x4,
         Padded = 0x8,
         Priority = 0x20
