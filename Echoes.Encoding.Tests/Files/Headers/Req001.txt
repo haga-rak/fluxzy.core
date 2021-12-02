@@ -1,6 +1,5 @@
 ﻿GET /static/Resources/stylesheets/index_pri_20201013141424.min.css HTTP/1.1
 Host: particuliers.societegenerale.fr
-Connection: keep-alive
 sec-ch-ua: "Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"
 sec-ch-ua-mobile: ?0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36

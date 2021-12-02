@@ -31,9 +31,7 @@ namespace Echoes.H2.Tests
             Assert.True(response.IsSuccessStatusCode);
 
             AssertHelpers.ControlHeaders(contentText, requestMessage, bufferSize)
-                .ControlBody(randomStream.Hash); ;
-
-         
+                .ControlBody(randomStream.Hash);
         }
 
         [Fact]

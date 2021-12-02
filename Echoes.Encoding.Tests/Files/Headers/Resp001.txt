@@ -5,7 +5,6 @@ Vary: Accept-Encoding
 Cache-Control: max-age=5184000
 Content-Type: text/css
 Content-Encoding: gzip
-Connection: Keep-Alive
 Date: Thu, 25 Nov 2021 09:38:46 GMT
 Expires: Mon, 24 Jan 2022 08:54:01 GMT
 Age: 2686
