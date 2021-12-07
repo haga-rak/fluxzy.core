@@ -17,7 +17,7 @@ namespace Echoes.H2.Tests
             return buffer; 
         }
 
-        public static string GetStringSha256Hash(Memory<byte> data)
+        public static string GetStringSha1Hash(Memory<byte> data)
         {
             using var sha = SHA1.Create();
 
@@ -34,7 +34,7 @@ namespace Echoes.H2.Tests
 
         public static string GetStringSha256Hash(byte [] data)
         {
-            return GetStringSha256Hash((Memory<byte>) data); 
+            return GetStringSha1Hash((Memory<byte>) data); 
         }
     }
 }

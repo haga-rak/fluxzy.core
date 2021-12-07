@@ -70,18 +70,6 @@ namespace Echoes.H2
             Complete = end; 
         }
 
-        private byte[] _buffer = new byte[1024 * 16];
-
-        public async Task<string> ResponseToString()
-        {
-            while (await ResponseStream.ReadAsync(_buffer, 0, _buffer.Length).ConfigureAwait(false) > 0)
-            {
-
-            }
-
-            return string.Empty; 
-        }
-
         public void Dispose()
         {
             _cancellationTokenSource?.Dispose();

@@ -27,11 +27,13 @@ namespace Echoes.H2
 
     public class PeerSetting
     {
+        public static PeerSetting Default { get; } = new PeerSetting(); 
+
         public int WindowSize { get; set; } = 0xFFFF;
 
         public int MaxFrameSize { get; set; } = 0x4000;
 
-        public bool EnablePush { get; set; } = false;
+        public bool EnablePush { get;  } = false;
 
         public int MaxHeaderListSize { get; set; } = 0x4000;
 

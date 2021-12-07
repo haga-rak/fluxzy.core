@@ -1,7 +1,6 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -12,8 +11,8 @@ namespace Echoes.H2.DotNetBridge
     public class EchoesHttp2Handler : HttpMessageHandler
     {
         private readonly H2StreamSetting _streamSetting;
-        private ConcurrentDictionary<string, H2ClientConnection>
-            _activeConnections = new ConcurrentDictionary<string, H2ClientConnection>();
+        private readonly IDictionary<string, H2ClientConnection>
+            _activeConnections = new Dictionary<string, H2ClientConnection>();
 
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1); 
         

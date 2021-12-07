@@ -74,7 +74,16 @@ namespace Echoes.Encoding.HPack
 
                     WritePrefix(buffer, 0x40, 2);
                     var length = _primitiveOperation.WriteInt32(buffer, index, 6);
-                    var res = InternalWriteString(entry.Value, buffer.Slice(length));
+                    var slicedBuff = buffer.Slice(length);
+
+                    if (entry.Value.Length > slicedBuff.Length)
+                    {
+                        throw new HPackCodecException(
+                            $"Length of string value ({entry.Value.Length}) exceed the maximum buffer {slicedBuff.Length}");
+                    }
+
+
+                    var res = InternalWriteString(entry.Value, slicedBuff);
                     length += res.Length;
 
                     return length;

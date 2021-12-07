@@ -59,6 +59,7 @@ public static class AssertHelpers
         using var crypto = new CryptoStream(new DecodingStream(base64Encoded), new FromBase64Transform(), CryptoStreamMode.Read);
         using var sha1 = SHA1.Create();
         using var cryptoHash = new CryptoStream(resultCrypto, sha1, CryptoStreamMode.Write);
+        
 
         crypto.CopyTo(cryptoHash);
         cryptoHash.FlushFinalBlock();

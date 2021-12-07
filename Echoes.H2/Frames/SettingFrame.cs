@@ -43,7 +43,7 @@ namespace Echoes.H2
 
         public int Value { get; }
 
-        public int Write(Span<byte> buffer, ReadOnlySpan<byte> payload = default)
+        public int Write(Span<byte> buffer)
         {
             var offset = 
                 H2Frame.Write(buffer, BodyLength, H2FrameType.Settings, Ack ? HeaderFlags.Ack : HeaderFlags.None, 0);

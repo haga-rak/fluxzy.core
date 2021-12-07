@@ -40,9 +40,9 @@ namespace Echoes.H2
 
         public StreamProcessing Build(int streamIdentifier, StreamPool parent, CancellationToken callerCancellationToken)
         {
-            return new StreamProcessing(streamIdentifier, parent, callerCancellationToken, _localCancellationToken,
+            return new StreamProcessing(streamIdentifier, parent,
                 _upStreamChannel, _headerEncoder, _streamSetting,
-                _overallWindowSizeHolder);
+                _overallWindowSizeHolder, _localCancellationToken, callerCancellationToken);
         }
     }
 

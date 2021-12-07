@@ -50,11 +50,6 @@ namespace Echoes.H2
                         using var response2 = await connection.Send(
                             "GET https://extranet.2befficient.fr/Content/Global/Mandatory/Plugins?v=1N0a7hp5TbdWJTlXvMrIuuR-xx1KyQWnGp2I80A7L1I1 HTTP/1.1\r\nHost: extranet.2befficient.fr\r\n\r\n".AsMemory(),
                             null);
-
-                        var t1 = response1.ResponseToString();
-                        var t2 = response2.ResponseToString();
-
-                        var responseAll = await Task.WhenAll(t1, t2).ConfigureAwait(false);
                     }
                 }
 

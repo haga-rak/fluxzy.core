@@ -31,6 +31,10 @@ namespace Echoes.Encoding.Utils
         private static readonly ReadOnlyMemory<char> CookieVerb = "cookie".AsMemory();
         private static readonly ReadOnlyMemory<char> ConnectionVerb = "connection".AsMemory();
         private static readonly ReadOnlyMemory<char> TransfertEncodingVerb = "transfert-encoding".AsMemory();
+        private static readonly ReadOnlyMemory<char> KeepAliveVerb = "keep-alive".AsMemory();
+        private static readonly ReadOnlyMemory<char> ProxyAuthenticate = "proxy-authenticate".AsMemory();
+        private static readonly ReadOnlyMemory<char> Trailer = "trailer".AsMemory();
+        private static readonly ReadOnlyMemory<char> Upgrade = "upgrade".AsMemory();
 
         private static readonly HashSet<ReadOnlyMemory<char>> AvoidAutoParseHttp11Headers =
             new HashSet<ReadOnlyMemory<char>>(new[]
@@ -44,10 +48,10 @@ namespace Echoes.Encoding.Utils
                 MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, StatusVerb
             }, new SpanCharactersIgnoreCaseComparer());
 
-        private static readonly HashSet<ReadOnlyMemory<char>> NonForwardableHeaders =
+        private static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
             new HashSet<ReadOnlyMemory<char>>(new[]
             {
-                ConnectionVerb, TransfertEncodingVerb
+                ConnectionVerb, TransfertEncodingVerb,KeepAliveVerb,ProxyAuthenticate,Trailer,Upgrade
             }, new SpanCharactersIgnoreCaseComparer());
 
         public Http11Parser(int maxHeaderLine, IMemoryProvider<char> memoryProvider)
@@ -102,7 +106,7 @@ namespace Echoes.Encoding.Utils
 
                 var headerName = kpValue[0].Trim();
 
-                if (NonForwardableHeaders.Contains(headerName))
+                if (NonH2Header.Contains(headerName))
                     continue; 
 
                 var headerValue = kpValue[1].Trim();

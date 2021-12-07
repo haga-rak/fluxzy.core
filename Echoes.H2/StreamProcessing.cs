@@ -12,7 +12,6 @@ namespace Echoes.H2
     {
         private readonly StreamPool _parent;
         private readonly CancellationToken _callerCancellationToken;
-        private readonly CancellationToken _mainLoopCancellationToken;
         private readonly UpStreamChannel _upStreamChannel;
         private readonly IHeaderEncoder _headerEncoder;
         private readonly H2Message _response;
@@ -26,23 +25,20 @@ namespace Echoes.H2
         private readonly CancellationTokenSource _currentStreamCancellationTokenSource;
         private readonly MutableMemoryOwner<byte> _receptionBufferContainer;
 
-
         private H2ErrorCode _resetErrorCode;
 
-        public StreamProcessing(
-            int streamIdentifier,
-            StreamPool parent, 
-            CancellationToken callerCancellationToken,
-            CancellationToken mainLoopCancellationToken,
+        public StreamProcessing(int streamIdentifier,
+            StreamPool parent,
             UpStreamChannel upStreamChannel,
             IHeaderEncoder headerEncoder,
-            H2StreamSetting globalSetting, 
-            WindowSizeHolder overallWindowSizeHolder)
+            H2StreamSetting globalSetting,
+            WindowSizeHolder overallWindowSizeHolder,
+            CancellationToken mainLoopCancellationToken,
+            CancellationToken callerCancellationToken)
         {
             StreamIdentifier = streamIdentifier;
             _parent = parent;
             _callerCancellationToken = callerCancellationToken;
-            _mainLoopCancellationToken = mainLoopCancellationToken;
             _upStreamChannel = upStreamChannel;
             _headerEncoder = headerEncoder;
             _response = new H2Message(headerEncoder.Decoder, StreamIdentifier, MemoryPool<byte>.Shared, this);
@@ -81,7 +77,6 @@ namespace Echoes.H2
             if (_callerCancellationToken.IsCancellationRequested)
             {
                 // The caller cancelled the request 
-
                 _responseHeaderReady.TryEnd();
                 _responseBodyComplete.TryEnd();
                 return;
@@ -153,7 +148,6 @@ namespace Echoes.H2
             return writeHeaderTask.DoneTask;
         }
         
-
         public async Task ProcessRequestBody(Stream requestBodyStream, long bodyLength)
         {
             var totalSent = 0;
@@ -164,37 +158,38 @@ namespace Echoes.H2
                 {
                     var requestedSize = _globalSetting.Remote.MaxFrameSize - 9;
 
-                    var readenLength = await requestBodyStream
+                    var readLength = await requestBodyStream
                         .ReadAsync(_dataReceptionBuffer.Slice(9, requestedSize), _currentStreamCancellationTokenSource.Token)
                         .ConfigureAwait(false);
 
-                    if (!await BookWindowSize(readenLength, _currentStreamCancellationTokenSource.Token).ConfigureAwait(false))
+                    if (!await BookWindowSize(readLength, _currentStreamCancellationTokenSource.Token)
+                            .ConfigureAwait(false))
                         throw new OperationCanceledException("Stream cancellation request",
                             _currentStreamCancellationTokenSource.Token);
 
-                    var endStream = readenLength == 0;
+                    var endStream = readLength == 0;
 
-                    if (bodyLength >= 0 && (totalSent + readenLength) >= bodyLength)
+                    if (bodyLength >= 0 && (totalSent + readLength) >= bodyLength)
                     {
                         endStream = true;
                     }
 
-                    new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, readenLength,
-                        StreamIdentifier).WriteHeaderOnly(_dataReceptionBuffer.Span, readenLength);
+                    new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, readLength,
+                        StreamIdentifier).WriteHeaderOnly(_dataReceptionBuffer.Span, readLength);
 
                     var writeTaskBody = new WriteTask(H2FrameType.Data, StreamIdentifier,
                         StreamPriority, StreamDependency,
-                        _dataReceptionBuffer.Slice(0, 9 + readenLength));
+                        _dataReceptionBuffer.Slice(0, 9 + readLength));
 
                     _upStreamChannel(ref writeTaskBody);
 
 
-                    totalSent += readenLength;
+                    totalSent += readLength;
 
-                    if (readenLength > 0)
-                        NotifyRemoteWindowUpdate(-readenLength);
+                    if (readLength > 0)
+                        NotifyRemoteWindowUpdate(-readLength);
 
-                    if (readenLength == 0 || endStream)
+                    if (readLength == 0 || endStream)
                     {
                         // No more request data body to send 
                         return;
@@ -248,7 +243,6 @@ namespace Echoes.H2
                 SendWindowUpdate(dataSize, 0);
             }
         }
-
 
         private void SendWindowUpdate(int windowSizeUpdateValue, int streamIdentifier)
         {
