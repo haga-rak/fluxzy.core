@@ -10,7 +10,7 @@ namespace Echoes.H2
 {
     public static class H2ConnectionBuilder
     {
-        public static async Task<H2ClientConnection> Create(
+        public static async Task<H2ConnectionPool> Create(
             string hostName, 
             int port = 443,
             H2StreamSetting setting = default,
@@ -36,7 +36,7 @@ namespace Echoes.H2
             await sslStream.AuthenticateAsClientAsync(sslAuthenticationOption,
                 token).ConfigureAwait(false);
 
-            return await H2ClientConnection.Open(sslStream, setting ?? new H2StreamSetting());
+            return await H2ConnectionPool.Open(sslStream, setting ?? new H2StreamSetting());
         }
     }
 }

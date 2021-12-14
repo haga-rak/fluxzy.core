@@ -11,7 +11,7 @@ using Echoes.H2.Helpers;
 
 namespace Echoes.H2
 {
-    public class H2ClientConnection : IHttpClientConnection
+    public class H2ConnectionPool : IHttpConnectionPool
     { 
         private static readonly byte[] Preface = System.Text.Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
 
@@ -37,7 +37,7 @@ namespace Echoes.H2
 
         private WindowSizeHolder _overallWindowSizeHolder; 
 
-        private H2ClientConnection(
+        private H2ConnectionPool(
             Stream baseStream,
             H2StreamSetting setting
             )
@@ -409,6 +409,9 @@ namespace Echoes.H2
             }
         }
 
+        public string Host { get; }
+
+        public int Port { get; }
 
         public async Task<H2Message> Send(
             ReadOnlyMemory<char> http11RequestHeader, 
@@ -438,9 +441,9 @@ namespace Echoes.H2
                 .ConfigureAwait(false);
         }
 
-        public static async Task<H2ClientConnection> Open(Stream stream, H2StreamSetting setting)
+        public static async Task<H2ConnectionPool> Open(Stream stream, H2StreamSetting setting)
         {
-            var connection = new H2ClientConnection(stream, setting);
+            var connection = new H2ConnectionPool(stream, setting);
             await connection.Init();
             return connection; 
         }

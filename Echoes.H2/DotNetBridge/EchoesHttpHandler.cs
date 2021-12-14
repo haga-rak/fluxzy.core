@@ -11,8 +11,8 @@ namespace Echoes.H2.DotNetBridge
     public class EchoesHttp2Handler : HttpMessageHandler
     {
         private readonly H2StreamSetting _streamSetting;
-        private readonly IDictionary<string, H2ClientConnection>
-            _activeConnections = new Dictionary<string, H2ClientConnection>();
+        private readonly IDictionary<string, H2ConnectionPool>
+            _activeConnections = new Dictionary<string, H2ConnectionPool>();
 
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1); 
         

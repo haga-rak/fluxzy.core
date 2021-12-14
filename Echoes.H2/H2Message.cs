@@ -76,8 +76,7 @@ namespace Echoes.H2
             _lazyResponse.Dispose();
             _lazyResponse = null; 
         }
-
-
+        
         public async ValueTask DisposeAsync()
         {
             if (_lazyResponse != null)

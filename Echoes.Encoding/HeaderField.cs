@@ -3,6 +3,10 @@ using Echoes.Encoding.Utils.Interfaces;
 
 namespace Echoes.Encoding
 {
+    /// <summary>
+    /// This struct represents a name pair value of a HTTP header.
+    /// RequestQuery Path and Method are always represented as HTTP/2.0 pseudo headerfields 
+    /// </summary>
     public readonly struct HeaderField
     {
         /// <summary>
@@ -45,7 +49,7 @@ namespace Echoes.Encoding
         }
         
         /// <summary>
-        /// 
+        /// Name pair value build from span
         /// </summary>
         /// <param name="memoryName"></param>
         /// <param name="memoryValue"></param>
@@ -61,10 +65,21 @@ namespace Echoes.Encoding
         /// </summary>
         public ReadOnlyMemory<char> Name { get; }
 
+        /// <summary>
+        /// Value of Header
+        /// </summary>
         public ReadOnlyMemory<char> Value { get; }
         
+        /// <summary>
+        /// The RFC length for the dynamic table size
+        /// </summary>
         public int Size => Name.Length + Value.Length + 32;
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             if (Value.Length > 0)
