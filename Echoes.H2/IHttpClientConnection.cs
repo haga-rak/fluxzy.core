@@ -35,11 +35,22 @@ namespace Echoes.H2
 
     public readonly struct Authority : IEquatable<Authority>
     {
+        public Authority(string hostName, int port, bool secure)
+        {
+            HostName = hostName;
+            Port = port;
+            Secure = secure;
+        }
+
+        public string HostName { get;  }
+
+        public int Port { get;  }
+
         public bool Equals(Authority other)
         {
-            return 
+            return
                 string.Equals(HostName, other.HostName, StringComparison.OrdinalIgnoreCase)
-                && Port == other.Port;
+                && Port == other.Port && Secure == other.Secure;
         }
 
         public override bool Equals(object obj)
@@ -50,17 +61,9 @@ namespace Echoes.H2
         public override int GetHashCode()
         {
             Span<char> destBuffer = stackalloc char[HostName.Length];
-            return HashCode.Combine(HostName.AsSpan().ToLowerInvariant(destBuffer), Port);
+            return HashCode.Combine(HostName.AsSpan().ToLowerInvariant(destBuffer), Port, Secure);
         }
 
-        public Authority(string hostName, int port)
-        {
-            HostName = hostName;
-            Port = port;
-        }
-
-        public string HostName { get;  }
-
-        public int Port { get;  }
+        public bool Secure { get;  }
     }
 }

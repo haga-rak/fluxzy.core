@@ -60,6 +60,8 @@ namespace Echoes.Encoding.Utils
             _memoryProvider = memoryProvider;
         }
 
+
+
         public IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true)
         {
             bool firstLine = true;

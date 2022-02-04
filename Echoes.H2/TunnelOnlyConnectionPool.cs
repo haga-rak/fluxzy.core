@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,11 +11,16 @@ namespace Echoes.H2
 {
     public class TunnelOnlyConnectionPool : IHttpConnectionPool
     {
+        private readonly ITimingProvider _timingProvider;
         private readonly int _maxConcurrentConnection;
         private SemaphoreSlim _semaphoreSlim; 
 
-        public TunnelOnlyConnectionPool(Authority authority, int maxConcurrentConnection)
+        public TunnelOnlyConnectionPool(
+            Authority authority, 
+            ITimingProvider timingProvider,
+            int maxConcurrentConnection)
         {
+            _timingProvider = timingProvider;
             _maxConcurrentConnection = maxConcurrentConnection;
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(maxConcurrentConnection); 
@@ -27,15 +33,16 @@ namespace Echoes.H2
             return Task.CompletedTask; 
         }
 
-        public async ValueTask Send(Exchange exchange, CancellationToken cancellationToken = default)
+        public async ValueTask Send(Exchange exchange, 
+            CancellationToken cancellationToken = default)
         {
             try
             {
                 await _semaphoreSlim.WaitAsync(cancellationToken);
 
-                using (var ex = new TunneledConnectionProcess(Authority))
+                using (var ex = new TunneledConnectionProcess(Authority, _timingProvider))
                 {
-                    await ex.Processs(exchange, CancellationToken.None); 
+                    await ex.Process(exchange, CancellationToken.None); 
                 }
             }
             finally
@@ -44,63 +51,113 @@ namespace Echoes.H2
             }
         }
 
-
         public ValueTask DisposeAsync()
         {
+            return new ValueTask(Task.CompletedTask); 
         }
 
         public void Dispose()
         {
+            _semaphoreSlim.Dispose();
         }
 
     }
 
+
     public class TunneledConnectionProcess : IDisposable, IAsyncDisposable
     {
         private readonly Authority _authority;
+        private readonly ITimingProvider _timingProvider;
+        private readonly IRemoteConnectionBuilder _remoteConnectionBuilder;
+        private readonly AuthorityCreationSetting _creationSetting;
         private readonly int _bufferSize;
-        private TcpClient _client; 
 
-        public TunneledConnectionProcess(Authority authority, int bufferSize = 1024 * 16 )
+        public TunneledConnectionProcess(Authority authority,
+            ITimingProvider timingProvider,
+            IRemoteConnectionBuilder remoteConnectionBuilder,
+            AuthorityCreationSetting creationSetting,
+            int bufferSize = 1024 * 16 )
         {
             _authority = authority;
+            _timingProvider = timingProvider;
+            _remoteConnectionBuilder = remoteConnectionBuilder;
+            _creationSetting = creationSetting;
             _bufferSize = bufferSize;
         }
 
-        private static async long CopyAndReturnCopied(Stream source , Stream destination)
+        private static async Task<long> CopyAndReturnCopied(
+            Stream source, 
+            Stream destination,
+            int bufferSize, Action<int> onContentCopied, CancellationToken cancellationToken)
         {
-            long totalCopied = 0; 
+            long totalCopied = 0;
 
-
-        }
-
-
-        public async Task Processs(Exchange exchange, CancellationToken cancellationToken)
-        {
-            if (exchange.BaseStream == null)
-                throw new ArgumentNullException(nameof(exchange.BaseStream)); 
-
-            if (_client == null)
+            var buffer = new byte[bufferSize]; 
+            int read;
+            
+            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+                       .ConfigureAwait(false)) > 0)
             {
-                _client = new TcpClient();
-                await _client.ConnectAsync(_authority.HostName, _authority.Port); 
+                await destination.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
+                onContentCopied(read);
+
+                totalCopied += read; 
             }
 
-            var remoteStream = _client.GetStream();
+            return totalCopied; 
+        }
 
-            var copyTask = Task.WhenAll(exchange.BaseStream.CopyToAsync(remoteStream, cancellationToken),
-                remoteStream.CopyToAsync(exchange.BaseStream, cancellationToken));
+        public async Task Process(Exchange exchange, CancellationToken cancellationToken)
+        {
+            if (exchange.BaseStream == null)
+                throw new ArgumentNullException(nameof(exchange.BaseStream));
 
-            await copyTask.ConfigureAwait(false); 
+            await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, true, SslApplicationProtocol.Http11, _creationSetting,
+                cancellationToken
+            ).ConfigureAwait(false);
+
+            try
+            {
+                await using var remoteStream = exchange.UpStream;
+
+                var copyTask = Task.WhenAll(
+                    CopyAndReturnCopied(exchange.BaseStream, remoteStream, _bufferSize, (copied) =>
+                            exchange.Metrics.TotalSent += copied
+                        , cancellationToken),
+                    CopyAndReturnCopied(remoteStream, exchange.BaseStream, _bufferSize, (copied) =>
+                            exchange.Metrics.TotalReceived += copied
+                        , cancellationToken));
+
+                await copyTask.ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException || ex is SocketException)
+                {
+                    exchange.Errors.Add(new Error(ex));
+                    return;
+                }
+
+                throw;
+            }
+            finally
+            {
+                exchange.Metrics.RemoteClosed = _timingProvider.Instant();
+            }
         }
 
         public void Dispose()
         {
-            _client?.Dispose(); 
         }
 
         public ValueTask DisposeAsync()
         {
+            return new ValueTask(Task.CompletedTask); 
         }
+    }
+
+    public interface ITimingProvider
+    {
+        DateTime Instant(); 
     }
 }
