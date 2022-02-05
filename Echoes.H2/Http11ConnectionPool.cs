@@ -126,33 +126,4 @@ namespace Echoes.H2
 
         public Stream Stream => _stream;
     }
-
-    public class Http11PoolProcessing
-    {
-        private readonly Stream _baseConnection;
-
-        public Http11PoolProcessing()
-        {
-        }
-        
-        /// <summary>
-        /// Process the exchange
-        /// </summary>
-        /// <param name="exchange"></param>
-        /// <returns>True if remote server close connection</returns>
-        public async Task<bool> Process(Exchange exchange)
-        {
-            // Read headers from base stream or from provisional data 
-
-            // Remove connection headers and transfert encoding 
-
-            // Forward to server
-             
-            // Read header from server 
-
-            // Remove non forwardable headers 
-
-            // Stream response 
-        }
-    }
 }

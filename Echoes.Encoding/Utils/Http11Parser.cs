@@ -60,8 +60,6 @@ namespace Echoes.Encoding.Utils
             _memoryProvider = memoryProvider;
         }
 
-
-
         public IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true)
         {
             bool firstLine = true;
@@ -101,10 +99,8 @@ namespace Echoes.Encoding.Utils
 
                 var kpValue = line.Split(HeaderSeparator,2).ToArray();
 
-
                 if (kpValue.Length != 2)
                     throw new HPackCodecException($"Invalid header on line {line}");
-
 
                 var headerName = kpValue[0].Trim();
 

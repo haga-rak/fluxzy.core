@@ -1,11 +1,13 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.H2.IO;
 
 namespace Echoes.H2
 {
@@ -85,34 +87,15 @@ namespace Echoes.H2
             _bufferSize = bufferSize;
         }
 
-        private static async Task<long> CopyAndReturnCopied(
-            Stream source, 
-            Stream destination,
-            int bufferSize, Action<int> onContentCopied, CancellationToken cancellationToken)
-        {
-            long totalCopied = 0;
-
-            var buffer = new byte[bufferSize]; 
-            int read;
-            
-            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
-                       .ConfigureAwait(false)) > 0)
-            {
-                await destination.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
-                onContentCopied(read);
-
-                totalCopied += read; 
-            }
-
-            return totalCopied; 
-        }
 
         public async Task Process(Exchange exchange, CancellationToken cancellationToken)
         {
             if (exchange.BaseStream == null)
                 throw new ArgumentNullException(nameof(exchange.BaseStream));
 
-            await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, true, SslApplicationProtocol.Http11, _creationSetting,
+            await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, true,
+                new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
+                _creationSetting,
                 cancellationToken
             ).ConfigureAwait(false);
 
@@ -121,10 +104,10 @@ namespace Echoes.H2
                 await using var remoteStream = exchange.UpStream;
 
                 var copyTask = Task.WhenAll(
-                    CopyAndReturnCopied(exchange.BaseStream, remoteStream, _bufferSize, (copied) =>
+                    exchange.BaseStream.CopyAndReturnCopied(remoteStream, _bufferSize, (copied) =>
                             exchange.Metrics.TotalSent += copied
                         , cancellationToken),
-                    CopyAndReturnCopied(remoteStream, exchange.BaseStream, _bufferSize, (copied) =>
+                    remoteStream.CopyAndReturnCopied(exchange.BaseStream, _bufferSize, (copied) =>
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken));
 

@@ -106,6 +106,9 @@ namespace Echoes.H2
         public DateTime SslNegotiationStart { get; set; }
 
         public DateTime SslNegotiationEnd { get; set; }
+        
+
+        public DateTime RequestHeaderSending { get; set; }
 
         public DateTime RequestHeaderSent { get; set; }
 
