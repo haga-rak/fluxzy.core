@@ -18,4 +18,13 @@ namespace Echoes.H2
         /// </summary>
         public H2ErrorCode ErrorCode { get; }
     }
+
+    public class ExchangeException : OperationCanceledException
+    {
+        public ExchangeException(string message, Exception innerException = null) :
+            base(message, innerException)
+        {
+
+        }
+    }
 }

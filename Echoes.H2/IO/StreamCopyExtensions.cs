@@ -44,22 +44,52 @@ namespace Echoes.H2.IO
         /// <param name="buffer"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static async Task<int> ReadHeaderBlock(Stream input, Memory<byte> buffer, CancellationToken token)
+        public static async Task<ReadOnlyMemory<char>> ReadAndAllocateHeaderBlock(Stream input, Memory<byte> buffer, CancellationToken token)
         {
-            Memory<char> headerData = new Memory<char>(new char[MaxHeaderSize]); 
+            var bufferIndex = buffer;
+            var totalRead = 0;
+            var indexFound = 0; 
 
-            while (true)
+            while (totalRead < buffer.Length)
             {
-                var readen = await input.ReadAsync(buffer, token);
+                var currentRead = await input.ReadAsync(bufferIndex, token);
 
-                
+                var start = totalRead - 4 < 0 ? 0 : (totalRead - 4);
 
-                // Check for CRLF
+                var searchBuffer = buffer.Slice(start, currentRead + (totalRead - start)); // We should look at that buffer 
 
+                totalRead += currentRead;
+                bufferIndex = bufferIndex.Slice(currentRead);
+
+                var detected = DetectCrLf(searchBuffer);
+
+                if (detected >= 0)
+                {
+                    // FOUND CRLF 
+
+                    indexFound = start + detected + 4;
+                    break; 
+                }
             }
 
+            if (indexFound < 0)
+                throw new ExchangeException(
+                    $"Double CRLF not detected or header buffer size ({buffer.Length}) is less than actual header size.");
 
+            var memory = new Memory<char>(new char[indexFound]);
             
+            System.Text.Encoding.ASCII.GetChars(buffer.Span.Slice(0, indexFound), memory.Span);
+
+            return memory; 
+
+        }
+
+        private static int DetectCrLf(Memory<byte> buffer)
+        {
+            Span<char> charBuffer = stackalloc char[buffer.Length] ;
+            System.Text.Encoding.ASCII.GetChars(buffer.Span, charBuffer);
+
+            return charBuffer.IndexOf("\r\n\r\n".AsSpan()); 
         }
     }
 }
