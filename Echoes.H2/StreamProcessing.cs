@@ -145,7 +145,8 @@ namespace Echoes.H2
         {
             var readyToBeSent = _headerEncoder.Encode(
                 new HeaderEncodingJob(exchange.Request.Header.RawHeader, StreamIdentifier, StreamDependency), 
-                _dataReceptionBuffer, exchange.Request.Header.ContentLength <= 0);
+                _dataReceptionBuffer, exchange.Request.Header.ContentLength == 0 || 
+                                      exchange.Request.Body == null);
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 

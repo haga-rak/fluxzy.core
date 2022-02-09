@@ -45,10 +45,10 @@ namespace Echoes.H2.DotNetBridge
             }
 
             var exchange = new Exchange(new Authority(request.RequestUri.Host, request.RequestUri.Port,
-                true), request.ToHttp11String().AsMemory(), _parser)
-            {
-                Request = { Body = await request.Content.ReadAsStreamAsync() }
-            }; 
+                true), request.ToHttp11String().AsMemory(), _parser);
+
+            if (request.Content != null)
+                exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 
             await _activeConnections[request.RequestUri.Authority].Send(exchange,
                 cancellationToken).ConfigureAwait(false); 
