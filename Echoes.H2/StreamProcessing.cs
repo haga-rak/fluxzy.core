@@ -26,7 +26,9 @@ namespace Echoes.H2
         private readonly CancellationTokenSource _currentStreamCancellationTokenSource;
         private readonly MutableMemoryOwner<byte> _receptionBufferContainer;
 
+
         private H2ErrorCode _resetErrorCode;
+        private bool _noBodyStream = false; 
 
         public StreamProcessing(
             int streamIdentifier,
@@ -132,6 +134,12 @@ namespace Echoes.H2
         {
             _resetErrorCode = errorCode;
             _currentStreamCancellationTokenSource.Cancel(true);
+
+
+            _responseBodyComplete.SetResult(null);
+            _parent.NotifyDispose(this);
+            _exchange.ExchangeCompletionSource
+                .SetException(new ExchangeException($"Receive  RST : {errorCode} from server"));
         }
 
         public void SetPriority(PriorityFrame priorityFrame)
@@ -167,8 +175,6 @@ namespace Echoes.H2
             var totalSent = 0;
             Stream requestBodyStream = exchange.Request.Body;
             long bodyLength = exchange.Request.Header.ContentLength;
-
-
 
             if (requestBodyStream != null)
             {
@@ -231,7 +237,13 @@ namespace Echoes.H2
         internal void ReceiveHeaderFragmentFromConnection(HeadersFrame headersFrame)
         {
             _exchange.Metrics.TotalReceived += headersFrame.BodyLength;
-            _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(); 
+            _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
+
+            if (headersFrame.EndStream)
+            {
+                _noBodyStream = true; 
+            }
+
             ReceiveHeaderFragmentFromConnection(headersFrame.Data, headersFrame.EndHeaders);
         }
 
@@ -254,7 +266,20 @@ namespace Echoes.H2
                 _response.Header.AsMemory(), true, _parser);
 
             if (last)
+            {
                 _responseHeaderReady.SetResult(null);
+
+                if (_noBodyStream)
+                {
+                    _response.PostResponseBodyFragment(Memory<byte>.Empty, true);
+
+                    _responseBodyComplete.SetResult(null);
+                    _exchange.ExchangeCompletionSource.SetResult(false);
+                    _parent.NotifyDispose(this);
+                }
+
+            }
+
         }
 
         private bool _firstBodyFragment = true; 

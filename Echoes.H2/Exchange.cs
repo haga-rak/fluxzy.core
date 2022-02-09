@@ -18,6 +18,7 @@ namespace Echoes.H2
         {
             Authority = authority;
             Request = new Request(new RequestHeader(header, authority.Secure, parser));
+            
         }
 
         private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>(); 

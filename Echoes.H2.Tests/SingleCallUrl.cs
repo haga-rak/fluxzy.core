@@ -43,6 +43,43 @@ namespace Echoes.H2.Tests
         }
 
         [Fact]
+        public async Task Get_With_200_Simple()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler); 
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://httpbin.org/ip"
+            );
+            
+            var response = await httpClient.SendAsync(requestMessage);
+            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            Assert.True(response.IsSuccessStatusCode);
+         //   Assert.True(contentText == string.Empty);
+            AssertHelpers.ControlHeaders(contentText, requestMessage);
+        }
+
+        [Fact]
+        public async Task Get_With_204_No_Body()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler); 
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://httpbin.org/status/204"
+            );
+            
+            var response = await httpClient.SendAsync(requestMessage);
+            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.True(contentText == string.Empty);
+        }
+
+        [Fact]
         public async Task Get_Control_Duplicate_Headers()
         {
             using var handler = new EchoesHttp2Handler();

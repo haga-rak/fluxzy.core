@@ -413,18 +413,7 @@ namespace Echoes.H2
                 OnLoopEnd(outException, false);
             }
         }
-
-        public string Host { get; }
-
-        public int Port { get; }
-
-
-        //public async Task<H2Message> Send(
-        //    ReadOnlyMemory<char> http11RequestHeader,
-        //    Stream requestBodyStream,
-        //    long bodyLength = -1,
-        //    CancellationToken cancellationToken = default)
-
+        
         public async ValueTask Send(
             Exchange exchange,
             CancellationToken cancellationToken = default)
@@ -460,21 +449,8 @@ namespace Echoes.H2
             exchange.Response.Body = h2Message.ResponseStream;
         }
 
-        //public static async Task<H2ConnectionPool> Open(Stream stream, H2StreamSetting setting)
-        //{
-        //    var connection = new H2ConnectionPool(stream, setting);
-        //    await connection.Init();
-        //    return connection; 
-        //}
-
         public Authority Authority { get; }
         
-
-        //public ValueTask Send(Exchange exchange, CancellationToken cancellationToken = default)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
         public async ValueTask DisposeAsync()
         {
             _writerChannel?.Writer.TryComplete();

@@ -35,7 +35,7 @@ namespace Echoes.Encoding.Utils
                 {
                     // parsing request line
 
-                    var arrayOfValue = line.Split(Http11Constants.SpaceSeparators).ToArray();
+                    var arrayOfValue = line.Split(Http11Constants.SpaceSeparators,3).ToArray();
 
                     if (arrayOfValue.Length == 3)
                     {

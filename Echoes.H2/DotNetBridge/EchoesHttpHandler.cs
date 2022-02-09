@@ -51,8 +51,8 @@ namespace Echoes.H2.DotNetBridge
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 
             await _activeConnections[request.RequestUri.Authority].Send(exchange,
-                cancellationToken).ConfigureAwait(false); 
-
+                cancellationToken).ConfigureAwait(false);
+            
             return new EchoesHttpResponseMessage(exchange);
         }
 
