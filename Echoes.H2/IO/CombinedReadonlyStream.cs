@@ -13,6 +13,11 @@ namespace Echoes.H2.IO
         private IEnumerator<Stream> _iterator;
         private Stream _current;
 
+        public CombinedReadonlyStream(bool closeStreams, params Stream [] args)
+        : this (args, closeStreams)
+        {
+        }
+
         public CombinedReadonlyStream(IEnumerable<Stream> source, bool closeStreams = false)
         {
             if (source == null)

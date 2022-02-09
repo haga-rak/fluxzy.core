@@ -71,7 +71,7 @@ namespace Echoes.H2
             {
                 // Plain HTTP/1.1
                 var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, null,
-                    creationSetting.ConcurrentConnection,
+                 
                     _remoteConnectionBuilder, _timingProvider, creationSetting, _http11Parser);
 
                 await http11ConnectionPool.Init();
@@ -87,7 +87,6 @@ namespace Echoes.H2
             if (negotiatedProtocol == RemoteConnectionResult.Http11)
             {
                 var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, exchange.UpStream,
-                    creationSetting.ConcurrentConnection,
                     _remoteConnectionBuilder, _timingProvider, creationSetting, _http11Parser);
 
                 await http11ConnectionPool.Init();

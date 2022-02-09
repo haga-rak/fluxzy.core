@@ -3,12 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Echoes.Encoding;
 
 namespace Echoes.H2
 {
     public class Exchange
     {
+        private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>(); 
+
+        /// <summary>
+        /// This tasks indicates the status of the exchange
+        /// </summary>
+        internal Task<bool> Complete => _exchangeCompletionSource.Task; 
+
         /// <summary>
         /// The remote authority for this request 
         /// </summary>
@@ -59,6 +67,9 @@ namespace Echoes.H2
         /// Provisional request read from the client 
         /// </summary>
         public ReadOnlyMemory<byte> ProvisionalRequest { get; set; }
+
+
+        internal TaskCompletionSource<bool> ExchangeCompletionSource => _exchangeCompletionSource;
     }
 
     /// <summary>
@@ -133,10 +144,13 @@ namespace Echoes.H2
 
     public class Error
     {
-        public Error(Exception exception)
+        public Error(string message, Exception exception)
         {
+            Message = message;
             Exception = exception;
         }
+
+        public string Message { get; }
 
         public Exception Exception { get; }
     }

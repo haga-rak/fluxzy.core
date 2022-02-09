@@ -136,6 +136,7 @@ namespace Echoes.H2
             }
         }
 
+
         private async Task Init()
         {
             await _baseStream.WriteAsync(Preface, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
@@ -446,6 +447,19 @@ namespace Echoes.H2
             var connection = new H2ConnectionPool(stream, setting);
             await connection.Init();
             return connection; 
+        }
+
+
+        public Authority Authority => throw new NotImplementedException();
+
+        Task IHttpConnectionPool.Init()
+        {
+            return Init();
+        }
+
+        public ValueTask Send(Exchange exchange, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
         }
 
         public async ValueTask DisposeAsync()

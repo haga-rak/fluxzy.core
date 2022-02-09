@@ -14,10 +14,11 @@ namespace Echoes.H2
 {
     public class Http11ConnectionPool : IHttpConnectionPool
     {
-        private readonly int _maxConcurrentConnection;
+        private static readonly List<SslApplicationProtocol> Http11Protocols = new List<SslApplicationProtocol>() { SslApplicationProtocol.Http11 };
+        
         private readonly IRemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
-        private readonly TunnelSetting _creationSetting;
+        private readonly TunnelSetting _tunnelSetting;
         private readonly Http11Parser _parser;
         private readonly SemaphoreSlim _semaphoreSlim;
         private readonly Queue<Http11ProcessingState> _processingStates = new Queue<Http11ProcessingState>(); 
@@ -25,19 +26,17 @@ namespace Echoes.H2
         public Http11ConnectionPool(
             Authority authority, 
             Stream existingStream, 
-            int maxConcurrentConnection,
             IRemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
-            TunnelSetting creationSetting, 
+            TunnelSetting tunnelSetting, 
             Http11Parser parser)
         {
-            _maxConcurrentConnection = maxConcurrentConnection;
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
-            _creationSetting = creationSetting;
+            _tunnelSetting = tunnelSetting;
             _parser = parser;
             Authority = authority;
-            _semaphoreSlim = new SemaphoreSlim(_maxConcurrentConnection);
+            _semaphoreSlim = new SemaphoreSlim(tunnelSetting.ConcurrentConnection);
 
             if (existingStream != null)
             {
@@ -52,7 +51,7 @@ namespace Echoes.H2
             return Task.CompletedTask; 
         }
 
-        public async ValueTask Send(Exchange exchange, CancellationToken cancellationToken = default)
+        public async ValueTask Send(Exchange exchange, CancellationToken cancellationToken)
         {
             try
             {
@@ -66,7 +65,7 @@ namespace Echoes.H2
 
                     while (_processingStates.TryDequeue(out var state))
                     {
-                        if ((requestDate - state.LastUsed) > TimeSpan.FromSeconds(_creationSetting.TimeOutSecondsUnusedConnection))
+                        if ((requestDate - state.LastUsed) > TimeSpan.FromSeconds(_tunnelSetting.TimeOutSecondsUnusedConnection))
                         {
                             // The connection pool exceeds timing connection 
                             continue; 
@@ -78,17 +77,47 @@ namespace Echoes.H2
 
                 if (exchange.UpStream == null)
                 {
-                    await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, false, SslApplicationProtocol.Http11,
-                        _creationSetting, cancellationToken); 
+                    var openResult = await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, false, Http11Protocols,
+                        _tunnelSetting, cancellationToken); 
                 }
 
-                var poolProcessing = new Http11PoolProcessing(_timingProvider, _creationSetting, _parser);
+                var poolProcessing = new Http11PoolProcessing(_timingProvider, _tunnelSetting, _parser);
 
-                if (await poolProcessing.Process(exchange).ConfigureAwait(false))
+                var shouldCloseConnectionWhenDone = false; 
+
+                try
                 {
-                    _processingStates.Enqueue(new Http11ProcessingState(exchange.UpStream, _timingProvider));
+                    await poolProcessing.Process(exchange, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    shouldCloseConnectionWhenDone = await exchange.Complete;
+                }
+                catch (Exception ex)
+                {
+                    if (ex is SocketException ||
+                        ex is IOException || 
+                        ex is ExchangeException)
+                    {
+                        exchange.Errors.Add(new Error("Error while reading resp", ex)); 
+
+                        shouldCloseConnectionWhenDone = true;
+                    }
+                    else
+                        throw;
                 }
 
+                // the queue is free again
+                if (shouldCloseConnectionWhenDone)
+                {
+                    if (exchange.UpStream != null)
+                    {
+                        await exchange.UpStream.DisposeAsync();
+                    }
+
+                    return;  
+                }
+
+                _processingStates.Enqueue(new Http11ProcessingState(exchange.UpStream, _timingProvider));
             }
             finally
             {

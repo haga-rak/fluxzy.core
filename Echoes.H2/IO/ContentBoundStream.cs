@@ -7,15 +7,18 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2.IO
 {
+    /// <summary>
+    /// Read an inner stream up to max length
+    /// </summary>
     public class ContentBoundStream : Stream
     {
         public long MaxLength { get; }
+
         private readonly Stream _innerStream;
 
         public long TotalWritten { get; private set; }
 
         public long TotalRead { get; private set; }
-
 
         public ContentBoundStream(Stream innerStream, long maxLength)
         {
@@ -71,33 +74,32 @@ namespace Echoes.H2.IO
 
         public Stream InnerStream => _innerStream;
 
-
         public override int Read(Span<byte> buffer)
         {
             var res = _innerStream.Read(buffer);
             TotalRead += res;
 
             return res;
-
         }
-
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            var minCount = (int)Math.Min(count, MaxLength - TotalRead);
-
-            if (minCount == 0)
-                return 0; 
-
-            var res = await _innerStream.ReadAsync(buffer, offset, minCount, cancellationToken);
-            TotalRead += res;
-            return res;
+            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
+                .ConfigureAwait(false); 
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
         {
-            var res = await _innerStream.ReadAsync(buffer, cancellationToken);
+            var minCount = (int)Math.Min(buffer.Length, MaxLength - TotalRead);
+
+            if (minCount == 0)
+                return 0;
+
+            var res = await _innerStream.ReadAsync(buffer, cancellationToken)
+                .ConfigureAwait(false);
+
             TotalRead += res;
+
             return res;
         }
 
@@ -109,13 +111,13 @@ namespace Echoes.H2.IO
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await _innerStream.WriteAsync(buffer, offset, count, cancellationToken);
+            await _innerStream.WriteAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
             TotalWritten += count;
         }
 
         public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
         {
-            await _innerStream.WriteAsync(buffer, cancellationToken);
+            await _innerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
             TotalWritten += buffer.Length;
 
         }

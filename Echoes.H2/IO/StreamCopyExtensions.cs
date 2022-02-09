@@ -49,14 +49,14 @@ namespace Echoes.H2.IO
 
     public readonly struct HeaderBlockReadResult
     {
-        public HeaderBlockReadResult(int headerSize, int readenSize)
+        public HeaderBlockReadResult(int headerLength, int totalReadLength)
         {
-            HeaderSize = headerSize;
-            ReadenSize = readenSize;
+            HeaderLength = headerLength;
+            TotalReadLength = totalReadLength;
         }
 
-        public int HeaderSize { get;  }
+        public int HeaderLength { get;  }
 
-        public int ReadenSize { get;  }
+        public int TotalReadLength { get;  }
     }
 }

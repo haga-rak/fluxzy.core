@@ -13,21 +13,19 @@ namespace Echoes.H2
 {
     public class Http11PoolProcessing
     {
+        private static readonly ReadOnlyMemory<char> Space = " ".AsMemory();
+        private static readonly ReadOnlyMemory<char> LineFeed = "\r\n".AsMemory();
+        private static readonly ReadOnlyMemory<char> Protocol = " HTTP/1.1".AsMemory();
+        private static readonly ReadOnlyMemory<char> HostHeader = "Host: ".AsMemory();
+
         private readonly ITimingProvider _timingProvider;
         private readonly TunnelSetting _tunnelSetting;
         private readonly Http11Parser _parser;
-        private readonly Stream _baseConnection;
 
-        private static readonly ReadOnlyMemory<char> Space = " ".AsMemory(); 
-        private static readonly ReadOnlyMemory<char> LineFeed = "\r\n".AsMemory(); 
-        private static readonly ReadOnlyMemory<char> Protocol = " HTTP/1.1".AsMemory(); 
-        private static readonly ReadOnlyMemory<char> HostHeader = "Host: ".AsMemory();
-
-
-        private static readonly byte[] CrLf = new byte[] { 0x0D, 0x0A, 0x0D, 0x0A };
+        private static readonly byte[] CrLf = { 0x0D, 0x0A, 0x0D, 0x0A };
 
         public Http11PoolProcessing(
-            ITimingProvider timingProvider, 
+            ITimingProvider timingProvider,
             TunnelSetting tunnelSetting,
             Http11Parser parser)
         {
@@ -45,19 +43,19 @@ namespace Echoes.H2
         public async Task<bool> Process(Exchange exchange, CancellationToken cancellationToken)
         {
             // Here is the opportunity to change header 
-            Memory<byte> headerBuffer = new byte[_tunnelSetting.MaxHeaderSize]; 
-          
+            var bufferRaw = new byte[_tunnelSetting.MaxHeaderSize];
+            Memory<byte> headerBuffer = bufferRaw;
+
             exchange.Metrics.RequestHeaderSending = _timingProvider.Instant();
 
             var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true);
 
-            await exchange.UpStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken); 
-            
+            await exchange.UpStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
+
             exchange.Metrics.TotalSent += headerLength;
             exchange.Metrics.RequestHeaderSent = _timingProvider.Instant();
 
-            
-            if (exchange.Request.Body  != null)
+            if (exchange.Request.Body != null)
             {
                 var totalBodySize = await
                     exchange.Request.Body.CopyAndReturnCopied(exchange.UpStream, 1024 * 8,
@@ -71,10 +69,10 @@ namespace Echoes.H2
                     () => exchange.Metrics.ResponseHeaderEnd = _timingProvider.Instant(),
                     cancellationToken);
 
-            Memory<char> headerContent = new char[headerBlockDetectResult.HeaderSize];
+            Memory<char> headerContent = new char[headerBlockDetectResult.HeaderLength];
 
             System.Text.Encoding.ASCII
-                .GetChars(headerBuffer.Slice(0, headerBlockDetectResult.HeaderSize).Span, headerContent.Span);
+                .GetChars(headerBuffer.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
 
             exchange.Response.Header = new ResponseHeader(
                 headerContent, exchange.Authority.Secure, _parser);
@@ -84,25 +82,55 @@ namespace Echoes.H2
                 || exchange.Response.Header.ChunkedBody; // Chunked body response always en with connection close 
 
             if (!exchange.Response.Header.HasResponseBody())
+            {
+                exchange.Metrics.ResponseBodyStart = exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
+                exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
                 return shouldCloseConnection;
+            }
 
+            Stream bodyStream = exchange.UpStream;
+
+            if (headerBlockDetectResult.HeaderLength < headerBlockDetectResult.TotalReadLength)
+            {
+                // Concat the extra body bytes read while retrieving header
+                bodyStream = new CombinedReadonlyStream(
+                    shouldCloseConnection,
+                    new MemoryStream(bufferRaw, headerBlockDetectResult.HeaderLength, headerBlockDetectResult.TotalReadLength -
+                        headerBlockDetectResult.HeaderLength
+                    ),
+                    exchange.UpStream
+                );
+            }
 
             if (exchange.Response.Header.ChunkedBody)
-                exchange.Response.Body = new ChunckedReadStream(exchange.UpStream); 
+            {
+                bodyStream = new ChunkedTransferStream(bodyStream, shouldCloseConnection);
+            }
 
+            if (exchange.Response.Header.ContentLength > 0)
+            {
+                bodyStream = new ContentBoundStream(bodyStream, exchange.Response.Header.ContentLength);
+            }
+            
+            exchange.Response.Body =
+                new MetricsStream(bodyStream,
+                    () => { exchange.Metrics.ResponseBodyStart = _timingProvider.Instant(); },
+                    (length) =>
+                    {
+                        exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
+                        exchange.Metrics.TotalReceived += length;
+                        exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
+                    },
+                    (exception) =>
+                    {
+                        exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
+                        exchange.ExchangeCompletionSource.SetException(exception);
+                    },
+                    cancellationToken
+                 )
+               ;
 
-
-
-
-
-            return shouldCloseConnection; 
-
-
-            // Read header from server 
-
-            // Remove non forwardable headers 
-
-            // Stream response 
+            return shouldCloseConnection;
         }
 
 
@@ -130,7 +158,7 @@ namespace Echoes.H2
 
                 if (firstBytes)
                 {
-                    firstByteReceived?.Invoke(); 
+                    firstByteReceived?.Invoke();
 
                     firstBytes = false;
                 }
@@ -162,6 +190,6 @@ namespace Echoes.H2
             return new HeaderBlockReadResult(indexFound, totalRead);
         }
 
-        
+
     }
 }
