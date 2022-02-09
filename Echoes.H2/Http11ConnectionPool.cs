@@ -17,7 +17,8 @@ namespace Echoes.H2
         private readonly int _maxConcurrentConnection;
         private readonly IRemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
-        private readonly AuthorityCreationSetting _creationSetting;
+        private readonly TunnelSetting _creationSetting;
+        private readonly Http11Parser _parser;
         private readonly SemaphoreSlim _semaphoreSlim;
         private readonly Queue<Http11ProcessingState> _processingStates = new Queue<Http11ProcessingState>(); 
 
@@ -27,13 +28,14 @@ namespace Echoes.H2
             int maxConcurrentConnection,
             IRemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
-            AuthorityCreationSetting creationSetting, 
+            TunnelSetting creationSetting, 
             Http11Parser parser)
         {
             _maxConcurrentConnection = maxConcurrentConnection;
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
             _creationSetting = creationSetting;
+            _parser = parser;
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(_maxConcurrentConnection);
 
@@ -80,7 +82,7 @@ namespace Echoes.H2
                         _creationSetting, cancellationToken); 
                 }
 
-                var poolProcessing = new Http11PoolProcessing();
+                var poolProcessing = new Http11PoolProcessing(_timingProvider, _creationSetting, _parser);
 
                 if (await poolProcessing.Process(exchange).ConfigureAwait(false))
                 {

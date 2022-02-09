@@ -47,7 +47,7 @@ namespace Echoes.H2
         /// <exception cref="NotImplementedException"></exception>
         public async ValueTask<IHttpConnectionPool> GetPool(
             Exchange exchange, 
-            AuthorityCreationSetting creationSetting, 
+            TunnelSetting creationSetting, 
             CancellationToken cancellationToken = default)
         {
             // At this point, we just come to receive an exchange from the proxy client 

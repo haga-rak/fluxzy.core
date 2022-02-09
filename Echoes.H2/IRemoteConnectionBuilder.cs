@@ -14,7 +14,7 @@ namespace Echoes.H2
     public interface IRemoteConnectionBuilder
     {
         ValueTask<RemoteConnectionResult> OpenConnectionToRemote(Exchange exchange, bool blind,
-            List<SslApplicationProtocol> httpProtocols, AuthorityCreationSetting setting, CancellationToken token); 
+            List<SslApplicationProtocol> httpProtocols, TunnelSetting setting, CancellationToken token); 
     }
 
     public enum RemoteConnectionResult : byte
@@ -37,7 +37,7 @@ namespace Echoes.H2
             Exchange exchange,
             bool blind,
             List<SslApplicationProtocol> httpProtocols,
-            AuthorityCreationSetting setting, 
+            TunnelSetting setting, 
             CancellationToken token)
         {
             var tcpClient = new TcpClient();
@@ -64,7 +64,7 @@ namespace Echoes.H2
 
             SslClientAuthenticationOptions authenticationOptions = new SslClientAuthenticationOptions()
             {
-                ClientCertificates = setting.ClientCertificates, 
+                ClientCertificates = setting.GetCertificateByHost(exchange.Authority.HostName), 
                 TargetHost = exchange.Authority.HostName , 
                 EnabledSslProtocols = setting.ProxyTlsProtocols,
                 ApplicationProtocols = httpProtocols

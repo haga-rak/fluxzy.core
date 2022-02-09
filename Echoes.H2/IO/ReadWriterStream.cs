@@ -65,5 +65,4 @@ namespace Echoes.H2.IO
         public override long Length { get; } = -1; 
         public override long Position { get; set; }
     }
-    
 }

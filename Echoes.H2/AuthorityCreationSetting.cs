@@ -6,13 +6,18 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Echoes.H2
 {
-    public class AuthorityCreationSetting
+    public class TunnelSetting
     {
         /// <summary>
-        /// The used clientCertificate 
+        /// 
         /// </summary>
-        public X509Certificate2Collection ClientCertificates { get; set; }
-
+        /// <param name="hostName"></param>
+        /// <returns></returns>
+        public X509Certificate2Collection GetCertificateByHost(string hostName)
+        {
+            return new X509Certificate2Collection();
+        }
+        
         /// <summary>
         /// Protocols supported by the current proxy 
         /// </summary>
@@ -36,6 +41,17 @@ namespace Echoes.H2
 
 
         public int TimeOutSecondsUnusedConnection { get; set; } = 20;
+
+
+        /// <summary>
+        /// Maximum header size 
+        /// </summary>
+        public int MaxHeaderSize { get; set; } = 1024 * 8; 
+
+        /// <summary>
+        /// Maximum header line
+        /// </summary>
+        public int MaxHeaderLineSize { get; set; } = 1024 * 4; 
 
     }
 }

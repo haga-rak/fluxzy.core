@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Echoes.Encoding.Utils
 {
-    internal sealed class Http11Constants
+    public sealed class Http11Constants
     {
         private static readonly Dictionary<string, string> StatusLineMappingStr = new Dictionary<string, string>()
         {
@@ -82,5 +82,51 @@ namespace Echoes.Encoding.Utils
             return "Unknown status".AsMemory();
         }
 
+        public static readonly HashSet<char> LineSeparators = new HashSet<char>(new[] { '\r', '\n' });
+        public static readonly HashSet<char> SpaceSeparators = new HashSet<char>(new[] { ' ', '\t' });
+        public static readonly HashSet<char> HeaderSeparator = new HashSet<char>(new[] { ':' });
+        public static readonly HashSet<char> CookieSeparators = new HashSet<char>(new[] { ';' });
+
+        public static readonly ReadOnlyMemory<char> MethodVerb = ":method".AsMemory();
+        public static readonly ReadOnlyMemory<char> SchemeVerb = ":scheme".AsMemory();
+        public static readonly ReadOnlyMemory<char> AuthorityVerb = ":authority".AsMemory();
+        public static readonly ReadOnlyMemory<char> PathVerb = ":path".AsMemory();
+        public static readonly ReadOnlyMemory<char> StatusVerb = ":status".AsMemory();
+
+        public static readonly ReadOnlyMemory<char> HttpsVerb = "https".AsMemory();
+        public static readonly ReadOnlyMemory<char> HttpVerb = "http".AsMemory();
+        public static readonly ReadOnlyMemory<char> HostVerb = "host".AsMemory();
+        public static readonly ReadOnlyMemory<char> CookieVerb = "cookie".AsMemory();
+        public static readonly ReadOnlyMemory<char> ConnectionVerb = "connection".AsMemory();
+        public static readonly ReadOnlyMemory<char> ContentLength = "content-length".AsMemory();
+        public static readonly ReadOnlyMemory<char> TransfertEncodingVerb = "transfert-encoding".AsMemory();
+        public static readonly ReadOnlyMemory<char> KeepAliveVerb = "keep-alive".AsMemory();
+        public static readonly ReadOnlyMemory<char> ProxyAuthenticate = "proxy-authenticate".AsMemory();
+        public static readonly ReadOnlyMemory<char> Trailer = "trailer".AsMemory();
+        public static readonly ReadOnlyMemory<char> Upgrade = "upgrade".AsMemory();
+
+        public static readonly HashSet<ReadOnlyMemory<char>> AvoidAutoParseHttp11Headers =
+            new HashSet<ReadOnlyMemory<char>>(new[]
+            {
+                MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, CookieVerb, StatusVerb
+            }, new SpanCharactersIgnoreCaseComparer());
+
+        public static readonly HashSet<ReadOnlyMemory<char>> ControlHeaders =
+            new HashSet<ReadOnlyMemory<char>>(new[]
+            {
+                MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, StatusVerb
+            }, new SpanCharactersIgnoreCaseComparer());
+
+        public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
+            new HashSet<ReadOnlyMemory<char>>(new[]
+            {
+                ConnectionVerb, TransfertEncodingVerb, KeepAliveVerb, ProxyAuthenticate,Trailer,Upgrade
+            }, new SpanCharactersIgnoreCaseComparer());
+
+
+        public static bool IsNonForwardableHeader(ReadOnlyMemory<char> headerName)
+        {
+            return Http11Constants.NonH2Header.Contains(headerName);
+        }
     }
 }

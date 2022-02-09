@@ -75,19 +75,21 @@ namespace Echoes.H2
         public DateTime ConnectionClosed { get; set; }
     }
 
+
+    
     public class Request
     {
-        public ICollection<HeaderField> Headers { get;  }
+        public RequestHeader Header { get; set; }
 
-        public Stream Body { get;  }
+        public Stream Body { get; set; }
 
     }
 
     public class Response
     {
-        public ICollection<HeaderField> Headers { get;  }
+        public ResponseHeader Header { get; set; }
 
-        public Stream Body { get;  }
+        public Stream Body { get; set;  }
     }
 
 

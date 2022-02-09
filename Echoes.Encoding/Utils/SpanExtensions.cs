@@ -39,5 +39,6 @@ namespace Echoes.Encoding.Utils
 
             return destination.Slice(0,4);
         }
+        
     }
 }

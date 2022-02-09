@@ -71,13 +71,13 @@ namespace Echoes.H2
         private readonly Authority _authority;
         private readonly ITimingProvider _timingProvider;
         private readonly IRemoteConnectionBuilder _remoteConnectionBuilder;
-        private readonly AuthorityCreationSetting _creationSetting;
+        private readonly TunnelSetting _creationSetting;
         private readonly int _bufferSize;
 
         public TunneledConnectionProcess(Authority authority,
             ITimingProvider timingProvider,
             IRemoteConnectionBuilder remoteConnectionBuilder,
-            AuthorityCreationSetting creationSetting,
+            TunnelSetting creationSetting,
             int bufferSize = 1024 * 16 )
         {
             _authority = authority;

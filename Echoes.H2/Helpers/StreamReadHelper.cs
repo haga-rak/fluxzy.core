@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,6 +79,18 @@ namespace Echoes.H2.Helpers
                 currentIndex += currentReaden; 
                 remain -= currentReaden; 
                 readen += (currentReaden); 
+            }
+        }
+    }
+
+    public static class IEnumerableExtensions
+    {
+        public static IEnumerable<T> Tap<T>(this IEnumerable<T> list, Action<T> todo)
+        {
+            foreach (var element in list)
+            {
+                todo(element); 
+                yield return element; 
             }
         }
     }
