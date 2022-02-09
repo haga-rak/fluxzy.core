@@ -54,8 +54,8 @@ namespace Echoes.H2
             Http11Parser parser)
             : base(headerContent, isSecure, parser)
         {
-            StatusCode = int.Parse(this[Http11Constants.AuthorityVerb].First().Value.Span);
-            ConnectionCloseRequest = this._rawHeaderFields.Any(
+            StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
+            ConnectionCloseRequest = this.HeaderFields.Any(
                 r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
                      && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase)); 
         }
@@ -90,13 +90,17 @@ namespace Echoes.H2
 
     public abstract class Header
     {
+        public ReadOnlyMemory<char> RawHeader { get; }
+
         protected IReadOnlyCollection<HeaderField> _rawHeaderFields;
+
         protected ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields ;
 
         protected Header(
             ReadOnlyMemory<char> rawHeader, 
             bool isSecure, Http11Parser parser)
         {
+            RawHeader = rawHeader;
             HeaderLength = rawHeader.Length; 
 
             _rawHeaderFields = parser.Read(rawHeader, isSecure, true, false).ToList();
@@ -129,6 +133,8 @@ namespace Echoes.H2
         /// Content length of body. -1 if undefined 
         /// </summary>
         public long ContentLength { get; set; } = -1;
+
+        public IReadOnlyCollection<HeaderField> HeaderFields => _rawHeaderFields;
 
         protected abstract int WriteHeaderLine(Span<byte> buffer); 
 

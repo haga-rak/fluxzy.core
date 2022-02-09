@@ -14,18 +14,21 @@ namespace Echoes.H2
     public class TunnelOnlyConnectionPool : IHttpConnectionPool
     {
         private readonly ITimingProvider _timingProvider;
-        private readonly int _maxConcurrentConnection;
+        private readonly IRemoteConnectionBuilder _connectionBuilder;
+        private readonly TunnelSetting _tunnelSetting;
         private SemaphoreSlim _semaphoreSlim; 
 
         public TunnelOnlyConnectionPool(
             Authority authority, 
             ITimingProvider timingProvider,
-            int maxConcurrentConnection)
+            IRemoteConnectionBuilder connectionBuilder,
+            TunnelSetting tunnelSetting)
         {
             _timingProvider = timingProvider;
-            _maxConcurrentConnection = maxConcurrentConnection;
+            _connectionBuilder = connectionBuilder;
+            _tunnelSetting = tunnelSetting;
             Authority = authority;
-            _semaphoreSlim = new SemaphoreSlim(maxConcurrentConnection); 
+            _semaphoreSlim = new SemaphoreSlim(tunnelSetting.ConcurrentConnection); 
         }
 
         public Authority Authority { get; }
@@ -42,7 +45,7 @@ namespace Echoes.H2
             {
                 await _semaphoreSlim.WaitAsync(cancellationToken);
 
-                using (var ex = new TunneledConnectionProcess(Authority, _timingProvider))
+                using (var ex = new TunneledConnectionProcess(Authority, _timingProvider, _connectionBuilder, _tunnelSetting))
                 {
                     await ex.Process(exchange, CancellationToken.None); 
                 }
@@ -62,9 +65,7 @@ namespace Echoes.H2
         {
             _semaphoreSlim.Dispose();
         }
-
     }
-
 
     public class TunneledConnectionProcess : IDisposable, IAsyncDisposable
     {
@@ -117,7 +118,7 @@ namespace Echoes.H2
             {
                 if (ex is IOException || ex is SocketException)
                 {
-                    exchange.Errors.Add(new Error(ex));
+                    exchange.Errors.Add(new Error("", ex));
                     return;
                 }
 
@@ -137,10 +138,5 @@ namespace Echoes.H2
         {
             return new ValueTask(Task.CompletedTask); 
         }
-    }
-
-    public interface ITimingProvider
-    {
-        DateTime Instant(); 
     }
 }

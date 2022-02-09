@@ -36,7 +36,13 @@ namespace Echoes.H2
             await sslStream.AuthenticateAsClientAsync(sslAuthenticationOption,
                 token).ConfigureAwait(false);
 
-            return await H2ConnectionPool.Open(sslStream, setting ?? new H2StreamSetting());
+            var connectionPool = new H2ConnectionPool(sslStream, setting ?? new H2StreamSetting(),
+                new Authority(hostName, port, true));
+
+            await connectionPool.Init();
+
+
+            return connectionPool;
         }
     }
 }

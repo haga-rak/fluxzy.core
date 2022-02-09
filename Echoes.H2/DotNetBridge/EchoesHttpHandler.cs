@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Encoding.Utils;
 
 namespace Echoes.H2.DotNetBridge
 {
@@ -14,7 +15,8 @@ namespace Echoes.H2.DotNetBridge
         private readonly IDictionary<string, H2ConnectionPool>
             _activeConnections = new Dictionary<string, H2ConnectionPool>();
 
-        private SemaphoreSlim _semaphore = new SemaphoreSlim(1); 
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly Http11Parser _parser = new Http11Parser(8192, new ArrayPoolMemoryProvider<char>()); 
         
         public EchoesHttp2Handler(H2StreamSetting streamSetting = null)
         {
@@ -42,12 +44,16 @@ namespace Echoes.H2.DotNetBridge
                 _semaphore.Release();
             }
 
-            var response = await _activeConnections[request.RequestUri.Authority].Send(request.ToHttp11String().AsMemory(),
-                request.Content != null ? await request.Content.ReadAsStreamAsync() : null,
-                request.Content?.Headers.ContentLength ?? -1,
+            var exchange = new Exchange(new Authority(request.RequestUri.Host, request.RequestUri.Port,
+                true), request.ToHttp11String().AsMemory(), _parser)
+            {
+                Request = { Body = await request.Content.ReadAsStreamAsync() }
+            }; 
+
+            await _activeConnections[request.RequestUri.Authority].Send(exchange,
                 cancellationToken).ConfigureAwait(false); 
 
-            return new EchoesHttpResponseMessage(response);
+            return new EchoesHttpResponseMessage(exchange);
         }
 
 

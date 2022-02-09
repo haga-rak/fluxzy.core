@@ -5,11 +5,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Echoes.Encoding;
+using Echoes.Encoding.Utils;
 
 namespace Echoes.H2
 {
     public class Exchange
     {
+        public Exchange(
+            Authority authority, 
+            ReadOnlyMemory<char> header, 
+            Http11Parser parser)
+        {
+            Authority = authority;
+            Request = new Request(new RequestHeader(header, authority.Secure, parser));
+        }
+
         private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>(); 
 
         /// <summary>
@@ -20,7 +30,7 @@ namespace Echoes.H2
         /// <summary>
         /// The remote authority for this request 
         /// </summary>
-        public Authority Authority { get; set; }
+        public Authority Authority { get;  }
 
         /// <summary>
         /// state indicating if proxy shouldn't try to decrypt 
@@ -30,17 +40,17 @@ namespace Echoes.H2
         /// <summary>
         /// Contains the request sent from the proxy to the remote server 
         /// </summary>
-        public Request Request { get; set; }
+        public Request Request { get;  }
 
         /// <summary>
         /// Contains the response of the remote server to the proxy 
         /// </summary>
-        public Response Response { get; set; }
+        public Response Response { get; } = new Response();
 
         /// <summary>
         /// Represents timing and size metrics related to this exchange
         /// </summary>
-        public ExchangeMetrics Metrics { get; private set; }
+        public ExchangeMetrics Metrics { get; private set; } = new ExchangeMetrics();
 
         /// <summary>
         /// Id of the connection used by this exchange. The connection object is the connection open between
@@ -62,12 +72,7 @@ namespace Echoes.H2
         /// Contains a list of errors occured in this proxy 
         /// </summary>
         public List<Error> Errors { get; private set; } = new List<Error>(); 
-
-        /// <summary>
-        /// Provisional request read from the client 
-        /// </summary>
-        public ReadOnlyMemory<byte> ProvisionalRequest { get; set; }
-
+        
 
         internal TaskCompletionSource<bool> ExchangeCompletionSource => _exchangeCompletionSource;
     }
@@ -90,7 +95,12 @@ namespace Echoes.H2
     
     public class Request
     {
-        public RequestHeader Header { get; set; }
+        public Request(RequestHeader header)
+        {
+            Header = header;
+        }
+
+        public RequestHeader Header { get; }
 
         public Stream Body { get; set; }
 

@@ -16,7 +16,6 @@ namespace Echoes.Encoding.Utils
         private readonly int _maxHeaderLine;
         private readonly IMemoryProvider<char> _memoryProvider;
 
-
         public Http11Parser(int maxHeaderLine, IMemoryProvider<char> memoryProvider)
         {
             _maxHeaderLine = maxHeaderLine;

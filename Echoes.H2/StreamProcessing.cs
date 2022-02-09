@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Encoding.Utils;
 
 namespace Echoes.H2
 {
     internal class StreamProcessing: IDisposable
     {
         private readonly StreamPool _parent;
+        private readonly Exchange _exchange;
         private readonly CancellationToken _callerCancellationToken;
         private readonly UpStreamChannel _upStreamChannel;
         private readonly IHeaderEncoder _headerEncoder;
@@ -18,6 +18,7 @@ namespace Echoes.H2
         
         private readonly Memory<byte> _dataReceptionBuffer;
         private readonly H2StreamSetting _globalSetting;
+        private readonly Http11Parser _parser;
 
         private readonly TaskCompletionSource<object> _responseHeaderReady = new TaskCompletionSource<object>();
         private readonly TaskCompletionSource<object> _responseBodyComplete = new TaskCompletionSource<object>();
@@ -27,17 +28,21 @@ namespace Echoes.H2
 
         private H2ErrorCode _resetErrorCode;
 
-        public StreamProcessing(int streamIdentifier,
+        public StreamProcessing(
+            int streamIdentifier,
             StreamPool parent,
+            Exchange exchange, 
             UpStreamChannel upStreamChannel,
             IHeaderEncoder headerEncoder,
             H2StreamSetting globalSetting,
             WindowSizeHolder overallWindowSizeHolder,
+            Http11Parser parser, 
             CancellationToken mainLoopCancellationToken,
             CancellationToken callerCancellationToken)
         {
             StreamIdentifier = streamIdentifier;
             _parent = parent;
+            _exchange = exchange;
             _callerCancellationToken = callerCancellationToken;
             _upStreamChannel = upStreamChannel;
             _headerEncoder = headerEncoder;
@@ -46,6 +51,7 @@ namespace Echoes.H2
             OverallRemoteWindowSize = overallWindowSizeHolder; 
             
             _globalSetting = globalSetting;
+            _parser = parser;
 
             _receptionBufferContainer = MemoryPool<byte>.Shared.RendExact(16 * 1024);
 
@@ -135,22 +141,33 @@ namespace Echoes.H2
             Exclusive = priorityFrame.Exclusive; 
         }
         
-        public Task EnqueueRequestHeader(ReadOnlyMemory<char> headerBuffer, Stream requestBodyStream, long bodyLength)
+        public Task EnqueueRequestHeader(Exchange exchange)
         {
             var readyToBeSent = _headerEncoder.Encode(
-                new HeaderEncodingJob(headerBuffer, StreamIdentifier, StreamDependency), 
-                _dataReceptionBuffer, requestBodyStream == null);
+                new HeaderEncodingJob(exchange.Request.Header.RawHeader, StreamIdentifier, StreamDependency), 
+                _dataReceptionBuffer, exchange.Request.Header.ContentLength <= 0);
 
-            var writeHeaderTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority, StreamDependency, readyToBeSent);
+            exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
+
+            var writeHeaderTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority,
+                StreamDependency, readyToBeSent);
 
             _upStreamChannel(ref writeHeaderTask);
+            
 
-            return writeHeaderTask.DoneTask;
+            return writeHeaderTask.DoneTask
+                .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, _callerCancellationToken);
+
+          //  return writeHeaderTask.DoneTask;
         }
         
-        public async Task ProcessRequestBody(Stream requestBodyStream, long bodyLength)
+        public async Task ProcessRequestBody(Exchange exchange)
         {
             var totalSent = 0;
+            Stream requestBodyStream = exchange.Request.Body;
+            long bodyLength = exchange.Request.Header.ContentLength;
+
+
 
             if (requestBodyStream != null)
             {
@@ -185,9 +202,12 @@ namespace Echoes.H2
 
 
                     totalSent += readLength;
+                    _exchange.Metrics.TotalSent += readLength;
 
                     if (readLength > 0)
                         NotifyRemoteWindowUpdate(-readLength);
+
+
 
                     if (readLength == 0 || endStream)
                     {
@@ -196,6 +216,7 @@ namespace Echoes.H2
                     }
 
                     await writeTaskBody.DoneTask.ConfigureAwait(false);
+
                 }
             }
         }
@@ -208,30 +229,58 @@ namespace Echoes.H2
 
         internal void ReceiveHeaderFragmentFromConnection(HeadersFrame headersFrame)
         {
+            _exchange.Metrics.TotalReceived += headersFrame.BodyLength;
+            _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(); 
             ReceiveHeaderFragmentFromConnection(headersFrame.Data, headersFrame.EndHeaders);
         }
 
         internal void ReceiveHeaderFragmentFromConnection(ContinuationFrame continuationFrame)
         {
+            _exchange.Metrics.TotalReceived += continuationFrame.BodyLength;
             ReceiveHeaderFragmentFromConnection(continuationFrame.Data, continuationFrame.EndHeaders);
         }
 
         private void ReceiveHeaderFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool last)
         {
+            if (last)
+            {
+                _exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
+            }
+
             _response.PostResponseHeader(buffer, last);
+
+            _exchange.Response.Header = new ResponseHeader(
+                _response.Header.AsMemory(), true, _parser);
 
             if (last)
                 _responseHeaderReady.SetResult(null);
         }
 
+        private bool _firstBodyFragment = true; 
+
         public void ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream)
         {
+            if (_firstBodyFragment)
+            {
+                _exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
+                _firstBodyFragment = false; 
+            }
+
+            if (endStream)
+            {
+                _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+            }
+
+
+            _exchange.Metrics.TotalReceived += buffer.Length;
+
             _response.PostResponseBodyFragment(buffer, endStream);
 
             if (endStream)
             {
                 _responseBodyComplete.SetResult(null);
                 _parent.NotifyDispose(this);
+                _exchange.ExchangeCompletionSource.SetResult(false);
             }
         }
         

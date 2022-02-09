@@ -4,6 +4,7 @@ using System.Buffers;
 using System.Threading;
 using Echoes.Encoding;
 using Echoes.Encoding.HPack;
+using Echoes.Encoding.Utils;
 
 namespace Echoes.H2
 {
@@ -14,6 +15,7 @@ namespace Echoes.H2
         private readonly H2StreamSetting _streamSetting;
         private readonly WindowSizeHolder _overallWindowSizeHolder;
         private readonly ArrayPool<byte> _arrayPool;
+        private readonly Http11Parser _parser;
         private readonly HeaderEncoder _headerEncoder;
         private readonly HPackDecoder _hPackDecoder;
 
@@ -22,13 +24,15 @@ namespace Echoes.H2
             UpStreamChannel upStreamChannel,
             H2StreamSetting streamSetting,
             WindowSizeHolder overallWindowSizeHolder,
-            ArrayPool<byte> arrayPool)
+            ArrayPool<byte> arrayPool,
+            Http11Parser parser)
         {
             _localCancellationToken = localCancellationToken;
             _upStreamChannel = upStreamChannel;
             _streamSetting = streamSetting;
             _overallWindowSizeHolder = overallWindowSizeHolder;
             _arrayPool = arrayPool;
+            _parser = parser;
 
             var codecSetting = new CodecSetting();
 
@@ -38,17 +42,19 @@ namespace Echoes.H2
             _headerEncoder = new HeaderEncoder(hPackEncoder, _hPackDecoder, _streamSetting);
         }
 
-        public StreamProcessing Build(int streamIdentifier, StreamPool parent, CancellationToken callerCancellationToken)
+        public StreamProcessing Build(
+            int streamIdentifier, StreamPool parent,
+            Exchange exchange, CancellationToken callerCancellationToken)
         {
-            return new StreamProcessing(streamIdentifier, parent,
+            return new StreamProcessing(streamIdentifier, parent, exchange,
                 _upStreamChannel, _headerEncoder, _streamSetting,
-                _overallWindowSizeHolder, _localCancellationToken, callerCancellationToken);
+                _overallWindowSizeHolder, _parser, _localCancellationToken, callerCancellationToken);
         }
     }
 
     internal interface IStreamProcessingBuilder
     {
-        StreamProcessing Build(int streamIdentifier, StreamPool parent, CancellationToken callerCancellationToken);
+        StreamProcessing Build(int streamIdentifier, StreamPool parent, Exchange exchange, CancellationToken callerCancellationToken);
     }
 
 }

@@ -60,7 +60,7 @@ namespace Echoes.H2
             if (creationSetting.TunneledOnly)
             {
                 var tunneledConnectionPool = new TunnelOnlyConnectionPool(exchange.Authority, _timingProvider,
-                    creationSetting.ConcurrentConnection);
+                   _remoteConnectionBuilder, creationSetting);
 
                 await tunneledConnectionPool.Init();
 
@@ -97,9 +97,9 @@ namespace Echoes.H2
             if (negotiatedProtocol == RemoteConnectionResult.Http2)
             {
 
-                var connectionPool = new H2ConnectionPool(should be with base stream);
+               // var connectionPool = new H2ConnectionPool(should be with base stream);
 
-                return _connectionPools[exchange.Authority] = connectionPool;
+               //return _connectionPools[exchange.Authority] = connectionPool;
             }
 
             

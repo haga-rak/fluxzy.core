@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Echoes.Encoding.Utils;
 using Echoes.H2.Helpers;
 
 namespace Echoes.H2
@@ -37,11 +38,13 @@ namespace Echoes.H2
 
         private WindowSizeHolder _overallWindowSizeHolder; 
 
-        private H2ConnectionPool(
+        public H2ConnectionPool(
             Stream baseStream,
-            H2StreamSetting setting
+            H2StreamSetting setting,
+            Authority authority
             )
         {
+            Authority = authority;
             _baseStream = baseStream;
             _streamReader = new H2Reader();
             _setting = setting;
@@ -50,7 +53,8 @@ namespace Echoes.H2
 
             _streamProcessingBuilder = new StreamProcessingBuilder(_connectionCancellationTokenSource.Token,
                 UpStreamChannel,
-                _setting, _overallWindowSizeHolder, ArrayPool<byte>.Shared
+                _setting, _overallWindowSizeHolder, ArrayPool<byte>.Shared, new Http11Parser(setting.MaxHeaderSize, 
+                    new ArrayPoolMemoryProvider<char>())
             );
 
             _writerChannel =
@@ -136,8 +140,7 @@ namespace Echoes.H2
             }
         }
 
-
-        private async Task Init()
+        public async Task Init()
         {
             await _baseStream.WriteAsync(Preface, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
@@ -151,6 +154,7 @@ namespace Echoes.H2
             var cancelTask = RaiseExceptionIfSettingNotReceived();
 
             await _waitForSettingReception.Task.ConfigureAwait(false);
+
             await cancelTask; 
         }
         
@@ -295,7 +299,7 @@ namespace Echoes.H2
 
             try
             {
-                while (!_connectionCancellationTokenSource.IsCancellationRequested)
+                while (_connectionCancellationTokenSource != null && !_connectionCancellationTokenSource.IsCancellationRequested)
                 {
                     var frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
@@ -414,10 +418,15 @@ namespace Echoes.H2
 
         public int Port { get; }
 
-        public async Task<H2Message> Send(
-            ReadOnlyMemory<char> http11RequestHeader, 
-            Stream requestBodyStream,
-            long bodyLength = -1,
+
+        //public async Task<H2Message> Send(
+        //    ReadOnlyMemory<char> http11RequestHeader,
+        //    Stream requestBodyStream,
+        //    long bodyLength = -1,
+        //    CancellationToken cancellationToken = default)
+
+        public async ValueTask Send(
+            Exchange exchange,
             CancellationToken cancellationToken = default)
         {
             StreamProcessing activeStream;
@@ -425,8 +434,10 @@ namespace Echoes.H2
 
             try
             {
-                activeStream = await _streamPool.CreateNewStreamProcessing(cancellationToken, _streamCreationLock).ConfigureAwait(false);
-                waitForHeaderSentTask = activeStream.EnqueueRequestHeader(http11RequestHeader, requestBodyStream, bodyLength);
+                activeStream = 
+                    await _streamPool.CreateNewStreamProcessing(exchange, cancellationToken, _streamCreationLock).ConfigureAwait(false);
+
+                waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange);
             }
             finally
             {
@@ -436,31 +447,33 @@ namespace Echoes.H2
 
             await waitForHeaderSentTask.ConfigureAwait(false);
 
-            await activeStream.ProcessRequestBody(requestBodyStream, bodyLength);
+            exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
-            return await activeStream.ProcessResponse(cancellationToken)
+            await activeStream.ProcessRequestBody(exchange);
+
+
+            exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+
+            var h2Message = await activeStream.ProcessResponse(cancellationToken)
                 .ConfigureAwait(false);
+
+            exchange.Response.Body = h2Message.ResponseStream;
         }
 
-        public static async Task<H2ConnectionPool> Open(Stream stream, H2StreamSetting setting)
-        {
-            var connection = new H2ConnectionPool(stream, setting);
-            await connection.Init();
-            return connection; 
-        }
+        //public static async Task<H2ConnectionPool> Open(Stream stream, H2StreamSetting setting)
+        //{
+        //    var connection = new H2ConnectionPool(stream, setting);
+        //    await connection.Init();
+        //    return connection; 
+        //}
 
+        public Authority Authority { get; }
+        
 
-        public Authority Authority => throw new NotImplementedException();
-
-        Task IHttpConnectionPool.Init()
-        {
-            return Init();
-        }
-
-        public ValueTask Send(Exchange exchange, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+        //public ValueTask Send(Exchange exchange, CancellationToken cancellationToken = default)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public async ValueTask DisposeAsync()
         {

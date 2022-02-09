@@ -41,7 +41,7 @@ namespace Echoes.H2
 
         public List<int> status = new List<int>();
 
-        private StreamProcessing CreateActiveStream(CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
+        private StreamProcessing CreateActiveStream(Exchange exchange, CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
         {
             if (_onError)
                 throw new InvalidOperationException("This connection is on error");
@@ -49,7 +49,7 @@ namespace Echoes.H2
             ongoingStreamInit.Wait(callerCancellationToken);
 
             var myId = Interlocked.Add(ref _nextStreamIdentifier, 2);
-            StreamProcessing activeStream = _streamProcessingBuilder.Build(myId, this, callerCancellationToken);
+            StreamProcessing activeStream = _streamProcessingBuilder.Build(myId, this, exchange, callerCancellationToken);
             
             _runningStreams[myId] = activeStream;
 
@@ -61,13 +61,13 @@ namespace Echoes.H2
         /// Get or create  active stream 
         /// </summary>
         /// <returns></returns>
-        public async Task<StreamProcessing> CreateNewStreamProcessing(CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
+        public async Task<StreamProcessing> CreateNewStreamProcessing(Exchange exchange, CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
         {
             if (_onError)
                 throw new InvalidOperationException("This connection is on error");
             
             await _barrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
-            var res = CreateActiveStream(callerCancellationToken, ongoingStreamInit);
+            var res = CreateActiveStream(exchange, callerCancellationToken, ongoingStreamInit);
             return res;
         }
 
