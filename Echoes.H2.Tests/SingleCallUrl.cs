@@ -1,7 +1,8 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.H2.DotNetBridge;
+using Echoes.DotNetBridge;
+using Echoes.H2.Tests.Utils;
 using Xunit;
 
 namespace Echoes.H2.Tests

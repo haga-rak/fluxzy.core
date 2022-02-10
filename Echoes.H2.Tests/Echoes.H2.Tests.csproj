@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Echoes.H2\Echoes.H2.csproj" />
+    <ProjectReference Include="..\Echoes\Echoes.csproj" />
   </ItemGroup>
 
 </Project>

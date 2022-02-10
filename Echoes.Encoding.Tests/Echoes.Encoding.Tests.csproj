@@ -31,10 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Echoes.Encoding\Echoes.Encoding.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Files\Headers.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -51,6 +47,10 @@
 
   <ItemGroup>
     <Folder Include="Benchmarks\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Echoes\Echoes.csproj" />
   </ItemGroup>
 
 </Project>

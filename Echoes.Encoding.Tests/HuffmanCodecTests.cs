@@ -1,5 +1,5 @@
 using System;
-using Echoes.Encoding.Huffman;
+using Echoes.H2.Encoder;
 using Xunit;
 
 namespace Echoes.Encoding.Tests

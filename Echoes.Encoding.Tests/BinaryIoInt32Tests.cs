@@ -1,5 +1,5 @@
 using System;
-using Echoes.Encoding.HPack;
+using Echoes.H2.Encoder.HPack;
 using Xunit;
 
 namespace Echoes.Encoding.Tests

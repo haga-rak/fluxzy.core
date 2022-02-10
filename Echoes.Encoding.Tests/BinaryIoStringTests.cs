@@ -1,7 +1,6 @@
 using System;
-using Echoes.Encoding.HPack;
-using Echoes.Encoding.Huffman;
-using Echoes.Encoding.Utils;
+using Echoes.H2.Encoder;
+using Echoes.H2.Encoder.HPack;
 using Xunit;
 
 namespace Echoes.Encoding.Tests
