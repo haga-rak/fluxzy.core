@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
@@ -77,20 +78,33 @@ namespace Echoes.H11
 
                 if (exchange.UpStream == null)
                 {
-                    var openResult = await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, false, Http11Protocols,
-                        _globalSetting, cancellationToken); 
+                    await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, false, Http11Protocols,
+                        _globalSetting, cancellationToken);
                 }
 
                 var poolProcessing = new Http11PoolProcessing(_timingProvider, _globalSetting, _parser);
-
-                var shouldCloseConnectionWhenDone = false; 
 
                 try
                 {
                     await poolProcessing.Process(exchange, cancellationToken)
                         .ConfigureAwait(false);
-
-                    shouldCloseConnectionWhenDone = await exchange.Complete;
+                    
+                    var res = exchange.Complete
+                        .ContinueWith(completeTask =>
+                        {
+                            
+                            if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any())
+                            {
+                                foreach (var exception in completeTask.Exception.InnerExceptions)
+                                {
+                                    exchange.Errors.Add(new Error("Error while reading resp", exception));
+                                }
+                            }
+                            else if (completeTask.IsCompletedSuccessfully && !completeTask.Result)
+                            {
+                                _processingStates.Enqueue(new Http11ProcessingState(exchange.UpStream, _timingProvider));
+                            }
+                        }, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -98,26 +112,17 @@ namespace Echoes.H11
                         ex is IOException || 
                         ex is ExchangeException)
                     {
-                        exchange.Errors.Add(new Error("Error while reading resp", ex)); 
+                        exchange.Errors.Add(new Error("Error while reading resp", ex));
 
-                        shouldCloseConnectionWhenDone = true;
+                        if (exchange.UpStream != null)
+                        {
+                            await exchange.UpStream.DisposeAsync();
+                        }
+
                     }
                     else
                         throw;
                 }
-
-                // the queue is free again
-                if (shouldCloseConnectionWhenDone)
-                {
-                    if (exchange.UpStream != null)
-                    {
-                        await exchange.UpStream.DisposeAsync();
-                    }
-
-                    return;  
-                }
-
-                _processingStates.Enqueue(new Http11ProcessingState(exchange.UpStream, _timingProvider));
             }
             finally
             {
@@ -127,14 +132,12 @@ namespace Echoes.H11
 
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            throw new NotImplementedException();
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
         }
 
     }

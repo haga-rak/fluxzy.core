@@ -33,26 +33,6 @@ namespace Echoes.DotNetBridge
 
         public Exchange Exchange { get; private set; }
 
-        public EchoesHttpResponseMessage(H2Message message)
-            : base(ReadStatusCode(message.HeaderFields, out _))
-        {
-            _message = message;
-
-            Version = Version.Parse("2.0");
-
-            Content = new StreamContent(message.ResponseStream);
-
-            foreach (var headerField in message.HeaderFields)
-            {
-                if (headerField.Name.Span.StartsWith(":".AsSpan()))
-                    continue;
-
-                if (!Headers.TryAddWithoutValidation(headerField.Name.ToString(), headerField.Value.ToString()))
-                {
-                    Content.Headers.TryAddWithoutValidation(headerField.Name.ToString(), headerField.Value.ToString());
-                }
-            }
-        }
         public EchoesHttpResponseMessage(Exchange exchange)
             : base(ReadStatusCode(exchange.Response.Header.HeaderFields, out _))
         {

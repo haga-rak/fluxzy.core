@@ -8,6 +8,9 @@ namespace Echoes
 {
     public class GlobalSetting
     {
+        public static GlobalSetting Default { get; } = new GlobalSetting(); 
+
+
         /// <summary>
         /// 
         /// </summary>
@@ -17,22 +20,22 @@ namespace Echoes
         {
             return new X509Certificate2Collection();
         }
-        
+
         /// <summary>
         /// Protocols supported by the current proxy 
         /// </summary>
-        public SslProtocols ProxyTlsProtocols { get; set; }
+        public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11;
 
         /// <summary>
         /// True to demand no decryption from proxy 
         /// </summary>
-        public bool TunneledOnly { get; set; }
+        public bool TunneledOnly { get; set; } = false;
 
 
         /// <summary>
         /// Process to validate the remote certificate 
         /// </summary>
-        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
+        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; } = null;
 
         /// <summary>
         /// 

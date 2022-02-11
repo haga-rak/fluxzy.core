@@ -5,12 +5,14 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.H11;
+using Echoes.H2.Encoder.Utils;
 
 namespace Echoes.H2
 {
-    public static class H2ConnectionBuilder
+    public static class ConnectionBuilder
     {
-        public static async Task<H2ConnectionPool> Create(
+        public static async Task<H2ConnectionPool> CreateH2(
             string hostName, 
             int port = 443,
             H2StreamSetting setting = default,
@@ -43,6 +45,19 @@ namespace Echoes.H2
 
 
             return connectionPool;
+        }
+
+        public static async Task<Http11ConnectionPool> CreateH11(Authority authority, 
+            CancellationToken token = default)
+        {
+            var connectionPool =  new Http11ConnectionPool(authority, null,
+                new RemoteConnectionBuilder(ITimingProvider.Default),
+                ITimingProvider.Default, GlobalSetting.Default, new Http11Parser(
+                    GlobalSetting.Default.MaxHeaderLineSize, new ArrayPoolMemoryProvider<char>()));
+
+            await connectionPool.Init();
+
+            return connectionPool; 
         }
     }
 }

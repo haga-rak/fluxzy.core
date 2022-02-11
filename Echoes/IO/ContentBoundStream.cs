@@ -95,7 +95,7 @@ namespace Echoes.IO
             if (minCount == 0)
                 return 0;
 
-            var res = await _innerStream.ReadAsync(buffer, cancellationToken)
+            var res = await _innerStream.ReadAsync(buffer.Slice(0, minCount), cancellationToken)
                 .ConfigureAwait(false);
 
             TotalRead += res;

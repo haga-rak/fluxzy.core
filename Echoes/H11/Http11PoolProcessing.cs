@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.H2;
@@ -12,6 +13,8 @@ namespace Echoes.H11
 {
     public class Http11PoolProcessing
     {
+        private static readonly Stream EmptyStream = new MemoryStream(Array.Empty<byte>()); 
+
         private static readonly ReadOnlyMemory<char> Space = " ".AsMemory();
         private static readonly ReadOnlyMemory<char> LineFeed = "\r\n".AsMemory();
         private static readonly ReadOnlyMemory<char> Protocol = " HTTP/1.1".AsMemory();
@@ -49,6 +52,8 @@ namespace Echoes.H11
 
             var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true);
 
+            var fullSentHeader = Encoding.ASCII.GetString(headerBuffer.Slice(0, headerLength).Span);
+
             await exchange.UpStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
 
             exchange.Metrics.TotalSent += headerLength;
@@ -84,6 +89,8 @@ namespace Echoes.H11
             {
                 exchange.Metrics.ResponseBodyStart = exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
                 exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
+                exchange.Response.Body = EmptyStream; 
+
                 return shouldCloseConnection;
             }
 

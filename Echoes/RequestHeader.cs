@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Echoes.H2.Encoder;
 using Echoes.H2.Encoder.Utils;
 
@@ -18,7 +19,7 @@ namespace Echoes
         {
             Authority = this[Http11Constants.AuthorityVerb].First().Value;
             Path = this[Http11Constants.PathVerb].First().Value;
-            Method = this[Http11Constants.PathVerb].First().Value;
+            Method = this[Http11Constants.MethodVerb].First().Value;
         }
 
         public ReadOnlyMemory<char> Authority { get;  }
@@ -31,14 +32,14 @@ namespace Echoes
         {
             var totalLength = 0;
 
-            totalLength += System.Text.Encoding.ASCII.GetBytes(Method.Span, buffer.Slice(totalLength)); 
-            totalLength += System.Text.Encoding.ASCII.GetBytes(" ", buffer.Slice(totalLength)); 
-            totalLength += System.Text.Encoding.ASCII.GetBytes(Path.Span, buffer.Slice(totalLength)); 
-            totalLength += System.Text.Encoding.ASCII.GetBytes("HTTP/1.1\r\n", buffer.Slice(totalLength));
-            totalLength += System.Text.Encoding.ASCII.GetBytes("Host: ", buffer.Slice(totalLength));
-            totalLength += System.Text.Encoding.ASCII.GetBytes(Authority.Span, buffer.Slice(totalLength));
-            totalLength += System.Text.Encoding.ASCII.GetBytes("\r\n", buffer.Slice(totalLength));
-
+            totalLength += Encoding.ASCII.GetBytes(Method.Span, buffer.Slice(totalLength)); 
+            totalLength += Encoding.ASCII.GetBytes(" ", buffer.Slice(totalLength)); 
+            totalLength += Encoding.ASCII.GetBytes(Path.Span, buffer.Slice(totalLength)); 
+            totalLength += Encoding.ASCII.GetBytes(" HTTP/1.1\r\n", buffer.Slice(totalLength));
+            totalLength += Encoding.ASCII.GetBytes("Host: ", buffer.Slice(totalLength));
+            totalLength += Encoding.ASCII.GetBytes(Authority.Span, buffer.Slice(totalLength));
+            totalLength += Encoding.ASCII.GetBytes("\r\n", buffer.Slice(totalLength));
+            
             return totalLength; 
         }
     }
@@ -52,7 +53,7 @@ namespace Echoes
             : base(headerContent, isSecure, parser)
         {
             StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
-            ConnectionCloseRequest = this.HeaderFields.Any(
+            ConnectionCloseRequest = HeaderFields.Any(
                 r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
                      && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase)); 
         }
@@ -75,10 +76,10 @@ namespace Echoes
 
             var statusCodeString = StatusCode.ToString(); 
 
-            totalLength += System.Text.Encoding.ASCII.GetBytes("HTTP/1.1 ", buffer.Slice(totalLength));
-            totalLength += System.Text.Encoding.ASCII.GetBytes(statusCodeString, buffer.Slice(totalLength));
-            totalLength += System.Text.Encoding.ASCII.GetBytes(" ", buffer.Slice(totalLength));
-            totalLength += System.Text.Encoding.ASCII.GetBytes(Http11Constants.GetStatusLine(statusCodeString.AsMemory()).Span,
+            totalLength += Encoding.ASCII.GetBytes("HTTP/1.1 ", buffer.Slice(totalLength));
+            totalLength += Encoding.ASCII.GetBytes(statusCodeString, buffer.Slice(totalLength));
+            totalLength += Encoding.ASCII.GetBytes(" ", buffer.Slice(totalLength));
+            totalLength += Encoding.ASCII.GetBytes(Http11Constants.GetStatusLine(statusCodeString.AsMemory()).Span,
                 buffer.Slice(totalLength));
 
             return totalLength;
@@ -140,7 +141,8 @@ namespace Echoes
             var totalLength = 0;
            
             totalLength += WriteHeaderLine(data);
-            
+
+
             foreach (var header in _rawHeaderFields)
             {
                 if (header.Name.Span[0] == ':') // H2 control header 
@@ -149,13 +151,13 @@ namespace Echoes
                 if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name))
                     continue;
 
-                totalLength += System.Text.Encoding.ASCII.GetBytes(header.Name.Span, data.Slice(totalLength));
-                totalLength += System.Text.Encoding.ASCII.GetBytes(" ", data.Slice(totalLength));
-                totalLength += System.Text.Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
-                totalLength += System.Text.Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes(header.Name.Span, data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
             }
 
-            totalLength += System.Text.Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+            totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
 
             return totalLength; 
         }

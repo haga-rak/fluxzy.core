@@ -26,9 +26,9 @@ namespace Echoes.IO
             _closeStreams = closeStreams;
         }
 
-        public override bool CanRead { get { return true; } }
+        public override bool CanRead => true;
 
-        public override bool CanWrite { get { return false; } }
+        public override bool CanWrite => false;
 
         private void EndOfStream()
         {
@@ -77,9 +77,9 @@ namespace Echoes.IO
             throw new NotSupportedException();
         }
 
-        public override bool CanSeek { get { return false; } }
+        public override bool CanSeek => false;
 
-        public override bool CanTimeout { get { return false; } }
+        public override bool CanTimeout => false;
 
         public override void SetLength(long value)
         {
@@ -96,14 +96,11 @@ namespace Echoes.IO
 
         }
 
-        public override long Length
-        {
-            get { throw new NotSupportedException(); }
-        }
+        public override long Length => throw new NotSupportedException();
 
         public override long Position
         {
-            get { return _position; }
+            get => _position;
             set { if (value != this._position) throw new NotSupportedException(); }
         }
 

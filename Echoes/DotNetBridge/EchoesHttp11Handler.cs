@@ -1,41 +1,38 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.H11;
 using Echoes.H2;
 using Echoes.H2.Encoder.Utils;
 
 namespace Echoes.DotNetBridge
 {
-    public class EchoesHttp2Handler : HttpMessageHandler
+    public class EchoesHttp11Handler : HttpMessageHandler
     {
-        private readonly H2StreamSetting _streamSetting;
-        private readonly IDictionary<string, H2ConnectionPool>
-            _activeConnections = new Dictionary<string, H2ConnectionPool>();
+        private readonly IDictionary<string, Http11ConnectionPool>
+            _activeConnections = new Dictionary<string, Http11ConnectionPool>();
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         private readonly Http11Parser _parser = new Http11Parser(8192, new ArrayPoolMemoryProvider<char>()); 
         
-        public EchoesHttp2Handler(H2StreamSetting streamSetting = null)
+        public EchoesHttp11Handler(H2StreamSetting streamSetting = null)
         {
-            _streamSetting = streamSetting ?? new H2StreamSetting();
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            var authority = new Authority(request.RequestUri.Host, request.RequestUri.Port,
+                true); 
             try
             {
                 await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection))
                 {
-                    connection = await H2ConnectionBuilder.Create(
-                        request.RequestUri.Host,
-                        request.RequestUri.Port, _streamSetting, cancellationToken).ConfigureAwait(false);
+                    connection = await ConnectionBuilder.CreateH11(authority, cancellationToken);
 
                     _activeConnections[request.RequestUri.Authority] = connection;
                 }
@@ -45,8 +42,7 @@ namespace Echoes.DotNetBridge
                 _semaphore.Release();
             }
 
-            var exchange = new Exchange(new Authority(request.RequestUri.Host, request.RequestUri.Port,
-                true), request.ToHttp11String().AsMemory(), _parser);
+            var exchange = new Exchange(authority, request.ToHttp11String().AsMemory(), _parser);
 
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
