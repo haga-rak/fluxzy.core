@@ -17,7 +17,7 @@ namespace Echoes.DotNetBridge
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         private readonly Http11Parser _parser = new Http11Parser(8192, new ArrayPoolMemoryProvider<char>()); 
         
-        public EchoesHttp11Handler(H2StreamSetting streamSetting = null)
+        public EchoesHttp11Handler()
         {
         }
 
@@ -42,7 +42,9 @@ namespace Echoes.DotNetBridge
                 _semaphore.Release();
             }
 
-            var exchange = new Exchange(authority, request.ToHttp11String().AsMemory(), _parser);
+            var reqHttpString = request.ToHttp11String();
+
+            var exchange = new Exchange(authority, reqHttpString.AsMemory(), _parser);
 
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();

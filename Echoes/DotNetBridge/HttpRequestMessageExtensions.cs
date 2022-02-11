@@ -23,22 +23,28 @@ namespace Echoes.DotNetBridge
                 }
             }
 
+            var clAsk = message?.Content?.Headers.ContentLength;
+
             if (message.Content?.Headers != null)
-            foreach (var header in message.Content.Headers)
             {
-                foreach (var value in header.Value)
+                foreach (var header in message.Content.Headers)
                 {
-                    builder.Append(header.Key);
-                    builder.Append(": ");
-                    builder.Append(value);
-                    builder.Append("\r\n");
+                    foreach (var value in header.Value)
+                    {
+                        builder.Append(header.Key);
+                        builder.Append(": ");
+                        builder.Append(value);
+                        builder.Append("\r\n");
+                    }
                 }
             }
 
             var s = message.ToString();
 
             builder.Append("\r\n");
-            return builder.ToString();
+            var yo = builder.ToString();
+
+            return yo; 
         }
     }
 }

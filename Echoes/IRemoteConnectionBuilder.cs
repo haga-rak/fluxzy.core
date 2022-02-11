@@ -1,10 +1,12 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.IO;
 
 namespace Echoes
 {
@@ -26,6 +28,7 @@ namespace Echoes
 
     public class RemoteConnectionBuilder : IRemoteConnectionBuilder
     {
+
         private readonly ITimingProvider _timeProvider;
 
         public RemoteConnectionBuilder(ITimingProvider timeProvider)
@@ -73,6 +76,16 @@ namespace Echoes
             await sslStream.AuthenticateAsClientAsync(authenticationOptions, token).ConfigureAwait(false);
 
             exchange.Metrics.SslNegotiationEnd = _timeProvider.Instant();
+
+            if (DebugContext.EnableNetworkFileDump)
+            {
+                Directory.CreateDirectory(DebugContext.NetworkFileDumpDirectory);
+
+                var current = Interlocked.Increment(ref DebugContext.FileDumpIndex);
+
+                exchange.UpStream = new DebugFileStream($"raw/{current:0000}_",
+                    exchange.UpStream); 
+            }
 
             return sslStream.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2
                 ? RemoteConnectionResult.Http2

@@ -10,6 +10,7 @@ namespace Echoes.H2.Tests.Utils
     public class RandomDataStream : Stream
     {
         private readonly int _length;
+        private readonly bool _seekable;
         private int _actualReaden;
         private readonly MemoryStream _memoryStream = new(); 
 
@@ -17,9 +18,10 @@ namespace Echoes.H2.Tests.Utils
         private readonly CryptoStream _cryptoStream;
         private readonly SHA1 _crypto;
 
-        public RandomDataStream(int seed, int length)
+        public RandomDataStream(int seed, int length, bool seekable = false)
         {
             _length = length;
+            _seekable = seekable;
             _random = new Random(seed);
 
             _crypto = SHA1.Create();
@@ -74,13 +76,20 @@ namespace Echoes.H2.Tests.Utils
         }
 
         public override bool CanRead => true;
-        public override bool CanSeek => false;
+        public override bool CanSeek => _seekable;
         public override bool CanWrite => false;
-        public override long Length => throw new NotSupportedException();
+        public override long Length
+        {
+            get
+            {
+                return _seekable ? (_length - _actualReaden)
+                    : throw new NotSupportedException();
+            }
+        }
 
         public override long Position
         {
-            get => throw new NotSupportedException();
+            get => _actualReaden;
             set => throw new NotSupportedException();
         }
 

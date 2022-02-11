@@ -37,8 +37,8 @@ namespace Echoes.DotNetBridge
             : base(ReadStatusCode(exchange.Response.Header.HeaderFields, out _))
         {
             _message = null;
-            Exchange = exchange; 
-
+            Exchange = exchange;
+            
             Version = Version.Parse("2.0");
 
             Content = new StreamContent(exchange.Response.Body);

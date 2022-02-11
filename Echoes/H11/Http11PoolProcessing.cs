@@ -36,6 +36,8 @@ namespace Echoes.H11
             _parser = parser;
         }
 
+        private static int count = 0; 
+
         /// <summary>
         /// Process the exchange
         /// </summary>
@@ -51,8 +53,6 @@ namespace Echoes.H11
             exchange.Metrics.RequestHeaderSending = _timingProvider.Instant();
 
             var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true);
-
-            // var fullSentHeader = Encoding.ASCII.GetString(headerBuffer.Slice(0, headerLength).Span);
 
             await exchange.UpStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
 
@@ -96,9 +96,11 @@ namespace Echoes.H11
 
             Stream bodyStream = exchange.UpStream;
 
+            Interlocked.Increment(ref count);
+
             if (headerBlockDetectResult.HeaderLength < headerBlockDetectResult.TotalReadLength)
             {
-                var fullSentHeader = Encoding.ASCII.GetString(headerBuffer.Slice(0, headerBlockDetectResult.TotalReadLength).Span);
+               
 
                 // Concat the extra body bytes read while retrieving header
                 bodyStream = new CombinedReadonlyStream(
@@ -114,12 +116,12 @@ namespace Echoes.H11
             {
                 bodyStream = new ChunkedTransferStream(bodyStream, shouldCloseConnection);
             }
-
+       
             if (exchange.Response.Header.ContentLength > 0)
             {
                 bodyStream = new ContentBoundStream(bodyStream, exchange.Response.Header.ContentLength);
             }
-            
+
             exchange.Response.Body =
                 new MetricsStream(bodyStream,
                     () => { exchange.Metrics.ResponseBodyStart = _timingProvider.Instant(); },

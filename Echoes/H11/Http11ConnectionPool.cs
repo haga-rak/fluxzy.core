@@ -60,7 +60,7 @@ namespace Echoes.H11
 
                 await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                lock (this)
+                lock (_processingStates)
                 {
                     DateTime requestDate = _timingProvider.Instant(); 
 
@@ -92,7 +92,6 @@ namespace Echoes.H11
                     var res = exchange.Complete
                         .ContinueWith(completeTask =>
                         {
-                            
                             if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any())
                             {
                                 foreach (var exception in completeTask.Exception.InnerExceptions)
@@ -102,7 +101,8 @@ namespace Echoes.H11
                             }
                             else if (completeTask.IsCompletedSuccessfully && !completeTask.Result)
                             {
-                                _processingStates.Enqueue(new Http11ProcessingState(exchange.UpStream, _timingProvider));
+                                lock (_processingStates)
+                                    _processingStates.Enqueue(new Http11ProcessingState(exchange.UpStream, _timingProvider));
                             }
                         }, cancellationToken);
                 }
