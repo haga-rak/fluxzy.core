@@ -3,6 +3,8 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.H2;
@@ -17,6 +19,7 @@ namespace Echoes.IO
 
         private readonly char[] _lengthHolderChar = new char[64];
         private readonly byte[] _lengthHolderBytes = new byte[64];
+        private readonly byte[] _singleByte = new byte[1];
 
         public ChunkedTransferStream(Stream innerStream, bool closeOnDone)
         {
@@ -29,7 +32,7 @@ namespace Echoes.IO
             throw new NotImplementedException();
         }
 
-        private long _nextChunkSize = -1;
+        private long _nextChunkSize = 0;
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
@@ -40,132 +43,85 @@ namespace Echoes.IO
         {
             // Read the length of the next block 
 
-            if (_nextChunkSize == -1)
+            if (_nextChunkSize == 0)
             {
                 Memory<byte> textBufferBytes = _lengthHolderBytes;
                 Memory<char> textBufferChars = _lengthHolderChar;
-
-                int current = 0;
+                Memory<byte> singleByte = _singleByte; 
+                
                 int textCount = 0;
 
-                while ((current = await _innerStream.ReadAsync(textBufferBytes, cancellationToken)) > 0 && current != 0XD)
+                var chunkSizeNotDetected = true; 
+
+                while (
+                    (await _innerStream.ReadAsync(singleByte, cancellationToken)) > 0 
+                    && (chunkSizeNotDetected = singleByte.Span[0] != 0XD))
                 {
-                    textBufferBytes.Span[textCount++] = (byte)current;
+                    if (textCount > 40)
+                        throw new IOException($"Error while reading chunked stream : Chunk size is larger than 40."); 
+
+                    textBufferBytes.Span[textCount++] = singleByte.Span[0];
+                }
+                
+                if (textCount == 1 && !chunkSizeNotDetected)
+                {
+                    // Natural End of stream . Read the last double cr lf 
+                    await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken); 
+                    return 0; 
                 }
 
-                if (current != 0XD)
+                if (textCount == 0 || chunkSizeNotDetected)
                 {
-                    throw new ExchangeException(
-                        $"EOF was reached on chunked stream before reading a valid length block.");
+                    throw new IOException(
+                        $"Error while reading chunked stream : EOF was reached on chunked stream before reading a valid length block.");
                 }
 
-                System.Text.Encoding.ASCII.GetChars(textBufferBytes.Span.Slice(0, textCount), textBufferChars.Span);
+                Encoding.ASCII.GetChars(textBufferBytes.Span.Slice(0, textCount), textBufferChars.Span);
 
                 if (!long.TryParse(textBufferChars.Slice(0, textCount).Span,
                         NumberStyles.HexNumber, CultureInfo.InvariantCulture,
                         out var chunkSize) || chunkSize < 0)
                 {
-                    throw new ExchangeException(
-                        $"Received chunk size is invalid : {textBufferChars.Slice(0, textCount).ToString()}.");
+                    throw new IOException(
+                        $"Error while reading chunked stream : Received chunk size is invalid : {textBufferChars.Slice(0, textCount).ToString()}.");
                 }
 
                 if (chunkSize == 0)
                 {
                     if (!_closeOnDone)
-                        await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
+                        await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken);
 
                     return 0;
                 }
 
                 // Skip the next CRLF 
-                await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
+                await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken);
 
                 _nextChunkSize = chunkSize;
             }
 
-            var nextBlockToRead = (int)Math.Min(_nextChunkSize + 2, buffer.Length);
+            var nextBlockToRead = (int) Math.Min(_nextChunkSize, buffer.Length);
 
             var read = await _innerStream.ReadAsync(buffer.Slice(0, nextBlockToRead), cancellationToken);
 
-            var chunkDataComplete = read == _nextChunkSize + 2;
-
-            if (chunkDataComplete)
-                read -= 2;
-
             if (read <= 0)
             {
                 throw new ExchangeException(
-                    $"EOF was reached before receiving {_nextChunkSize} bytes of chunked data.");
+                    $"Error while reading chunked stream : EOF was reached before receiving {_nextChunkSize} bytes of chunked data.");
             }
 
-            _nextChunkSize = chunkDataComplete ? -1 : _nextChunkSize - read;
+            _nextChunkSize -= read;
+
+            if (_nextChunkSize == 0)
+                await _innerStream.ReadExactAsync(_lengthHolderBytes, 0, 2, cancellationToken);
+            
 
             return read;
         }
-
+        
         public override int Read(byte [] buffer, int offset, int count)
         {
-            // Read the length of the next block 
-
-            if (_nextChunkSize == -1)
-            {
-                Span<byte> textBufferBytes = _lengthHolderBytes;
-                Span<char> textBufferChars = _lengthHolderChar;
-
-                int current = 0;
-                int textCount = 0;
-
-                while ((current = _innerStream.Read(textBufferBytes)) > 0 && current != 0XD)
-                {
-                    textBufferBytes[textCount++] = (byte) current; 
-                }
-
-                if (current != 0XD)
-                {
-                    throw new ExchangeException(
-                        $"EOF was reached on chunked stream before reading a valid length block.");
-                }
-
-                System.Text.Encoding.ASCII.GetChars(textBufferBytes.Slice(0, textCount), textBufferChars);
-
-                if (!long.TryParse(textBufferChars.Slice(0, textCount), 
-                        NumberStyles.HexNumber, CultureInfo.InvariantCulture,  
-                        out var chunkSize) || chunkSize < 0)
-                {
-                    throw new ExchangeException(
-                        $"Received chunk size is invalid : {textBufferChars.Slice(0, textCount).ToString()}.");
-                }
-
-                if (chunkSize == 0)
-                {
-                    if (!_closeOnDone)
-                        _innerStream.ReadExact(textBufferBytes.Slice(0, 3));
-
-                    return 0; 
-                }
-
-                _innerStream.ReadExact(textBufferBytes.Slice(0, 3));
-                _nextChunkSize = chunkSize; 
-            }
-
-            var nextBlockToRead = (int) Math.Min(_nextChunkSize + 2, count);
-
-            var read = _innerStream.Read(buffer, offset, nextBlockToRead);
-
-            var chunkDataComplete = read == _nextChunkSize + 2;
-            
-            if (chunkDataComplete)
-                read -= 2;
-
-            if (read <= 0)
-            {
-                throw new ExchangeException(
-                    $"EOF was reached before receiving {_nextChunkSize} bytes of chunked data.");
-            }
-            
-            _nextChunkSize = chunkDataComplete ? -1 : _nextChunkSize - read;
-            
-            return read; 
+            throw new NotSupportedException();
         }
 
         public override long Seek(long offset, SeekOrigin origin)

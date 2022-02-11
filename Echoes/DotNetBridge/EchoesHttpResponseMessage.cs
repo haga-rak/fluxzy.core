@@ -58,7 +58,7 @@ namespace Echoes.DotNetBridge
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            _message.Dispose();
+            _message?.Dispose();
         }
 
         public override string ToString()

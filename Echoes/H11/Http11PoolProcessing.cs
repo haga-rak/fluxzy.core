@@ -52,7 +52,7 @@ namespace Echoes.H11
 
             var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true);
 
-            var fullSentHeader = Encoding.ASCII.GetString(headerBuffer.Slice(0, headerLength).Span);
+            // var fullSentHeader = Encoding.ASCII.GetString(headerBuffer.Slice(0, headerLength).Span);
 
             await exchange.UpStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
 
@@ -75,7 +75,7 @@ namespace Echoes.H11
 
             Memory<char> headerContent = new char[headerBlockDetectResult.HeaderLength];
 
-            System.Text.Encoding.ASCII
+            Encoding.ASCII
                 .GetChars(headerBuffer.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
 
             exchange.Response.Header = new ResponseHeader(
@@ -98,6 +98,8 @@ namespace Echoes.H11
 
             if (headerBlockDetectResult.HeaderLength < headerBlockDetectResult.TotalReadLength)
             {
+                var fullSentHeader = Encoding.ASCII.GetString(headerBuffer.Slice(0, headerBlockDetectResult.TotalReadLength).Span);
+
                 // Concat the extra body bytes read while retrieving header
                 bodyStream = new CombinedReadonlyStream(
                     shouldCloseConnection,
@@ -181,7 +183,6 @@ namespace Echoes.H11
                 if (detected >= 0)
                 {
                     // FOUND CRLF 
-
                     indexFound = start + detected + 4;
                     break;
                 }

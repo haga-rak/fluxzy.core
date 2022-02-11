@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,6 +78,48 @@ namespace Echoes.H2.Tests
 
             Assert.True(response.IsSuccessStatusCode);
             Assert.True(contentText == string.Empty);
+        }
+
+        [Fact]
+        public async Task Get_File_Small_UnknownSize()
+        {
+            using var handler = new EchoesHttp11Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"https://httpmill.smartizy.com:5001/content-produce-unpredictable/130000/130000"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+            var array = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+            var actualLength = 
+                int.Parse(response.Headers.GetValues("actual-content-length").First()); 
+
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(actualLength, array.Length);
+        }
+
+        [Fact]
+        public async Task Get_File_Large_UnknownSize()
+        {
+            using var handler = new EchoesHttp11Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"https://httpmill.smartizy.com:5001/content-produce-unpredictable/2300000/2300000"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+            var array = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+            var actualLength = 
+                int.Parse(response.Headers.GetValues("actual-content-length").First()); 
+
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(actualLength, array.Length);
         }
 
         [Fact]
