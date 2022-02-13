@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using Echoes.Encoding.Tests.Files;
 using Echoes.H2.Encoder;
 using Echoes.H2.Encoder.HPack;
 using Echoes.H2.Encoder.Utils;
+using Echoes.H2.Encoding.Tests.Files;
 using Xunit;
 
 namespace Echoes.Encoding.Tests

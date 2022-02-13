@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Echoes.Encoding.Tests.Files {
+namespace Echoes.H2.Encoding.Tests.Files {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Echoes.Encoding.Tests.Files {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Echoes.Encoding.Tests.Files.Headers", typeof(Headers).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Echoes.H2.Encoding.Tests.Files.Headers", typeof(Headers).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,9 +61,8 @@ namespace Echoes.Encoding.Tests.Files {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à GET https://particuliers.societegenerale.fr/static/Resources/stylesheets/index_pri_20201013141424.min.css HTTP/1.1
+        ///   Recherche une chaîne localisée semblable à GET /static/Resources/stylesheets/index_pri_20201013141424.min.css HTTP/1.1
         ///Host: particuliers.societegenerale.fr
-        ///Connection: keep-alive
         ///sec-ch-ua: &quot;Chromium&quot;;v=&quot;92&quot;, &quot; Not A;Brand&quot;;v=&quot;99&quot;, &quot;Google Chrome&quot;;v=&quot;92&quot;
         ///sec-ch-ua-mobile: ?0
         ///User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36
@@ -71,7 +70,7 @@ namespace Echoes.Encoding.Tests.Files {
         ///Sec-Fetch-Site: same-origin
         ///Sec-Fetch-Mode: no-cors
         ///Sec-Fetch-Dest: style
-        /// [le reste de la chaîne a été tronqué]&quot;;.
+        ///Referer: https://particuliers.societegenerale.fr/com/icd-web/cb [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         internal static string Req001 {
             get {
@@ -87,7 +86,6 @@ namespace Echoes.Encoding.Tests.Files {
         ///Cache-Control: max-age=5184000
         ///Content-Type: text/css
         ///Content-Encoding: gzip
-        ///Connection: Keep-Alive
         ///Date: Thu, 25 Nov 2021 09:38:46 GMT
         ///Expires: Mon, 24 Jan 2022 08:54:01 GMT
         ///Age: 2686

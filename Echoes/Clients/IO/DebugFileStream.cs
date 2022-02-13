@@ -1,0 +1,106 @@
+﻿using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Echoes.IO
+{
+    /// <summary>
+    /// Used to dump a stream to file. 
+    /// </summary>
+    public class DebugFileStream : Stream
+    {
+        private readonly Stream _innerStream;
+        private readonly FileStream _fileStream;
+        private readonly FileStream _fileStreamOut;
+
+        public DebugFileStream(string pathPrefix, Stream innerStream)
+        {
+            _innerStream = innerStream;
+            var inFile = pathPrefix + ".res.txt"; 
+            _fileStream = File.Create(inFile);
+            _fileStreamOut = File.Create(pathPrefix + ".req.txt");
+        }
+
+        public override void Flush()
+        {
+
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            var res =  _innerStream.Read(buffer, offset, count);
+
+            _fileStream.Write(buffer, offset, res);
+            _fileStream.Flush();
+
+            return res; 
+        }
+
+        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+        }
+
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        {
+            var res = await _innerStream.ReadAsync(buffer, cancellationToken);
+
+            await _fileStream.WriteAsync(buffer.Slice(0, res), cancellationToken);
+            await _fileStream.FlushAsync();
+
+            return res; 
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return _innerStream.Seek(offset, SeekOrigin.Begin); 
+        }
+
+        public override void SetLength(long value)
+        {
+            _innerStream.SetLength(value); 
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            _fileStreamOut.Write(buffer, offset, count);
+            _innerStream.Write(buffer, offset, count);
+            _fileStreamOut.Flush();
+        }
+
+        public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken);
+        }
+
+        public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        {
+            await _fileStreamOut.WriteAsync(buffer, cancellationToken);
+            await _innerStream.WriteAsync(buffer, cancellationToken);
+
+            await _fileStreamOut.FlushAsync();
+        }
+
+        public override bool CanRead => _innerStream.CanRead;
+        public override bool CanSeek => _innerStream.CanSeek;
+        public override bool CanWrite => _innerStream.CanWrite;
+        public override long Length => _innerStream.Length;
+        public override long Position
+        {
+            get => _innerStream.Position; set => _innerStream.Position = value;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _fileStream?.Dispose();
+                _fileStreamOut?.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
+    }
+}
