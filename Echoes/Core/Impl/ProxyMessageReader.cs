@@ -1,197 +1,215 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Echoes.Core
 {
-    internal class ProxyMessageReader
-    {
-        private readonly ProxyStartupSetting _startupSetting;
-        private readonly ISecureConnectionUpdater _secureConnectionUpdater;
-        private readonly IServerChannelPoolManager _channelPoolManager;
-        private readonly IReferenceClock _referenceClock;
+    //internal class ProxyMessageReader
+    //{
+    //    private readonly ProxyStartupSetting _startupSetting;
+    //    private readonly ISecureConnectionUpdater _secureConnectionUpdater;
+    //    private readonly IServerChannelPoolManager _channelPoolManager;
+    //    private readonly IReferenceClock _referenceClock;
+    //    private readonly ExchangeBuilder _exchangeBuilder;
+    //    private readonly PoolBuilder _poolBuilder;
+    //    private readonly ClientSetting _clientSetting;
 
-        public ProxyMessageReader
-        (ProxyStartupSetting startupSetting,
-            ISecureConnectionUpdater secureConnectionUpdater,
-            IServerChannelPoolManager channelPoolManager,
-            IReferenceClock referenceClock)
-        {
-            _startupSetting = startupSetting;
-            _secureConnectionUpdater = secureConnectionUpdater;
-            _channelPoolManager = channelPoolManager;
-            _referenceClock = referenceClock;
-        }
+    //    public ProxyMessageReader
+    //    (
+    //        ProxyStartupSetting startupSetting,
+    //        ISecureConnectionUpdater secureConnectionUpdater,
+    //        IServerChannelPoolManager channelPoolManager,
+    //        IReferenceClock referenceClock,
+    //        ExchangeBuilder exchangeBuilder,
+    //        PoolBuilder poolBuilder, 
+    //        ClientSetting clientSetting)
+    //    {
+    //        _startupSetting = startupSetting;
+    //        _secureConnectionUpdater = secureConnectionUpdater;
+    //        _channelPoolManager = channelPoolManager;
+    //        _referenceClock = referenceClock;
+    //        _exchangeBuilder = exchangeBuilder;
+    //        _poolBuilder = poolBuilder;
+    //        _clientSetting = clientSetting;
+    //    }
 
-        public async Task<ProxyMessage> ReadNextMessage(IDownStreamConnection downStreamConnection)
-        {
-            HeaderReadResult headerResult;
-            IHttpStreamReader clientStreamReader = null;
-           // Hrm httpPayload = null;
-            Task anticipationTask = null;
+    //    public async Task<Exchange> ReadNextMessage(TcpClient client, CancellationToken token)
+    //    {
+    //        var exchange = await _exchangeBuilder.BuildFromProxyRequest(
+    //            client, _startupSetting, token);
 
-            try
-            {
-                while (true)
-                {
-                    clientStreamReader = downStreamConnection.GetHttpStreamReader();
+    //        if (exchange == null)
+    //            return null;
 
-                    downStreamConnection.UpgradeReadStream();
-
-                    // GETTING CLIENT REQUEST
-                    headerResult = 
-                        await clientStreamReader.ReadHeaderAsync(true).ConfigureAwait(false);
-
-                    if (headerResult?.Buffer == null)
-                        return new ProxyMessage(false); // EOF or connection closed
-
-                    // Building and analyzing header
-                    httpPayload = HttpMessageHeaderParser.BuildRequestMessage(
-                        headerResult.Buffer,
-                        downStreamConnection.TargetHostName,
-                        downStreamConnection.TargetPort);
-
-                    if (!httpPayload.Valid)
-                    {
-                        // Clients abort connection
-                        return new ProxyMessage(false);
-                    }
+    //        var connection = await _poolBuilder.GetPool(exchange, _clientSetting, token); 
 
 
-                    if (httpPayload?.ClientConnected == null)
-                    {
-                        httpPayload.ClientConnected = downStreamConnection.InstantConnected;
-                    }
 
-                    // UPGRADE Current Connection to HTTPS or WebSocket
-                    if (httpPayload.IsTunnelConnectionRequested)
-                    {
-                        try
-                        {
-                            await TunnelingHelper.AcceptTunnel(downStreamConnection).ConfigureAwait(false);
+    //        try
+    //        {
+    //            while (true)
+    //            {
+    //                clientStreamReader = downStreamConnection.GetHttpStreamReader();
 
-                            if (!await TunnelingHelper
-                                .CheckForWebSocketRequest(downStreamConnection, httpPayload?.Uri.Host,
-                                    httpPayload.Uri.Port).ConfigureAwait(false))
-                            {
-                                // SSL Connection request 
-                                if (_startupSetting.ShouldSkipDecryption(httpPayload.Uri.Host, httpPayload.Uri.Port))
-                                {
-                                    return new ProxyMessage(httpPayload,
-                                        new Destination(httpPayload.Uri.Host, httpPayload.Uri.Port,
-                                            DestinationType.BlindSecure));
-                                }
+    //                downStreamConnection.UpgradeReadStream();
 
-                                //anticipationTask =
-                                //    _channelPoolManager.AnticipateSecureConnectionCreation(httpPayload?.Uri.Host,
-                                //        httpPayload.Uri.Port);
+    //                // GETTING CLIENT REQUEST
+    //                headerResult = 
+    //                    await clientStreamReader.ReadHeaderAsync(true).ConfigureAwait(false);
 
-                                // Decrypt host 
+    //                if (headerResult?.Buffer == null)
+    //                    return new ProxyMessage(false); // EOF or connection closed
 
-                                httpPayload.SslConnectionStart = _referenceClock.Instant();
+    //                // Building and analyzing header
+    //                httpPayload = HttpMessageHeaderParser.BuildRequestMessage(
+    //                    headerResult.Buffer,
+    //                    downStreamConnection.TargetHostName,
+    //                    downStreamConnection.TargetPort);
 
-                                await _secureConnectionUpdater
-                                    .Upgrade(downStreamConnection, httpPayload.Uri.Host, httpPayload.Uri.Port)
-                                    .ConfigureAwait(false);
+    //                if (!httpPayload.Valid)
+    //                {
+    //                    // Clients abort connection
+    //                    return new ProxyMessage(false);
+    //                }
 
-                                httpPayload.SslConnectionEnd = _referenceClock.Instant();
 
-                                downStreamConnection.IsSecure = true;
-                            }
-                            else
-                            {
-                                // WebSocket
-                            }
-                        }
-                        catch (EchoesException eex)
-                        {
-                            httpPayload.AddError(eex.Message, HttpProxyErrorType.NetworkError, eex.ToString());
-                            return new ProxyMessage(httpPayload, null);
-                        }
-                    }
-                    else
-                    {
-                        httpPayload.DownStreamStartSendingHeader = headerResult.FirstByteReceived;
-                        httpPayload.DownStreamCompleteSendingHeader = headerResult.LastByteReceived;
+    //                if (httpPayload?.ClientConnected == null)
+    //                {
+    //                    httpPayload.ClientConnected = downStreamConnection.InstantConnected;
+    //                }
 
-                        break;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex is EchoesException)
-                {
-                    // Une erreur pendant la lecture de la requêtes navigateur n'implique pas de logging. 
-                    if (httpPayload == null)
-                        return new ProxyMessage(false);
-                }
+    //                // UPGRADE Current Connection to HTTPS or WebSocket
+    //                if (httpPayload.IsTunnelConnectionRequested)
+    //                {
+    //                    try
+    //                    {
+    //                        await TunnelingHelper.AcceptTunnel(downStreamConnection).ConfigureAwait(false);
 
-                throw;
-            }
+    //                        if (!await TunnelingHelper
+    //                            .CheckForWebSocketRequest(downStreamConnection, httpPayload?.Uri.Host,
+    //                                httpPayload.Uri.Port).ConfigureAwait(false))
+    //                        {
+    //                            // SSL Connection request 
+    //                            if (_startupSetting.ShouldSkipDecryption(httpPayload.Uri.Host, httpPayload.Uri.Port))
+    //                            {
+    //                                return new ProxyMessage(httpPayload,
+    //                                    new Destination(httpPayload.Uri.Host, httpPayload.Uri.Port,
+    //                                        DestinationType.BlindSecure));
+    //                            }
 
-            var currentDestination = new Destination(
-                httpPayload.Uri.Host, 
-                httpPayload.Uri.Port, 
-                downStreamConnection.IsSecure ? DestinationType.Secure : DestinationType.Insecure);
+    //                            //anticipationTask =
+    //                            //    _channelPoolManager.AnticipateSecureConnectionCreation(httpPayload?.Uri.Host,
+    //                            //        httpPayload.Uri.Port);
 
-            try
-            {
-                if (!httpPayload.NoBody && ((httpPayload.ContentLength > 0)))
-                {
-                    using (var bodyStream = new MemoryStream())
-                    {
-                        if (httpPayload.ContentLength > 0)
-                        {
-                            var bodyResult = await clientStreamReader
-                                .ReadBodyAsync(httpPayload.ContentLength, bodyStream)
-                                .ConfigureAwait(false);
+    //                            // Decrypt host 
 
-                            httpPayload.OnWireContentLength = bodyResult.Length;
-                        }
-                        else if (httpPayload.IsChunkedTransfert)
-                        {
-                            var bodyResult = await clientStreamReader
-                                .ReadBodyChunkedAsync(bodyStream)
-                                .ConfigureAwait(false);
+    //                            httpPayload.SslConnectionStart = _referenceClock.Instant();
 
-                            httpPayload.OnWireContentLength = bodyResult.Length;
-                        }
-                        else
-                        {
-                            var bodyResult = await clientStreamReader
-                                .ReadBodyUntilEofAsync(bodyStream)
-                                .ConfigureAwait(false);
+    //                            await _secureConnectionUpdater
+    //                                .Upgrade(downStreamConnection, httpPayload.Uri.Host, httpPayload.Uri.Port)
+    //                                .ConfigureAwait(false);
 
-                            httpPayload.OnWireContentLength = bodyResult.Length;
-                        }
+    //                            httpPayload.SslConnectionEnd = _referenceClock.Instant();
 
-                        httpPayload.Body = bodyStream.ToArray();
-                    }
-                }
+    //                            downStreamConnection.IsSecure = true;
+    //                        }
+    //                        else
+    //                        {
+    //                            // WebSocket
+    //                            // boucle
+    //                        }
+    //                    }
+    //                    catch (EchoesException eex)
+    //                    {
+    //                        httpPayload.AddError(eex.Message, HttpProxyErrorType.NetworkError, eex.ToString());
+    //                        return new ProxyMessage(httpPayload, null);
+    //                    }
+    //                }
+    //                else
+    //                {
+    //                    httpPayload.DownStreamStartSendingHeader = headerResult.FirstByteReceived;
+    //                    httpPayload.DownStreamCompleteSendingHeader = headerResult.LastByteReceived;
 
-            }
-            catch (Exception ex)
-            {
-                if (ex is EchoesException eex)
-                {
-                    httpPayload.AddError(eex.Message, HttpProxyErrorType.ClientError, eex.ToString());
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            finally
-            {
-                if (anticipationTask != null)
-                {
-                    //await anticipationTask.ConfigureAwait(false);
-                }
-            }
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            if (ex is EchoesException)
+    //            {
+    //                // Une erreur pendant la lecture de la requêtes navigateur n'implique pas de logging. 
+    //                if (httpPayload == null)
+    //                    return new ProxyMessage(false);
+    //            }
 
-            return new ProxyMessage(httpPayload, currentDestination);
-        }
-    }
+    //            throw;
+    //        }
+
+    //        var currentDestination = new Destination(
+    //            httpPayload.Uri.Host, 
+    //            httpPayload.Uri.Port, 
+    //            downStreamConnection.IsSecure ? DestinationType.Secure : DestinationType.Insecure);
+
+    //        try
+    //        {
+    //            if (!httpPayload.NoBody && ((httpPayload.ContentLength > 0)))
+    //            {
+    //                using (var bodyStream = new MemoryStream())
+    //                {
+    //                    if (httpPayload.ContentLength > 0)
+    //                    {
+    //                        var bodyResult = await clientStreamReader
+    //                            .ReadBodyAsync(httpPayload.ContentLength, bodyStream)
+    //                            .ConfigureAwait(false);
+
+    //                        httpPayload.OnWireContentLength = bodyResult.Length;
+    //                    }
+    //                    else if (httpPayload.IsChunkedTransfert)
+    //                    {
+    //                        var bodyResult = await clientStreamReader
+    //                            .ReadBodyChunkedAsync(bodyStream)
+    //                            .ConfigureAwait(false);
+
+    //                        httpPayload.OnWireContentLength = bodyResult.Length;
+    //                    }
+    //                    else
+    //                    {
+    //                        var bodyResult = await clientStreamReader
+    //                            .ReadBodyUntilEofAsync(bodyStream)
+    //                            .ConfigureAwait(false);
+
+    //                        httpPayload.OnWireContentLength = bodyResult.Length;
+    //                    }
+
+    //                    httpPayload.Body = bodyStream.ToArray();
+    //                }
+    //            }
+
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            if (ex is EchoesException eex)
+    //            {
+    //                httpPayload.AddError(eex.Message, HttpProxyErrorType.ClientError, eex.ToString());
+    //            }
+    //            else
+    //            {
+    //                throw;
+    //            }
+    //        }
+    //        finally
+    //        {
+    //            if (anticipationTask != null)
+    //            {
+    //                //await anticipationTask.ConfigureAwait(false);
+    //            }
+    //        }
+
+    //        return new ProxyMessage(httpPayload, currentDestination);
+    //    }
+    //}
 }

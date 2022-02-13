@@ -3,37 +3,58 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.H11;
 using Echoes.H2.Encoder.Utils;
+using Echoes.IO;
 
 namespace Echoes
 {
-    public class ExchangeBuilder
-    {
-        public async Task<Exchange> BuildFromProxyRequest(
-            TcpClient tcpClient, Http11Parser parser, ProxyStartupSetting startupSetting, CancellationToken token)
-        {
-            var stream = tcpClient.GetStream();
-            var buffer = new byte[startupSetting.MaxHeaderLength];
-
-            var headerBlockIndex =  await
-                Http11PoolProcessing.DetectHeaderBlock(stream, buffer, () => { }, () => { }, false, token);
-
-            if (headerBlockIndex.TotalReadLength == 0)
-                return null; 
-
-
-            WebRequestMethods.Http
-        }
-    }
-
     public class Exchange
     {
-        private static int ExchangeCounter = 0; 
+        private static int ExchangeCounter = 0;
+
+        private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>();
+
+        public Exchange(
+            Authority authority, 
+            ReadOnlyMemory<char> requestHeader,
+            Stream requestBody,
+            ReadOnlyMemory<char> responseHeader,
+            Stream responseBody,
+            bool isSecure,
+            Http11Parser parser)
+        {
+            Id = Interlocked.Increment(ref ExchangeCounter);
+
+            Authority = authority;
+            Request = new Request(new RequestHeader(requestHeader, isSecure, parser))
+            {
+                Body = requestBody ?? StreamUtils.EmptyStream
+            };
+            Response = new Response()
+            {
+                Header = new ResponseHeader(responseHeader, isSecure, parser),
+                Body = responseBody ?? StreamUtils.EmptyStream
+            };
+
+            // TODO : Fill metrics 
+
+            _exchangeCompletionSource.SetResult(false);
+        }
+
+
+        public Exchange(
+            Authority authority, 
+            RequestHeader requestHeader, Stream bodyStream)
+        {
+            Id = Interlocked.Increment(ref ExchangeCounter); 
+            Authority = authority;
+            Request = new Request(requestHeader)
+            {
+                Body = bodyStream
+            };
+        }
 
         public Exchange(
             Authority authority, 
@@ -48,7 +69,6 @@ namespace Echoes
         public int Id { get;  }
 
 
-        private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>(); 
 
         /// <summary>
         /// This tasks indicates the status of the exchange

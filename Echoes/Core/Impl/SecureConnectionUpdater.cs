@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -41,6 +42,27 @@ namespace Echoes.Core
 
             return true; 
 
+        }
+
+        public async Task<SslStream> AuthenticateAsServer(Stream stream, string host)
+        {
+           var secureStream = new SslStream(stream, true);
+
+            using (var certificate = await _certificateProvider.GetCertificate(host).ConfigureAwait(false))
+            {
+                try
+                {
+                    await secureStream
+                        .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    throw new EchoesException("Client closed connection while trying to negotiate SSL/TLS settings", ex);
+                }
+            }
+            
+            return secureStream; 
         }
     }
 }

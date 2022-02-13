@@ -42,13 +42,13 @@ namespace Echoes
         /// 
         /// </summary>
         /// <param name="exchange"></param>
-        /// <param name="creationSetting"></param>
+        /// <param name="clientSetting"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public async ValueTask<IHttpConnectionPool> GetPool(
             Exchange exchange, 
-            ClientSetting creationSetting, 
+            ClientSetting clientSetting, 
             CancellationToken cancellationToken = default)
         {
             // At this point, we just come to receive an exchange from the proxy client 
@@ -58,10 +58,10 @@ namespace Echoes
                 return pool; 
 
             //  pool 
-            if (creationSetting.TunneledOnly)
+            if (clientSetting.TunneledOnly)
             {
                 var tunneledConnectionPool = new TunnelOnlyConnectionPool(exchange.Authority, _timingProvider,
-                   _remoteConnectionBuilder, creationSetting);
+                   _remoteConnectionBuilder, clientSetting);
 
                 await tunneledConnectionPool.Init();
 
@@ -72,7 +72,7 @@ namespace Echoes
             {
                 // Plain HTTP/1.1
                 var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, null,null,
-                    _remoteConnectionBuilder, _timingProvider, creationSetting, _http11Parser);
+                    _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser);
 
                 await http11ConnectionPool.Init();
 
@@ -82,12 +82,12 @@ namespace Echoes
             // HTTPS test 1/2
 
             var negotiatedProtocol = await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, false,
-                _allProtocols, creationSetting, cancellationToken);
+                _allProtocols, clientSetting, cancellationToken);
 
             if (negotiatedProtocol == RemoteConnectionResult.Http11)
             {
                 var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, exchange.Connection, exchange.UpStream,
-                    _remoteConnectionBuilder, _timingProvider, creationSetting, _http11Parser);
+                    _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser);
 
                 await http11ConnectionPool.Init();
 

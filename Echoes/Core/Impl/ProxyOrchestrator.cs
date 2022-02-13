@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -9,36 +10,61 @@ namespace Echoes.Core
 {
     internal class ProxyOrchestrator : IDisposable
     {
-        private readonly ProxyMessageReader _proxyMessageReader;
-        private readonly IUpStreamClientFactory _clientFactory;
-        private readonly Func<HttpExchange, Task> _exchangeListener;
+        private readonly Func<Exchange, Task> _exchangeListener;
         private readonly Func<string, Stream> _throttlePolicy;
+        private readonly ProxyStartupSetting _startupSetting;
+        private readonly ExchangeBuilder _exchangeBuilder;
         private ProxyMessageDispatcher _dispatcher;
+        
 
         public ProxyOrchestrator(
-            ProxyMessageReader proxyMessageReader, 
-            IUpStreamClientFactory clientFactory,
-            Func<HttpExchange, Task> exchangeListener,
-            Func<string, Stream> throttlePolicy)
+            Func<Exchange, Task> exchangeListener,
+            Func<string, Stream> throttlePolicy,
+            ProxyStartupSetting startupSetting,
+            ExchangeBuilder exchangeBuilder)
         {
-            _proxyMessageReader = proxyMessageReader;
-            _clientFactory = clientFactory;
             _exchangeListener = exchangeListener;
             _throttlePolicy = throttlePolicy;
+            _startupSetting = startupSetting;
+            _exchangeBuilder = exchangeBuilder;
             _dispatcher = new ProxyMessageDispatcher(exchangeListener);
         }
 
         static int count = 0;
 
-        public async Task Operate(IDownStreamConnection downStreamConnection, CancellationToken token)
+        public async Task Operate(TcpClient client, CancellationToken token)
         {
-            var freeDownStreamConnection = true;
-            var connectError = false; 
-
             try
             {
                 while (!token.IsCancellationRequested)
                 {
+                    // READ initial state of connection, 
+                    var connectionState =
+                        await _exchangeBuilder.InitClientConnection(client.GetStream(), _startupSetting, token);
+
+                    if (connectionState == null)
+                        return;
+
+                    Exchange exchange =  connectionState.ProvisionalExchange ?? 
+                                         ;
+
+                    do
+                    {
+
+                    }
+
+
+                    byte[] buffer = new byte[1024 * 32];
+
+                    var exchange = _exchangeBuilder.ReadExchange(
+                        connectionState.Stream,
+                        connectionState.Authority,
+                        buffer, token
+                    ); 
+
+
+
+
                     var proxyMessage = await _proxyMessageReader.ReadNextMessage(downStreamConnection).ConfigureAwait(false);
 
                     if (!proxyMessage.Valid)
@@ -168,13 +194,13 @@ namespace Echoes.Core
 
     public class ProxyMessageDispatcher : IDisposable
     {
-        private readonly Func<HttpExchange, Task> _listener;
+        private readonly Func<Exchange, Task> _listener;
         private readonly CancellationTokenSource _haltToken = new CancellationTokenSource();
-        private readonly BufferBlock<HttpExchange> _queue = new BufferBlock<HttpExchange>();
+        private readonly BufferBlock<Exchange> _queue = new BufferBlock<Exchange>();
         private readonly Task _currentTask;
         private bool _disposed;
 
-        public ProxyMessageDispatcher(Func<HttpExchange, Task> listener)
+        public ProxyMessageDispatcher(Func<Exchange, Task> listener)
         {
             _listener = listener;
 
@@ -184,7 +210,7 @@ namespace Echoes.Core
             _currentTask = Task.Run(Start);
         }
 
-        internal async Task OnNewTask(HttpExchange exchange)
+        internal async Task OnNewTask(Exchange exchange)
         {
             if (_listener == null || _disposed)
                 return;
@@ -197,7 +223,7 @@ namespace Echoes.Core
         {
             try
             {
-                HttpExchange current;
+                Exchange current;
                 while ((current = await _queue.ReceiveAsync(_haltToken.Token)) != null)
                 {
                     await _listener(current);

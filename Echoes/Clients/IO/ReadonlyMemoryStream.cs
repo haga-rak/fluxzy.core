@@ -120,5 +120,7 @@ namespace Echoes.IO
         {
             return new MemoryStream(buffer); 
         }
+
+        public static readonly Stream EmptyStream = new MemoryStream(Array.Empty<byte>());
     }
 }
