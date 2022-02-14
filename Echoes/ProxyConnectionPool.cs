@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -80,14 +81,17 @@ namespace Echoes
 
     internal class ProxyPoolTask
     {
-        public ProxyPoolTask(IDownStreamConnection connection, long taskId, CancellationToken token)
+        public ProxyPoolTask(
+            long taskId, CancellationToken token, TcpClient tcpClient)
         {
-            Connection = connection;
             TaskId = taskId;
             Token = token;
+            TcpClient = tcpClient;
         }
 
-        public IDownStreamConnection Connection { get; set; }
+        public TcpClient TcpClient { get;  }
+
+       // public IDownStreamConnection Connection { get; set; }
 
         public long TaskId { get; set; }
 

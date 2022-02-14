@@ -98,7 +98,10 @@ namespace Echoes
                     new ExchangeBuildingResult(authority, sslStream, new Exchange(
                     authority, plainHeaderChars, null,
                     AcceptTunnelResponseString.AsMemory(), 
-                    null, false, _http11Parser));
+                    null, false, _http11Parser)
+                    {
+                        BaseStream = sslStream
+                    });
             }
 
             // Plain request 

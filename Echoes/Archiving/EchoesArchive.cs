@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Echoes.Core;
 using Newtonsoft.Json;
 
 namespace Echoes
@@ -13,12 +12,12 @@ namespace Echoes
         }
 
         [JsonConstructor]
-        internal EchoesArchive(List<HttpExchange> exchanges)
+        internal EchoesArchive(List<Exchange> exchanges)
         {
-            Exchanges = exchanges ?? new List<HttpExchange>();
+            Exchanges = exchanges ?? new List<Exchange>();
         }
         
-        public List<HttpExchange> Exchanges { get; private set; }
+        public List<Exchange> Exchanges { get; private set; }
 
         public EchoesArchive Copy()
         {
@@ -30,7 +29,7 @@ namespace Echoes
         
         public static EchoesArchive CreateEmptyArchive()
         {
-            return new EchoesArchive(new List<HttpExchange>());
+            return new EchoesArchive(new List<Exchange>());
         }
         
     }

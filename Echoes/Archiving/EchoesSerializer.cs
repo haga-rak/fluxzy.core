@@ -10,12 +10,12 @@ namespace Echoes
             TypeNameHandling = TypeNameHandling.Auto
         };
 
-        public static HttpExchange FromSerializedString(string content)
+        public static Exchange FromSerializedString(string content)
         {
-            return JsonConvert.DeserializeObject<HttpExchange>(content, DefaultSetting); 
+            return JsonConvert.DeserializeObject<Exchange>(content, DefaultSetting); 
         }
 
-        public static string ToSerializedString(this HttpExchange httpMessage)
+        public static string ToSerializedString(this Exchange httpMessage)
         {
             return JsonConvert.SerializeObject(httpMessage, Formatting.None, DefaultSetting);
         }

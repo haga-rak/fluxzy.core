@@ -105,12 +105,12 @@ namespace Echoes.H11
                 await using var remoteStream = exchange.UpStream;
 
                 var copyTask = Task.WhenAll(
-                    exchange.BaseStream.CopyAndReturnCopied(remoteStream, _bufferSize, (copied) =>
+                    exchange.BaseStream.CopyDetailed(remoteStream, _bufferSize, (copied) =>
                             exchange.Metrics.TotalSent += copied
-                        , cancellationToken),
-                    remoteStream.CopyAndReturnCopied(exchange.BaseStream, _bufferSize, (copied) =>
+                        , cancellationToken).AsTask(),
+                    remoteStream.CopyDetailed(exchange.BaseStream, _bufferSize, (copied) =>
                             exchange.Metrics.TotalReceived += copied
-                        , cancellationToken));
+                        , cancellationToken).AsTask());
 
                 await copyTask.ConfigureAwait(false);
             }

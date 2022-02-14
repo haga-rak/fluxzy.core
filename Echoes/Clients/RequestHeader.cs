@@ -81,6 +81,7 @@ namespace Echoes
             totalLength += Encoding.ASCII.GetBytes(" ", buffer.Slice(totalLength));
             totalLength += Encoding.ASCII.GetBytes(Http11Constants.GetStatusLine(statusCodeString.AsMemory()).Span,
                 buffer.Slice(totalLength));
+            totalLength += Encoding.ASCII.GetBytes("\r\n", buffer.Slice(totalLength));
 
             return totalLength;
         }

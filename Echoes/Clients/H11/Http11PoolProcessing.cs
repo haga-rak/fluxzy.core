@@ -60,7 +60,7 @@ namespace Echoes.H11
             if (exchange.Request.Body != null)
             {
                 var totalBodySize = await
-                    exchange.Request.Body.CopyAndReturnCopied(exchange.UpStream, 1024 * 8,
+                    exchange.Request.Body.CopyDetailed(exchange.UpStream, 1024 * 8,
                         (_) => { }, cancellationToken).ConfigureAwait(false);
                 exchange.Metrics.TotalSent += totalBodySize;
             }

@@ -64,14 +64,14 @@ namespace Echoes.Core
         }
 
 
-        public async Task<IDownStreamConnection> GetNextPendingConnection()
+        public async Task<TcpClient> GetNextPendingConnection()
         {
             if (_listener == null)
                 return null;
 
             try
             {
-                var tcpClient = await _listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                TcpClient tcpClient = await _listener.AcceptTcpClientAsync().ConfigureAwait(false);
 
                 tcpClient.NoDelay = true;  // NO Delay for local connection
                 tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
@@ -80,11 +80,11 @@ namespace Echoes.Core
 
                 var utcNow = _referenceClock.Instant();
 
-                var result = new TcpDownStreamConnection(tcpClient, utcNow, utcNow, _referenceClock);
+                // var result = new TcpDownStreamConnection(tcpClient, utcNow, utcNow, _referenceClock);
 
-                _token.Register(() => result.Dispose());
+                _token.Register(() => tcpClient.Dispose());
 
-                return result; 
+                return tcpClient; 
             }
             catch (Exception)
             {

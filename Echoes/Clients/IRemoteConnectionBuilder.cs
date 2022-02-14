@@ -28,6 +28,8 @@ namespace Echoes
 
     public class RemoteConnectionBuilder : IRemoteConnectionBuilder
     {
+        
+
 
         private readonly ITimingProvider _timeProvider;
 

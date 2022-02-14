@@ -2,9 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Echoes.IO;
 
 namespace Echoes.Core
 {
@@ -13,7 +15,9 @@ namespace Echoes.Core
         private readonly Func<Exchange, Task> _exchangeListener;
         private readonly Func<string, Stream> _throttlePolicy;
         private readonly ProxyStartupSetting _startupSetting;
+        private readonly ClientSetting _clientSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
+        private readonly PoolBuilder _poolBuilder;
         private ProxyMessageDispatcher _dispatcher;
         
 
@@ -21,16 +25,18 @@ namespace Echoes.Core
             Func<Exchange, Task> exchangeListener,
             Func<string, Stream> throttlePolicy,
             ProxyStartupSetting startupSetting,
-            ExchangeBuilder exchangeBuilder)
+            ClientSetting clientSetting,
+            ExchangeBuilder exchangeBuilder,
+            PoolBuilder poolBuilder)
         {
             _exchangeListener = exchangeListener;
             _throttlePolicy = throttlePolicy;
             _startupSetting = startupSetting;
+            _clientSetting = clientSetting;
             _exchangeBuilder = exchangeBuilder;
+            _poolBuilder = poolBuilder;
             _dispatcher = new ProxyMessageDispatcher(exchangeListener);
         }
-
-        static int count = 0;
 
         public async Task Operate(TcpClient client, CancellationToken token)
         {
@@ -45,143 +51,50 @@ namespace Echoes.Core
                     if (connectionState == null)
                         return;
 
-                    Exchange exchange =  connectionState.ProvisionalExchange ?? 
-                                         ;
-
+                    Exchange exchange =
+                        connectionState.ProvisionalExchange;
+                    
+                    byte [] buffer = new byte[1024 * 32];
+                    
                     do
                     {
-
-                    }
-
-
-                    byte[] buffer = new byte[1024 * 32];
-
-                    var exchange = _exchangeBuilder.ReadExchange(
-                        connectionState.Stream,
-                        connectionState.Authority,
-                        buffer, token
-                    ); 
-
-
-
-
-                    var proxyMessage = await _proxyMessageReader.ReadNextMessage(downStreamConnection).ConfigureAwait(false);
-
-                    if (!proxyMessage.Valid)
-                    {
-                        return ; // We end the loop 
-                    }
-
-                    Hpm response = null;
-                    IUpstreamClient upstreamClient = null;
-                    var shouldCloseUpStreamClient = false; 
-
-                    try
-                    {
-                        if (proxyMessage.Destination.DestinationType == DestinationType.BlindSecure)
+                        if (exchange != null && !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (await _clientFactory.CreateBlindTunnel(proxyMessage.Destination, downStreamConnection)
-                                .ConfigureAwait(false))
+                            var connetionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
+                            await connetionPool.Send(exchange, token);
+
+                            var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true);
+                            var headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
+
+                            await connectionState.Stream.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
+                                token);
+
+                            if (_exchangeListener != null)
                             {
-                                // A pipe has been found and created 
-                                freeDownStreamConnection = false;
-                                return;
+                                await _exchangeListener(exchange); 
+                            }
+
+                            if (exchange.Response.Header.ContentLength != 0 &&
+                                exchange.Response.Body != null)
+                            {
+                                var tc = await exchange.Response.Body.CopyDetailed(
+                                    connectionState.Stream, buffer, _ => { }, token);
                             }
                         }
 
-                        upstreamClient = _clientFactory.GetClientFor(proxyMessage.RequestMessage, proxyMessage.Destination);
+                        exchange = await _exchangeBuilder.ReadExchange(
+                            connectionState.Stream,
+                            connectionState.Authority,
+                            buffer, token
+                        );
 
-                        // MAY throw DNS error 
-
-                        try
-                        {
-                            await upstreamClient.Init().ConfigureAwait(false);
-                        }
-                        catch 
-                        {
-                            connectError = true;
-                            throw;
-                        }
-
-                        response =
-                            await upstreamClient.ProduceResponse(
-                                proxyMessage.RequestMessage, 
-                                downStreamConnection.WriteStream,
-                                _throttlePolicy(proxyMessage.Destination.Host)).ConfigureAwait(false);
-
-                        // If response is an accepted websocket request 
-                        if (response != null)
-                        {
-                            if (response.IsWebSocket)
-                            {
-                                proxyMessage.RequestMessage.IsWebSocket = true;
-                                _clientFactory.CreateWebSocketTunnel(downStreamConnection, upstreamClient.Detach());
-                                freeDownStreamConnection = false;
-
-                                return;
-                            }
-
-                            if (response.Errors.Any())
-                            {
-                                shouldCloseUpStreamClient = true;
-                                break;
-                            }
-                        }
-
-                        shouldCloseUpStreamClient = response == null || !response.Valid  || response.ShouldCloseConnection;
-
-                        if (response == null || (response?.CloseDownStreamConnection ?? false) || !response.Valid)
-                            break;
-                    }
-
-                    catch (EchoesException eex)
-                    {
-                        proxyMessage.RequestMessage.AddError($"Error while reading server response : {eex.Message}", HttpProxyErrorType.NetworkError, eex.ToString());
-                        shouldCloseUpStreamClient = true;
-                        freeDownStreamConnection = true;
-
-                        if (connectError)
-                        {
-                            // Warning client 
-                            await ConnectErrorHelper.WriteError(downStreamConnection, eex).ConfigureAwait(false);
-                        }
-
-                        throw; 
-                    }
-                    finally
-                    {
-                        var upStreamEndPointInfo = upstreamClient?.EndPointInformation;
-
-                        if (upstreamClient != null)
-                        {
-                            await upstreamClient.Release(shouldCloseUpStreamClient).ConfigureAwait(false);
-                        }
-
-                        if (_exchangeListener != null)
-                        {
-                            var exchange = new HttpExchange(
-                                proxyMessage.RequestMessage,
-                                response,
-                                new EndPointInformation(downStreamConnection),
-                                upStreamEndPointInfo);
-
-                            await _dispatcher.OnNewTask(exchange).ConfigureAwait(false);
-                        }
-
-                    }
+                    } while (exchange != null); 
+                    
                 }
             }
             catch (Exception)
             {
                 // Overall exception
-                freeDownStreamConnection = true; 
-            }
-            finally
-            {
-                if (freeDownStreamConnection || token.IsCancellationRequested)
-                {
-                    await downStreamConnection.Release(true).ConfigureAwait(false);
-                }
             }
         }
 

@@ -6,7 +6,7 @@ using Echoes.Core.Utils;
 namespace Echoes.Core
 {
     /// <summary>
-    /// The purpose of BandwidthLimiter is to create throwtle 
+    /// The purpose of BandwidthLimiter is to create throttle 
     /// </summary>
     internal class BandwidthThrottler
     {

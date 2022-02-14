@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,6 +13,6 @@ namespace Echoes.Core
         /// <returns></returns>
         void Init(CancellationToken token); 
 
-        Task<IDownStreamConnection> GetNextPendingConnection();
+        Task<TcpClient> GetNextPendingConnection();
     }
 }

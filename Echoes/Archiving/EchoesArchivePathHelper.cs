@@ -9,12 +9,14 @@ namespace Echoes
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        internal static string GetMessageContentEntryName(HttpMessage message)
+        internal static string GetRequestEntry(Exchange message)
         {
-            if (! (message is Hpm responseMessage))
-                return $"content/{message.Id}/request/";
-
-            return $"content/{responseMessage.RequestId}/response/{responseMessage.Id}";
+            return $"content/{message.Id}/request/";
+        }
+        
+        internal static string GetResponseEntry(Exchange message)
+        {
+            return $"content/{message.Id}/request/response/{message.Id}";
         }
         
         /// <summary>
@@ -22,9 +24,9 @@ namespace Echoes
         /// </summary>
         /// <param name="exchange"></param>
         /// <returns></returns>
-        internal static string GetMessageEntryName(HttpExchange exchange)
+        internal static string GetMessageEntryName(Exchange exchange)
         {
-            return $"data/{exchange.Index}/def.json";
+            return $"data/{exchange.Id}/def.json";
         }
     }
 }

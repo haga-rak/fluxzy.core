@@ -10,8 +10,8 @@ namespace Echoes.Cli
     {
         private readonly int _topPosition;
         private readonly int _consoleWidth = 78; 
-        private readonly BufferBlock<HttpExchange> _exchangeBlock = new BufferBlock<HttpExchange>();
-        private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
+        private readonly BufferBlock<Exchange> _exchangeBlock = new();
+        private readonly CancellationTokenSource _tokenSource = new();
         private readonly Task _workTask;
         private readonly StatViewModel _viewModel;
 
@@ -27,7 +27,7 @@ namespace Echoes.Cli
 
         }
 
-        public async Task OnNewExchange(HttpExchange exchange)
+        public async Task OnNewExchange(Exchange exchange)
         {
             await _exchangeBlock.SendAsync(exchange).ConfigureAwait(false);
         }
@@ -41,46 +41,53 @@ namespace Echoes.Cli
                     _exchangeBlock.TryReceiveAll(out var exchanges); 
 
                     if (exchanges == null)
-                        exchanges = new List<HttpExchange>();
+                        exchanges = new List<Exchange>();
 
                     foreach (var exchange in exchanges)
                     {
-                        if (exchange?.RequestMessage?.Uri == null)
+                        if (exchange?.Request?.Header?.Path == null)
                             continue;
 
-                        if (exchange.RequestMessage.Uri.Scheme == "http")
+                        var s = exchange?.Request?.Header?.Path;
+
+                        if (!Uri.TryCreate(
+                                s.ToString(), UriKind.Absolute, out var uri))
+                            continue; 
+
+
+                        if (uri.Scheme == "http")
                         {
                             _viewModel.PlainRequestCount++;
 
                             _viewModel.PlainRequestSize +=
-                                (exchange.RequestMessage.FullOriginalHeader.Length +
-                                 exchange.RequestMessage.OnWireContentLength);
+                                (exchange.Request.Header.RawHeader.Length +
+                                 exchange.Request.Header.ContentLength);
 
-                            if (exchange?.ResponseMessage != null)
+                            if (exchange?.Response.Body != null)
                             {
                                 _viewModel.PlainResponseCount++;
 
                                 _viewModel.PlainResponseSize +=
-                                    (exchange.ResponseMessage.FullOriginalHeader.Length +
-                                     exchange.ResponseMessage.OnWireContentLength);
+                                    (exchange.Response.Header.RawHeader.Length +
+                                     exchange.Response.Header.ContentLength);
                             }
                         }
 
-                        if (exchange.RequestMessage.Uri.Scheme == "https")
+                        if (uri.Scheme == "https")
                         {
                             _viewModel.SecureRequestCount++;
 
                             _viewModel.SecureRequestSize +=
-                                (exchange.RequestMessage.FullOriginalHeader.Length +
-                                 exchange.RequestMessage.OnWireContentLength);
+                                (exchange.Request.Header.RawHeader.Length +
+                                 exchange.Request.Header.ContentLength);
 
-                            if (exchange?.ResponseMessage != null)
+                            if (exchange?.Response.Body != null)
                             {
                                 _viewModel.SecureResponseCount++;
 
                                 _viewModel.SecureResponseSize +=
-                                    (exchange.ResponseMessage.FullOriginalHeader.Length +
-                                     exchange.ResponseMessage.OnWireContentLength);
+                                    (exchange.Response.Header.RawHeader.Length +
+                                     exchange.Response.Header.ContentLength);
                             }
                         }
 

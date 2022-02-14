@@ -90,7 +90,7 @@ namespace Echoes.Cli
                     throw new ArgumentException("You must specify a valid output file");
                 }
 
-                await ExportUtility.ConvertToSazFile(inputOption.Value(), outputOption.Value()).ConfigureAwait(false);
+               // await ExportUtility.ConvertToSazFile(inputOption.Value(), outputOption.Value()).ConfigureAwait(false);
 
                 return 0;
             });
@@ -292,21 +292,18 @@ namespace Echoes.Cli
         private async Task StartBlockingProxy(ProxyStartupSetting startupSetting, string outputFileName,
             Func<ProxyStartupSetting, ICertificateProvider> certificateProviderFactory)
         {
-            var echoArchiveFile =
-                string.IsNullOrWhiteSpace(outputFileName) ? null :
-                EchoesArchiveFile.Create(outputFileName);
+            var echoArchiveFile = (string) null;
 
             var statPrinter = new StatPrinter(Console.CursorTop, startupSetting.BoundAddress, startupSetting.ListenPort);
 
-            async Task OnNewExchange(HttpExchange exchange)
+            async Task OnNewExchange(Exchange exchange)
             {
                 await statPrinter.OnNewExchange(exchange).ConfigureAwait(false);
 
-                if (echoArchiveFile != null)
-                {
-                    await echoArchiveFile.Append(exchange).ConfigureAwait(false);
-                }
-
+                //if (echoArchiveFile != null)
+                //{
+                //    await echoArchiveFile.Append(exchange).ConfigureAwait(false);
+                //}
             }
 
             var proxy = new Proxy(startupSetting, certificateProviderFactory(startupSetting), OnNewExchange);

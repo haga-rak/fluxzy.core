@@ -10,14 +10,18 @@ namespace Echoes.IO
     public static class StreamCopyExtensions
     {
 
-        public static async Task<long> CopyAndReturnCopied(this
-             Stream source,
+        public static async ValueTask<long> CopyDetailed(this Stream source,
             Stream destination,
             int bufferSize, Action<int> onContentCopied, CancellationToken cancellationToken)
         {
+            return await CopyDetailed(source, destination, new byte[bufferSize], onContentCopied,
+                cancellationToken);
+        }
+        public static async ValueTask<long> CopyDetailed(this Stream source,
+            Stream destination,
+            byte [] buffer, Action<int> onContentCopied, CancellationToken cancellationToken)
+        {
             long totalCopied = 0;
-
-            var buffer = new byte[bufferSize];
             int read;
 
             while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)

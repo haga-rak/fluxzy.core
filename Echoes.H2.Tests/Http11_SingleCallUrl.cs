@@ -88,7 +88,7 @@ namespace Echoes.H2.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                $"https://httpmill.smartizy.com:5001/content-produce-unpredictable/130000/130000"
+                $"https://sandbox.smartizy.com:5001/content-produce-unpredictable/130000/130000"
             );
 
             var response = await httpClient.SendAsync(requestMessage);
@@ -109,7 +109,7 @@ namespace Echoes.H2.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                $"https://httpmill.smartizy.com:5001/content-produce-unpredictable/2300000/2300000"
+                $"https://sandbox.smartizy.com:5001/content-produce-unpredictable/2300000/2300000"
             );
 
             var response = await httpClient.SendAsync(requestMessage);

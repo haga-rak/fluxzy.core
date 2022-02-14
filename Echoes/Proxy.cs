@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Echoes.Core;
+using Echoes.H2.Encoder.Utils;
 
 namespace Echoes
 {
@@ -16,7 +17,7 @@ namespace Echoes
         private readonly ProxyStartupSetting _startupSetting;
         private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
         private readonly IServerChannelPoolManager _poolManager;
-        private readonly TunneledConnectionManager _tunneledConnectionManager;
+     //   private readonly TunneledConnectionManager _tunneledConnectionManager;
         private readonly CancellationTokenSource _proxyHaltTokenSource = new CancellationTokenSource();
 
         private SystemProxyRegistration _proxyRegister;
@@ -28,12 +29,14 @@ namespace Echoes
         private long _taskId = 0;
         private readonly IDictionary<long, Task> _runningTasks = new ConcurrentDictionary<long, Task>(); // Dictionary<long, Task>();
         private readonly ProxyOrchestrator _proxyOrchestrator;
+        private readonly Http11Parser _http1Parser;
+        private readonly PoolBuilder _poolBuilder;
 
 
         public Proxy(
             ProxyStartupSetting startupSetting,
             ICertificateProvider certificateProvider,
-            Func<HttpExchange, Task> onNewExchange = null,
+            Func<Exchange, Task> onNewExchange = null,
             ProxyAlterationRule alerteAlterationRule = null
             )
         {
@@ -56,20 +59,20 @@ namespace Echoes
 
             Stream ThrottlePolicyStream(string s) => throtleStream;
 
-            _tunneledConnectionManager = new TunneledConnectionManager(referenceClock, onNewExchange, ThrottlePolicyStream);
-
+            //_tunneledConnectionManager = 
+            //    new TunneledConnectionManager(referenceClock, onNewExchange, ThrottlePolicyStream);
 
             var secureConnectionManager = new SecureConnectionUpdater(
                // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
                 certificateProvider);
 
-            var proxyMessageReader = new ProxyMessageReader(startupSetting, secureConnectionManager, _poolManager, referenceClock);
+            _http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength, new ArrayPoolMemoryProvider<char>());
+            _poolBuilder = new PoolBuilder(
+                new RemoteConnectionBuilder(ITimingProvider.Default), ITimingProvider.Default, _http1Parser);
 
-            _proxyOrchestrator = new ProxyOrchestrator(
-                proxyMessageReader, 
-                new UpStreamClientFactory(_poolManager, _tunneledConnectionManager, alerteAlterationRule, referenceClock),
-                onNewExchange, 
-                ThrottlePolicyStream);
+            _proxyOrchestrator = new ProxyOrchestrator(onNewExchange,
+                ThrottlePolicyStream, _startupSetting, ClientSetting.Default, new ExchangeBuilder(
+                    secureConnectionManager, _http1Parser), _poolBuilder);
 
             if (!_startupSetting.SkipSslDecryption && _startupSetting.AutoInstallCertificate)
             {
@@ -90,13 +93,15 @@ namespace Echoes
                 while (true)
                 {
                     // Blocking connection to provider
-                    IDownStreamConnection connection =
+                    var client =
                         await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
 
-                    if (connection == null)
+                    if (client == null)
                         break;
 
-                    dispatcher.PostWork(new ProxyPoolTask(connection, Interlocked.Increment(ref _taskId), _proxyHaltTokenSource.Token));
+                    dispatcher.PostWork(new ProxyPoolTask(
+                        Interlocked.Increment(ref _taskId), _proxyHaltTokenSource.Token,
+                        client));
                 }
             }
         }
@@ -104,7 +109,8 @@ namespace Echoes
         private async void ProcessingConnection(ProxyPoolTask proxyPoolTask)
         {
             // var currentTask =
-            await _proxyOrchestrator.Operate(proxyPoolTask.Connection, _proxyHaltTokenSource.Token).ConfigureAwait(false);
+            await _proxyOrchestrator.Operate(proxyPoolTask.TcpClient, 
+                _proxyHaltTokenSource.Token).ConfigureAwait(false);
             
                 
 
@@ -173,7 +179,7 @@ namespace Echoes
             {
                 _proxyRegister?.Dispose(); // Unregister system proxy 
                 _proxyOrchestrator.Dispose();
-                _tunneledConnectionManager.Dispose(); // Free all created tunnel 
+                //_tunneledConnectionManager.Dispose(); // Free all created tunnel 
                 _downStreamConnectionProvider.Dispose(); // Do not handle new connection to proxy 
                 _poolManager.Dispose(); // Free all connection pool currently maintained
                 _proxyHaltTokenSource.Cancel(); // Cancel all pending orcherstrator task 
