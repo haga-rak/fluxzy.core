@@ -20,7 +20,8 @@ namespace Echoes
     {
         private static readonly List<SslApplicationProtocol> AllProtocols = new()
         {
-            SslApplicationProtocol.Http11, SslApplicationProtocol.Http2
+            SslApplicationProtocol.Http11, 
+            // SslApplicationProtocol.Http2
         }; 
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;

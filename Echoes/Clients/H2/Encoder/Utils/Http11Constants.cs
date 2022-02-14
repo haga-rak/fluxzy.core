@@ -120,7 +120,7 @@ namespace Echoes.H2.Encoder.Utils
         public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
             new HashSet<ReadOnlyMemory<char>>(new[]
             {
-                ConnectionVerb, TransfertEncodingVerb, KeepAliveVerb, ProxyAuthenticate,Trailer,Upgrade
+                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade
             }, new SpanCharactersIgnoreCaseComparer());
 
 

@@ -18,12 +18,23 @@ namespace Echoes
 {
     public class ExchangeBuildingResult
     {
+        private static int Count = 0; 
+
         public ExchangeBuildingResult(Authority authority, Stream stream , Exchange provisionalExchange)
         {
+            Id = Interlocked.Increment(ref Count); 
             Authority = authority;
             Stream = stream;
             ProvisionalExchange = provisionalExchange;
+
+            if (DebugContext.EnableNetworkFileDump)
+            {
+                Stream = new DebugFileStream($"raw/{Id:0000}_bro_",
+                    stream);
+            }
         }
+
+        public int Id { get; }
 
         public Authority Authority { get;  }
 

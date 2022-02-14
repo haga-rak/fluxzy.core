@@ -10,6 +10,11 @@ namespace Echoes.H2.Tests
 {
     public class ProxyTests
     {
+        static ProxyTests()
+        {
+            Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
+        }
+
         [Fact]
         public async Task Test_GetThrough()
         {
@@ -56,12 +61,14 @@ namespace Echoes.H2.Tests
             var response = await httpClient.GetAsync("https://sandbox.smartizy.com/protocol",
                 cancellationTokenSource.Token);
 
-            var responseString = await response.Content.ReadAsStringAsync(); 
+            var responseString = await response.Content.ReadAsStringAsync(
+                cancellationTokenSource.Token); 
 
             Assert.StartsWith("HTTP", responseString);
 
             await requestReceived.Task;
             
         }
+        
     }
 }

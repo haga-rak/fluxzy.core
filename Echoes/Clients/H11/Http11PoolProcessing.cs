@@ -113,7 +113,7 @@ namespace Echoes.H11
 
             if (exchange.Response.Header.ChunkedBody)
             {
-                bodyStream = new ChunkedTransferStream(bodyStream, shouldCloseConnection);
+                bodyStream = new ChunkedTransferReadStream(bodyStream, shouldCloseConnection);
             }
        
             if (exchange.Response.Header.ContentLength > 0)

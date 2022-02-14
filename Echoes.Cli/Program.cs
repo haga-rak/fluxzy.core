@@ -1,4 +1,5 @@
-﻿using Echoes.Core;
+﻿using System;
+using Echoes.Core;
 
 namespace Echoes.Cli
 {
@@ -6,6 +7,7 @@ namespace Echoes.Cli
     {
         static int Main(string[] args)
         {
+            Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
             return new CliApp(s => new CertificateProvider(s, new FileSystemCertificateCache(s))).Start(args);
         }
     }

@@ -137,6 +137,10 @@ namespace Echoes
 
         public Stream Body { get; set; }
 
+        public override string ToString()
+        {
+            return Header.ToString();
+        }
     }
 
     public class Response

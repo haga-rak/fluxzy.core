@@ -135,7 +135,12 @@ namespace Echoes
 
         public IReadOnlyCollection<HeaderField> HeaderFields => _rawHeaderFields;
 
-        protected abstract int WriteHeaderLine(Span<byte> buffer); 
+        protected abstract int WriteHeaderLine(Span<byte> buffer);
+
+        public override string ToString()
+        {
+            return RawHeader.ToString();
+        }
 
         public int WriteHttp11(in Span<byte> data, bool skipNonForwardableHeader)
         {

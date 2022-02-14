@@ -108,21 +108,11 @@ namespace Echoes
 
         private async void ProcessingConnection(ProxyPoolTask proxyPoolTask)
         {
-            // var currentTask =
-            await _proxyOrchestrator.Operate(proxyPoolTask.TcpClient, 
-                _proxyHaltTokenSource.Token).ConfigureAwait(false);
-            
-                
-
-            //try
-            //{
-            //   // _runningTasks[proxyTask.TaskId] = currentTask;
-            //   // OnProcessingTaskDone(proxyTask.TaskId, currentTask);
-            //}
-            //catch (Exception ex)
-            //{
-
-            //}
+            using (proxyPoolTask.TcpClient)
+            {
+                await _proxyOrchestrator.Operate(proxyPoolTask.TcpClient,
+                    _proxyHaltTokenSource.Token).ConfigureAwait(false);
+            }
         }
 
         private void OnProcessingTaskDone(long taskId, Task currentTask)
