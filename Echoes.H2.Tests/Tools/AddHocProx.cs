@@ -39,7 +39,7 @@ namespace Echoes.H2.Tests.Tools
 
             _proxy = new Proxy(_startupSetting,
                 new CertificateProvider(_startupSetting,
-                    new FileSystemCertificateCache(_startupSetting)),
+                    new InMemoryCertificateCache()),
                 OnNewExchange);
 
             _cancellationSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -57,9 +57,9 @@ namespace Echoes.H2.Tests.Tools
             _proxy.Run();
         }
 
-        public int BindPort { get; private set; }
+        public int BindPort { get; }
 
-        public string BindHost { get; private set; }
+        public string BindHost { get; }
 
         public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
 

@@ -60,6 +60,7 @@ namespace Echoes.Core
                     
                     do
                     {
+                        string headerContent = null; 
                         if (exchange != null && !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
                             var connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
@@ -83,7 +84,7 @@ namespace Echoes.Core
                             }
 
                             var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true);
-                            var headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
+                            headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
 
                             shouldClose = exchange.Response
                                 .Header["Connection".AsMemory()].Any(c =>

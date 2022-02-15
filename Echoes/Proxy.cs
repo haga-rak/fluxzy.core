@@ -17,7 +17,6 @@ namespace Echoes
         private readonly ProxyStartupSetting _startupSetting;
         private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
         private readonly IServerChannelPoolManager _poolManager;
-     //   private readonly TunneledConnectionManager _tunneledConnectionManager;
         private readonly CancellationTokenSource _proxyHaltTokenSource = new CancellationTokenSource();
 
         private SystemProxyRegistration _proxyRegister;
@@ -37,7 +36,7 @@ namespace Echoes
             ProxyStartupSetting startupSetting,
             ICertificateProvider certificateProvider,
             Func<Exchange, Task> onNewExchange = null,
-            ProxyAlterationRule alerteAlterationRule = null
+            ProxyAlterationRule alterationRule = null
             )
         {
             _startupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));

@@ -160,12 +160,20 @@ namespace Echoes.H11
         {
             var bufferIndex = buffer;
             var totalRead = 0;
-            var indexFound = 0;
+            var indexFound = -1;
             var firstBytes = true;
 
             while (totalRead < buffer.Length)
             {
                 var currentRead = await stream.ReadAsync(bufferIndex, token);
+
+                if (currentRead == 0)
+                {
+                    if (throwOnError)
+                        throw new IOException("Remote connection closed before receiving response");
+
+                    break; // Connection closed
+                }
 
                 if (firstBytes)
                 {

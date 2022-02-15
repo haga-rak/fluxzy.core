@@ -16,7 +16,7 @@ namespace Echoes.H2.Tests
     {
         static ProxyTests()
         {
-            Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
+            // Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
         }
         
         [Theory]
@@ -31,7 +31,7 @@ namespace Echoes.H2.Tests
                 Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
             };
 
-            var httpClient = new HttpClient(clientHandler);
+            using var httpClient = new HttpClient(clientHandler);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{host}/global-health-check?dsf=sdfs&dsf=3");
@@ -40,9 +40,10 @@ namespace Echoes.H2.Tests
             await using var hashedStream = new HashedStream(randomStream);
 
             requestMessage.Content = new StreamContent(hashedStream);
+
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
 
-            var response = await httpClient.SendAsync(requestMessage);
+            using var response = await httpClient.SendAsync(requestMessage);
 
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response); 
 
@@ -63,7 +64,7 @@ namespace Echoes.H2.Tests
                 Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
             };
 
-            var httpClient = new HttpClient(clientHandler);
+            using var httpClient = new HttpClient(clientHandler);
 
             await Task.WhenAll(Enumerable.Range(0, concurrentCount)
                 .Select(
@@ -83,11 +84,10 @@ namespace Echoes.H2.Tests
             requestMessage.Content = new StreamContent(hashedStream);
             requestMessage.Headers.Add("X-Identifier", $"{i}-{Guid.NewGuid()}");
 
-            var response = await httpClient.SendAsync(requestMessage);
+            using var response = await httpClient.SendAsync(requestMessage);
 
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
         }
-
 
         [Fact]
         public async Task Test_GetThrough_H1()

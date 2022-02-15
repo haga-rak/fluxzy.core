@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Echoes.Core
@@ -45,6 +47,21 @@ namespace Echoes.Core
             File.WriteAllBytes(fullFileName, fileContent);
 
             return fileContent;
+        }
+    }
+
+    public class InMemoryCertificateCache: ICertificateCache
+    {
+        private readonly ConcurrentDictionary<string, byte[]> _repository = new(); 
+        public byte[] Load(
+            string baseCertificatSerialNumber, 
+            string rootDomain, Func<string, byte[]> certificateGeneratoringProcess)
+        {
+            var key = $"{baseCertificatSerialNumber}_{rootDomain}";
+            
+            return _repository.GetOrAdd(key, _ =>
+                certificateGeneratoringProcess(rootDomain)
+            );
         }
     }
 }
