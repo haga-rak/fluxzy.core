@@ -54,6 +54,8 @@ namespace Echoes.H11
 
         public async ValueTask Send(Exchange exchange, CancellationToken cancellationToken)
         {
+            exchange.HttpVersion = "HTTP/1.1";
+
             try
             {
                 // Looks like we are already sure that this connection is gonna be HTTP/2

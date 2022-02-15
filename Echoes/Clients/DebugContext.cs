@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Echoes
 {
@@ -18,6 +19,10 @@ namespace Echoes
         /// </summary>
         public static string NetworkFileDumpDirectory { get; } = "";
 
+
+        /// <summary>
+        /// Incremental index of filedump 
+        /// </summary>
         internal static int FileDumpIndex = 0;
 
         static DebugContext()
@@ -30,8 +35,9 @@ namespace Echoes
 
             NetworkFileDumpDirectory = Environment
                 .GetEnvironmentVariable("Echoes_FileDumpDirectory")?.Trim() ?? "raw";
-
             
+            if (EnableNetworkFileDump) 
+                Directory.CreateDirectory(DebugContext.NetworkFileDumpDirectory);
         }
     }
 }

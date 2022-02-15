@@ -83,8 +83,7 @@ namespace Echoes
 
             if (DebugContext.EnableNetworkFileDump)
             {
-                Directory.CreateDirectory(DebugContext.NetworkFileDumpDirectory);
-                exchange.UpStream = new DebugFileStream($"raw/{exchange.Connection.Id:0000}_",
+                exchange.UpStream = new DebugFileStream($"raw/{exchange.Id:0000}_",
                     exchange.UpStream); 
             }
 

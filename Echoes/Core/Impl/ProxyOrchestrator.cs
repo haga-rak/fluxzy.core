@@ -55,16 +55,40 @@ namespace Echoes.Core
                         connectionState.ProvisionalExchange;
                     
                     byte [] buffer = new byte[1024 * 32];
+
+                    var shouldClose = false; 
                     
                     do
                     {
                         if (exchange != null && !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
-                            var connetionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
-                            await connetionPool.Send(exchange, token);
+                            var connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
+
+                            // Actual request send 
+
+                            await connectionPool.Send(exchange, token);
+
+                            // Request processed by IHttpConnectionPool returns before complete response body
+
+                            if (exchange.Response.Header.ContentLength == -1 &&
+                                exchange.Response.Body != null &&
+                                exchange.HttpVersion == "HTTP/2")
+                            {
+                                // In HTTP2, server is allowed to send a response body
+                                // without specifying a content-length or transfer-encoding chunked.
+                                // We force transfer-encoding chunked to allowed HTTP/1.1 client to know
+                                // the end of the content body
+
+                                exchange.Response.Header.ForceTransferChunked();
+                            }
 
                             var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true);
                             var headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
+
+                            shouldClose = exchange.Response
+                                .Header["Connection".AsMemory()].Any(c =>
+                                    c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+
 
                             await connectionState.Stream.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
                                 token);
@@ -77,9 +101,25 @@ namespace Echoes.Core
                             if (exchange.Response.Header.ContentLength != 0 &&
                                 exchange.Response.Body != null)
                             {
+                                var destStream = connectionState.Stream;
+
+                                if (exchange.Response.Header.ChunkedBody)
+                                {
+                                    destStream = new ChunkedTransferWriteStream(destStream);
+                                }
+
                                 var tc = await exchange.Response.Body.CopyDetailed(
-                                    connectionState.Stream, buffer, _ => { }, token);
+                                    destStream, buffer, _ => { }, token);
+
+                                (destStream as ChunkedTransferWriteStream)?.WriteEof();
+
+                                await connectionState.Stream.FlushAsync(CancellationToken.None);
                             }
+                        }
+
+                        if (shouldClose)
+                        {
+                            break;
                         }
 
                         exchange = await _exchangeBuilder.ReadExchange(

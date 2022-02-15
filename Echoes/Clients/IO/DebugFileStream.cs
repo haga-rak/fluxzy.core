@@ -79,7 +79,7 @@ namespace Echoes.IO
             await _fileStreamOut.WriteAsync(buffer, cancellationToken);
             await _innerStream.WriteAsync(buffer, cancellationToken);
 
-            await _fileStreamOut.FlushAsync();
+            await _fileStreamOut.FlushAsync(cancellationToken);
         }
 
         public override bool CanRead => _innerStream.CanRead;

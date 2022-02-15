@@ -11,7 +11,7 @@ using Echoes.Helpers;
 
 namespace Echoes.IO
 {
-    public class ChunkedTransferStream : Stream
+    public class ChunkedTransferReadStream : Stream
     {
         private readonly Stream _innerStream;
         private readonly bool _closeOnDone;
@@ -20,7 +20,7 @@ namespace Echoes.IO
         private readonly byte[] _lengthHolderBytes = new byte[64];
         private readonly byte[] _singleByte = new byte[1];
 
-        public ChunkedTransferStream(Stream innerStream, bool closeOnDone)
+        public ChunkedTransferReadStream(Stream innerStream, bool closeOnDone)
         {
             _innerStream = innerStream;
             _closeOnDone = closeOnDone;
@@ -62,7 +62,7 @@ namespace Echoes.IO
                     textBufferBytes.Span[textCount++] = singleByte.Span[0];
                 }
                 
-                if (textCount == 1 && !chunkSizeNotDetected)
+                if (textCount == 0 && !chunkSizeNotDetected)
                 {
                     // Natural End of stream . Read the last double cr lf 
                     await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken); 
@@ -88,7 +88,7 @@ namespace Echoes.IO
                 if (chunkSize == 0)
                 {
                     if (!_closeOnDone)
-                        await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken);
+                        await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
 
                     return 0;
                 }

@@ -91,7 +91,7 @@ namespace Echoes
     {
         public ReadOnlyMemory<char> RawHeader { get; }
 
-        protected IReadOnlyCollection<HeaderField> _rawHeaderFields;
+        protected List<HeaderField> _rawHeaderFields;
 
         protected ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields ;
 
@@ -126,7 +126,7 @@ namespace Echoes
         /// <summary>
         /// If transfer-encoding chunked is defined 
         /// </summary>
-        public bool ChunkedBody { get; }
+        public bool ChunkedBody { get; private set; }
 
         /// <summary>
         /// Content length of body. -1 if undefined 
@@ -135,7 +135,12 @@ namespace Echoes
 
         public IReadOnlyCollection<HeaderField> HeaderFields => _rawHeaderFields;
 
-        protected abstract int WriteHeaderLine(Span<byte> buffer); 
+        protected abstract int WriteHeaderLine(Span<byte> buffer);
+
+        public override string ToString()
+        {
+            return RawHeader.ToString();
+        }
 
         public int WriteHttp11(in Span<byte> data, bool skipNonForwardableHeader)
         {
@@ -162,6 +167,11 @@ namespace Echoes
 
             return totalLength; 
         }
-        
+
+        internal void ForceTransferChunked()
+        {
+            _rawHeaderFields.Add(new HeaderField("Transfer-Encoding", "chunked"));
+            ChunkedBody = true; 
+        }
     }
 }

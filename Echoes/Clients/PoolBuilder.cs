@@ -20,7 +20,8 @@ namespace Echoes
     {
         private static readonly List<SslApplicationProtocol> AllProtocols = new()
         {
-            SslApplicationProtocol.Http11, SslApplicationProtocol.Http2
+            SslApplicationProtocol.Http11, 
+            SslApplicationProtocol.Http2
         }; 
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
@@ -78,6 +79,8 @@ namespace Echoes
                         exchange.Authority, _timingProvider,
                         _remoteConnectionBuilder, clientSetting);
 
+                    
+
                     return result = _connectionPools[exchange.Authority] = tunneledConnectionPool;
                 }
 
@@ -86,6 +89,8 @@ namespace Echoes
                     // Plain HTTP/1.1
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, null, null,
                         _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser);
+
+                    exchange.HttpVersion = "HTTP/1.1";
 
                     return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
                 }
@@ -101,6 +106,8 @@ namespace Echoes
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, exchange.Connection,
                         exchange.UpStream,
                         _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser);
+
+                    exchange.HttpVersion = "HTTP/2";
 
                     return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
                 }
