@@ -83,7 +83,7 @@ namespace Echoes
 
             if (DebugContext.EnableNetworkFileDump)
             {
-                exchange.UpStream = new DebugFileStream($"raw/{exchange.Id:0000}_",
+                exchange.UpStream = new DebugFileStream($"raw/{exchange.Id:0000}_remotehost_",
                     exchange.UpStream); 
             }
 

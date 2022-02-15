@@ -17,9 +17,9 @@ namespace Echoes.IO
         public DebugFileStream(string pathPrefix, Stream innerStream)
         {
             _innerStream = innerStream;
-            var inFile = pathPrefix + ".res.txt"; 
+            var inFile = pathPrefix + ".in.txt"; 
             _fileStream = File.Create(inFile);
-            _fileStreamOut = File.Create(pathPrefix + ".req.txt");
+            _fileStreamOut = File.Create(pathPrefix + ".out.txt");
         }
 
         public override void Flush()

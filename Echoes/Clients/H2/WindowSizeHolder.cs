@@ -39,7 +39,7 @@ namespace Echoes.H2
 
         public async ValueTask<bool> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested || _semaphoreRequest == null)
                 return false;
 
             if (_windowSize >= requestedLength)

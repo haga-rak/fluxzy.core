@@ -29,7 +29,7 @@ namespace Echoes
 
             if (DebugContext.EnableNetworkFileDump)
             {
-                Stream = new DebugFileStream($"raw/{Id:0000}_bro_",
+                Stream = new DebugFileStream($"raw/{Id:0000}_browser_",
                     stream);
             }
         }

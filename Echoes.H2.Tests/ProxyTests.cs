@@ -1,10 +1,12 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Core;
+using Echoes.H2.Tests.Tools;
 using Echoes.H2.Tests.Utils;
 using Xunit;
 
@@ -16,6 +18,76 @@ namespace Echoes.H2.Tests
         {
             Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
         }
+        
+        [Theory]
+        [InlineData("sandbox.smartizy.com")]
+        [InlineData("sandbox.smartizy.com:5001")]
+        public async Task Proxy_SingleRequest(string host)
+        {
+            using var proxy = new AddHocProxy(PortProvider.Next(), 1, 10);
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            };
+
+            var httpClient = new HttpClient(clientHandler);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{host}/global-health-check?dsf=sdfs&dsf=3");
+
+            await using var randomStream = new RandomDataStream(48, 23632, true);
+            await using var hashedStream = new HashedStream(randomStream);
+
+            requestMessage.Content = new StreamContent(hashedStream);
+            requestMessage.Headers.Add("X-Test-Header-256", "That value");
+
+            var response = await httpClient.SendAsync(requestMessage);
+
+            await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response); 
+
+            await proxy.WaitUntilDone(); 
+        }
+
+        [Theory]
+        [InlineData("sandbox.smartizy.com")]
+        [InlineData("sandbox.smartizy.com:5001")]
+        public async Task Proxy_MultipleRequest(string host)
+        {
+            int concurrentCount = 15; 
+
+            using var proxy = new AddHocProxy(PortProvider.Next(), concurrentCount, 10);
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            };
+
+            var httpClient = new HttpClient(clientHandler);
+
+            await Task.WhenAll(Enumerable.Range(0, concurrentCount)
+                .Select(
+                (index) => PerformRequest(host, index, httpClient))); 
+
+            await proxy.WaitUntilDone(); 
+        }
+
+        private static async Task PerformRequest(string host, int i, HttpClient httpClient)
+        {
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                $"https://{host}/global-health-check?dsf=sdfs&dsf=3");
+
+            await using var randomStream = new RandomDataStream(48, 23632, true);
+            await using var hashedStream = new HashedStream(randomStream);
+
+            requestMessage.Content = new StreamContent(hashedStream);
+            requestMessage.Headers.Add("X-Identifier", $"{i}-{Guid.NewGuid()}");
+
+            var response = await httpClient.SendAsync(requestMessage);
+
+            await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
+        }
+
 
         [Fact]
         public async Task Test_GetThrough_H1()

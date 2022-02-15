@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Cli", "Echoes.Cli\Ec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.H2.Tests", "Echoes.H2.Tests\Echoes.H2.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SubModules", "SubModules", "{78CCD077-82E0-44B1-AF2F-D4C640C25907}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox.Models", "SubModules\Sandbox\Sandbox.Models\Sandbox.Models.csproj", "{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,9 +37,16 @@ Global
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA} = {78CCD077-82E0-44B1-AF2F-D4C640C25907}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}

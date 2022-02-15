@@ -121,7 +121,7 @@ namespace Echoes.H2
                     return true;
             }
 
-            throw new InvalidOperationException("Unknow setting type");
+            throw new InvalidOperationException("Unknown setting type");
         }
 
         private async Task RaiseExceptionIfSettingNotReceived()

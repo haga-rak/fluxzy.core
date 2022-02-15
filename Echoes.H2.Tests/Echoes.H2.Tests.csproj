@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Echoes\Echoes.csproj" />
+    <ProjectReference Include="..\SubModules\Sandbox\Sandbox.Models\Sandbox.Models.csproj" />
   </ItemGroup>
 
 </Project>
