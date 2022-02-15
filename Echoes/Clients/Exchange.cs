@@ -23,11 +23,12 @@ namespace Echoes
             ReadOnlyMemory<char> responseHeader,
             Stream responseBody,
             bool isSecure,
-            Http11Parser parser)
+            Http11Parser parser, string httpVersion)
         {
             Id = Interlocked.Increment(ref ExchangeCounter);
 
             Authority = authority;
+            HttpVersion = httpVersion;
             Request = new Request(new RequestHeader(requestHeader, isSecure, parser))
             {
                 Body = requestBody ?? StreamUtils.EmptyStream
@@ -46,10 +47,11 @@ namespace Echoes
 
         public Exchange(
             Authority authority, 
-            RequestHeader requestHeader, Stream bodyStream)
+            RequestHeader requestHeader, Stream bodyStream, string httpVersion)
         {
             Id = Interlocked.Increment(ref ExchangeCounter); 
             Authority = authority;
+            HttpVersion = httpVersion;
             Request = new Request(requestHeader)
             {
                 Body = bodyStream
@@ -59,16 +61,18 @@ namespace Echoes
         public Exchange(
             Authority authority, 
             ReadOnlyMemory<char> header, 
-            Http11Parser parser)
+            Http11Parser parser, string httpVersion)
         {
             Id = Interlocked.Increment(ref ExchangeCounter); 
             Authority = authority;
+            HttpVersion = httpVersion;
             Request = new Request(new RequestHeader(header, authority.Secure, parser));
         }
 
         public int Id { get;  }
 
 
+        public string HttpVersion { get; set; }
 
         /// <summary>
         /// This tasks indicates the status of the exchange

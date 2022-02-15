@@ -99,8 +99,6 @@ namespace Echoes.H11
 
             if (headerBlockDetectResult.HeaderLength < headerBlockDetectResult.TotalReadLength)
             {
-               
-
                 // Concat the extra body bytes read while retrieving header
                 bodyStream = new CombinedReadonlyStream(
                     shouldCloseConnection,

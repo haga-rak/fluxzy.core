@@ -33,7 +33,7 @@ namespace Echoes.Clients.DotNetBridge
 
             var reqHttpString = request.ToHttp11String();
 
-            var exchange = new Exchange(authority, reqHttpString.AsMemory(), _parser);
+            var exchange = new Exchange(authority, reqHttpString.AsMemory(), _parser, null);
 
             var connection = await _poolBuilder.GetPool(exchange, ClientSetting.Default, cancellationToken);
             

@@ -109,7 +109,7 @@ namespace Echoes
                     new ExchangeBuildingResult(authority, sslStream, new Exchange(
                     authority, plainHeaderChars, null,
                     AcceptTunnelResponseString.AsMemory(), 
-                    null, false, _http11Parser)
+                    null, false, _http11Parser, "HTTP/1.1")
                     {
                         BaseStream = sslStream
                     });
@@ -125,7 +125,7 @@ namespace Echoes
             return new ExchangeBuildingResult(plainAuthority, plainStream, new Exchange(plainAuthority, 
                 plainHeader, plainHeader.ContentLength > 0
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                    : StreamUtils.EmptyStream)); 
+                    : StreamUtils.EmptyStream, "HTTP/1.1")); 
         }
 
         public async Task<Exchange> ReadExchange(
@@ -136,6 +136,9 @@ namespace Echoes
             blockReadResult = await
                 Http11PoolProcessing.DetectHeaderBlock(sslStream, buffer, () => { }, () => { }, false, token);
 
+            if (blockReadResult.TotalReadLength == 0)
+                return null;
+
             var secureHeaderChars = new char[blockReadResult.HeaderLength];
 
             Encoding.ASCII.GetChars(new Memory<byte>(buffer, 0, blockReadResult.HeaderLength).Span,
@@ -143,10 +146,20 @@ namespace Echoes
 
             var secureHeader = new RequestHeader(secureHeaderChars, true, _http11Parser);
 
+            var bodyStream = sslStream;
+
+            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
+            {
+                sslStream = new CombinedReadonlyStream(false,
+                    new MemoryStream(buffer, blockReadResult.HeaderLength,
+                        blockReadResult.TotalReadLength - blockReadResult.HeaderLength),
+                    sslStream); 
+            }
+
             return new Exchange(authority, secureHeader,
                 secureHeader.ContentLength > 0
                     ? new ContentBoundStream(sslStream, secureHeader.ContentLength)
-                    : StreamUtils.EmptyStream
+                    : StreamUtils.EmptyStream, null
             );
         }
     }

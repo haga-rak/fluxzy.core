@@ -419,6 +419,8 @@ namespace Echoes.H2
             Exchange exchange,
             CancellationToken cancellationToken = default)
         {
+            exchange.HttpVersion = "HTTP/2"; 
+
             StreamProcessing activeStream;
             Task waitForHeaderSentTask;
 
@@ -441,12 +443,11 @@ namespace Echoes.H2
 
             await activeStream.ProcessRequestBody(exchange);
 
-
             exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 
             var h2Message = await activeStream.ProcessResponse(cancellationToken)
                 .ConfigureAwait(false);
-
+            
             exchange.Response.Body = h2Message.ResponseStream;
         }
 
