@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Core;
+using Echoes.H2.Tests.Utils;
 using Xunit;
 
 namespace Echoes.H2.Tests
@@ -20,7 +21,7 @@ namespace Echoes.H2.Tests
         public async Task Test_GetThrough_H1()
         {
             var bindHost = "127.0.0.1";
-            var bindPort = 14212;
+            var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
             var startupSetting = ProxyStartupSetting
@@ -75,7 +76,7 @@ namespace Echoes.H2.Tests
         public async Task Test_GetThrough_H2()
         {
             var bindHost = "127.0.0.1";
-            var bindPort = 14213;
+            var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
             var startupSetting = ProxyStartupSetting
@@ -130,7 +131,7 @@ namespace Echoes.H2.Tests
         public async Task Test_GetThrough_Post()
         {
             var bindHost = "127.0.0.1";
-            var bindPort = 14214;
+            var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
             var startupSetting = ProxyStartupSetting

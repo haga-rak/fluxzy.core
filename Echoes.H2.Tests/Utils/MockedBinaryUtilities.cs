@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 
 namespace Echoes.H2.Tests.Utils
 {
-
     public static class MockedBinaryUtilities
     {
         public static byte [] GenerateRng(int seed, int size)
@@ -27,7 +26,6 @@ namespace Echoes.H2.Tests.Utils
             {
                 throw new InvalidOperationException("destination provided to small"); 
             }
-         
             
             return Convert.ToHexString(destination).Replace("-", String.Empty);
         }
