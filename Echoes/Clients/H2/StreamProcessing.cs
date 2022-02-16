@@ -112,21 +112,25 @@ namespace Echoes.H2
         
         public WindowSizeHolder OverallRemoteWindowSize { get;  }
         
-        private async ValueTask<bool> BookWindowSize(int minimumBodyLength, CancellationToken cancellationToken)
+        private async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
         {
-            if (minimumBodyLength == 0)
-                return true; 
+            if (requestedBodyLength == 0)
+                return 0;
 
-            if (!await RemoteWindowSize.BookWindowSize(minimumBodyLength, cancellationToken).ConfigureAwait(false))
-                return false;
+            var wa = RemoteWindowSize.WindowSize;
+            var streamWindow = await RemoteWindowSize.BookWindowSize(requestedBodyLength, cancellationToken).ConfigureAwait(false);
+            var wz = RemoteWindowSize.WindowSize; 
 
-            if (!await OverallRemoteWindowSize.BookWindowSize(minimumBodyLength, cancellationToken).ConfigureAwait(false))
-                return false;
+            if (streamWindow == 0)
+                return 0;
 
-            return true;
+            var overallWindow = await OverallRemoteWindowSize.BookWindowSize(streamWindow, cancellationToken)
+                .ConfigureAwait(false);
+
+            return overallWindow; 
         }
 
-        public void NotifyRemoteWindowUpdate(int windowSizeUpdateValue)
+        public void NotifyStreamWindowUpdate(int windowSizeUpdateValue)
         {
             RemoteWindowSize.UpdateWindowSize(windowSizeUpdateValue);
         }
@@ -181,45 +185,58 @@ namespace Echoes.H2
             {
                 while (true)
                 {
-                    var requestedSize = _globalSetting.Remote.MaxFrameSize - 9;
+                    var bookedSize = _globalSetting.Remote.MaxFrameSize - 9;
 
-                    var readLength = await requestBodyStream
-                        .ReadAsync(_dataReceptionBuffer.Slice(9, requestedSize), _currentStreamCancellationTokenSource.Token)
+                    var bfore = OverallRemoteWindowSize.WindowSize;
+
+                    var sr = bookedSize;
+
+                    bookedSize = await BookWindowSize(bookedSize, _currentStreamCancellationTokenSource.Token)
                         .ConfigureAwait(false);
 
-                    if (!await BookWindowSize(readLength, _currentStreamCancellationTokenSource.Token)
-                            .ConfigureAwait(false))
+                    Logger.WriteLine($"Book sid={StreamIdentifier} ({bfore}) : {OverallRemoteWindowSize.WindowSize} : {bookedSize}/{sr}");
+
+                    if (bookedSize == 0)
                         throw new OperationCanceledException("Stream cancellation request",
                             _currentStreamCancellationTokenSource.Token);
 
-                    var endStream = readLength == 0;
+                    var dataFramePayloadLength = await requestBodyStream
+                        .ReadAsync(_dataReceptionBuffer.Slice(9, bookedSize), 
+                            _currentStreamCancellationTokenSource.Token)
+                        .ConfigureAwait(false);
 
-                    if (bodyLength >= 0 && (totalSent + readLength) >= bodyLength)
+                    if (dataFramePayloadLength < bookedSize)
+                    {
+                        // window size refund 
+                        RemoteWindowSize.UpdateWindowSize(bookedSize - dataFramePayloadLength);
+                        OverallRemoteWindowSize.UpdateWindowSize(bookedSize - dataFramePayloadLength);
+                    }
+
+                    var endStream = dataFramePayloadLength == 0;
+
+                    if (bodyLength >= 0 && (totalSent + dataFramePayloadLength) >= bodyLength)
                     {
                         endStream = true;
                     }
 
-                    new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, readLength,
-                        StreamIdentifier).WriteHeaderOnly(_dataReceptionBuffer.Span, readLength);
+                    new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, dataFramePayloadLength,
+                        StreamIdentifier).WriteHeaderOnly(_dataReceptionBuffer.Span, dataFramePayloadLength);
 
                     var writeTaskBody = new WriteTask(H2FrameType.Data, StreamIdentifier,
                         StreamPriority, StreamDependency,
-                        _dataReceptionBuffer.Slice(0, 9 + readLength));
+                        _dataReceptionBuffer.Slice(0, 9 + dataFramePayloadLength));
 
                     _upStreamChannel(ref writeTaskBody);
 
+                    totalSent += dataFramePayloadLength;
+                    _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
-                    totalSent += readLength;
-                    _exchange.Metrics.TotalSent += readLength;
+                    /// ?? Stream window size seems so to not be handled correctly 
+                    if (dataFramePayloadLength > 0)
+                        NotifyStreamWindowUpdate(dataFramePayloadLength);
 
-                    if (readLength > 0)
-                        NotifyRemoteWindowUpdate(-readLength);
-
-
-
-                    if (readLength == 0 || endStream)
+                    if (dataFramePayloadLength == 0 || endStream)
                     {
-                        // No more request data body to send 
                         return;
                     }
 
@@ -298,7 +315,6 @@ namespace Echoes.H2
                 _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
             }
 
-
             _exchange.Metrics.TotalReceived += buffer.Length;
 
             _response.PostResponseBodyFragment(buffer, endStream);
@@ -310,7 +326,6 @@ namespace Echoes.H2
                 _exchange.ExchangeCompletionSource.SetResult(false);
             }
         }
-        
         internal void OnDataConsumedByCaller(int dataSize)
         {
             if (dataSize > 0)

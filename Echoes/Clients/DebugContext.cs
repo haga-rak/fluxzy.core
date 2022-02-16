@@ -11,6 +11,12 @@ namespace Echoes
         /// </summary>
         public static bool EnableNetworkFileDump { get; }
 
+        
+        public static bool EnableWindowSizeTrace { get; }
+
+
+        public static string SessionDate { get; }  = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss"); 
+
 
         /// <summary>
         /// When EnableNetworkFileDump is enable. Get the dump directory. Default value is "./raw".
@@ -18,6 +24,8 @@ namespace Echoes
         /// 
         /// </summary>
         public static string NetworkFileDumpDirectory { get; } = "";
+
+        public static string WindowSizeTraceDumpDirectory { get; } = "trace";
 
 
         /// <summary>
@@ -33,11 +41,21 @@ namespace Echoes
             EnableNetworkFileDump = string.Equals(fileDump, "true", StringComparison.OrdinalIgnoreCase)
                              || string.Equals(fileDump, "1", StringComparison.OrdinalIgnoreCase);
 
+
+            var windowSizeTrace = Environment
+                .GetEnvironmentVariable("Echoes_EnableWindowSizeTrace")?.Trim();
+
+            EnableWindowSizeTrace = string.Equals(windowSizeTrace, "true", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(windowSizeTrace, "1", StringComparison.OrdinalIgnoreCase);
+
             NetworkFileDumpDirectory = Environment
                 .GetEnvironmentVariable("Echoes_FileDumpDirectory")?.Trim() ?? "raw";
             
             if (EnableNetworkFileDump) 
                 Directory.CreateDirectory(DebugContext.NetworkFileDumpDirectory);
+
+            if (EnableWindowSizeTrace)
+                Directory.CreateDirectory(DebugContext.WindowSizeTraceDumpDirectory);
         }
     }
 }

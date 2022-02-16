@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes", "Echoes\Echoes.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Cli", "Echoes.Cli\Echoes.Cli.csproj", "{A020742E-DADE-42CE-8235-18C084DFC597}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.H2.Tests", "Echoes.H2.Tests\Echoes.H2.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Tests", "Echoes.H2.Tests\Echoes.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SubModules", "SubModules", "{78CCD077-82E0-44B1-AF2F-D4C640C25907}"
 EndProject

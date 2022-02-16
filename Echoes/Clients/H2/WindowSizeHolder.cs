@@ -1,16 +1,21 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Echoes.H2
 {
     public class WindowSizeHolder : IDisposable
     {
-        private long _windowSize;
+        private int _windowSize;
         private readonly int _streamIdentifier;
 
-        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        // private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+
+        private Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new(); 
 
         public WindowSizeHolder(int windowSize, int streamIdentifier)
         {
@@ -18,52 +23,81 @@ namespace Echoes.H2
             _streamIdentifier = streamIdentifier;
         }
 
-        public long WindowSize => _windowSize;
+        public int WindowSize => _windowSize;
 
         public int StreamIdentifier => _streamIdentifier;
 
         public void UpdateWindowSize(int windowSizeIncrement)
         {
-            Interlocked.Add(ref _windowSize, windowSizeIncrement);
-            _semaphore?.Release(_semaphore.CurrentCount);
-
-            if (StreamIdentifier == 0)
-            {
-              //  Debug.WriteLine("Window Size : "  + _windowSize);
-            }
-            // Wakeup at least 
-        }
-
-        public async ValueTask<bool> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
-        {
-            if (cancellationToken.IsCancellationRequested)
-                return false;
-
             lock (this)
             {
-                if (_windowSize >= requestedLength)
+                if ((_windowSize + ((long) windowSizeIncrement)) > int.MaxValue)
                 {
-                    _windowSize -= requestedLength;
-                    return true;
+                    _windowSize = int.MaxValue; 
+                }
+                else
+                    _windowSize += windowSizeIncrement; 
+            }
+
+            // This is not behaving as expected
+            //_semaphore?.Release(_semaphore.CurrentCount);
+
+            lock (_windowSizeAWaiters)
+            {
+                var list = new List<TaskCompletionSource<object>>(); 
+                while (_windowSizeAWaiters.TryDequeue(out var item))
+                {
+                    list.Add(item);
+                }
+
+                foreach (var item in list)
+                {
+                    item.SetResult(null);
+                    ; 
+                }
+            }
+        }
+
+        private int _waitCount = 0; 
+
+        public async ValueTask<int> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested || requestedLength == 0)
+                return 0;
+            
+            lock (this)
+            {
+                var maxAvailable = Math.Min(requestedLength, _windowSize);
+
+                if (maxAvailable > 0)
+                {
+                    _windowSize -= maxAvailable;
+                    return maxAvailable;
                 }
             }
 
             try
             {
+                var onJobReady = new TaskCompletionSource<object>();
 
-                await _semaphore.WaitAsync(1000, cancellationToken).ConfigureAwait(false);
+                // sleep until window updated 
+
+                lock (_windowSizeAWaiters)
+                    _windowSizeAWaiters.Enqueue(onJobReady);
+
+                await onJobReady.Task; 
                 return await BookWindowSize(requestedLength, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
-                _semaphore.Release();
+               // _semaphore.Release();
             }
         }
 
         public void Dispose()
         {
-            _semaphore?.Dispose();
-            _semaphore = null;
+            //_semaphore?.Dispose();
+            // _semaphore = null;
 
 
         }

@@ -12,7 +12,7 @@ namespace Echoes.H2
 
         public int SettingsHeaderTableSize { get; set; } = 4096;
 
-        public int OverallWindowSize { get; set; } = 1 << 24; 
+        public int OverallWindowSize { get; set; } = 65536; 
 
         public int MaxHeaderSize { get; set; } = 1024 * 8;
 

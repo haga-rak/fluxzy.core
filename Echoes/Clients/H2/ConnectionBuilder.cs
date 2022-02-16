@@ -20,7 +20,7 @@ namespace Echoes.H2
         {
             var tcpClient = new TcpClient();
 
-            tcpClient.ReceiveBufferSize = 1024 * 16;
+            tcpClient.ReceiveBufferSize = 1024 * 128;
 
             await tcpClient.ConnectAsync(hostName, port).ConfigureAwait(false);
 

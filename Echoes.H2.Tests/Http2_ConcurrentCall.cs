@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Echoes.DotNetBridge;
+using Echoes.H2.Tests.Tools;
 using Echoes.H2.Tests.Utils;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace Echoes.H2.Tests
         {
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
-                "https://httpbin.org/post"
+                $"{TestConstants.Http2Host}/global-health-check"
             );
 
             requestMessage.Headers.Add("x-buffer-size", bufferSize.ToString());
@@ -39,12 +40,10 @@ namespace Echoes.H2.Tests
             requestMessage.Content = content;
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             Assert.True(response.IsSuccessStatusCode);
 
-            AssertHelpers.ControlHeaders(contentText, requestMessage, bufferSize)
-                .ControlBody(randomStream.Hash);
+            await AssertionHelper.ValidateCheck(requestMessage, null, response);
         }
 
         [Fact]
@@ -75,7 +74,7 @@ namespace Echoes.H2.Tests
 
             using var httpClient = new HttpClient(handler, false);
 
-            int count = 20;
+            int count = 40;
 
             byte[] buffer = new byte[500]; 
 
@@ -84,7 +83,36 @@ namespace Echoes.H2.Tests
                 {
                     new Random(index%2).NextBytes(buffer);
 
-                    return CallSimple(h, (1024 * 16) + 10, 512, new NameValueCollection()
+                    return CallSimple(h, (1024 * 16) + 10, 128 * 1024 *4, new NameValueCollection()
+                    {
+                        { "Cookie" , Convert.ToBase64String(buffer) }
+                    });
+                });
+
+            await Task.WhenAll(tasks); 
+        }
+
+        /// <summary>
+        /// The goal of this test is to challenge the dynamic table content
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Post_Dynamic_Table_Evict_Simple_Large_Object()
+        {
+            using var handler = new EchoesHttp2Handler();
+
+            using var httpClient = new HttpClient(handler, false);
+
+            int count = 1;
+
+            byte[] buffer = new byte[500]; 
+
+            var tasks = 
+                Enumerable.Repeat(httpClient, count).Select((h, index) =>
+                {
+                    new Random(index%2).NextBytes(buffer);
+
+                    return CallSimple(h, (1024 * 16) + 10, 128 * 1024 *4, new NameValueCollection()
                     {
                         { "Cookie" , Convert.ToBase64String(buffer) }
                     });

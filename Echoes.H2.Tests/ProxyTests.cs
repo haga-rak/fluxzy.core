@@ -16,17 +16,10 @@ namespace Echoes.H2.Tests
 {
     public class ProxyTests
     {
-        private const string Http11Host = "sandbox.smartizy.com";
-        private const string Http2Host = "sandbox.smartizy.com:5001";
-
-        static ProxyTests()
-        {
-             Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
-        }
         
         [Theory]
-        [InlineData(Http11Host)]
-        [InlineData(Http2Host)]
+        [InlineData(TestConstants.Http11Host)]
+        [InlineData(TestConstants.Http2Host)]
         public async Task Proxy_SingleRequest(string host)
         {
             using var proxy = new AddHocProxy(PortProvider.Next(), 1, 10);
@@ -39,7 +32,7 @@ namespace Echoes.H2.Tests
             using var httpClient = new HttpClient(clientHandler);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://{host}/global-health-check?dsf=sdfs&dsf=3");
+                $"{host}/global-health-check");
 
             await using var randomStream = new RandomDataStream(48, 23632, true);
             await using var hashedStream = new HashedStream(randomStream);
@@ -56,8 +49,8 @@ namespace Echoes.H2.Tests
         }
 
         [Theory]
-        [InlineData(Http11Host)]
-        [InlineData(Http2Host)]
+        [InlineData(TestConstants.Http11Host)]
+        [InlineData(TestConstants.Http2Host)]
         public async Task Proxy_MultipleRequest(string host)
         {
             int concurrentCount = 15; 
@@ -81,7 +74,7 @@ namespace Echoes.H2.Tests
         private static async Task PerformRequest(string host, int i, HttpClient httpClient)
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Post,
-                $"https://{host}/global-health-check?dsf=sdfs&dsf=3");
+                $"{host}/global-health-check?dsf=sdfs&dsf=3");
 
             await using var randomStream = new RandomDataStream(48, 23632, true);
             await using var hashedStream = new HashedStream(randomStream);
@@ -106,7 +99,7 @@ namespace Echoes.H2.Tests
                 Options = { Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}") }
             }; 
             
-            var uri = new Uri("wss://sandbox.smartizy.com:5001/websocket");
+            var uri = new Uri($"{TestConstants.WssHost}/websocket");
             Memory<byte> buffer = new byte[4096];
 
             await ws.ConnectAsync(uri, CancellationToken.None);

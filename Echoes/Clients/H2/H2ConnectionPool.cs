@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Echoes.H2
         private readonly IH2FrameReader _streamReader;
 
         private CancellationTokenSource _connectionCancellationTokenSource = new CancellationTokenSource();
-        private readonly CancellationTokenSource _settingReceptionCancellationTokenSource = new CancellationTokenSource();
+        
         private readonly H2StreamSetting _setting;
 
         private readonly StreamPool _streamPool;
@@ -36,6 +37,7 @@ namespace Echoes.H2
 
         private readonly StreamProcessingBuilder _streamProcessingBuilder;
 
+        // Window size of the remote 
         private WindowSizeHolder _overallWindowSizeHolder; 
 
         public H2ConnectionPool(
@@ -77,14 +79,14 @@ namespace Echoes.H2
         
         private bool ProcessIncomingSettingFrame(SettingFrame settingFrame)
         {
-            Logger.WriteLine(settingFrame.ToString());
+            if (DebugContext.EnableNetworkFileDump)
+                Logger.WriteLine(settingFrame.ToString());
             
             if (settingFrame.Ack)
             {
                 if (!_waitForSettingReception.Task.IsCompleted)
                 {
                     _waitForSettingReception.SetResult(true);
-                    _settingReceptionCancellationTokenSource.Cancel(false);
                 }
 
                 return false;
@@ -124,21 +126,25 @@ namespace Echoes.H2
             throw new InvalidOperationException("Unknown setting type");
         }
 
-        private async Task RaiseExceptionIfSettingNotReceived()
+
+        private async void RaiseExceptionIfSettingNotReceived()
         {
-            try
-            {
-                await Task.Delay(_setting.WaitForSettingDelay, _settingReceptionCancellationTokenSource.Token);
+            await Task.Delay(_setting.WaitForSettingDelay);
 
-                if (!_waitForSettingReception.Task.IsCompleted)
-                    _waitForSettingReception.SetException(new H2Exception(
-                        $"Server settings was not received under {(int)_setting.WaitForSettingDelay.TotalMilliseconds}.", 
-                        H2ErrorCode.SettingsTimeout, null));
-            }
-            catch (TaskCanceledException)
+            if (!_waitForSettingReception.Task.IsCompleted)
             {
-
+                _waitForSettingReception.SetException(new H2Exception(
+                    $"Server settings was not received under {(int)_setting.WaitForSettingDelay.TotalMilliseconds}.",
+                    H2ErrorCode.SettingsTimeout, null));
             }
+        }
+
+
+        private async Task WaitForSettingReceivedOrRaiseException()
+        {
+            RaiseExceptionIfSettingNotReceived();
+            await _waitForSettingReception.Task;
+            //await taskValidation; 
         }
 
         public async Task Init()
@@ -146,13 +152,14 @@ namespace Echoes.H2
             await _baseStream.WriteAsync(Preface, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
             // Write setting 
-            await SettingHelper.WriteSetting(_baseStream, _setting.Local, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+            await SettingHelper.WriteSetting(_baseStream,
+                _setting.Local, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
             _innerReadTask = InternalReadLoop();
             // Wait from setting reception 
             _innerWriteRun = InternalWriteLoop();
             
-            var cancelTask = RaiseExceptionIfSettingNotReceived();
+            var cancelTask = WaitForSettingReceivedOrRaiseException();
 
             await _waitForSettingReception.Task.ConfigureAwait(false);
 
@@ -161,12 +168,13 @@ namespace Echoes.H2
         
         private void OnGoAway(GoAwayFrame frame)
         {
+           //  Logger.WriteLine($"Goaway : Error code {frame.ErrorCode} : LastStreamId {frame.LastStreamId}");
+
             if (frame.ErrorCode != H2ErrorCode.NoError)
             {
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
 
-            Logger.WriteLine($"Goaway : Error code {frame.ErrorCode} : LastStreamId {frame.LastStreamId}");
         }
 
         private void OnLoopEnd(Exception ex, bool releaseChannelItems)
@@ -222,6 +230,7 @@ namespace Echoes.H2
 
                             new WindowUpdateFrame(updateValue, streamId).Write(windowSizeBuffer);
 
+                            if (DebugContext.EnableNetworkFileDump)
                             Logger.WriteLine(
                                 $"Sending WindowUpdate : {updateValue} on {streamId} Merge : {element.Count()}");
 
@@ -249,8 +258,12 @@ namespace Echoes.H2
 
                                 await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
 
-                                Logger.WriteLine(
-                                    $"Sending {writeTask.BufferBytes.Length} on streamId {writeTask.StreamIdentifier}");
+                                Logger.WriteLine(writeTask);
+
+                                if (DebugContext.EnableNetworkFileDump)
+                                    if (writeTask.FrameType == H2FrameType.Data)
+                                    Logger.WriteLine("Overall window state = " +
+                                                     _overallWindowSizeHolder.WindowSize);
 
                                 writeTask.OnComplete(null);
                             }
@@ -302,15 +315,17 @@ namespace Echoes.H2
             {
                 while (_connectionCancellationTokenSource != null && !_connectionCancellationTokenSource.IsCancellationRequested)
                 {
-                    var frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
+                    H2FrameReadResult frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
                     var str = frame.ToString();
                     
                     _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 
-                    Logger.WriteLine(
-                        $"Receiving {frame.BodyType} ({frame.BodyLength}) on streamId {frame.StreamIdentifier} / Flags : {frame.Flags}");
+                    Logger.WriteLine(ref frame, _overallWindowSizeHolder);
+
+                    //Logger.WriteLine(
+                    //    $"Receiving {frame.BodyType} ({frame.BodyLength}) on streamId {frame.StreamIdentifier} / Flags : {frame.Flags}");
 
                     if (frame.BodyType == H2FrameType.Settings)
                     {
@@ -390,7 +405,7 @@ namespace Echoes.H2
                             continue;
                         }
 
-                        activeStream.NotifyRemoteWindowUpdate(windowSizeIncrement);
+                        activeStream.NotifyStreamWindowUpdate(windowSizeIncrement);
 
                         continue;
                     }

@@ -85,6 +85,13 @@ namespace Echoes.H2
             }
         }
 
+        public string WindowSizeStatus()
+        {
+            return string.Join(",",
+                _runningStreams.Values.ToList().OrderBy(r => r.StreamIdentifier)
+                    .Select(s => $"({s.StreamIdentifier} , {s.RemoteWindowSize.WindowSize})")); 
+        }
+
         internal Exception GoAwayException { get; private set; }
 
         public void OnGoAway(Exception ex)
