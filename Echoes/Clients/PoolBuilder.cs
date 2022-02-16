@@ -73,13 +73,11 @@ namespace Echoes
                     return pool;
 
                 //  pool 
-                if (clientSetting.TunneledOnly)
+                if (clientSetting.TunneledOnly || exchange.Request.Header.IsWebSocketRequest)
                 {
                     var tunneledConnectionPool = new TunnelOnlyConnectionPool(
                         exchange.Authority, _timingProvider,
                         _remoteConnectionBuilder, clientSetting);
-
-                    
 
                     return result = _connectionPools[exchange.Authority] = tunneledConnectionPool;
                 }

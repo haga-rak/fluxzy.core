@@ -30,6 +30,8 @@ namespace Echoes.IO
                 await destination.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
                 onContentCopied(read);
 
+                await destination.FlushAsync(cancellationToken);
+
                 totalCopied += read;
             }
 

@@ -83,7 +83,10 @@ namespace Echoes.Core
                                 exchange.Response.Header.ForceTransferChunked();
                             }
 
+                            // Writing the received header to downstream
                             var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true);
+
+
                             headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
 
                             shouldClose = exchange.Response

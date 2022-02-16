@@ -125,7 +125,10 @@ namespace Echoes
             return new ExchangeBuildingResult(plainAuthority, plainStream, new Exchange(plainAuthority, 
                 plainHeader, plainHeader.ContentLength > 0
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                    : StreamUtils.EmptyStream, "HTTP/1.1")); 
+                    : StreamUtils.EmptyStream, "HTTP/1.1")
+            {
+                BaseStream = plainStream
+            }); 
         }
 
         public async Task<Exchange> ReadExchange(
@@ -160,7 +163,10 @@ namespace Echoes
                 secureHeader.ContentLength > 0
                     ? new ContentBoundStream(sslStream, secureHeader.ContentLength)
                     : StreamUtils.EmptyStream, null
-            );
+            )
+            {
+                BaseStream = sslStream
+            };
         }
     }
 }

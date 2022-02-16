@@ -88,7 +88,6 @@ namespace Echoes.H11
             _bufferSize = bufferSize;
         }
 
-
         public async Task Process(Exchange exchange, CancellationToken cancellationToken)
         {
             if (exchange.BaseStream == null)
@@ -99,6 +98,14 @@ namespace Echoes.H11
                 _creationSetting,
                 cancellationToken
             ).ConfigureAwait(false);
+
+            if (exchange.Request.Header.IsWebSocketRequest)
+            {
+                var buffer = new byte[exchange.Request.Header.HeaderLength];
+                var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
+
+                await exchange.UpStream.WriteAsync(buffer, 0, headerLength, cancellationToken);
+            }
 
             try
             {

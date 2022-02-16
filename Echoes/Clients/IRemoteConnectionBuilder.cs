@@ -56,10 +56,9 @@ namespace Echoes
 
             var currentStream = tcpClient.GetStream();
 
-            if (blind || !exchange.Authority.Secure)
+            if (!exchange.Authority.Secure)
             {
                 exchange.UpStream = currentStream;
-
                 return  RemoteConnectionResult.Unknown;
             }
 

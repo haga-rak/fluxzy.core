@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,14 +16,17 @@ namespace Echoes.H2.Tests
 {
     public class ProxyTests
     {
+        private const string Http11Host = "sandbox.smartizy.com";
+        private const string Http2Host = "sandbox.smartizy.com:5001";
+
         static ProxyTests()
         {
             // Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
         }
         
         [Theory]
-        [InlineData("sandbox.smartizy.com")]
-        [InlineData("sandbox.smartizy.com:5001")]
+        [InlineData(Http11Host)]
+        [InlineData(Http2Host)]
         public async Task Proxy_SingleRequest(string host)
         {
             using var proxy = new AddHocProxy(PortProvider.Next(), 1, 10);
@@ -51,8 +56,8 @@ namespace Echoes.H2.Tests
         }
 
         [Theory]
-        [InlineData("sandbox.smartizy.com")]
-        [InlineData("sandbox.smartizy.com:5001")]
+        [InlineData(Http11Host)]
+        [InlineData(Http2Host)]
         public async Task Proxy_MultipleRequest(string host)
         {
             int concurrentCount = 15; 
@@ -87,6 +92,36 @@ namespace Echoes.H2.Tests
             using var response = await httpClient.SendAsync(requestMessage);
 
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
+        }
+
+        [Fact]
+        public async Task Proxy_WebSockets()
+        {
+            var message = Encoding.ASCII.GetBytes("Hello world!");
+
+            using var proxy = new AddHocProxy(PortProvider.Next(), 1, 10);
+
+            using ClientWebSocket ws = new()
+            {
+                Options = { Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}") }
+            }; 
+            
+            var uri = new Uri("wss://sandbox.smartizy.com:5001/websocket");
+            Memory<byte> buffer = new byte[4096];
+
+            await ws.ConnectAsync(uri, CancellationToken.None);
+            await ws.ReceiveAsync(buffer, CancellationToken.None); 
+
+            var hash = Convert.ToBase64String(SHA1.HashData(message));
+
+            await ws.SendAsync(message, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage,
+                CancellationToken.None);
+
+            var res = await ws.ReceiveAsync(buffer, CancellationToken.None);
+
+            var resultHash = Encoding.ASCII.GetString(buffer.Slice(0, res.Count).Span);
+
+            Assert.Equal(hash, resultHash);
         }
 
         [Fact]

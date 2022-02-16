@@ -98,6 +98,7 @@ namespace Echoes.H2.Encoder.Utils
         public static readonly ReadOnlyMemory<char> HostVerb = "host".AsMemory();
         public static readonly ReadOnlyMemory<char> CookieVerb = "cookie".AsMemory();
         public static readonly ReadOnlyMemory<char> ConnectionVerb = "connection".AsMemory();
+        public static readonly ReadOnlyMemory<char> UpgradeVerb = "upgrade".AsMemory();
         public static readonly ReadOnlyMemory<char> ContentLength = "content-length".AsMemory();
         public static readonly ReadOnlyMemory<char> TransfertEncodingVerb = "transfer-encoding".AsMemory();
         public static readonly ReadOnlyMemory<char> KeepAliveVerb = "keep-alive".AsMemory();

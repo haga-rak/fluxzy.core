@@ -20,6 +20,11 @@ namespace Echoes
             Authority = this[Http11Constants.AuthorityVerb].First().Value;
             Path = this[Http11Constants.PathVerb].First().Value;
             Method = this[Http11Constants.MethodVerb].First().Value;
+            IsWebSocketRequest = this[Http11Constants.ConnectionVerb]
+                .Any(c => c.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase)) 
+                && 
+                this[Http11Constants.Upgrade]
+                .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase)); 
         }
 
         public ReadOnlyMemory<char> Authority { get;  }
@@ -27,6 +32,8 @@ namespace Echoes
         public ReadOnlyMemory<char> Path { get;  }
 
         public ReadOnlyMemory<char> Method { get;  }
+
+        public bool IsWebSocketRequest { get;  }
 
         protected override int WriteHeaderLine(Span<byte> buffer)
         {
