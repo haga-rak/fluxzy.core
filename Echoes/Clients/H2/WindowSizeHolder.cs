@@ -11,7 +11,6 @@ namespace Echoes.H2
         private readonly int _streamIdentifier;
 
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private SemaphoreSlim _semaphoreRequest = new SemaphoreSlim(1);
 
         public WindowSizeHolder(int windowSize, int streamIdentifier)
         {
@@ -28,35 +27,26 @@ namespace Echoes.H2
             Interlocked.Add(ref _windowSize, windowSizeIncrement);
             _semaphore?.Release(_semaphore.CurrentCount);
 
-
-
             if (StreamIdentifier == 0)
             {
-                Debug.WriteLine("Window Size : "  + _windowSize);
+              //  Debug.WriteLine("Window Size : "  + _windowSize);
             }
             // Wakeup at least 
         }
 
         public async ValueTask<bool> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested || _semaphoreRequest == null)
+            if (cancellationToken.IsCancellationRequested)
                 return false;
 
-            if (_windowSize >= requestedLength)
-                try
+            lock (this)
+            {
+                if (_windowSize >= requestedLength)
                 {
-                    await _semaphoreRequest.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-                    if (_windowSize >= requestedLength)
-                    {
-                        _windowSize -= requestedLength;
-                        return true;
-                    }
+                    _windowSize -= requestedLength;
+                    return true;
                 }
-                finally
-                {
-                    _semaphoreRequest.Release();
-                }
+            }
 
             try
             {
@@ -74,8 +64,6 @@ namespace Echoes.H2
         {
             _semaphore?.Dispose();
             _semaphore = null;
-            _semaphoreRequest?.Dispose();
-            _semaphoreRequest = null;
 
 
         }

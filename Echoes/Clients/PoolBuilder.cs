@@ -57,8 +57,7 @@ namespace Echoes
             ClientSetting clientSetting, 
             CancellationToken cancellationToken = default)
         {
-            // At this point, we just come to receive an http request demand
-            // we still don't know if the remote server is HTTP/2 capable or not
+            // At this point, we'll trying the suitable pool for exchange
 
             IHttpConnectionPool result = null;
 
@@ -69,6 +68,7 @@ namespace Echoes
                 await semaphore.WaitAsync(cancellationToken); 
 
                 // Looking for existing HttpPool
+
                 if (_connectionPools.TryGetValue(exchange.Authority, out var pool))
                     return pool;
 
@@ -90,40 +90,44 @@ namespace Echoes
 
                     exchange.HttpVersion = "HTTP/1.1";
 
+
                     return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
                 }
 
                 // HTTPS test 1.1/2
-
-                var negotiatedProtocol =
-                    await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, false,
+                var openingResult =
+                    await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false,
                         AllProtocols, clientSetting, cancellationToken);
 
-                if (negotiatedProtocol == RemoteConnectionResult.Http11)
+                if (openingResult.Type == RemoteConnectionResultType.Http11)
                 {
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, exchange.Connection,
-                        exchange.UpStream,
+                        openingResult.OpenedStream,
                         _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser);
 
-                    exchange.HttpVersion = "HTTP/2";
-
+                    exchange.HttpVersion = "HTTP/1.1";
+                    
                     return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
                 }
 
-                if (negotiatedProtocol == RemoteConnectionResult.Http2)
+                if (openingResult.Type == RemoteConnectionResultType.Http2)
                 {
-                    var h2ConnectionPool = new H2ConnectionPool(exchange.UpStream, new H2StreamSetting(),
+                    var h2ConnectionPool = new H2ConnectionPool(openingResult.OpenedStream, new H2StreamSetting(),
                         exchange.Authority, exchange.Connection);
+
+                    exchange.HttpVersion = "HTTP/2";
 
                     return result = _connectionPools[exchange.Authority] = h2ConnectionPool;
                 }
 
-                throw new NotSupportedException($"Unhandled protocol type {negotiatedProtocol}");
+                throw new NotSupportedException($"Unhandled protocol type {openingResult.Type}");
             }
             finally
             {
                 if (result != null) 
                     await result.Init();
+
+
 
                 semaphore.Release(); 
             }

@@ -21,7 +21,7 @@ namespace Echoes.H2.Tests
 
         static ProxyTests()
         {
-            // Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
+             Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
         }
         
         [Theory]

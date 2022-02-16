@@ -14,14 +14,14 @@ namespace Echoes.H11
     public class TunnelOnlyConnectionPool : IHttpConnectionPool
     {
         private readonly ITimingProvider _timingProvider;
-        private readonly IRemoteConnectionBuilder _connectionBuilder;
+        private readonly RemoteConnectionBuilder _connectionBuilder;
         private readonly ClientSetting _clientSetting;
         private SemaphoreSlim _semaphoreSlim; 
 
         public TunnelOnlyConnectionPool(
             Authority authority, 
             ITimingProvider timingProvider,
-            IRemoteConnectionBuilder connectionBuilder,
+            RemoteConnectionBuilder connectionBuilder,
             ClientSetting clientSetting)
         {
             _timingProvider = timingProvider;
@@ -71,13 +71,13 @@ namespace Echoes.H11
     {
         private readonly Authority _authority;
         private readonly ITimingProvider _timingProvider;
-        private readonly IRemoteConnectionBuilder _remoteConnectionBuilder;
+        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ClientSetting _creationSetting;
         private readonly int _bufferSize;
 
         public TunneledConnectionProcess(Authority authority,
             ITimingProvider timingProvider,
-            IRemoteConnectionBuilder remoteConnectionBuilder,
+            RemoteConnectionBuilder remoteConnectionBuilder,
             ClientSetting creationSetting,
             int bufferSize = 1024 * 16 )
         {
@@ -93,11 +93,13 @@ namespace Echoes.H11
             if (exchange.BaseStream == null)
                 throw new ArgumentNullException(nameof(exchange.BaseStream));
 
-            await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, true,
+            var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, true,
                 new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
                 _creationSetting,
-                cancellationToken
-            ).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
+
+            exchange.UpStream = openingResult.OpenedStream;
+            exchange.Connection = openingResult.Connection;
 
             if (exchange.Request.Header.IsWebSocketRequest)
             {

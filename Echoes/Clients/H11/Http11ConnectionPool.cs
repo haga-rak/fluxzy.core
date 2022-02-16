@@ -1,6 +1,7 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Echoes.H11
     {
         private static readonly List<SslApplicationProtocol> Http11Protocols = new List<SslApplicationProtocol>() { SslApplicationProtocol.Http11 };
         
-        private readonly IRemoteConnectionBuilder _remoteConnectionBuilder;
+        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
         private readonly ClientSetting _clientSetting;
         private readonly Http11Parser _parser;
@@ -27,7 +28,7 @@ namespace Echoes.H11
         public Http11ConnectionPool(
             Authority authority, 
             Connection ? connection, Stream ? existingStream, 
-            IRemoteConnectionBuilder remoteConnectionBuilder,
+            RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
             ClientSetting clientSetting, 
             Http11Parser parser)
@@ -52,15 +53,20 @@ namespace Echoes.H11
             return Task.CompletedTask; 
         }
 
+        private ConcurrentDictionary<int, int> _exchangePassed = new();
+
         public async ValueTask Send(Exchange exchange, CancellationToken cancellationToken)
         {
             exchange.HttpVersion = "HTTP/1.1";
 
             try
             {
-                // Looks like we are already sure that this connection is gonna be HTTP/2
-
                 await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                if (exchange.UpStream != null)
+                {
+
+                }
 
                 lock (_processingStates)
                 {
@@ -74,16 +80,30 @@ namespace Echoes.H11
                             continue; 
                         }
 
-                        exchange.UpStream = state.Stream; 
+                        exchange.UpStream = state.Stream;
+                        exchange.Connection = state.Connection; 
+                    }
+                }
 
-                        // where is my connection ? 
+                lock (_exchangePassed)
+                {
+                    _exchangePassed.GetOrAdd(exchange.Id, _ => 0);
+                    var res = _exchangePassed[exchange.Id]++;
+
+                    if (res > 1)
+                    {
+
                     }
                 }
 
                 if (exchange.UpStream == null)
                 {
-                    await _remoteConnectionBuilder.OpenConnectionToRemote(exchange, false, Http11Protocols,
+                    var openingResult = 
+                        await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false, Http11Protocols,
                         _clientSetting, cancellationToken);
+
+                    exchange.UpStream = openingResult.OpenedStream;
+                    exchange.Connection = openingResult.Connection; 
                 }
 
                 var poolProcessing = new Http11PoolProcessing(_timingProvider, _clientSetting, _parser);

@@ -48,14 +48,20 @@ namespace Echoes.H11
             var bufferRaw = new byte[_clientSetting.MaxHeaderSize];
             Memory<byte> headerBuffer = bufferRaw;
 
+            exchange.Connection.AddNewRequestProcessed();
+
             exchange.Metrics.RequestHeaderSending = _timingProvider.Instant();
 
             var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true);
+            
+            // Sending request header 
 
             await exchange.UpStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
 
             exchange.Metrics.TotalSent += headerLength;
             exchange.Metrics.RequestHeaderSent = _timingProvider.Instant();
+
+            // Sending request body 
 
             if (exchange.Request.Body != null)
             {

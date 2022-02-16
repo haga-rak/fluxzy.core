@@ -10,27 +10,31 @@ using Echoes.IO;
 
 namespace Echoes
 {
-    /// <summary>
-    /// The role of this object is to provide a remote connection
-    /// </summary>
-    public interface IRemoteConnectionBuilder
-    {
-        ValueTask<RemoteConnectionResult> OpenConnectionToRemote(Exchange exchange, bool blind,
-            List<SslApplicationProtocol> httpProtocols, ClientSetting setting, CancellationToken token); 
-    }
-
-    public enum RemoteConnectionResult : byte
+    public enum RemoteConnectionResultType : byte
     {
         Unknown = 0,
         Http11,
         Http2
     }
 
-    public class RemoteConnectionBuilder : IRemoteConnectionBuilder
+    public class RemoteConnectionResult
     {
-        
+        public RemoteConnectionResult(RemoteConnectionResultType type, Stream openedStream, Connection connection)
+        {
+            Type = type;
+            OpenedStream = openedStream;
+            Connection = connection;
+        }
 
+        public RemoteConnectionResultType Type { get; }
 
+        public Stream OpenedStream { get;  }
+
+        public Connection Connection { get;  }
+    }
+
+    public class RemoteConnectionBuilder
+    {
         private readonly ITimingProvider _timeProvider;
 
         public RemoteConnectionBuilder(ITimingProvider timeProvider)
@@ -39,7 +43,7 @@ namespace Echoes
         }
 
         public async ValueTask<RemoteConnectionResult> OpenConnectionToRemote(
-            Exchange exchange,
+            Authority authority, 
             bool blind,
             List<SslApplicationProtocol> httpProtocols,
             ClientSetting setting, 
@@ -47,48 +51,50 @@ namespace Echoes
         {
             var tcpClient = new TcpClient();
 
-            exchange.Connection = new Connection(exchange.Authority);
-            exchange.Connection.TcpConnectionOpening = _timeProvider.Instant();
-
-            await tcpClient.ConnectAsync(exchange.Authority.HostName, exchange.Authority.Port).ConfigureAwait(false);
-
-            exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
-
-            var currentStream = tcpClient.GetStream();
-
-            if (!exchange.Authority.Secure)
+            var connection = new Connection(authority)
             {
-                exchange.UpStream = currentStream;
-                return  RemoteConnectionResult.Unknown;
+                TcpConnectionOpening = _timeProvider.Instant()
+            };
+
+            await tcpClient.ConnectAsync(authority.HostName, authority.Port).ConfigureAwait(false);
+
+            connection.TcpConnectionOpened = _timeProvider.Instant();
+
+            var newlyOpenedStream = tcpClient.GetStream();
+            
+            if (!authority.Secure)
+            {
+                return new RemoteConnectionResult(RemoteConnectionResultType.Unknown, newlyOpenedStream, connection);
             }
 
-            exchange.Connection.SslNegotiationStart = _timeProvider.Instant();
+            connection.SslNegotiationStart = _timeProvider.Instant();
 
-            var sslStream = new SslStream(currentStream, true, setting.CertificateValidationCallback);
-
-            exchange.UpStream = sslStream;
+            var sslStream = new SslStream(newlyOpenedStream, false, setting.CertificateValidationCallback);
+            Stream outStream = sslStream; 
 
             SslClientAuthenticationOptions authenticationOptions = new SslClientAuthenticationOptions()
             {
-                ClientCertificates = setting.GetCertificateByHost(exchange.Authority.HostName), 
-                TargetHost = exchange.Authority.HostName , 
+                ClientCertificates = setting.GetCertificateByHost(authority.HostName), 
+                TargetHost = authority.HostName , 
                 EnabledSslProtocols = setting.ProxyTlsProtocols,
                 ApplicationProtocols = httpProtocols
             };
 
             await sslStream.AuthenticateAsClientAsync(authenticationOptions, token).ConfigureAwait(false);
 
-            exchange.Connection.SslNegotiationEnd = _timeProvider.Instant();
+            connection.SslNegotiationEnd = _timeProvider.Instant();
 
             if (DebugContext.EnableNetworkFileDump)
             {
-                exchange.UpStream = new DebugFileStream($"raw/{exchange.Id:0000}_remotehost_",
-                    exchange.UpStream); 
+                outStream = new DebugFileStream($"raw/{connection.Id:000000}_remotehost_",
+                    outStream); 
             }
 
-            return sslStream.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2
-                ? RemoteConnectionResult.Http2
-                : RemoteConnectionResult.Http11; 
+            var protoType =  sslStream.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2
+                ? RemoteConnectionResultType.Http2
+                : RemoteConnectionResultType.Http11;
+
+            return new RemoteConnectionResult(protoType, outStream, connection);
         }
     }
 }

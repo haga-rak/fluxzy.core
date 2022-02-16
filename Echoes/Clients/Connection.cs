@@ -8,8 +8,9 @@ namespace Echoes
     /// </summary>
     public class Connection
     {
-        private static int _connectionIdCounter = 0; 
-        
+        private static int _connectionIdCounter = 0;
+        private int _requestProcessed;
+
         public Connection(Authority authority)
         {
             Authority = authority;
@@ -19,6 +20,16 @@ namespace Echoes
         public string HttpVersion { get; set; }
 
         public int Id { get; set; }
+
+        public int RequestProcessed
+        {
+            get => _requestProcessed;
+        }
+
+        public void AddNewRequestProcessed()
+        {
+            Interlocked.Increment(ref _requestProcessed);
+        }
 
         public Authority Authority { get; set; }
 

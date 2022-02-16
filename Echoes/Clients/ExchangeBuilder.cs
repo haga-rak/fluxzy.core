@@ -111,7 +111,8 @@ namespace Echoes
                     AcceptTunnelResponseString.AsMemory(), 
                     null, false, _http11Parser, "HTTP/1.1")
                     {
-                        BaseStream = sslStream
+                        BaseStream = sslStream,
+                        Connection = new Connection(authority)
                     });
             }
 
@@ -127,7 +128,8 @@ namespace Echoes
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
                     : StreamUtils.EmptyStream, "HTTP/1.1")
             {
-                BaseStream = plainStream
+                BaseStream = plainStream,
+                Connection = new Connection(plainAuthority)
             }); 
         }
 
@@ -165,7 +167,8 @@ namespace Echoes
                     : StreamUtils.EmptyStream, null
             )
             {
-                BaseStream = sslStream
+                BaseStream = sslStream,
+                Connection = new Connection(authority)
             };
         }
     }
