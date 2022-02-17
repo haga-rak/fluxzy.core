@@ -13,6 +13,10 @@ namespace Echoes
 
         
         public static bool EnableWindowSizeTrace { get; }
+        
+        public static bool EnableDumpStackTraceOn502 { get; }
+            = !string.IsNullOrWhiteSpace(Environment
+                .GetEnvironmentVariable("Echoes_EnableWindowSizeTrace"));
 
 
         public static string SessionDate { get; }  = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss"); 
@@ -23,7 +27,7 @@ namespace Echoes
         /// Can be modified by setting environment variable "Echoes_FileDumpDirectory" ; 
         /// 
         /// </summary>
-        public static string NetworkFileDumpDirectory { get; } = "";
+        public static string NetworkFileDumpDirectory { get; } 
 
         public static string WindowSizeTraceDumpDirectory { get; } = "trace";
 

@@ -188,7 +188,6 @@ namespace Echoes.H2
                 _streamPool.OnGoAway(ex);
             }
 
-
             _connectionCancellationTokenSource?.Cancel();
 
             if (releaseChannelItems && _writerChannel != null)
@@ -280,7 +279,8 @@ namespace Echoes.H2
                     else
                     {
                         // async wait 
-                        if (!await _writerChannel.Reader.WaitToReadAsync(_connectionCancellationTokenSource.Token))
+                        if (!_connectionCancellationTokenSource.IsCancellationRequested 
+                            && !await _writerChannel.Reader.WaitToReadAsync(_connectionCancellationTokenSource.Token))
                         {
                             break;
                         }

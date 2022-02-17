@@ -23,7 +23,7 @@ namespace Echoes.H2.Tests.Tools
 
         private int _requestCount = 0; 
 
-        public AddHocProxy(int portNumber, int expectedRequestCount, int timeoutSeconds = 5)
+        public AddHocProxy(int portNumber, int expectedRequestCount = 1, int timeoutSeconds = 5)
         {
             _portNumber = portNumber;
             _expectedRequestCount = expectedRequestCount;
@@ -70,7 +70,7 @@ namespace Echoes.H2.Tests.Tools
 
             if (Interlocked.Increment(ref _requestCount) >= _expectedRequestCount)
             {
-                _completionSource.SetResult();
+                _completionSource.TrySetResult();
             }
 
             return Task.CompletedTask; 

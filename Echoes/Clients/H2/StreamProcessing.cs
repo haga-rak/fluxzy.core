@@ -141,10 +141,10 @@ namespace Echoes.H2
             _currentStreamCancellationTokenSource.Cancel(true);
 
 
-            _responseBodyComplete.SetResult(null);
+            _responseBodyComplete.TrySetResult(null);
             _parent.NotifyDispose(this);
             _exchange.ExchangeCompletionSource
-                .SetException(new ExchangeException($"Receive  RST : {errorCode} from server"));
+                .TrySetException(new ExchangeException($"Receive  RST : {errorCode} from server"));
         }
 
         public void SetPriority(PriorityFrame priorityFrame)

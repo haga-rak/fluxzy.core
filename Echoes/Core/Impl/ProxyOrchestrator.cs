@@ -41,7 +41,7 @@ namespace Echoes.Core
         {
             try
             {
-                while (!token.IsCancellationRequested)
+                if (!token.IsCancellationRequested)
                 {
                     // READ initial state of connection, 
                     var localConnection =
@@ -61,12 +61,26 @@ namespace Echoes.Core
                     do
                     {
                         string headerContent = null; 
+
                         if (exchange != null && !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
                             var connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
 
                             // Actual request send 
-                            await connectionPool.Send(exchange, localConnection, token);
+
+                            try
+                            {
+                                await connectionPool.Send(exchange, localConnection, token);
+                            }
+                            catch (Exception exception)
+                            {
+                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange))
+                                {
+                                    throw; 
+                                }
+
+                                shouldClose = true; 
+                            }
 
                             // We do not need to read websocket response
 
