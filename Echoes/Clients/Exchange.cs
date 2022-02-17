@@ -109,17 +109,7 @@ namespace Echoes
         /// the proxy and the remote server 
         /// </summary>
         public Connection Connection { get; set; }
-
-        /// <summary>
-        /// Stream between the client and the proxy  
-        /// </summary>
-        public Stream BaseStream { get; set; }
-
-        /// <summary>
-        /// Stream between the proxy and the server
-        /// </summary>
-        public Stream UpStream { get; set; }
-
+        
         /// <summary>
         /// Contains a list of errors occured in this proxy 
         /// </summary>

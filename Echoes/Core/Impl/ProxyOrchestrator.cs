@@ -19,7 +19,6 @@ namespace Echoes.Core
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
         private ProxyMessageDispatcher _dispatcher;
-        
 
         public ProxyOrchestrator(
             Func<Exchange, Task> exchangeListener,
@@ -42,19 +41,17 @@ namespace Echoes.Core
         {
             try
             {
-                var loopCount = 0;
-
                 while (!token.IsCancellationRequested)
                 {
                     // READ initial state of connection, 
-                    var connectionState =
+                    var localConnection =
                         await _exchangeBuilder.InitClientConnection(client.GetStream(), _startupSetting, token);
 
-                    if (connectionState == null)
+                    if (localConnection == null)
                         return;
 
                     Exchange exchange =
-                        connectionState.ProvisionalExchange;
+                        localConnection.ProvisionalExchange;
                     
                     byte [] buffer = new byte[1024 * 32];
 
@@ -69,15 +66,7 @@ namespace Echoes.Core
                             var connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
 
                             // Actual request send 
-
-                            loopCount++;
-
-                            if (exchange.UpStream != null && loopCount == 1)
-                            {
-
-                            }
-
-                            await connectionPool.Send(exchange, token);
+                            await connectionPool.Send(exchange, localConnection, token);
 
                             // We do not need to read websocket response
 
@@ -106,7 +95,7 @@ namespace Echoes.Core
                                     .Header["Connection".AsMemory()].Any(c =>
                                         c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
 
-                                await connectionState.Stream.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
+                                await localConnection.WriteStream.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
                                     token);
 
                                 if (_exchangeListener != null)
@@ -117,7 +106,7 @@ namespace Echoes.Core
                                 if (exchange.Response.Header.ContentLength != 0 &&
                                     exchange.Response.Body != null)
                                 {
-                                    var destStream = connectionState.Stream;
+                                    var destStream = localConnection.WriteStream;
 
                                     if (exchange.Response.Header.ChunkedBody)
                                     {
@@ -129,15 +118,13 @@ namespace Echoes.Core
 
                                     (destStream as ChunkedTransferWriteStream)?.WriteEof();
 
-                                    await connectionState.Stream.FlushAsync(CancellationToken.None);
+                                    await localConnection.WriteStream.FlushAsync(CancellationToken.None);
                                 }
 
                                 // In case the down stream connection is persisted, 
                                 // we wait for the current exchange to complete before reading further request
                                 shouldClose =  shouldClose || await exchange.Complete; 
                             }
-
-                            
                         }
 
                         if (shouldClose)
@@ -145,9 +132,10 @@ namespace Echoes.Core
                             break;
                         }
 
+                        // Read the nex HTTP message 
                         exchange = await _exchangeBuilder.ReadExchange(
-                            connectionState.Stream,
-                            connectionState.Authority,
+                            localConnection.ReadStream,
+                            localConnection.Authority,
                             buffer, token
                         );
 

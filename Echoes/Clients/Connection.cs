@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 
 namespace Echoes
@@ -6,7 +7,7 @@ namespace Echoes
     /// <summary>
     /// Contains information about transport layer 
     /// </summary>
-    public class Connection
+    public class Connection : IRemoteLink
     {
         private static int _connectionIdCounter = 0;
         private int _requestProcessed;
@@ -16,6 +17,10 @@ namespace Echoes
             Authority = authority;
             Id = Interlocked.Increment(ref _connectionIdCounter);
         }
+
+        public Stream WriteStream { get; set; }
+
+        public Stream ReadStream { get; set; }
 
         public string HttpVersion { get; set; }
 

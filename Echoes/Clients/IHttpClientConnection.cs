@@ -15,6 +15,6 @@ namespace Echoes
         
         Task Init();
         
-        ValueTask Send(Exchange exchange, CancellationToken cancellationToken = default);
+        ValueTask Send(Exchange exchange, ILocalLink localLink, CancellationToken cancellationToken = default);
     }
 }

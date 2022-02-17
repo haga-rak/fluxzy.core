@@ -23,6 +23,7 @@ namespace Echoes.H2
         private CancellationTokenSource _connectionCancellationTokenSource = new CancellationTokenSource();
         
         private readonly H2StreamSetting _setting;
+        private readonly Action<H2ConnectionPool> _onConnectionFaulted;
 
         private readonly StreamPool _streamPool;
 
@@ -44,13 +45,14 @@ namespace Echoes.H2
             Stream baseStream,
             H2StreamSetting setting,
             Authority authority, 
-            Connection connection
+            Connection connection, Action<H2ConnectionPool> onConnectionFaulted
             )
         {
             Authority = authority;
             _baseStream = baseStream;
             _streamReader = new H2Reader();
             _setting = setting;
+            _onConnectionFaulted = onConnectionFaulted;
 
             _overallWindowSizeHolder = new WindowSizeHolder(_setting.OverallWindowSize,0);
 
@@ -126,7 +128,6 @@ namespace Echoes.H2
             throw new InvalidOperationException("Unknown setting type");
         }
 
-
         private async void RaiseExceptionIfSettingNotReceived()
         {
             await Task.Delay(_setting.WaitForSettingDelay);
@@ -138,7 +139,6 @@ namespace Echoes.H2
                     H2ErrorCode.SettingsTimeout, null));
             }
         }
-
 
         private async Task WaitForSettingReceivedOrRaiseException()
         {
@@ -181,10 +181,13 @@ namespace Echoes.H2
         {
             // End the connection. This operation is idempotent. 
 
+            _onConnectionFaulted(this);
+
             if (ex != null)
             {
                 _streamPool.OnGoAway(ex);
             }
+
 
             _connectionCancellationTokenSource?.Cancel();
 
@@ -431,7 +434,7 @@ namespace Echoes.H2
         }
         
         public async ValueTask Send(
-            Exchange exchange,
+            Exchange exchange, ILocalLink _,
             CancellationToken cancellationToken = default)
         {
             exchange.HttpVersion = "HTTP/2"; 

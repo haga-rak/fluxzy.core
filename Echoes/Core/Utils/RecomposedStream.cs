@@ -44,6 +44,11 @@ namespace Echoes.Core.Utils
             return _readStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
 
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        {
+            return await _readStream.ReadAsync(buffer, cancellationToken);
+        }
+
         public override long Seek(long offset, SeekOrigin origin)
         {
             throw new NotSupportedException();
@@ -65,6 +70,14 @@ namespace Echoes.Core.Utils
                 return Task.CompletedTask; 
 
             return _writeStream.WriteAsync(buffer, offset, count, cancellationToken);
+        }
+
+        public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        {
+            if (cancellationToken.IsCancellationRequested || !_writeStream.CanWrite)
+                return; 
+
+            await _writeStream.WriteAsync(buffer, cancellationToken);
         }
 
         public override bool CanRead => _readStream.CanRead;

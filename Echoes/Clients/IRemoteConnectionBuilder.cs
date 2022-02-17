@@ -19,17 +19,14 @@ namespace Echoes
 
     public class RemoteConnectionResult
     {
-        public RemoteConnectionResult(RemoteConnectionResultType type, Stream openedStream, Connection connection)
+        public RemoteConnectionResult(RemoteConnectionResultType type, Connection connection)
         {
             Type = type;
-            OpenedStream = openedStream;
             Connection = connection;
         }
 
         public RemoteConnectionResultType Type { get; }
-
-        public Stream OpenedStream { get;  }
-
+        
         public Connection Connection { get;  }
     }
 
@@ -50,7 +47,7 @@ namespace Echoes
             CancellationToken token)
         {
             var tcpClient = new TcpClient();
-
+            
             var connection = new Connection(authority)
             {
                 TcpConnectionOpening = _timeProvider.Instant()
@@ -64,13 +61,15 @@ namespace Echoes
             
             if (!authority.Secure)
             {
-                return new RemoteConnectionResult(RemoteConnectionResultType.Unknown, newlyOpenedStream, connection);
+                connection.ReadStream = connection.WriteStream = newlyOpenedStream;
+                return new RemoteConnectionResult(RemoteConnectionResultType.Unknown,  connection);
             }
 
             connection.SslNegotiationStart = _timeProvider.Instant();
 
             var sslStream = new SslStream(newlyOpenedStream, false, setting.CertificateValidationCallback);
-            Stream outStream = sslStream; 
+
+            Stream resultStream = sslStream; 
 
             SslClientAuthenticationOptions authenticationOptions = new SslClientAuthenticationOptions()
             {
@@ -86,15 +85,17 @@ namespace Echoes
 
             if (DebugContext.EnableNetworkFileDump)
             {
-                outStream = new DebugFileStream($"raw/{connection.Id:000000}_remotehost_",
-                    outStream); 
+                resultStream = new DebugFileStream($"raw/{connection.Id:000000}_remotehost_",
+                    resultStream); 
             }
 
             var protoType =  sslStream.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2
                 ? RemoteConnectionResultType.Http2
                 : RemoteConnectionResultType.Http11;
 
-            return new RemoteConnectionResult(protoType, outStream, connection);
+            connection.ReadStream = connection.WriteStream = resultStream;
+
+            return new RemoteConnectionResult(protoType, connection);
         }
     }
 }

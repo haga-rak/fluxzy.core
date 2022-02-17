@@ -1,11 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Security;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,24 +9,50 @@ using Echoes.Core;
 using Echoes.H11;
 using Echoes.H2.Encoder.Utils;
 using Echoes.IO;
+using CombinedReadonlyStream = Echoes.IO.CombinedReadonlyStream;
 
 namespace Echoes
 {
-    public class ExchangeBuildingResult
+    public interface ILink 
     {
-        private static int Count = 0; 
+        Stream ReadStream { get; }
 
-        public ExchangeBuildingResult(Authority authority, Stream stream , Exchange provisionalExchange)
+        Stream WriteStream { get; }
+    }
+
+    public interface ILocalLink : ILink
+    {
+
+    }
+
+    public interface IRemoteLink : ILink
+    {
+
+    }
+
+    public class ExchangeBuildingResult : ILocalLink
+    {
+        private static int _count = 0; 
+
+        public ExchangeBuildingResult(
+            Authority authority, 
+            Stream readStream, 
+            Stream writeStream, 
+            Exchange provisionalExchange)
         {
-            Id = Interlocked.Increment(ref Count); 
+            Id = Interlocked.Increment(ref _count); 
             Authority = authority;
-            Stream = stream;
+            ReadStream = readStream;
+            WriteStream = writeStream;
             ProvisionalExchange = provisionalExchange;
 
             if (DebugContext.EnableNetworkFileDump)
             {
-                Stream = new DebugFileStream($"raw/{Id:0000}_browser_",
-                    stream);
+                ReadStream = new DebugFileStream($"raw/{Id:0000}_browser_",
+                    ReadStream);
+
+                WriteStream = new DebugFileStream($"raw/{Id:0000}_browser_",
+                    WriteStream);
             }
         }
 
@@ -38,7 +60,9 @@ namespace Echoes
 
         public Authority Authority { get;  }
 
-        public Stream Stream { get;  }
+        public Stream ReadStream { get; }
+
+        public Stream WriteStream { get; }
 
         public Exchange ProvisionalExchange { get; }
         
@@ -46,7 +70,7 @@ namespace Echoes
 
     public class ExchangeBuilder
     {
-        private readonly ISecureConnectionUpdater _secureConnectionUpdater;
+        private readonly SecureConnectionUpdater _secureConnectionUpdater;
         private readonly Http11Parser _http11Parser;
 
         private static string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: Keep-alive\r\n\r\n";
@@ -55,7 +79,7 @@ namespace Echoes
         private static readonly byte [] AcceptTunnelResponse =
             Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
 
-        public ExchangeBuilder(ISecureConnectionUpdater secureConnectionUpdater,
+        public ExchangeBuilder(SecureConnectionUpdater secureConnectionUpdater,
             Http11Parser http11Parser)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
@@ -102,18 +126,16 @@ namespace Echoes
 
                 // THIS LINE WILL THROWS IF CLIENT OPEN A TUNNEL FOR A WEBSOCKET PLAIN REQUEST
 
-                var sslStream = await _secureConnectionUpdater.AuthenticateAsServer(
-                    plainStream, authority.HostName);
+                var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
+                    plainStream, authority.HostName, token);
 
                 return 
-                    new ExchangeBuildingResult(authority, sslStream, new Exchange(
+                    new ExchangeBuildingResult(authority,
+                        authenticateResult.InStream,
+                        authenticateResult.OutStream, new Exchange(
                     authority, plainHeaderChars, null,
                     AcceptTunnelResponseString.AsMemory(), 
-                    null, false, _http11Parser, "HTTP/1.1")
-                    {
-                        BaseStream = sslStream,
-                        Connection = new Connection(authority)
-                    });
+                    null, false, _http11Parser, "HTTP/1.1"));
             }
 
             // Plain request 
@@ -123,23 +145,18 @@ namespace Echoes
 
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
 
-            return new ExchangeBuildingResult(plainAuthority, plainStream, new Exchange(plainAuthority, 
+            return new ExchangeBuildingResult(plainAuthority, plainStream, plainStream, new Exchange(plainAuthority, 
                 plainHeader, plainHeader.ContentLength > 0
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                    : StreamUtils.EmptyStream, "HTTP/1.1")
-            {
-                BaseStream = plainStream,
-                Connection = new Connection(plainAuthority)
-            }); 
+                    : StreamUtils.EmptyStream, "HTTP/1.1")); 
         }
 
         public async Task<Exchange> ReadExchange(
-            Stream sslStream, Authority authority, byte[] buffer,
+            Stream inStream, Authority authority, byte[] buffer,
             CancellationToken token)
         {
-            HeaderBlockReadResult blockReadResult;
-            blockReadResult = await
-                Http11PoolProcessing.DetectHeaderBlock(sslStream, buffer, () => { }, () => { }, false, token);
+            var blockReadResult = await
+                Http11PoolProcessing.DetectHeaderBlock(inStream, buffer, () => { }, () => { }, false, token);
 
             if (blockReadResult.TotalReadLength == 0)
                 return null;
@@ -151,25 +168,19 @@ namespace Echoes
 
             var secureHeader = new RequestHeader(secureHeaderChars, true, _http11Parser);
 
-            var bodyStream = sslStream;
-
             if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
             {
-                sslStream = new CombinedReadonlyStream(false,
+                inStream = new CombinedReadonlyStream(false,
                     new MemoryStream(buffer, blockReadResult.HeaderLength,
                         blockReadResult.TotalReadLength - blockReadResult.HeaderLength),
-                    sslStream); 
+                    inStream); 
             }
 
             return new Exchange(authority, secureHeader,
                 secureHeader.ContentLength > 0
-                    ? new ContentBoundStream(sslStream, secureHeader.ContentLength)
+                    ? new ContentBoundStream(inStream, secureHeader.ContentLength)
                     : StreamUtils.EmptyStream, null
-            )
-            {
-                BaseStream = sslStream,
-                Connection = new Connection(authority)
-            };
+            );
         }
     }
 }

@@ -56,7 +56,7 @@ namespace Echoes.H11
             
             // Sending request header 
 
-            await exchange.UpStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
+            await exchange.Connection.WriteStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
 
             exchange.Metrics.TotalSent += headerLength;
             exchange.Metrics.RequestHeaderSent = _timingProvider.Instant();
@@ -66,13 +66,13 @@ namespace Echoes.H11
             if (exchange.Request.Body != null)
             {
                 var totalBodySize = await
-                    exchange.Request.Body.CopyDetailed(exchange.UpStream, 1024 * 8,
+                    exchange.Request.Body.CopyDetailed(exchange.Connection.WriteStream, 1024 * 8,
                         (_) => { }, cancellationToken).ConfigureAwait(false);
                 exchange.Metrics.TotalSent += totalBodySize;
             }
 
             var headerBlockDetectResult = await
-                DetectHeaderBlock(exchange.UpStream, headerBuffer,
+                DetectHeaderBlock(exchange.Connection.ReadStream, headerBuffer,
                     () => exchange.Metrics.ResponseHeaderStart = _timingProvider.Instant(),
                     () => exchange.Metrics.ResponseHeaderEnd = _timingProvider.Instant(),
                     true,
@@ -99,7 +99,7 @@ namespace Echoes.H11
                 return shouldCloseConnection;
             }
 
-            Stream bodyStream = exchange.UpStream;
+            Stream bodyStream = exchange.Connection.ReadStream;
 
             Interlocked.Increment(ref count);
 
@@ -111,7 +111,7 @@ namespace Echoes.H11
                     new MemoryStream(bufferRaw, headerBlockDetectResult.HeaderLength, headerBlockDetectResult.TotalReadLength -
                         headerBlockDetectResult.HeaderLength
                     ),
-                    exchange.UpStream
+                    exchange.Connection.ReadStream
                 );
             }
 

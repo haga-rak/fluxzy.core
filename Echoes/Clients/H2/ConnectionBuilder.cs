@@ -41,7 +41,7 @@ namespace Echoes.H2
             var authority = new Authority(hostName, port, true);
 
             var connectionPool = new H2ConnectionPool(sslStream, setting ?? new H2StreamSetting(),
-                authority, new Connection(authority));
+                authority, new Connection(authority), _ => {});
 
             await connectionPool.Init();
 
@@ -52,7 +52,7 @@ namespace Echoes.H2
         public static async Task<Http11ConnectionPool> CreateH11(Authority authority, 
             CancellationToken token = default)
         {
-            var connectionPool =  new Http11ConnectionPool(authority, null, null,
+            var connectionPool =  new Http11ConnectionPool(authority, null,
                 new RemoteConnectionBuilder(ITimingProvider.Default),
                 ITimingProvider.Default, ClientSetting.Default, new Http11Parser(
                     ClientSetting.Default.MaxHeaderLineSize, new ArrayPoolMemoryProvider<char>()));

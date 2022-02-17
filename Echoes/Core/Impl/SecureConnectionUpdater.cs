@@ -3,13 +3,16 @@ using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Core.Utils;
+using Echoes.Helpers;
+using CombinedReadonlyStream = Echoes.IO.CombinedReadonlyStream;
 
 namespace Echoes.Core
 {
-    internal class SecureConnectionUpdater : ISecureConnectionUpdater
+    public class SecureConnectionUpdater
     {
         private readonly ICertificateProvider _certificateProvider;
 
@@ -17,11 +20,37 @@ namespace Echoes.Core
         {
             _certificateProvider = certificateProvider;
         }
-        
 
-        public async Task<SslStream> AuthenticateAsServer(Stream stream, string host)
+        private bool StartWithKeyWord(char[] buffer)
         {
-           var secureStream = new SslStream(stream, false);
+            ReadOnlySpan<char> c = buffer.AsSpan();
+            return c.Equals("GET ", StringComparison.OrdinalIgnoreCase); 
+        }
+
+        public async Task<SecureConnectionUpdateResult> AuthenticateAsServer(Stream stream, string host, CancellationToken token)
+        {
+            var buffer = new byte[4];
+            var bufferChar = new char[4];
+            var originalStream = stream; 
+
+
+            await stream.ReadExactAsync(buffer, 0, buffer.Length, token);
+
+            Encoding.ASCII.GetChars(buffer, bufferChar);
+            
+            if (StartWithKeyWord(bufferChar))
+            {
+                // Probably Web socket request 
+                // This is websocket demand 
+                return new SecureConnectionUpdateResult(false, true,
+                    new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
+                    stream);
+            }
+
+            stream = new CombinedReadonlyStream(false,
+                new MemoryStream(buffer), stream);
+
+            var secureStream = new SslStream(new RecomposedStream(stream, originalStream), false);
 
             using (var certificate = await _certificateProvider.GetCertificate(host).ConfigureAwait(false))
             {
@@ -36,8 +65,32 @@ namespace Echoes.Core
                     throw new EchoesException("Client closed connection while trying to negotiate SSL/TLS settings", ex);
                 }
             }
-            
-            return secureStream; 
+
+            return new SecureConnectionUpdateResult(false, true,
+                secureStream,
+                secureStream);
         }
+    }
+
+    public class SecureConnectionUpdateResult
+    {
+        public SecureConnectionUpdateResult(bool isSsl, bool isWebSocket,
+            Stream inStream, Stream outStream)
+        {
+            IsSsl = isSsl;
+            IsWebSocket = isWebSocket;
+            InStream = inStream;
+            OutStream = outStream;
+        }
+
+        public bool IsSsl { get;  }
+
+        public bool IsWebSocket { get;  }
+
+        public bool IsOnError => !IsSsl && !IsWebSocket; 
+
+        public Stream InStream { get;  }
+
+        public Stream OutStream { get;  }
     }
 }

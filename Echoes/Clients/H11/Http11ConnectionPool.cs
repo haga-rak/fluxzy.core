@@ -27,7 +27,7 @@ namespace Echoes.H11
 
         public Http11ConnectionPool(
             Authority authority, 
-            Connection ? connection, Stream ? existingStream, 
+            Connection ? existingConnection,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
             ClientSetting clientSetting, 
@@ -40,9 +40,9 @@ namespace Echoes.H11
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(clientSetting.ConcurrentConnection);
 
-            if (existingStream != null && connection != null)
+            if (existingConnection != null)
             {
-                _processingStates.Enqueue(new Http11ProcessingState(existingStream, connection, _timingProvider));
+                _processingStates.Enqueue(new Http11ProcessingState(existingConnection, _timingProvider));
             }
         }
 
@@ -55,19 +55,14 @@ namespace Echoes.H11
 
         private ConcurrentDictionary<int, int> _exchangePassed = new();
 
-        public async ValueTask Send(Exchange exchange, CancellationToken cancellationToken)
+        public async ValueTask Send(Exchange exchange, ILocalLink _, CancellationToken cancellationToken)
         {
             exchange.HttpVersion = "HTTP/1.1";
 
             try
             {
                 await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-                if (exchange.UpStream != null)
-                {
-
-                }
-
+                
                 lock (_processingStates)
                 {
                     DateTime requestDate = _timingProvider.Instant(); 
@@ -80,7 +75,6 @@ namespace Echoes.H11
                             continue; 
                         }
 
-                        exchange.UpStream = state.Stream;
                         exchange.Connection = state.Connection; 
                     }
                 }
@@ -89,20 +83,14 @@ namespace Echoes.H11
                 {
                     _exchangePassed.GetOrAdd(exchange.Id, _ => 0);
                     var res = _exchangePassed[exchange.Id]++;
-
-                    if (res > 1)
-                    {
-
-                    }
                 }
 
-                if (exchange.UpStream == null)
+                if (exchange.Connection == null)
                 {
                     var openingResult = 
                         await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false, Http11Protocols,
                         _clientSetting, cancellationToken);
-
-                    exchange.UpStream = openingResult.OpenedStream;
+                    
                     exchange.Connection = openingResult.Connection; 
                 }
 
@@ -126,7 +114,7 @@ namespace Echoes.H11
                             else if (completeTask.IsCompletedSuccessfully && !completeTask.Result)
                             {
                                 lock (_processingStates)
-                                    _processingStates.Enqueue(new Http11ProcessingState(exchange.UpStream, exchange.Connection, _timingProvider));
+                                    _processingStates.Enqueue(new Http11ProcessingState(exchange.Connection, _timingProvider));
                             }
                         }, cancellationToken);
                 }
@@ -136,13 +124,15 @@ namespace Echoes.H11
                         ex is IOException || 
                         ex is ExchangeException)
                     {
-                        exchange.Errors.Add(new Error("Error while reading resp", ex));
+                        exchange.Errors.Add(new Error("Error while reading response from server", ex));
 
-                        if (exchange.UpStream != null)
+                        if (exchange.Connection != null)
                         {
-                            await exchange.UpStream.DisposeAsync();
-                        }
+                            await exchange.Connection.ReadStream.DisposeAsync();
 
+                            if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
+                                await exchange.Connection.WriteStream.DisposeAsync();
+                        }
                     }
                     else
                         throw;
@@ -172,19 +162,15 @@ namespace Echoes.H11
         private readonly Stream _stream;
         private readonly ITimingProvider _timingProvider;
 
-        public Http11ProcessingState(Stream stream, Connection connection, ITimingProvider timingProvider)
+        public Http11ProcessingState(Connection connection, ITimingProvider timingProvider)
         {
             Connection = connection;
-            _stream = stream;
             _timingProvider = timingProvider;
             LastUsed = _timingProvider.Instant();
-            
         }
 
         public Connection Connection { get; }
 
-        public DateTime LastUsed { get; }
-
-        public Stream Stream => _stream;
+        public DateTime LastUsed { get; set;  }
     }
 }

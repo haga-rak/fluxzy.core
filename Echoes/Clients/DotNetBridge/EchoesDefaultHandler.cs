@@ -12,11 +12,8 @@ namespace Echoes.Clients.DotNetBridge
 {
     public class EchoesDefaultHandler : HttpMessageHandler
     {
-        private readonly IDictionary<string, Http11ConnectionPool>
-            _activeConnections = new Dictionary<string, Http11ConnectionPool>();
-
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private readonly Http11Parser _parser = new Http11Parser(8192, new ArrayPoolMemoryProvider<char>());
+        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly Http11Parser _parser = new(8192, new ArrayPoolMemoryProvider<char>());
         private readonly PoolBuilder _poolBuilder;
 
         public EchoesDefaultHandler()
@@ -37,23 +34,17 @@ namespace Echoes.Clients.DotNetBridge
 
             var connection = await _poolBuilder.GetPool(exchange, ClientSetting.Default, cancellationToken);
             
-            await connection.Send(exchange,
+            await connection.Send(exchange, null,
                 cancellationToken).ConfigureAwait(false);
             
             return new EchoesHttpResponseMessage(exchange);
         }
-
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
 
             _semaphore.Dispose();
-
-            foreach (var connection in _activeConnections.Values)
-            {
-                connection.Dispose();
-            }
         }
 
     }
