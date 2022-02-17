@@ -1,5 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -36,7 +37,8 @@ namespace Echoes.Tests
             Assert.True(!string.IsNullOrWhiteSpace(responseBody));
         }
 
-        [Theory]
+        //TESTER SUR Sandbox UN ENVOI D ENTETE MULTIPLE POUR FORCER LE DYNAMIC TableAttribute UPDATE
+        //    [Theory]
         [InlineData(TestConstants.Http2Host)]
         public async Task LargeHeaderFieldValue(string host)
         {

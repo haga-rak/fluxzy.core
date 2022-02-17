@@ -55,10 +55,19 @@ namespace Echoes.H2.Encoder
                 {
                     HeaderField tableEntry = ReadNextField(headerContent, out var readen);
 
+
+                    //if (tableEntry.Name.Length == 0)
+                    //{
+                    //    headerContent = headerContent.Slice(readen);
+                    //    continue;
+                    //}
+
                     if (readen <= 0)
                     {
                         break;
                     }
+
+
 
                     _tempEntries.Add(tableEntry);
                     originalFields.Add(tableEntry);
@@ -118,10 +127,15 @@ namespace Echoes.H2.Encoder
             {
                 case HeaderFieldType.DynamicTableSizeUpdate:
                 {
-                    bytesReaden = _primitiveOperation.ReadInt32(buffer, 5, out var maxSize);
+                    var currentByteReaden = _primitiveOperation.ReadInt32(buffer, 5, out var maxSize);
                     _decodingContext.UpdateMaxSize(maxSize);
 
-                    return ReadNextField(buffer.Slice(0, bytesReaden), out bytesReaden);
+                    // return default; 
+
+                    var res = ReadNextField(buffer.Slice(currentByteReaden), out var nextRead);
+                    bytesReaden = currentByteReaden + nextRead;
+
+                    return res; 
                 }
                 case HeaderFieldType.IndexedHeaderField:
                 {

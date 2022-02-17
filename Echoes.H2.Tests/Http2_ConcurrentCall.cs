@@ -4,11 +4,13 @@ using System;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Echoes.DotNetBridge;
 using Echoes.H2.Tests.Tools;
 using Echoes.H2.Tests.Utils;
 using Xunit;
+using Header2 = Sandbox.Models.Header; 
 
 namespace Echoes.H2.Tests
 {
@@ -71,19 +73,18 @@ namespace Echoes.H2.Tests
         public async Task Post_Multi_Header_Dynamic_Table_Evict_Simple()
         {
             using var handler = new EchoesHttp2Handler();
-
             using var httpClient = new HttpClient(handler, false);
 
-            int count = 40;
+            int count = 100;
 
             byte[] buffer = new byte[500]; 
 
             var tasks = 
                 Enumerable.Repeat(httpClient, count).Select((h, index) =>
                 {
-                    new Random(index%2).NextBytes(buffer);
+                    new Random(index).NextBytes(buffer);
 
-                    return CallSimple(h, (1024 * 16) + 10, 128 * 1024 *4, new NameValueCollection()
+                    return CallSimple(h, (1024 * 16) + 10, 128  *4, new NameValueCollection()
                     {
                         { "Cookie" , Convert.ToBase64String(buffer) }
                     });
@@ -118,6 +119,40 @@ namespace Echoes.H2.Tests
                     });
                 });
 
+            await Task.WhenAll(tasks); 
+        }
+
+        /// <summary>
+        /// The goal of this test is to challenge the dynamic table content
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Receiving_Multiple_Header_Value()
+        {
+            using var handler = new EchoesHttp2Handler();
+
+            using var httpClient = new HttpClient(handler, false);
+
+            int repeatCount = 40;
+
+            var tasks = Enumerable.Repeat(httpClient, repeatCount)
+                .Select(async client =>
+                {
+                    var response = await client.GetAsync($"{TestConstants.Http2Host}/headers-random");
+                    var text = await response.Content.ReadAsStringAsync();
+
+                    var items = JsonSerializer.Deserialize<Header2[]>(text
+                        , new JsonSerializerOptions()
+                        {
+                            PropertyNameCaseInsensitive = true
+                        })!;
+
+                    var mustBeTrue = items.All(i => response.Headers.Any(t => t.Key == i.Name
+                                                             && t.Value.Contains(i.Value))); 
+
+                    Assert.True(mustBeTrue); 
+                }); 
+            
             await Task.WhenAll(tasks); 
         }
     }

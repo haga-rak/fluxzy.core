@@ -1,5 +1,6 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
+using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -37,6 +38,9 @@ namespace Echoes.H2
 
             await sslStream.AuthenticateAsClientAsync(sslAuthenticationOption,
                 token).ConfigureAwait(false);
+
+            if (sslStream.NegotiatedApplicationProtocol != SslApplicationProtocol.Http2)
+                throw new NotSupportedException($"Remote ({hostName}:{port}) cannot talk HTTP2");
 
             var authority = new Authority(hostName, port, true);
 
