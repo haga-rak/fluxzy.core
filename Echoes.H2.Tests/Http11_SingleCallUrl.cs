@@ -27,6 +27,22 @@ namespace Echoes.H2.Tests
         }
 
         [Fact]
+        public async Task Get_Error_Case()
+        {
+            using var handler = new EchoesHttp11Handler();
+            using var httpClient = new HttpClient(handler); 
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://sb.scorecardresearch.com/b?c1=2&c2=17440561&cs_it=b2&cv=3.8.0.210223&ns__t=1645058977982&ns_c=UTF-8&c7=https://stackoverflow.com/jobs&c8=Developer%20Jobs,%20Programming%20Jobs%20&%20More%20-%20Stack%20Overflow&c9=https://stackoverflow.com/questions/16656406/dto-to-typescript-generator"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+
+            Assert.True(response.IsSuccessStatusCode);
+        }
+
+        [Fact]
         public async Task Get_Control_Single_Headers()
         {
             using var handler = new EchoesHttp11Handler();

@@ -32,12 +32,12 @@ namespace Echoes.H2.Encoder.Utils
                 if (firstLine)
                 {
                     // parsing request line
-
                     var arrayOfValue = line.Split(Http11Constants.SpaceSeparators,3).ToArray();
 
-                    if (arrayOfValue.Length == 3)
+                    if (arrayOfValue.Length >= 2)
                     {
-                        if (arrayOfValue[0].Length >= 4 && arrayOfValue[0].Slice(0, 4).Span.Equals("HTTP".AsSpan(), StringComparison.OrdinalIgnoreCase))
+                        if (arrayOfValue[0].Length >= 4 
+                            && arrayOfValue[0].Slice(0, 4).Span.Equals("HTTP".AsSpan(), StringComparison.OrdinalIgnoreCase))
                         {
                             // Response header block 
                             yield return new HeaderField(Http11Constants.StatusVerb, arrayOfValue[1]);

@@ -89,12 +89,12 @@ namespace Echoes.H11
             var shouldCloseConnection =
                 exchange.Response.Header.ConnectionCloseRequest
                 || exchange.Response.Header.ChunkedBody; // Chunked body response always en with connection close 
-
+            
             if (!exchange.Response.Header.HasResponseBody())
             {
                 exchange.Metrics.ResponseBodyStart = exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
+                exchange.Response.Body = StreamUtils.EmptyStream;
                 exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
-                exchange.Response.Body = StreamUtils.EmptyStream; 
 
                 return shouldCloseConnection;
             }

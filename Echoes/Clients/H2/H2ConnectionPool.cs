@@ -437,22 +437,36 @@ namespace Echoes.H2
             Exchange exchange, ILocalLink _,
             CancellationToken cancellationToken = default)
         {
-            exchange.HttpVersion = "HTTP/2"; 
+            try
+            {
+                await InternalSend(exchange, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                OnLoopEnd(ex, true);
+                throw; 
+            }
+        }
+
+        private async Task InternalSend(Exchange exchange, CancellationToken cancellationToken)
+        {
+            exchange.HttpVersion = "HTTP/2";
 
             StreamProcessing activeStream;
             Task waitForHeaderSentTask;
 
             try
             {
-                activeStream = 
-                    await _streamPool.CreateNewStreamProcessing(exchange, cancellationToken, _streamCreationLock).ConfigureAwait(false);
+                activeStream =
+                    await _streamPool.CreateNewStreamProcessing(exchange, cancellationToken, _streamCreationLock)
+                        .ConfigureAwait(false);
 
                 waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange);
             }
             finally
             {
                 if (_streamCreationLock.CurrentCount == 0)
-                    _streamCreationLock.Release(); 
+                    _streamCreationLock.Release();
             }
 
             await waitForHeaderSentTask.ConfigureAwait(false);
@@ -465,7 +479,7 @@ namespace Echoes.H2
 
             var h2Message = await activeStream.ProcessResponse(cancellationToken)
                 .ConfigureAwait(false);
-            
+
             exchange.Response.Body = h2Message.ResponseStream;
         }
 

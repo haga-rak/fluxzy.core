@@ -123,7 +123,7 @@ namespace Echoes.Core
 
                                 // In case the down stream connection is persisted, 
                                 // we wait for the current exchange to complete before reading further request
-                                shouldClose =  shouldClose || await exchange.Complete; 
+                                shouldClose =  shouldClose || await exchange.Complete;
                             }
                         }
 

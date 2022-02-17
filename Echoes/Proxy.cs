@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -84,32 +85,33 @@ namespace Echoes
 
         private async Task MainLoop()
         {
-            using (var dispatcher = new ProxyConnectionPool<ProxyPoolTask>(8, ProcessingConnection))
+            //using (var dispatcher = new ProxyConnectionPool<ProxyPoolTask>(8, ProcessingConnection))
+            //{
+            //    await dispatcher.WaitForInit().ConfigureAwait(false);
+
+            while (true)
             {
+                // Blocking connection to provider
+                var client =
+                    await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
 
-                await dispatcher.WaitForInit().ConfigureAwait(false);
+                if (client == null)
+                    break;
 
-                while (true)
-                {
-                    // Blocking connection to provider
-                    var client =
-                        await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
+                ProcessingConnection(client);
 
-                    if (client == null)
-                        break;
-
-                    dispatcher.PostWork(new ProxyPoolTask(
-                        Interlocked.Increment(ref _taskId), _proxyHaltTokenSource.Token,
-                        client));
-                }
+                //dispatcher.PostWork(new ProxyPoolTask(
+                //    Interlocked.Increment(ref _taskId), _proxyHaltTokenSource.Token,
+                //    client));
             }
+           // }
         }
 
-        private async void ProcessingConnection(ProxyPoolTask proxyPoolTask)
+        private async void ProcessingConnection(TcpClient client)
         {
-            using (proxyPoolTask.TcpClient)
+            using (client)
             {
-                await _proxyOrchestrator.Operate(proxyPoolTask.TcpClient,
+                await _proxyOrchestrator.Operate(client,
                     _proxyHaltTokenSource.Token).ConfigureAwait(false);
             }
         }
