@@ -16,7 +16,7 @@ namespace Echoes
         
         public static bool EnableDumpStackTraceOn502 { get; }
             = !string.IsNullOrWhiteSpace(Environment
-                .GetEnvironmentVariable("Echoes_EnableWindowSizeTrace"));
+                .GetEnvironmentVariable("EnableDumpStackTraceOn502"));
 
 
         public static string SessionDate { get; }  = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss"); 

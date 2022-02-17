@@ -15,7 +15,7 @@ namespace Echoes.DotNetBridge
             _activeConnections = new Dictionary<string, Http11ConnectionPool>();
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private readonly Http11Parser _parser = new Http11Parser(8192, new ArrayPoolMemoryProvider<char>()); 
+        private readonly Http11Parser _parser = new Http11Parser(16384, new ArrayPoolMemoryProvider<char>()); 
         
         public EchoesHttp11Handler()
         {

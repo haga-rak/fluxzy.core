@@ -25,6 +25,24 @@ namespace Echoes.H2.Tests
             Assert.True(response.IsSuccessStatusCode);
         }
 
+
+        [Fact]
+        public async Task Get_Error_Case()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://fr.wiktionary.org/w/skins/Vector/resources/common/images/arrow-down.svg?9426f"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+
+            Assert.True(response.IsSuccessStatusCode);
+        }
+
+
         [Fact]
         public async Task Get_Control_Single_Headers()
         {

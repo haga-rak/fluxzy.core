@@ -49,12 +49,12 @@ namespace Echoes
         /// <summary>
         /// Maximum header size 
         /// </summary>
-        public int MaxHeaderSize { get; set; } = 1024 * 8; 
+        public int MaxHeaderSize { get; set; } = 16384; 
 
         /// <summary>
         /// Maximum header line
         /// </summary>
-        public int MaxHeaderLineSize { get; set; } = 1024 * 4; 
+        public int MaxHeaderLineSize { get; set; } = 16384; 
 
     }
 }

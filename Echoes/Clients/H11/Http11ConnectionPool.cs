@@ -120,21 +120,21 @@ namespace Echoes.H11
                 }
                 catch (Exception ex)
                 {
-                    if (ex is SocketException ||
-                        ex is IOException || 
-                        ex is ExchangeException)
-                    {
-                        exchange.Errors.Add(new Error("Error while reading response from server", ex));
+                    //if (ex is SocketException ||
+                    //    ex is IOException || 
+                    //    ex is ExchangeException)
+                    //{
+                    //    exchange.Errors.Add(new Error("Error while reading response from server", ex));
 
-                        if (exchange.Connection != null)
-                        {
-                            await exchange.Connection.ReadStream.DisposeAsync();
+                    //    if (exchange.Connection != null)
+                    //    {
+                    //        await exchange.Connection.ReadStream.DisposeAsync();
 
-                            if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
-                                await exchange.Connection.WriteStream.DisposeAsync();
-                        }
-                    }
-                    else
+                    //        if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
+                    //            await exchange.Connection.WriteStream.DisposeAsync();
+                    //    }
+                    //}
+                    //else
                         throw;
                 }
             }

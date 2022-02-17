@@ -42,7 +42,7 @@ namespace Echoes.H2.Encoder
         /// <summary>
         /// The maximum header line (request line included)
         /// </summary>
-        public int MaxHeaderLineLength { get; set; } = 4096;
+        public int MaxHeaderLineLength { get; set; } = 16384;
 
         /// <summary>
         /// Huffman is applied only if if string length exceed this value. 

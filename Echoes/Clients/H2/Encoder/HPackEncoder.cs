@@ -80,7 +80,8 @@ namespace Echoes.H2.Encoder
                     if (entry.Value.Length > slicedBuff.Length)
                     {
                         throw new HPackCodecException(
-                            $"Length of string value ({entry.Value.Length}) exceed the maximum buffer {slicedBuff.Length}");
+                            $"Length of string value " +
+                            $"({entry.Value.Length}) exceed the maximum buffer {slicedBuff.Length}");
                     }
 
 

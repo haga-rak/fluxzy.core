@@ -76,6 +76,7 @@ namespace Echoes.H2
                 var rstStreamException = new H2Exception(
                     $"Stream id {StreamIdentifier} halt with a RST_STREAM : {_resetErrorCode}",
                     _resetErrorCode);
+                
 
                 _responseHeaderReady.TryEnd(rstStreamException);
                 _responseBodyComplete.TryEnd(rstStreamException);
@@ -249,6 +250,7 @@ namespace Echoes.H2
         public async Task<H2Message> ProcessResponse(CancellationToken cancellationToken)
         {
             await _responseHeaderReady.Task.ConfigureAwait(false);
+
             return _response;
         }
 
@@ -321,9 +323,9 @@ namespace Echoes.H2
 
             if (endStream)
             {
-                _responseBodyComplete.SetResult(null);
+                _responseBodyComplete.TrySetResult(null);
                 _parent.NotifyDispose(this);
-                _exchange.ExchangeCompletionSource.SetResult(false);
+                _exchange.ExchangeCompletionSource.TrySetResult(false);
             }
         }
         internal void OnDataConsumedByCaller(int dataSize)

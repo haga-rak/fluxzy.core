@@ -14,7 +14,7 @@ namespace Echoes.H2
 
         public int OverallWindowSize { get; set; } = 65536; 
 
-        public int MaxHeaderSize { get; set; } = 1024 * 8;
+        public int MaxHeaderSize { get; set; } = 16384;
 
         /// <summary>
         /// Read buffer used by the connection. Should be at least MAX_FRAME_SIZE
@@ -39,9 +39,7 @@ namespace Echoes.H2
 
         public int SettingsMaxConcurrentStreams { get; set; } = 100;
 
-        public int MaxHeaderLine { get; set; } = 1024 * 4; 
-
-        public int MaxHeaderSize { get; set; } = 1024 * 8; 
+        public int MaxHeaderLine { get; set; } = 16384;
     }
 
 }

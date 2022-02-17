@@ -64,41 +64,31 @@ namespace Echoes.Core
 
                         if (exchange != null && !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
-                            IHttpConnectionPool connectionPool = null;
-
+                            IHttpConnectionPool connectionPool = null; 
                             try
                             {
                                 // opening the connection to server 
-
                                 connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
+
+                                // Actual request send 
+                                await connectionPool.Send(exchange, localConnection, token);
                             }
                             catch (Exception exception)
                             {
-                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange))
+                                // The caller cancelled the task 
+
+                                if (exception is TaskCanceledException)
+                                    break; 
+
+                                if (!ConnectionErrorHandler
+                                        .RequalifyOnResponseSendError(exception, exchange))
                                 {
                                     throw;
                                 }
 
                                 shouldClose = true;
                             }
-
-                            // Actual request send 
-
-                            try
-                            {
-                                if (connectionPool != null) 
-                                    await connectionPool.Send(exchange, localConnection, token);
-                            }
-                            catch (Exception exception)
-                            {
-                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange))
-                                {
-                                    throw; 
-                                }
-
-                                shouldClose = true; 
-                            }
-
+                            
                             // We do not need to read websocket response
 
                             if (!exchange.Request.Header.IsWebSocketRequest)
@@ -120,36 +110,68 @@ namespace Echoes.Core
                                 // Writing the received header to downstream
                                 var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true);
 
-                                headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
+                                // headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
 
                                 shouldClose = exchange.Response
                                     .Header["Connection".AsMemory()].Any(c =>
                                         c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
-
-                                await localConnection.WriteStream.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
-                                    token);
 
                                 if (_exchangeListener != null)
                                 {
                                     await _exchangeListener(exchange);
                                 }
 
+                                try
+                                {
+                                    // Sending header response to local browser
+
+                                    await localConnection.WriteStream.WriteAsync(
+                                        new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
+                                        token);
+                                }
+                                catch (TaskCanceledException)
+                                {
+                                    break; 
+                                }
+                                catch (IOException)
+                                {
+                                    // local connection interrupt
+
+                                    break; 
+                                }
+
                                 if (exchange.Response.Header.ContentLength != 0 &&
                                     exchange.Response.Body != null)
                                 {
-                                    var destStream = localConnection.WriteStream;
+                                    var localConnectionWriteStream = localConnection.WriteStream;
 
                                     if (exchange.Response.Header.ChunkedBody)
                                     {
-                                        destStream = new ChunkedTransferWriteStream(destStream);
+                                        localConnectionWriteStream = new ChunkedTransferWriteStream(localConnectionWriteStream);
                                     }
 
-                                    var tc = await exchange.Response.Body.CopyDetailed(
-                                        destStream, buffer, _ => { }, token);
+                                    try
+                                    {
+                                        await exchange.Response.Body.CopyDetailed(
+                                            localConnectionWriteStream, buffer, _ => { }, token);
 
-                                    (destStream as ChunkedTransferWriteStream)?.WriteEof();
+                                        (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
 
-                                    await localConnection.WriteStream.FlushAsync(CancellationToken.None);
+                                        await localConnection.WriteStream.FlushAsync(CancellationToken.None);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        if (ex is IOException || ex is TaskCanceledException)
+                                        {
+                                            // Local connection may close the underlying connection before 
+                                            // receiving the entire message. In that case, we just leave
+                                            // without any error
+
+                                            break; 
+                                        }
+
+                                        throw;
+                                    }
                                 }
 
                                 // In case the down stream connection is persisted, 
@@ -163,20 +185,27 @@ namespace Echoes.Core
                             break;
                         }
 
-                        // Read the nex HTTP message 
-                        exchange = await _exchangeBuilder.ReadExchange(
-                            localConnection.ReadStream,
-                            localConnection.Authority,
-                            buffer, token
-                        );
+                        try
+                        {
+                            // Read the nex HTTP message 
+                            exchange = await _exchangeBuilder.ReadExchange(
+                                localConnection.ReadStream,
+                                localConnection.Authority,
+                                buffer, token
+                            );
+                        }
+                        catch (IOException ioEx)
+                        {
+                            // Downstream close the underlying connection
+                        }
 
                     } while (exchange != null); 
                     
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Overall exception
+                // FATAL exception only happens here 
             }
         }
 

@@ -13,7 +13,7 @@ namespace Echoes.H2.Encoder.HPack
         {
         }
 
-        internal PrimitiveOperation(HuffmanCodec codec, int maxStringLength = 8192)
+        internal PrimitiveOperation(HuffmanCodec codec, int maxStringLength = 1024*16)
         {
             _codec = codec;
             _maxStringLength = maxStringLength;

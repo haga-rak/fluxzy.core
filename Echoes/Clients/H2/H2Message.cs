@@ -52,7 +52,7 @@ namespace Echoes.H2
 
         internal void PostResponseHeader(ReadOnlyMemory<byte> initialBytes, bool endHeader)
         {
-            Span<char> buffer = stackalloc char[8192];
+            Span<char> buffer = stackalloc char[16384];
             _headerBuilder.Append(_hPackDecoder.Decode(initialBytes.Span, buffer, ref _headerFields));
 
             if (endHeader)

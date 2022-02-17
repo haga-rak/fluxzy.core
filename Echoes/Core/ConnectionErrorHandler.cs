@@ -19,7 +19,7 @@ namespace Echoes.Core
 
     public class ConnectionErrorHandler
     {
-        private static Http11Parser _parser = new(4096, new ArrayPoolMemoryProvider<char>());
+        private static readonly Http11Parser Parser = new(4096, new ArrayPoolMemoryProvider<char>());
 
         public static bool RequalifyOnResponseSendError(
             Exception ex, 
@@ -31,7 +31,7 @@ namespace Echoes.Core
             {
                 var message = $"Echoes close connection due to server connection errors.\r\n\r\n";
 
-                if (DebugContext.EnableNetworkFileDump)
+                if (DebugContext.EnableDumpStackTraceOn502)
                     message += ex.ToString();
 
                 var messageBinary = Encoding.UTF8.GetBytes(message);
@@ -42,7 +42,7 @@ namespace Echoes.Core
                 exchange.Response.Header = new ResponseHeader(
                     header.AsMemory(),
                     exchange.Authority.Secure,
-                    _parser);
+                    Parser);
 
                 exchange.Response.Body = new MemoryStream(messageBinary);
 

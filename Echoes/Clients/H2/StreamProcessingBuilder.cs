@@ -36,7 +36,6 @@ namespace Echoes.H2
             var codecSetting = new CodecSetting();
 
             _hPackDecoder = HPackDecoder.Create(codecSetting);
-
             var hPackEncoder = HPackEncoder.Create(codecSetting);
             _headerEncoder = new HeaderEncoder(hPackEncoder, _hPackDecoder, _streamSetting);
         }

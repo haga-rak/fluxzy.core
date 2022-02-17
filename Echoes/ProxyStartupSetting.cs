@@ -128,7 +128,7 @@ namespace Echoes
         public IReadOnlyCollection<string> ByPassHost { get; internal set; } = new List<string>() { "localhost", "127.0.0.1" };
 
 
-        public int MaxHeaderLength { get; set; } = 8192;
+        public int MaxHeaderLength { get; set; } = 16384;
 
 
         public ProxyStartupSetting SetByPassedHosts(params string[] hosts)
