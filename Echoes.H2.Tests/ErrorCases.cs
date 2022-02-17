@@ -36,6 +36,29 @@ namespace Echoes.Tests
             Assert.True(!string.IsNullOrWhiteSpace(responseBody));
         }
 
+        [Fact]
+        public async Task Connection_RefusedTcplevel()
+        {
+            using var proxy = new AddHocProxy(PortProvider.Next());
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            };
+
+            using var httpClient = new HttpClient(clientHandler);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://sandbox.smartizy.com:4988/");
+            
+            using var response = await httpClient.SendAsync(requestMessage);
+
+            var responseBody = await response.Content.ReadAsStringAsync(); 
+
+            Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+            Assert.True(!string.IsNullOrWhiteSpace(responseBody));
+        }
+
 
     }
 }

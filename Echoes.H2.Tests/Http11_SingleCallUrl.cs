@@ -34,7 +34,7 @@ namespace Echoes.H2.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://sb.scorecardresearch.com/b?c1=2&c2=17440561&cs_it=b2&cv=3.8.0.210223&ns__t=1645058977982&ns_c=UTF-8&c7=https://stackoverflow.com/jobs&c8=Developer%20Jobs,%20Programming%20Jobs%20&%20More%20-%20Stack%20Overflow&c9=https://stackoverflow.com/questions/16656406/dto-to-typescript-generator"
+                "https://fr.wiktionary.org/w/skins/Vector/resources/common/images/arrow-down.svg?9426f"
             );
 
             var response = await httpClient.SendAsync(requestMessage);

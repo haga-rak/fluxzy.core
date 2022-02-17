@@ -64,13 +64,30 @@ namespace Echoes.Core
 
                         if (exchange != null && !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
-                            var connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
+                            IHttpConnectionPool connectionPool = null;
+
+                            try
+                            {
+                                // opening the connection to server 
+
+                                connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
+                            }
+                            catch (Exception exception)
+                            {
+                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange))
+                                {
+                                    throw;
+                                }
+
+                                shouldClose = true;
+                            }
 
                             // Actual request send 
 
                             try
                             {
-                                await connectionPool.Send(exchange, localConnection, token);
+                                if (connectionPool != null) 
+                                    await connectionPool.Send(exchange, localConnection, token);
                             }
                             catch (Exception exception)
                             {
