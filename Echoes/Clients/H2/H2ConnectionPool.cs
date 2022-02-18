@@ -60,8 +60,8 @@ namespace Echoes.H2
 
             _streamProcessingBuilder = new StreamProcessingBuilder(authority, _connectionCancellationTokenSource.Token,
                 UpStreamChannel,
-                _setting, _overallWindowSizeHolder, ArrayPool<byte>.Shared, new Http11Parser(setting.MaxHeaderSize, 
-                    new ArrayPoolMemoryProvider<char>())
+                _setting, _overallWindowSizeHolder, ArrayPool<byte>.Shared, new Http11Parser(setting.MaxHeaderSize,
+                    ArrayPoolMemoryProvider<char>.Default)
             );
 
             _writerChannel =

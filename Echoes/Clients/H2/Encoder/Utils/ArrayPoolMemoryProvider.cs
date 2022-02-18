@@ -9,8 +9,17 @@ namespace Echoes.H2.Encoder.Utils
 {
     public class ArrayPoolMemoryProvider<T> : IMemoryProvider<T>
     {
+        public static ArrayPoolMemoryProvider<T> Default { get; } = new ArrayPoolMemoryProvider<T>();
+
+
         private readonly ArrayPool<T> _arrayBuffer = ArrayPool<T>.Create(1024 * 32,4096);
-        private readonly List<T[]> _allocated = new List<T[]>(); 
+
+        private readonly List<T[]> _allocated = new List<T[]>();
+
+        private ArrayPoolMemoryProvider()
+        {
+
+        }
 
         public T [] Allocate(int size)
         {

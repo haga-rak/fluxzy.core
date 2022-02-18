@@ -59,7 +59,7 @@ namespace Echoes.H2
             var connectionPool =  new Http11ConnectionPool(authority, null,
                 new RemoteConnectionBuilder(ITimingProvider.Default),
                 ITimingProvider.Default, ClientSetting.Default, new Http11Parser(
-                    ClientSetting.Default.MaxHeaderLineSize, new ArrayPoolMemoryProvider<char>()));
+                    ClientSetting.Default.MaxHeaderLineSize, ArrayPoolMemoryProvider<char>.Default));
 
             await connectionPool.Init();
 

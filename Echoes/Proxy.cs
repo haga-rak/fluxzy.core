@@ -66,7 +66,7 @@ namespace Echoes
                // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
                 certificateProvider);
 
-            _http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength, new ArrayPoolMemoryProvider<char>());
+            _http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength, ArrayPoolMemoryProvider<char>.Default);
             _poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default), ITimingProvider.Default, _http1Parser);
 

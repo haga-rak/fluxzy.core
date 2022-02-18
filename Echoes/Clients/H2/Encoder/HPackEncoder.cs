@@ -33,7 +33,7 @@ namespace Echoes.H2.Encoder
             _encodingContext = encodingContext;
             _primitiveOperation = primitiveOperation ?? new PrimitiveOperation(new HuffmanCodec());
             _codecSetting = codecSetting ?? new CodecSetting();
-            _memoryProvider = memoryProvider ?? new ArrayPoolMemoryProvider<char>();
+            _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
             _parser = parser ?? new Http11Parser(_codecSetting.MaxHeaderLineLength, _memoryProvider);
         }
 
@@ -154,7 +154,7 @@ namespace Echoes.H2.Encoder
 
         public static HPackEncoder Create(CodecSetting codeSetting)
         {
-            var memoryProvider = new ArrayPoolMemoryProvider<char>();
+            var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             return new HPackEncoder(new EncodingContext(memoryProvider), codeSetting, memoryProvider);
         }
 

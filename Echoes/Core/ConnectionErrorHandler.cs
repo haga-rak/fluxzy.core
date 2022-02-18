@@ -15,12 +15,11 @@ namespace Echoes.Core
             "Content-length: {0}\r\n" +
             "Content-type: text/plain" +
             "Connection : close\r\n\r\n";
-        
     }
 
     public class ConnectionErrorHandler
     {
-        private static readonly Http11Parser Parser = new(4096, new ArrayPoolMemoryProvider<char>());
+        private static readonly Http11Parser Parser = new(4096, ArrayPoolMemoryProvider<char>.Default);
 
         public static bool RequalifyOnResponseSendError(
             Exception ex, 

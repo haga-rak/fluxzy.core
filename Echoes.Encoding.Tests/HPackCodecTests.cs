@@ -13,7 +13,7 @@ namespace Echoes.Encoding.Tests
         [Fact]
         public void Write_And_Read_Simple_Request()
         {
-            ArrayPoolMemoryProvider<char> memoryProvider = new ArrayPoolMemoryProvider<char>();
+            ArrayPoolMemoryProvider<char> memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             Http11Parser parser = new Http11Parser(4096, memoryProvider);
             PrimitiveOperation primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
@@ -42,7 +42,7 @@ namespace Echoes.Encoding.Tests
         [Fact]
         public void Write_And_Read_Simple_Response()
         {
-            var memoryProvider = new ArrayPoolMemoryProvider<char>();
+            var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var parser = new Http11Parser(4096, memoryProvider);
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
@@ -72,7 +72,7 @@ namespace Echoes.Encoding.Tests
         [Fact]
         public void Write_And_Read_Simple_Response_Double()
         {
-            var memoryProvider = new ArrayPoolMemoryProvider<char>();
+            var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var parser = new Http11Parser(4096, memoryProvider);
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 

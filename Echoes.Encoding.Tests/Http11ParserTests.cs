@@ -13,7 +13,7 @@ namespace Echoes.Encoding.Tests
         [Fact]
         public void Parse_Unparse_Request_Header()
         {
-            using var memoryProvider = new ArrayPoolMemoryProvider<char>();
+            using var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var parser = new Http11Parser(MaxHeaderLength, memoryProvider);
 
             var header = Headers.Req001;
@@ -29,7 +29,7 @@ namespace Echoes.Encoding.Tests
         [Fact]
         public void Parse_Unparse_Response_Header()
         {
-            using var memoryProvider = new ArrayPoolMemoryProvider<char>();
+            using var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var parser = new Http11Parser(MaxHeaderLength, memoryProvider);
 
             var header = Headers.Resp001;
