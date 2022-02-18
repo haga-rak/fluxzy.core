@@ -78,11 +78,13 @@ namespace Echoes.H2.Encoder.HPack
 
             if (provisionalSize > _currentMaxSize)
             {
-                var evictedSize = EvictUntil(provisionalSize - _currentMaxSize);
+                var spaceNeeded = provisionalSize - _currentMaxSize;
+
+                var evictedSize = EvictUntil(spaceNeeded);
 
                 // No decoding error.
                 // Inserting element larger than Table MAX SIZE cause the table to be emptied 
-                if (evictedSize < entry.Size)
+                if (evictedSize < spaceNeeded)
                     return -1;
             }
 

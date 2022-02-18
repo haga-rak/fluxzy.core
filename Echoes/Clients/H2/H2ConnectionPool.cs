@@ -139,7 +139,12 @@ namespace Echoes.H2
                     return true;
             }
 
-            throw new InvalidOperationException("Unknown setting type");
+            // We do not throw anything here, some server like https://analytics.valiuz.com/
+            // sends an identifier equals to 8 that match none of the value of rfc 7540
+
+            // ---> old : throw new InvalidOperationException("Unknown setting type");
+
+            return true; 
         }
 
         private async void RaiseExceptionIfSettingNotReceived()
@@ -189,16 +194,9 @@ namespace Echoes.H2
         
         private void OnGoAway(GoAwayFrame frame)
         {
-            if (frame.ErrorCode != H2ErrorCode.NoError && frame.ErrorCode != H2ErrorCode.StreamClosed)
+            if (frame.ErrorCode != H2ErrorCode.NoError)
             {
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
-            }
-            else
-            {
-                if (frame.ErrorCode == H2ErrorCode.StreamClosed)
-                {
-
-                }
             }
         }
 
@@ -213,9 +211,7 @@ namespace Echoes.H2
             {
                 _streamPool.OnGoAway(ex);
             }
-
-            _connectionCancellationTokenSource?.Cancel();
-
+            
             if (releaseChannelItems && _writerChannel != null)
             {
                 _writerChannel.Writer.TryComplete();
@@ -233,6 +229,9 @@ namespace Echoes.H2
                     }
                 }
             }
+
+
+            _connectionCancellationTokenSource?.Cancel();
         }
 
         private async Task InternalWriteLoop()

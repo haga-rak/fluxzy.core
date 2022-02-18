@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,6 +73,23 @@ namespace Echoes.H2.Tests
             var responseData = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
+        }
+
+        [Fact]
+        public async Task Get_Error_Case_Ws_Analytics_Valiz()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://analytics.valiuz.com/"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+            var responseData = await response.Content.ReadAsStringAsync();
+
+            Assert.True(response.StatusCode == HttpStatusCode.NotFound);
         }
 
 

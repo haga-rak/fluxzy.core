@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Text;
 using Echoes.H2;
 using Echoes.H2.Encoder.Utils;
@@ -27,7 +28,9 @@ namespace Echoes.Core
         {
             if (ex is SocketException sex ||
                 ex is IOException ioEx ||
-                ex is H2Exception hEx)
+                ex is H2Exception hEx ||
+                ex is AuthenticationException aEx
+                )
             {
                 var message = $"Echoes close connection due to server connection errors.\r\n\r\n";
 
