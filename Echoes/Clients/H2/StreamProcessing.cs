@@ -182,35 +182,22 @@ namespace Echoes.H2
             Stream requestBodyStream = exchange.Request.Body;
             long bodyLength = exchange.Request.Header.ContentLength;
 
-            if (requestBodyStream != null)
+            if (requestBodyStream != null 
+                && (!requestBodyStream.CanSeek || requestBodyStream.Length > 0))
             {
-                while (_disposed)
+
+                while (true)
                 {
                     var bookedSize = _globalSetting.Remote.MaxFrameSize - 9;
-
-                    var bfore = OverallRemoteWindowSize.WindowSize;
-
-                    var sr = bookedSize;
 
                     if (_disposed)
                         throw new TaskCanceledException("Stream cancellation request");
 
-                    Stopwatch watc = new Stopwatch();
-
-                    watc.Start();
-
+                    // We check wait for available Window Size from remote
+                    
                     bookedSize = await BookWindowSize(bookedSize, _currentStreamCancellationTokenSource.Token)
                         .ConfigureAwait(false);
-
-                    var end = watc.ElapsedMilliseconds;
-
-                    if (end > 200)
-                    {
-                        Console.WriteLine($"Waiting for {end}ms");
-                    }
-
-                    Logger.WriteLine($"Book sid={StreamIdentifier} ({bfore}) : {OverallRemoteWindowSize.WindowSize} : {bookedSize}/{sr}");
-
+                    
                     if (bookedSize == 0)
                         throw new TaskCanceledException("Stream cancellation request");
 

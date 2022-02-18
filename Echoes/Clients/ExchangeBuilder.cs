@@ -49,10 +49,10 @@ namespace Echoes
             if (DebugContext.EnableNetworkFileDump)
             {
                 ReadStream = new DebugFileStream($"raw/{Id:0000}_browser_",
-                    ReadStream);
+                    ReadStream, true);
 
                 WriteStream = new DebugFileStream($"raw/{Id:0000}_browser_",
-                    WriteStream);
+                    WriteStream,false);
             }
         }
 

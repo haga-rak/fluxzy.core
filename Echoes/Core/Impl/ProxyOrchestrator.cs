@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -43,6 +44,8 @@ namespace Echoes.Core
             {
                 if (!token.IsCancellationRequested)
                 {
+                    var senderPort = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
+
                     // READ initial state of connection, 
                     var localConnection =
                         await _exchangeBuilder.InitClientConnection(client.GetStream(), _startupSetting, token);
@@ -52,19 +55,20 @@ namespace Echoes.Core
 
                     Exchange exchange =
                         localConnection.ProvisionalExchange;
-                    
-                    byte [] buffer = new byte[1024 * 32];
+
+                    byte[] buffer = new byte[1024 * 32];
 
                     var shouldClose = false;
 
-                    
+
                     do
                     {
-                        string headerContent = null; 
+                        string headerContent = null;
 
-                        if (exchange != null && !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
+                        if (exchange != null &&
+                            !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
-                            IHttpConnectionPool connectionPool = null; 
+                            IHttpConnectionPool connectionPool = null;
                             try
                             {
                                 // opening the connection to server 
@@ -78,7 +82,7 @@ namespace Echoes.Core
                                 // The caller cancelled the task 
 
                                 if (exception is OperationCanceledException)
-                                    break; 
+                                    break;
 
                                 if (!ConnectionErrorHandler
                                         .RequalifyOnResponseSendError(exception, exchange))
@@ -88,7 +92,7 @@ namespace Echoes.Core
 
                                 shouldClose = true;
                             }
-                            
+
                             // We do not need to read websocket response
 
                             if (!exchange.Request.Header.IsWebSocketRequest)
@@ -152,13 +156,13 @@ namespace Echoes.Core
                                 }
                                 catch (TaskCanceledException)
                                 {
-                                    break; 
+                                    break;
                                 }
                                 catch (IOException)
                                 {
                                     // local connection interrupt
 
-                                    break; 
+                                    break;
                                 }
 
                                 if (exchange.Response.Header.ContentLength != 0 &&
@@ -168,7 +172,8 @@ namespace Echoes.Core
 
                                     if (exchange.Response.Header.ChunkedBody)
                                     {
-                                        localConnectionWriteStream = new ChunkedTransferWriteStream(localConnectionWriteStream);
+                                        localConnectionWriteStream =
+                                            new ChunkedTransferWriteStream(localConnectionWriteStream);
                                     }
 
                                     try
@@ -188,7 +193,7 @@ namespace Echoes.Core
                                             // receiving the entire message. In that case, we just leave
                                             // without any error
 
-                                            break; 
+                                            break;
                                         }
 
                                         throw;
@@ -197,7 +202,7 @@ namespace Echoes.Core
 
                                 // In case the down stream connection is persisted, 
                                 // we wait for the current exchange to complete before reading further request
-                                shouldClose =  shouldClose || await exchange.Complete;
+                                shouldClose = shouldClose || await exchange.Complete;
                             }
                             else
                             {
@@ -224,14 +229,18 @@ namespace Echoes.Core
                             // Downstream close the underlying connection
                         }
 
-                    } while (exchange != null); 
-                    
+                    } while (exchange != null);
+
                 }
             }
             catch (Exception ex)
             {
                 // FATAL exception only happens here 
                 throw;
+            }
+            finally
+            {
+
             }
         }
 

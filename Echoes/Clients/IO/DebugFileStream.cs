@@ -14,15 +14,29 @@ namespace Echoes.IO
         private readonly FileStream _fileStreamIn;
         private readonly FileStream _fileStreamOut;
 
-        public DebugFileStream(string pathPrefix, Stream innerStream)
+        public DebugFileStream(string pathPrefix, Stream innerStream, bool ? readOnly = null)
         {
             _innerStream = innerStream;
 
-            if (_innerStream.CanRead)
-                _fileStreamIn = File.Create(pathPrefix + ".in.txt");
+            if (readOnly == null)
+            {
+                if (_innerStream.CanRead)
+                    _fileStreamIn = File.Create(pathPrefix + ".in.txt");
 
-            if (_innerStream.CanWrite)
-                _fileStreamOut = File.Create(pathPrefix + ".out.txt");
+                if (_innerStream.CanWrite)
+                    _fileStreamOut = File.Create(pathPrefix + ".out.txt");
+            }
+            else
+            {
+                if (readOnly.Value)
+                {
+                    _fileStreamIn = File.Create(pathPrefix + ".in.txt");
+                }
+                else
+                {
+                    _fileStreamOut = File.Create(pathPrefix + ".out.txt");
+                }
+            }
         }
 
         public override void Flush()

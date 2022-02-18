@@ -49,7 +49,7 @@ namespace Echoes.H2.Tests.Tools
             {
                 if (!_completionSource.Task.IsCompleted)
                 {
-                    _completionSource.SetException(
+                    _completionSource.TrySetException(
                         new TimeoutException($"Timeout of {timeoutSeconds} seconds reached"));
                 }
             }); 

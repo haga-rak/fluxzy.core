@@ -85,13 +85,9 @@ namespace Echoes
 
         private async Task MainLoop()
         {
-            //using (var dispatcher = new ProxyConnectionPool<ProxyPoolTask>(8, ProcessingConnection))
-            //{
-            //    await dispatcher.WaitForInit().ConfigureAwait(false);
 
             while (true)
             {
-                // Blocking connection to provider
                 var client =
                     await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
 
@@ -99,12 +95,7 @@ namespace Echoes
                     break;
 
                 ProcessingConnection(client);
-
-                //dispatcher.PostWork(new ProxyPoolTask(
-                //    Interlocked.Increment(ref _taskId), _proxyHaltTokenSource.Token,
-                //    client));
             }
-           // }
         }
 
         private async void ProcessingConnection(TcpClient client)

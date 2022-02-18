@@ -21,7 +21,7 @@ namespace Echoes.H2
         /// </summary>
         public int ReadBufferLength { get; set; } = 0x4000;
 
-        public TimeSpan WaitForSettingDelay { get; set; } = TimeSpan.FromSeconds(3);
+        public TimeSpan WaitForSettingDelay { get; set; } = TimeSpan.FromSeconds(30);
     }
 
 

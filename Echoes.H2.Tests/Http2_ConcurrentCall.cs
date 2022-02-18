@@ -106,14 +106,16 @@ namespace Echoes.H2.Tests
 
             int count = 1;
 
-            byte[] buffer = new byte[500]; 
+            byte [] buffer = new byte[500]; 
 
             var tasks = 
                 Enumerable.Repeat(httpClient, count).Select((h, index) =>
                 {
                     new Random(index%2).NextBytes(buffer);
 
-                    return CallSimple(h, (1024 * 16) + 10, 128 * 1024 *4, new NameValueCollection()
+                    return CallSimple(
+                        h, bufferSize: 16394, 
+                        length: 524288, new NameValueCollection()
                     {
                         { "Cookie" , Convert.ToBase64String(buffer) }
                     });
@@ -153,12 +155,12 @@ namespace Echoes.H2.Tests
             await Task.WhenAll(tasks); 
         }
 
+
         [Fact]
         public async Task Receiving_Multiple_Repeating_Header_Value()
         {
             await Task.WhenAll(Enumerable.Repeat(0, 10)
                 .Select(p => Receiving_Multiple_Repeating_Header_Value_Call()));
-            
         }
 
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call()

@@ -119,7 +119,7 @@ namespace Echoes.H2.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://httpbin.org/status/204"
+                $"{TestConstants.Http2Host}/content-produce/0/0"
             );
             
             var response = await httpClient.SendAsync(requestMessage);

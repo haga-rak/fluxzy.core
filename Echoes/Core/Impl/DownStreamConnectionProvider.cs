@@ -74,7 +74,7 @@ namespace Echoes.Core
                 TcpClient tcpClient = await _listener.AcceptTcpClientAsync().ConfigureAwait(false);
 
                 tcpClient.NoDelay = true;  // NO Delay for local connection
-                tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
+                //tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
                 tcpClient.ReceiveBufferSize = 1024 * 64;
                 tcpClient.SendBufferSize = 32 * 1024;
 

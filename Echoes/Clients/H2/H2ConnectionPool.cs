@@ -189,17 +189,17 @@ namespace Echoes.H2
         
         private void OnGoAway(GoAwayFrame frame)
         {
-           //  Logger.WriteLine($"Goaway : Error code {frame.ErrorCode} : LastStreamId {frame.LastStreamId}");
-
-            if (frame.ErrorCode != H2ErrorCode.NoError)
+            if (frame.ErrorCode != H2ErrorCode.NoError && frame.ErrorCode != H2ErrorCode.StreamClosed)
             {
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
             else
             {
+                if (frame.ErrorCode == H2ErrorCode.StreamClosed)
+                {
 
+                }
             }
-
         }
 
         private void OnLoopEnd(Exception ex, bool releaseChannelItems)

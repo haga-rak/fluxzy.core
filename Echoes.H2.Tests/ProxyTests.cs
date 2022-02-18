@@ -32,7 +32,7 @@ namespace Echoes.H2.Tests
 
             using var httpClient = new HttpClient(clientHandler, false);
 
-            await Task.WhenAll(Enumerable.Repeat(httpClient, 2)
+            await Task.WhenAll(Enumerable.Repeat(httpClient, 5)
                 .Select(Receiving_Multiple_Repeating_Header_Value_Call));
 
             await proxy.WaitUntilDone();
@@ -42,9 +42,7 @@ namespace Echoes.H2.Tests
 
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call(HttpClient httpClient)
         {
-            int repeatCount = 2;
-
-
+            int repeatCount = 10;
             var hosts = new[]
             {
                 TestConstants.Http2Host, 
@@ -67,7 +65,8 @@ namespace Echoes.H2.Tests
                             PropertyNameCaseInsensitive = true
                         })!;
 
-                    var mustBeTrue = items.All(i => response.Headers.Any(t => t.Key == i.Name
+                    var mustBeTrue =
+                        items.All(i => response.Headers.Any(t => t.Key == i.Name
                                                                               && t.Value.Contains(i.Value)));
 
                     Assert.True(mustBeTrue);
@@ -241,7 +240,7 @@ namespace Echoes.H2.Tests
 
             Task OnNewExchange(Exchange ex)
             {
-                requestReceived.SetResult(ex);
+                requestReceived.TrySetResult(ex);
                 return Task.CompletedTask;
             }
 
@@ -296,7 +295,7 @@ namespace Echoes.H2.Tests
 
             Task OnNewExchange(Exchange ex)
             {
-                requestReceived.SetResult(ex);
+                requestReceived.TrySetResult(ex);
                 return Task.CompletedTask;
             }
 
@@ -351,7 +350,7 @@ namespace Echoes.H2.Tests
 
             Task OnNewExchange(Exchange ex)
             {
-                requestReceived.SetResult(ex);
+                requestReceived.TrySetResult(ex);
                 return Task.CompletedTask;
             }
 
