@@ -9,7 +9,8 @@ namespace Echoes.Cli
         static int Main(string[] args)
         {
             //throw new EchoesException("");
-            Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
+            //Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
+            Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
             return new CliApp(s => new CertificateProvider(s, new FileSystemCertificateCache(s))).Start(args);
         }
     }

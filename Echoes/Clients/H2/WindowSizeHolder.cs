@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace Echoes.H2
 {
-    public class WindowSizeHolder : IDisposable
+    internal class WindowSizeHolder : IDisposable
     {
+        private readonly H2Logger _logger;
         private int _windowSize;
         private readonly int _streamIdentifier;
 
@@ -17,18 +18,21 @@ namespace Echoes.H2
 
         private Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new(); 
 
-        public WindowSizeHolder(int windowSize, int streamIdentifier)
+        public WindowSizeHolder(H2Logger logger, int windowSize, int streamIdentifier)
         {
+            _logger = logger;
             _windowSize = windowSize;
             _streamIdentifier = streamIdentifier;
         }
-
+        
         public int WindowSize => _windowSize;
 
         public int StreamIdentifier => _streamIdentifier;
 
         public void UpdateWindowSize(int windowSizeIncrement)
         {
+            _logger.Trace(this, windowSizeIncrement);
+
             lock (this)
             {
                 if ((_windowSize + ((long) windowSizeIncrement)) > int.MaxValue)
@@ -72,6 +76,9 @@ namespace Echoes.H2
                 if (maxAvailable > 0)
                 {
                     _windowSize -= maxAvailable;
+
+                    _logger.Trace(this, -maxAvailable);
+
                     return maxAvailable;
                 }
             }

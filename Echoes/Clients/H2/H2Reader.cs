@@ -6,14 +6,10 @@ using Echoes.Helpers;
 
 namespace Echoes.H2
 {
-    public interface IH2FrameReader
-    {
-        ValueTask<H2FrameReadResult> ReadNextFrameAsync(Stream stream, Memory<byte> buffer, CancellationToken cancellationToken);
-    }
 
-    public class H2Reader : IH2FrameReader
+    public class H2FrameReader
     {
-        public async ValueTask<H2FrameReadResult> ReadNextFrameAsync(
+        public static async ValueTask<H2FrameReadResult> ReadNextFrameAsync(
             Stream stream, Memory<byte> buffer, CancellationToken cancellationToken)
         {
             var headerBuffer = buffer.Slice(0, 9);
@@ -25,6 +21,16 @@ namespace Echoes.H2
             var bodyBuffer = buffer.Slice(0, frame.BodyLength);
 
             await stream.ReadExactAsync(bodyBuffer, cancellationToken).ConfigureAwait(false);
+
+            return new H2FrameReadResult(frame, bodyBuffer); 
+        }
+
+        public static H2FrameReadResult ReadFrame(ref ReadOnlyMemory<byte> inputBuffer)
+        {
+            var headerBuffer = inputBuffer.Slice(0, 9);
+            var frame = new H2Frame(headerBuffer.Span);
+
+            var bodyBuffer = inputBuffer.Slice(0, frame.BodyLength);
 
             return new H2FrameReadResult(frame, bodyBuffer); 
         }

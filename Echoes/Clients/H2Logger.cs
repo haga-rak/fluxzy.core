@@ -1,0 +1,341 @@
+﻿// Copyright © 2021 Haga Rakotoharivelo
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using Echoes.H2;
+using Echoes.H2.Encoder.Utils;
+
+namespace Echoes
+{
+    /// <summary>
+    /// Utility for tracing H2 Connection 
+    /// </summary>
+    internal class H2Logger
+    {
+        public Authority Authority { get; }
+        public int ConnectionId { get; }
+
+        private readonly bool _active;
+        private readonly string _directory;
+        
+        public H2Logger(Authority authority, int connectionId, bool? active = null)
+        {
+            Authority = authority;
+            ConnectionId = connectionId;
+            if (active == null)
+            {
+                active =
+                    string.Equals(Environment.GetEnvironmentVariable("EnableH2Tracing"),
+                        "true", StringComparison.OrdinalIgnoreCase);
+            }
+
+            _active = active.Value;
+            _directory = new DirectoryInfo("debug-h2").FullName;
+
+            _directory = Path.Combine(_directory, DebugContext.ReferenceString);
+
+            Directory.CreateDirectory(_directory);
+        }
+        
+        private void WriteLn(
+            int streamIdentifier, string message)
+        {
+            var fullPath = _directory;
+            var portString = Authority.Port == 443 ? string.Empty : $"-{Authority.Port:00000}";
+
+            fullPath = Path.Combine(fullPath,
+                $"{Authority.HostName}{portString}");
+
+            Directory.CreateDirectory(fullPath);
+
+            fullPath = Path.Combine(fullPath, $"cId={ConnectionId:00000}-sId={streamIdentifier:00000}.txt");
+
+            lock (string.Intern(fullPath))
+                File.AppendAllText(fullPath,
+                    $"[{ITimingProvider.Default.InstantMillis:0000000}] {message}]\r\n");
+        }
+
+        private static string GetFrameExtraMessage(ref H2FrameReadResult frame)
+        {
+            switch (frame.BodyType)
+            {
+                case H2FrameType.Data:
+                {
+                    var innerFrame = frame.GetDataFrame();
+                    return $"Length = {innerFrame.BodyLength}, EndStream = {innerFrame.EndStream}";
+                }
+                case H2FrameType.Headers:
+                {
+                    var innerFrame = frame.GetHeadersFrame();
+                    return $"Length = {innerFrame.BodyLength}, EndHeaders = {innerFrame.EndHeaders}, EndStream = {innerFrame.EndStream}";
+                }
+                case H2FrameType.Priority:
+                {
+                    var innerFrame = frame.GetPriorityFrame();
+                    return $"Exclusive = {innerFrame.Exclusive}, StreamDependency = {innerFrame.StreamDependency}, Weight = {innerFrame.Weight}";
+                }
+                case H2FrameType.RstStream:
+                {
+                    var innerFrame = frame.GetRstStreamFrame();
+                    return $"ErrorCode = {innerFrame.ErrorCode}";
+                }
+                case H2FrameType.Settings:
+                {
+                    var innerFrame = frame.GetSettingFrame();
+                    return $"Ack = {innerFrame.Ack}, SettingIdentifier = {innerFrame.SettingIdentifier}, Value = {innerFrame.Value}";
+                }
+                case H2FrameType.PushPromise:
+                {
+                    return "";
+                }
+                case H2FrameType.Ping:
+                {
+                    return ""; 
+                }
+                case H2FrameType.Goaway:
+                {
+                    var innerFrame = frame.GetGoAwayFrame();
+                    return $"ErrorCode = {innerFrame.ErrorCode}, LastStreamId = {innerFrame.LastStreamId}";
+                }
+                case H2FrameType.WindowUpdate:
+                {
+                    var innerFrame = frame.GetWindowUpdateFrame();
+                    return $"WindowSizeIncrement = {innerFrame.WindowSizeIncrement}";
+                }
+                case H2FrameType.Continuation:
+                {
+                    var innerFrame = frame.GetContinuationFrame();
+                    return $"Length = {innerFrame.BodyLength}, EndHeaders = {innerFrame.EndHeaders}";
+                }
+                default:
+                    return ""; 
+            }
+        }
+        
+        public void IncomingFrame(
+            ref H2FrameReadResult frame)
+        {
+            if (!_active)
+                return;
+
+            var message =
+                $"RCV <== " +
+                $"Type = {frame.BodyType} " +
+                $"Flags = {frame.Flags} ";
+
+            message += GetFrameExtraMessage(ref frame); 
+
+            WriteLn(frame.StreamIdentifier, message);
+        }
+
+        public void OutgoingFrame(
+            ref H2FrameReadResult frame)
+        {
+            if (!_active)
+                return;
+
+            var message =
+                $"SNT ==> " +
+                $"Type = {frame.BodyType} " +
+                $"Flags = {frame.Flags} ";
+
+            message += GetFrameExtraMessage(ref frame); 
+
+            WriteLn(frame.StreamIdentifier, message);
+        }
+
+        public void OutgoingFrame(
+            ReadOnlyMemory<byte> buffer)
+        {
+            if (!_active)
+                return;
+
+            var frame = H2FrameReader.ReadFrame(ref buffer);
+            
+            OutgoingFrame(ref frame);
+        }
+
+        public void OutgoingWindowUpdate(
+            int value, int streamIdentifier)
+        {
+            if (!_active)
+                return;
+
+            var message =
+                $"SNT ==> " +
+                $"Type = {H2FrameType.WindowUpdate} ";
+
+            message += $"WindowSizeIncrement = {value}"; ; 
+
+            WriteLn(streamIdentifier, message);
+        }
+        public void Trace(
+            int streamId, string message)
+        {
+            if (!_active)
+                return;
+            
+
+            WriteLn(streamId, message);
+        }
+
+        public void Trace(Exchange exchange, string preMessage, Exception ex = null, int streamIdentifier = 0)
+        {
+            if (!_active)
+                return; 
+
+            Trace(exchange, streamIdentifier, preMessage + (ex == null ? string.Empty : ex.ToString()));
+        }
+
+        public void Trace(StreamProcessing streamProcessing,
+            Exchange exchange,
+            string preMessage)
+        {
+            if (!_active)
+                return;
+
+            Trace(exchange, streamProcessing.StreamIdentifier, preMessage);
+        }
+
+        public void TraceResponse(StreamProcessing streamProcessing,
+            Exchange exchange)
+        {
+            if (!_active)
+                return;
+
+            var firstLine = exchange.Response.Header.RawHeader.ToString().Split("\r\n").First();
+
+            Trace(exchange, streamProcessing.StreamIdentifier, $"Response : " + firstLine);
+        }
+
+        public void IncomingSetting(ref SettingFrame settingFrame)
+        {
+            if (!_active)
+                return;
+
+            var message =
+                $"RCV <== "; 
+
+            message += $"Ack = {settingFrame.Ack}, SettingIdentifier = {settingFrame.SettingIdentifier}, Value = {settingFrame.Value}";
+
+            WriteLn(0, message);
+        }
+        public void OutgoingSetting(ref SettingFrame settingFrame)
+        {
+            if (!_active)
+                return;
+
+            var message =
+                $"SNT ==> "; 
+
+            message += $"Ack = {settingFrame.Ack}, SettingIdentifier = {settingFrame.SettingIdentifier}, Value = {settingFrame.Value}";
+
+            WriteLn(0, message);
+        }
+
+
+        public void Trace(
+            Exchange exchange,
+            int streamId,
+            string preMessage)
+        {
+            if (!_active)
+                return;
+
+            var method = exchange.Request.Header[":method".AsMemory()].First().Value.ToString();
+            var path = exchange.Request.Header[":path".AsMemory()].First().Value.ToString();
+
+            int maxLength = 30;
+
+            if (path.Length > maxLength)
+            {
+                path = "..." + path.Substring(path.Length - (maxLength -3), (maxLength - 3));
+            }
+
+            var message =
+                $"{method.PadRight(6, ' ')} - " +
+                $"({path}) - " +
+                $"Sid = {streamId} " +
+                $" - {preMessage}"; 
+            
+            WriteLn(streamId, message);
+        }
+
+        public void Trace(
+            WindowSizeHolder holder, 
+            int windowSizeIncrement)
+        {
+            if (!_active)
+                return;
+
+            var message =
+                $"Window Update - " +
+                $"Before = {holder.WindowSize} - " +
+                $"Value = {windowSizeIncrement} -  " +
+                $"After = {(holder.WindowSize + windowSizeIncrement)} -  ";
+                //$"Sid = {holder.StreamIdentifier} " +
+
+            WriteLn(holder.StreamIdentifier, message);
+        }
+
+    }
+
+
+    //public static class Logger
+    //{
+    //    private static readonly object _writeFileLock = new object();
+
+    //    public static void WriteLine(ref H2FrameReadResult frame, WindowSizeHolder holder)
+    //    {
+    //        if (!DebugContext.EnableWindowSizeTrace)
+    //            return;
+
+    //        if (frame.BodyType == H2FrameType.WindowUpdate)
+    //        {
+    //            var data = frame.GetWindowUpdateFrame();
+
+    //            Logger.WriteLine(
+    //                $"Receiving {frame.BodyType} ({data.WindowSizeIncrement}) " +
+    //                $"on streamId {frame.StreamIdentifier} / Flags : {frame.Flags} / ({holder.WindowSize})");
+    //        }
+    //        else
+    //        {
+    //            WriteLine(
+    //                $"Receiving {frame.BodyType} ({frame.BodyLength}) on streamId {frame.StreamIdentifier} / Flags : {frame.Flags}");
+    //        }
+    //    }
+
+    //    private static int TotalSent = 0;
+
+    //    internal static void WriteLine(WriteTask writeTask)
+    //    {
+    //        if (!DebugContext.EnableWindowSizeTrace)
+    //            return;
+
+    //        if (writeTask.FrameType == H2FrameType.Data)
+    //            Interlocked.Add(ref TotalSent, writeTask.BufferBytes.Length);
+
+    //        WriteLine($"Sending {writeTask.BufferBytes.Length} " +
+    //                  $"on streamId {writeTask.StreamIdentifier} {writeTask.FrameType} (Total : {TotalSent})");
+    //    }
+
+
+    //    public static void WriteLine(string line)
+    //    {
+    //        if (!DebugContext.EnableWindowSizeTrace)
+    //            return;
+
+    //        if (DebugContext.EnableWindowSizeTrace)
+    //        {
+    //            var fileName = DebugContext.WindowSizeTraceDumpDirectory + $"/{DebugContext.SessionDate}-trace.txt";
+
+    //            lock (_writeFileLock)
+    //                File.AppendAllText(fileName, line + Environment.NewLine);
+    //        }
+    //        // Console.WriteLine(line);
+    //    }
+    //}
+}

@@ -7,7 +7,7 @@ using Echoes.H2.Encoder.Utils;
 
 namespace Echoes.H2
 {
-    internal class StreamProcessingBuilder : IStreamProcessingBuilder
+    internal class StreamProcessingBuilder
     {
         private readonly CancellationToken _localCancellationToken;
         private readonly UpStreamChannel _upStreamChannel;
@@ -43,17 +43,15 @@ namespace Echoes.H2
 
         public StreamProcessing Build(
             int streamIdentifier, StreamPool parent,
-            Exchange exchange, CancellationToken callerCancellationToken)
+            Exchange exchange, H2Logger logger, CancellationToken callerCancellationToken)
         {
-            return new StreamProcessing(streamIdentifier, parent, exchange,
+            return new StreamProcessing(
+                streamIdentifier, parent, exchange,
                 _upStreamChannel, _headerEncoder, _streamSetting,
-                _overallWindowSizeHolder, _parser, _localCancellationToken, callerCancellationToken);
+                _overallWindowSizeHolder, _parser, logger, 
+                _localCancellationToken, callerCancellationToken);
         }
     }
-
-    internal interface IStreamProcessingBuilder
-    {
-        StreamProcessing Build(int streamIdentifier, StreamPool parent, Exchange exchange, CancellationToken callerCancellationToken);
-    }
+    
 
 }

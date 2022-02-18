@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Echoes.H2;
 using Echoes.IO;
 
 namespace Echoes.Core
@@ -51,11 +52,12 @@ namespace Echoes.Core
                     {
                         localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), _startupSetting, token);
                     }
-                    catch (SocketException)
+                    catch (Exception ex)
                     {
                         // Failure from the local connection
 
-                        return; 
+                        if (ex is SocketException || ex is IOException)
+                            return; 
                     }
 
                     if (localConnection == null)
@@ -206,7 +208,16 @@ namespace Echoes.Core
 
                                 // In case the down stream connection is persisted, 
                                 // we wait for the current exchange to complete before reading further request
-                                shouldClose = shouldClose || await exchange.Complete;
+
+                                try
+                                {
+
+                                    shouldClose = shouldClose || await exchange.Complete;
+                                }
+                                catch (ExchangeException ex)
+                                {
+                                    // Enhance your calm
+                                }
                             }
                             else
                             {
@@ -239,6 +250,11 @@ namespace Echoes.Core
             }
             catch (Exception ex)
             {
+                if (ex is OperationCanceledException)
+                {
+                    return;
+                }
+
                 // FATAL exception only happens here 
                 throw;
             }

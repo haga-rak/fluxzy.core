@@ -21,6 +21,7 @@ namespace Echoes.H2
         private readonly Memory<byte> _dataReceptionBuffer;
         private readonly H2StreamSetting _globalSetting;
         private readonly Http11Parser _parser;
+        private readonly H2Logger _logger;
 
         private readonly TaskCompletionSource<object> _responseHeaderReady = new TaskCompletionSource<object>();
         private readonly TaskCompletionSource<object> _responseBodyComplete = new TaskCompletionSource<object>();
@@ -41,6 +42,7 @@ namespace Echoes.H2
             H2StreamSetting globalSetting,
             WindowSizeHolder overallWindowSizeHolder,
             Http11Parser parser, 
+            H2Logger logger,
             CancellationToken mainLoopCancellationToken,
             CancellationToken callerCancellationToken)
         {
@@ -51,11 +53,16 @@ namespace Echoes.H2
             _upStreamChannel = upStreamChannel;
             _headerEncoder = headerEncoder;
             _response = new H2Message(headerEncoder.Decoder, StreamIdentifier, MemoryPool<byte>.Shared, this);
-            RemoteWindowSize = new WindowSizeHolder(globalSetting.OverallWindowSize, streamIdentifier);
+
+            RemoteWindowSize = new WindowSizeHolder(logger,
+                globalSetting.OverallWindowSize, 
+                streamIdentifier);
+
             OverallRemoteWindowSize = overallWindowSizeHolder; 
             
             _globalSetting = globalSetting;
             _parser = parser;
+            _logger = logger;
 
             _receptionBufferContainer = MemoryPool<byte>.Shared.RendExact(16 * 1024);
 
@@ -113,7 +120,9 @@ namespace Echoes.H2
         public WindowSizeHolder RemoteWindowSize { get;  }
         
         public WindowSizeHolder OverallRemoteWindowSize { get;  }
-        
+
+        public StreamPool Parent => _parent;
+
         private async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
         {
             if (requestedBodyLength == 0)
@@ -144,8 +153,14 @@ namespace Echoes.H2
 
             _responseBodyComplete.TrySetResult(null);
             _parent.NotifyDispose(this);
+
+            if (errorCode == H2ErrorCode.EnhanceYourCalm)
+            {
+
+            }
+
             _exchange.ExchangeCompletionSource
-                .TrySetException(new ExchangeException($"Receive  RST : {errorCode} from server"));
+                .TrySetException(new ExchangeException($"Receive RST : {errorCode} from server"));
         }
 
         public void SetPriority(PriorityFrame priorityFrame)
@@ -175,7 +190,7 @@ namespace Echoes.H2
             return writeHeaderTask.DoneTask
                 .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, _callerCancellationToken);
         }
-        
+
         public async Task ProcessRequestBody(Exchange exchange)
         {
             var totalSent = 0;
@@ -285,6 +300,8 @@ namespace Echoes.H2
             _exchange.Response.Header = new ResponseHeader(
             _response.Header.AsMemory(), true, _parser);
 
+            _logger.TraceResponse(this, _exchange);
+
             if (last)
             {
                 _responseHeaderReady.SetResult(null);
@@ -368,10 +385,13 @@ namespace Echoes.H2
         {
             _disposed = true;
 
+            _logger.Trace(StreamIdentifier, ".... disposing StreamProcessing");
+
             if (!_receivedEndStream)
             {
                 _response.ParentHasDisposed();
             }
+            
 
             RemoteWindowSize?.Dispose();
             OverallRemoteWindowSize?.Dispose();

@@ -12,28 +12,38 @@ namespace Echoes.H2
 
     internal class StreamPool :  IDisposable, IAsyncDisposable
     {
-
         private readonly PeerSetting _remotePeerSetting;
-        private readonly IStreamProcessingBuilder _streamProcessingBuilder;
+        private readonly H2Logger _logger;
+        private readonly StreamProcessingBuilder _streamProcessingBuilder;
         
         private readonly IDictionary<int, StreamProcessing> _runningStreams = new Dictionary<int, StreamProcessing>();
 
         private int _nextStreamIdentifier = -1;
 
         private readonly SemaphoreSlim _barrier;
-        private readonly SemaphoreSlim _lockker = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _lockker = new(1);
         private bool _onError;
 
         private readonly FifoLock _fifoLock = new FifoLock();
 
         public StreamPool(
-            IStreamProcessingBuilder streamProcessingBuilder,
+            int connectionId, 
+            Authority authority, 
+            H2Logger logger,
+            StreamProcessingBuilder streamProcessingBuilder,
             PeerSetting remotePeerSetting)
         {
+            ConnectionId = connectionId;
+            Authority = authority;
+            _logger = logger;
             _streamProcessingBuilder = streamProcessingBuilder;
             _remotePeerSetting = remotePeerSetting;
             _barrier = new SemaphoreSlim((int) remotePeerSetting.SettingsMaxConcurrentStreams);
         }
+
+        public int ConnectionId { get; }
+
+        public Authority Authority { get; }
 
         public bool TryGetExistingActiveStream(int streamIdentifier, out StreamProcessing result)
         {
@@ -50,12 +60,16 @@ namespace Echoes.H2
             ongoingStreamInit.Wait(callerCancellationToken);
 
             var myId = Interlocked.Add(ref _nextStreamIdentifier, 2);
-            StreamProcessing activeStream = _streamProcessingBuilder.Build(myId, this, exchange, callerCancellationToken);
+
+            StreamProcessing activeStream = _streamProcessingBuilder.Build(
+                myId, this, exchange, _logger,
+                callerCancellationToken);
             
             _runningStreams[myId] = activeStream;
 
+            _logger.Trace(exchange, "Affecting streamIdentifier", streamIdentifier: myId);
+
             return activeStream;
-            
         }
         
         /// <summary>
@@ -69,6 +83,7 @@ namespace Echoes.H2
             
             await _barrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
             var res = CreateActiveStream(exchange, callerCancellationToken, ongoingStreamInit);
+
             return res;
         }
         

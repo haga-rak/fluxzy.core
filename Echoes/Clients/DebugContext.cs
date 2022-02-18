@@ -5,6 +5,9 @@ namespace Echoes
 {
     public static class DebugContext
     {
+
+        public static string ReferenceString { get; } = DateTime.Now.ToString("yyyyMMddHHmmss");
+
         /// <summary>
         /// Get the value whether network file dump is active. Can be modified by setting environment variable
         /// "Echoes_EnableNetworkFileDump"

@@ -13,6 +13,8 @@ namespace Echoes
             Secure = secure;
         }
 
+        public bool Empty => HostName == null && Port == 0;  
+
         public string HostName { get;  }
 
         public int Port { get;  }

@@ -22,10 +22,14 @@ namespace Echoes
             {
                 return _start.Add(_watch.Elapsed);
             }
+
+            public long InstantMillis => _watch.ElapsedMilliseconds;
         }
 
         public static ITimingProvider Default { get; } = new DefaultTimingProvider(); 
 
-        DateTime Instant(); 
+        DateTime Instant();
+
+        long InstantMillis { get; }
     }
 }

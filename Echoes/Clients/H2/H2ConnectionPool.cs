@@ -14,11 +14,12 @@ using Echoes.Helpers;
 namespace Echoes.H2
 {
     public class H2ConnectionPool : IHttpConnectionPool
-    { 
+    {
+        private static int _connectionIdCounter = 0; 
+
         private static readonly byte[] Preface = System.Text.Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
 
         private readonly Stream _baseStream;
-        private readonly IH2FrameReader _streamReader;
 
         private CancellationTokenSource _connectionCancellationTokenSource = new();
         
@@ -41,7 +42,13 @@ namespace Echoes.H2
         private readonly StreamProcessingBuilder _streamProcessingBuilder;
 
         // Window size of the remote 
-        private WindowSizeHolder _overallWindowSizeHolder; 
+        private WindowSizeHolder _overallWindowSizeHolder;
+
+
+        public int CurrentProcessedRequest = 0;
+        public int FaultedRequest = 0;
+        public int TotalRequest = 0;
+        private readonly H2Logger _logger;
 
         public H2ConnectionPool(
             Stream baseStream,
@@ -50,13 +57,15 @@ namespace Echoes.H2
             Connection connection, Action<H2ConnectionPool> onConnectionFaulted
             )
         {
+            Id = Interlocked.Increment(ref _connectionIdCounter); 
+
             Authority = authority;
             _baseStream = baseStream;
-            _streamReader = new H2Reader();
             _setting = setting;
             _onConnectionFaulted = onConnectionFaulted;
+            _logger = new H2Logger(Authority, Id); 
 
-            _overallWindowSizeHolder = new WindowSizeHolder(_setting.OverallWindowSize,0);
+            _overallWindowSizeHolder = new WindowSizeHolder(_logger, _setting.OverallWindowSize,0);
 
             _streamProcessingBuilder = new StreamProcessingBuilder(authority, _connectionCancellationTokenSource.Token,
                 UpStreamChannel,
@@ -71,8 +80,10 @@ namespace Echoes.H2
                     SingleWriter = false
                 });
 
-            _streamPool = new StreamPool(_streamProcessingBuilder, _setting.Remote);
+            _streamPool = new StreamPool(Id, authority, _logger, _streamProcessingBuilder, _setting.Remote);
         }
+
+        public int Id { get; }
 
         public H2StreamSetting Setting => _setting;
 
@@ -83,8 +94,7 @@ namespace Echoes.H2
         
         private bool ProcessIncomingSettingFrame(SettingFrame settingFrame)
         {
-            if (DebugContext.EnableNetworkFileDump)
-                Logger.WriteLine(settingFrame.ToString());
+            _logger.IncomingSetting(ref settingFrame);
             
             if (settingFrame.Ack)
             {
@@ -95,17 +105,7 @@ namespace Echoes.H2
 
                 return false;
             }
-
-            Console.WriteLine($"Received : {settingFrame.SettingIdentifier} : value = {settingFrame.Value} - aut = {Authority.HostName}");
-
-            if (
-                settingFrame.SettingIdentifier != SettingIdentifier.SettingsMaxConcurrentStreams
-               // &&  settingFrame.SettingIdentifier != SettingIdentifier.SettingsInitialWindowSize
-                )
-            {
-                
-            }
-
+            
             switch (settingFrame.SettingIdentifier)
             {
                 
@@ -115,7 +115,6 @@ namespace Echoes.H2
                         // TODO Close connection on error. Push not supported 
                         return false;
                     }
-                    //_setting.Remote.EnablePush = false;
                     return true;
                 case SettingIdentifier.SettingsMaxConcurrentStreams:
                     _setting.Remote.SettingsMaxConcurrentStreams = settingFrame.Value;
@@ -198,6 +197,7 @@ namespace Echoes.H2
             {
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
+            
         }
 
         private void OnLoopEnd(Exception ex, bool releaseChannelItems)
@@ -258,14 +258,11 @@ namespace Echoes.H2
 
                             new WindowUpdateFrame(updateValue, streamId).Write(windowSizeBuffer);
 
-                            if (DebugContext.EnableNetworkFileDump)
-                            Logger.WriteLine(
-                                $"Sending WindowUpdate : {updateValue} on {streamId} Merge : {element.Count()}");
+                            _logger.OutgoingWindowUpdate(updateValue, streamId);
 
                             await _baseStream.WriteAsync(windowSizeBuffer, _connectionCancellationTokenSource.Token)
                                 .ConfigureAwait(false);
                             await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
-                            
                         }
 
                         // TODO improve the priority rule 
@@ -284,15 +281,10 @@ namespace Echoes.H2
                                     .WriteAsync(writeTask.BufferBytes, _connectionCancellationTokenSource.Token)
                                     .ConfigureAwait(false);
 
+                                _logger.OutgoingFrame(writeTask.BufferBytes);
+
                                 await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
-
-                                Logger.WriteLine(writeTask);
-
-                                if (DebugContext.EnableNetworkFileDump)
-                                    if (writeTask.FrameType == H2FrameType.Data)
-                                    Logger.WriteLine("Overall window state = " +
-                                                     _overallWindowSizeHolder.WindowSize);
-
+                                
                                 writeTask.OnComplete(null);
                             }
                             catch (Exception ex) when (ex is SocketException || ex is IOException)
@@ -344,14 +336,13 @@ namespace Echoes.H2
             {
                 while (_connectionCancellationTokenSource != null && !_connectionCancellationTokenSource.IsCancellationRequested)
                 {
-                    H2FrameReadResult frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
+                    H2FrameReadResult frame = await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
-                    // var str = frame.ToString();
+                    _logger.IncomingFrame(ref frame);
                     
                     _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
-
-                    Logger.WriteLine(ref frame, _overallWindowSizeHolder);
+                    
 
                     //Logger.WriteLine(
                     //    $"Receiving {frame.BodyType} ({frame.BodyLength}) on streamId {frame.StreamIdentifier} / Flags : {frame.Flags}");
@@ -459,10 +450,7 @@ namespace Echoes.H2
             }
         }
 
-        public int CurrentProcessedRequest = 0; 
-        public int FaultedRequest = 0; 
-        public int TotalRequest = 0; 
-        
+
         public async ValueTask Send(
             Exchange exchange, ILocalLink _,
             CancellationToken cancellationToken = default)
@@ -473,11 +461,18 @@ namespace Echoes.H2
 
             try
             {
+                _logger.Trace(exchange, "Send start");
+
                 await InternalSend(exchange, cancellationToken);
+
+                _logger.Trace(exchange, "Send success");
             }
             catch (Exception ex)
             {
                 Interlocked.Increment(ref FaultedRequest);
+
+                _logger.Trace(exchange, "Send success on error " + ex);
+
                 OnLoopEnd(ex, true);
                 throw;
             }
