@@ -58,7 +58,7 @@ namespace Echoes.H2
 
             _overallWindowSizeHolder = new WindowSizeHolder(_setting.OverallWindowSize,0);
 
-            _streamProcessingBuilder = new StreamProcessingBuilder(_connectionCancellationTokenSource.Token,
+            _streamProcessingBuilder = new StreamProcessingBuilder(authority, _connectionCancellationTokenSource.Token,
                 UpStreamChannel,
                 _setting, _overallWindowSizeHolder, ArrayPool<byte>.Shared, new Http11Parser(setting.MaxHeaderSize, 
                     new ArrayPoolMemoryProvider<char>())

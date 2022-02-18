@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Echoes.H2.Encoder.HPack
@@ -24,20 +25,24 @@ namespace Echoes.H2.Encoder.HPack
             var evictedSize = 0;
             var i = 0;
 
+            var evictedCount = 0; 
+
             for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++)
             {
                 if (!_entries.TryGetValue(i, out var tableEntry))
                 {
                     _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
+                    
                     return evictedSize;
                 }
 
                 _entries.Remove(i);
+                evictedCount++; 
 
                 _currentSize -= tableEntry.Size;
                 evictedSize += tableEntry.Size;
             }
-
+            
             _oldestElementInternalIndex = i;
 
             return evictedSize;
@@ -71,18 +76,22 @@ namespace Echoes.H2.Encoder.HPack
         /// </summary>
         /// <param name="entry"></param>
         /// <returns></returns>
-        public void Add(in HeaderField entry)
+        public int Add(in HeaderField entry)
         {
             var provisionalSize = _currentSize + entry.Size;
 
             if (provisionalSize > _currentMaxSize)
             {
-                var evictedSize = EvictUntil(provisionalSize - _currentMaxSize);
+                var spaceNeeded = provisionalSize - _currentMaxSize;
 
+                var evictedSize = EvictUntil(spaceNeeded);
+
+                // Console.WriteLine("Evicting");
                 // No decoding error.
                 // Inserting element larger than Table MAX SIZE cause the table to be emptied 
-                if (evictedSize < entry.Size)
-                    return;
+
+                if (evictedSize < spaceNeeded)
+                    return -1;
             }
 
             _currentSize += entry.Size;
@@ -90,6 +99,10 @@ namespace Echoes.H2.Encoder.HPack
             _internalIndex += 1;
 
             _entries[_internalIndex] = entry;
+
+            
+
+            return _internalIndex;
         }
 
         public bool TryGet(int externalIndex, out HeaderField entry)

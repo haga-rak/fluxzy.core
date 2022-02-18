@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography.X509Certificates;
 using Echoes.H2.Encoder.HPack;
 using Echoes.H2.Encoder.Utils.Interfaces;
 
@@ -6,17 +7,22 @@ namespace Echoes.H2.Encoder
 {
     public class DecodingContext
     {
-        private readonly HPackDecodingDynamicTable _dynamicTable; 
+        private readonly HPackDecodingDynamicTable _dynamicTable;
 
+        private readonly Authority _authority;
         private readonly IMemoryProvider<char> _memoryProvider;
 
         public DecodingContext(
+            Authority authority,
             IMemoryProvider<char> memoryProvider, 
             int maxDynamicTableSize = 1024 * 4)
         {
+            _authority = authority;
             _memoryProvider = memoryProvider;
             _dynamicTable = new HPackDecodingDynamicTable(maxDynamicTableSize);
         }
+
+        public Authority Authority => _authority;
 
         internal HeaderField [] DynContent()
         {
@@ -26,7 +32,8 @@ namespace Echoes.H2.Encoder
         internal HeaderField Register(ReadOnlySpan<char> headerName, ReadOnlySpan<char> headerValue)
         {
             var entry = new HeaderField(headerName, headerValue, _memoryProvider);
-            _dynamicTable.Add(entry);
+            var value = _dynamicTable.Add(entry);
+            
             return entry;
         }
 

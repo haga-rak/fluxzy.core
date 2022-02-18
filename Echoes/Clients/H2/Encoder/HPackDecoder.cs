@@ -7,14 +7,14 @@ using Echoes.H2.Encoder.Utils.Interfaces;
 
 namespace Echoes.H2.Encoder
 {
-    public class  HPackDecoder : IDisposable
+    public class HPackDecoder : IDisposable
     {
         private readonly DecodingContext _decodingContext;
         private readonly PrimitiveOperation _primitiveOperation;
         private readonly CodecSetting _codecSetting;
         private readonly IMemoryProvider<char> _memoryProvider;
         private readonly Http11Parser _parser;
-        
+
         private readonly List<HeaderField> _tempEntries = new List<HeaderField>();
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Echoes.H2.Encoder
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal HPackDecoder(
             DecodingContext decodingContext,
-            CodecSetting codecSetting = null, 
+            CodecSetting codecSetting = null,
             IMemoryProvider<char> memoryProvider = null,
             Http11Parser parser = null,
             PrimitiveOperation primitiveOperation = null)
@@ -43,7 +43,6 @@ namespace Echoes.H2.Encoder
 
         public DecodingContext Context => _decodingContext;
 
-        
 
         public ReadOnlySpan<char> Decode(ReadOnlySpan<byte> headerContent, Span<char> buffer, ref IList<HeaderField> originalFields)
         {
@@ -54,7 +53,7 @@ namespace Echoes.H2.Encoder
                 for (; ; )
                 {
                     HeaderField tableEntry = ReadNextField(headerContent, out var readen);
-                    
+
                     if (readen <= 0)
                     {
                         break;
@@ -103,13 +102,13 @@ namespace Echoes.H2.Encoder
                 _tempEntries.Clear();
             }
         }
-        
+
         private HeaderField ReadNextField(in ReadOnlySpan<byte> buffer, out int bytesReaden)
         {
             if (buffer.Length == 0)
             {
                 bytesReaden = 0;
-                return default; 
+                return default;
             }
 
             var type = ParsingMode.ParseType(buffer[0]);
@@ -119,88 +118,90 @@ namespace Echoes.H2.Encoder
             switch (type)
             {
                 case HeaderFieldType.DynamicTableSizeUpdate:
-                {
-                    var currentByteReaden = _primitiveOperation.ReadInt32(buffer, 5, out var maxSize);
-                    _decodingContext.UpdateMaxSize(maxSize);
-
-                    Console.WriteLine($"Receive update dtable {maxSize}");
-
-                    var res = ReadNextField(buffer.Slice(currentByteReaden), out var nextRead);
-                    bytesReaden = currentByteReaden + nextRead;
-
-                    return res; 
-                }
-                case HeaderFieldType.IndexedHeaderField:
-                {
-                    bytesReaden = _primitiveOperation.ReadInt32(buffer, 7, out index);
-
-                    if (!_decodingContext.TryGetEntry(index, out var tableEntry))
-                        throw new HPackCodecException($"Referenced index header {index} is absent from decodingTable");
-
-                    return tableEntry;
-                }
-                case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingExistingName:
-                {
-                    var offsetLength = _primitiveOperation.ReadInt32(buffer, 6, out var headerIndex);
-
-                    Span<char> lineBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
-
-                    // obtenir header value from static table
-
-                    if (!_decodingContext
-                            .TryGetEntry(headerIndex, out var header))
                     {
-                        throw new HPackCodecException(
-                            $"Requested headerIndex does not exist in static table {headerIndex}");
+                        var currentByteReaden = _primitiveOperation.ReadInt32(buffer, 5, out var maxSize);
+                        _decodingContext.UpdateMaxSize(maxSize);
+
+
+                        var res = ReadNextField(buffer.Slice(currentByteReaden), out var nextRead);
+                        bytesReaden = currentByteReaden + nextRead;
+
+                        return res;
                     }
+                case HeaderFieldType.IndexedHeaderField:
+                    {
+                        bytesReaden = _primitiveOperation.ReadInt32(buffer, 7, out index);
 
-                    var headerValue = 
-                        _primitiveOperation.ReadString(buffer.Slice(offsetLength), lineBuffer, out var headerValueLength);
+                        if (!_decodingContext.TryGetEntry(index, out var tableEntry))
+                            throw new HPackCodecException($"Referenced index header {index} is absent from decodingTable");
 
-                    bytesReaden = offsetLength + headerValueLength;
+                        return tableEntry;
+                    }
+                case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingExistingName:
+                    {
+                        var offsetLength = _primitiveOperation.ReadInt32(buffer, 6, out var headerIndex);
 
-                    return _decodingContext.Register(header.Name.Span, headerValue);
-                }
+                        Span<char> lineBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+
+                        // obtenir header value from static table
+
+                        if (!_decodingContext
+                                .TryGetEntry(headerIndex, out var header))
+                        {
+                            throw new HPackCodecException(
+                                $"Requested headerIndex does not exist in static table {headerIndex}");
+                        }
+
+                        var headerValue =
+                            _primitiveOperation.ReadString(buffer.Slice(offsetLength), lineBuffer, out var headerValueLength);
+
+                        bytesReaden = offsetLength + headerValueLength;
+
+                        return _decodingContext.Register(header.Name.Span, headerValue);
+                    }
                 case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingWithName:
-                {
-                    Span<char> headerNameBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
-                    Span<char> headerValueBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+                    {
+                        Span<char> headerNameBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+                        Span<char> headerValueBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
 
-                    var headerName = _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var offsetHeaderName);
-                    var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + offsetHeaderName), headerValueBuffer, out var offsetHeaderValue);
+                        var headerName = _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var offsetHeaderName);
+                        var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + offsetHeaderName), headerValueBuffer, out var offsetHeaderValue);
 
-                    bytesReaden = 1 + offsetHeaderName + offsetHeaderValue;
+                        bytesReaden = 1 + offsetHeaderName + offsetHeaderValue;
 
-                    return _decodingContext.Register(headerName, headerValue);
-                }
+                        return _decodingContext.Register(headerName, headerValue);
+                    }
                 case HeaderFieldType.LiteralHeaderFieldNeverIndexExistingName:
                 case HeaderFieldType.LiteralHeaderFieldWithoutIndexingExistingName:
-                {
-                    var offsetLength = _primitiveOperation.ReadInt32(buffer, 4, out index);
-
-                    if (!_decodingContext.TryGetEntry(index, out var tableEntry))
                     {
-                        throw new HPackCodecException($"Referenced index header {index} is absent from decodingTable");
-                    }
+                        var offsetLength = _primitiveOperation.ReadInt32(buffer, 4, out index);
 
-                    Span<char> lineBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
-                    var resultString = _primitiveOperation.ReadString(buffer.Slice(offsetLength), lineBuffer, out var offsetValueLength);
+                        if (!_decodingContext.TryGetEntry(index, out var tableEntry))
+                        {
+                            throw new HPackCodecException($"Referenced index header {index} is absent from decodingTable");
+                        }
+
+                        Span<char> lineBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+                        var resultString = _primitiveOperation.ReadString(buffer.Slice(offsetLength), lineBuffer, out var offsetValueLength);
+
+                        bytesReaden = offsetLength + offsetValueLength;
                         
-                    bytesReaden = offsetLength + offsetValueLength;
-
-                    return new HeaderField(tableEntry.Name.Span, resultString, _memoryProvider);
-                }
+                        return new HeaderField(tableEntry.Name.Span, resultString, _memoryProvider);
+                    }
                 case HeaderFieldType.LiteralHeaderFieldNeverIndexWithName:
                 case HeaderFieldType.LiteralHeaderFieldWithoutIndexingWithName:
-                {
-                    Span<char> headerNameBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
-                    Span<char> headerValueBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+                    {
+                        Span<char> headerNameBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+                        Span<char> headerValueBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
 
-                    var headerName = _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var nameLength);
-                    var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + nameLength), headerValueBuffer, out var valueLength);
-                    bytesReaden = 1 + nameLength + valueLength;
-                    return new HeaderField(headerName, headerValue, _memoryProvider);
-                }
+                        var headerName = _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var nameLength);
+                        var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + nameLength), headerValueBuffer, out var valueLength);
+                        bytesReaden = 1 + nameLength + valueLength;
+
+                        if (_decodingContext.Authority.HostName == "discord.com")
+                            Console.WriteLine($"without indexing 2 {headerName.ToString()} = {headerValue.ToString()}");
+                        return new HeaderField(headerName, headerValue, _memoryProvider);
+                    }
                 default:
                     throw new HPackCodecException("Stream could not decoded");
             }
@@ -212,11 +213,11 @@ namespace Echoes.H2.Encoder
             _memoryProvider?.Dispose();
         }
 
-        public static HPackDecoder Create(CodecSetting codeSetting)
+        public static HPackDecoder Create(CodecSetting codeSetting, Authority authority)
         {
             var memoryProvider = new ArrayPoolMemoryProvider<char>();
 
-            return new HPackDecoder(new DecodingContext(memoryProvider), codeSetting, memoryProvider);
+            return new HPackDecoder(new DecodingContext(authority, memoryProvider), codeSetting, memoryProvider);
         }
     }
 }

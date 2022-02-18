@@ -387,7 +387,6 @@ namespace Echoes.H2
                 _response.ParentHasDisposed();
             }
 
-
             RemoteWindowSize?.Dispose();
             OverallRemoteWindowSize?.Dispose();
             _currentStreamCancellationTokenSource.Dispose();

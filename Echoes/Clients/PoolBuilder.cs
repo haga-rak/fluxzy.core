@@ -147,8 +147,6 @@ namespace Echoes
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)
         {
-            Console.WriteLine($"Faulted : {h2ConnectionPool.Authority.HostName}");
-
             lock (_connectionPools)
             {
                 Console.WriteLine(_connectionPools.Remove(h2ConnectionPool.Authority));

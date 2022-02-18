@@ -19,6 +19,7 @@ namespace Echoes.H2
         private readonly HPackDecoder _hPackDecoder;
 
         public StreamProcessingBuilder(
+            Authority authority,
             CancellationToken localCancellationToken, 
             UpStreamChannel upStreamChannel,
             H2StreamSetting streamSetting,
@@ -35,7 +36,7 @@ namespace Echoes.H2
 
             var codecSetting = new CodecSetting();
 
-            _hPackDecoder = HPackDecoder.Create(codecSetting);
+            _hPackDecoder = HPackDecoder.Create(codecSetting, authority);
             var hPackEncoder = HPackEncoder.Create(codecSetting);
             _headerEncoder = new HeaderEncoder(hPackEncoder, _hPackDecoder, _streamSetting);
         }

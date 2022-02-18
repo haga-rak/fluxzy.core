@@ -19,7 +19,7 @@ namespace Echoes.Encoding.Tests
 
             var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
                 memoryProvider : memoryProvider, parser: parser, primitiveOperation : primitiveOperation);
-            var decoder = new HPackDecoder(new DecodingContext(memoryProvider),
+            var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
                 memoryProvider : memoryProvider, parser: parser, primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
@@ -48,7 +48,7 @@ namespace Echoes.Encoding.Tests
 
             var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
                 memoryProvider : memoryProvider, parser: parser, primitiveOperation : primitiveOperation);
-            var decoder = new HPackDecoder(new DecodingContext(memoryProvider),
+            var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
                 memoryProvider : memoryProvider, parser: parser, primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
@@ -78,7 +78,7 @@ namespace Echoes.Encoding.Tests
 
             var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
                 memoryProvider : memoryProvider, parser: parser, primitiveOperation : primitiveOperation);
-            var decoder = new HPackDecoder(new DecodingContext(memoryProvider),
+            var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
                 memoryProvider : memoryProvider, parser: parser, primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
