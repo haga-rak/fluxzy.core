@@ -44,11 +44,19 @@ namespace Echoes.Core
             {
                 if (!token.IsCancellationRequested)
                 {
-                    var senderPort = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
-
                     // READ initial state of connection, 
-                    var localConnection =
-                        await _exchangeBuilder.InitClientConnection(client.GetStream(), _startupSetting, token);
+                    ExchangeBuildingResult localConnection = null;
+
+                    try
+                    {
+                        localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), _startupSetting, token);
+                    }
+                    catch (SocketException)
+                    {
+                        // Failure from the local connection
+
+                        return; 
+                    }
 
                     if (localConnection == null)
                         return;

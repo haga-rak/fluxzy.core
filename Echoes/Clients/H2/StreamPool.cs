@@ -71,17 +71,13 @@ namespace Echoes.H2
             var res = CreateActiveStream(exchange, callerCancellationToken, ongoingStreamInit);
             return res;
         }
-
-        public ConcurrentBag<StreamProcessing> DoneStream = new ConcurrentBag<StreamProcessing>();
-
+        
         public void NotifyDispose(StreamProcessing streamProcessing)
         {
             if (_runningStreams.Remove(streamProcessing.StreamIdentifier))
             {
                 _barrier.Release();
                 streamProcessing.Dispose();
-
-                DoneStream.Add(streamProcessing);
             }
         }
 
