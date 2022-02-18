@@ -20,10 +20,12 @@ namespace Echoes.H2
         private readonly Stream _baseStream;
         private readonly IH2FrameReader _streamReader;
 
-        private CancellationTokenSource _connectionCancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _connectionCancellationTokenSource = new();
         
         private readonly H2StreamSetting _setting;
         private readonly Action<H2ConnectionPool> _onConnectionFaulted;
+
+        private bool _complete;
 
         private readonly StreamPool _streamPool;
 
@@ -94,7 +96,7 @@ namespace Echoes.H2
                 return false;
             }
 
-            Console.WriteLine($"Received : {settingFrame.SettingIdentifier} : value = {settingFrame.Value}");
+            Console.WriteLine($"Received : {settingFrame.SettingIdentifier} : value = {settingFrame.Value} - aut = {Authority.HostName}");
 
             if (
                 settingFrame.SettingIdentifier != SettingIdentifier.SettingsMaxConcurrentStreams
@@ -159,6 +161,13 @@ namespace Echoes.H2
             //await taskValidation; 
         }
 
+        public bool Faulted  {
+            get
+            {
+                return _complete;
+            }
+        }
+
         public async Task Init()
         {
             await _baseStream.WriteAsync(Preface, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
@@ -186,11 +195,16 @@ namespace Echoes.H2
             {
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
+            else
+            {
+
+            }
 
         }
 
         private void OnLoopEnd(Exception ex, bool releaseChannelItems)
         {
+            _complete = true; 
             // End the connection. This operation is idempotent. 
 
             _onConnectionFaulted(this);
@@ -228,6 +242,7 @@ namespace Echoes.H2
             try
             {
                 List<WriteTask> tasks = new List<WriteTask>();
+
                 byte[] windowSizeBuffer = new byte[13];
 
                 while (true)
@@ -333,7 +348,7 @@ namespace Echoes.H2
                     H2FrameReadResult frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
-                     //var str = frame.ToString();
+                     var str = frame.ToString();
                     
                     _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 
@@ -444,19 +459,32 @@ namespace Echoes.H2
                 OnLoopEnd(outException, false);
             }
         }
+
+        public int CurrentProcessedRequest = 0; 
+        public int FaultedRequest = 0; 
+        public int TotalRequest = 0; 
         
         public async ValueTask Send(
             Exchange exchange, ILocalLink _,
             CancellationToken cancellationToken = default)
         {
+            Interlocked.Increment(ref CurrentProcessedRequest);
+            Interlocked.Increment(ref TotalRequest);
+
+
             try
             {
                 await InternalSend(exchange, cancellationToken);
             }
             catch (Exception ex)
             {
+                Interlocked.Increment(ref FaultedRequest);
                 OnLoopEnd(ex, true);
-                throw; 
+                throw;
+            }
+            finally
+            {
+                Interlocked.Decrement(ref CurrentProcessedRequest);
             }
         }
 

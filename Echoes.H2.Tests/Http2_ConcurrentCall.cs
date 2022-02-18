@@ -122,10 +122,6 @@ namespace Echoes.H2.Tests
             await Task.WhenAll(tasks); 
         }
 
-        /// <summary>
-        /// The goal of this test is to challenge the dynamic table content
-        /// </summary>
-        /// <returns></returns>
         [Fact]
         public async Task Receiving_Multiple_Header_Value()
         {
@@ -154,6 +150,43 @@ namespace Echoes.H2.Tests
                 }); 
             
             await Task.WhenAll(tasks); 
+        }
+
+        [Fact]
+        public async Task Receiving_Multiple_Repeating_Header_Value()
+        {
+            await Task.WhenAll(Enumerable.Repeat(0, 10)
+                .Select(p => Receiving_Multiple_Repeating_Header_Value_Call()));
+            
+        }
+
+        private static async Task Receiving_Multiple_Repeating_Header_Value_Call()
+        {
+            using var handler = new EchoesHttp2Handler();
+
+            using var httpClient = new HttpClient(handler, false);
+
+            int repeatCount = 40;
+
+            var tasks = Enumerable.Repeat(httpClient, repeatCount)
+                .Select(async client =>
+                {
+                    var response = await client.GetAsync($"{TestConstants.Http2Host}/headers-random-repeat");
+                    var text = await response.Content.ReadAsStringAsync();
+
+                    var items = JsonSerializer.Deserialize<Header2[]>(text
+                        , new JsonSerializerOptions()
+                        {
+                            PropertyNameCaseInsensitive = true
+                        })!;
+
+                    var mustBeTrue = items.All(i => response.Headers.Any(t => t.Key == i.Name
+                                                                              && t.Value.Contains(i.Value)));
+
+                    Assert.True(mustBeTrue);
+                });
+
+            await Task.WhenAll(tasks);
         }
     }
 }

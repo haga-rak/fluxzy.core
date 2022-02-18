@@ -33,6 +33,8 @@ namespace Echoes.H11
 
         public Authority Authority { get; }
 
+        public bool Faulted => false;
+
         public Task Init()
         {
             return Task.CompletedTask; 

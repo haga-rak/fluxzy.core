@@ -62,6 +62,14 @@ namespace Echoes.H2
             }
         }
 
+        public void ParentHasDisposed()
+        {
+            if (!Complete)
+            {
+                PostResponseBodyFragment(default, true);
+            }
+        }
+
         internal void PostResponseBodyFragment(ReadOnlyMemory<byte> memory, bool end)
         {
             var response = ResponseStream; 
@@ -84,5 +92,6 @@ namespace Echoes.H2
                 _lazyResponse = null; 
             }
         }
+
     }
 }

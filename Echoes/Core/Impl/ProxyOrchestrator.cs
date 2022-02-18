@@ -77,7 +77,7 @@ namespace Echoes.Core
                             {
                                 // The caller cancelled the task 
 
-                                if (exception is TaskCanceledException)
+                                if (exception is OperationCanceledException)
                                     break; 
 
                                 if (!ConnectionErrorHandler
@@ -95,6 +95,11 @@ namespace Echoes.Core
                             {
                                 // Request processed by IHttpConnectionPool returns before complete response body
 
+                                if (exchange.Authority.HostName == "docs.microsoft.com")
+                                {
+
+                                }
+
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     exchange.Response.Body != null &&
                                     exchange.HttpVersion == "HTTP/2")
@@ -107,11 +112,15 @@ namespace Echoes.Core
                                     exchange.Response.Header.ForceTransferChunked();
                                 }
 
+
+
                                 // Writing the received header to downstream
                                 var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true);
 
+
+
                                 // headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
-                                
+
                                 shouldClose = exchange.Request
                                     .Header["Connection".AsMemory()].Any(c =>
                                         c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
@@ -133,6 +142,13 @@ namespace Echoes.Core
                                     await localConnection.WriteStream.WriteAsync(
                                         new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
                                         token);
+
+
+
+                                    if (exchange.Authority.HostName == "docs.microsoft.com")
+                                    {
+
+                                    }
                                 }
                                 catch (TaskCanceledException)
                                 {
@@ -166,7 +182,7 @@ namespace Echoes.Core
                                     }
                                     catch (Exception ex)
                                     {
-                                        if (ex is IOException || ex is TaskCanceledException)
+                                        if (ex is IOException || ex is OperationCanceledException)
                                         {
                                             // Local connection may close the underlying connection before 
                                             // receiving the entire message. In that case, we just leave
@@ -182,6 +198,10 @@ namespace Echoes.Core
                                 // In case the down stream connection is persisted, 
                                 // we wait for the current exchange to complete before reading further request
                                 shouldClose =  shouldClose || await exchange.Complete;
+                            }
+                            else
+                            {
+
                             }
                         }
 

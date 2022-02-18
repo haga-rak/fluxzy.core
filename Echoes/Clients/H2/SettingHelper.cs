@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,9 +9,15 @@ namespace Echoes.H2
     {
         public static async Task WriteSetting(Stream innerStream, PeerSetting setting, CancellationToken token)
         {
-            byte [] settingBuffer = new byte[16];
+            byte [] settingBuffer = new byte[512];
 
-            int written = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0).Write(settingBuffer);
+            int written = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0)
+                .Write(settingBuffer);
+
+            written += 
+                new SettingFrame(SettingIdentifier.SettingsInitialWindowSize, setting.WindowSize)
+                    .Write(new Span<byte>(settingBuffer).Slice(written));
+
             await innerStream.WriteAsync(settingBuffer, 0, written, token);
         }
 

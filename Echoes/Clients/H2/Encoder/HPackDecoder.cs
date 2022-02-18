@@ -123,9 +123,7 @@ namespace Echoes.H2.Encoder
                     var currentByteReaden = _primitiveOperation.ReadInt32(buffer, 5, out var maxSize);
                     _decodingContext.UpdateMaxSize(maxSize);
 
-                    // return default; 
-
-                    Console.WriteLine($"Receive dupdat {maxSize}");
+                    Console.WriteLine($"Receive update dtable {maxSize}");
 
                     var res = ReadNextField(buffer.Slice(currentByteReaden), out var nextRead);
                     bytesReaden = currentByteReaden + nextRead;

@@ -21,7 +21,7 @@ namespace Echoes
         private static readonly List<SslApplicationProtocol> AllProtocols = new()
         {
             SslApplicationProtocol.Http11,
-             SslApplicationProtocol.Http2
+            SslApplicationProtocol.Http2
         };
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
@@ -70,8 +70,16 @@ namespace Echoes
                 // Looking for existing HttpPool
 
                 lock (_connectionPools)
-                    if (_connectionPools.TryGetValue(exchange.Authority, out var pool))
+                    while (_connectionPools.TryGetValue(exchange.Authority, out var pool))
+                    {
+                        if (pool.Faulted)
+                        {
+                            _connectionPools.Remove(pool.Authority);
+                            continue;
+                        }
+
                         return pool;
+                    }
 
                 //  pool 
                 if (clientSetting.TunneledOnly || exchange.Request.Header.IsWebSocketRequest)
@@ -139,9 +147,11 @@ namespace Echoes
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)
         {
+            Console.WriteLine($"Faulted : {h2ConnectionPool.Authority.HostName}");
+
             lock (_connectionPools)
             {
-                _connectionPools.Remove(h2ConnectionPool.Authority);
+                Console.WriteLine(_connectionPools.Remove(h2ConnectionPool.Authority));
             }
         }
     }

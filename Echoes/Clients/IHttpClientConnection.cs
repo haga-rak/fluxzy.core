@@ -12,6 +12,8 @@ namespace Echoes
     public interface IHttpConnectionPool : IAsyncDisposable, IDisposable
     {
         Authority Authority { get; }
+
+        bool Faulted { get; }
         
         Task Init();
         

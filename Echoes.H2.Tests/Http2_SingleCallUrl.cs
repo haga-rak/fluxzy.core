@@ -57,6 +57,23 @@ namespace Echoes.H2.Tests
             Assert.True(response.IsSuccessStatusCode);
         }
 
+        [Fact]
+        public async Task Get_Error_Case_Ws_Static()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+            var responseData = await response.Content.ReadAsStringAsync();
+
+            Assert.True(response.IsSuccessStatusCode);
+        }
+
 
         [Fact]
         public async Task Get_Control_Single_Headers()

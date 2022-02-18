@@ -45,7 +45,7 @@ namespace Echoes.H2.Tests
         {
             var urls = new[]
             {
-                "https://httpmill.smartizy.com:5001/content-produce/400000/400000", // H1.1 H2 url
+                "https://sandbox.smartizy.com:5001/content-produce/400000/400000", // H1.1 H2 url
                 "https://sandbox.smartizy.com/content-produce/400000/400000" // H1 only url
             };
 

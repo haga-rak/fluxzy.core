@@ -9,7 +9,6 @@ namespace Echoes.IO
 {
     public static class StreamCopyExtensions
     {
-
         public static async ValueTask<long> CopyDetailed(this Stream source,
             Stream destination,
             int bufferSize, Action<int> onContentCopied, CancellationToken cancellationToken)

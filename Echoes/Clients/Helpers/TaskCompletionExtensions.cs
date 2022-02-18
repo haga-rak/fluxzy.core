@@ -12,6 +12,7 @@ namespace Echoes.Helpers
             if (taskCompletionSource.Task.IsCompleted)
                 return false;
 
+            
             if (ex == null)
             {
                 taskCompletionSource.SetCanceled();

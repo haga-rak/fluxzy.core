@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -141,7 +142,6 @@ namespace Echoes.H2
             _resetErrorCode = errorCode;
             _currentStreamCancellationTokenSource.Cancel(true);
 
-
             _responseBodyComplete.TrySetResult(null);
             _parent.NotifyDispose(this);
             _exchange.ExchangeCompletionSource
@@ -160,7 +160,8 @@ namespace Echoes.H2
             var readyToBeSent = _headerEncoder.Encode(
                 new HeaderEncodingJob(exchange.Request.Header.RawHeader, StreamIdentifier, StreamDependency), 
                 _dataReceptionBuffer, exchange.Request.Header.ContentLength == 0 || 
-                                      exchange.Request.Body == null);
+                                      exchange.Request.Body == null || 
+                                      exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0);
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
@@ -184,7 +185,7 @@ namespace Echoes.H2
 
             if (requestBodyStream != null)
             {
-                while (true)
+                while (_disposed)
                 {
                     var bookedSize = _globalSetting.Remote.MaxFrameSize - 9;
 
@@ -192,14 +193,27 @@ namespace Echoes.H2
 
                     var sr = bookedSize;
 
+                    if (_disposed)
+                        throw new TaskCanceledException("Stream cancellation request");
+
+                    Stopwatch watc = new Stopwatch();
+
+                    watc.Start();
+
                     bookedSize = await BookWindowSize(bookedSize, _currentStreamCancellationTokenSource.Token)
                         .ConfigureAwait(false);
+
+                    var end = watc.ElapsedMilliseconds;
+
+                    if (end > 200)
+                    {
+                        Console.WriteLine($"Waiting for {end}ms");
+                    }
 
                     Logger.WriteLine($"Book sid={StreamIdentifier} ({bfore}) : {OverallRemoteWindowSize.WindowSize} : {bookedSize}/{sr}");
 
                     if (bookedSize == 0)
-                        throw new OperationCanceledException("Stream cancellation request",
-                            _currentStreamCancellationTokenSource.Token);
+                        throw new TaskCanceledException("Stream cancellation request");
 
                     var dataFramePayloadLength = await requestBodyStream
                         .ReadAsync(_dataReceptionBuffer.Slice(9, bookedSize), 
@@ -303,9 +317,15 @@ namespace Echoes.H2
         }
 
         private bool _firstBodyFragment = true; 
+        private bool _receivedEndStream = false; 
 
         public void ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream)
         {
+            if (!_receivedEndStream && endStream)
+            {
+                _receivedEndStream = true;
+            }
+
             if (_firstBodyFragment)
             {
                 _exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
@@ -356,8 +376,18 @@ namespace Echoes.H2
             return $"Stream Id : {StreamIdentifier} : {_responseHeaderReady.Task.Status} : {_responseBodyComplete.Task.Status}"; 
         }
 
+        private bool _disposed = false; 
+
         public void Dispose()
         {
+            _disposed = true;
+
+            if (!_receivedEndStream)
+            {
+                _response.ParentHasDisposed();
+            }
+
+
             RemoteWindowSize?.Dispose();
             OverallRemoteWindowSize?.Dispose();
             _currentStreamCancellationTokenSource.Dispose();
