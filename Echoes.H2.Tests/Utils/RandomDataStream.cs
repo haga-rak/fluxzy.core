@@ -93,10 +93,17 @@ namespace Echoes.H2.Tests.Utils
             set => throw new NotSupportedException();
         }
 
-        public override ValueTask DisposeAsync()
+        private bool _disposed;
+
+        public override async ValueTask DisposeAsync()
         {
+            if (_disposed)
+                return;
+
+            _disposed = true; 
+
             _crypto.Dispose();
-            return _cryptoStream.DisposeAsync(); ;
+          //  await _cryptoStream.DisposeAsync(); ;
 
 
         }

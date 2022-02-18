@@ -75,7 +75,7 @@ namespace Echoes.H2.Tests
             using var handler = new EchoesHttp2Handler();
             using var httpClient = new HttpClient(handler, false);
 
-            int count = 100;
+            int count = 20;
 
             byte[] buffer = new byte[500]; 
 
@@ -118,6 +118,7 @@ namespace Echoes.H2.Tests
                         { "Cookie" , Convert.ToBase64String(buffer) }
                     });
                 });
+
 
             await Task.WhenAll(tasks); 
         }

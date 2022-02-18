@@ -348,7 +348,7 @@ namespace Echoes.H2
                     H2FrameReadResult frame = await _streamReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
-                     var str = frame.ToString();
+                    // var str = frame.ToString();
                     
                     _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 

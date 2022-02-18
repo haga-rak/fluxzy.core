@@ -149,7 +149,7 @@ namespace Echoes
         {
             lock (_connectionPools)
             {
-                Console.WriteLine(_connectionPools.Remove(h2ConnectionPool.Authority));
+                _connectionPools.Remove(h2ConnectionPool.Authority);
             }
         }
     }

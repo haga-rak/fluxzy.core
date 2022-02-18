@@ -157,11 +157,13 @@ namespace Echoes.H2
         
         public Task EnqueueRequestHeader(Exchange exchange)
         {
+            var endStream = exchange.Request.Header.ContentLength == 0 ||
+                            exchange.Request.Body == null ||
+                            exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0;
+
             var readyToBeSent = _headerEncoder.Encode(
                 new HeaderEncodingJob(exchange.Request.Header.RawHeader, StreamIdentifier, StreamDependency), 
-                _dataReceptionBuffer, exchange.Request.Header.ContentLength == 0 || 
-                                      exchange.Request.Body == null || 
-                                      exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0);
+                _dataReceptionBuffer, endStream);
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
@@ -169,12 +171,9 @@ namespace Echoes.H2
                 StreamDependency, readyToBeSent);
 
             _upStreamChannel(ref writeHeaderTask);
-            
 
             return writeHeaderTask.DoneTask
                 .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, _callerCancellationToken);
-
-          //  return writeHeaderTask.DoneTask;
         }
         
         public async Task ProcessRequestBody(Exchange exchange)
@@ -307,8 +306,8 @@ namespace Echoes.H2
                 {
                     _response.PostResponseBodyFragment(Memory<byte>.Empty, true);
 
-                    _responseBodyComplete.SetResult(null);
-                    _exchange.ExchangeCompletionSource.SetResult(false);
+                    _responseBodyComplete.TrySetResult(null);
+                    _exchange.ExchangeCompletionSource.TrySetResult(false);
                     _parent.NotifyDispose(this);
                 }
 
