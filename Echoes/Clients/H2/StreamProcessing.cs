@@ -283,7 +283,7 @@ namespace Echoes.H2
             _response.PostResponseHeader(buffer, last);
 
             _exchange.Response.Header = new ResponseHeader(
-                _response.Header.AsMemory(), true, _parser);
+            _response.Header.AsMemory(), true, _parser);
 
             if (last)
             {

@@ -54,14 +54,7 @@ namespace Echoes.H2.Encoder
                 for (; ; )
                 {
                     HeaderField tableEntry = ReadNextField(headerContent, out var readen);
-
-
-                    //if (tableEntry.Name.Length == 0)
-                    //{
-                    //    headerContent = headerContent.Slice(readen);
-                    //    continue;
-                    //}
-
+                    
                     if (readen <= 0)
                     {
                         break;
@@ -131,6 +124,8 @@ namespace Echoes.H2.Encoder
                     _decodingContext.UpdateMaxSize(maxSize);
 
                     // return default; 
+
+                    Console.WriteLine($"Receive dupdat {maxSize}");
 
                     var res = ReadNextField(buffer.Slice(currentByteReaden), out var nextRead);
                     bytesReaden = currentByteReaden + nextRead;

@@ -67,10 +67,19 @@ namespace Echoes.H2.Encoder.Utils
 
                 var headerName = kpValue[0].Trim();
 
+
+                if (headerName.Span.Equals("trailer", StringComparison.OrdinalIgnoreCase))
+                {
+
+                }
+
+
                 if (!keepNonForwardableHeader && Http11Constants.NonH2Header.Contains(headerName))
                     continue; 
 
                 var headerValue = kpValue[1].Trim();
+
+
 
                 if (headerName.Span.Equals(Http11Constants.HostVerb.Span, StringComparison.OrdinalIgnoreCase))
                 {

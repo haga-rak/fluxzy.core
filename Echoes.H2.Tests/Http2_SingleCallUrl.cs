@@ -41,6 +41,21 @@ namespace Echoes.H2.Tests
 
             Assert.True(response.IsSuccessStatusCode);
         }
+        [Fact]
+        public async Task Get_Error_Case_Discord()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://discord.com/assets/afe2828ad8a44f9ed87d.js"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+
+            Assert.True(response.IsSuccessStatusCode);
+        }
 
 
         [Fact]

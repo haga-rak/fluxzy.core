@@ -6,7 +6,7 @@ namespace Echoes.H2.Encoder.Utils
 {
     public sealed class Http11Constants
     {
-        private static readonly Dictionary<string, string> StatusLineMappingStr = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> StatusLineMappingStr = new()
         {
             { "100", "Continue" },
             { "101", "Switching Protocols" },
@@ -82,10 +82,10 @@ namespace Echoes.H2.Encoder.Utils
             return "Unknown status".AsMemory();
         }
 
-        public static readonly HashSet<char> LineSeparators = new HashSet<char>(new[] { '\r', '\n' });
-        public static readonly HashSet<char> SpaceSeparators = new HashSet<char>(new[] { ' ', '\t' });
-        public static readonly HashSet<char> HeaderSeparator = new HashSet<char>(new[] { ':' });
-        public static readonly HashSet<char> CookieSeparators = new HashSet<char>(new[] { ';' });
+        public static readonly HashSet<char> LineSeparators = new(new[] { '\r', '\n' });
+        public static readonly HashSet<char> SpaceSeparators = new(new[] { ' ', '\t' });
+        public static readonly HashSet<char> HeaderSeparator = new(new[] { ':' });
+        public static readonly HashSet<char> CookieSeparators = new(new[] { ';' });
 
         public static readonly ReadOnlyMemory<char> MethodVerb = ":method".AsMemory();
         public static readonly ReadOnlyMemory<char> SchemeVerb = ":scheme".AsMemory();
@@ -105,23 +105,25 @@ namespace Echoes.H2.Encoder.Utils
         public static readonly ReadOnlyMemory<char> ProxyAuthenticate = "proxy-authenticate".AsMemory();
         public static readonly ReadOnlyMemory<char> Trailer = "trailer".AsMemory();
         public static readonly ReadOnlyMemory<char> Upgrade = "upgrade".AsMemory();
+        public static readonly ReadOnlyMemory<char> AltSvc = "alt-svc".AsMemory();
+        public static readonly ReadOnlyMemory<char> Expect = "expect".AsMemory();
 
         public static readonly HashSet<ReadOnlyMemory<char>> AvoidAutoParseHttp11Headers =
-            new HashSet<ReadOnlyMemory<char>>(new[]
+            new(new[]
             {
                 MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, CookieVerb, StatusVerb
             }, new SpanCharactersIgnoreCaseComparer());
 
         public static readonly HashSet<ReadOnlyMemory<char>> ControlHeaders =
-            new HashSet<ReadOnlyMemory<char>>(new[]
+            new(new[]
             {
                 MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, StatusVerb
             }, new SpanCharactersIgnoreCaseComparer());
 
         public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
-            new HashSet<ReadOnlyMemory<char>>(new[]
+            new(new[]
             {
-                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade
+                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade,AltSvc,Expect
             }, new SpanCharactersIgnoreCaseComparer());
 
 

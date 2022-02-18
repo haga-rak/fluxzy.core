@@ -23,7 +23,7 @@ namespace Echoes.Cli
                 BoundAddress = boundAddress,
                 BoundPort = boundPort
             };
-            _workTask = InnerRun();
+            _workTask = null; // InnerRun();
 
         }
 
@@ -210,7 +210,7 @@ namespace Echoes.Cli
         public void Dispose()
         {
             _tokenSource.Cancel();
-            _workTask.GetAwaiter().GetResult();
+            _workTask?.GetAwaiter().GetResult();
         }
     }
 

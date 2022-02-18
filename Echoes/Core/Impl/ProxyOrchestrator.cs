@@ -18,7 +18,7 @@ namespace Echoes.Core
         private readonly ClientSetting _clientSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
-        private ProxyMessageDispatcher _dispatcher;
+        private readonly ProxyMessageDispatcher _dispatcher;
 
         public ProxyOrchestrator(
             Func<Exchange, Task> exchangeListener,
@@ -111,10 +111,15 @@ namespace Echoes.Core
                                 var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true);
 
                                 // headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
-
-                                shouldClose = exchange.Response
+                                
+                                shouldClose = exchange.Request
                                     .Header["Connection".AsMemory()].Any(c =>
                                         c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+
+                                if (shouldClose)
+                                {
+
+                                }
 
                                 if (_exchangeListener != null)
                                 {
@@ -206,6 +211,7 @@ namespace Echoes.Core
             catch (Exception ex)
             {
                 // FATAL exception only happens here 
+                throw;
             }
         }
 

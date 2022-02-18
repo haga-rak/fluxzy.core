@@ -94,8 +94,19 @@ namespace Echoes.H2
                 return false;
             }
 
+            Console.WriteLine($"Received : {settingFrame.SettingIdentifier} : value = {settingFrame.Value}");
+
+            if (
+                settingFrame.SettingIdentifier != SettingIdentifier.SettingsMaxConcurrentStreams
+               // &&  settingFrame.SettingIdentifier != SettingIdentifier.SettingsInitialWindowSize
+                )
+            {
+                
+            }
+
             switch (settingFrame.SettingIdentifier)
             {
+                
                 case SettingIdentifier.SettingsEnablePush:
                     if (settingFrame.Value > 0)
                     {
@@ -111,6 +122,7 @@ namespace Echoes.H2
                 case SettingIdentifier.SettingsInitialWindowSize:
                     _setting.OverallWindowSize = settingFrame.Value;
                     return true;
+
 
                 case SettingIdentifier.SettingsMaxFrameSize:
                     _setting.Remote.MaxFrameSize = settingFrame.Value;
