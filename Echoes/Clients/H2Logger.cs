@@ -59,7 +59,7 @@ namespace Echoes
                     c, StringComparison.OrdinalIgnoreCase)); 
             }
 
-            _directory = new DirectoryInfo("debug-h2").FullName;
+            _directory = new DirectoryInfo("e:\\debug-h2").FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
 
             Directory.CreateDirectory(_directory);

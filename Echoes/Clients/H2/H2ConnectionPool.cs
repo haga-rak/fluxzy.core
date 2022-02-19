@@ -463,7 +463,7 @@ namespace Echoes.H2
 
                 await InternalSend(exchange, cancellationToken);
 
-                _logger.Trace(exchange, "Send success");
+                _logger.Trace(exchange, "Response header received");
             }
             catch (Exception ex)
             {
