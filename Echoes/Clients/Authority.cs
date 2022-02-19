@@ -38,5 +38,10 @@ namespace Echoes
         }
 
         public bool Secure { get;  }
+
+        public override string ToString()
+        {
+            return $"{HostName}:{Port}"; 
+        }
     }
 }

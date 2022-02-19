@@ -11,6 +11,9 @@ namespace Echoes.Cli
             //throw new EchoesException("");
             //Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
             Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
+            Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts", 
+                "2befficient.fr;smartizy.com; discord.com; facebook.com; google.com");
+
             return new CliApp(s => new CertificateProvider(s, new FileSystemCertificateCache(s))).Start(args);
         }
     }

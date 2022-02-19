@@ -177,8 +177,9 @@ namespace Echoes.H2
             await _baseStream.WriteAsync(Preface, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
             // Write setting 
-            await SettingHelper.WriteSetting(_baseStream,
-                _setting.Local, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+            await SettingHelper.WriteSetting(
+                _baseStream,
+                _setting.Local, _logger, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
 
             _innerReadTask = InternalReadLoop();
             // Wait from setting reception 
@@ -250,15 +251,12 @@ namespace Echoes.H2
                     if (_writerChannel.Reader.TryReadAll(ref tasks))
                     {
                         foreach (var element
-                                 in tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate)
-                                     .GroupBy(f => f.StreamIdentifier))
+                                 in tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate))
                         {
-                            var streamId = element.Key;
-                            var updateValue = element.Sum(e => e.WindowUpdateSize);
+                            new WindowUpdateFrame(element.WindowUpdateSize, element.StreamIdentifier)
+                                .Write(windowSizeBuffer);
 
-                            new WindowUpdateFrame(updateValue, streamId).Write(windowSizeBuffer);
-
-                            _logger.OutgoingWindowUpdate(updateValue, streamId);
+                            _logger.OutgoingWindowUpdate(element.WindowUpdateSize, element.StreamIdentifier);
 
                             await _baseStream.WriteAsync(windowSizeBuffer, _connectionCancellationTokenSource.Token)
                                 .ConfigureAwait(false);

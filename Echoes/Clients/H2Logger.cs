@@ -1,6 +1,7 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,26 @@ namespace Echoes
     /// </summary>
     internal class H2Logger
     {
+        public static List<string> AuthorizedHosts { get; }
+
+        static H2Logger()
+        {
+            var hosts = Environment.GetEnvironmentVariable("EnableH2TracingFilterHosts");
+
+            if (!string.IsNullOrWhiteSpace(hosts))
+            {
+                AuthorizedHosts =
+                    hosts.Split(new[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim())
+                        .ToList();
+
+                return; 
+            }
+
+            AuthorizedHosts = null; 
+        }
+
+
         public Authority Authority { get; }
         public int ConnectionId { get; }
 
@@ -25,16 +46,20 @@ namespace Echoes
         {
             Authority = authority;
             ConnectionId = connectionId;
-            if (active == null)
-            {
-                active =
-                    string.Equals(Environment.GetEnvironmentVariable("EnableH2Tracing"),
-                        "true", StringComparison.OrdinalIgnoreCase);
-            }
+
+            active ??= string.Equals(Environment.GetEnvironmentVariable("EnableH2Tracing"),
+                "true", StringComparison.OrdinalIgnoreCase);
 
             _active = active.Value;
-            _directory = new DirectoryInfo("debug-h2").FullName;
 
+            if (_active && AuthorizedHosts != null)
+            {
+                // Check for domain restriction 
+                _active = AuthorizedHosts.Any(c => Authority.HostName.ToString().EndsWith(
+                    c, StringComparison.OrdinalIgnoreCase)); 
+            }
+
+            _directory = new DirectoryInfo("debug-h2").FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
 
             Directory.CreateDirectory(_directory);
@@ -55,7 +80,7 @@ namespace Echoes
 
             lock (string.Intern(fullPath))
                 File.AppendAllText(fullPath,
-                    $"[{ITimingProvider.Default.InstantMillis:0000000}] {message}]\r\n");
+                    $"[{ITimingProvider.Default.InstantMillis:000000000}] {message}\r\n");
         }
 
         private static string GetFrameExtraMessage(ref H2FrameReadResult frame)
@@ -123,8 +148,8 @@ namespace Echoes
 
             var message =
                 $"RCV <== " +
-                $"Type = {frame.BodyType} " +
-                $"Flags = {frame.Flags} ";
+                $"Type = {frame.BodyType}, " +
+                $"Flags = {frame.Flags}, ";
 
             message += GetFrameExtraMessage(ref frame); 
 
@@ -139,8 +164,8 @@ namespace Echoes
 
             var message =
                 $"SNT ==> " +
-                $"Type = {frame.BodyType} " +
-                $"Flags = {frame.Flags} ";
+                $"Type = {frame.BodyType}, " +
+                $"Flags = {frame.Flags}, ";
 
             message += GetFrameExtraMessage(ref frame); 
 
@@ -166,7 +191,7 @@ namespace Echoes
 
             var message =
                 $"SNT ==> " +
-                $"Type = {H2FrameType.WindowUpdate} ";
+                $"Type = {H2FrameType.WindowUpdate}, ";
 
             message += $"WindowSizeIncrement = {value}"; ; 
 

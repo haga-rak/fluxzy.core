@@ -12,6 +12,7 @@ using Echoes.Core;
 using Echoes.DotNetBridge;
 using Echoes.H2.Tests.Tools;
 using Echoes.H2.Tests.Utils;
+using Echoes.IO;
 using Xunit;
 using Header2 = Sandbox.Models.Header;
 
@@ -66,8 +67,9 @@ namespace Echoes.H2.Tests
                         })!;
 
                     var mustBeTrue =
-                        items.All(i => response.Headers.Any(t => t.Key == i.Name
-                                                                              && t.Value.Contains(i.Value)));
+                        items.All(i => response.Headers.Any(
+                            t => t.Key == i.Name
+                                 && t.Value.Contains(i.Value)));
 
                     Assert.True(mustBeTrue);
                 });
@@ -102,6 +104,37 @@ namespace Echoes.H2.Tests
             using var response = await httpClient.SendAsync(requestMessage);
 
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response); 
+
+            await proxy.WaitUntilDone(); 
+        }
+
+
+        [Theory]
+        [InlineData(TestConstants.Http11Host)]
+        [InlineData(TestConstants.Http2Host)]
+        public async Task Proxy_SingleRequest_XL(string host)
+        {
+            using var proxy = new AddHocProxy(PortProvider.Next(), 1, 10);
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            };
+
+            using var httpClient = new HttpClient(clientHandler);
+
+            var bodySize = 16000001;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"{host}/content-produce/{bodySize}/{bodySize}");
+            
+            using var response = await httpClient.SendAsync(requestMessage);
+
+            var stream = await response.Content.ReadAsStreamAsync();
+
+            int length = await stream.Drain(); 
+
+            Assert.Equal(bodySize, length);
 
             await proxy.WaitUntilDone(); 
         }

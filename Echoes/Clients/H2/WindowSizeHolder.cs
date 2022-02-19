@@ -18,7 +18,10 @@ namespace Echoes.H2
 
         private Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new(); 
 
-        public WindowSizeHolder(H2Logger logger, int windowSize, int streamIdentifier)
+        public WindowSizeHolder(
+            H2Logger logger, 
+            int windowSize, 
+            int streamIdentifier)
         {
             _logger = logger;
             _windowSize = windowSize;

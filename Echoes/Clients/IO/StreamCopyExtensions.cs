@@ -16,6 +16,22 @@ namespace Echoes.IO
             return await CopyDetailed(source, destination, new byte[bufferSize], onContentCopied,
                 cancellationToken);
         }
+
+        public static async ValueTask<int> Drain(this Stream stream, int bufferSize = 16 * 1024)
+        {
+            var buffer = new byte[bufferSize];
+            int read; 
+            var total = 0; 
+
+            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                total += read; 
+            }
+
+            return total; 
+        }
+
+
         public static async ValueTask<long> CopyDetailed(this Stream source,
             Stream destination,
             byte [] buffer, Action<int> onContentCopied, CancellationToken cancellationToken)

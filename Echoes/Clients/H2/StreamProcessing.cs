@@ -31,7 +31,9 @@ namespace Echoes.H2
 
 
         private H2ErrorCode _resetErrorCode;
-        private bool _noBodyStream = false; 
+        private bool _noBodyStream = false;
+
+        private int _currentReceived = 0;
 
         public StreamProcessing(
             int streamIdentifier,
@@ -53,6 +55,7 @@ namespace Echoes.H2
             _upStreamChannel = upStreamChannel;
             _headerEncoder = headerEncoder;
             _response = new H2Message(headerEncoder.Decoder, StreamIdentifier, MemoryPool<byte>.Shared, this);
+          
 
             RemoteWindowSize = new WindowSizeHolder(logger,
                 globalSetting.OverallWindowSize, 
@@ -63,6 +66,9 @@ namespace Echoes.H2
             _globalSetting = globalSetting;
             _parser = parser;
             _logger = logger;
+
+            _currentReceived =
+                _globalSetting.Local.WindowSize - _globalSetting.Local.MaxFrameSize;
 
             _receptionBufferContainer = MemoryPool<byte>.Shared.RendExact(16 * 1024);
 
@@ -351,12 +357,20 @@ namespace Echoes.H2
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
             }
         }
+
+
         internal void OnDataConsumedByCaller(int dataSize)
         {
-            if (dataSize > 0)
+            _currentReceived += dataSize;
+
+            if (_currentReceived > (0.5 * _globalSetting.Local.WindowSize))
             {
-                SendWindowUpdate(dataSize, StreamIdentifier);
-                SendWindowUpdate(dataSize, 0);
+                var tobeSent = _currentReceived; 
+
+                _currentReceived = 0;
+
+                SendWindowUpdate(tobeSent, StreamIdentifier);
+                SendWindowUpdate(tobeSent, 0);
             }
         }
 
@@ -366,6 +380,7 @@ namespace Echoes.H2
                 H2FrameType.WindowUpdate,
                 streamIdentifier, StreamPriority, 
                 StreamDependency, Memory<byte>.Empty, windowSizeUpdateValue);
+
             _upStreamChannel(ref writeTask);
         }
 

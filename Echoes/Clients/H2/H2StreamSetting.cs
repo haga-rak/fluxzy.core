@@ -6,7 +6,10 @@ namespace Echoes.H2
 {
     public class H2StreamSetting
     {
-        public PeerSetting Local { get; set; } = new PeerSetting();
+        public PeerSetting Local { get; set; } = new PeerSetting()
+        {
+            WindowSize = 0x80000 // 512Ko
+        };
 
         public PeerSetting Remote { get; set; } = new PeerSetting();
 
@@ -29,7 +32,7 @@ namespace Echoes.H2
     {
         public static PeerSetting Default { get; } = new PeerSetting(); 
 
-        public int WindowSize { get; set; } = 0xFFFF;
+        public int WindowSize { get; set; } = 0XFFFF;
 
         public int MaxFrameSize { get; set; } = 0x4000;
 

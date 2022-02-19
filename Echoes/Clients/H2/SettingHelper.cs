@@ -7,17 +7,37 @@ namespace Echoes.H2
 {
     internal static class SettingHelper
     {
-        public static async Task WriteSetting(Stream innerStream, PeerSetting setting, CancellationToken token)
+        private static int WriteSetting(Memory<byte> buffer, PeerSetting setting, H2Logger logger)
         {
-            byte [] settingBuffer = new byte[16];
+            var pushDisabled = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0);
 
-            int written = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0)
-                .Write(settingBuffer);
+            int written = pushDisabled.Write(buffer.Span);
 
-            //written += 
-            //    new SettingFrame(SettingIdentifier.SettingsInitialWindowSize, setting.WindowSize)
-            //        .Write(new Span<byte>(settingBuffer).Slice(written));
+            var incrementUpdate = setting.WindowSize - 65535;
 
+            logger.OutgoingSetting(ref pushDisabled);
+
+            if (incrementUpdate != 0 )
+            {
+                var windowUpdateFrame = new WindowUpdateFrame(incrementUpdate, 0)
+                {
+                    
+                };
+
+                //written += windowUpdateFrame.Write(buffer.Span.Slice(written));
+
+                //logger.OutgoingWindowUpdate(incrementUpdate, 0);
+            }
+
+            return written;
+        }
+
+        public static async Task WriteSetting(Stream innerStream, PeerSetting setting, H2Logger logger, 
+            CancellationToken token)
+        {
+            byte [] settingBuffer = new byte[80];
+
+            var written = WriteSetting(settingBuffer, setting, logger);
             await innerStream.WriteAsync(settingBuffer, 0, written, token);
         }
 
