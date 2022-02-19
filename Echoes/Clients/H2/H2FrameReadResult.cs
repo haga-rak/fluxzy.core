@@ -18,6 +18,9 @@ namespace Echoes.H2
             BodyLength = header.BodyLength;
         }
 
+        public bool IsEmpty => BodyLength == default && Flags == default && BodyType == default
+                               && StreamIdentifier == 0; 
+
         public int BodyLength { get;  }
 
         public HeaderFlags Flags { get;  }

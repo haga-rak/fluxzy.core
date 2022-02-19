@@ -90,6 +90,9 @@ namespace Echoes.H2.Encoder
                         break;
                     }
 
+                    // this leads to unboxing which is very costly 
+                    // to meditate
+
                     _tempEntries.Add(tableEntry);
 
                     headerContent = headerContent.Slice(readen);

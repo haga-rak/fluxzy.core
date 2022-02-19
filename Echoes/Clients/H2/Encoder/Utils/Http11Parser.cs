@@ -18,9 +18,7 @@ namespace Echoes.H2.Encoder.Utils
         {
             _maxHeaderLine = maxHeaderLine;
             _memoryProvider = memoryProvider;
-            
         }
-
         
         public IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true, bool keepNonForwardableHeader = false, 
             bool splitCookies = true)

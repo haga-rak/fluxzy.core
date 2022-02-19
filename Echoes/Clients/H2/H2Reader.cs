@@ -14,13 +14,15 @@ namespace Echoes.H2
         {
             var headerBuffer = buffer.Slice(0, 9);
 
-            await stream.ReadExactAsync(headerBuffer, cancellationToken).ConfigureAwait(false);
+            if (!await stream.ReadExactAsync(headerBuffer, cancellationToken).ConfigureAwait(false))
+                return default; 
 
             var frame = new H2Frame(headerBuffer.Span);
 
             var bodyBuffer = buffer.Slice(0, frame.BodyLength);
 
-            await stream.ReadExactAsync(bodyBuffer, cancellationToken).ConfigureAwait(false);
+            if (!await stream.ReadExactAsync(bodyBuffer, cancellationToken).ConfigureAwait(false))
+                throw new EndOfStreamException($"Unexpected EOF");
 
             return new H2FrameReadResult(frame, bodyBuffer); 
         }

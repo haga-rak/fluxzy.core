@@ -13,8 +13,6 @@ namespace Echoes.DotNetBridge
 {
     public class EchoesHttpResponseMessage : HttpResponseMessage
     {
-        private readonly H2Message _message;
-
         private static HttpStatusCode ReadStatusCode(IEnumerable<HeaderField> headerFields, 
             out Dictionary<ReadOnlyMemory<char>, List<ReadOnlyMemory<char>>> dictionaryMapping)
         {
@@ -29,14 +27,11 @@ namespace Echoes.DotNetBridge
             return (HttpStatusCode)status;
         }
 
-        public H2Message Message => _message;
-
         public Exchange Exchange { get; private set; }
 
         public EchoesHttpResponseMessage(Exchange exchange)
             : base(ReadStatusCode(exchange.Response.Header.HeaderFields, out _))
         {
-            _message = null;
             Exchange = exchange;
             
             Version = Version.Parse("2.0");
@@ -55,15 +50,9 @@ namespace Echoes.DotNetBridge
             }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            _message?.Dispose();
-        }
-
         public override string ToString()
         {
-            return _message.Header; 
+            return Exchange.Request.Header.ToString(); 
         }
     }
 }

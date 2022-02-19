@@ -34,7 +34,7 @@ namespace Echoes.Core
             var originalStream = stream; 
 
 
-            await stream.ReadExactAsync(buffer, 0, buffer.Length, token);
+            await stream.ReadExactAsync(buffer, token);
 
             Encoding.ASCII.GetChars(buffer, bufferChar);
             

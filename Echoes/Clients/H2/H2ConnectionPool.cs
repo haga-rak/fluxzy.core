@@ -40,10 +40,8 @@ namespace Echoes.H2
         private readonly SemaphoreSlim _streamCreationLock = new SemaphoreSlim(1);
 
         private readonly StreamProcessingBuilder _streamProcessingBuilder;
-
         // Window size of the remote 
         private WindowSizeHolder _overallWindowSizeHolder;
-
 
         public int CurrentProcessedRequest = 0;
         public int FaultedRequest = 0;
@@ -80,7 +78,7 @@ namespace Echoes.H2
                     SingleWriter = false
                 });
 
-            _streamPool = new StreamPool(Id, authority, _logger, _streamProcessingBuilder, _setting.Remote);
+            _streamPool = new StreamPool(Id, authority, _logger, _streamProcessingBuilder, _setting);
         }
 
         public int Id { get; }
@@ -174,16 +172,18 @@ namespace Echoes.H2
 
         public async Task Init()
         {
-            await _baseStream.WriteAsync(Preface, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+            CancellationToken token = _connectionCancellationTokenSource.Token; 
+
+            await _baseStream.WriteAsync(Preface, token).ConfigureAwait(false);
 
             // Write setting 
             await SettingHelper.WriteSetting(
                 _baseStream,
-                _setting.Local, _logger, _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+                _setting.Local, _logger, token).ConfigureAwait(false);
 
-            _innerReadTask = InternalReadLoop();
+            _innerReadTask = InternalReadLoop(token);
             // Wait from setting reception 
-            _innerWriteRun = InternalWriteLoop();
+            _innerWriteRun = InternalWriteLoop(token);
             
             var cancelTask = WaitForSettingReceivedOrRaiseException();
 
@@ -198,7 +198,6 @@ namespace Echoes.H2
             {
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
-            
         }
 
         private void OnLoopEnd(Exception ex, bool releaseChannelItems)
@@ -210,11 +209,14 @@ namespace Echoes.H2
 
             _onConnectionFaulted(this);
 
+
             if (ex != null)
             {
                 _streamPool.OnGoAway(ex);
             }
-            
+
+            _connectionCancellationTokenSource?.Cancel();
+
             if (releaseChannelItems && _writerChannel != null)
             {
                 _writerChannel.Writer.TryComplete();
@@ -234,23 +236,22 @@ namespace Echoes.H2
             }
 
 
-            _connectionCancellationTokenSource?.Cancel();
 
 
             _logger.Trace(0, "Cleanup end");
         }
 
-        private async Task InternalWriteLoop()
+        private async Task InternalWriteLoop(CancellationToken token)
         {
             Exception outException = null;
 
             try
             {
                 List<WriteTask> tasks = new List<WriteTask>();
-
                 byte[] windowSizeBuffer = new byte[13];
+                
 
-                while (true)
+                while (!token.IsCancellationRequested)
                 {
                     tasks.Clear();
                     if (_writerChannel.Reader.TryReadAll(ref tasks))
@@ -263,9 +264,11 @@ namespace Echoes.H2
 
                             _logger.OutgoingWindowUpdate(element.WindowUpdateSize, element.StreamIdentifier);
 
-                            await _baseStream.WriteAsync(windowSizeBuffer, _connectionCancellationTokenSource.Token)
-                                .ConfigureAwait(false);
-                            await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
+                            if (token.IsCancellationRequested)
+                                break; 
+
+                            await _baseStream.WriteAsync(windowSizeBuffer, token).ConfigureAwait(false);
+                            await _baseStream.FlushAsync(token);
                         }
 
                         // TODO improve the priority rule 
@@ -281,12 +284,12 @@ namespace Echoes.H2
                             try
                             {
                                 await _baseStream
-                                    .WriteAsync(writeTask.BufferBytes, _connectionCancellationTokenSource.Token)
+                                    .WriteAsync(writeTask.BufferBytes, token)
                                     .ConfigureAwait(false);
-
+                                
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 
-                                await _baseStream.FlushAsync(_connectionCancellationTokenSource.Token);
+                                await _baseStream.FlushAsync(token);
                                 
                                 writeTask.OnComplete(null);
                             }
@@ -300,8 +303,8 @@ namespace Echoes.H2
                     else
                     {
                         // async wait 
-                        if (!_connectionCancellationTokenSource.IsCancellationRequested 
-                            && !await _writerChannel.Reader.WaitToReadAsync(_connectionCancellationTokenSource.Token))
+                        if (!token.IsCancellationRequested 
+                            && !await _writerChannel.Reader.WaitToReadAsync(token))
                         {
                             break;
                         }
@@ -330,26 +333,28 @@ namespace Echoes.H2
         /// %Write and read has to use the same thread 
         /// </summary>
         /// <returns></returns>
-        private async Task InternalReadLoop()
+        private async Task InternalReadLoop(CancellationToken token)
         {
             byte [] readBuffer = new byte[_setting.Local.MaxFrameSize];
             Exception outException = null;
 
+            int receivedDataCount = 0; 
+
             try
             {
-                while (_connectionCancellationTokenSource != null && !_connectionCancellationTokenSource.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
-                    H2FrameReadResult frame = await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
-                        _connectionCancellationTokenSource.Token).ConfigureAwait(false);
+                    H2FrameReadResult frame = 
+                        await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
+                        token).ConfigureAwait(false);
+
+                    if (frame.IsEmpty)
+                        break; 
 
                     _logger.IncomingFrame(ref frame);
                     
                     _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
                     
-
-                    //Logger.WriteLine(
-                    //    $"Receiving {frame.BodyType} ({frame.BodyLength}) on streamId {frame.StreamIdentifier} / Flags : {frame.Flags}");
-
                     if (frame.BodyType == H2FrameType.Settings)
                     {
                         var settingReceived = ProcessIncomingSettingFrame(frame.GetSettingFrame());
@@ -378,7 +383,15 @@ namespace Echoes.H2
                             continue;
                         }
 
-                        activeStream.ReceiveHeaderFragmentFromConnection(frame.GetHeadersFrame());
+                        // THIS IS SO DIRTY; HeaderFrames shouldn't be a ref struct 
+
+                        activeStream.ReceiveHeaderFragmentFromConnection(
+                            frame.GetHeadersFrame().BodyLength,
+                            frame.GetHeadersFrame().EndStream,
+                            frame.GetHeadersFrame().EndHeaders,
+                            frame.GetHeadersFrame().Data
+                            );
+
                         continue;
                     }
 
@@ -390,19 +403,28 @@ namespace Echoes.H2
                             continue;
                         }
 
-                        activeStream.ReceiveHeaderFragmentFromConnection(frame.GetContinuationFrame());
+                        // THIS IS SO DIRTY; ContinuationFrame shouldn't be a ref struct 
+
+                        activeStream.ReceiveHeaderFragmentFromConnection(
+                            frame.GetContinuationFrame().BodyLength,
+                            frame.GetContinuationFrame().EndHeaders,
+                            frame.GetContinuationFrame().Data
+                            );
+
                         continue;
                     }
 
                     if (frame.BodyType == H2FrameType.Data)
                     {
+
                         if (activeStream == null)
                         {
                             continue;
                         }
 
-                        activeStream.ReceiveBodyFragmentFromConnection(
-                            frame.GetDataFrame().Buffer, frame.Flags.HasFlag(HeaderFlags.EndStream));
+                        await activeStream.ReceiveBodyFragmentFromConnection(
+                            frame.GetDataFrame().Buffer, 
+                            frame.Flags.HasFlag(HeaderFlags.EndStream));
 
                         continue;
                     }
@@ -477,6 +499,7 @@ namespace Echoes.H2
                 _logger.Trace(exchange, "Send success on error " + ex);
 
                 OnLoopEnd(ex, true);
+
                 throw;
             }
             finally
@@ -489,7 +512,7 @@ namespace Echoes.H2
         {
             exchange.HttpVersion = "HTTP/2";
 
-            StreamProcessing activeStream;
+            StreamManager activeStream;
             Task waitForHeaderSentTask;
 
             try
@@ -514,23 +537,23 @@ namespace Echoes.H2
 
             exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 
-            var h2Message = await activeStream.ProcessResponse(cancellationToken)
+            await activeStream.ProcessResponse(cancellationToken)
                 .ConfigureAwait(false);
-
-            exchange.Response.Body = h2Message.ResponseStream;
         }
 
         public Authority Authority { get; }
         
         public async ValueTask DisposeAsync()
         {
-            _writerChannel?.Writer.TryComplete();
-            _writerChannel = null; 
+            if (_connectionCancellationTokenSource == null)
+                return;
 
+            _writerChannel?.Writer.TryComplete();
 
             _overallWindowSizeHolder?.Dispose();
-            _overallWindowSizeHolder = null; 
+            _overallWindowSizeHolder = null;
 
+            _connectionCancellationTokenSource.Cancel();
             _connectionCancellationTokenSource?.Dispose();
             _connectionCancellationTokenSource = null; 
 
@@ -543,12 +566,16 @@ namespace Echoes.H2
 
         public void Dispose()
         {
+            if (_connectionCancellationTokenSource == null)
+                return; 
+
             _writerChannel?.Writer.TryComplete();
             _writerChannel = null;
 
             _overallWindowSizeHolder?.Dispose();
             _overallWindowSizeHolder = null;
 
+            _connectionCancellationTokenSource.Cancel();
             _connectionCancellationTokenSource?.Dispose();
             _connectionCancellationTokenSource = null;
 

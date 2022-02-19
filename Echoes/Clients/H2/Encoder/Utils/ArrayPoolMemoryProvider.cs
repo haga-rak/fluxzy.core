@@ -13,9 +13,7 @@ namespace Echoes.H2.Encoder.Utils
 
 
         private readonly ArrayPool<T> _arrayBuffer = ArrayPool<T>.Create(1024 * 32,4096);
-
-        private readonly List<T[]> _allocated = new List<T[]>();
-
+        
         private ArrayPoolMemoryProvider()
         {
 
@@ -24,8 +22,6 @@ namespace Echoes.H2.Encoder.Utils
         public T [] Allocate(int size)
         {
             var newArray = _arrayBuffer.Rent(size);
-            _allocated.Add(newArray);
-
             return newArray; 
         }
 
@@ -38,10 +34,7 @@ namespace Echoes.H2.Encoder.Utils
 
         public void Dispose()
         {
-            foreach (var array in _allocated)
-            {
-                _arrayBuffer.Return(array); 
-            }
+
         }
     }
 }

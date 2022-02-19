@@ -126,13 +126,13 @@ namespace Echoes.H2.Tests
         }
 
         [Fact]
-        public async Task Receiving_Multiple_Header_Value()
+        public async Task Headers_Multiple_Reception()
         {
             using var handler = new EchoesHttp2Handler();
 
             using var httpClient = new HttpClient(handler, false);
 
-            int repeatCount = 40;
+            int repeatCount = 20;
 
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
                 .Select(async client =>
@@ -156,8 +156,8 @@ namespace Echoes.H2.Tests
         }
 
 
-        [Fact]
-        public async Task Receiving_Multiple_Repeating_Header_Value()
+        //[Fact]
+        public async Task Headers_Multiple_Reception_Repeating_Value()
         {
             await Task.WhenAll(Enumerable.Repeat(0, 10)
                 .Select(p => Receiving_Multiple_Repeating_Header_Value_Call()));

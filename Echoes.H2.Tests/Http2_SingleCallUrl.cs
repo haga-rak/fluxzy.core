@@ -1,8 +1,10 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.DotNetBridge;
+using Echoes.H2.Tests.Tools;
 using Echoes.H2.Tests.Utils;
 using Xunit;
 
@@ -24,6 +26,25 @@ namespace Echoes.H2.Tests
             var response = await httpClient.SendAsync(requestMessage);
 
             Assert.True(response.IsSuccessStatusCode);
+        }
+
+        [Fact]
+        public async Task Get_Abc_Test()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler); 
+            
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                $"{TestConstants.Http2Host}/global-health-check?dsf=sdfs&dsf=3");
+
+            await using var randomStream = new RandomDataStream(48, 23632, true);
+            await using var hashedStream = new HashedStream(randomStream);
+
+            requestMessage.Content = new StreamContent(hashedStream);
+            requestMessage.Headers.Add("X-Identifier", $"Simple header");
+
+            using var response = await httpClient.SendAsync(requestMessage);
+            await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
         }
 
 

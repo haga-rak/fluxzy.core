@@ -71,6 +71,10 @@ namespace Echoes.H2.Tests
                             t => t.Key == i.Name
                                  && t.Value.Contains(i.Value)));
 
+                    var missing = items.Where(i => !response.Headers.Any(
+                        t => t.Key == i.Name
+                             && t.Value.Contains(i.Value))).ToList();
+
                     Assert.True(mustBeTrue);
                 });
 

@@ -94,7 +94,8 @@ namespace Echoes.IO
                 }
 
                 // Skip the next CRLF 
-                await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken);
+                if (!await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken))
+                    throw new EndOfStreamException($"Unexpected EOF");
 
                 _nextChunkSize = chunkSize;
             }
@@ -112,7 +113,7 @@ namespace Echoes.IO
             _nextChunkSize -= read;
 
             if (_nextChunkSize == 0)
-                await _innerStream.ReadExactAsync(_lengthHolderBytes, 0, 2, cancellationToken);
+                await _innerStream.ReadExactAsync(new Memory<byte>(_lengthHolderBytes, 0, 2), cancellationToken);
             
 
             return read;

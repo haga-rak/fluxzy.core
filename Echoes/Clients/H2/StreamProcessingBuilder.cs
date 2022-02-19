@@ -41,14 +41,14 @@ namespace Echoes.H2
             _headerEncoder = new HeaderEncoder(hPackEncoder, _hPackDecoder, _streamSetting);
         }
 
-        public StreamProcessing Build(
+        public StreamManager Build(
             int streamIdentifier, StreamPool parent,
             Exchange exchange, H2Logger logger, CancellationToken callerCancellationToken)
         {
-            return new StreamProcessing(
+            return new StreamManager(
                 streamIdentifier, parent, exchange,
                 _upStreamChannel, _headerEncoder, _streamSetting,
-                _overallWindowSizeHolder, _parser, logger, 
+                _overallWindowSizeHolder, _parser, logger, _hPackDecoder,
                 _localCancellationToken, callerCancellationToken);
         }
     }

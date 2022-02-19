@@ -104,6 +104,7 @@ namespace Echoes
             {
                 await _proxyOrchestrator.Operate(client,
                     _proxyHaltTokenSource.Token).ConfigureAwait(false);
+             
             }
         }
 

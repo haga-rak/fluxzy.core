@@ -15,8 +15,9 @@ namespace Echoes.H2
         private readonly PeerSetting _remotePeerSetting;
         private readonly H2Logger _logger;
         private readonly StreamProcessingBuilder _streamProcessingBuilder;
-        
-        private readonly IDictionary<int, StreamProcessing> _runningStreams = new Dictionary<int, StreamProcessing>();
+        private readonly H2StreamSetting _setting;
+
+        private readonly IDictionary<int, StreamManager> _runningStreams = new Dictionary<int, StreamManager>();
 
         private int _nextStreamIdentifier = -1;
 
@@ -25,34 +26,36 @@ namespace Echoes.H2
         private bool _onError;
 
         private readonly FifoLock _fifoLock = new FifoLock();
+        private int _overallWindowSize;
 
         public StreamPool(
             int connectionId, 
             Authority authority, 
             H2Logger logger,
             StreamProcessingBuilder streamProcessingBuilder,
-            PeerSetting remotePeerSetting)
+            H2StreamSetting setting)
         {
             ConnectionId = connectionId;
             Authority = authority;
             _logger = logger;
             _streamProcessingBuilder = streamProcessingBuilder;
-            _remotePeerSetting = remotePeerSetting;
-            _barrier = new SemaphoreSlim((int) remotePeerSetting.SettingsMaxConcurrentStreams);
+            _setting = setting;
+            _remotePeerSetting = setting.Remote;
+            _barrier = new SemaphoreSlim((int)setting.Remote.SettingsMaxConcurrentStreams);
+
+            _overallWindowSize  = setting.Local.WindowSize - setting.Local.MaxFrameSize;
         }
 
         public int ConnectionId { get; }
 
         public Authority Authority { get; }
-
-        public bool TryGetExistingActiveStream(int streamIdentifier, out StreamProcessing result)
+        
+        public bool TryGetExistingActiveStream(int streamIdentifier, out StreamManager result)
         {
             return _runningStreams.TryGetValue(streamIdentifier, out result); 
         }
 
-        public List<int> status = new List<int>();
-
-        private StreamProcessing CreateActiveStream(Exchange exchange, CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
+        private StreamManager CreateActiveStream(Exchange exchange, CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
         {
             if (_onError)
                 throw new InvalidOperationException("This connection is on error");
@@ -61,7 +64,7 @@ namespace Echoes.H2
 
             var myId = Interlocked.Add(ref _nextStreamIdentifier, 2);
 
-            StreamProcessing activeStream = _streamProcessingBuilder.Build(
+            StreamManager activeStream = _streamProcessingBuilder.Build(
                 myId, this, exchange, _logger,
                 callerCancellationToken);
             
@@ -76,7 +79,7 @@ namespace Echoes.H2
         /// Get or create  active stream 
         /// </summary>
         /// <returns></returns>
-        public async Task<StreamProcessing> CreateNewStreamProcessing(Exchange exchange, CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
+        public async Task<StreamManager> CreateNewStreamProcessing(Exchange exchange, CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit)
         {
             if (_onError)
                 throw new InvalidOperationException("This connection is on error");
@@ -87,12 +90,12 @@ namespace Echoes.H2
             return res;
         }
         
-        public void NotifyDispose(StreamProcessing streamProcessing)
+        public void NotifyDispose(StreamManager streamManager)
         {
-            if (_runningStreams.Remove(streamProcessing.StreamIdentifier))
+            if (_runningStreams.Remove(streamManager.StreamIdentifier))
             {
                 _barrier.Release();
-                streamProcessing.Dispose();
+                streamManager.Dispose();
             }
         }
 
@@ -109,6 +112,22 @@ namespace Echoes.H2
         {
             _onError = ex != null; 
             GoAwayException = ex; 
+        }
+
+        public int ShouldWindowUpdate(int dataLength)
+        {
+            var windowIncrement = 0;
+
+            _overallWindowSize += dataLength;
+
+            if (_overallWindowSize > (0.5 * _setting.Local.WindowSize))
+            {
+                windowIncrement = _overallWindowSize;
+
+                _overallWindowSize = 0;
+            }
+
+            return windowIncrement; 
         }
 
         public void Dispose()

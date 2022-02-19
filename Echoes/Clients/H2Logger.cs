@@ -215,17 +215,17 @@ namespace Echoes
             Trace(exchange, streamIdentifier, preMessage + (ex == null ? string.Empty : ex.ToString()));
         }
 
-        public void Trace(StreamProcessing streamProcessing,
+        public void Trace(StreamManager streamManager,
             Exchange exchange,
             string preMessage)
         {
             if (!_active)
                 return;
 
-            Trace(exchange, streamProcessing.StreamIdentifier, preMessage);
+            Trace(exchange, streamManager.StreamIdentifier, preMessage);
         }
 
-        public void TraceResponse(StreamProcessing streamProcessing,
+        public void TraceResponse(StreamManager streamManager,
             Exchange exchange)
         {
             if (!_active)
@@ -233,7 +233,7 @@ namespace Echoes
 
             var firstLine = exchange.Response.Header.RawHeader.ToString().Split("\r\n").First();
 
-            Trace(exchange, streamProcessing.StreamIdentifier, $"Response : " + firstLine);
+            Trace(exchange, streamManager.StreamIdentifier, $"Response : " + firstLine);
         }
 
         public void IncomingSetting(ref SettingFrame settingFrame)
