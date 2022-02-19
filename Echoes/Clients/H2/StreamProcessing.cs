@@ -222,6 +222,7 @@ namespace Echoes.H2
                     if (bookedSize == 0)
                         throw new TaskCanceledException("Stream cancellation request");
 
+
                     var dataFramePayloadLength = await requestBodyStream
                         .ReadAsync(_dataReceptionBuffer.Slice(9, bookedSize), 
                             _currentStreamCancellationTokenSource.Token)
@@ -294,6 +295,8 @@ namespace Echoes.H2
             ReceiveHeaderFragmentFromConnection(continuationFrame.Data, continuationFrame.EndHeaders);
         }
 
+        private int _totalBodyReceived; 
+
         private void ReceiveHeaderFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool last)
         {
             if (last)
@@ -311,6 +314,7 @@ namespace Echoes.H2
             if (last)
             {
                 _responseHeaderReady.SetResult(null);
+
 
                 if (_noBodyStream)
                 {
@@ -335,6 +339,8 @@ namespace Echoes.H2
                 _receivedEndStream = true;
             }
 
+            _totalBodyReceived += buffer.Length;
+
             if (_firstBodyFragment)
             {
                 _exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
@@ -343,6 +349,9 @@ namespace Echoes.H2
 
             if (endStream)
             {
+                _logger.Trace(_exchange, StreamIdentifier,
+                    () => $"Total body received : " + _totalBodyReceived);
+
                 _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
             }
 

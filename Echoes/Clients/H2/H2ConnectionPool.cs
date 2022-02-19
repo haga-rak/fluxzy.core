@@ -206,6 +206,8 @@ namespace Echoes.H2
             _complete = true; 
             // End the connection. This operation is idempotent. 
 
+            _logger.Trace(0, "Cleanup start");
+
             _onConnectionFaulted(this);
 
             if (ex != null)
@@ -233,6 +235,9 @@ namespace Echoes.H2
 
 
             _connectionCancellationTokenSource?.Cancel();
+
+
+            _logger.Trace(0, "Cleanup end");
         }
 
         private async Task InternalWriteLoop()

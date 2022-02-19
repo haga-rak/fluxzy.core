@@ -261,6 +261,17 @@ namespace Echoes
             WriteLn(0, message);
         }
 
+        public void Trace(
+            Exchange exchange,
+            int streamId,
+            Func<string> sendMessage)
+        {
+
+            if (!_active)
+                return;
+
+            Trace(exchange, streamId, sendMessage());
+        }
 
         public void Trace(
             Exchange exchange,
