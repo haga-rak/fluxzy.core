@@ -147,7 +147,6 @@ namespace Echoes.H2.Tests
             Assert.True(response.StatusCode == HttpStatusCode.NotFound);
         }
 
-
         [Fact]
         public async Task Get_Control_Single_Headers()
         {

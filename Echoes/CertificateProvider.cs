@@ -15,7 +15,7 @@ namespace Echoes
     {
         private readonly ICertificateCache _certCache;
         private readonly ConcurrentDictionary<string, Lazy<byte[]>> _certificateRepository = new ConcurrentDictionary<string, Lazy<byte[]>>();
-        private readonly ConcurrentDictionary<string, byte[]> _solveCertificateRepository = new ConcurrentDictionary<string, byte[]>();
+        private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new ConcurrentDictionary<string, X509Certificate2>();
         private readonly X509Certificate2 _baseCertificate;
         private readonly RSA _rsaKeyEngine = RSA.Create(2048);
 
@@ -47,35 +47,30 @@ namespace Echoes
             return string.Join(".", splittedArray.Reverse().Take(splittedArray.Length - 1).Reverse());
         }
 
-        public async Task<X509Certificate2> GetCertificate(string hostName)
+        public X509Certificate2 GetCertificate(string hostName)
         {
             hostName = GetRootDomain(hostName);
 
-            if (_solveCertificateRepository.TryGetValue(hostName, out var value))
+            lock (string.Intern(hostName))
             {
-                return new X509Certificate2(value); 
-            }
-
-            using (await QuickSlim.Lock(_taskSlim).ConfigureAwait(false))
-            {
-                var res = await Task.Run(() =>
+                if (_solveCertificateRepository.TryGetValue(hostName, out var value))
                 {
-                    var lazyCertificate =
-                        _certificateRepository.GetOrAdd(hostName, new Lazy<byte[]>(() =>
-                                _certCache.Load(_baseCertificate.SerialNumber, hostName, BuildCertificateForRootDomain) , true));
+                    return value;
+                }
 
-                    var val = lazyCertificate.Value;
+                var lazyCertificate =
+                    _certificateRepository.GetOrAdd(hostName, new Lazy<byte[]>(() =>
+                        _certCache.Load(_baseCertificate.SerialNumber, hostName, BuildCertificateForRootDomain), true));
 
-                    var r = new X509Certificate2(val);
-                    _solveCertificateRepository[hostName] = val;
+                var val = lazyCertificate.Value;
 
-                    return r;
+                var r = new X509Certificate2(val);
 
-                }).ConfigureAwait(false);
+                _solveCertificateRepository[hostName] = r;
 
-                return res;
-
+                return r;
             }
+
         }
         
         private byte [] BuildCertificateForRootDomain(string rootDomain)

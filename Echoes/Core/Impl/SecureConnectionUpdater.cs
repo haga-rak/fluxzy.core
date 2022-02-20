@@ -24,20 +24,20 @@ namespace Echoes.Core
         private bool StartWithKeyWord(char[] buffer)
         {
             ReadOnlySpan<char> c = buffer.AsSpan();
-            return c.Equals("GET ", StringComparison.OrdinalIgnoreCase); 
+            return c.Equals("GET ", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<SecureConnectionUpdateResult> AuthenticateAsServer(Stream stream, string host, CancellationToken token)
         {
             var buffer = new byte[4];
             var bufferChar = new char[4];
-            var originalStream = stream; 
+            var originalStream = stream;
 
 
             await stream.ReadExactAsync(buffer, token);
 
             Encoding.ASCII.GetChars(buffer, bufferChar);
-            
+
             if (StartWithKeyWord(bufferChar))
             {
                 // Probably Web socket request 
@@ -52,19 +52,19 @@ namespace Echoes.Core
 
             var secureStream = new SslStream(new RecomposedStream(stream, originalStream), false);
 
-            using (var certificate = await _certificateProvider.GetCertificate(host).ConfigureAwait(false))
+            var certificate = _certificateProvider.GetCertificate(host);
+
+            try
             {
-                try
-                {
-                    await secureStream
-                        .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false)
-                        .ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    throw new EchoesException("Client closed connection while trying to negotiate SSL/TLS settings", ex);
-                }
+                await secureStream
+                    .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false)
+                    .ConfigureAwait(false);
             }
+            catch (Exception ex)
+            {
+                throw new EchoesException("Client closed connection while trying to negotiate SSL/TLS settings", ex);
+            }
+
 
             return new SecureConnectionUpdateResult(false, true,
                 secureStream,
@@ -83,14 +83,14 @@ namespace Echoes.Core
             OutStream = outStream;
         }
 
-        public bool IsSsl { get;  }
+        public bool IsSsl { get; }
 
-        public bool IsWebSocket { get;  }
+        public bool IsWebSocket { get; }
 
-        public bool IsOnError => !IsSsl && !IsWebSocket; 
+        public bool IsOnError => !IsSsl && !IsWebSocket;
 
-        public Stream InStream { get;  }
+        public Stream InStream { get; }
 
-        public Stream OutStream { get;  }
+        public Stream OutStream { get; }
     }
 }

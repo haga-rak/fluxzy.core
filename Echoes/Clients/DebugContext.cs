@@ -22,6 +22,11 @@ namespace Echoes
                 .GetEnvironmentVariable("EnableDumpStackTraceOn502"));
 
 
+        public static bool InsertH2ContextOnResponseHeader { get; }
+            = !string.IsNullOrWhiteSpace(Environment
+                .GetEnvironmentVariable("InsertH2ContextOnResponseHeader"));
+
+
         public static string SessionDate { get; }  = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss"); 
 
 

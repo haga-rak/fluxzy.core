@@ -23,7 +23,7 @@ namespace Echoes
             ReadOnlyMemory<char> responseHeader,
             Stream responseBody,
             bool isSecure,
-            Http11Parser parser, string httpVersion)
+            Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
             Id = Interlocked.Increment(ref ExchangeCounter);
 
@@ -41,13 +41,15 @@ namespace Echoes
 
             // TODO : Fill metrics 
 
+            Metrics.ReceivedFromProxy = receivedFromProxy;
+
             _exchangeCompletionSource.SetResult(false);
         }
 
 
         public Exchange(
             Authority authority, 
-            RequestHeader requestHeader, Stream bodyStream, string httpVersion)
+            RequestHeader requestHeader, Stream bodyStream, string httpVersion, DateTime receivedFromProxy)
         {
             Id = Interlocked.Increment(ref ExchangeCounter); 
             Authority = authority;
@@ -56,17 +58,19 @@ namespace Echoes
             {
                 Body = bodyStream
             };
+            Metrics.ReceivedFromProxy = receivedFromProxy;
         }
 
         public Exchange(
             Authority authority, 
             ReadOnlyMemory<char> header, 
-            Http11Parser parser, string httpVersion)
+            Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
             Id = Interlocked.Increment(ref ExchangeCounter); 
             Authority = authority;
             HttpVersion = httpVersion;
             Request = new Request(new RequestHeader(header, authority.Secure, parser));
+            Metrics.ReceivedFromProxy = receivedFromProxy;
         }
 
         public int Id { get;  }

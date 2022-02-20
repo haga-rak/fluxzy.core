@@ -11,6 +11,7 @@ namespace Echoes.Cli
             //throw new EchoesException("");
             //Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
             Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
+            Environment.SetEnvironmentVariable("InsertH2ContextOnResponseHeader", "true");
             //Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts", 
             //    "2befficient.fr;smartizy.com; discord.com; facebook.com; google.com; microsoft.com; yahoo.fr; yahoo.com;" +
             //    "adrecover.com; debrid.it; reddit.com");

@@ -47,7 +47,7 @@ namespace Echoes.DotNetBridge
             }
 
             var exchange = new Exchange(new Authority(request.RequestUri.Host, request.RequestUri.Port,
-                true), request.ToHttp11String().AsMemory(), _parser, "HTTP/2");
+                true), request.ToHttp11String().AsMemory(), _parser, "HTTP/2", DateTime.Now);
 
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();

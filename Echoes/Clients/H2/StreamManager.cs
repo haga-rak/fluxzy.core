@@ -291,7 +291,7 @@ namespace Echoes.H2
             {
                 _exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
-                var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
+                var charHeader = DecodeAndAllocate( _headerBuffer.Slice(0, _totalHeaderReceived).Span);
 
                 _exchange.Response.Header = new ResponseHeader(charHeader, true, _parent.Context.Parser);
 
@@ -305,14 +305,34 @@ namespace Echoes.H2
 
         private Memory<char> DecodeAndAllocate(ReadOnlySpan<byte> onWire)
         {
+
+
             Span<char> tempBuffer = stackalloc char[_parent.Context.Setting.MaxHeaderSize];
 
             var decoded = _parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
-            Memory<char> charBuffer = new char[decoded.Length];
+            Memory<char> charBuffer = new char[decoded.Length + 400];
 
             decoded.CopyTo(charBuffer.Span);
+            var length = decoded.Length;
 
-            return charBuffer.Slice(0, decoded.Length);
+            if (DebugContext.InsertH2ContextOnResponseHeader && decoded.Length > 2)
+            {
+                var tTfb = (int)(_exchange.Metrics.ResponseHeaderEnd - _exchange.Metrics.RequestHeaderSent).TotalMilliseconds;
+                var delaySending = (int)(_exchange.Metrics.RequestHeaderSending - _exchange.Metrics.ReceivedFromProxy).TotalMilliseconds;
+
+                var stringInfo = $"echoes-h2-debug : connectionId = {Parent.Context.ConnectionId} " +
+                                 $"- streamId = {StreamIdentifier} - " +
+                                 $"TTFB = {tTfb} - " +
+                                 $"reaction = { delaySending }\r\n\r\n";
+
+                stringInfo.AsSpan().CopyTo(charBuffer.Span.Slice(decoded.Length - 2));
+
+                length = length + stringInfo.Length - 2;
+
+                var sort = charBuffer.Slice(0, length).ToString();
+            }
+
+            return charBuffer.Slice(0, length);
         }
 
         public async Task ProcessResponse(CancellationToken cancellationToken)
@@ -328,8 +348,13 @@ namespace Echoes.H2
             {
                 throw new IOException("Received no header");
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                if (e is ObjectDisposedException)
+                {
+
+                }
+
                 _parent.NotifyDispose(this);
                 throw; 
             }
@@ -355,13 +380,10 @@ namespace Echoes.H2
 
             _totalBodyReceived += buffer.Length;
 
-            bool wasFirstFragment = false; 
-
             if (_firstBodyFragment)
             {
                 _exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
                 _firstBodyFragment = false;
-                wasFirstFragment = true; 
 
                 _logger.Trace(_exchange, StreamIdentifier,
                     () => $"First body block received");
@@ -395,16 +417,13 @@ namespace Echoes.H2
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
                 
 
-                _complete = true; 
+                _complete = true;
+                
+                // Give a chance for semaphores to released before disposed
+
+                await Task.Yield();
 
                 _parent.NotifyDispose(this);
-            }
-
-            if (wasFirstFragment)
-            {
-                _logger.Trace(_exchange, StreamIdentifier,
-                    () => $"First body block received well");
-
             }
         }
 
@@ -452,6 +471,8 @@ namespace Echoes.H2
 
             RemoteWindowSize?.Dispose();
             _receptionBufferContainer?.Dispose();
+
+            _headerReceivedSemaphore.Release();
             _headerReceivedSemaphore.Dispose();
 
             _logger.Trace(StreamIdentifier, ".... disposed");

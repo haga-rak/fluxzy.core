@@ -97,6 +97,9 @@ namespace Echoes
             var blockReadResult =  await
                 Http11PoolProcessing.DetectHeaderBlock(plainStream, buffer, () => { }, () => { }, false, token);
 
+
+            var receivedFromProxy = ITimingProvider.Default.Instant();
+
             if (blockReadResult.TotalReadLength == 0)
                 return null;
 
@@ -113,6 +116,7 @@ namespace Echoes
                 // GET Authority 
                 var authorityArray = 
                     plainHeader.Path.ToString().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+
 
                 var authority = new Authority
                     (authorityArray[0], 
@@ -135,7 +139,7 @@ namespace Echoes
                         authenticateResult.OutStream, new Exchange(
                     authority, plainHeaderChars, null,
                     AcceptTunnelResponseString.AsMemory(), 
-                    null, false, _http11Parser, "HTTP/1.1"));
+                    null, false, _http11Parser, "HTTP/1.1", receivedFromProxy));
             }
 
             // Plain request 
@@ -148,7 +152,7 @@ namespace Echoes
             return new ExchangeBuildingResult(plainAuthority, plainStream, plainStream, new Exchange(plainAuthority, 
                 plainHeader, plainHeader.ContentLength > 0
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                    : StreamUtils.EmptyStream, "HTTP/1.1")); 
+                    : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy)); 
         }
 
         public async Task<Exchange> ReadExchange(
@@ -160,6 +164,9 @@ namespace Echoes
 
             if (blockReadResult.TotalReadLength == 0)
                 return null;
+
+            var receivedFromProxy = ITimingProvider.Default.Instant();
+
 
             var secureHeaderChars = new char[blockReadResult.HeaderLength];
 
@@ -179,7 +186,7 @@ namespace Echoes
             return new Exchange(authority, secureHeader,
                 secureHeader.ContentLength > 0
                     ? new ContentBoundStream(inStream, secureHeader.ContentLength)
-                    : StreamUtils.EmptyStream, null
+                    : StreamUtils.EmptyStream, null, receivedFromProxy
             );
         }
     }

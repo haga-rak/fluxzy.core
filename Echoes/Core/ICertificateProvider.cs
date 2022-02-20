@@ -6,6 +6,6 @@ namespace Echoes.Core
 {
     public interface ICertificateProvider : IDisposable
     {
-        Task<X509Certificate2> GetCertificate(string hostName);
+        X509Certificate2 GetCertificate(string hostName);
     }
 }
