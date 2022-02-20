@@ -39,6 +39,7 @@ namespace Echoes.H11
             _parser = parser;
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(clientSetting.ConcurrentConnection);
+            _logger = new H1Logger(authority);
 
             if (existingConnection != null)
             {
@@ -54,8 +55,8 @@ namespace Echoes.H11
         {
             return Task.CompletedTask; 
         }
-
-        private ConcurrentDictionary<int, int> _exchangePassed = new();
+        
+        private readonly H1Logger _logger;
 
         public async ValueTask Send(Exchange exchange, ILocalLink _, CancellationToken cancellationToken)
         {
@@ -63,8 +64,12 @@ namespace Echoes.H11
 
             try
             {
+                _logger.Trace(exchange, "Begin wait for authority slot");
+
                 await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
-                
+
+                _logger.Trace(exchange.Id, "Acquiring slot");
+
                 lock (_processingStates)
                 {
                     DateTime requestDate = _timingProvider.Instant(); 
@@ -77,37 +82,41 @@ namespace Echoes.H11
                             continue; 
                         }
 
-                        exchange.Connection = state.Connection; 
+                        exchange.Connection = state.Connection;
+                        _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
                     }
                 }
-
-                lock (_exchangePassed)
-                {
-                    _exchangePassed.GetOrAdd(exchange.Id, _ => 0);
-                    var res = _exchangePassed[exchange.Id]++;
-                }
-
+                
                 if (exchange.Connection == null)
                 {
+                    _logger.Trace(exchange.Id, () => $"New connection request");
+
                     var openingResult = 
                         await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false, Http11Protocols,
                         _clientSetting, cancellationToken);
                     
-                    exchange.Connection = openingResult.Connection; 
+                    exchange.Connection = openingResult.Connection;
+
+                    _logger.Trace(exchange.Id, () => $"New connection obtained: {exchange.Connection.Id}");
                 }
 
-                var poolProcessing = new Http11PoolProcessing(_timingProvider, _clientSetting, _parser);
+                var poolProcessing = new Http11PoolProcessing(_timingProvider, _clientSetting, _parser, _logger);
 
                 try
                 {
                     await poolProcessing.Process(exchange, cancellationToken)
                         .ConfigureAwait(false);
-                    
+
+
+                    _logger.Trace(exchange.Id, () => $"[Process] return");
+
                     var res = exchange.Complete
                         .ContinueWith(completeTask =>
                         {
                             if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any())
                             {
+                                _logger.Trace(exchange.Id, () => $"Complete on error {completeTask.Exception.GetType()} : {completeTask.Exception.Message}");
+
                                 foreach (var exception in completeTask.Exception.InnerExceptions)
                                 {
                                     exchange.Errors.Add(new Error("Error while reading resp", exception));
@@ -117,15 +126,21 @@ namespace Echoes.H11
                             {
                                 lock (_processingStates)
                                     _processingStates.Enqueue(new Http11ProcessingState(exchange.Connection, _timingProvider));
+
+
+                                _logger.Trace(exchange.Id, () => $"Complete on success, recycling connection ...");
                             }
                             else
                             {
+                                _logger.Trace(exchange.Id, () => $"Complete on success, closing connection ...");
                                 // should close connection 
                             }
                         }, cancellationToken);
                 }
                 catch (Exception ex)
                 {
+                    _logger.Trace(exchange.Id, () => $"Processing error {ex}");
+
                     //if (ex is SocketException ||
                     //    ex is IOException || 
                     //    ex is ExchangeException)
@@ -141,7 +156,7 @@ namespace Echoes.H11
                     //    }
                     //}
                     //else
-                        throw;
+                    throw;
                 }
             }
             finally

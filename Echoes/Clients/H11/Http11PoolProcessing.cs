@@ -11,7 +11,7 @@ using Echoes.IO;
 
 namespace Echoes.H11
 {
-    public class Http11PoolProcessing
+    internal class Http11PoolProcessing
     {
         private static readonly ReadOnlyMemory<char> Space = " ".AsMemory();
         private static readonly ReadOnlyMemory<char> LineFeed = "\r\n".AsMemory();
@@ -21,17 +21,19 @@ namespace Echoes.H11
         private readonly ITimingProvider _timingProvider;
         private readonly ClientSetting _clientSetting;
         private readonly Http11Parser _parser;
+        private readonly H1Logger _logger;
 
         private static readonly byte[] CrLf = { 0x0D, 0x0A, 0x0D, 0x0A };
 
         public Http11PoolProcessing(
             ITimingProvider timingProvider,
             ClientSetting clientSetting,
-            Http11Parser parser)
+            Http11Parser parser, H1Logger logger)
         {
             _timingProvider = timingProvider;
             _clientSetting = clientSetting;
             _parser = parser;
+            _logger = logger;
         }
 
         private static int count = 0; 
@@ -52,11 +54,15 @@ namespace Echoes.H11
 
             exchange.Metrics.RequestHeaderSending = _timingProvider.Instant();
 
+            _logger.Trace(exchange.Id, () => $"Begin writing header");
             var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true);
-            
+
+
             // Sending request header 
 
             await exchange.Connection.WriteStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
+
+            _logger.Trace(exchange.Id, () => $"Header sent");
 
             exchange.Metrics.TotalSent += headerLength;
             exchange.Metrics.RequestHeaderSent = _timingProvider.Instant();
@@ -71,6 +77,8 @@ namespace Echoes.H11
                 exchange.Metrics.TotalSent += totalBodySize;
             }
 
+            _logger.Trace(exchange.Id, () => $"Body sent");
+
             var headerBlockDetectResult = await
                 DetectHeaderBlock(exchange.Connection.ReadStream, headerBuffer,
                     () => exchange.Metrics.ResponseHeaderStart = _timingProvider.Instant(),
@@ -83,8 +91,12 @@ namespace Echoes.H11
             Encoding.ASCII
                 .GetChars(headerBuffer.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
 
+            
             exchange.Response.Header = new ResponseHeader(
                 headerContent, exchange.Authority.Secure, _parser);
+
+            _logger.TraceResponse(exchange);
+            
 
             var shouldCloseConnection =
                 exchange.Response.Header.ConnectionCloseRequest
@@ -94,7 +106,9 @@ namespace Echoes.H11
             {
                 exchange.Metrics.ResponseBodyStart = exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
                 exchange.Response.Body = StreamUtils.EmptyStream;
-                exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
+                exchange.ExchangeCompletionSource.TrySetResult(shouldCloseConnection);
+
+                _logger.Trace(exchange.Id, () => $"No response body");
 
                 return shouldCloseConnection;
             }
@@ -127,17 +141,24 @@ namespace Echoes.H11
 
             exchange.Response.Body =
                 new MetricsStream(bodyStream,
-                    () => { exchange.Metrics.ResponseBodyStart = _timingProvider.Instant(); },
+                    () =>
+                    {
+                        exchange.Metrics.ResponseBodyStart = _timingProvider.Instant();
+                        _logger.Trace(exchange.Id, () => $"First body bytes read");
+                    },
                     (length) =>
                     {
                         exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
                         exchange.Metrics.TotalReceived += length;
                         exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
+                        _logger.Trace(exchange.Id, () => $"Last body bytes end : {length} total bytes");
                     },
                     (exception) =>
                     {
                         exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
                         exchange.ExchangeCompletionSource.SetException(exception);
+
+                        _logger.Trace(exchange.Id, () => $"Read error : {exception}");
                     },
                     cancellationToken
                  )

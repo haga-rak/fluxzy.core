@@ -71,6 +71,9 @@ namespace Echoes
 
         public bool HasResponseBody()
         {
+            if (ContentLength == 0)
+                return false;
+
             if (ContentLength > 0)
                 return true;
 

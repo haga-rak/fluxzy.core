@@ -305,12 +305,10 @@ namespace Echoes.H2
 
         private Memory<char> DecodeAndAllocate(ReadOnlySpan<byte> onWire)
         {
-
-
             Span<char> tempBuffer = stackalloc char[_parent.Context.Setting.MaxHeaderSize];
 
             var decoded = _parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
-            Memory<char> charBuffer = new char[decoded.Length + 400];
+            Memory<char> charBuffer = new char[decoded.Length + 256];
 
             decoded.CopyTo(charBuffer.Span);
             var length = decoded.Length;
