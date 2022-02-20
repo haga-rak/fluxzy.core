@@ -118,6 +118,10 @@ namespace Echoes.H11
                                 lock (_processingStates)
                                     _processingStates.Enqueue(new Http11ProcessingState(exchange.Connection, _timingProvider));
                             }
+                            else
+                            {
+                                // should close connection 
+                            }
                         }, cancellationToken);
                 }
                 catch (Exception ex)

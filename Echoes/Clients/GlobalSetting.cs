@@ -43,7 +43,7 @@ namespace Echoes
         public int ConcurrentConnection { get; set; } = 8;
 
 
-        public int TimeOutSecondsUnusedConnection { get; set; } = 20;
+        public int TimeOutSecondsUnusedConnection { get; set; } = 4;
 
 
         /// <summary>
