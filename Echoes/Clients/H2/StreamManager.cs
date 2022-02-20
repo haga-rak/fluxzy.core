@@ -18,21 +18,12 @@ namespace Echoes.H2
     {
         private readonly StreamPool _parent;
         private readonly Exchange _exchange;
-        private readonly CancellationToken _poolCancellationToken;
-        private readonly UpStreamChannel _upStreamChannel;
-        private readonly IHeaderEncoder _headerEncoder;
-        
+        private readonly CancellationTokenSource _resetTokenSource;
+
         private readonly Memory<byte> _dataReceptionBuffer;
-        private readonly H2StreamSetting _globalSetting;
-        private readonly Http11Parser _parser;
         private readonly H2Logger _logger;
-        private readonly HPackDecoder _hPackDecoder;
         
-        private readonly CancellationTokenSource _currentStreamCancellationTokenSource;
         private readonly MutableMemoryOwner<byte> _receptionBufferContainer;
-
-        private CancellationToken _overallToken;
-
 
         private H2ErrorCode _resetErrorCode;
         private bool _noBodyStream = false;
@@ -44,55 +35,50 @@ namespace Echoes.H2
         private readonly Pipe _pipeResponseBody;
 
         private int _totalBodyReceived;
-
         private bool _firstBodyFragment = true;
+
+
+        private Memory<byte> _headerBuffer;
+
+        private int _totalHeaderReceived;
+
+        private readonly SemaphoreSlim _headerReceivedSemaphore = new(0, 1);
+
+        private bool _complete;
 
         public StreamManager(
             int streamIdentifier,
             StreamPool parent,
-            Exchange exchange, 
-            UpStreamChannel upStreamChannel,
-            IHeaderEncoder headerEncoder,
-            H2StreamSetting globalSetting,
-            WindowSizeHolder overallWindowSizeHolder,
-            Http11Parser parser, 
-            H2Logger logger,
-            HPackDecoder hPackDecoder,
-            CancellationToken mainLoopCancellationToken,
-            CancellationToken poolCancellationToken)
+            Exchange exchange, CancellationTokenSource resetTokenSource)
         {
             StreamIdentifier = streamIdentifier;
             _parent = parent;
             _exchange = exchange;
-            _poolCancellationToken = poolCancellationToken;
-            _upStreamChannel = upStreamChannel;
-            _headerEncoder = headerEncoder;
-            
-            RemoteWindowSize = new WindowSizeHolder(logger,
-                globalSetting.OverallWindowSize, 
-                streamIdentifier);
+            _resetTokenSource = resetTokenSource;
 
-            OverallRemoteWindowSize = overallWindowSizeHolder; 
+            RemoteWindowSize = new WindowSizeHolder(parent.Context.Logger,
+                parent.Context.Setting.OverallWindowSize, 
+                streamIdentifier);
             
-            _globalSetting = globalSetting;
-            _parser = parser;
-            _logger = logger;
-            _hPackDecoder = hPackDecoder;
+            _logger = parent.Context.Logger;
 
             _receptionBufferContainer = MemoryPool<byte>.Shared.RendExact(16 * 1024);
-
             _dataReceptionBuffer = _receptionBufferContainer.Memory;
-            
-            _currentStreamCancellationTokenSource =
-                CancellationTokenSource.CreateLinkedTokenSource(poolCancellationToken, mainLoopCancellationToken);
-
-            _currentStreamCancellationTokenSource.Token.Register(OnStreamHaltRequest);
-
-            _overallToken = _currentStreamCancellationTokenSource.Token;
 
             _pipeResponseBody = new Pipe(new PipeOptions());
-            
         }
+
+        public int StreamIdentifier { get; }
+
+        public byte StreamPriority { get; private set; }
+
+        public int StreamDependency { get; private set; }
+
+        public bool Exclusive { get; private set; }
+
+        public WindowSizeHolder RemoteWindowSize { get; }
+
+        public StreamPool Parent => _parent;
 
         private void OnStreamHaltRequest()
         {
@@ -109,16 +95,6 @@ namespace Echoes.H2
                 return; 
             }
 
-            if (_poolCancellationToken.IsCancellationRequested)
-            {
-                // The caller cancelled the request 
-
-                _pipeResponseBody.Writer.Complete();
-                //_pipeResponseBody.Reader.Complete();
-
-                return;
-            }
-
             // In case of exception in the main loop, we ensure that wait tasks for the caller are 
             // properly interrupt with exception
 
@@ -128,32 +104,18 @@ namespace Echoes.H2
             //_pipeResponseBody.Reader.Complete();
         }
         
-        public int StreamIdentifier { get;  }
-
-        public byte StreamPriority { get; private set; }
-
-        public int StreamDependency { get; private set; }
-
-        public bool Exclusive { get; private set; }
-        public WindowSizeHolder RemoteWindowSize { get;  }
-        
-        public WindowSizeHolder OverallRemoteWindowSize { get;  }
-
-        public StreamPool Parent => _parent;
 
         private async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
         {
             if (requestedBodyLength == 0)
                 return 0;
-
-            var wa = RemoteWindowSize.WindowSize;
+            
             var streamWindow = await RemoteWindowSize.BookWindowSize(requestedBodyLength, cancellationToken).ConfigureAwait(false);
-            var wz = RemoteWindowSize.WindowSize; 
 
             if (streamWindow == 0)
                 return 0;
 
-            var overallWindow = await OverallRemoteWindowSize.BookWindowSize(streamWindow, cancellationToken)
+            var overallWindow = await Parent.Context.OverallWindowSizeHolder.BookWindowSize(streamWindow, cancellationToken)
                 .ConfigureAwait(false);
 
             return overallWindow; 
@@ -167,8 +129,12 @@ namespace Echoes.H2
         public void ResetRequest(H2ErrorCode errorCode)
         {
             _resetErrorCode = errorCode;
-            _currentStreamCancellationTokenSource.Cancel(true);
-            
+
+            if (!_resetTokenSource.IsCancellationRequested)
+            {
+                _resetTokenSource.Cancel();
+            }
+
             _pipeResponseBody.Writer.Complete();
 
             if (errorCode != H2ErrorCode.NoError)
@@ -180,7 +146,7 @@ namespace Echoes.H2
                     value += _exchange.Response.Header.RawHeader.ToString();
                 }
 
-                Console.WriteLine($"RST : {errorCode} - {_exchange.Authority} - cId : {Parent.ConnectionId} - sId: {StreamIdentifier}");
+                Console.WriteLine($"RST : {errorCode} - {_exchange.Authority} - cId : {Parent.Context.ConnectionId} - sId: {StreamIdentifier}");
 
                 _logger.Trace(StreamIdentifier, $"Receive RST : {errorCode} from server.\r\n{value}");
             }
@@ -198,13 +164,13 @@ namespace Echoes.H2
             Exclusive = priorityFrame.Exclusive; 
         }
         
-        public Task EnqueueRequestHeader(Exchange exchange)
+        public Task EnqueueRequestHeader(Exchange exchange, CancellationToken token)
         {
             var endStream = exchange.Request.Header.ContentLength == 0 ||
                             exchange.Request.Body == null ||
                             exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0;
 
-            var readyToBeSent = _headerEncoder.Encode(
+            var readyToBeSent = _parent.Context.HeaderEncoder.Encode(
                 new HeaderEncodingJob(exchange.Request.Header.RawHeader, StreamIdentifier, StreamDependency), 
                 _dataReceptionBuffer, endStream);
 
@@ -213,13 +179,13 @@ namespace Echoes.H2
             var writeHeaderTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority,
                 StreamDependency, readyToBeSent);
 
-            _upStreamChannel(ref writeHeaderTask);
+            _parent.Context.UpStreamChannel(ref writeHeaderTask);
 
             return writeHeaderTask.DoneTask
-                .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, _poolCancellationToken);
+                .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, token);
         }
 
-        public async Task ProcessRequestBody(Exchange exchange)
+        public async Task ProcessRequestBody(Exchange exchange, CancellationToken token)
         {
             var totalSent = 0;
             Stream requestBodyStream = exchange.Request.Body;
@@ -231,30 +197,29 @@ namespace Echoes.H2
 
                 while (true)
                 {
-                    var bookedSize = _globalSetting.Remote.MaxFrameSize - 9;
+                    var bookedSize = _parent.Context.Setting.Remote.MaxFrameSize - 9;
 
                     if (_disposed)
                         throw new TaskCanceledException("Stream cancellation request");
 
                     // We check wait for available Window Size from remote
                     
-                    bookedSize = await BookWindowSize(bookedSize, _overallToken)
+                    bookedSize = await BookWindowSize(bookedSize, token)
                         .ConfigureAwait(false);
                     
                     if (bookedSize == 0)
                         throw new TaskCanceledException("Stream cancellation request");
 
-
                     var dataFramePayloadLength = await requestBodyStream
                         .ReadAsync(_dataReceptionBuffer.Slice(9, bookedSize),
-                            _overallToken)
+                            token)
                         .ConfigureAwait(false);
 
                     if (dataFramePayloadLength < bookedSize)
                     {
                         // window size refund 
                         RemoteWindowSize.UpdateWindowSize(bookedSize - dataFramePayloadLength);
-                        OverallRemoteWindowSize.UpdateWindowSize(bookedSize - dataFramePayloadLength);
+                        Parent.Context.OverallWindowSizeHolder.UpdateWindowSize(bookedSize - dataFramePayloadLength);
                     }
 
                     var endStream = dataFramePayloadLength == 0;
@@ -271,7 +236,7 @@ namespace Echoes.H2
                         StreamPriority, StreamDependency,
                         _dataReceptionBuffer.Slice(0, 9 + dataFramePayloadLength));
 
-                    _upStreamChannel(ref writeTaskBody);
+                    _parent.Context.UpStreamChannel(ref writeTaskBody);
 
                     totalSent += dataFramePayloadLength;
                     _exchange.Metrics.TotalSent += dataFramePayloadLength;
@@ -311,17 +276,12 @@ namespace Echoes.H2
             ReceiveHeaderFragmentFromConnection(data, endHeader);
         }
 
-        private Memory<byte> _headerBuffer;
-        private int _totalHeaderReceived;
-        private readonly SemaphoreSlim _headerReceivedSemaphore = new SemaphoreSlim(0, 1);
-        private bool _complete;
-
         private void ReceiveHeaderFragmentFromConnection(ReadOnlyMemory<byte> buffer,
             bool lastHeaderFragment)
         {
             if (_headerBuffer.IsEmpty)
             {
-                _headerBuffer = new byte[_globalSetting.MaxHeaderSize]; 
+                _headerBuffer = new byte[_parent.Context.Setting.MaxHeaderSize]; 
             }
 
             buffer.CopyTo(_headerBuffer.Slice(_totalHeaderReceived));
@@ -333,8 +293,7 @@ namespace Echoes.H2
 
                 var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
 
-                _exchange.Response.Header =
-                    new ResponseHeader(charHeader, true, _parser);
+                _exchange.Response.Header = new ResponseHeader(charHeader, true, _parent.Context.Parser);
 
                 _logger.TraceResponse(this, _exchange);
 
@@ -346,9 +305,9 @@ namespace Echoes.H2
 
         private Memory<char> DecodeAndAllocate(ReadOnlySpan<byte> onWire)
         {
-            Span<char> tempBuffer = stackalloc char[_globalSetting.MaxHeaderSize];
+            Span<char> tempBuffer = stackalloc char[_parent.Context.Setting.MaxHeaderSize];
 
-            var decoded = _hPackDecoder.Decode(onWire, tempBuffer);
+            var decoded = _parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
             Memory<char> charBuffer = new char[decoded.Length];
 
             decoded.CopyTo(charBuffer.Span);
@@ -360,8 +319,8 @@ namespace Echoes.H2
         {
             try
             {
-                if (!_overallToken.IsCancellationRequested)
-                    await _headerReceivedSemaphore.WaitAsync(_overallToken);
+                if (!cancellationToken.IsCancellationRequested)
+                    await _headerReceivedSemaphore.WaitAsync(cancellationToken);
 
                 _logger.Trace(StreamIdentifier, "Acquire semaphore ");
             }
@@ -386,10 +345,9 @@ namespace Echoes.H2
 
                 _parent.NotifyDispose(this);
             }
-            
         }
 
-        public async Task ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream)
+        public async Task ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream, CancellationToken token)
         {
             if (_noBodyStream)
                 throw new InvalidOperationException("Receiving response body was not expected. " +
@@ -421,7 +379,7 @@ namespace Echoes.H2
             
             _exchange.Metrics.TotalReceived += buffer.Length;
 
-            var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, _poolCancellationToken);
+            var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);
 
             var shouldEnd = endStream || flushResult.IsCompleted || flushResult.IsCanceled;
 
@@ -478,7 +436,7 @@ namespace Echoes.H2
                 streamIdentifier, StreamPriority, 
                 StreamDependency, Memory<byte>.Empty, windowSizeUpdateValue);
 
-            _upStreamChannel(ref writeTask);
+            _parent.Context.UpStreamChannel(ref writeTask);
         }
 
         public override string ToString()
@@ -493,11 +451,6 @@ namespace Echoes.H2
             _logger.Trace(StreamIdentifier, ".... disposing");
 
             RemoteWindowSize?.Dispose();
-            OverallRemoteWindowSize?.Dispose();
-            
-            _currentStreamCancellationTokenSource.Cancel();
-
-            _currentStreamCancellationTokenSource.Dispose();
             _receptionBufferContainer?.Dispose();
             _headerReceivedSemaphore.Dispose();
 

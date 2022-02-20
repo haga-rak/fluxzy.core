@@ -38,6 +38,7 @@ namespace Echoes.H2.Encoder.Utils
                             && arrayOfValue[0].Slice(0, 4).Span.Equals("HTTP".AsSpan(), StringComparison.OrdinalIgnoreCase))
                         {
                             // Response header block 
+
                             yield return new HeaderField(Http11Constants.StatusVerb, arrayOfValue[1]);
                         }
                         else

@@ -7,51 +7,20 @@ using Echoes.H2.Encoder.Utils;
 
 namespace Echoes.H2
 {
-    internal class StreamProcessingBuilder
-    {
-        private readonly CancellationToken _localCancellationToken;
-        private readonly UpStreamChannel _upStreamChannel;
-        private readonly H2StreamSetting _streamSetting;
-        private readonly WindowSizeHolder _overallWindowSizeHolder;
-        private readonly ArrayPool<byte> _arrayPool;
-        private readonly Http11Parser _parser;
-        private readonly HeaderEncoder _headerEncoder;
-        private readonly HPackDecoder _hPackDecoder;
+    //internal class StreamProcessingBuilder
+    //{
+    //    public StreamProcessingBuilder()
+    //    {
+    //    }
 
-        public StreamProcessingBuilder(
-            Authority authority,
-            CancellationToken localCancellationToken, 
-            UpStreamChannel upStreamChannel,
-            H2StreamSetting streamSetting,
-            WindowSizeHolder overallWindowSizeHolder,
-            ArrayPool<byte> arrayPool,
-            Http11Parser parser)
-        {
-            _localCancellationToken = localCancellationToken;
-            _upStreamChannel = upStreamChannel;
-            _streamSetting = streamSetting;
-            _overallWindowSizeHolder = overallWindowSizeHolder;
-            _arrayPool = arrayPool;
-            _parser = parser;
-
-            var codecSetting = new CodecSetting();
-
-            _hPackDecoder = HPackDecoder.Create(codecSetting, authority);
-            var hPackEncoder = HPackEncoder.Create(codecSetting);
-            _headerEncoder = new HeaderEncoder(hPackEncoder, _hPackDecoder, _streamSetting);
-        }
-
-        public StreamManager Build(
-            int streamIdentifier, StreamPool parent,
-            Exchange exchange, H2Logger logger, CancellationToken callerCancellationToken)
-        {
-            return new StreamManager(
-                streamIdentifier, parent, exchange,
-                _upStreamChannel, _headerEncoder, _streamSetting,
-                _overallWindowSizeHolder, _parser, logger, _hPackDecoder,
-                _localCancellationToken, callerCancellationToken);
-        }
-    }
+    //    public StreamManager Build(
+    //        int streamIdentifier, StreamPool parent,
+    //        Exchange exchange)
+    //    {
+    //        return new StreamManager(
+    //            streamIdentifier, parent, exchange);
+    //    }
+    //}
     
 
 }

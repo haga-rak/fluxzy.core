@@ -8,16 +8,19 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Echoes.H2.Encoder;
 using Echoes.H2.Encoder.Utils;
 using Echoes.Helpers;
 
 namespace Echoes.H2
 {
+
     public class H2ConnectionPool : IHttpConnectionPool
     {
-        private static int _connectionIdCounter = 0; 
 
         private static readonly byte[] Preface = System.Text.Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
+
+        private static int _connectionIdCounter = 0;
 
         private readonly Stream _baseStream;
 
@@ -32,20 +35,21 @@ namespace Echoes.H2
 
         private Task _innerReadTask;
         private Task _innerWriteRun;
+
         private readonly TaskCompletionSource<object> _waitForSettingReception = new TaskCompletionSource<object>(); 
 
         private Channel<WriteTask> _writerChannel;
 
-        private SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1);
-        private readonly SemaphoreSlim _streamCreationLock = new SemaphoreSlim(1);
+        private SemaphoreSlim _writeSemaphore = new(1);
+        private readonly SemaphoreSlim _streamCreationLock = new(1);
 
-        private readonly StreamProcessingBuilder _streamProcessingBuilder;
         // Window size of the remote 
         private WindowSizeHolder _overallWindowSizeHolder;
 
         public int CurrentProcessedRequest = 0;
         public int FaultedRequest = 0;
         public int TotalRequest = 0;
+
         private readonly H2Logger _logger;
 
         public H2ConnectionPool(
@@ -65,12 +69,6 @@ namespace Echoes.H2
 
             _overallWindowSizeHolder = new WindowSizeHolder(_logger, _setting.OverallWindowSize,0);
 
-            _streamProcessingBuilder = new StreamProcessingBuilder(authority, _connectionCancellationTokenSource.Token,
-                UpStreamChannel,
-                _setting, _overallWindowSizeHolder, ArrayPool<byte>.Shared, new Http11Parser(setting.MaxHeaderSize,
-                    ArrayPoolMemoryProvider<char>.Default)
-            );
-
             _writerChannel =
                 Channel.CreateUnbounded<WriteTask>(new UnboundedChannelOptions()
                 {
@@ -78,7 +76,21 @@ namespace Echoes.H2
                     SingleWriter = false
                 });
 
-            _streamPool = new StreamPool(Id, authority, _logger, _streamProcessingBuilder, _setting);
+            var hPackEncoder = 
+                new HPackEncoder(new EncodingContext(ArrayPoolMemoryProvider<char>.Default));
+
+            var hPackDecoder =
+                new HPackDecoder(new DecodingContext(authority, ArrayPoolMemoryProvider<char>.Default));
+
+            var headerEncoder = new HeaderEncoder(hPackEncoder, hPackDecoder, setting);
+
+            _streamPool = new StreamPool(
+                new StreamContext(
+                Id, authority, setting, _logger,
+                headerEncoder, UpStreamChannel, 
+                _overallWindowSizeHolder, 
+                new Http11Parser(setting.Local.MaxHeaderLine,
+                    ArrayPoolMemoryProvider<char>.Default) ));
         }
 
         public int Id { get; }
@@ -424,7 +436,7 @@ namespace Echoes.H2
 
                         await activeStream.ReceiveBodyFragmentFromConnection(
                             frame.GetDataFrame().Buffer, 
-                            frame.Flags.HasFlag(HeaderFlags.EndStream));
+                            frame.Flags.HasFlag(HeaderFlags.EndStream), token);
 
                         continue;
                     }
@@ -508,20 +520,30 @@ namespace Echoes.H2
             }
         }
 
-        private async Task InternalSend(Exchange exchange, CancellationToken cancellationToken)
+        private async Task InternalSend(Exchange exchange, CancellationToken callerCancellationToken)
         {
             exchange.HttpVersion = "HTTP/2";
 
             StreamManager activeStream;
             Task waitForHeaderSentTask;
+            
+            using var streamCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                callerCancellationToken,
+                _connectionCancellationTokenSource.Token);
+
+            CancellationToken streamCancellationToken = streamCancellationTokenSource.Token;
 
             try
             {
                 activeStream =
-                    await _streamPool.CreateNewStreamProcessing(exchange, cancellationToken, _streamCreationLock)
+                    await _streamPool.CreateNewStreamProcessing(
+                            exchange, streamCancellationToken, _streamCreationLock,
+                            streamCancellationTokenSource)
                         .ConfigureAwait(false);
 
-                waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange);
+               // activeStream.OR
+
+                waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange, streamCancellationToken);
             }
             finally
             {
@@ -533,11 +555,11 @@ namespace Echoes.H2
 
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
-            await activeStream.ProcessRequestBody(exchange);
+            await activeStream.ProcessRequestBody(exchange, streamCancellationToken);
 
             exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 
-            await activeStream.ProcessResponse(cancellationToken)
+            await activeStream.ProcessResponse(streamCancellationToken)
                 .ConfigureAwait(false);
         }
 
