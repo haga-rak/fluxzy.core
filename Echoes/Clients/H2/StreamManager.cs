@@ -170,12 +170,19 @@ namespace Echoes.H2
             _currentStreamCancellationTokenSource.Cancel(true);
             
             _pipeResponseBody.Writer.Complete();
-                
-           // _responseBodyComplete.TrySetResult(null);
 
-            if (errorCode == H2ErrorCode.EnhanceYourCalm)
+            if (errorCode != H2ErrorCode.NoError)
             {
+                string value = _exchange.Request.Header.RawHeader.ToString();
 
+                if (_exchange.Response.Header != null)
+                {
+                    value += _exchange.Response.Header.RawHeader.ToString();
+                }
+
+                Console.WriteLine($"RST : {errorCode} - {_exchange.Authority} - cId : {Parent.ConnectionId} - sId: {StreamIdentifier}");
+
+                _logger.Trace(StreamIdentifier, $"Receive RST : {errorCode} from server.\r\n{value}");
             }
 
             _exchange.ExchangeCompletionSource
@@ -457,7 +464,7 @@ namespace Echoes.H2
 
             totalSendOnStream += dataSize;
 
-            if (totalSendOnStream > 10)
+            if (totalSendOnStream > 1024 * 16)
             {
                 SendWindowUpdate(totalSendOnStream, StreamIdentifier);
                 totalSendOnStream = 0; 

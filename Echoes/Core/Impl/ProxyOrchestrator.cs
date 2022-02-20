@@ -108,12 +108,7 @@ namespace Echoes.Core
                             if (!exchange.Request.Header.IsWebSocketRequest)
                             {
                                 // Request processed by IHttpConnectionPool returns before complete response body
-
-                                if (exchange.Authority.HostName == "docs.microsoft.com")
-                                {
-
-                                }
-
+                                
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     exchange.Response.Body != null &&
                                     exchange.HttpVersion == "HTTP/2")

@@ -160,13 +160,6 @@ namespace Echoes.H2.Tests
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js");
 
-            //await using var randomStream = new RandomDataStream(48, 23632, true);
-            //await using var hashedStream = new HashedStream(randomStream);
-
-            //requestMessage.Content = new StreamContent(hashedStream);
-
-            // requestMessage.Headers.Add("X-Test-Header-256", "That value");
-
             using var response = await httpClient.SendAsync(requestMessage);
 
             var responesString = await response.Content.ReadAsStringAsync();

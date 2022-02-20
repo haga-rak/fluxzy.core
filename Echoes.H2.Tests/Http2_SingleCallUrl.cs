@@ -97,6 +97,23 @@ namespace Echoes.H2.Tests
         }
 
         [Fact]
+        public async Task Get_Error_Case_Nvidia()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://services.gfe.nvidia.com/GFE/v1.0/dao/x64"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+            var responseData = await response.Content.ReadAsStringAsync();
+
+            Assert.True(response.IsSuccessStatusCode);
+        }
+
+        [Fact]
         public async Task Get_Error_Case_Ws_Analytics_Valiz()
         {
             using var handler = new EchoesHttp2Handler();
@@ -105,6 +122,23 @@ namespace Echoes.H2.Tests
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://analytics.valiuz.com/"
+            );
+
+            var response = await httpClient.SendAsync(requestMessage);
+            var responseData = await response.Content.ReadAsStringAsync();
+
+            Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Error_Case_Ws_Ad_recover()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://feedback.adrecover.com/ARWebService/checkCID"
             );
 
             var response = await httpClient.SendAsync(requestMessage);

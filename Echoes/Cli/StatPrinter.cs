@@ -29,6 +29,7 @@ namespace Echoes.Cli
 
         public async Task OnNewExchange(Exchange exchange)
         {
+            return; 
             await _exchangeBlock.SendAsync(exchange).ConfigureAwait(false);
         }
 
