@@ -17,7 +17,8 @@ namespace Echoes.H11
         private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _connectionBuilder;
         private readonly ClientSetting _clientSetting;
-        private SemaphoreSlim _semaphoreSlim; 
+        private SemaphoreSlim _semaphoreSlim;
+        private bool _complete;
 
         public TunnelOnlyConnectionPool(
             Authority authority, 
@@ -34,11 +35,16 @@ namespace Echoes.H11
 
         public Authority Authority { get; }
 
-        public bool Complete => false;
+        public bool Complete => _complete;
 
         public Task Init()
         {
             return Task.CompletedTask; 
+        }
+
+        public Task<bool> CheckAlive()
+        {
+            return Task.FromResult(!Complete); 
         }
 
         public async ValueTask Send(
@@ -49,17 +55,17 @@ namespace Echoes.H11
             {
                 await _semaphoreSlim.WaitAsync(cancellationToken);
 
-                using (var ex = new TunneledConnectionProcess(
-                           Authority, _timingProvider,
-                           _connectionBuilder, 
-                           _clientSetting))
-                {
-                    await ex.Process(exchange, localLink, CancellationToken.None); 
-                }
+                await using var ex = new TunneledConnectionProcess(
+                    Authority, _timingProvider,
+                    _connectionBuilder, 
+                    _clientSetting);
+
+                await ex.Process(exchange, localLink, CancellationToken.None);
             }
             finally
             {
-                _semaphoreSlim.Release(); 
+                _semaphoreSlim.Release();
+                _complete = true; 
             }
         }
 

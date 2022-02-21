@@ -6,12 +6,12 @@ namespace Echoes.Core.SystemProxySetup.Linux
     {
         public void ApplySetting(ProxySetting value)
         {
-            throw new NotImplementedException();
+            throw new PlatformNotSupportedException();
         }
 
         public ProxySetting ReadSetting()
         {
-            throw new NotImplementedException();
+            throw new PlatformNotSupportedException();
         }
     }
 }

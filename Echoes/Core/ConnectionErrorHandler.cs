@@ -33,6 +33,9 @@ namespace Echoes.Core
             {
                 var message = $"Echoes close connection due to server connection errors.\r\n\r\n";
 
+                if (DebugContext.EnableDumpStackTraceOn502 && exchange.Request?.Header != null)
+                    message += exchange.Request.Header.RawHeader.ToString();
+
                 if (DebugContext.EnableDumpStackTraceOn502)
                     message += ex.ToString();
 

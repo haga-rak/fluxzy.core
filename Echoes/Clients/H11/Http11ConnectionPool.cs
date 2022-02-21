@@ -1,15 +1,12 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.H2;
 using Echoes.H2.Encoder.Utils;
 
 namespace Echoes.H11
@@ -23,7 +20,9 @@ namespace Echoes.H11
         private readonly ClientSetting _clientSetting;
         private readonly Http11Parser _parser;
         private readonly SemaphoreSlim _semaphoreSlim;
-        private readonly Queue<Http11ProcessingState> _processingStates = new Queue<Http11ProcessingState>(); 
+        private readonly Queue<Http11ProcessingState> _processingStates = new Queue<Http11ProcessingState>();
+
+        private DateTime _lastActivity = ITimingProvider.Default.Instant(); 
 
         public Http11ConnectionPool(
             Authority authority, 
@@ -45,6 +44,8 @@ namespace Echoes.H11
             {
                 _processingStates.Enqueue(new Http11ProcessingState(existingConnection, _timingProvider));
             }
+
+            _lastActivity = ITimingProvider.Default.Instant();
         }
 
         public Authority Authority { get; }
@@ -55,11 +56,18 @@ namespace Echoes.H11
         {
             return Task.CompletedTask; 
         }
-        
+
+        public Task<bool> CheckAlive()
+        {
+            return Task.FromResult(true); 
+        }
+
         private readonly H1Logger _logger;
 
         public async ValueTask Send(Exchange exchange, ILocalLink _, CancellationToken cancellationToken)
         {
+            _lastActivity = ITimingProvider.Default.Instant();
+
             exchange.HttpVersion = "HTTP/1.1";
 
             try
@@ -115,6 +123,7 @@ namespace Echoes.H11
                     var res = exchange.Complete
                         .ContinueWith(completeTask =>
                         {
+
                             if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any())
                             {
                                 _logger.Trace(exchange.Id, () => $"Complete on error {completeTask.Exception.GetType()} : {completeTask.Exception.Message}");
@@ -164,6 +173,7 @@ namespace Echoes.H11
             finally
             {
                 _semaphoreSlim.Release(); 
+                _lastActivity = ITimingProvider.Default.Instant();
             }
 
 

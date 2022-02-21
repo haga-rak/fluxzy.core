@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.DotNetBridge;
-using Echoes.H11;
-using Echoes.H2;
 using Echoes.H2.Encoder.Utils;
 
 namespace Echoes.Clients.DotNetBridge

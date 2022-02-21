@@ -12,7 +12,7 @@ namespace Echoes.H2
     {
         private readonly IDictionary<int, StreamManager> _runningStreams = new Dictionary<int, StreamManager>();
 
-        private int _nextStreamIdentifier = -1;
+        private int _lastStreamIdentifier = -1;
 
         private readonly SemaphoreSlim _maxConcurrentStreamBarrier;
         private bool _onError;
@@ -35,6 +35,9 @@ namespace Echoes.H2
             return _runningStreams.TryGetValue(streamIdentifier, out result); 
         }
 
+        // WARNING : to be improved, may be extreme volatile 
+        public int ActiveStreamCount => _runningStreams.Count; 
+
         private StreamManager CreateActiveStream(Exchange exchange,
             CancellationToken callerCancellationToken,
             SemaphoreSlim ongoingStreamInit, CancellationTokenSource resetTokenSource)
@@ -44,7 +47,7 @@ namespace Echoes.H2
 
             ongoingStreamInit.Wait(callerCancellationToken);
 
-            var streamId = Interlocked.Add(ref _nextStreamIdentifier, 2);
+            var streamId = Interlocked.Add(ref _lastStreamIdentifier, 2);
 
             var activeStream = new StreamManager(streamId, this, exchange, resetTokenSource); 
             
@@ -85,6 +88,8 @@ namespace Echoes.H2
         }
 
         internal Exception GoAwayException { get; private set; }
+
+        internal int LastStreamIdentifier => _lastStreamIdentifier; 
 
         public void OnGoAway(Exception ex)
         {

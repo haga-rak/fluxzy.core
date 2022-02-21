@@ -237,10 +237,8 @@ namespace Echoes.Core
                                     // Enhance your calm
                                 }
                             }
-                            else
-                            {
 
-                            }
+                            // Handle websocket request here and produce result 
                         }
 
                         if (shouldClose)

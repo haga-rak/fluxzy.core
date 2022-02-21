@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using Echoes.H2;
 using Echoes.H2.Encoder;
 using Echoes.H2.Encoder.Utils;
 
@@ -27,7 +26,7 @@ namespace Echoes.DotNetBridge
             return (HttpStatusCode)status;
         }
 
-        public Exchange Exchange { get; private set; }
+        public Exchange Exchange { get; }
 
         public EchoesHttpResponseMessage(Exchange exchange)
             : base(ReadStatusCode(exchange.Response.Header.HeaderFields, out _))

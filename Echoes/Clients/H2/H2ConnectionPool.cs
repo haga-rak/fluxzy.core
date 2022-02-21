@@ -53,6 +53,11 @@ namespace Echoes.H2
 
         private readonly H2Logger _logger;
 
+        private DateTime _lastActivity = ITimingProvider.Default.Instant();
+
+        private Exception _loopEndException = null;
+        private bool _goAwayInitByRemote;
+
         public H2ConnectionPool(
             Stream baseStream,
             H2StreamSetting setting,
@@ -103,7 +108,7 @@ namespace Echoes.H2
             _writerChannel.Writer.TryWrite(data);
         }
 
-        private void ReplyPing(long opaqueData)
+        private void EmitPing(long opaqueData)
         {
             var pingFrame = new PingFrame(opaqueData, HeaderFlags.Ack);
             var buffer = new byte[9 + pingFrame.BodyLength];
@@ -111,6 +116,17 @@ namespace Echoes.H2
             pingFrame.Write(buffer);
 
             var writeTask = new WriteTask(H2FrameType.Ping, 0, 0, 0, buffer, 0);
+            UpStreamChannel(ref writeTask); 
+        }
+
+        private void EmitGoAway(H2ErrorCode errorCode)
+        {
+            var goAwayFrame = new GoAwayFrame(_streamPool.LastStreamIdentifier,errorCode);
+            var buffer = new byte[9 + goAwayFrame.BodyLength];
+
+            goAwayFrame.Write(buffer);
+
+            var writeTask = new WriteTask(H2FrameType.Goaway, 0, 0, 0, buffer, 0);
             UpStreamChannel(ref writeTask); 
         }
 
@@ -226,27 +242,54 @@ namespace Echoes.H2
                     _loopEndException);
             }
         }
-        
+
+        public Task<bool> CheckAlive()
+        {
+            var instant = ITimingProvider.Default.Instant();
+
+            if (_streamPool.ActiveStreamCount == 0 && 
+                (instant - _lastActivity) > TimeSpan.FromSeconds(_setting.MaxIdleSeconds))
+            {
+                if (!_goAwayInitByRemote)
+                {
+                    Console.WriteLine($"Cleanup H2 {Authority}");
+
+                    // 
+                    EmitGoAway(H2ErrorCode.NoError); 
+                    OnLoopEnd(null, true);
+
+                    _logger.Trace(0, () => $"IDLE timeout. Connection closed.");
+                }
+
+                return Task.FromResult(false); 
+            }
+
+            return Task.FromResult(true); 
+        }
+
         private void OnGoAway(GoAwayFrame frame)
         {
+            _goAwayInitByRemote = true; 
+
             if (frame.ErrorCode != H2ErrorCode.NoError)
             {
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
 
         }
-
-        private Exception _loopEndException = null;
-
+        
         private void OnLoopEnd(Exception ex, bool releaseChannelItems)
         {
+            if (_complete)
+                return; 
+
             _complete = true; 
             // End the connection. This operation is idempotent. 
 
             _logger.Trace(0, "Cleanup start");
 
-            _onConnectionFaulted(this);
-
+            if (_onConnectionFaulted != null)
+                _onConnectionFaulted(this);
 
             if (ex != null)
             {
@@ -295,6 +338,8 @@ namespace Echoes.H2
                         foreach (var element
                                  in tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate))
                         {
+                            _lastActivity = ITimingProvider.Default.Instant();
+
                             new WindowUpdateFrame(element.WindowUpdateSize, element.StreamIdentifier)
                                 .Write(windowSizeBuffer);
 
@@ -305,6 +350,8 @@ namespace Echoes.H2
 
                             await _baseStream.WriteAsync(windowSizeBuffer, token).ConfigureAwait(false);
                             await _baseStream.FlushAsync(token);
+
+                            _lastActivity = ITimingProvider.Default.Instant();
                         }
 
                         // TODO improve the priority rule 
@@ -326,7 +373,9 @@ namespace Echoes.H2
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 
                                 await _baseStream.FlushAsync(token);
-                                
+
+                                _lastActivity = ITimingProvider.Default.Instant();
+
                                 writeTask.OnComplete(null);
                             }
                             catch (Exception ex) when (ex is SocketException || ex is IOException)
@@ -385,7 +434,9 @@ namespace Echoes.H2
                         token).ConfigureAwait(false);
 
                     if (frame.IsEmpty)
-                        break; 
+                        break;
+
+                    _lastActivity = ITimingProvider.Default.Instant();
 
                     _logger.IncomingFrame(ref frame);
                     
@@ -510,7 +561,7 @@ namespace Echoes.H2
 
                     if (frame.BodyType == H2FrameType.Ping)
                     {
-                        ReplyPing(frame.GetPingFrame().OpaqueData);
+                        EmitPing(frame.GetPingFrame().OpaqueData);
                         continue;
                     }
 

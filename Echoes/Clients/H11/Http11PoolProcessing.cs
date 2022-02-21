@@ -81,6 +81,8 @@ namespace Echoes.H11
 
             _logger.Trace(exchange.Id, () => $"Body sent");
 
+            // Waiting for header block 
+
             var headerBlockDetectResult = await
                 DetectHeaderBlock(exchange.Connection.ReadStream, headerBuffer,
                     () => exchange.Metrics.ResponseHeaderStart = _timingProvider.Instant(),

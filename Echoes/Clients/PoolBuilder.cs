@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Echoes
     /// <summary>
     /// Main entry of remote connection
     /// </summary>
-    public class PoolBuilder
+    public class PoolBuilder : IDisposable
     {
         private static readonly List<SslApplicationProtocol> AllProtocols = new()
         {
@@ -32,6 +33,8 @@ namespace Echoes
             new Dictionary<Authority, IHttpConnectionPool>();
 
         private readonly ConcurrentDictionary<Authority, SemaphoreSlim> _lock = new();
+        private readonly CancellationTokenSource _poolCheckHaltSource = new(); 
+        
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
@@ -41,6 +44,32 @@ namespace Echoes
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
             _http11Parser = http11Parser;
+
+            CheckPoolStatus(_poolCheckHaltSource.Token); 
+        }
+
+        private async void CheckPoolStatus(CancellationToken token)
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    // TODO put delay into config files or settings
+                    
+                    await Task.Delay(5000, token);
+
+                    List<IHttpConnectionPool> activePools;
+
+                    lock (_connectionPools)
+                        activePools = _connectionPools.Values.ToList();
+
+                    await Task.WhenAll(activePools.Select(s => s.CheckAlive()));
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Disposed was called 
+            }
         }
 
         /// <summary>
@@ -166,6 +195,11 @@ namespace Echoes
             {
                 _connectionPools.Remove(h2ConnectionPool.Authority);
             }
+        }
+
+        public void Dispose()
+        {
+            _poolCheckHaltSource.Cancel();
         }
     }
 }

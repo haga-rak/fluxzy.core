@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Echoes
 {
     /// <summary>
-    /// Represents a connection pool to the same authority.
+    /// Represents a connection pool to the same authority, using the same .
     /// </summary>
     public interface IHttpConnectionPool : IAsyncDisposable, IDisposable
     {
@@ -16,6 +16,8 @@ namespace Echoes
         bool Complete { get; }
         
         Task Init();
+
+        Task<bool> CheckAlive();
         
         ValueTask Send(Exchange exchange, ILocalLink localLink, CancellationToken cancellationToken = default);
     }

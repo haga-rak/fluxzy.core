@@ -10,7 +10,12 @@ namespace Echoes.H2
         {
             LastStreamId = BinaryPrimitives.ReadInt32BigEndian(bodyBytes);
             ErrorCode = (H2ErrorCode) BinaryPrimitives.ReadInt32BigEndian(bodyBytes.Slice(4));
-            BodyLength = bodyBytes.Length;
+        }
+
+        public GoAwayFrame(int lastStreamId, H2ErrorCode errorCode) : this()
+        {
+            LastStreamId = lastStreamId;
+            ErrorCode = errorCode;
         }
 
         public int LastStreamId { get; }
@@ -29,7 +34,7 @@ namespace Echoes.H2
             return 9 + 8;
         }
 
-        public int BodyLength { get;  }
+        public int BodyLength => 8;
 
 
     }
