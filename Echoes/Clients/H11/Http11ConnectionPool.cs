@@ -84,6 +84,8 @@ namespace Echoes.H11
 
                         exchange.Connection = state.Connection;
                         _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
+
+                        break;
                     }
                 }
                 

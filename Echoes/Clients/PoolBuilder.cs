@@ -138,7 +138,8 @@ namespace Echoes
             {
                 if (result != null)
                     await result.Init();
-                
+
+                exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
                 semaphore.Release();
             }

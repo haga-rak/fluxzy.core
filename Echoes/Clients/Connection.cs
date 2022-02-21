@@ -38,6 +38,10 @@ namespace Echoes
 
         public Authority Authority { get; set; }
 
+        public DateTime DnsSolveStart { get; set; }
+
+        public DateTime DnsSolveEnd { get; set; }
+
         public DateTime TcpConnectionOpening { get; set; }
 
         public DateTime TcpConnectionOpened { get; set; }

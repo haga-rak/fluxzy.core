@@ -297,6 +297,16 @@ namespace Echoes.H2
 
                 _logger.TraceResponse(this, _exchange);
 
+                if (DebugContext.InsertEchoesMetricsOnResponseHeader)
+                {
+                    var headerName = "echoes-h2-debug";
+                    var headerValue = $"connectionId = {Parent.Context.ConnectionId} " +
+                                      $"- streamId = {StreamIdentifier} - ";
+
+                    _exchange.Response.Header.AddExtraHeaderFieldToLocalConnection(
+                        new HeaderField(headerName, headerValue));
+                }
+
                 _logger.Trace(StreamIdentifier, "Releasing semaphore");
 
                 _headerReceivedSemaphore.Release();
@@ -313,22 +323,7 @@ namespace Echoes.H2
             decoded.CopyTo(charBuffer.Span);
             var length = decoded.Length;
 
-            if (DebugContext.InsertH2ContextOnResponseHeader && decoded.Length > 2)
-            {
-                var tTfb = (int)(_exchange.Metrics.ResponseHeaderEnd - _exchange.Metrics.RequestHeaderSent).TotalMilliseconds;
-                var delaySending = (int)(_exchange.Metrics.RequestHeaderSending - _exchange.Metrics.ReceivedFromProxy).TotalMilliseconds;
-
-                var stringInfo = $"echoes-h2-debug : connectionId = {Parent.Context.ConnectionId} " +
-                                 $"- streamId = {StreamIdentifier} - " +
-                                 $"TTFB = {tTfb} - " +
-                                 $"reaction = { delaySending }\r\n\r\n";
-
-                stringInfo.AsSpan().CopyTo(charBuffer.Span.Slice(decoded.Length - 2));
-
-                length = length + stringInfo.Length - 2;
-
-                var sort = charBuffer.Slice(0, length).ToString();
-            }
+          
 
             return charBuffer.Slice(0, length);
         }

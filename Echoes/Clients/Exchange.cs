@@ -2,9 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.H2.Encoder;
 using Echoes.H2.Encoder.Utils;
 using Echoes.IO;
 
@@ -84,7 +87,7 @@ namespace Echoes
         internal Task<bool> Complete => _exchangeCompletionSource.Task; 
 
         /// <summary>
-        /// The remote authority for this request 
+        /// The remote authority  
         /// </summary>
         public Authority Authority { get;  }
 
@@ -106,7 +109,7 @@ namespace Echoes
         /// <summary>
         /// Represents timing and size metrics related to this exchange
         /// </summary>
-        public ExchangeMetrics Metrics { get; private set; } = new ExchangeMetrics();
+        public ExchangeMetrics Metrics { get; } = new();
 
         /// <summary>
         /// Connection used by this exchange. The connection object is the connection open between
@@ -115,12 +118,51 @@ namespace Echoes
         public Connection Connection { get; set; }
         
         /// <summary>
-        /// Contains a list of errors occured in this proxy 
+        /// Contains a list of errors 
         /// </summary>
         public List<Error> Errors { get; private set; } = new List<Error>(); 
         
 
         internal TaskCompletionSource<bool> ExchangeCompletionSource => _exchangeCompletionSource;
+
+        public HeaderField GetMetricsSummaryAsHeader()
+        {
+            NameValueCollection collection = new NameValueCollection();
+
+            if (Metrics.CreateCertEnd != default)
+                collection.Add("create-cert",
+                    ((int)
+                        (Metrics.CreateCertEnd - Metrics.CreateCertStart).TotalMilliseconds)
+                    .ToString());
+
+            if (Connection != null && Connection.SslNegotiationEnd != default)
+                collection.Add("SSL", 
+                    ((int)
+                        (Connection.SslNegotiationEnd - Connection.SslNegotiationStart).TotalMilliseconds)
+                    .ToString());
+
+            if (Metrics.RetrievingPool != default)
+                collection.Add("time-to-get-a-pool", 
+                    ((int)
+                        (Metrics.RetrievingPool - Metrics.ReceivedFromProxy).TotalMilliseconds)
+                    .ToString());
+
+            if (Metrics.RequestHeaderSent != default)
+                collection.Add("Time-to-send", 
+                    ((int)
+                        (Metrics.RequestHeaderSent - Metrics.ReceivedFromProxy).TotalMilliseconds)
+                    .ToString());
+
+            if (Metrics.ResponseHeaderEnd != default)
+                collection.Add("TTFB", 
+                    ((int)
+                        (Metrics.ResponseHeaderEnd - Metrics.RequestHeaderSent).TotalMilliseconds)
+                    .ToString());
+
+            return new HeaderField(
+                "echoes-metrics",
+                $" {string.Join(", ", collection.AllKeys.Select(s => $"({s})={collection[s]}"))}");
+        }
     }
 
 
@@ -139,6 +181,7 @@ namespace Echoes
         {
             return Header.ToString();
         }
+        
     }
 
     public class Response
@@ -148,44 +191,6 @@ namespace Echoes
         public Stream Body { get; set;  }
     }
 
-
-    public class ExchangeMetrics
-    {
-        public DateTime ReceivedFromProxy { get; set; }
-
-        public DateTime DnsSolveStart { get; set; }
-
-        public DateTime DnsSolveEnd { get; set; }
-
-        public DateTime ConnectStart { get; set; }
-
-        public DateTime ConnectEnd { get; set; }
-
-        public DateTime SslNegotiationStart { get; set; }
-
-        public DateTime SslNegotiationEnd { get; set; }
-        
-
-        public DateTime RequestHeaderSending { get; set; }
-
-        public DateTime RequestHeaderSent { get; set; }
-
-        public DateTime RequestBodySent { get; set; }
-
-        public DateTime ResponseHeaderStart { get; set; }
-
-        public DateTime ResponseHeaderEnd { get; set; }
-
-        public DateTime ResponseBodyStart { get; set; }
-        
-        public DateTime ResponseBodyEnd { get; set; }
-
-        public DateTime RemoteClosed { get; set; }
-
-        public long TotalSent { get; set; }
-
-        public long TotalReceived { get; set; }
-    }
 
     public class Error
     {

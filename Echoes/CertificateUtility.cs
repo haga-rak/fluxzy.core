@@ -19,7 +19,7 @@ namespace Echoes
         }
 
         /// <summary>
-        /// Write the default certificate on stream.
+        /// Write the default certificate on P12 fORMAT to stream.
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>

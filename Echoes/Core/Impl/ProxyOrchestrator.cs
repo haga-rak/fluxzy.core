@@ -78,7 +78,16 @@ namespace Echoes.Core
                         if (exchange != null &&
                             !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
+
+
+                            // Check whether the local browser ask for a connection close 
+
+                            shouldClose = exchange.Request
+                                .Header["Connection".AsMemory()].Any(c =>
+                                    c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+
                             IHttpConnectionPool connectionPool = null;
+
                             try
                             {
                                 // opening the connection to server 
@@ -115,26 +124,24 @@ namespace Echoes.Core
                                 {
                                     // In HTTP2, server is allowed to send a response body
                                     // without specifying a content-length or transfer-encoding chunked.
-                                    // We force transfer-encoding chunked to allowed HTTP/1.1 client to know
-                                    // the end of the content body
+                                    // In case content-length is not present, we force transfer-encoding chunked 
+                                    // to allowed HTTP/1.1 client to know the end of the content body
 
                                     exchange.Response.Header.ForceTransferChunked();
                                 }
 
                                 // Writing the received header to downstream
-                                var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true);
-                                
-                                // headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
 
-                                shouldClose = exchange.Request
-                                    .Header["Connection".AsMemory()].Any(c =>
-                                        c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
-
-                                if (shouldClose)
+                                if (DebugContext.InsertEchoesMetricsOnResponseHeader)
                                 {
-
+                                    exchange.Response.Header.AddExtraHeaderFieldToLocalConnection(
+                                        exchange.GetMetricsSummaryAsHeader());
                                 }
 
+                                var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true, true);
+
+                                // headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
+                                
                                 if (_exchangeListener != null)
                                 {
                                     await _exchangeListener(exchange);
@@ -142,18 +149,11 @@ namespace Echoes.Core
 
                                 try
                                 {
-                                    // Sending header response to local browser
+                                    // Start sending response to browser
 
                                     await localConnection.WriteStream.WriteAsync(
                                         new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
                                         token);
-
-
-
-                                    if (exchange.Authority.HostName == "docs.microsoft.com")
-                                    {
-
-                                    }
                                 }
                                 catch (TaskCanceledException)
                                 {

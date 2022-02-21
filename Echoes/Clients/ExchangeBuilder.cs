@@ -130,6 +130,9 @@ namespace Echoes
 
                 // THIS LINE WILL THROWS IF CLIENT OPEN A TUNNEL FOR A WEBSOCKET PLAIN REQUEST
 
+                var certStart = ITimingProvider.Default.Instant();
+                var certEnd = ITimingProvider.Default.Instant();
+
                 var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
                     plainStream, authority.HostName, token);
 
@@ -139,7 +142,14 @@ namespace Echoes
                         authenticateResult.OutStream, new Exchange(
                     authority, plainHeaderChars, null,
                     AcceptTunnelResponseString.AsMemory(), 
-                    null, false, _http11Parser, "HTTP/1.1", receivedFromProxy));
+                    null, false, _http11Parser, "HTTP/1.1", receivedFromProxy)
+                        {
+                            Metrics =
+                            {
+                                CreateCertStart = certStart,
+                                CreateCertEnd = certEnd
+                            }
+                        });
             }
 
             // Plain request 

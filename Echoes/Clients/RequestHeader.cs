@@ -102,8 +102,17 @@ namespace Echoes
         public ReadOnlyMemory<char> RawHeader { get; }
 
         protected List<HeaderField> _rawHeaderFields;
+        protected List<HeaderField> _extraHeaders;
 
         protected ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields ;
+
+        internal void AddExtraHeaderFieldToLocalConnection(HeaderField headerField)
+        {
+            if (_extraHeaders == null)
+                _extraHeaders = new List<HeaderField>();
+
+            _extraHeaders.Add(headerField);
+        }
 
         protected Header(
             ReadOnlyMemory<char> rawHeader, 
@@ -152,7 +161,8 @@ namespace Echoes
             return RawHeader.ToString();
         }
 
-        public int WriteHttp11(in Span<byte> data, bool skipNonForwardableHeader)
+        public int WriteHttp11(in Span<byte> data, 
+            bool skipNonForwardableHeader, bool writeExtraHeaderField = false)
         {
             var totalLength = 0;
            
@@ -171,6 +181,17 @@ namespace Echoes
                 totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
                 totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
                 totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+            }
+
+            if (writeExtraHeaderField && _extraHeaders != null)
+            {
+                foreach(var header in _extraHeaders)
+                {
+                    totalLength += Encoding.ASCII.GetBytes(header.Name.Span, data.Slice(totalLength));
+                    totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
+                    totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
+                    totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+                }
             }
 
             totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));

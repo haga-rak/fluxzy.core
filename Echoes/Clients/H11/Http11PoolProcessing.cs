@@ -104,13 +104,20 @@ namespace Echoes.H11
             
             if (!exchange.Response.Header.HasResponseBody())
             {
+                // We close the connection because
+                // many web server still sends a content-body with a 304 response 
+                // https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html 10.3.5
+
+                shouldCloseConnection = true; 
+
                 exchange.Metrics.ResponseBodyStart = exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
                 exchange.Response.Body = StreamUtils.EmptyStream;
-                exchange.ExchangeCompletionSource.TrySetResult(shouldCloseConnection);
+
+                exchange.ExchangeCompletionSource.TrySetResult(true);
 
                 _logger.Trace(exchange.Id, () => $"No response body");
 
-                return shouldCloseConnection;
+                return true;
             }
 
             Stream bodyStream = exchange.Connection.ReadStream;

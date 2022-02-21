@@ -22,9 +22,9 @@ namespace Echoes
                 .GetEnvironmentVariable("EnableDumpStackTraceOn502"));
 
 
-        public static bool InsertH2ContextOnResponseHeader { get; }
+        public static bool InsertEchoesMetricsOnResponseHeader { get; }
             = !string.IsNullOrWhiteSpace(Environment
-                .GetEnvironmentVariable("InsertH2ContextOnResponseHeader"));
+                .GetEnvironmentVariable("InsertEchoesMetricsOnResponseHeader"));
 
 
         public static string SessionDate { get; }  = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss"); 
