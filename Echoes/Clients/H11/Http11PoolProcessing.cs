@@ -48,6 +48,8 @@ namespace Echoes.H11
         {
             // Here is the opportunity to change header 
             var bufferRaw = new byte[_clientSetting.MaxHeaderSize];
+
+
             Memory<byte> headerBuffer = bufferRaw;
 
             exchange.Connection.AddNewRequestProcessed();

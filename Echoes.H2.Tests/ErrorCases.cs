@@ -68,7 +68,7 @@ namespace Echoes.Tests
         [Fact]
         public async Task Connection_RefusedTcplevel()
         {
-            using var proxy = new AddHocProxy(PortProvider.Next() + 1 );
+            using var proxy = new AddHocProxy(PortProvider.Next() - 1 );
 
             using var clientHandler = new HttpClientHandler
             {
@@ -87,6 +87,5 @@ namespace Echoes.Tests
             Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
             Assert.True(!string.IsNullOrWhiteSpace(responseBody));
         }
-        
     }
 }

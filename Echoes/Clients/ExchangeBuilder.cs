@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -88,15 +89,13 @@ namespace Echoes
 
         public async Task<ExchangeBuildingResult> InitClientConnection(
             Stream stream,
-            ProxyStartupSetting startupSetting, 
+            byte [] buffer,
             CancellationToken token)
         {
             var plainStream = stream;
-            var buffer = new byte[startupSetting.MaxHeaderLength];
 
-            var blockReadResult =  await
+            var blockReadResult = await
                 Http11PoolProcessing.DetectHeaderBlock(plainStream, buffer, () => { }, () => { }, false, token);
-
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
 

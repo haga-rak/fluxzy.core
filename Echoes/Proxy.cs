@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -102,8 +103,19 @@ namespace Echoes
         {
             using (client)
             {
-                await _proxyOrchestrator.Operate(client,
-                    _proxyHaltTokenSource.Token).ConfigureAwait(false);
+                byte[] buffer = null; 
+
+                try
+                {
+                    buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
+
+                    await _proxyOrchestrator.Operate(client, buffer,
+                        _proxyHaltTokenSource.Token).ConfigureAwait(false);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                }
              
             }
         }

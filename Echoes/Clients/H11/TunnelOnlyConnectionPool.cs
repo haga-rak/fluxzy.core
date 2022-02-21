@@ -1,6 +1,7 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
@@ -108,10 +109,19 @@ namespace Echoes.H11
 
             if (exchange.Request.Header.IsWebSocketRequest)
             {
-                var buffer = new byte[exchange.Request.Header.HeaderLength];
-                var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
+                var buffer = ArrayPool<byte>.Shared.Rent(exchange.Request.Header.HeaderLength);
 
-                await exchange.Connection.WriteStream.WriteAsync(buffer, 0, headerLength, cancellationToken);
+                try
+                {
+                    var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
+
+                    await exchange.Connection.WriteStream.WriteAsync(buffer, 0, headerLength, cancellationToken);
+
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                }
             }
 
             try

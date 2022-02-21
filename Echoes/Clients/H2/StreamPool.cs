@@ -15,8 +15,7 @@ namespace Echoes.H2
 
         private readonly SemaphoreSlim _maxConcurrentStreamBarrier;
         private bool _onError;
-
-        private readonly FifoLock _fifoLock = new();
+        
         private int _overallWindowSize;
 
         public StreamPool(
@@ -111,9 +110,9 @@ namespace Echoes.H2
             _maxConcurrentStreamBarrier.Dispose();
         }
 
-        public async ValueTask DisposeAsync()
+        public  ValueTask DisposeAsync()
         {
-            await _fifoLock.DisposeAsync().ConfigureAwait(false);
+            return default;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -39,7 +40,7 @@ namespace Echoes.Core
             _dispatcher = new ProxyMessageDispatcher(exchangeListener);
         }
 
-        public async Task Operate(TcpClient client, CancellationToken token)
+        public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)
         {
             try
             {
@@ -50,7 +51,7 @@ namespace Echoes.Core
 
                     try
                     {
-                        localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), _startupSetting, token);
+                        localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), buffer, token);
                     }
                     catch (Exception ex)
                     {
@@ -66,7 +67,6 @@ namespace Echoes.Core
                     Exchange exchange =
                         localConnection.ProvisionalExchange;
 
-                    byte[] buffer = new byte[1024 * 32];
 
                     var shouldClose = false;
 
