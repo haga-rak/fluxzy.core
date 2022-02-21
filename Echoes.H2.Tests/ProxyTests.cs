@@ -293,6 +293,59 @@ namespace Echoes.H2.Tests
         }
 
         [Fact]
+        public async Task Test_GetThrough_H1_Plain()
+        {
+            var bindHost = "127.0.0.1";
+            var bindPort = PortProvider.Next();
+            var timeoutSeconds = 500; 
+
+            var startupSetting = ProxyStartupSetting
+                .CreateDefault()
+                .SetAsSystemProxy(false)
+                .SetBoundAddress(bindHost)
+                .SetListenPort(bindPort);
+
+            var messageHandler = new HttpClientHandler()
+            {
+                Proxy = new WebProxy($"http://{bindHost}:{bindPort}")
+            };
+
+            var httpClient = new HttpClient(messageHandler); 
+
+            var requestReceived = new TaskCompletionSource<Exchange>();
+            var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
+
+            cancellationTokenSource.Token.Register(() =>
+            {
+                if (!requestReceived.Task.IsCompleted)
+                {
+                    requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
+                }
+            });
+
+            Task OnNewExchange(Exchange ex)
+            {
+                requestReceived.TrySetResult(ex);
+                return Task.CompletedTask;
+            }
+
+            using var proxy = new Proxy(startupSetting,
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                OnNewExchange);
+
+            proxy.Run();
+
+            var response = await httpClient.GetAsync("http://info.cern.ch/",
+                cancellationTokenSource.Token);
+
+            var responseString = await response.Content.ReadAsStringAsync(
+                cancellationTokenSource.Token); 
+            
+            await requestReceived.Task;
+            
+        }
+
+        [Fact]
         public async Task Test_GetThrough_H2()
         {
             var bindHost = "127.0.0.1";
