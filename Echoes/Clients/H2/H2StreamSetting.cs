@@ -15,7 +15,9 @@ namespace Echoes.H2
 
         public int SettingsHeaderTableSize { get; set; } = 4096;
 
-        public int OverallWindowSize { get; set; } = 65536; 
+        public int OverallWindowSize { get; set; } = 65536;
+
+        public int MaxFrameSizeAllowed { get; set; } = 128 * 1024; 
 
         public int MaxHeaderSize { get; set; } = 16384;
 
@@ -35,6 +37,7 @@ namespace Echoes.H2
         public int WindowSize { get; set; } = 0XFFFF;
 
         public int MaxFrameSize { get; set; } = 0x4000;
+
 
         public bool EnablePush { get;  } = false;
 

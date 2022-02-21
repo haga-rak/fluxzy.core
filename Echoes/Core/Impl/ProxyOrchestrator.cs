@@ -78,8 +78,6 @@ namespace Echoes.Core
                         if (exchange != null &&
                             !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
-
-
                             // Check whether the local browser ask for a connection close 
 
                             shouldClose = exchange.Request

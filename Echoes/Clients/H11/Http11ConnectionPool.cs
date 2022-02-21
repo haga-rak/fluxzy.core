@@ -49,7 +49,7 @@ namespace Echoes.H11
 
         public Authority Authority { get; }
 
-        public bool Faulted => false;
+        public bool Complete => false;
 
         public Task Init()
         {

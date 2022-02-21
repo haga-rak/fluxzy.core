@@ -72,7 +72,7 @@ namespace Echoes
                 lock (_connectionPools)
                     while (_connectionPools.TryGetValue(exchange.Authority, out var pool))
                     {
-                        if (pool.Faulted)
+                        if (pool.Complete)
                         {
                             _connectionPools.Remove(pool.Authority);
                             continue;
@@ -104,6 +104,7 @@ namespace Echoes
                 }
 
                 // HTTPS test 1.1/2
+
                 var openingResult =
                     await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false,
                         AllProtocols, clientSetting, cancellationToken);
@@ -136,14 +137,27 @@ namespace Echoes
             }
             finally
             {
-                if (result != null)
-                    await result.Init();
-
                 exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
-
                 semaphore.Release();
+
+                if (result != null)
+                    await PoolInit(result);
             }
             //return null; 
+        }
+
+        private async Task PoolInit(IHttpConnectionPool result)
+        {
+            try
+            {
+                await result.Init();
+            }
+            catch (Exception)
+            {
+                OnConnectionFaulted(result);
+
+                throw; 
+            }
         }
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)

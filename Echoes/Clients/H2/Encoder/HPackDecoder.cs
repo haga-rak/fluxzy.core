@@ -199,10 +199,9 @@ namespace Echoes.H2.Encoder
 
                         var headerName = _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var nameLength);
                         var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + nameLength), headerValueBuffer, out var valueLength);
+                        
                         bytesReaden = 1 + nameLength + valueLength;
-
-                        if (_decodingContext.Authority.HostName == "discord.com")
-                            Console.WriteLine($"without indexing 2 {headerName.ToString()} = {headerValue.ToString()}");
+                        
                         return new HeaderField(headerName, headerValue, _memoryProvider);
                     }
                 default:

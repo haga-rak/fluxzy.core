@@ -197,7 +197,7 @@ namespace Echoes.H2
 
                 while (true)
                 {
-                    var bookedSize = _parent.Context.Setting.Remote.MaxFrameSize - 9;
+                    var bookedSize = _parent.Context.Setting.Local.MaxFrameSize - 9;
 
                     if (_disposed)
                         throw new TaskCanceledException("Stream cancellation request");

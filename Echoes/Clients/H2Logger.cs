@@ -58,7 +58,7 @@ namespace Echoes
             if (_active && AuthorizedHosts != null)
             {
                 // Check for domain restriction 
-                _active = AuthorizedHosts.Any(c => Authority.HostName.ToString().EndsWith(
+                _active = AuthorizedHosts.Any(c => Authority.HostName.EndsWith(
                     c, StringComparison.OrdinalIgnoreCase)); 
             }
 
@@ -208,6 +208,16 @@ namespace Echoes
             
 
             WriteLn(streamId, message);
+        }
+
+        public void Trace(
+            int streamId, Func<string> messageString)
+        {
+            if (!_active)
+                return;
+            
+
+            WriteLn(streamId, messageString());
         }
 
         public void Trace(Exchange exchange, string preMessage, Exception ex = null, int streamIdentifier = 0)

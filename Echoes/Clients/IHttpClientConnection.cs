@@ -13,7 +13,7 @@ namespace Echoes
     {
         Authority Authority { get; }
 
-        bool Faulted { get; }
+        bool Complete { get; }
         
         Task Init();
         

@@ -8,7 +8,6 @@ namespace Echoes.Cli
     {
         static int Main(string[] args)
         {
-            Environment.SetEnvironmentVariable("TracingDirectory", @"d:\debug-net");
             Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
 
             Environment.SetEnvironmentVariable("EnableH2Tracing", "true");

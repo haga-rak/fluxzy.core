@@ -37,7 +37,7 @@ namespace Echoes.H2
         private Task _innerReadTask;
         private Task _innerWriteRun;
 
-        private readonly TaskCompletionSource<object> _waitForSettingReception = new TaskCompletionSource<object>(); 
+        private readonly TaskCompletionSource<bool> _waitForSettingReception = new(); 
 
         private Channel<WriteTask> _writerChannel;
 
@@ -122,7 +122,7 @@ namespace Echoes.H2
             {
                 if (!_waitForSettingReception.Task.IsCompleted)
                 {
-                    _waitForSettingReception.SetResult(true);
+                    _waitForSettingReception.TrySetResult(true);
                 }
 
                 return false;
@@ -145,7 +145,6 @@ namespace Echoes.H2
                     _setting.OverallWindowSize = settingFrame.Value;
                     return true;
 
-
                 case SettingIdentifier.SettingsMaxFrameSize:
                     _setting.Remote.MaxFrameSize = settingFrame.Value;
                     return true;
@@ -159,7 +158,7 @@ namespace Echoes.H2
                     return true;
             }
 
-            // We do not throw anything here, some server like https://analytics.valiuz.com/
+            // We do not throw anything here, some server like 
             // sends an identifier equals to 8 that match none of the value of rfc 7540
 
             // ---> old : throw new InvalidOperationException("Unknown setting type");
@@ -169,7 +168,17 @@ namespace Echoes.H2
 
         private async void RaiseExceptionIfSettingNotReceived()
         {
-            await Task.Delay(_setting.WaitForSettingDelay);
+            try
+            {
+                await Task.Delay(_setting.WaitForSettingDelay, _connectionCancellationTokenSource.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                // Main connection was ended before receiving final setting acquittement 
+
+                _waitForSettingReception.TrySetResult(false);
+                return; 
+            }
 
             if (!_waitForSettingReception.Task.IsCompleted)
             {
@@ -179,19 +188,16 @@ namespace Echoes.H2
             }
         }
 
-        private async Task WaitForSettingReceivedOrRaiseException()
+        private async Task<bool> WaitForSettingReceivedOrRaiseException()
         {
             RaiseExceptionIfSettingNotReceived();
-            await _waitForSettingReception.Task;
+
+            return await _waitForSettingReception.Task;
+
             //await taskValidation; 
         }
 
-        public bool Faulted  {
-            get
-            {
-                return _complete;
-            }
-        }
+        public bool Complete => _complete;
 
         public async Task Init()
         {
@@ -208,11 +214,17 @@ namespace Echoes.H2
             // Wait from setting reception 
             _innerWriteRun = InternalWriteLoop(token);
             
-            var cancelTask = WaitForSettingReceivedOrRaiseException();
+            var waitSettingTask = WaitForSettingReceivedOrRaiseException();
 
             await _waitForSettingReception.Task.ConfigureAwait(false);
 
-            await cancelTask; 
+            var settingReceived = await waitSettingTask;
+
+            if (!settingReceived)
+            {
+                throw new IOException("Connection closed before receiving settings. More information on InnerException.",
+                    _loopEndException);
+            }
         }
         
         private void OnGoAway(GoAwayFrame frame)
@@ -222,6 +234,8 @@ namespace Echoes.H2
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
         }
+
+        private Exception _loopEndException = null;
 
         private void OnLoopEnd(Exception ex, bool releaseChannelItems)
         {
@@ -236,6 +250,7 @@ namespace Echoes.H2
             if (ex != null)
             {
                 _streamPool.OnGoAway(ex);
+                _loopEndException = ex; 
             }
 
             _connectionCancellationTokenSource?.Cancel();
@@ -257,9 +272,6 @@ namespace Echoes.H2
                     }
                 }
             }
-
-
-
 
             _logger.Trace(0, "Cleanup end");
         }
@@ -358,7 +370,7 @@ namespace Echoes.H2
         /// <returns></returns>
         private async Task InternalReadLoop(CancellationToken token)
         {
-            byte [] readBuffer = new byte[_setting.Local.MaxFrameSize];
+            byte [] readBuffer = new byte[_setting.Remote.MaxFrameSize];
             Exception outException = null;
 
             int receivedDataCount = 0; 
@@ -384,6 +396,23 @@ namespace Echoes.H2
 
                         if (settingReceived)
                             await SettingHelper.WriteAckSetting(_baseStream).ConfigureAwait(false);
+                        
+                        if (_setting.Remote.MaxFrameSize != readBuffer.Length)
+                        {
+                            // Update of max frae 
+
+                            if (_setting.Remote.MaxFrameSize > _setting.MaxFrameSizeAllowed)
+                            {
+
+                                _logger.Trace(0, () => $"Server required max frame size is larger than MaxFrameSizeAllowed = {_setting.MaxFrameSizeAllowed}");
+
+                                _setting.Remote.MaxFrameSize = _setting.MaxFrameSizeAllowed;
+                            }
+
+                            readBuffer = new byte[_setting.Remote.MaxFrameSize];
+
+                            _logger.Trace(0, () => $"max frame size updated to {_setting.Remote.MaxFrameSize}");
+                        }
 
                         continue;
                     }

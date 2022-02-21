@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -111,6 +112,25 @@ namespace Echoes.H2.Tests
             var responseData = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
+        }
+
+        [Fact]
+        public async Task Get_Error_Case_LargeMaxFrameSize()
+        {
+            using var handler = new EchoesHttp2Handler();
+            using var httpClient = new HttpClient(handler);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                "https://beacons.gcp.gvt2.com/domainreliability/upload"
+            );
+
+            requestMessage.Content = new StreamContent(new MemoryStream(new byte[512 * 1024]));
+
+            var response = await httpClient.SendAsync(requestMessage);
+            var responseData = await response.Content.ReadAsStringAsync();
+
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
         }
 
         [Fact]

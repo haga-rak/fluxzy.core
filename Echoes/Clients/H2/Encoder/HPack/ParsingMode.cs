@@ -16,10 +16,10 @@ namespace Echoes.H2.Encoder.HPack
                 return HeaderFieldType.LiteralHeaderFieldNeverIndexWithName;
 
             if ((firstByte & 0x80) != 0)
-                return HeaderFieldType.IndexedHeaderField; 
-
+                return HeaderFieldType.IndexedHeaderField;
+            
             if ((firstByte & 0x40) != 0)
-                return HeaderFieldType.LiteralHeaderFieldIncrementalIndexingExistingName; 
+                return HeaderFieldType.LiteralHeaderFieldIncrementalIndexingExistingName;
 
             if ((firstByte & 0x20) != 0)
                 return HeaderFieldType.DynamicTableSizeUpdate;
@@ -29,6 +29,7 @@ namespace Echoes.H2.Encoder.HPack
 
             if ((firstByte & 0xF0) == 0)
                 return HeaderFieldType.LiteralHeaderFieldWithoutIndexingExistingName;
+
 
 
             throw new NotSupportedException($"HPackDecoder could not determine the binary format {firstByte:X}"); 

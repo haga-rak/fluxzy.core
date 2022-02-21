@@ -19,6 +19,11 @@ namespace Echoes.H2
 
             var frame = new H2Frame(headerBuffer.Span);
 
+            if (buffer.Length < frame.BodyLength)
+            {
+                throw new IOException($"Received frame is too large than MaxFrameSizeAllowed ({frame.BodyLength})"); 
+            }
+
             var bodyBuffer = buffer.Slice(0, frame.BodyLength);
 
             if (!await stream.ReadExactAsync(bodyBuffer, cancellationToken).ConfigureAwait(false))
