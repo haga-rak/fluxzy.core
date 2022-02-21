@@ -51,7 +51,6 @@
     <PackageReference Include="SharpZipLib" Version="1.1.0" />
     <PackageReference Include="System.IO.Pipelines" Version="6.0.2" />
     <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.11.0" />
   </ItemGroup>
 
   <!--<ItemGroup>

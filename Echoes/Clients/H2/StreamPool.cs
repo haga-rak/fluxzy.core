@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Helpers;
@@ -62,9 +63,11 @@ namespace Echoes.H2
             CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit, CancellationTokenSource resetTokenSource)
         {
             if (_onError)
-                throw new InvalidOperationException("This connection is on error");
-            
+                throw new ConnectionCloseException("This connection is on error"); 
+
             await _maxConcurrentStreamBarrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
+
+
             var res = CreateActiveStream(exchange, callerCancellationToken, ongoingStreamInit, resetTokenSource);
 
             return res;

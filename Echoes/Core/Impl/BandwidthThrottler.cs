@@ -32,11 +32,12 @@ namespace Echoes.Core
 
             if (_lastCaptureInstant == DateTime.MinValue)
             {
-                _lastCaptureInstant = _referenceClock.Instant();
+                
+                _lastCaptureInstant = ITimingProvider.Default.Instant();
                 return; 
             }
 
-            var now = _referenceClock.Instant();
+            var now = ITimingProvider.Default.Instant();
             var elapsed = now - _lastCaptureInstant;
             
             if (elapsed < _limitationSetting.CheckInterval)
@@ -46,7 +47,7 @@ namespace Echoes.Core
             var actualElapsed = (int) elapsed.TotalMilliseconds;
             var waitInterval = shouldBeMilliseconds - actualElapsed;
 
-            _lastCaptureInstant = _referenceClock.Instant();
+            _lastCaptureInstant = ITimingProvider.Default.Instant();
             _capturedBytesInInterval = 0;
 
             if (waitInterval > 0)

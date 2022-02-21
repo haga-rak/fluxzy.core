@@ -9,4 +9,14 @@ namespace Echoes
         {
         }
     }
+
+    public class ConnectionCloseException : EchoesException
+    {
+        public ConnectionCloseException(
+            string message, Exception innerException = null) 
+            : base(message, innerException)
+        {
+
+        }
+    }
 }

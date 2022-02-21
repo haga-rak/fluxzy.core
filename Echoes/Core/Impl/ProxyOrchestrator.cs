@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Buffers;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Echoes.H2;
 using Echoes.IO;
 
@@ -21,7 +17,6 @@ namespace Echoes.Core
         private readonly ClientSetting _clientSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
-        private readonly ProxyMessageDispatcher _dispatcher;
 
         public ProxyOrchestrator(
             Func<Exchange, Task> exchangeListener,
@@ -37,13 +32,16 @@ namespace Echoes.Core
             _clientSetting = clientSetting;
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;
-            _dispatcher = new ProxyMessageDispatcher(exchangeListener);
         }
 
         public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)
         {
             try
             {
+                using var callerTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+                token = callerTokenSource.Token;
+
                 if (!token.IsCancellationRequested)
                 {
                     // READ initial state of connection, 
@@ -73,8 +71,6 @@ namespace Echoes.Core
 
                     do
                     {
-                        string headerContent = null;
-
                         if (exchange != null &&
                             !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
                         {
@@ -88,11 +84,34 @@ namespace Echoes.Core
 
                             try
                             {
-                                // opening the connection to server 
-                                connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
+                                while (true)
+                                {
+                                    // get a connection pool for the current exchange 
+                                    // the connection pool may 
 
-                                // Actual request send 
-                                await connectionPool.Send(exchange, localConnection, token);
+                                    connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
+
+                                    try
+                                    {
+                                        await connectionPool.Send(exchange, localConnection, token);
+                                    }
+                                    catch (ConnectionCloseException)
+                                    {
+                                        // This connection was "goawayed" while current exchange 
+                                        // tries to use it. 
+                                        
+                                        // let a chance for the _poolbuilder to release it
+                                        
+                                        await Task.Yield(); 
+
+                                        continue;
+                                    }
+                                    // Actual request send 
+                                    
+
+                                    break; 
+                                }
+
                             }
                             catch (Exception exception)
                             {
@@ -192,6 +211,12 @@ namespace Echoes.Core
                                             // receiving the entire message. In that case, we just leave
                                             // without any error
 
+                                            if (ex is IOException && ex.InnerException is SocketException sex)
+                                            {
+                                                if (sex.SocketErrorCode == SocketError.ConnectionAborted)
+                                                    callerTokenSource.Cancel();
+                                            }
+
                                             break;
                                         }
 
@@ -259,60 +284,6 @@ namespace Echoes.Core
 
         public void Dispose()
         {
-            _dispatcher.Dispose();
-        }
-    }
-
-
-    public class ProxyMessageDispatcher : IDisposable
-    {
-        private readonly Func<Exchange, Task> _listener;
-        private readonly CancellationTokenSource _haltToken = new CancellationTokenSource();
-        private readonly BufferBlock<Exchange> _queue = new BufferBlock<Exchange>();
-        private readonly Task _currentTask;
-        private bool _disposed;
-
-        public ProxyMessageDispatcher(Func<Exchange, Task> listener)
-        {
-            _listener = listener;
-
-            if (_listener == null)
-                return; 
-
-            _currentTask = Task.Run(Start);
-        }
-
-        internal async Task OnNewTask(Exchange exchange)
-        {
-            if (_listener == null || _disposed)
-                return;
-
-            await _queue.SendAsync(exchange).ConfigureAwait(false);
-        }
-
-
-        private async Task Start()
-        {
-            try
-            {
-                Exchange current;
-                while ((current = await _queue.ReceiveAsync(_haltToken.Token)) != null)
-                {
-                    await _listener(current);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Natureal death; 
-            }
-        }
-
-        public void Dispose()
-        {
-            _disposed = true;
-            _queue.Complete();
-            _haltToken.Cancel();
-            _currentTask.GetAwaiter().GetResult();
         }
     }
 }

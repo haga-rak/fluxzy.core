@@ -5,9 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using System.Threading.Tasks;
 using Echoes.Core;
-using Echoes.Core.Utils;
 
 namespace Echoes
 {
@@ -70,7 +68,6 @@ namespace Echoes
 
                 return r;
             }
-
         }
         
         private byte [] BuildCertificateForRootDomain(string rootDomain)

@@ -26,6 +26,8 @@ namespace Echoes.H2
         private readonly MutableMemoryOwner<byte> _receptionBufferContainer;
 
         private H2ErrorCode _resetErrorCode;
+
+
         private bool _noBodyStream = false;
 
         private int _currentdReceived = 0;
@@ -126,6 +128,28 @@ namespace Echoes.H2
             RemoteWindowSize.UpdateWindowSize(windowSizeUpdateValue);
         }
 
+        public void ResetByCaller(H2ErrorCode reason = H2ErrorCode.StreamClosed)
+        {
+            var buffer = new byte[13];
+
+            Console.WriteLine("Reset !!");
+
+            var frame = new RstStreamFrame(StreamIdentifier, reason);
+
+            frame.Write(buffer);
+
+            var writeTask = new WriteTask(
+                H2FrameType.RstStream,
+                StreamIdentifier,
+                StreamPriority,
+                StreamDependency,
+                buffer);
+
+            Parent.Context.UpStreamChannel(ref writeTask);
+
+            _resetErrorCode = reason; 
+        }
+
         public void ResetRequest(H2ErrorCode errorCode)
         {
             _resetErrorCode = errorCode;
@@ -185,7 +209,7 @@ namespace Echoes.H2
                 .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, token);
         }
 
-        public async Task ProcessRequestBody(Exchange exchange, CancellationToken token)
+        public async ValueTask ProcessRequestBody(Exchange exchange, CancellationToken token)
         {
             var totalSent = 0;
             Stream requestBodyStream = exchange.Request.Body;
@@ -241,7 +265,8 @@ namespace Echoes.H2
                     totalSent += dataFramePayloadLength;
                     _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
-                    /// ?? Stream window size seems so to not be handled correctly 
+                    /// ?? Stream window size seems so to not be handled correctly
+                    /// 
                     if (dataFramePayloadLength > 0)
                         NotifyStreamWindowUpdate(dataFramePayloadLength);
 
@@ -328,7 +353,7 @@ namespace Echoes.H2
             return charBuffer.Slice(0, length);
         }
 
-        public async Task ProcessResponse(CancellationToken cancellationToken)
+        public async ValueTask ProcessResponse(CancellationToken cancellationToken)
         {
             try
             {

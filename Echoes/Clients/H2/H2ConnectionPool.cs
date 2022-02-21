@@ -23,7 +23,7 @@ namespace Echoes.H2
 
         private static int _connectionIdCounter = 0;
 
-        private readonly Stream _baseStream;
+        private Stream _baseStream;
 
         private CancellationTokenSource _connectionCancellationTokenSource = new();
         
@@ -233,6 +233,7 @@ namespace Echoes.H2
             {
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
             }
+
         }
 
         private Exception _loopEndException = null;
@@ -554,8 +555,16 @@ namespace Echoes.H2
             catch (Exception ex)
             {
                 Interlocked.Increment(ref FaultedRequest);
-
                 _logger.Trace(exchange, "Send success on error " + ex);
+
+
+                if (ex is OperationCanceledException opex
+                    && cancellationToken != default
+                    && opex.CancellationToken == cancellationToken)
+                {
+                    // The caller cancels this exchange. 
+                    // Send a reset on stream to prevent the remote 
+                }
 
                 OnLoopEnd(ex, true);
 
@@ -571,9 +580,8 @@ namespace Echoes.H2
         {
             exchange.HttpVersion = "HTTP/2";
 
-            StreamManager activeStream;
-            Task waitForHeaderSentTask;
-            
+            StreamManager activeStream = null;
+
             using var streamCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                 callerCancellationToken,
                 _connectionCancellationTokenSource.Token);
@@ -582,32 +590,54 @@ namespace Echoes.H2
 
             try
             {
-                activeStream =
-                    await _streamPool.CreateNewStreamProcessing(
-                            exchange, streamCancellationToken, _streamCreationLock,
-                            streamCancellationTokenSource)
-                        .ConfigureAwait(false);
+                Task waitForHeaderSentTask;
 
-               // activeStream.OR
+                try
+                {
+                    if (Complete || _connectionCancellationTokenSource.Token.IsCancellationRequested)
+                        throw new ConnectionCloseException("This connection is already closed");
 
-                waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange, streamCancellationToken);
+                    activeStream =
+                        await _streamPool.CreateNewStreamProcessing(
+                                exchange, streamCancellationToken, _streamCreationLock,
+                                streamCancellationTokenSource)
+                            .ConfigureAwait(false);
+
+                    // activeStream.OR
+
+                    waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange, streamCancellationToken);
+                }
+                finally
+                {
+                    if (_streamCreationLock.CurrentCount == 0)
+                        _streamCreationLock.Release();
+                }
+
+                await waitForHeaderSentTask.ConfigureAwait(false);
+
+                exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
+
+                await activeStream.ProcessRequestBody(exchange, streamCancellationToken);
+
+                exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+
+                await activeStream.ProcessResponse(streamCancellationToken)
+                    .ConfigureAwait(false);
             }
-            finally
+            catch (OperationCanceledException opex)
             {
-                if (_streamCreationLock.CurrentCount == 0)
-                    _streamCreationLock.Release();
+                if (activeStream != null &&
+                    opex.CancellationToken == callerCancellationToken)
+                {
+                    // The caller cancels this exchange. 
+                    // Send a reset on stream to prevent the remote 
+                    // from sending further data 
+
+                    activeStream.ResetByCaller();
+                }
+
+                throw; 
             }
-
-            await waitForHeaderSentTask.ConfigureAwait(false);
-
-            exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
-
-            await activeStream.ProcessRequestBody(exchange, streamCancellationToken);
-
-            exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
-
-            await activeStream.ProcessResponse(streamCancellationToken)
-                .ConfigureAwait(false);
         }
 
         public Authority Authority { get; }
@@ -631,6 +661,12 @@ namespace Echoes.H2
 
             await _innerReadTask.ConfigureAwait(false);
             await _innerWriteRun.ConfigureAwait(false);
+
+            if (_baseStream != null)
+            {
+                await _baseStream.DisposeAsync();
+                _baseStream = null;
+            }
         }
 
         public void Dispose()
@@ -651,6 +687,12 @@ namespace Echoes.H2
             _writeSemaphore?.Dispose();
             _writeSemaphore = null;
             _streamCreationLock.Dispose();
+
+            if (_baseStream != null)
+            {
+                _baseStream.Dispose();
+                _baseStream = null; 
+            }
         }
     }
     

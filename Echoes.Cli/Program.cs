@@ -1,6 +1,5 @@
 ﻿using System;
 using Echoes.Core;
-using Echoes.H2.Encoder.HPack;
 
 namespace Echoes.Cli
 {

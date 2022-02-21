@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
+using Echoes.Helpers;
 
 namespace Echoes.Cli
 {
@@ -10,7 +11,7 @@ namespace Echoes.Cli
     {
         private readonly int _topPosition;
         private readonly int _consoleWidth = 78; 
-        private readonly BufferBlock<Exchange> _exchangeBlock = new();
+        private readonly Channel<Exchange> _exchangeBlock = Channel.CreateUnbounded<Exchange>();
         private readonly CancellationTokenSource _tokenSource = new();
         private readonly Task _workTask;
         private readonly StatViewModel _viewModel;
@@ -30,7 +31,7 @@ namespace Echoes.Cli
         public async Task OnNewExchange(Exchange exchange)
         {
             return; 
-            await _exchangeBlock.SendAsync(exchange).ConfigureAwait(false);
+            await _exchangeBlock.Writer.WriteAsync(exchange).ConfigureAwait(false);
         }
 
         private async Task InnerRun()
@@ -39,7 +40,11 @@ namespace Echoes.Cli
             {
                 do
                 {
-                    _exchangeBlock.TryReceiveAll(out var exchanges); 
+                    var exchanges = new List<Exchange>(); 
+
+                    if (!_exchangeBlock.Reader.TryReadAll(ref exchanges))
+                        continue; 
+                        
 
                     if (exchanges == null)
                         exchanges = new List<Exchange>();
@@ -99,7 +104,7 @@ namespace Echoes.Cli
                 }
                 while (
                     !_tokenSource.IsCancellationRequested &&
-                    await _exchangeBlock.OutputAvailableAsync(_tokenSource.Token).ConfigureAwait(false)); 
+                    await _exchangeBlock.Reader.WaitToReadAsync(_tokenSource.Token).ConfigureAwait(false)); 
             }
             catch (OperationCanceledException)
             {

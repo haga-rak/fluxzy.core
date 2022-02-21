@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Echoes.Core;
 using Echoes.H2.Encoder.Utils;
 
@@ -18,7 +15,6 @@ namespace Echoes
     {
         private readonly ProxyStartupSetting _startupSetting;
         private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
-        private readonly IServerChannelPoolManager _poolManager;
         private readonly CancellationTokenSource _proxyHaltTokenSource = new CancellationTokenSource();
 
         private SystemProxyRegistration _proxyRegister;
@@ -28,7 +24,6 @@ namespace Echoes
         private bool _halted; 
 
         private long _taskId = 0;
-        private readonly IDictionary<long, Task> _runningTasks = new ConcurrentDictionary<long, Task>(); // Dictionary<long, Task>();
         private readonly ProxyOrchestrator _proxyOrchestrator;
         private readonly Http11Parser _http1Parser;
         private readonly PoolBuilder _poolBuilder;
@@ -47,15 +42,9 @@ namespace Echoes
                 ? IPAddress.Any
                 : IPAddress.Parse(startupSetting.BoundAddress);
 
-            var referenceClock = new ReferenceClock();
-
             _downStreamConnectionProvider =
-                new DownStreamConnectionProvider(address, startupSetting.ListenPort, referenceClock);
-
-            _poolManager = new DelayedChannelPoolManager(
-                new UpStreamConnectionFactory(_startupSetting, new DefaultDnsSolver(), referenceClock), referenceClock,
-                startupSetting.ConnectionPerHost, startupSetting.AnticipatedConnectionPerHost);
-
+                new DownStreamConnectionProvider(address, startupSetting.ListenPort);
+            
             var throtleStream = startupSetting.GetThrottlerStream();
 
             Stream ThrottlePolicyStream(string s) => throtleStream;
@@ -103,12 +92,10 @@ namespace Echoes
         {
             using (client)
             {
-                byte[] buffer = null; 
+                var buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
 
                 try
                 {
-                    buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
-
                     await _proxyOrchestrator.Operate(client, buffer,
                         _proxyHaltTokenSource.Token).ConfigureAwait(false);
                 }
@@ -118,21 +105,6 @@ namespace Echoes
                 }
              
             }
-        }
-
-        private void OnProcessingTaskDone(long taskId, Task currentTask)
-        {
-            currentTask.ContinueWith(t =>
-            {
-                try
-                {
-                    return _runningTasks.Remove(taskId);
-                }
-                catch (Exception)
-                {
-                    return false; 
-                }
-            });
         }
 
         /// <summary>
@@ -176,7 +148,6 @@ namespace Echoes
                 _proxyOrchestrator.Dispose();
                 //_tunneledConnectionManager.Dispose(); // Free all created tunnel 
                 _downStreamConnectionProvider.Dispose(); // Do not handle new connection to proxy 
-                _poolManager.Dispose(); // Free all connection pool currently maintained
                 _proxyHaltTokenSource.Cancel(); // Cancel all pending orcherstrator task 
 
                 await _loopTask.ConfigureAwait(false); // Wait for main loop to end
