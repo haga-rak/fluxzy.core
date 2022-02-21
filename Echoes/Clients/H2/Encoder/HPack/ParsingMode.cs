@@ -21,16 +21,17 @@ namespace Echoes.H2.Encoder.HPack
             if ((firstByte & 0x40) != 0)
                 return HeaderFieldType.LiteralHeaderFieldIncrementalIndexingExistingName; 
 
-            if ((firstByte & 0xF0) == 0)
-                return HeaderFieldType.LiteralHeaderFieldWithoutIndexingExistingName;
+            if ((firstByte & 0x20) != 0)
+                return HeaderFieldType.DynamicTableSizeUpdate;
 
             if ((firstByte & 0x10) != 0)
                 return HeaderFieldType.LiteralHeaderFieldNeverIndexExistingName;
 
-            if ((firstByte & 0x20) != 0)
-                return HeaderFieldType.DynamicTableSizeUpdate;
+            if ((firstByte & 0xF0) == 0)
+                return HeaderFieldType.LiteralHeaderFieldWithoutIndexingExistingName;
 
-            throw new InvalidOperationException("Invalid start byte"); 
+
+            throw new NotSupportedException($"HPackDecoder could not determine the binary format {firstByte:X}"); 
         }
     }
 }

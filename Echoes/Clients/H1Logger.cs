@@ -41,6 +41,9 @@ namespace Echoes
             active ??= string.Equals(Environment.GetEnvironmentVariable("EnableH1Tracing"),
                 "true", StringComparison.OrdinalIgnoreCase);
 
+            var loggerPath = Environment.ExpandEnvironmentVariables(Environment.GetEnvironmentVariable("TracingDirectory")
+                             ?? "%appdata%/echoes-debug"); 
+
             _active = active.Value;
 
             if (_active && AuthorizedHosts != null)
@@ -50,7 +53,7 @@ namespace Echoes
                     c, StringComparison.OrdinalIgnoreCase));
             }
 
-            _directory = new DirectoryInfo("e:\\debug-h1").FullName;
+            _directory = new DirectoryInfo(Path.Combine(loggerPath, "h1")).FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
 
             Directory.CreateDirectory(_directory);

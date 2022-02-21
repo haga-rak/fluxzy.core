@@ -11,6 +11,7 @@ namespace Echoes.H2
             StreamIdentifier = streamIdentifier;
             ErrorCode = (H2ErrorCode) BinaryPrimitives.ReadInt32BigEndian(bodyBytes);
         }
+
         public int StreamIdentifier { get; }
 
         public H2ErrorCode ErrorCode { get;  }

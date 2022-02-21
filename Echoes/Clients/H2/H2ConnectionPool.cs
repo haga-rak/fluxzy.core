@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -101,7 +102,18 @@ namespace Echoes.H2
         {
             _writerChannel.Writer.TryWrite(data);
         }
-        
+
+        private void ReplyPing(long opaqueData)
+        {
+            var pingFrame = new PingFrame(opaqueData, HeaderFlags.Ack);
+            var buffer = new byte[9 + pingFrame.BodyLength];
+
+            pingFrame.Write(buffer);
+
+            var writeTask = new WriteTask(H2FrameType.Ping, 0, 0, 0, buffer, 0);
+            UpStreamChannel(ref writeTask); 
+        }
+
         private bool ProcessIncomingSettingFrame(SettingFrame settingFrame)
         {
             _logger.IncomingSetting(ref settingFrame);
@@ -118,11 +130,10 @@ namespace Echoes.H2
             
             switch (settingFrame.SettingIdentifier)
             {
-                
                 case SettingIdentifier.SettingsEnablePush:
                     if (settingFrame.Value > 0)
                     {
-                        // TODO Close connection on error. Push not supported 
+                        // TODO Send a Goaway. Push not supported 
                         return false;
                     }
                     return true;
@@ -467,6 +478,12 @@ namespace Echoes.H2
                         continue;
                     }
 
+                    if (frame.BodyType == H2FrameType.Ping)
+                    {
+                        ReplyPing(frame.GetPingFrame().OpaqueData);
+                        continue;
+                    }
+
                     if (frame.BodyType == H2FrameType.Goaway)
                     {
                         OnGoAway(frame.GetGoAwayFrame());
@@ -486,6 +503,7 @@ namespace Echoes.H2
                 OnLoopEnd(outException, false);
             }
         }
+
 
 
         public async ValueTask Send(

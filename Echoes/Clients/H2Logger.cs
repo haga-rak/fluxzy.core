@@ -52,6 +52,9 @@ namespace Echoes
 
             _active = active.Value;
 
+            var loggerPath = Environment.ExpandEnvironmentVariables(Environment.GetEnvironmentVariable("TracingDirectory")
+                                                                    ?? "%appdata%/echoes-debug");
+
             if (_active && AuthorizedHosts != null)
             {
                 // Check for domain restriction 
@@ -59,7 +62,7 @@ namespace Echoes
                     c, StringComparison.OrdinalIgnoreCase)); 
             }
 
-            _directory = new DirectoryInfo("e:\\debug-h2").FullName;
+            _directory = new DirectoryInfo(Path.Combine(loggerPath, "h2")).FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
 
             Directory.CreateDirectory(_directory);

@@ -47,6 +47,17 @@ namespace Echoes.Helpers
             return buffer.BuWrite_32((uint) data); 
         }
 
+        public static Span<byte> BuWrite_64(this Span<byte> buffer, ulong data)
+        {
+            BinaryPrimitives.WriteUInt64BigEndian(buffer, data);
+            return buffer.Slice(4); 
+        }
+
+        public static Span<byte> BuWrite_64(this Span<byte> buffer, long data)
+        {
+            return buffer.BuWrite_64((ulong) data); 
+        }
+
         public static Stream BuWrite_32(this Stream stream, int data)
         {
             return stream.BuWrite_32((uint) data); 

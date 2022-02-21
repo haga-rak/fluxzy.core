@@ -144,7 +144,7 @@ namespace Echoes.H2.Tests
             var response = await httpClient.SendAsync(requestMessage);
             var responseData = await response.Content.ReadAsStringAsync();
 
-            Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+            Assert.True(response.StatusCode == HttpStatusCode.OK);
         }
 
         [Fact]

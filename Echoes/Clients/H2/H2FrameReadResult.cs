@@ -54,6 +54,11 @@ namespace Echoes.H2
             return new RstStreamFrame(_bodyBytes.Span,  StreamIdentifier); 
         }
 
+        public PingFrame GetPingFrame()
+        {
+            return new PingFrame(_bodyBytes.Span, Flags); 
+        }
+
         public PriorityFrame GetPriorityFrame()
         {
             return new PriorityFrame(_bodyBytes.Span,  StreamIdentifier); 
