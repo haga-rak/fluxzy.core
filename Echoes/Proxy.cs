@@ -102,6 +102,7 @@ namespace Echoes
                 finally
                 {
                     ArrayPool<byte>.Shared.Return(buffer);
+                    client.Close();
                 }
              
             }

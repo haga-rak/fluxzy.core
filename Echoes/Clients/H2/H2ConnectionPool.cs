@@ -228,13 +228,14 @@ namespace Echoes.H2
 
             _innerReadTask = InternalReadLoop(token);
             // Wait from setting reception 
-            _innerWriteRun = InternalWriteLoop(token);
             
             var waitSettingTask = WaitForSettingReceivedOrRaiseException();
 
             await _waitForSettingReception.Task.ConfigureAwait(false);
 
             var settingReceived = await waitSettingTask;
+
+            _innerWriteRun = InternalWriteLoop(token);
 
             if (!settingReceived)
             {

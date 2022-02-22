@@ -86,7 +86,8 @@ namespace Echoes.H11
                     {
                         if ((requestDate - state.LastUsed) > TimeSpan.FromSeconds(_clientSetting.TimeOutSecondsUnusedConnection))
                         {
-                            // The connection pool exceeds timing connection 
+                            // The connection pool exceeds timing connection ..
+
                             continue; 
                         }
 

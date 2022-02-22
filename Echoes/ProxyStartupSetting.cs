@@ -105,7 +105,7 @@ namespace Echoes
         /// </summary>
 
         [JsonProperty]
-        public string CertificateCacheDirectory { get; internal set; } = ".echoes/cert-caches";
+        public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.echoes/cert-caches";
 
         /// <summary>
         /// When set to true, echoes will automaticall install default certificate when starting.

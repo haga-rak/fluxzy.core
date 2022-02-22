@@ -255,9 +255,10 @@ namespace Echoes.Core
                                 buffer, token
                             );
                         }
-                        catch (IOException ioEx)
+                        catch (IOException)
                         {
                             // Downstream close the underlying connection
+                            break; 
                         }
 
                     } while (exchange != null);

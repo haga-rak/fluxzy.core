@@ -13,7 +13,7 @@ namespace Echoes.Core
         public FileSystemCertificateCache(ProxyStartupSetting startupSetting)
         {
             _startupSetting = startupSetting;
-            _baseDirectory = startupSetting.CertificateCacheDirectory;
+            _baseDirectory = Environment.ExpandEnvironmentVariables(startupSetting.CertificateCacheDirectory);
         }
 
         private string GetCertificateFileName(string baseSerialNumber, string rootDomain)
