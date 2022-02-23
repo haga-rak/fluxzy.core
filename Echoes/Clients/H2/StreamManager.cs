@@ -67,7 +67,7 @@ namespace Echoes.H2
             _receptionBufferContainer = MemoryPool<byte>.Shared.RendExact(16 * 1024);
             _dataReceptionBuffer = _receptionBufferContainer.Memory;
 
-            _pipeResponseBody = new Pipe(new PipeOptions());
+            _pipeResponseBody = new Pipe();
         }
 
         public int StreamIdentifier { get; }
@@ -81,31 +81,6 @@ namespace Echoes.H2
         public WindowSizeHolder RemoteWindowSize { get; }
 
         public StreamPool Parent => _parent;
-
-        private void OnStreamHaltRequest()
-        {
-            if (_resetErrorCode != H2ErrorCode.NoError)
-            {
-                // The stream was reset by remote peer.
-                // Send an exception to the caller 
-
-                var rstStreamException = new H2Exception(
-                    $"Stream id {StreamIdentifier} halt with a RST_STREAM : {_resetErrorCode}",
-                    _resetErrorCode);
-                
-
-                return; 
-            }
-
-            // In case of exception in the main loop, we ensure that wait tasks for the caller are 
-            // properly interrupt with exception
-
-            var goAwayException = _parent.GoAwayException;
-
-            _pipeResponseBody.Writer.Complete();
-            //_pipeResponseBody.Reader.Complete();
-        }
-        
 
         private async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
         {
@@ -131,8 +106,6 @@ namespace Echoes.H2
         public void ResetByCaller(H2ErrorCode reason = H2ErrorCode.StreamClosed)
         {
             var buffer = new byte[13];
-
-            Console.WriteLine("Reset !!");
 
             var frame = new RstStreamFrame(StreamIdentifier, reason);
 
@@ -169,8 +142,6 @@ namespace Echoes.H2
                 {
                     value += _exchange.Response.Header.RawHeader.ToString();
                 }
-
-                Console.WriteLine($"RST : {errorCode} - {_exchange.Authority} - cId : {Parent.Context.ConnectionId} - sId: {StreamIdentifier}");
 
                 _logger.Trace(StreamIdentifier, $"Receive RST : {errorCode} from server.\r\n{value}");
             }
@@ -357,6 +328,8 @@ namespace Echoes.H2
         {
             try
             {
+                _logger.Trace(StreamIdentifier, "Before semaphore ");
+
                 if (!cancellationToken.IsCancellationRequested)
                     await _headerReceivedSemaphore.WaitAsync(cancellationToken);
 
@@ -364,7 +337,7 @@ namespace Echoes.H2
             }
             catch (OperationCanceledException)
             {
-                throw new IOException("Received no header");
+                throw new IOException("Received no header cancelled by caller");
             }
             catch (Exception e)
             {
@@ -398,6 +371,8 @@ namespace Echoes.H2
 
             _totalBodyReceived += buffer.Length;
 
+            _logger.TraceDeep(StreamIdentifier, () => "a - 1");
+
             if (_firstBodyFragment)
             {
                 _exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
@@ -407,6 +382,7 @@ namespace Echoes.H2
                     () => $"First body block received");
             }
 
+            _logger.TraceDeep(StreamIdentifier, () => "a - 2");
             OnDataConsumedByCaller(buffer.Length);
 
             if (endStream)
@@ -419,7 +395,12 @@ namespace Echoes.H2
             
             _exchange.Metrics.TotalReceived += buffer.Length;
 
+
+            _logger.TraceDeep(StreamIdentifier, () => "a - 3");
+            
             var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);
+
+            _logger.TraceDeep(StreamIdentifier, () => "a - 4");
 
             var shouldEnd = endStream || flushResult.IsCompleted || flushResult.IsCanceled;
 
@@ -432,6 +413,8 @@ namespace Echoes.H2
                 if (!flushResult.IsCanceled)
                     await _pipeResponseBody.Writer.CompleteAsync();
 
+                _logger.TraceDeep(StreamIdentifier, () => "a - 5");
+
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
                 
 
@@ -440,6 +423,9 @@ namespace Echoes.H2
                 // Give a chance for semaphores to released before disposed
 
                 await Task.Yield();
+
+
+                _logger.TraceDeep(StreamIdentifier, () => "a - 6");
 
                 _parent.NotifyDispose(this);
             }

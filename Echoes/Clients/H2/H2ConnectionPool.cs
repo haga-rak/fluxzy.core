@@ -248,15 +248,20 @@ namespace Echoes.H2
         {
             var instant = ITimingProvider.Default.Instant();
 
-            if (_streamPool.ActiveStreamCount == 0 && 
+            if (!_complete && _streamPool.ActiveStreamCount == 0 && 
                 (instant - _lastActivity) > TimeSpan.FromSeconds(_setting.MaxIdleSeconds))
             {
                 if (!_goAwayInitByRemote)
                 {
-                    Console.WriteLine($"Cleanup H2 {Authority}");
+                    try
+                    {
+                        EmitGoAway(H2ErrorCode.NoError);
+                    }
+                    catch
+                    {
+                        // Ignore go away error
+                    }
 
-                    // 
-                    EmitGoAway(H2ErrorCode.NoError); 
                     OnLoopEnd(null, true);
 
                     _logger.Trace(0, () => $"IDLE timeout. Connection closed.");
@@ -414,7 +419,14 @@ namespace Echoes.H2
                 OnLoopEnd(outException, true);
             }
         }
-        
+
+
+        private bool EvaluateCond()
+        {
+            _logger.TraceDeep(0, () => "deadlock?");
+            return true; 
+        }
+
         /// <summary>
         /// %Write and read has to use the same thread 
         /// </summary>
@@ -428,14 +440,22 @@ namespace Echoes.H2
 
             try
             {
-                while (!token.IsCancellationRequested)
+                while (EvaluateCond() && !token.IsCancellationRequested)
                 {
+
+                    _logger.TraceDeep(0,() => "1");
+
                     H2FrameReadResult frame = 
                         await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         token).ConfigureAwait(false);
 
+                    _logger.TraceDeep(0, () => "2");
+
                     if (frame.IsEmpty)
                         break;
+
+
+                    _logger.TraceDeep(0, () => "3");
 
                     _lastActivity = ITimingProvider.Default.Instant();
 
@@ -446,6 +466,9 @@ namespace Echoes.H2
                     if (frame.BodyType == H2FrameType.Settings)
                     {
                         var settingReceived = ProcessIncomingSettingFrame(frame.GetSettingFrame());
+
+
+                        _logger.TraceDeep(0, () => "4");
 
                         if (settingReceived)
                             await SettingHelper.WriteAckSetting(_baseStream).ConfigureAwait(false);
@@ -472,6 +495,8 @@ namespace Echoes.H2
 
                     if (frame.BodyType == H2FrameType.Priority)
                     {
+                        _logger.TraceDeep(0, () => "5");
+
                         if (activeStream == null)
                         {
                             continue;
@@ -482,6 +507,8 @@ namespace Echoes.H2
 
                     if (frame.BodyType == H2FrameType.Headers)
                     {
+                        _logger.TraceDeep(0, () => "6");
+
                         if (activeStream == null)
                         {
                             // TODO : Notify stream error, stream already closed 
@@ -502,6 +529,8 @@ namespace Echoes.H2
 
                     if (frame.BodyType == H2FrameType.Continuation)
                     {
+                        _logger.TraceDeep(0, () => "7");
+
                         if (activeStream == null)
                         {
                             // TODO : Notify stream error, stream already closed 
@@ -522,20 +551,28 @@ namespace Echoes.H2
                     if (frame.BodyType == H2FrameType.Data)
                     {
 
+                        _logger.TraceDeep(0, () => "8 : ");
                         if (activeStream == null)
                         {
                             continue;
                         }
 
+                        _logger.TraceDeep(0, () => "8 : " + activeStream.StreamIdentifier);
+
                         await activeStream.ReceiveBodyFragmentFromConnection(
                             frame.GetDataFrame().Buffer, 
                             frame.Flags.HasFlag(HeaderFlags.EndStream), token);
+
+
+                        _logger.TraceDeep(0, () => "8 1 : " + activeStream.StreamIdentifier);
 
                         continue;
                     }
 
                     if (frame.BodyType == H2FrameType.RstStream)
                     {
+                        _logger.TraceDeep(0, () => "9");
+
                         if (activeStream == null)
                         {
                             continue;
@@ -547,6 +584,8 @@ namespace Echoes.H2
 
                     if (frame.BodyType == H2FrameType.WindowUpdate)
                     {
+                        _logger.TraceDeep(0, () => "10");
+
                         var windowSizeIncrement = frame.GetWindowUpdateFrame().WindowSizeIncrement;
 
                         if (activeStream == null)
@@ -562,19 +601,27 @@ namespace Echoes.H2
 
                     if (frame.BodyType == H2FrameType.Ping)
                     {
+                        _logger.TraceDeep(0, () => "11");
+
                         EmitPing(frame.GetPingFrame().OpaqueData);
                         continue;
                     }
 
                     if (frame.BodyType == H2FrameType.Goaway)
                     {
+                        _logger.TraceDeep(0, () => "12");
+
                         OnGoAway(frame.GetGoAwayFrame());
                         break;
                     }
                 }
+
+                _logger.TraceDeep(0, () => "Natural death");
             }
             catch (OperationCanceledException)
             {
+
+                _logger.TraceDeep(0, () => "OperationCanceledException death");
             }
             catch (Exception ex)
             {
@@ -607,7 +654,7 @@ namespace Echoes.H2
             catch (Exception ex)
             {
                 Interlocked.Increment(ref FaultedRequest);
-                _logger.Trace(exchange, "Send success on error " + ex);
+                _logger.Trace(exchange, "Send on error " + ex);
 
 
                 if (ex is OperationCanceledException opex
@@ -675,12 +722,14 @@ namespace Echoes.H2
 
                 await activeStream.ProcessResponse(streamCancellationToken)
                     .ConfigureAwait(false);
+
             }
             catch (OperationCanceledException opex)
             {
                 if (activeStream != null &&
                     opex.CancellationToken == callerCancellationToken)
                 {
+
                     // The caller cancels this exchange. 
                     // Send a reset on stream to prevent the remote 
                     // from sending further data 
@@ -688,7 +737,7 @@ namespace Echoes.H2
                     activeStream.ResetByCaller();
                 }
 
-                throw; 
+                throw;
             }
         }
 
@@ -704,6 +753,8 @@ namespace Echoes.H2
             _overallWindowSizeHolder?.Dispose();
             _overallWindowSizeHolder = null;
 
+
+            _logger.Trace(0, () => "Disposed");
             _connectionCancellationTokenSource.Cancel();
             _connectionCancellationTokenSource?.Dispose();
             _connectionCancellationTokenSource = null; 
@@ -732,6 +783,7 @@ namespace Echoes.H2
             _overallWindowSizeHolder?.Dispose();
             _overallWindowSizeHolder = null;
 
+            _logger.Trace(0, () => "Disposed");
             _connectionCancellationTokenSource.Cancel();
             _connectionCancellationTokenSource?.Dispose();
             _connectionCancellationTokenSource = null;

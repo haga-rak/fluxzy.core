@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -117,6 +118,8 @@ namespace Echoes.Core
                             {
                                 // The caller cancelled the task 
 
+                                await SafeCloseRequestBody(exchange);
+
                                 if (exception is OperationCanceledException)
                                     break;
 
@@ -172,15 +175,19 @@ namespace Echoes.Core
                                         new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
                                         token);
                                 }
-                                catch (TaskCanceledException)
+                                catch (Exception ex)
                                 {
-                                    break;
-                                }
-                                catch (IOException)
-                                {
-                                    // local connection interrupt
+                                    
+                                    await SafeCloseRequestBody(exchange);
 
-                                    break;
+                                    if (ex is OperationCanceledException || ex is IOException)
+                                    {
+                                        // local browser interrupt connection 
+
+                                        break; 
+                                    }
+
+                                    throw;
                                 }
 
                                 if (exchange.Response.Header.ContentLength != 0 &&
@@ -214,13 +221,19 @@ namespace Echoes.Core
                                             if (ex is IOException && ex.InnerException is SocketException sex)
                                             {
                                                 if (sex.SocketErrorCode == SocketError.ConnectionAborted)
+                                                {
                                                     callerTokenSource.Cancel();
+                                                }
                                             }
 
                                             break;
                                         }
 
                                         throw;
+                                    }
+                                    finally
+                                    {
+                                        await SafeCloseRequestBody(exchange);
                                     }
                                 }
 
@@ -278,6 +291,24 @@ namespace Echoes.Core
             finally
             {
 
+            }
+        }
+
+        private async Task SafeCloseRequestBody(Exchange exchange)
+        {
+            if (exchange.Response.Body != null)
+            {
+                try
+                {
+                    // Clean the pipe 
+
+                    await exchange.Response.Body.DisposeAsync();
+                    exchange.Response.Body = null;
+                }
+                catch
+                {
+                    // ignore errors when closing pipe 
+                }
             }
         }
 

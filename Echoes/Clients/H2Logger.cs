@@ -220,6 +220,25 @@ namespace Echoes
             WriteLn(streamId, messageString());
         }
 
+        public void TraceDeep(
+            int streamId, Func<string> messageString)
+        {
+            if (!_active || true)
+                return;
+            
+
+            WriteLn(streamId, messageString());
+        }
+        public void TraceDeep(
+            int streamId, string messageString)
+        {
+            if (!_active)
+                return;
+            
+
+            WriteLn(streamId, messageString);
+        }
+
         public void Trace(Exchange exchange, string preMessage, Exception ex = null, int streamIdentifier = 0)
         {
             if (!_active)
@@ -285,6 +304,7 @@ namespace Echoes
 
             Trace(exchange, streamId, sendMessage());
         }
+        
 
         public void Trace(
             Exchange exchange,
