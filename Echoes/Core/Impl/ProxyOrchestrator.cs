@@ -103,7 +103,7 @@ namespace Echoes.Core
                                         
                                         // let a chance for the _poolbuilder to release it
                                         
-                                        await Task.Yield(); 
+                                        await Task.Yield();
 
                                         continue;
                                     }
@@ -203,8 +203,15 @@ namespace Echoes.Core
 
                                     try
                                     {
+                                        var usedBuffer = buffer;
+
+                                        if (exchange.Response.Header.ContentLength > (512 * 1024))
+                                        {
+                                            usedBuffer = new byte[1024 * 256]; 
+                                        }
+
                                         await exchange.Response.Body.CopyDetailed(
-                                            localConnectionWriteStream, buffer, _ => { }, token);
+                                            localConnectionWriteStream, usedBuffer, _ => { }, token);
 
                                         (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
 

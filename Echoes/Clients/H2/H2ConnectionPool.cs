@@ -739,6 +739,13 @@ namespace Echoes.H2
 
                 throw;
             }
+            finally
+            {
+                if (!streamCancellationTokenSource.IsCancellationRequested)
+                {
+                    streamCancellationTokenSource.Cancel();
+                }
+            }
         }
 
         public Authority Authority { get; }

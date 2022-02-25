@@ -8,7 +8,7 @@ namespace Echoes.H2
     {
         public PeerSetting Local { get; set; } = new PeerSetting()
         {
-            WindowSize = 1024 * 1024 * 2// 512Ko
+            WindowSize = 1024 * 1024 * 16// 512Ko
         };
 
         public PeerSetting Remote { get; set; } = new PeerSetting();

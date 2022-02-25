@@ -8,7 +8,6 @@ namespace Echoes
     {
         private EchoesArchive()
         {
-
         }
 
         [JsonConstructor]
@@ -31,6 +30,5 @@ namespace Echoes
         {
             return new EchoesArchive(new List<Exchange>());
         }
-        
     }
 }

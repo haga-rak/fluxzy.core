@@ -4,12 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Echoes.Archiving.Abstractions;
 using Echoes.H2.Encoder;
 using Echoes.H2.Encoder.Utils;
 
 namespace Echoes
 {
-    public class RequestHeader : Header
+    public class RequestHeader : Header, IRequestHeader
     {
         public RequestHeader(
             ReadOnlyMemory<char> headerContent,
@@ -51,7 +52,7 @@ namespace Echoes
         }
     }
 
-    public class ResponseHeader : Header
+    public class ResponseHeader : Header, IResponseHeader
     {
         public ResponseHeader(
             ReadOnlyMemory<char> headerContent,
@@ -95,6 +96,7 @@ namespace Echoes
 
             return totalLength;
         }
+
     }
 
     public abstract class Header
@@ -159,6 +161,20 @@ namespace Echoes
         public override string ToString()
         {
             return RawHeader.ToString();
+        }
+
+        public IEnumerable<HeaderField> Headers
+        {
+            get
+            {
+                foreach (var header in _rawHeaderFields)
+                {
+                    if (Http11Constants.IsNonForwardableHeader(header.Name))
+                        continue;
+
+                    yield return header; 
+                }
+            }
         }
 
         public int WriteHttp11(in Span<byte> data, 

@@ -8,7 +8,7 @@ namespace Echoes
 {
     public class ProxyAlterationRule
     {
-        private readonly List<ByRequestRule> _innerRules = new List<ByRequestRule>();
+        private readonly List<ByRequestRule> _innerRules = new();
 
         public IReadOnlyCollection<ByRequestRule> ByRequestRules => new ReadOnlyCollection<ByRequestRule>(_innerRules);
 

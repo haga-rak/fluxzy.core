@@ -67,7 +67,7 @@ namespace Echoes.H2
             _receptionBufferContainer = MemoryPool<byte>.Shared.RendExact(16 * 1024);
             _dataReceptionBuffer = _receptionBufferContainer.Memory;
 
-            _pipeResponseBody = new Pipe();
+            _pipeResponseBody = new Pipe(new PipeOptions(MemoryPool<byte>.Shared));
         }
 
         public int StreamIdentifier { get; }
@@ -326,6 +326,8 @@ namespace Echoes.H2
 
         public async ValueTask ProcessResponse(CancellationToken cancellationToken)
         {
+            SendWindowUpdate(Parent.Context.Setting.Local.WindowSize, StreamIdentifier);
+
             try
             {
                 _logger.Trace(StreamIdentifier, "Before semaphore ");
