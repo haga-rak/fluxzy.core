@@ -139,12 +139,20 @@ namespace Echoes.H11
                                     _processingStates.Enqueue(new Http11ProcessingState(exchange.Connection, _timingProvider));
 
                                 _logger.Trace(exchange.Id, () => $"Complete on success, recycling connection ...");
+
+                                return; 
                             }
                             else
                             {
                                 _logger.Trace(exchange.Id, () => $"Complete on success, closing connection ...");
                                 // should close connection 
                             }
+
+                            exchange.Connection.ReadStream.Dispose();
+
+                            if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
+                                exchange.Connection.WriteStream.Dispose();
+
                         }, cancellationToken);
                 }
                 catch (Exception ex)
