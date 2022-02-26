@@ -64,7 +64,7 @@ namespace Echoes.H11
 
         private readonly H1Logger _logger;
 
-        public async ValueTask Send(Exchange exchange, ILocalLink _, CancellationToken cancellationToken)
+        public async ValueTask Send(Exchange exchange, ILocalLink _, byte [] buffer, CancellationToken cancellationToken)
         {
             _lastActivity = ITimingProvider.Default.Instant();
 
@@ -111,11 +111,11 @@ namespace Echoes.H11
                     _logger.Trace(exchange.Id, () => $"New connection obtained: {exchange.Connection.Id}");
                 }
 
-                var poolProcessing = new Http11PoolProcessing(_timingProvider, _clientSetting, _parser, _logger);
+                var poolProcessing = new Http11PoolProcessing(_clientSetting, _parser, _logger);
 
                 try
                 {
-                    await poolProcessing.Process(exchange, cancellationToken)
+                    await poolProcessing.Process(exchange, buffer, cancellationToken)
                         .ConfigureAwait(false);
 
 
@@ -124,7 +124,6 @@ namespace Echoes.H11
                     var res = exchange.Complete
                         .ContinueWith(completeTask =>
                         {
-
                             if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any())
                             {
                                 _logger.Trace(exchange.Id, () => $"Complete on error {completeTask.Exception.GetType()} : {completeTask.Exception.Message}");
@@ -139,7 +138,6 @@ namespace Echoes.H11
                                 lock (_processingStates)
                                     _processingStates.Enqueue(new Http11ProcessingState(exchange.Connection, _timingProvider));
 
-
                                 _logger.Trace(exchange.Id, () => $"Complete on success, recycling connection ...");
                             }
                             else
@@ -152,22 +150,6 @@ namespace Echoes.H11
                 catch (Exception ex)
                 {
                     _logger.Trace(exchange.Id, () => $"Processing error {ex}");
-
-                    //if (ex is SocketException ||
-                    //    ex is IOException || 
-                    //    ex is ExchangeException)
-                    //{
-                    //    exchange.Errors.Add(new Error("Error while reading response from server", ex));
-
-                    //    if (exchange.Connection != null)
-                    //    {
-                    //        await exchange.Connection.ReadStream.DisposeAsync();
-
-                    //        if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
-                    //            await exchange.Connection.WriteStream.DisposeAsync();
-                    //    }
-                    //}
-                    //else
                     throw;
                 }
             }

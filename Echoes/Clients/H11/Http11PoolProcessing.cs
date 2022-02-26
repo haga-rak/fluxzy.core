@@ -17,8 +17,7 @@ namespace Echoes.H11
         private static readonly ReadOnlyMemory<char> LineFeed = "\r\n".AsMemory();
         private static readonly ReadOnlyMemory<char> Protocol = " HTTP/1.1".AsMemory();
         private static readonly ReadOnlyMemory<char> HostHeader = "Host: ".AsMemory();
-
-        private readonly ITimingProvider _timingProvider;
+        
         private readonly ClientSetting _clientSetting;
         private readonly Http11Parser _parser;
         private readonly H1Logger _logger;
@@ -26,35 +25,34 @@ namespace Echoes.H11
         private static readonly byte[] CrLf = { 0x0D, 0x0A, 0x0D, 0x0A };
 
         public Http11PoolProcessing(
-            ITimingProvider timingProvider,
             ClientSetting clientSetting,
             Http11Parser parser, H1Logger logger)
         {
-            _timingProvider = timingProvider;
             _clientSetting = clientSetting;
             _parser = parser;
             _logger = logger;
         }
 
-        private static int count = 0; 
+        private static int count = 0;
 
         /// <summary>
         /// Process the exchange
         /// </summary>
         /// <param name="exchange"></param>
+        /// <param name="buffer"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if remote server close connection</returns>
-        public async Task<bool> Process(Exchange exchange, CancellationToken cancellationToken)
+        public async Task<bool> Process(Exchange exchange, byte[] buffer, CancellationToken cancellationToken)
         {
             // Here is the opportunity to change header 
-            var bufferRaw = new byte[_clientSetting.MaxHeaderSize];
+            var bufferRaw = buffer;
 
 
             Memory<byte> headerBuffer = bufferRaw;
 
             exchange.Connection.AddNewRequestProcessed();
-
-            exchange.Metrics.RequestHeaderSending = _timingProvider.Instant();
+            
+            exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
             _logger.Trace(exchange.Id, () => $"Begin writing header");
             var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true);
@@ -67,7 +65,7 @@ namespace Echoes.H11
             _logger.Trace(exchange.Id, () => $"Header sent");
 
             exchange.Metrics.TotalSent += headerLength;
-            exchange.Metrics.RequestHeaderSent = _timingProvider.Instant();
+            exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
             // Sending request body 
 
@@ -85,8 +83,8 @@ namespace Echoes.H11
 
             var headerBlockDetectResult = await
                 DetectHeaderBlock(exchange.Connection.ReadStream, headerBuffer,
-                    () => exchange.Metrics.ResponseHeaderStart = _timingProvider.Instant(),
-                    () => exchange.Metrics.ResponseHeaderEnd = _timingProvider.Instant(),
+                    () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
+                    () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
                     true,
                     cancellationToken);
 
@@ -114,7 +112,7 @@ namespace Echoes.H11
 
                 shouldCloseConnection = true; 
 
-                exchange.Metrics.ResponseBodyStart = exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
+                exchange.Metrics.ResponseBodyStart = exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                 exchange.Response.Body = StreamUtils.EmptyStream;
 
                 exchange.ExchangeCompletionSource.TrySetResult(true);
@@ -130,12 +128,16 @@ namespace Echoes.H11
 
             if (headerBlockDetectResult.HeaderLength < headerBlockDetectResult.TotalReadLength)
             {
+                var remainder = new byte[headerBlockDetectResult.TotalReadLength -
+                                         headerBlockDetectResult.HeaderLength];
+                
+                Buffer.BlockCopy(bufferRaw, headerBlockDetectResult.HeaderLength,
+                    remainder, 0, remainder.Length);
+
                 // Concat the extra body bytes read while retrieving header
                 bodyStream = new CombinedReadonlyStream(
                     shouldCloseConnection,
-                    new MemoryStream(bufferRaw, headerBlockDetectResult.HeaderLength, headerBlockDetectResult.TotalReadLength -
-                        headerBlockDetectResult.HeaderLength
-                    ),
+                    new MemoryStream(remainder),
                     exchange.Connection.ReadStream
                 );
             }
@@ -154,19 +156,19 @@ namespace Echoes.H11
                 new MetricsStream(bodyStream,
                     () =>
                     {
-                        exchange.Metrics.ResponseBodyStart = _timingProvider.Instant();
+                        exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
                         _logger.Trace(exchange.Id, () => $"First body bytes read");
                     },
                     (length) =>
                     {
-                        exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
+                        exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
                         exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
                         _logger.Trace(exchange.Id, () => $"Last body bytes end : {length} total bytes");
                     },
                     (exception) =>
                     {
-                        exchange.Metrics.ResponseBodyEnd = _timingProvider.Instant();
+                        exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.ExchangeCompletionSource.SetException(exception);
 
                         _logger.Trace(exchange.Id, () => $"Read error : {exception}");
@@ -186,6 +188,7 @@ namespace Echoes.H11
         /// <param name="buffer"></param>
         /// <param name="firstByteReceived"></param>
         /// <param name="headerBlockReceived"></param>
+        /// <param name="throwOnError"></param>
         /// <param name="token"></param>
         /// <returns></returns>
         public static async ValueTask<HeaderBlockReadResult>

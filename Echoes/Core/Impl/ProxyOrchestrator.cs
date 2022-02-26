@@ -94,7 +94,7 @@ namespace Echoes.Core
 
                                     try
                                     {
-                                        await connectionPool.Send(exchange, localConnection, token);
+                                        await connectionPool.Send(exchange, localConnection, buffer, token);
                                     }
                                     catch (ConnectionCloseException)
                                     {
@@ -203,15 +203,8 @@ namespace Echoes.Core
 
                                     try
                                     {
-                                        var usedBuffer = buffer;
-
-                                        if (exchange.Response.Header.ContentLength > (512 * 1024))
-                                        {
-                                            usedBuffer = new byte[1024 * 256]; 
-                                        }
-
                                         await exchange.Response.Body.CopyDetailed(
-                                            localConnectionWriteStream, usedBuffer, _ => { }, token);
+                                            localConnectionWriteStream, buffer, _ => { }, token);
 
                                         (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
 

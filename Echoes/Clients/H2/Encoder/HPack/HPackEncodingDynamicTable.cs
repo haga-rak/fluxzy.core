@@ -85,7 +85,14 @@ namespace Echoes.H2.Encoder.HPack
                 // No decoding error.
                 // Inserting element larger than Table MAX SIZE cause the table to be emptied 
                 if (evictedSize < spaceNeeded)
-                    return -1;
+                {
+                    _currentSize = 0;
+                    _entries.Clear();
+                    _internalIndex = -1;
+                    _oldestElementInternalIndex = 0;
+
+                    return _internalIndex;
+                }
             }
 
             _currentSize += entry.Size;

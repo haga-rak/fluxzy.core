@@ -43,7 +43,7 @@ namespace Echoes.H2.Tests
 
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call(HttpClient httpClient)
         {
-            int repeatCount = 10;
+            int repeatCount = 100;
             var hosts = new[]
             {
                 TestConstants.Http2Host, 
@@ -136,7 +136,7 @@ namespace Echoes.H2.Tests
 
             var stream = await response.Content.ReadAsStreamAsync();
 
-            int length = await stream.Drain(); 
+            var length = await stream.Drain(); 
 
             Assert.Equal(bodySize, length);
 

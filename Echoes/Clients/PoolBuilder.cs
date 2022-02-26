@@ -166,11 +166,19 @@ namespace Echoes
             }
             finally
             {
-                exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
-                semaphore.Release();
+                try
+                {
+                    if (result != null)
+                        await PoolInit(result);
 
-                if (result != null)
-                    await PoolInit(result);
+                    exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+                }
+                finally
+                {
+                    semaphore.Release();
+
+                }
+
             }
             //return null; 
         }

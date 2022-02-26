@@ -23,6 +23,7 @@ namespace Echoes.H2.Encoder
         }
 
         public Authority Authority => _authority;
+        
 
         internal HeaderField [] DynContent()
         {

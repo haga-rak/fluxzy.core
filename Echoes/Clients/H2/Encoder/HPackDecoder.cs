@@ -41,6 +41,9 @@ namespace Echoes.H2.Encoder
             _parser = parser ?? new Http11Parser(_codecSetting.MaxHeaderLineLength, _memoryProvider);
         }
 
+
+        internal H2Logger Logger { get; set; }
+
         public DecodingContext Context => _decodingContext;
 
 
@@ -125,6 +128,7 @@ namespace Echoes.H2.Encoder
                         var currentByteReaden = _primitiveOperation.ReadInt32(buffer, 5, out var maxSize);
                         _decodingContext.UpdateMaxSize(maxSize);
 
+                        Console.WriteLine($"dynamic table update : {maxSize}");
 
                         var res = ReadNextField(buffer.Slice(currentByteReaden), out var nextRead);
                         bytesReaden = currentByteReaden + nextRead;
@@ -159,6 +163,7 @@ namespace Echoes.H2.Encoder
                             _primitiveOperation.ReadString(buffer.Slice(offsetLength), lineBuffer, out var headerValueLength);
 
                         bytesReaden = offsetLength + headerValueLength;
+                        
 
                         return _decodingContext.Register(header.Name.Span, headerValue);
                     }
@@ -172,6 +177,7 @@ namespace Echoes.H2.Encoder
 
                         bytesReaden = 1 + offsetHeaderName + offsetHeaderValue;
 
+                       
                         return _decodingContext.Register(headerName, headerValue);
                     }
                 case HeaderFieldType.LiteralHeaderFieldNeverIndexExistingName:
@@ -201,7 +207,9 @@ namespace Echoes.H2.Encoder
                         var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + nameLength), headerValueBuffer, out var valueLength);
                         
                         bytesReaden = 1 + nameLength + valueLength;
-                        
+
+
+
                         return new HeaderField(headerName, headerValue, _memoryProvider);
                     }
                 default:

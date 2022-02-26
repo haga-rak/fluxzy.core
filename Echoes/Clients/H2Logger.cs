@@ -86,6 +86,24 @@ namespace Echoes
                     $"[{ITimingProvider.Default.InstantMillis:000000000}] {message}\r\n");
         }
 
+        private void WriteLnHPack(
+            int streamIdentifier, string message)
+        {
+            var fullPath = _directory;
+            var portString = Authority.Port == 443 ? string.Empty : $"-{Authority.Port:00000}";
+
+            fullPath = Path.Combine(fullPath,
+                $"{Authority.HostName}{portString}");
+
+            Directory.CreateDirectory(fullPath);
+
+            fullPath = Path.Combine(fullPath, $"cId={ConnectionId:00000}-hpack.txt");
+
+            lock (string.Intern(fullPath))
+                File.AppendAllText(fullPath,
+                    $"[{ITimingProvider.Default.InstantMillis:000000000}] ({streamIdentifier:00000}) - {message}\r\n");
+        }
+
         private static string GetFrameExtraMessage(ref H2FrameReadResult frame)
         {
             switch (frame.BodyType)
@@ -208,6 +226,15 @@ namespace Echoes
             
 
             WriteLn(streamId, message);
+        }
+
+        public void TraceH(
+            int streamId, Func<string> message)
+        {
+            if (!_active)
+                return;
+
+            WriteLnHPack(streamId, message());
         }
 
         public void Trace(

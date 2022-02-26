@@ -31,7 +31,7 @@ namespace Echoes.Clients.DotNetBridge
 
             var connection = await _poolBuilder.GetPool(exchange, ClientSetting.Default, cancellationToken);
             
-            await connection.Send(exchange, null,
+            await connection.Send(exchange, null, new byte[32* 1024],
                 cancellationToken).ConfigureAwait(false);
             
             return new EchoesHttpResponseMessage(exchange);

@@ -19,6 +19,6 @@ namespace Echoes
 
         Task<bool> CheckAlive();
         
-        ValueTask Send(Exchange exchange, ILocalLink localLink, CancellationToken cancellationToken = default);
+        ValueTask Send(Exchange exchange, ILocalLink localLink, byte[] buffer, CancellationToken cancellationToken = default);
     }
 }

@@ -50,7 +50,7 @@ namespace Echoes.DotNetBridge
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 
-            await _activeConnections[request.RequestUri.Authority].Send(exchange, null,
+            await _activeConnections[request.RequestUri.Authority].Send(exchange, null, new byte[32 * 1024],
                 cancellationToken).ConfigureAwait(false);
             
             return new EchoesHttpResponseMessage(exchange);

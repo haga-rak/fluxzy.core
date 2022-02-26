@@ -636,18 +636,17 @@ namespace Echoes.H2
 
 
         public async ValueTask Send(
-            Exchange exchange, ILocalLink _,
+            Exchange exchange, ILocalLink _, byte[] buffer,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref CurrentProcessedRequest);
             Interlocked.Increment(ref TotalRequest);
 
-
             try
             {
                 _logger.Trace(exchange, "Send start");
 
-                await InternalSend(exchange, cancellationToken);
+                await InternalSend(exchange, buffer, cancellationToken);
 
                 _logger.Trace(exchange, "Response header received");
             }
@@ -675,7 +674,7 @@ namespace Echoes.H2
             }
         }
 
-        private async Task InternalSend(Exchange exchange, CancellationToken callerCancellationToken)
+        private async Task InternalSend(Exchange exchange, byte[] buffer, CancellationToken callerCancellationToken)
         {
             exchange.HttpVersion = "HTTP/2";
 
@@ -704,7 +703,7 @@ namespace Echoes.H2
 
                     // activeStream.OR
 
-                    waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange, streamCancellationToken);
+                    waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange, buffer, streamCancellationToken);
                 }
                 finally
                 {
@@ -716,7 +715,7 @@ namespace Echoes.H2
 
                 exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
-                await activeStream.ProcessRequestBody(exchange, streamCancellationToken);
+                await activeStream.ProcessRequestBody(exchange, buffer, streamCancellationToken);
 
                 exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 

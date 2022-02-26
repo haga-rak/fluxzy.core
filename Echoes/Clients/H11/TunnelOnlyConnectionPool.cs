@@ -48,7 +48,7 @@ namespace Echoes.H11
         }
 
         public async ValueTask Send(
-            Exchange exchange, ILocalLink localLink, 
+            Exchange exchange, ILocalLink localLink, byte [] buffer,
             CancellationToken cancellationToken = default)
         {
             try
@@ -60,7 +60,7 @@ namespace Echoes.H11
                     _connectionBuilder, 
                     _clientSetting);
 
-                await ex.Process(exchange, localLink, CancellationToken.None);
+                await ex.Process(exchange, localLink, buffer, CancellationToken.None);
             }
             finally
             {
@@ -86,22 +86,19 @@ namespace Echoes.H11
         private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ClientSetting _creationSetting;
-        private readonly int _bufferSize;
 
         public TunneledConnectionProcess(Authority authority,
             ITimingProvider timingProvider,
             RemoteConnectionBuilder remoteConnectionBuilder,
-            ClientSetting creationSetting,
-            int bufferSize = 1024 * 16 )
+            ClientSetting creationSetting )
         {
             _authority = authority;
             _timingProvider = timingProvider;
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _creationSetting = creationSetting;
-            _bufferSize = bufferSize;
         }
 
-        public async Task Process(Exchange exchange, ILocalLink localLink, CancellationToken cancellationToken)
+        public async Task Process(Exchange exchange, ILocalLink localLink, byte[] buffer, CancellationToken cancellationToken)
         {
             if (localLink == null)
                 throw new ArgumentNullException(nameof(localLink));
@@ -115,19 +112,8 @@ namespace Echoes.H11
 
             if (exchange.Request.Header.IsWebSocketRequest)
             {
-                var buffer = ArrayPool<byte>.Shared.Rent(exchange.Request.Header.HeaderLength);
-
-                try
-                {
-                    var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
-
-                    await exchange.Connection.WriteStream.WriteAsync(buffer, 0, headerLength, cancellationToken);
-
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
+                var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
+                await exchange.Connection.WriteStream.WriteAsync(buffer, 0, headerLength, cancellationToken);
             }
 
             try
@@ -135,10 +121,10 @@ namespace Echoes.H11
                 await using var remoteStream = exchange.Connection.WriteStream;
 
                 var copyTask = Task.WhenAll(
-                    localLink.ReadStream.CopyDetailed(remoteStream, _bufferSize, (copied) =>
+                    localLink.ReadStream.CopyDetailed(remoteStream, buffer, (copied) =>
                             exchange.Metrics.TotalSent += copied
                         , cancellationToken).AsTask(),
-                    remoteStream.CopyDetailed(localLink.WriteStream, _bufferSize, (copied) =>
+                    remoteStream.CopyDetailed(localLink.WriteStream, 1024*16, (copied) =>
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken).AsTask());
 

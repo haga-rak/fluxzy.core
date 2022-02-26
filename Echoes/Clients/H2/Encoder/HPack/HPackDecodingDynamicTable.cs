@@ -20,29 +20,31 @@ namespace Echoes.H2.Encoder.HPack
             _currentMaxSize = initialSize;
         }
 
+        internal H2Logger Logger { get; set; }
+
         private int EvictUntil(int toBeRemovedSize)
         {
             var evictedSize = 0;
             var i = 0;
 
-            var evictedCount = 0; 
+            var evictedCount = 0;
 
             for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++)
             {
                 if (!_entries.TryGetValue(i, out var tableEntry))
                 {
                     _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
-                    
+
                     return evictedSize;
                 }
 
                 _entries.Remove(i);
-                evictedCount++; 
+                evictedCount++;
 
                 _currentSize -= tableEntry.Size;
                 evictedSize += tableEntry.Size;
             }
-            
+
             _oldestElementInternalIndex = i;
 
             return evictedSize;
@@ -90,8 +92,18 @@ namespace Echoes.H2.Encoder.HPack
                 // No decoding error.
                 // Inserting element larger than Table MAX SIZE cause the table to be emptied 
 
+
                 if (evictedSize < spaceNeeded)
-                    return -1;
+                {
+                    // Console.WriteLine($"Emptied {_oldestElementInternalIndex} - {_internalIndex} - {entry.Size} - {_currentSize} - { spaceNeeded}");
+
+                    _currentSize = 0;
+                    _entries.Clear();
+                    _internalIndex = -1;
+                    _oldestElementInternalIndex = 0;
+
+                    return _internalIndex;
+                }
             }
 
             _currentSize += entry.Size;
@@ -100,14 +112,13 @@ namespace Echoes.H2.Encoder.HPack
 
             _entries[_internalIndex] = entry;
 
-            
 
             return _internalIndex;
         }
 
         public bool TryGet(int externalIndex, out HeaderField entry)
         {
-            return _entries.TryGetValue(ConvertIndexToInternal(externalIndex), out entry); 
+            return _entries.TryGetValue(ConvertIndexToInternal(externalIndex), out entry);
         }
     }
 }

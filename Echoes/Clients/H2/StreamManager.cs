@@ -20,10 +20,9 @@ namespace Echoes.H2
         private readonly Exchange _exchange;
         private readonly CancellationTokenSource _resetTokenSource;
 
-        private readonly Memory<byte> _dataReceptionBuffer;
+        private readonly Memory<byte> _dataReceptidonBuffer;
         private readonly H2Logger _logger;
         
-        private readonly MutableMemoryOwner<byte> _receptionBufferContainer;
 
         private H2ErrorCode _resetErrorCode;
 
@@ -63,10 +62,7 @@ namespace Echoes.H2
                 streamIdentifier);
             
             _logger = parent.Context.Logger;
-
-            _receptionBufferContainer = MemoryPool<byte>.Shared.RendExact(16 * 1024);
-            _dataReceptionBuffer = _receptionBufferContainer.Memory;
-
+            
             _pipeResponseBody = new Pipe(new PipeOptions(MemoryPool<byte>.Shared));
         }
 
@@ -159,15 +155,15 @@ namespace Echoes.H2
             Exclusive = priorityFrame.Exclusive; 
         }
         
-        public Task EnqueueRequestHeader(Exchange exchange, CancellationToken token)
+        public Task EnqueueRequestHeader(Exchange exchange, byte [] buffer, CancellationToken token)
         {
             var endStream = exchange.Request.Header.ContentLength == 0 ||
                             exchange.Request.Body == null ||
                             exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0;
 
             var readyToBeSent = _parent.Context.HeaderEncoder.Encode(
-                new HeaderEncodingJob(exchange.Request.Header.RawHeader, StreamIdentifier, StreamDependency), 
-                _dataReceptionBuffer, endStream);
+                new HeaderEncodingJob(exchange.Request.Header.RawHeader, StreamIdentifier, StreamDependency),
+                buffer, endStream);
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
@@ -180,11 +176,12 @@ namespace Echoes.H2
                 .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, token);
         }
 
-        public async ValueTask ProcessRequestBody(Exchange exchange, CancellationToken token)
+        public async ValueTask ProcessRequestBody(Exchange exchange, byte[] buffer, CancellationToken token)
         {
             var totalSent = 0;
-            Stream requestBodyStream = exchange.Request.Body;
-            long bodyLength = exchange.Request.Header.ContentLength;
+            var requestBodyStream = exchange.Request.Body;
+            var bodyLength = exchange.Request.Header.ContentLength;
+            var localBuffer = new Memory<byte>(buffer);
 
             if (requestBodyStream != null 
                 && (!requestBodyStream.CanSeek || requestBodyStream.Length > 0))
@@ -206,7 +203,7 @@ namespace Echoes.H2
                         throw new TaskCanceledException("Stream cancellation request");
 
                     var dataFramePayloadLength = await requestBodyStream
-                        .ReadAsync(_dataReceptionBuffer.Slice(9, bookedSize),
+                        .ReadAsync(localBuffer.Slice(9, bookedSize),
                             token)
                         .ConfigureAwait(false);
 
@@ -225,11 +222,11 @@ namespace Echoes.H2
                     }
 
                     new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, dataFramePayloadLength,
-                        StreamIdentifier).WriteHeaderOnly(_dataReceptionBuffer.Span, dataFramePayloadLength);
+                        StreamIdentifier).WriteHeaderOnly(localBuffer.Span, dataFramePayloadLength);
 
                     var writeTaskBody = new WriteTask(H2FrameType.Data, StreamIdentifier,
                         StreamPriority, StreamDependency,
-                        _dataReceptionBuffer.Slice(0, 9 + dataFramePayloadLength));
+                        localBuffer.Slice(0, 9 + dataFramePayloadLength));
 
                     _parent.Context.UpStreamChannel(ref writeTaskBody);
 
@@ -476,7 +473,6 @@ namespace Echoes.H2
             _logger.Trace(StreamIdentifier, ".... disposing");
 
             RemoteWindowSize?.Dispose();
-            _receptionBufferContainer?.Dispose();
 
             _headerReceivedSemaphore.Release();
             _headerReceivedSemaphore.Dispose();
