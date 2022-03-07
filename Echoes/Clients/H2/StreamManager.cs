@@ -316,8 +316,6 @@ namespace Echoes.H2
             decoded.CopyTo(charBuffer.Span);
             var length = decoded.Length;
 
-          
-
             return charBuffer.Slice(0, length);
         }
 
@@ -336,15 +334,10 @@ namespace Echoes.H2
             }
             catch (OperationCanceledException)
             {
-                throw new IOException("Received no header cancelled by caller");
+                throw new IOException("Received no header, cancelled by caller");
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                if (e is ObjectDisposedException)
-                {
-
-                }
-
                 _parent.NotifyDispose(this);
                 throw; 
             }

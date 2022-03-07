@@ -72,7 +72,43 @@ namespace Echoes.H2.Encoder
 
             return buffer.Slice(0, (offsetBits / 8));
         }
-        
+
+
+
+        /// <summary>
+        /// Returns the length of the decoded huffman array
+        /// </summary>
+        /// <param name="encodedBytes"></param>
+        /// <returns></returns>
+        public int GetDecodedLength(ReadOnlySpan<byte> encodedBytes)
+        {
+            int currentOffsetBits = 0;
+            int totalChar = 0;
+
+            Span<byte> destinationBuffer = stackalloc byte[8];
+
+            var totalLengthBits = (encodedBytes.Length * 8);
+
+            while (currentOffsetBits < totalLengthBits)
+            {
+                var nextSpan = encodedBytes.SliceBitsToNextInt32(currentOffsetBits, destinationBuffer, _dictionary.ShortestSymbolLength);
+
+                if (nextSpan.IsEmpty)
+                    break;  // End of string
+
+                var symbol = _packDecodingTree.Read(nextSpan);
+
+                if (symbol.IsEos)
+                    break;
+
+                totalChar++;
+
+                currentOffsetBits += symbol.LengthBits;
+            }
+
+            return totalChar;
+        }
+
         /// <summary>
         /// buffer is used to encode the result 
         /// </summary>

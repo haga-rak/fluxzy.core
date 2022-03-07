@@ -97,8 +97,36 @@ namespace Echoes.H2.Encoder.HPack
             {
                 throw new HPackCodecException($"Provided buffer is not large enough");
             }
-
         }
+
+
+        public int GetStringLength(ReadOnlySpan<byte> input)
+        {
+            try
+            {
+                var huffmanEncoded = (input[0] & 0x80) != 0;
+                var offset = ReadInt32(input, 7, out var stringLength);
+
+                if (stringLength > _maxStringLength)
+                    throw new HPackCodecException(
+                        $"string length exceed the maximum authorized : {stringLength} / {_maxStringLength}");
+
+                var rawString = input.Slice(offset, stringLength);
+
+                if (!huffmanEncoded)
+                {
+                    return stringLength;
+                }
+                
+                return _codec.GetDecodedLength(rawString);
+
+            }
+            catch (IndexOutOfRangeException)
+            {
+                throw new HPackCodecException($"Provided buffer is not large enough");
+            }
+        }
+
 
         public Span<char> ReadString(ReadOnlySpan<byte> input, Span<char> buffer, out int newOffset)
         {

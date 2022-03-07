@@ -48,5 +48,11 @@ namespace Echoes.H2.Encoder
         /// Huffman is applied only if if string length exceed this value. 
         /// </summary>
         public int MaxLengthUncompressedString { get; set; } = 4;
+
+
+        /// <summary>
+        /// Max length for a stackalloc, beyond this value ArrayPool is used
+        /// </summary>
+        public int MaxStackAllocationLength { get; set; } = 4096; 
     }
 }

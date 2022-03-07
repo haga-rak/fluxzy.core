@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using Echoes.H2.Encoder.HPack;
 using Echoes.H2.Encoder.Huffman;
@@ -148,7 +149,6 @@ namespace Echoes.H2.Encoder
                     {
                         var offsetLength = _primitiveOperation.ReadInt32(buffer, 6, out var headerIndex);
 
-                        Span<char> lineBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
 
                         // obtenir header value from static table
 
@@ -159,20 +159,38 @@ namespace Echoes.H2.Encoder
                                 $"Requested headerIndex does not exist in static table {headerIndex}");
                         }
 
+                        var stringLength = _primitiveOperation.GetStringLength(buffer.Slice(offsetLength));
+
+                        Span<char> lineBuffer =
+                            stringLength < _codecSetting.MaxStackAllocationLength ? 
+                            stackalloc char[stringLength] :
+                            new char[stringLength];
+                        
                         var headerValue =
-                            _primitiveOperation.ReadString(buffer.Slice(offsetLength), lineBuffer, out var headerValueLength);
+                            _primitiveOperation
+                                .ReadString(buffer.Slice(offsetLength)
+                                    , lineBuffer, out var headerValueLength);
 
                         bytesReaden = offsetLength + headerValueLength;
-                        
 
                         return _decodingContext.Register(header.Name.Span, headerValue);
                     }
                 case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingWithName:
                     {
-                        Span<char> headerNameBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
-                        Span<char> headerValueBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+                        var headerNameLength = _primitiveOperation.GetStringLength(buffer.Slice(1));
+
+                        Span<char> headerNameBuffer =
+                            headerNameLength < _codecSetting.MaxStackAllocationLength ? 
+                                stackalloc char[headerNameLength] :
+                                new char[headerNameLength];
 
                         var headerName = _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var offsetHeaderName);
+
+                        var headerValueLength = _primitiveOperation.GetStringLength(buffer.Slice(1 + offsetHeaderName));
+
+                        Span<char> headerValueBuffer = headerValueLength < _codecSetting.MaxStackAllocationLength ? 
+                            stackalloc char[headerValueLength] : new char[headerValueLength];
+
                         var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + offsetHeaderName), headerValueBuffer, out var offsetHeaderValue);
 
                         bytesReaden = 1 + offsetHeaderName + offsetHeaderValue;
@@ -190,7 +208,12 @@ namespace Echoes.H2.Encoder
                             throw new HPackCodecException($"Referenced index header {index} is absent from decodingTable");
                         }
 
-                        Span<char> lineBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+                        var resultStringLength = _primitiveOperation.GetStringLength(buffer.Slice(offsetLength));
+
+                        Span<char> lineBuffer =
+                            resultStringLength < _codecSetting.MaxStackAllocationLength ? 
+                                stackalloc char[resultStringLength] : new char[resultStringLength];
+
                         var resultString = _primitiveOperation.ReadString(buffer.Slice(offsetLength), lineBuffer, out var offsetValueLength);
 
                         bytesReaden = offsetLength + offsetValueLength;
@@ -200,15 +223,24 @@ namespace Echoes.H2.Encoder
                 case HeaderFieldType.LiteralHeaderFieldNeverIndexWithName:
                 case HeaderFieldType.LiteralHeaderFieldWithoutIndexingWithName:
                     {
-                        Span<char> headerNameBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
-                        Span<char> headerValueBuffer = stackalloc char[_codecSetting.MaxHeaderLineLength];
+                        var headerNameLength = _primitiveOperation.GetStringLength(buffer.Slice(1));
+
+                        Span<char> headerNameBuffer =
+                            headerNameLength < _codecSetting.MaxStackAllocationLength ? 
+                                stackalloc char[headerNameLength] : new char[headerNameLength];
 
                         var headerName = _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var nameLength);
+
+                        var headerValueLength = _primitiveOperation.GetStringLength(buffer.Slice(1 + nameLength));
+
+
+                        Span<char> headerValueBuffer =
+                            headerValueLength < _codecSetting.MaxStackAllocationLength ? 
+                                stackalloc char[headerValueLength] : new char[headerValueLength];
+
                         var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + nameLength), headerValueBuffer, out var valueLength);
                         
                         bytesReaden = 1 + nameLength + valueLength;
-
-
 
                         return new HeaderField(headerName, headerValue, _memoryProvider);
                     }
