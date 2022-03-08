@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
 using Echoes.H2.Encoder.HPack;
+using Echoes.H2.Encoder.Utils;
 using Echoes.H2.Encoder.Utils.Interfaces;
 
 namespace Echoes.H2.Encoder
@@ -10,11 +11,11 @@ namespace Echoes.H2.Encoder
         private readonly HPackDecodingDynamicTable _dynamicTable;
 
         private readonly Authority _authority;
-        private readonly IMemoryProvider<char> _memoryProvider;
+        private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
 
         public DecodingContext(
             Authority authority,
-            IMemoryProvider<char> memoryProvider, 
+            ArrayPoolMemoryProvider<char> memoryProvider, 
             int maxDynamicTableSize = 1024 * 4)
         {
             _authority = authority;

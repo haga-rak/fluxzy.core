@@ -18,7 +18,6 @@ namespace Echoes.H2
 
     public class H2ConnectionPool : IHttpConnectionPool
     {
-
         private static readonly byte[] Preface = System.Text.Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
 
         private static int _connectionIdCounter = 0;
@@ -95,8 +94,7 @@ namespace Echoes.H2
                 Id, authority, setting, _logger,
                 headerEncoder, UpStreamChannel, 
                 _overallWindowSizeHolder, 
-                new Http11Parser(setting.Local.MaxHeaderLine,
-                    ArrayPoolMemoryProvider<char>.Default) ));
+                new Http11Parser(setting.Local.MaxHeaderLine) ));
         }
 
         public int Id { get; }

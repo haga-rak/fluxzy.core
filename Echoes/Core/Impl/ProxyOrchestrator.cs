@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Archiving.Abstractions;
+using Echoes.Core.Utils;
 using Echoes.H2;
 using Echoes.IO;
 
@@ -27,7 +28,8 @@ namespace Echoes.Core
             ProxyStartupSetting startupSetting,
             ClientSetting clientSetting,
             ExchangeBuilder exchangeBuilder,
-            PoolBuilder poolBuilder, IArchiveWriter archiveWriter)
+            PoolBuilder poolBuilder, 
+            IArchiveWriter archiveWriter)
         {
             _exchangeListener = exchangeListener;
             _throttlePolicy = throttlePolicy;
@@ -91,6 +93,18 @@ namespace Echoes.Core
                             {
                                 while (true)
                                 {
+                                    if (_archiveWriter != null)
+                                    {
+                                        await _archiveWriter.Update(
+                                            IArchiveInfoBuilder.FromExchange.Build(exchange),
+                                            CancellationToken.None
+                                        );
+
+                                        exchange.Request.Body = new CopyStream(exchange.Request.Body,
+                                            true,
+                                            _archiveWriter.CreateRequestBodyStream(exchange.Id));
+                                    }
+
                                     // get a connection pool for the current exchange 
                                     // the connection pool may 
 
@@ -98,8 +112,6 @@ namespace Echoes.Core
 
                                     try
                                     {
-                                        exchange.Request.Body = new Copybody(exchange.Request.Body, ); 
-
 
                                         await connectionPool.Send(exchange, localConnection, buffer, token);
                                     }
@@ -172,6 +184,20 @@ namespace Echoes.Core
                                 if (_exchangeListener != null)
                                 {
                                     await _exchangeListener(exchange);
+                                }
+
+
+                                if (_archiveWriter != null)
+                                {
+                                    // Update the state of the exchange 
+                                    await _archiveWriter.Update(
+                                        IArchiveInfoBuilder.FromExchange.Build(exchange),
+                                        CancellationToken.None
+                                    );
+
+                                    exchange.Request.Body = new CopyStream(exchange.Request.Body,
+                                        true,
+                                        _archiveWriter.CreateRequestBodyStream(exchange.Id));
                                 }
 
                                 try

@@ -12,12 +12,10 @@ namespace Echoes.H2.Encoder.Utils
     public class Http11Parser
     {
         private readonly int _maxHeaderLine;
-        private readonly IMemoryProvider<char> _memoryProvider;
 
-        public Http11Parser(int maxHeaderLine, IMemoryProvider<char> memoryProvider)
+        public Http11Parser(int maxHeaderLine)
         {
             _maxHeaderLine = maxHeaderLine;
-            _memoryProvider = memoryProvider;
         }
         
         public IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true, bool keepNonForwardableHeader = false, 

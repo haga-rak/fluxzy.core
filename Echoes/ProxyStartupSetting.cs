@@ -6,8 +6,9 @@ using System.Linq;
 using System.Net;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Echoes.Core;
-using Newtonsoft.Json;
 
 namespace Echoes
 {
@@ -19,98 +20,80 @@ namespace Echoes
         }
 
         /// <summary>
-        /// The address on which the proxy is listening. Default value is 127.0.0.1. 0.0.0.0 to listen to all network interfaces
+        /// The address on which the proxy is listening to. Default value is 127.0.0.1. 0.0.0.0 to listen to all network interfaces
         /// </summary>
-        [JsonProperty]
         public string BoundAddress { get; internal set; } = "127.0.0.1";
-
-
-        [JsonProperty]
+        
         public bool Verbose { get; internal set; } = false;
 
         /// <summary>
         /// The proxy port. Default value is ...
         /// </summary>
-        [JsonProperty]
         public int ListenPort { get; internal set; } = 44344;
 
         /// <summary>
         /// If set to true. All ssl connection will be tunneled disregards of TunneledOnlyHosts
         /// </summary>
-        [JsonProperty]
         public bool SkipSslDecryption { get; internal set; } = false;
 
         /// <summary>
         /// Number of concurrent connection per host maintained by the connection pool excluding websocket connections. Default value is 8.
         /// </summary>
-        [JsonProperty]
         public int ConnectionPerHost { get; internal set; } = 8;
 
         /// <summary>
         /// Number of anticipated connection per host
         /// </summary>
-        [JsonProperty]
         public int AnticipatedConnectionPerHost { get; internal set; } = 0;
 
         /// <summary>
         /// When set to true. Echoes will be set as system proxy when started. 
         /// </summary>
-        [JsonProperty]
         public bool RegisterAsSystemProxy { get; internal set; } = false;
 
         /// <summary>
         /// Above this value, the response body is cached to a temp file. Default value is 0 which means no temp file caching.
         /// </summary>
-        [JsonProperty]
         public long TempStorageSizeLimit { get; internal set; } = 0;
 
         /// <summary>
         /// Location of temp storage 
         /// </summary>
-        [JsonProperty]
         public string TempStorage { get; internal set; }
-
 
 
         /// <summary>
         /// Download bandwidth in KiloByte  (Byte = 8bits) per second. Default value is 0 which means no throttling.
         /// </summary>
-        [JsonProperty]
         public int ThrottleKBytePerSecond { get; internal set; } = 0;
 
-
-        [JsonProperty]
+        
         public SslProtocols ServerProtocols { get; internal set; } = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
         /// <summary>
         /// Time interval on which the bandwidth throttle will be adjusted. Default value is 50ms.
         /// </summary>
-        [JsonProperty]
         public TimeSpan ThrottleIntervalCheck { get; internal set; } = TimeSpan.FromMilliseconds(50);
 
         /// <summary>
         /// List of host where encryption is not set.
         /// </summary>
-        [JsonProperty]
         public HashSet<string> TunneledOnlyHosts { get; internal set; }  = new HashSet<string>();
 
         /// <summary>
         /// The certificate used 
         /// </summary>
-        [JsonProperty]
         public CertificateConfiguration CertificateConfiguration { get; internal set; } = new CertificateConfiguration(null, string.Empty);
 
         /// <summary>
         /// The default certificate cache directory used by echoes proxy
         /// </summary>
-
-        [JsonProperty]
+        
         public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.echoes/cert-caches";
 
         /// <summary>
         /// When set to true, echoes will automaticall install default certificate when starting.
         /// </summary>
-        [JsonProperty]
         public bool AutoInstallCertificate { get; internal set; } = true; 
 
         /// <summary>
@@ -119,24 +102,59 @@ namespace Echoes
         public bool CheckCertificateRevocation { get; internal set; } = true;
 
 
+        /// <summary>
+        /// Do not use certificate cache. Regen certificate whenever asked 
+        /// </summary>
         public bool DisableCertificateCache { get; internal set; } = false;
 
 
+        /// <summary>
+        /// 
+        /// </summary>
         public ClientCertificateConfiguration ClientCertificateConfiguration { get; internal set; }
 
 
         public IReadOnlyCollection<string> ByPassHost { get; internal set; } = new List<string>() { "localhost", "127.0.0.1" };
 
 
+        /// <summary>
+        /// Max header length used by the browser 
+        /// </summary>
         public int MaxHeaderLength { get; set; } = 16384;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public ArchivingPolicy ArchivingPolicy { get; internal set; } = ArchivingPolicy.None;
 
+         /// <summary>
+        /// Set hosts that bypass the proxy
+        /// </summary>
+        /// <param name="hosts"></param>
+        /// <returns></returns>
         public ProxyStartupSetting SetByPassedHosts(params string[] hosts)
         {
             ByPassHost = new ReadOnlyCollection<string>(hosts.Where(h => !string.IsNullOrWhiteSpace(h)).ToList()) ;
             return this; 
         }
 
+        /// <summary>
+        /// Set archiving policy
+        /// </summary>
+        /// <param name="archivingPolicy"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+         public ProxyStartupSetting SetArchivingPolicy(ArchivingPolicy archivingPolicy)
+         {
+             ArchivingPolicy = archivingPolicy ?? throw new ArgumentNullException(nameof(archivingPolicy));
+             return this; 
+         }
+
+        /// <summary>
+        /// Add hosts that echoes should not decrypt
+        /// </summary>
+        /// <param name="hosts"></param>
+        /// <returns></returns>
         public ProxyStartupSetting AddTunneledHosts(params string[] hosts)
         {
             foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h)))
@@ -225,9 +243,9 @@ namespace Echoes
         {
             try
             {
-                ClientCertificateConfiguration = JsonConvert.DeserializeObject<ClientCertificateConfiguration>(
-                    File.ReadAllText(fileName));
-
+                ClientCertificateConfiguration =
+                    JsonSerializer.Deserialize<ClientCertificateConfiguration>(File.ReadAllText(fileName), 
+                        StartupConfigSetting.JsonOptions);
 
             }
             catch (Exception ex)
@@ -245,8 +263,6 @@ namespace Echoes
         /// <returns></returns>
         public ProxyStartupSetting SetThrottleIntervalCheck(TimeSpan delay)
         {
-            // To do controller supérieur à une valeur minimum 
-
             if (delay < TimeSpan.FromMilliseconds(40) || delay > TimeSpan.FromSeconds(2))
                 throw new ArgumentException($"{nameof(delay)} must be between than 40ms and 2s");
 
@@ -334,8 +350,6 @@ namespace Echoes
             };
         }
 
-
-
         /// <summary>
         /// TODO : Move to another class as it's another role
         /// </summary>
@@ -357,26 +371,39 @@ namespace Echoes
         }
     }
 
-    public class CertificateConfiguration
+    
+    public enum ArchivingPolicyType
     {
-        public CertificateConfiguration(byte[] rawCertificate, string password)
-        {
-            if (rawCertificate == null)
-                return; 
-
-            Certificate = new X509Certificate2(rawCertificate, password);
-        }
-
-
-        internal X509Certificate2 Certificate { get; set; }
-
-
-        public bool DefaultConfig
-        {
-            get
-            {
-                return Certificate == null;
-            }
-        }
+        // The proxy 
+        None = 0 , 
+        // Content is set on server  
+        Directory
     }
+
+    public class ArchivingPolicy
+    {
+        [JsonConstructor]
+        internal ArchivingPolicy()
+        {
+
+        }
+
+        public ArchivingPolicyType Type { get; internal set; }
+
+        public string Directory { get; internal set; }
+
+        public static ArchivingPolicy None { get; } = new();
+
+        public static ArchivingPolicy CreateFromDirectory(string path)
+        {
+            return new ArchivingPolicy()
+            {
+                Type = ArchivingPolicyType.Directory,
+                Directory = path
+            }; 
+        }
+
+
+    }
+    
 }

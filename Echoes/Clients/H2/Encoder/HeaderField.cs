@@ -1,4 +1,5 @@
 ﻿using System;
+using Echoes.H2.Encoder.Utils;
 using Echoes.H2.Encoder.Utils.Interfaces;
 
 namespace Echoes.H2.Encoder
@@ -54,7 +55,7 @@ namespace Echoes.H2.Encoder
         /// <param name="memoryName"></param>
         /// <param name="memoryValue"></param>
         /// <param name="memoryProvider"></param>
-        public HeaderField(ReadOnlySpan<char> memoryName, ReadOnlySpan<char> memoryValue, IMemoryProvider<char> memoryProvider)
+        public HeaderField(ReadOnlySpan<char> memoryName, ReadOnlySpan<char> memoryValue, ArrayPoolMemoryProvider<char> memoryProvider)
         {
             Name = memoryProvider.Allocate(memoryName);
             Value = memoryProvider.Allocate(memoryValue);

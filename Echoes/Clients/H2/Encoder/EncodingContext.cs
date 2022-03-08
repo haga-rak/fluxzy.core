@@ -1,5 +1,6 @@
 ﻿using System;
 using Echoes.H2.Encoder.HPack;
+using Echoes.H2.Encoder.Utils;
 using Echoes.H2.Encoder.Utils.Interfaces;
 
 namespace Echoes.H2.Encoder
@@ -8,10 +9,10 @@ namespace Echoes.H2.Encoder
     {
         private readonly HPackEncodingDynamicTable _dynamicTable; 
 
-        private readonly IMemoryProvider<char> _memoryProvider;
+        private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
 
         internal EncodingContext(
-            IMemoryProvider<char> memoryProvider, 
+            ArrayPoolMemoryProvider<char> memoryProvider, 
             int maxDynamicTableSize = 1024 * 4)
         {
             _memoryProvider = memoryProvider;

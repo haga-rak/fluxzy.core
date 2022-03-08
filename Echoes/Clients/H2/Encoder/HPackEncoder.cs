@@ -10,7 +10,7 @@ namespace Echoes.H2.Encoder
         private readonly EncodingContext _encodingContext;
         private readonly PrimitiveOperation _primitiveOperation;
         private readonly CodecSetting _codecSetting;
-        private readonly IMemoryProvider<char> _memoryProvider;
+        private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
         private readonly Http11Parser _parser;
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Echoes.H2.Encoder
         internal HPackEncoder(
             EncodingContext encodingContext,
             CodecSetting codecSetting = null,
-            IMemoryProvider<char> memoryProvider = null,
+            ArrayPoolMemoryProvider<char> memoryProvider = null,
             Http11Parser parser = null,
             PrimitiveOperation primitiveOperation = null)
         {
@@ -34,7 +34,7 @@ namespace Echoes.H2.Encoder
             _primitiveOperation = primitiveOperation ?? new PrimitiveOperation(new HuffmanCodec());
             _codecSetting = codecSetting ?? new CodecSetting();
             _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
-            _parser = parser ?? new Http11Parser(_codecSetting.MaxHeaderLineLength, _memoryProvider);
+            _parser = parser ?? new Http11Parser(_codecSetting.MaxHeaderLineLength);
         }
 
         public EncodingContext Context => _encodingContext;
@@ -160,7 +160,6 @@ namespace Echoes.H2.Encoder
 
         public void Dispose()
         {
-            _memoryProvider.Dispose();
         }
     }
 }

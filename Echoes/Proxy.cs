@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Archiving.Abstractions;
 using Echoes.Core;
 using Echoes.H2.Encoder.Utils;
 
@@ -22,8 +23,7 @@ namespace Echoes
         private Task _loopTask;
         private bool _started;
         private bool _halted; 
-
-        private long _taskId = 0;
+        
         private readonly ProxyOrchestrator _proxyOrchestrator;
         private readonly Http11Parser _http1Parser;
         private readonly PoolBuilder _poolBuilder;
@@ -49,26 +49,31 @@ namespace Echoes
 
             Stream ThrottlePolicyStream(string s) => throtleStream;
 
-            //_tunneledConnectionManager = 
-            //    new TunneledConnectionManager(referenceClock, onNewExchange, ThrottlePolicyStream);
-
             var secureConnectionManager = new SecureConnectionUpdater(
                // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
                 certificateProvider);
 
-            _http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength, ArrayPoolMemoryProvider<char>.Default);
+            _http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength);
             _poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default), ITimingProvider.Default, _http1Parser);
 
+            IArchiveWriter writer = null;
+
+            if (_startupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
+            {
+                Directory.CreateDirectory(_startupSetting.ArchivingPolicy.Directory);
+
+                writer = new DirectoryArchiveWriter(_startupSetting.ArchivingPolicy.Directory); 
+            }
+
             _proxyOrchestrator = new ProxyOrchestrator(onNewExchange,
                 ThrottlePolicyStream, _startupSetting, ClientSetting.Default, new ExchangeBuilder(
-                    secureConnectionManager, _http1Parser), _poolBuilder);
+                    secureConnectionManager, _http1Parser), _poolBuilder, writer);
 
             if (!_startupSetting.SkipSslDecryption && _startupSetting.AutoInstallCertificate)
             {
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
             }
-            
 
             startupSetting.GetDefaultOutput().WriteLine($@"Listening on {startupSetting.BoundAddress}:{startupSetting.ListenPort}");
         }
@@ -146,9 +151,8 @@ namespace Echoes
             try
             {
                 _proxyRegister?.Dispose(); // Unregister system proxy 
-                _proxyOrchestrator.Dispose();
-                //_tunneledConnectionManager.Dispose(); // Free all created tunnel 
                 _downStreamConnectionProvider.Dispose(); // Do not handle new connection to proxy 
+                _proxyOrchestrator.Dispose();
                 _proxyHaltTokenSource.Cancel(); // Cancel all pending orcherstrator task 
 
                 await _loopTask.ConfigureAwait(false); // Wait for main loop to end
@@ -157,8 +161,6 @@ namespace Echoes
             {
 
             }
-
-           // await Task.WhenAll(_runningTasks.Values).ConfigureAwait(false);
         }
 
         public void Dispose()

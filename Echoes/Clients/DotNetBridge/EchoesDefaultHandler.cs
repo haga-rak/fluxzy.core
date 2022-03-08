@@ -10,7 +10,7 @@ namespace Echoes.Clients.DotNetBridge
     public class EchoesDefaultHandler : HttpMessageHandler
     {
         private readonly SemaphoreSlim _semaphore = new(1);
-        private readonly Http11Parser _parser = new(16384, ArrayPoolMemoryProvider<char>.Default);
+        private readonly Http11Parser _parser = new(16384);
         private readonly PoolBuilder _poolBuilder;
 
         public EchoesDefaultHandler()

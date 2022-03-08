@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Echoes
 {
@@ -11,7 +11,6 @@ namespace Echoes
     {
         [JsonIgnore]
         private X509Certificate[] _lazyMapping; 
-
 
         public List<ClientConfigItem> ClientSettings { get; set; } = new List<ClientConfigItem>();
 

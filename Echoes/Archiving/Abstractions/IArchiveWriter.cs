@@ -19,7 +19,6 @@ namespace Echoes.Archiving.Abstractions
         Stream CreateResponseBodyStream(int exchangeId);
     }
 
-
     public class DirectoryArchiveWriter : IArchiveWriter
     {
         private readonly string _baseDirectory;

@@ -19,7 +19,7 @@ namespace Echoes.Core
 
     public class ConnectionErrorHandler
     {
-        private static readonly Http11Parser Parser = new(4096, ArrayPoolMemoryProvider<char>.Default);
+        private static readonly Http11Parser Parser = new(4096);
 
         public static bool RequalifyOnResponseSendError(
             Exception ex, 
