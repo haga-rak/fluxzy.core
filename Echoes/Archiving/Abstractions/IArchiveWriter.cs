@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Echoes.Archiving.Abstractions
@@ -21,17 +22,10 @@ namespace Echoes.Archiving.Abstractions
 
     public class DirectoryArchiveWriter : IArchiveWriter
     {
+        private static readonly int MaxItemPerDirectory = 100; 
+
         private readonly string _baseDirectory;
         private readonly string _contentDirectory;
-        private readonly List<Exchange> _entries = new();
-        private readonly string _archivePath;
-        private readonly ExchangeArchive _archive;
-
-        private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        }; 
 
         public DirectoryArchiveWriter(string baseDirectory)
         {
@@ -39,28 +33,45 @@ namespace Echoes.Archiving.Abstractions
             _contentDirectory  = Path.Combine(baseDirectory, "contents");
 
             Directory.CreateDirectory(_contentDirectory);
-
-            _archivePath = Path.Combine(baseDirectory, "archives.json");
-            _archive = new ExchangeArchive(); 
         }
 
-        private async Task WriteToFile(CancellationToken token)
+        private string GetExchangePath(ExchangeInfo exchangeInfo)
         {
-            await using var fileStream = File.Create(_archivePath);
-            await JsonSerializer.SerializeAsync(fileStream,
-                _archive, JsonSerializerOptions, token);
+            var baseNumber = exchangeInfo.Id / MaxItemPerDirectory; 
+            var directoryHint = $"{baseNumber}-{(baseNumber + MaxItemPerDirectory)}";
+
+            var preDir = Path.Combine(_baseDirectory, "exchanges", directoryHint);
+
+            Directory.CreateDirectory(preDir);
+
+            return Path.Combine(preDir, $"ex-{exchangeInfo.Id}.json");
         }
+
+        private string GetConnectionPath(ConnectionInfo connectionInfo)
+        {
+            var baseNumber = connectionInfo.Id / MaxItemPerDirectory; 
+            var directoryHint = $"{(baseNumber)}-{(baseNumber + MaxItemPerDirectory)}";
+
+            var preDir = Path.Combine(_baseDirectory, "exchanges", directoryHint);
+
+            Directory.CreateDirectory(preDir);
+
+            return Path.Combine(preDir, $"ex-{connectionInfo.Id}.json");
+        }
+
 
         public async Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
-            _archive.Exchanges[exchangeInfo.Id] = exchangeInfo; 
-            await WriteToFile(cancellationToken);
+            var exchangePath = GetExchangePath(exchangeInfo);
+            await using var fileStream = File.Create(exchangePath);
+            await JsonSerializer.SerializeAsync(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions, cancellationToken);
         }
 
         public async Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
         {
-            _archive.Connections[connectionInfo.Id] = connectionInfo;
-            await WriteToFile(cancellationToken);
+            var connectionPath = GetConnectionPath(connectionInfo);
+            await using var fileStream = File.Create(connectionPath);
+            await JsonSerializer.SerializeAsync(fileStream, connectionInfo, GlobalArchiveOption.JsonSerializerOptions, cancellationToken);
         }
 
         public Stream CreateRequestBodyStream(int exchangeId)
@@ -74,6 +85,16 @@ namespace Echoes.Archiving.Abstractions
             var path = Path.Combine(_contentDirectory, $"res-{exchangeId}.data");
             return File.Create(path);
         }
+    }
+
+    public class GlobalArchiveOption
+    {
+        public static JsonSerializerOptions JsonSerializerOptions { get; } =  new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            Converters = { new ReadonlyMemoryCharConverter() }
+        };
     }
 
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json.Serialization;
 using Echoes.H2.Encoder;
 
 namespace Echoes.Archiving.Abstractions
@@ -18,7 +19,7 @@ namespace Echoes.Archiving.Abstractions
         public int Id { get; set; }
 
         public int ConnectionId { get; set; }
-
+        
         public IRequestHeader RequestHeader { get; set; }
 
         public BodyContent RequestContent { get; set; }

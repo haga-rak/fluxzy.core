@@ -12,22 +12,21 @@ using Echoes.H2.Encoder.Utils;
 
 namespace Echoes
 {
-    public class Proxy : IDisposable
+    public class Proxy : IDisposable, IAsyncDisposable
     {
         private readonly ProxyStartupSetting _startupSetting;
-        private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
-        private readonly CancellationTokenSource _proxyHaltTokenSource = new CancellationTokenSource();
+        private IDownStreamConnectionProvider _downStreamConnectionProvider;
+        private CancellationTokenSource _proxyHaltTokenSource = new CancellationTokenSource();
 
         private SystemProxyRegistration _proxyRegister;
+
         private bool _disposed;
         private Task _loopTask;
         private bool _started;
         private bool _halted; 
         
-        private readonly ProxyOrchestrator _proxyOrchestrator;
-        private readonly Http11Parser _http1Parser;
-        private readonly PoolBuilder _poolBuilder;
-
+        private ProxyOrchestrator _proxyOrchestrator;
+        private IArchiveWriter _writer;
 
         public Proxy(
             ProxyStartupSetting startupSetting,
@@ -53,22 +52,25 @@ namespace Echoes
                // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
                 certificateProvider);
 
-            _http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength);
-            _poolBuilder = new PoolBuilder(
-                new RemoteConnectionBuilder(ITimingProvider.Default), ITimingProvider.Default, _http1Parser);
-
-            IArchiveWriter writer = null;
-
+            var http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength);
+            var poolBuilder = new PoolBuilder(
+                new RemoteConnectionBuilder(ITimingProvider.Default), ITimingProvider.Default, http1Parser);
+            
             if (_startupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
             {
                 Directory.CreateDirectory(_startupSetting.ArchivingPolicy.Directory);
 
-                writer = new DirectoryArchiveWriter(_startupSetting.ArchivingPolicy.Directory); 
+                _writer = new DirectoryArchiveWriter(
+                    Path.Combine(_startupSetting.ArchivingPolicy.Directory, SessionIdentifier)); 
             }
 
-            _proxyOrchestrator = new ProxyOrchestrator(onNewExchange,
-                ThrottlePolicyStream, _startupSetting, ClientSetting.Default, new ExchangeBuilder(
-                    secureConnectionManager, _http1Parser), _poolBuilder, writer);
+            _proxyOrchestrator = new ProxyOrchestrator(
+                onNewExchange,
+                ThrottlePolicyStream, 
+                _startupSetting, 
+                ClientSetting.Default,
+                new ExchangeBuilder(
+                    secureConnectionManager, http1Parser), poolBuilder, _writer);
 
             if (!_startupSetting.SkipSslDecryption && _startupSetting.AutoInstallCertificate)
             {
@@ -77,6 +79,8 @@ namespace Echoes
 
             startupSetting.GetDefaultOutput().WriteLine($@"Listening on {startupSetting.BoundAddress}:{startupSetting.ListenPort}");
         }
+
+        public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss"); 
 
         private async Task MainLoop()
         {
@@ -124,9 +128,6 @@ namespace Echoes
             if (_started)
                 throw new InvalidOperationException("Proxy was already started");
 
-            if (_halted)
-                throw new InvalidOperationException("This proxy cannot be started again");
-
             _started = true; 
 
             if (_startupSetting.RegisterAsSystemProxy)
@@ -138,39 +139,48 @@ namespace Echoes
             _loopTask = Task.Run(MainLoop);
         }
         
-        /// <summary>
-        /// Release all resource
-        /// </summary>
-        /// <returns></returns>
-        public async Task Release()
+        public void Dispose()
         {
-            if (_halted)
-                return; 
+            InternalDispose();
+        }
 
-            _halted = true;
+        public async ValueTask DisposeAsync()
+        {
+            InternalDispose();
+            
             try
             {
-                _proxyRegister?.Dispose(); // Unregister system proxy 
-                _downStreamConnectionProvider.Dispose(); // Do not handle new connection to proxy 
-                _proxyOrchestrator.Dispose();
-                _proxyHaltTokenSource.Cancel(); // Cancel all pending orcherstrator task 
 
                 await _loopTask.ConfigureAwait(false); // Wait for main loop to end
             }
             catch (Exception)
             {
-
+                // Loop task exception 
             }
         }
 
-        public void Dispose()
+        private void InternalDispose()
         {
-            if (_disposed)
-                return;
+            _halted = true;
 
-            _proxyHaltTokenSource.Dispose();
+            _proxyRegister?.Dispose();
+            _proxyRegister = null;
 
-            _disposed = true; 
+            _downStreamConnectionProvider?.Dispose(); // Do not handle new connection to proxy 
+            _downStreamConnectionProvider = null;
+
+            _proxyOrchestrator?.Dispose();
+            _proxyOrchestrator = null;
+
+            _proxyHaltTokenSource.Cancel();
+
+            _proxyHaltTokenSource?.Dispose();
+            _proxyHaltTokenSource = null;
+            
+            _writer = null;
+
+            _disposed = true;
+
         }
     }
 

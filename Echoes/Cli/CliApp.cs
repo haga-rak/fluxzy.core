@@ -101,7 +101,7 @@ namespace Echoes.Cli
             target.Description = "Export the default certificate used by echoes to file";
             target.HelpOption("-h | --help");
 
-            var argument = target.Argument("fileName", "Dump the default public certificate used by echoes to a file");
+            var argument = target.Argument("fileName", "Dump the default public certificate used by echoes to file");
 
             target.OnExecute(async () =>
             {
@@ -140,6 +140,11 @@ namespace Echoes.Cli
             var outputFileOption = target.Option(
                 "-o | --output-file <fileName>",
                 "Output the captured traffic to fileName",
+                CommandOptionType.SingleValue);
+
+            var outputDirectoryOption = target.Option(
+                "-d | --output-dir <directoryName>",
+                "Output the captured traffic to directory",
                 CommandOptionType.SingleValue);
 
             var systemProxyOption = target.Option(
@@ -207,6 +212,13 @@ namespace Echoes.Cli
                     outputFileName = outputFileOption.Value();
                 }
 
+                if (outputDirectoryOption.HasValue())
+                {
+                    proxyStartUpSetting.SetArchivingPolicy(
+                        ArchivingPolicy.CreateFromDirectory(
+                        outputDirectoryOption.Value())); 
+                }
+
                 if (throttleOption.HasValue())
                 {
                     if (!int.TryParse(throttleOption.Value(), out var throttleKb))
@@ -255,7 +267,6 @@ namespace Echoes.Cli
                     var password = certificatePasswordOption.HasValue() ? certificatePasswordOption.Value() : null;
 
                     proxyStartUpSetting.SetSecureCertificate(File.ReadAllBytes(certificateFileOption.Value()), password ?? string.Empty);
-
                 }
 
                 proxyStartUpSetting.SetAutoInstallCertificate(!skiptCertInstallOption.HasValue());
@@ -315,8 +326,7 @@ namespace Echoes.Cli
 
             Console.WriteLine(@"Halting proxy ...");
 
-            await proxy.Release().ConfigureAwait(false);
-            proxy.Dispose();
+            await proxy.DisposeAsync();
 
             Console.WriteLine(@"Proxy halted. Bye.");
         }

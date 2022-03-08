@@ -100,9 +100,16 @@ namespace Echoes.Core
                                             CancellationToken.None
                                         );
 
-                                        exchange.Request.Body = new CopyStream(exchange.Request.Body,
-                                            true,
-                                            _archiveWriter.CreateRequestBodyStream(exchange.Id));
+
+                                        if (exchange.Request.Body != null &&
+                                            (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0))
+                                        {
+
+                                            exchange.Request.Body = new CopyStream(exchange.Request.Body,
+                                                true,
+                                                _archiveWriter.CreateRequestBodyStream(exchange.Id));
+                                        }
+
                                     }
 
                                     // get a connection pool for the current exchange 
@@ -195,9 +202,13 @@ namespace Echoes.Core
                                         CancellationToken.None
                                     );
 
-                                    exchange.Request.Body = new CopyStream(exchange.Request.Body,
-                                        true,
-                                        _archiveWriter.CreateRequestBodyStream(exchange.Id));
+                                    if (exchange.Response.Body != null &&
+                                        (!exchange.Response.Body.CanSeek || exchange.Response.Body.Length > 0))
+                                    {
+                                        exchange.Response.Body = new CopyStream(exchange.Response.Body,
+                                            true,
+                                            _archiveWriter.CreateResponseBodyStream(exchange.Id));
+                                    }
                                 }
 
                                 try
