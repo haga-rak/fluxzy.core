@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.H2;
+using Echoes.H2.Encoder;
 using Echoes.H2.Encoder.Utils;
 using Echoes.IO;
 
@@ -47,17 +48,19 @@ namespace Echoes.H11
             // Here is the opportunity to change header 
             var bufferRaw = buffer;
 
-
             Memory<byte> headerBuffer = bufferRaw;
 
             exchange.Connection.AddNewRequestProcessed();
             
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
+
+            //exchange.Request.Header
+            //    .AddExtraHeaderFieldToLocalConnection(new HeaderField("Connection", "close"));
+            
             _logger.Trace(exchange.Id, () => $"Begin writing header");
-            var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true);
-
-
+            var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true, true);
+            
             // Sending request header 
 
             await exchange.Connection.WriteStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Archiving.Abstractions;
 using Echoes.H2;
 using Echoes.IO;
 
@@ -18,6 +19,7 @@ namespace Echoes.Core
         private readonly ClientSetting _clientSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
+        private readonly IArchiveWriter _archiveWriter;
 
         public ProxyOrchestrator(
             Func<Exchange, Task> exchangeListener,
@@ -25,7 +27,7 @@ namespace Echoes.Core
             ProxyStartupSetting startupSetting,
             ClientSetting clientSetting,
             ExchangeBuilder exchangeBuilder,
-            PoolBuilder poolBuilder)
+            PoolBuilder poolBuilder, IArchiveWriter archiveWriter)
         {
             _exchangeListener = exchangeListener;
             _throttlePolicy = throttlePolicy;
@@ -33,6 +35,7 @@ namespace Echoes.Core
             _clientSetting = clientSetting;
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;
+            _archiveWriter = archiveWriter;
         }
 
         public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)
@@ -50,7 +53,8 @@ namespace Echoes.Core
 
                     try
                     {
-                        localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), buffer, token);
+                        localConnection = await _exchangeBuilder.InitClientConnection(
+                            client.GetStream(), buffer, token);
                     }
                     catch (Exception ex)
                     {
@@ -94,6 +98,9 @@ namespace Echoes.Core
 
                                     try
                                     {
+                                        exchange.Request.Body = new Copybody(exchange.Request.Body, ); 
+
+
                                         await connectionPool.Send(exchange, localConnection, buffer, token);
                                     }
                                     catch (ConnectionCloseException)

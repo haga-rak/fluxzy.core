@@ -45,13 +45,13 @@ namespace Echoes.H2.Encoder
         public int MaxHeaderLineLength { get; set; } = 16384;
 
         /// <summary>
-        /// Huffman is applied only if if string length exceed this value. 
+        /// When encoding, Huffman is applied only if if string length exceed this value. 
         /// </summary>
         public int MaxLengthUncompressedString { get; set; } = 4;
 
 
         /// <summary>
-        /// Max length for a stackalloc, beyond this value ArrayPool is used
+        /// Max length for a stackalloc, beyond this value heap allocation is used
         /// </summary>
         public int MaxStackAllocationLength { get; set; } = 4096; 
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +14,9 @@ namespace Echoes.Archiving.Abstractions
 
         Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
 
-        Task RegisterRequestBody(int exchangeId, Stream stream, CancellationToken cancellationToken); 
+        Stream CreateRequestBodyStream(int exchangeId);
 
-        Task RegisterResponseBody(int exchangeId, Stream stream, CancellationToken cancellationToken); 
+        Stream CreateResponseBodyStream(int exchangeId);
     }
 
 
@@ -23,40 +24,62 @@ namespace Echoes.Archiving.Abstractions
     {
         private readonly string _baseDirectory;
         private readonly string _contentDirectory;
-        private readonly List<Exchange> _entries = new(); 
+        private readonly List<Exchange> _entries = new();
+        private readonly string _archivePath;
+        private readonly ExchangeArchive _archive;
+
+        private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        }; 
 
         public DirectoryArchiveWriter(string baseDirectory)
         {
             _baseDirectory = baseDirectory;
-            _contentDirectory  = Path.Combine(baseDirectory, "content");
+            _contentDirectory  = Path.Combine(baseDirectory, "contents");
 
             Directory.CreateDirectory(_contentDirectory);
+
+            _archivePath = Path.Combine(baseDirectory, "archives.json");
+            _archive = new ExchangeArchive(); 
         }
 
-        public Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        private async Task WriteToFile(CancellationToken token)
         {
-            throw new NotImplementedException();
+            await using var fileStream = File.Create(_archivePath);
+            await JsonSerializer.SerializeAsync(fileStream,
+                _archive, JsonSerializerOptions, token);
         }
 
-        public Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
+        public async Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _archive.Exchanges[exchangeInfo.Id] = exchangeInfo; 
+            await WriteToFile(cancellationToken);
         }
 
-        public Task RegisterRequestBody(int exchangeId, Stream stream, CancellationToken cancellationToken)
+        public async Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _archive.Connections[connectionInfo.Id] = connectionInfo;
+            await WriteToFile(cancellationToken);
         }
 
-        public Task RegisterResponseBody(int exchangeId, Stream stream, CancellationToken cancellationToken)
+        public Stream CreateRequestBodyStream(int exchangeId)
         {
-            throw new NotImplementedException();
+            var path = Path.Combine(_contentDirectory, $"req-{exchangeId}.data");
+            return File.Create(path);
+        }
+
+        public Stream CreateResponseBodyStream(int exchangeId)
+        {
+            var path = Path.Combine(_contentDirectory, $"res-{exchangeId}.data");
+            return File.Create(path);
         }
     }
 
 
     public class ConnectionInfo
     {
-
+        public int Id { get; set; }
     }
 }

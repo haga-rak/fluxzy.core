@@ -28,7 +28,6 @@ namespace Echoes.H2.Tests
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://gql.twitch.tv/gql"
                 //$"https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"
-                
                 );
 
             using var response = await httpClient.SendAsync(requestMessage);

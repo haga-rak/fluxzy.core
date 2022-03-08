@@ -5,6 +5,14 @@ using Echoes.H2.Encoder;
 
 namespace Echoes.Archiving.Abstractions
 {
+    public class ExchangeArchive
+    {
+        public Dictionary<int, ExchangeInfo> Exchanges { get; set; } = new();
+
+        public Dictionary<int, ConnectionInfo> Connections { get; set; } = new();
+    }
+
+
     public class ExchangeInfo
     {
         public int Id { get; set; }
@@ -24,7 +32,7 @@ namespace Echoes.Archiving.Abstractions
 
     public class BodyContent
     {
-        public Stream Stream { get; set; }
+        public string ContentId { get; set; }
 
         public int Length { get; set; }
     }
