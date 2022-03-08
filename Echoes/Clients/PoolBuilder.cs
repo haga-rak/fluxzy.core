@@ -116,8 +116,8 @@ namespace Echoes
                     var tunneledConnectionPool = new TunnelOnlyConnectionPool(
                         exchange.Authority, _timingProvider,
                         _remoteConnectionBuilder, clientSetting);
-                    lock (_connectionPools)
-                        return result = _connectionPools[exchange.Authority] = tunneledConnectionPool;
+
+                    return result = tunneledConnectionPool;
                 }
 
                 if (!exchange.Authority.Secure)
