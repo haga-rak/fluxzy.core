@@ -6,8 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Core.Utils;
-using Echoes.Helpers;
-using CombinedReadonlyStream = Echoes.IO.CombinedReadonlyStream;
+using Echoes.Misc;
+using CombinedReadonlyStream = Echoes.Misc.CombinedReadonlyStream;
 
 namespace Echoes.Core
 {

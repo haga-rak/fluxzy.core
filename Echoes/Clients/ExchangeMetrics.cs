@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Echoes;
+namespace Echoes.Clients;
 
 public class ExchangeMetrics
 {

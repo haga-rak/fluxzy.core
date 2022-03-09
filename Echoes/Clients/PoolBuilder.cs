@@ -7,13 +7,11 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Archiving.Abstractions;
-using Echoes.Core.Utils;
-using Echoes.H11;
-using Echoes.H2;
-using Echoes.H2.Encoder.Utils;
+using Echoes.Clients.H11;
+using Echoes.Clients.H2;
+using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     /// <summary>
     /// Main entry of remote connection
@@ -127,7 +125,7 @@ namespace Echoes
                 if (!exchange.Authority.Secure)
                 {
                     // Plain HTTP/1.1
-                    var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, null,
+                    var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser, _archiveWriter);
 
                     exchange.HttpVersion = "HTTP/1.1";
@@ -146,7 +144,7 @@ namespace Echoes
 
                 if (openingResult.Type == RemoteConnectionResultType.Http11)
                 {
-                    var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, exchange.Connection,
+                    var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser, _archiveWriter);
                     
                     exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";

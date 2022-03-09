@@ -3,7 +3,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     public interface ITimingProvider
     {

@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Helpers;
+using Echoes.Misc;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
 
     public class H2FrameReader

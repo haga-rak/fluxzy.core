@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+using Echoes.Clients;
 using Echoes.Core;
 using Microsoft.Extensions.CommandLineUtils;
 

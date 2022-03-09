@@ -1,4 +1,5 @@
 ﻿using System;
+using Echoes.Clients;
 
 namespace Echoes.Rules
 {

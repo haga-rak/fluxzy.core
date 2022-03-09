@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
-using Echoes.H2.Encoder.HPack;
-using Echoes.H2.Encoder.Huffman;
-using Echoes.H2.Encoder.Utils;
-using Echoes.H2.Encoder.Utils.Interfaces;
+using Echoes.Clients.H2.Encoder.HPack;
+using Echoes.Clients.H2.Encoder.Huffman;
+using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes.H2.Encoder
+namespace Echoes.Clients.H2.Encoder
 {
     public class HPackDecoder : IDisposable
     {

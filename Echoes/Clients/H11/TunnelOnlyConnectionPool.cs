@@ -1,17 +1,15 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Archiving.Abstractions;
-using Echoes.IO;
+using Echoes.Misc;
 
-namespace Echoes.H11
+namespace Echoes.Clients.H11
 {
     public class TunnelOnlyConnectionPool : IHttpConnectionPool
     {

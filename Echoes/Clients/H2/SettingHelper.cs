@@ -2,8 +2,9 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Clients.H2.Frames;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     internal static class SettingHelper
     {

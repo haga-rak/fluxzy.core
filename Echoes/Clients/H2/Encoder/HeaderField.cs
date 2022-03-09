@@ -1,8 +1,7 @@
 ﻿using System;
-using Echoes.H2.Encoder.Utils;
-using Echoes.H2.Encoder.Utils.Interfaces;
+using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes.H2.Encoder
+namespace Echoes.Clients.H2.Encoder
 {
     /// <summary>
     /// This struct represents a name pair value of a HTTP header.

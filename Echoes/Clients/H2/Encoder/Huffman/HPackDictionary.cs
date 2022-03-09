@@ -1,7 +1,7 @@
 ﻿using System.Linq;
-using Echoes.H2.Encoder.Huffman.Interfaces;
+using Echoes.Clients.H2.Encoder.Huffman.Interfaces;
 
-namespace Echoes.H2.Encoder.Huffman
+namespace Echoes.Clients.H2.Encoder.Huffman
 {
     public class HPackDictionary : IHuffmanDictionary
     {

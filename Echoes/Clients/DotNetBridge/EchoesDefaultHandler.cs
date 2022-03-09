@@ -2,9 +2,9 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Clients.Common;
+using Echoes.Clients.H2.Encoder.Utils;
 using Echoes.Core;
-using Echoes.DotNetBridge;
-using Echoes.H2.Encoder.Utils;
 
 namespace Echoes.Clients.DotNetBridge
 {

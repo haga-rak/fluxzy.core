@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Echoes.H2.Encoder.HPack
+namespace Echoes.Clients.H2.Encoder.HPack
 {
     public class HPackDecodingDynamicTable
     {

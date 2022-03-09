@@ -1,6 +1,6 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2.Frames
 {
     public enum H2ErrorCode : int
     {

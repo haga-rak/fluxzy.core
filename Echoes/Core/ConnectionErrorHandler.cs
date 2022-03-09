@@ -3,8 +3,9 @@ using System.IO;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
-using Echoes.H2;
-using Echoes.H2.Encoder.Utils;
+using Echoes.Clients;
+using Echoes.Clients.H2;
+using Echoes.Clients.H2.Encoder.Utils;
 
 namespace Echoes.Core
 {

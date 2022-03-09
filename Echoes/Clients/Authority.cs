@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     public readonly struct Authority : IEquatable<Authority>
     {

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Clients;
 
 namespace Echoes.Core
 {
@@ -24,7 +25,7 @@ namespace Echoes.Core
             }
             catch (Exception)
             {
-                // 
+                // Ignore errors
             }
 
             _listener = null;

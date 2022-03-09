@@ -1,11 +1,6 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
-using System.Buffers;
-using System.Threading;
-using Echoes.H2.Encoder;
-using Echoes.H2.Encoder.Utils;
-
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     //internal class StreamProcessingBuilder
     //{

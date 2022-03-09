@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Text;
 
-namespace Echoes.DotNetBridge
+namespace Echoes.Clients.DotNetBridge
 {
     public static class HttpRequestMessageExtensions
     {

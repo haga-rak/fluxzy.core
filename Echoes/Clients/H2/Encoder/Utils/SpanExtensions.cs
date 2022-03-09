@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 
-namespace Echoes.H2.Encoder.Utils
+namespace Echoes.Clients.H2.Encoder.Utils
 {
     internal static class SpanExtensions
     {

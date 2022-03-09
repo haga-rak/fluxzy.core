@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Buffers;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.H2.Encoder;
-using Echoes.H2.Encoder.Utils;
-using Echoes.Helpers;
-using Echoes.IO;
+using Echoes.Clients.H2.Encoder;
+using Echoes.Clients.H2.Frames;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     internal sealed class StreamManager: IDisposable
     {

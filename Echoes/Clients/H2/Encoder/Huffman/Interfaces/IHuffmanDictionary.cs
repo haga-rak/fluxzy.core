@@ -1,4 +1,4 @@
-﻿namespace Echoes.H2.Encoder.Huffman.Interfaces
+﻿namespace Echoes.Clients.H2.Encoder.Huffman.Interfaces
 {
     public interface IHuffmanDictionary
     {

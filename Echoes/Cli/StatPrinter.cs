@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Echoes.Helpers;
+using Echoes.Clients;
+using Echoes.Misc;
 
 namespace Echoes.Cli
 {

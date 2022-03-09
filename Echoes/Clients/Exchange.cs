@@ -7,11 +7,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.H2.Encoder;
-using Echoes.H2.Encoder.Utils;
-using Echoes.IO;
+using Echoes.Clients.H2.Encoder;
+using Echoes.Clients.H2.Encoder.Utils;
+using Echoes.Misc;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     public class Exchange
     {

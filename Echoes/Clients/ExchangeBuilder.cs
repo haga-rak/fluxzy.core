@@ -1,18 +1,17 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
-using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Clients.H11;
+using Echoes.Clients.H2.Encoder.Utils;
 using Echoes.Core;
-using Echoes.H11;
-using Echoes.H2.Encoder.Utils;
-using Echoes.IO;
-using CombinedReadonlyStream = Echoes.IO.CombinedReadonlyStream;
+using Echoes.Misc;
+using CombinedReadonlyStream = Echoes.Misc.CombinedReadonlyStream;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     public interface ILink 
     {
@@ -95,7 +94,7 @@ namespace Echoes
             var plainStream = stream;
 
             var blockReadResult = await
-                Http11PoolProcessing.DetectHeaderBlock(plainStream, buffer, () => { }, () => { }, false, token);
+                Http11HeaderBlockReader.GetNext(plainStream, buffer, () => { }, () => { }, false, token);
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
 
@@ -169,7 +168,7 @@ namespace Echoes
             CancellationToken token)
         {
             var blockReadResult = await
-                Http11PoolProcessing.DetectHeaderBlock(inStream, buffer, () => { }, () => { }, false, token);
+                Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, false, token);
 
             if (blockReadResult.TotalReadLength == 0)
                 return null;

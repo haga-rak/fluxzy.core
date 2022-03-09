@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Echoes.H2.Encoder.Huffman
+namespace Echoes.Clients.H2.Encoder.Huffman
 {
     internal class Node
     {

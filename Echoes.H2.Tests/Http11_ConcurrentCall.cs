@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Echoes.DotNetBridge;
+using Echoes.Clients.DotNetBridge;
 using Echoes.H2.Tests.Utils;
 using Xunit;
 

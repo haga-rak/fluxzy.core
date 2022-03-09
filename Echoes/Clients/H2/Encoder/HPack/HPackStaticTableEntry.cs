@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Echoes.H2.Encoder.Utils;
+using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes.H2.Encoder.HPack
+namespace Echoes.Clients.H2.Encoder.HPack
 {
     internal class HPackStaticTableEntry
     {

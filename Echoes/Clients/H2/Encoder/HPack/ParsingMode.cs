@@ -1,6 +1,6 @@
 using System;
 
-namespace Echoes.H2.Encoder.HPack
+namespace Echoes.Clients.H2.Encoder.HPack
 {
     internal static class ParsingMode
     {

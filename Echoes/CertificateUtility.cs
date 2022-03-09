@@ -28,13 +28,18 @@ namespace Echoes
             await stream.WriteAsyncNS2(EchoesSecurity.DefaultCertificate.Export(X509ContentType.Cert)).ConfigureAwait(false);
         }
         
-        public static bool IsCertificateInstalled(string serialNumber)
+        /// <summary>
+        /// Check whether a certificat is installed as root certificate
+        /// </summary>
+        /// <param name="certificateSerialNumber"></param>
+        /// <returns></returns>
+        public static bool IsCertificateInstalled(string certificateSerialNumber)
         {
             using (X509Store store = new X509Store(StoreName.Root))
             {
                 store.Open(OpenFlags.ReadOnly);
                 
-                var certificates = store.Certificates.Find(X509FindType.FindBySerialNumber, serialNumber, false);
+                var certificates = store.Certificates.Find(X509FindType.FindBySerialNumber, certificateSerialNumber, false);
                 return certificates.Count > 0;
             }
         }

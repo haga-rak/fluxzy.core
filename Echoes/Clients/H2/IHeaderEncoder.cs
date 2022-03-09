@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.H2.Encoder;
+using Echoes.Clients.H2.Encoder;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     internal interface IHeaderEncoder
     {

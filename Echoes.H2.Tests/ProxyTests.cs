@@ -8,11 +8,11 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Clients;
 using Echoes.Core;
-using Echoes.DotNetBridge;
 using Echoes.H2.Tests.Tools;
 using Echoes.H2.Tests.Utils;
-using Echoes.IO;
+using Echoes.Misc;
 using Xunit;
 using Header2 = Sandbox.Models.Header;
 

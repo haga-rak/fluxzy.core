@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.H11;
-using Echoes.H2;
-using Echoes.H2.Encoder.Utils;
+using Echoes.Clients.H11;
+using Echoes.Clients.H2;
+using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes.DotNetBridge
+namespace Echoes.Clients.DotNetBridge
 {
     public class EchoesHttp11Handler : HttpMessageHandler
     {

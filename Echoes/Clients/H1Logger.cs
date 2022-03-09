@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Echoes.H2;
+using Echoes.Clients.H2;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     internal class H1Logger
     {

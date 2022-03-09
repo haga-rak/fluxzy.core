@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     public class HeaderReceptionScheduler : PipeScheduler, IAsyncDisposable
     {

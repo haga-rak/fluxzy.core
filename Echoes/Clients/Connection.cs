@@ -2,9 +2,8 @@
 using System.IO;
 using System.Net;
 using System.Threading;
-using Echoes.Archiving.Abstractions;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     /// <summary>
     /// Contains information about transport layer 

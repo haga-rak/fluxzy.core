@@ -1,14 +1,6 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
-using System;
-using System.Buffers;
-using System.IO;
-using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using Echoes.Helpers;
-
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     //public class H2ResponseStream : Stream
     //{

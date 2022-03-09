@@ -6,11 +6,11 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Core;
-using Echoes.H11;
-using Echoes.H2.Encoder.Utils;
+using Echoes.Clients.Common;
+using Echoes.Clients.H11;
+using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     public static class ConnectionBuilder
     {
@@ -57,7 +57,7 @@ namespace Echoes.H2
         public static async Task<Http11ConnectionPool> CreateH11(Authority authority, 
             CancellationToken token = default)
         {
-            var connectionPool =  new Http11ConnectionPool(authority, null,
+            var connectionPool =  new Http11ConnectionPool(authority,
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
                 ITimingProvider.Default, ClientSetting.Default, new Http11Parser(
                     ClientSetting.Default.MaxHeaderLineSize), null);

@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Echoes.H2.Encoder;
-using Echoes.H2.Encoder.Utils;
-using Echoes.Helpers;
+using Echoes.Clients.H2.Encoder;
+using Echoes.Clients.H2.Encoder.Utils;
+using Echoes.Clients.H2.Frames;
+using Echoes.Misc;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
 
     public class H2ConnectionPool : IHttpConnectionPool

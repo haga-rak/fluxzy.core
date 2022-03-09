@@ -1,6 +1,6 @@
-﻿using Echoes.H2.Encoder.Utils;
+﻿using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     internal class StreamContext
     {

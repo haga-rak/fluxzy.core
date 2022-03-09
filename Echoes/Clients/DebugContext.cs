@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     public static class DebugContext
     {
-
+        /// <summary>
+        /// Reference for current debug sessions
+        /// </summary>
         public static string ReferenceString { get; } = DateTime.Now.ToString("yyyyMMddHHmmss");
 
         /// <summary>
@@ -14,7 +16,9 @@ namespace Echoes
         /// </summary>
         public static bool EnableNetworkFileDump { get; }
 
-        
+        /// <summary>
+        /// Enable trace on H2 window updates 
+        /// </summary>
         public static bool EnableWindowSizeTrace { get; }
         
         public static bool EnableDumpStackTraceOn502 { get; }
@@ -27,16 +31,16 @@ namespace Echoes
                 .GetEnvironmentVariable("InsertEchoesMetricsOnResponseHeader"));
 
 
-        public static string SessionDate { get; }  = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss"); 
-
-
         /// <summary>
         /// When EnableNetworkFileDump is enable. Get the dump directory. Default value is "./raw".
         /// Can be modified by setting environment variable "Echoes_FileDumpDirectory" ; 
         /// 
         /// </summary>
-        public static string NetworkFileDumpDirectory { get; } 
+        public static string NetworkFileDumpDirectory { get; }
 
+        /// <summary>
+        /// When EnableWindowSizeTrace is enabled, store the logs on this directory
+        /// </summary>
         public static string WindowSizeTraceDumpDirectory { get; } = "trace";
 
 

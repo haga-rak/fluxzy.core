@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.H2.Encoder.Huffman;
+using Echoes.Clients.H2.Encoder.Huffman;
 
-namespace Echoes.H2.Encoder.HPack
+namespace Echoes.Clients.H2.Encoder.HPack
 {
     internal class PrimitiveOperation
     {

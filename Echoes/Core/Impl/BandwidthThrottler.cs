@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Clients;
 using Echoes.Core.Utils;
 
 namespace Echoes.Core

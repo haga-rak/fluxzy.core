@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     public readonly ref struct HeaderEncodingJob
     {

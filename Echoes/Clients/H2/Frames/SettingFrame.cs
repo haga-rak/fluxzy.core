@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.IO;
-using Echoes.Helpers;
+using Echoes.Misc;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2.Frames
 {
     public readonly ref struct SettingFrame
     {

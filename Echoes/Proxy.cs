@@ -6,9 +6,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Archiving.Abstractions;
+using Echoes.Clients;
+using Echoes.Clients.Common;
+using Echoes.Clients.H2.Encoder.Utils;
 using Echoes.Core;
-using Echoes.H2.Encoder.Utils;
 
 namespace Echoes
 {

@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     internal class WindowSizeHolder : IDisposable
     {

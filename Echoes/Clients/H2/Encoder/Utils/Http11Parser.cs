@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Echoes.H2.Encoder.HPack;
-using Echoes.H2.Encoder.Utils.Interfaces;
+using Echoes.Clients.H2.Encoder.HPack;
 
-namespace Echoes.H2.Encoder.Utils
+namespace Echoes.Clients.H2.Encoder.Utils
 {
     /// <summary>
     /// Converts a flat HTTP/1.1 request to a list of (name, value) headers compatible with HTTP/2

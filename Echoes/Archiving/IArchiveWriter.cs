@@ -1,0 +1,17 @@
+﻿using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Echoes
+{
+    internal interface IArchiveWriter
+    {
+        Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken); 
+
+        Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
+
+        Stream CreateRequestBodyStream(int exchangeId);
+
+        Stream CreateResponseBodyStream(int exchangeId);
+    }
+}

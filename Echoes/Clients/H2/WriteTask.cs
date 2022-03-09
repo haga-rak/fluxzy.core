@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     internal readonly struct WriteTask 
     {

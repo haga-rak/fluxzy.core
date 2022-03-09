@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Helpers;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     internal class StreamPool :  IDisposable, IAsyncDisposable
     {

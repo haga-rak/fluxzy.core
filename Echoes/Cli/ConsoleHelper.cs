@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Echoes
+namespace Echoes.Cli
 {
     public static class ConsoleHelper
     {

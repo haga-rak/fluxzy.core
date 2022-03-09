@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Clients;
 using Echoes.Core;
 using Echoes.H2.Tests.Utils;
 

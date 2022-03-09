@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     public static class H2Writer
     {

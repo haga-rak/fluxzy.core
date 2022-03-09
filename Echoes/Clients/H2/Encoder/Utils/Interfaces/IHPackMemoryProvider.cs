@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes.H2.Encoder.Utils.Interfaces
+namespace Echoes.Clients.H2.Encoder.Utils.Interfaces
 {
     public interface IMemoryProvider<T> : IDisposable
     {

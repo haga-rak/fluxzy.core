@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2.Frames
 {
     public readonly ref struct DataFrame
     {

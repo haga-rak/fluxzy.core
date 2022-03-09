@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.H2.Encoder.HPack;
+using Echoes.Clients.H2.Encoder.HPack;
 
-namespace Echoes.H2.Encoder.Utils
+namespace Echoes.Clients.H2.Encoder.Utils
 {
     public static class EncodingExtensions
     {

@@ -7,14 +7,13 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Archiving.Abstractions;
-using Echoes.H2.Encoder.Utils;
+using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes.H11
+namespace Echoes.Clients.H11
 {
     public class Http11ConnectionPool : IHttpConnectionPool
     {
-        private static readonly List<SslApplicationProtocol> Http11Protocols = new List<SslApplicationProtocol>() { SslApplicationProtocol.Http11 };
+        private static readonly List<SslApplicationProtocol> Http11Protocols = new() { SslApplicationProtocol.Http11 };
         
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
@@ -22,13 +21,11 @@ namespace Echoes.H11
         private readonly Http11Parser _parser;
         private readonly RealtimeArchiveWriter _archiveWriter;
         private readonly SemaphoreSlim _semaphoreSlim;
-        private readonly Queue<Http11ProcessingState> _processingStates = new Queue<Http11ProcessingState>();
 
-        private DateTime _lastActivity = ITimingProvider.Default.Instant(); 
+        private readonly Queue<Http11ProcessingState> _processingStates = new();
 
         internal Http11ConnectionPool(
-            Authority authority, 
-            Connection ? existingConnection,
+            Authority authority,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
             ClientSetting clientSetting, 
@@ -44,7 +41,7 @@ namespace Echoes.H11
             _semaphoreSlim = new SemaphoreSlim(clientSetting.ConcurrentConnection);
             _logger = new H1Logger(authority);
             
-            _lastActivity = ITimingProvider.Default.Instant();
+            ITimingProvider.Default.Instant();
         }
 
         public Authority Authority { get; }
@@ -65,7 +62,7 @@ namespace Echoes.H11
 
         public async ValueTask Send(Exchange exchange, ILocalLink _, byte [] buffer, CancellationToken cancellationToken)
         {
-            _lastActivity = ITimingProvider.Default.Instant();
+            ITimingProvider.Default.Instant();
 
             exchange.HttpVersion = "HTTP/1.1";
 
@@ -115,7 +112,7 @@ namespace Echoes.H11
                     _logger.Trace(exchange.Id, () => $"New connection obtained: {exchange.Connection.Id}");
                 }
 
-                var poolProcessing = new Http11PoolProcessing(_clientSetting, _parser, _logger);
+                var poolProcessing = new Http11PoolProcessing(_parser, _logger);
 
                 try
                 {
@@ -168,7 +165,7 @@ namespace Echoes.H11
             finally
             {
                 _semaphoreSlim.Release(); 
-                _lastActivity = ITimingProvider.Default.Instant();
+                ITimingProvider.Default.Instant();
             }
 
 

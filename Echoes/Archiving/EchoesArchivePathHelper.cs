@@ -1,4 +1,5 @@
-﻿using Echoes.Core;
+﻿using Echoes.Clients;
+using Echoes.Core;
 
 namespace Echoes
 {

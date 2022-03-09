@@ -1,8 +1,9 @@
 // Copyright © 2021 Haga Rakotoharivelo
 
 using System;
+using Echoes.Clients.H2.Frames;
 
-namespace Echoes.H2
+namespace Echoes.Clients.H2
 {
     public class Packetizer
     {

@@ -2,14 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using Echoes.H2;
-using Echoes.H2.Encoder.Utils;
+using Echoes.Clients.H2;
+using Echoes.Clients.H2.Frames;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     /// <summary>
     /// Utility for tracing H2 Connection 

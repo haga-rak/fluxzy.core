@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes.H2.Encoder.Utils
+namespace Echoes.Clients.H2.Encoder.Utils
 {
     public static class AsciiStringHelper
     {

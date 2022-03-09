@@ -1,4 +1,4 @@
-﻿namespace Echoes.H2
+﻿namespace Echoes.Clients.H2
 {
     public enum H2FrameType : byte
     {

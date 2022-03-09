@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Echoes.Archiving.Abstractions;
-using Echoes.H2.Encoder;
-using Echoes.H2.Encoder.Utils;
+using Echoes.Clients.H2.Encoder;
+using Echoes.Clients.H2.Encoder.Utils;
 
-namespace Echoes
+namespace Echoes.Clients
 {
     public class RequestHeader : Header
     {
