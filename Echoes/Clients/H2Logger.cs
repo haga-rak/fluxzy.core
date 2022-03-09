@@ -272,17 +272,17 @@ namespace Echoes.Clients
             Trace(exchange, streamIdentifier, preMessage + (ex == null ? string.Empty : ex.ToString()));
         }
 
-        public void Trace(StreamManager streamManager,
+        public void Trace(StreamWorker streamWorker,
             Exchange exchange,
             string preMessage)
         {
             if (!_active)
                 return;
 
-            Trace(exchange, streamManager.StreamIdentifier, preMessage);
+            Trace(exchange, streamWorker.StreamIdentifier, preMessage);
         }
 
-        public void TraceResponse(StreamManager streamManager,
+        public void TraceResponse(StreamWorker streamWorker,
             Exchange exchange)
         {
             if (!_active)
@@ -290,7 +290,7 @@ namespace Echoes.Clients
 
             var firstLine = exchange.Response.Header.RawHeader.ToString().Split("\r\n").First();
 
-            Trace(exchange, streamManager.StreamIdentifier, $"Response : " + firstLine);
+            Trace(exchange, streamWorker.StreamIdentifier, $"Response : " + firstLine);
         }
 
         public void IncomingSetting(ref SettingFrame settingFrame)

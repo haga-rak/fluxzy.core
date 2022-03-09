@@ -11,11 +11,11 @@ using Echoes.Misc;
 
 namespace Echoes.Clients.H11
 {
-    public class TunnelOnlyConnectionPool : IHttpConnectionPool
+    internal class TunnelOnlyConnectionPool : IHttpConnectionPool
     {
         private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _connectionBuilder;
-        private readonly ClientSetting _clientSetting;
+        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private SemaphoreSlim _semaphoreSlim;
         private bool _complete;
 
@@ -23,13 +23,13 @@ namespace Echoes.Clients.H11
             Authority authority, 
             ITimingProvider timingProvider,
             RemoteConnectionBuilder connectionBuilder,
-            ClientSetting clientSetting)
+            ProxyRuntimeSetting proxyRuntimeSetting)
         {
             _timingProvider = timingProvider;
             _connectionBuilder = connectionBuilder;
-            _clientSetting = clientSetting;
+            _proxyRuntimeSetting = proxyRuntimeSetting;
             Authority = authority;
-            _semaphoreSlim = new SemaphoreSlim(clientSetting.ConcurrentConnection); 
+            _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection); 
         }
 
         public Authority Authority { get; }
@@ -57,7 +57,7 @@ namespace Echoes.Clients.H11
                 await using var ex = new TunneledConnectionProcess(
                     Authority, _timingProvider,
                     _connectionBuilder, 
-                    _clientSetting, null);
+                    _proxyRuntimeSetting, null);
 
                 await ex.Process(exchange, localLink, buffer, CancellationToken.None);
             }
@@ -79,18 +79,18 @@ namespace Echoes.Clients.H11
         }
     }
 
-    public class TunneledConnectionProcess : IDisposable, IAsyncDisposable
+    internal class TunneledConnectionProcess : IDisposable, IAsyncDisposable
     {
         private readonly Authority _authority;
         private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
-        private readonly ClientSetting _creationSetting;
+        private readonly ProxyRuntimeSetting _creationSetting;
         private readonly RealtimeArchiveWriter _archiveWriter;
 
         public TunneledConnectionProcess(Authority authority,
             ITimingProvider timingProvider,
             RemoteConnectionBuilder remoteConnectionBuilder,
-            ClientSetting creationSetting,
+            ProxyRuntimeSetting creationSetting,
             RealtimeArchiveWriter archiveWriter)
         {
             _authority = authority;
@@ -105,7 +105,9 @@ namespace Echoes.Clients.H11
             if (localLink == null)
                 throw new ArgumentNullException(nameof(localLink));
 
-            var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, true,
+            var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(
+                exchange.Authority, 
+                exchange.TunneledOnly,
                 new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
                 _creationSetting,
                 cancellationToken).ConfigureAwait(false);

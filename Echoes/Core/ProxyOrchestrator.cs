@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -7,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Clients;
 using Echoes.Clients.H2;
-using Echoes.Core.Utils;
 using Echoes.Misc;
 
 namespace Echoes.Core
@@ -17,7 +15,7 @@ namespace Echoes.Core
         private readonly Func<Exchange, Task> _exchangeListener;
         private readonly Func<string, Stream> _throttlePolicy;
         private readonly ProxyStartupSetting _startupSetting;
-        private readonly ClientSetting _clientSetting;
+        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
         private readonly RealtimeArchiveWriter _archiveWriter;
@@ -26,7 +24,7 @@ namespace Echoes.Core
             Func<Exchange, Task> exchangeListener,
             Func<string, Stream> throttlePolicy,
             ProxyStartupSetting startupSetting,
-            ClientSetting clientSetting,
+            ProxyRuntimeSetting proxyRuntimeSetting,
             ExchangeBuilder exchangeBuilder,
             PoolBuilder poolBuilder,
             RealtimeArchiveWriter archiveWriter)
@@ -34,7 +32,7 @@ namespace Echoes.Core
             _exchangeListener = exchangeListener;
             _throttlePolicy = throttlePolicy;
             _startupSetting = startupSetting;
-            _clientSetting = clientSetting;
+            _proxyRuntimeSetting = proxyRuntimeSetting;
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;
             _archiveWriter = archiveWriter;
@@ -56,7 +54,7 @@ namespace Echoes.Core
                     try
                     {
                         localConnection = await _exchangeBuilder.InitClientConnection(
-                            client.GetStream(), buffer, token);
+                            client.GetStream(), buffer, _proxyRuntimeSetting, token);
                     }
                     catch (Exception ex)
                     {
@@ -79,8 +77,12 @@ namespace Echoes.Core
                     do
                     {
                         if (exchange != null &&
-                            !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase))
+                            (!exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase)
+                             || localConnection.TunnelOnly)
+                           )
                         {
+
+
                             // Check whether the local browser ask for a connection close 
 
                             shouldClose = exchange.Request
@@ -114,7 +116,7 @@ namespace Echoes.Core
                                     // get a connection pool for the current exchange 
                                     // the connection pool may 
 
-                                    connectionPool = await _poolBuilder.GetPool(exchange, _clientSetting, token);
+                                    connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
 
                                     try
                                     {
@@ -159,7 +161,7 @@ namespace Echoes.Core
 
                             // We do not need to read websocket response
 
-                            if (!exchange.Request.Header.IsWebSocketRequest)
+                            if (!exchange.Request.Header.IsWebSocketRequest && !exchange.TunneledOnly)
                             {
                                 // Request processed by IHttpConnectionPool returns before complete response body
                                 
@@ -292,6 +294,10 @@ namespace Echoes.Core
                                 {
                                     // Enhance your calm
                                 }
+                            }
+                            else
+                            {
+                                shouldClose = true; 
                             }
 
                             // Handle websocket request here and produce result 

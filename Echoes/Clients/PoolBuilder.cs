@@ -16,7 +16,7 @@ namespace Echoes.Clients
     /// <summary>
     /// Main entry of remote connection
     /// </summary>
-    public class PoolBuilder : IDisposable
+    internal class PoolBuilder : IDisposable
     {
         private static readonly List<SslApplicationProtocol> AllProtocols = new()
         {
@@ -78,14 +78,14 @@ namespace Echoes.Clients
         /// 
         /// </summary>
         /// <param name="exchange"></param>
-        /// <param name="clientSetting"></param>
+        /// <param name="proxyRuntimeSetting"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public async ValueTask<IHttpConnectionPool>
             GetPool(
             Exchange exchange,
-            ClientSetting clientSetting,
+            ProxyRuntimeSetting proxyRuntimeSetting,
             CancellationToken cancellationToken = default)
         {
             // At this point, we'll trying the suitable pool for exchange
@@ -113,11 +113,12 @@ namespace Echoes.Clients
                     }
 
                 //  pool 
-                if (clientSetting.TunneledOnly || exchange.Request.Header.IsWebSocketRequest)
+                if (exchange.TunneledOnly
+                    || exchange.Request.Header.IsWebSocketRequest)
                 {
                     var tunneledConnectionPool = new TunnelOnlyConnectionPool(
                         exchange.Authority, _timingProvider,
-                        _remoteConnectionBuilder, clientSetting);
+                        _remoteConnectionBuilder, proxyRuntimeSetting);
 
                     return result = tunneledConnectionPool;
                 }
@@ -126,7 +127,7 @@ namespace Echoes.Clients
                 {
                     // Plain HTTP/1.1
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
-                        _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser, _archiveWriter);
+                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _http11Parser, _archiveWriter);
 
                     exchange.HttpVersion = "HTTP/1.1";
 
@@ -138,14 +139,14 @@ namespace Echoes.Clients
 
                 var openingResult =
                     await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false,
-                        AllProtocols, clientSetting, cancellationToken);
+                        AllProtocols, proxyRuntimeSetting, cancellationToken);
 
                 exchange.Connection = openingResult.Connection; 
 
                 if (openingResult.Type == RemoteConnectionResultType.Http11)
                 {
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
-                        _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser, _archiveWriter);
+                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _http11Parser, _archiveWriter);
                     
                     exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";
                     

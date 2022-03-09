@@ -38,13 +38,14 @@ namespace Echoes.Clients
             Authority authority, 
             Stream readStream, 
             Stream writeStream, 
-            Exchange provisionalExchange)
+            Exchange provisionalExchange, bool tunnelOnly)
         {
             Id = Interlocked.Increment(ref _count); 
             Authority = authority;
             ReadStream = readStream;
             WriteStream = writeStream;
             ProvisionalExchange = provisionalExchange;
+            TunnelOnly = tunnelOnly; 
 
             if (DebugContext.EnableNetworkFileDump)
             {
@@ -65,21 +66,24 @@ namespace Echoes.Clients
         public Stream WriteStream { get; }
 
         public Exchange ProvisionalExchange { get; }
+
+        public bool TunnelOnly { get;  }
         
     }
 
-    public class ExchangeBuilder
+    internal class ExchangeBuilder
     {
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
         private readonly Http11Parser _http11Parser;
 
-        private static string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: Keep-alive\r\n\r\n";
+        private static string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
 
 
         private static readonly byte [] AcceptTunnelResponse =
             Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
 
-        public ExchangeBuilder(SecureConnectionUpdater secureConnectionUpdater,
+        public ExchangeBuilder(
+            SecureConnectionUpdater secureConnectionUpdater,
             Http11Parser http11Parser)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
@@ -89,6 +93,7 @@ namespace Echoes.Clients
         public async Task<ExchangeBuildingResult> InitClientConnection(
             Stream stream,
             byte [] buffer,
+            ProxyRuntimeSetting runtimeSetting,
             CancellationToken token)
         {
             var plainStream = stream;
@@ -115,7 +120,6 @@ namespace Echoes.Clients
                 var authorityArray = 
                     plainHeader.Path.ToString().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
-
                 var authority = new Authority
                     (authorityArray[0], 
                     int.Parse(authorityArray[1]), 
@@ -123,6 +127,22 @@ namespace Echoes.Clients
 
                 await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse),
                     token);
+                
+                if (runtimeSetting.ShouldTunneled(authority.HostName))
+                {
+                    return
+                        new ExchangeBuildingResult(
+                            authority, plainStream, plainStream,
+                            new Exchange(
+                                authority, plainHeaderChars, null,
+                                AcceptTunnelResponseString.AsMemory(),
+                                null, false, _http11Parser, 
+                                "HTTP/1.1",
+                                receivedFromProxy)
+                            {
+                                TunneledOnly = true
+                            }, true);
+                }
 
                 // TODO : Create an Exchange representing the CONNECT REQUEST
 
@@ -135,19 +155,21 @@ namespace Echoes.Clients
                     plainStream, authority.HostName, token);
 
                 return 
-                    new ExchangeBuildingResult(authority,
+                    new ExchangeBuildingResult
+                    (authority,
                         authenticateResult.InStream,
-                        authenticateResult.OutStream, new Exchange(
-                    authority, plainHeaderChars, null,
-                    AcceptTunnelResponseString.AsMemory(), 
-                    null, false, _http11Parser, "HTTP/1.1", receivedFromProxy)
-                        {
-                            Metrics =
-                            {
-                                CreateCertStart = certStart,
-                                CreateCertEnd = certEnd
-                            }
-                        });
+                        authenticateResult.OutStream, 
+                        new Exchange(
+                                authority, plainHeaderChars, null,
+                                AcceptTunnelResponseString.AsMemory(), 
+                                null, false, _http11Parser, "HTTP/1.1", receivedFromProxy)
+                                    {
+                                        Metrics =
+                                        {
+                                            CreateCertStart = certStart,
+                                            CreateCertEnd = certEnd
+                                        },
+                                    }, false);
             }
 
             // Plain request 
@@ -157,10 +179,14 @@ namespace Echoes.Clients
 
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
 
-            return new ExchangeBuildingResult(plainAuthority, plainStream, plainStream, new Exchange(plainAuthority, 
+            return new ExchangeBuildingResult(
+                plainAuthority, 
+                plainStream, 
+                plainStream, 
+                new Exchange(plainAuthority, 
                 plainHeader, plainHeader.ContentLength > 0
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                    : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy)); 
+                    : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy), false); 
         }
 
         public async Task<Exchange> ReadExchange(

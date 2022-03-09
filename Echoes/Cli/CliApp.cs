@@ -158,7 +158,7 @@ namespace Echoes.Cli
                 CommandOptionType.NoValue);
 
             var skiptCertInstallOption = target.Option(
-                "--skip-cert-install", "Do not register the certificate as authority",
+                "--skip-cert-install", "Do not register echoes certificate as root authority",
                 CommandOptionType.NoValue);
 
             var noCertCacheOption = target.Option(

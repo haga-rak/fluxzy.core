@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Echoes.Misc
 {
     /// <summary>
-    /// Read innerStream and copy datas to destinations stream
+    /// Read stream and duplicate read bytes to listener streams
     /// </summary>
     public class DispatchStream : Stream
     {
@@ -17,6 +17,12 @@ namespace Echoes.Misc
         private List<Stream> _destinations;
         private bool _started = false;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="baseStream">Read stream</param>
+        /// <param name="closeOnDone">When readStream reach EOF, close listener streams</param>
+        /// <param name="listenerStreams">List of listenerStreams</param>
         public DispatchStream(
             Stream baseStream, bool closeOnDone,
             params Stream[] listenerStreams)

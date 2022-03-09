@@ -17,7 +17,7 @@ namespace Echoes.Clients
         Http2
     }
 
-    public class RemoteConnectionResult
+    public readonly struct RemoteConnectionResult
     {
         public RemoteConnectionResult(RemoteConnectionResultType type, Connection connection)
         {
@@ -30,7 +30,7 @@ namespace Echoes.Clients
         public Connection Connection { get;  }
     }
 
-    public class RemoteConnectionBuilder
+    internal class RemoteConnectionBuilder
     {
         private readonly ITimingProvider _timeProvider;
         private readonly IDnsSolver _dnsSolver;
@@ -45,7 +45,7 @@ namespace Echoes.Clients
             Authority authority, 
             bool blind,
             List<SslApplicationProtocol> httpProtocols,
-            ClientSetting setting, 
+            ProxyRuntimeSetting setting, 
             CancellationToken token)
         {
             var tcpClient = new TcpClient();
@@ -69,7 +69,7 @@ namespace Echoes.Clients
 
             var newlyOpenedStream = tcpClient.GetStream();
             
-            if (!authority.Secure)
+            if (!authority.Secure || blind)
             {
                 connection.ReadStream = connection.WriteStream = newlyOpenedStream;
                 return new RemoteConnectionResult(RemoteConnectionResultType.Unknown,  connection);

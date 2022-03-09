@@ -5,14 +5,13 @@ namespace Echoes.Clients.H2.Encoder.HPack
 {
     public class HPackDecodingDynamicTable
     {
-        // TODO put comparer here 
-        private readonly Dictionary<int, HeaderField> _entries = new Dictionary<int, HeaderField>();
+        private readonly Dictionary<int, HeaderField> _entries = new();
 
         private int _currentMaxSize;
         private int _currentSize;
 
         private int _internalIndex = -1;
-        private int _oldestElementInternalIndex = 0;
+        private int _oldestElementInternalIndex;
 
         public HPackDecodingDynamicTable(int initialSize)
         {
@@ -24,9 +23,7 @@ namespace Echoes.Clients.H2.Encoder.HPack
         private int EvictUntil(int toBeRemovedSize)
         {
             var evictedSize = 0;
-            var i = 0;
-
-            var evictedCount = 0;
+            int i;
 
             for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++)
             {
@@ -38,7 +35,6 @@ namespace Echoes.Clients.H2.Encoder.HPack
                 }
 
                 _entries.Remove(i);
-                evictedCount++;
 
                 _currentSize -= tableEntry.Size;
                 evictedSize += tableEntry.Size;
@@ -86,16 +82,13 @@ namespace Echoes.Clients.H2.Encoder.HPack
                 var spaceNeeded = provisionalSize - _currentMaxSize;
 
                 var evictedSize = EvictUntil(spaceNeeded);
-
-                // Console.WriteLine("Evicting");
+                
                 // No decoding error.
                 // Inserting element larger than Table MAX SIZE cause the table to be emptied 
 
 
                 if (evictedSize < spaceNeeded)
                 {
-                    // Console.WriteLine($"Emptied {_oldestElementInternalIndex} - {_internalIndex} - {entry.Size} - {_currentSize} - { spaceNeeded}");
-
                     _currentSize = 0;
                     _entries.Clear();
                     _internalIndex = -1;

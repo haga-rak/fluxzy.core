@@ -4,6 +4,9 @@ using System;
 
 namespace Echoes.Clients
 {
+    /// <summary>
+    /// Hold information about a hostname and a port number 
+    /// </summary>
     public readonly struct Authority : IEquatable<Authority>
     {
         public Authority(string hostName, int port, bool secure)
@@ -13,11 +16,25 @@ namespace Echoes.Clients
             Secure = secure;
         }
 
+        /// <summary>
+        /// Check if struct is empty
+        /// </summary>
         public bool Empty => HostName == null && Port == 0;  
 
+        /// <summary>
+        /// Hostname
+        /// </summary>
         public string HostName { get;  }
 
+        /// <summary>
+        /// Port number
+        /// </summary>
         public int Port { get;  }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool Secure { get; }
 
         public bool Equals(Authority other)
         {
@@ -37,7 +54,6 @@ namespace Echoes.Clients
             return HashCode.Combine(HostName.AsSpan().ToLowerInvariant(destBuffer), Port, Secure);
         }
 
-        public bool Secure { get;  }
 
         public override string ToString()
         {

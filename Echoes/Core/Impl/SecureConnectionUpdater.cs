@@ -5,9 +5,7 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Core.Utils;
 using Echoes.Misc;
-using CombinedReadonlyStream = Echoes.Misc.CombinedReadonlyStream;
 
 namespace Echoes.Core
 {
@@ -31,8 +29,7 @@ namespace Echoes.Core
             var buffer = new byte[4];
             var bufferChar = new char[4];
             var originalStream = stream;
-
-
+            
             await stream.ReadExactAsync(buffer, token);
 
             Encoding.ASCII.GetChars(buffer, bufferChar);
@@ -41,6 +38,7 @@ namespace Echoes.Core
             {
                 // Probably Web socket request 
                 // This is websocket demand 
+
                 return new SecureConnectionUpdateResult(false, true,
                     new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
                     stream);

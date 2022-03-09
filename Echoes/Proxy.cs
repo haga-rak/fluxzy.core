@@ -70,9 +70,8 @@ namespace Echoes
                 onNewExchange,
                 ThrottlePolicyStream, 
                 _startupSetting, 
-                ClientSetting.Default,
-                new ExchangeBuilder(
-                    secureConnectionManager, http1Parser), poolBuilder, _writer);
+                new ProxyRuntimeSetting(startupSetting),
+                new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer);
 
             if (!_startupSetting.SkipSslDecryption && _startupSetting.AutoInstallCertificate)
             {

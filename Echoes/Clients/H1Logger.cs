@@ -118,7 +118,7 @@ namespace Echoes.Clients
             Trace(exchange, preMessage + (ex == null ? string.Empty : ex.ToString()));
         }
 
-        public void Trace(StreamManager streamManager,
+        public void Trace(StreamWorker streamWorker,
             Exchange exchange,
             string preMessage)
         {

@@ -678,7 +678,7 @@ namespace Echoes.Clients.H2
         {
             exchange.HttpVersion = "HTTP/2";
 
-            StreamManager activeStream = null;
+            StreamWorker activeStream = null;
 
             using var streamCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                 callerCancellationToken,

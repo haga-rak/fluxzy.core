@@ -12,16 +12,10 @@ namespace Echoes
         [JsonIgnore]
         private X509Certificate[] _lazyMapping; 
 
-        public List<ClientConfigItem> ClientSettings { get; set; } = new List<ClientConfigItem>();
+        public List<ClientConfigItem> ClientSettings { get; set; } = new();
 
         [JsonIgnore]
-        public bool HasConfig
-        {
-            get
-            {
-                return ClientSettings != null && ClientSettings.Any();
-            }
-        }
+        public bool HasConfig => ClientSettings != null && ClientSettings.Any();
 
         internal X509Certificate2 GetCustomClientCertificate(string hostName)
         {
@@ -37,9 +31,10 @@ namespace Echoes
                 return _lazyMapping;
 
             if (ClientSettings == null || !ClientSettings.Any()) 
-                return _lazyMapping = new X509Certificate2[0];
+                return _lazyMapping = Array.Empty<X509Certificate>();
 
-            return _lazyMapping = ClientSettings.Select(c => c.Load()).Where(c => c != null).ToArray();
+            return _lazyMapping = ClientSettings.Select(c => c.Load()).Where(c => c != null)
+                .OfType<X509Certificate>().ToArray();
         }
 
         public static void GenerateSampleConfig(string fileName)
@@ -93,7 +88,6 @@ namespace Echoes
         /// configuration 
         /// </summary>
         public string CertificateSerialNumber { get; set; }
-
 
         internal bool Match(string hostName)
         {

@@ -51,16 +51,6 @@ namespace Echoes
         /// </summary>
         public bool RegisterAsSystemProxy { get; internal set; } = false;
 
-        /// <summary>
-        /// Above this value, the response body is cached to a temp file. Default value is 0 which means no temp file caching.
-        /// </summary>
-        public long TempStorageSizeLimit { get; internal set; } = 0;
-
-        /// <summary>
-        /// Location of temp storage 
-        /// </summary>
-        public string TempStorage { get; internal set; }
-
 
         /// <summary>
         /// Download bandwidth in KiloByte  (Byte = 8bits) per second. Default value is 0 which means no throttling.
@@ -235,6 +225,7 @@ namespace Echoes
             ClientCertificateConfiguration = clientCertificateConfiguration;
 
             clientCertificateConfiguration.ReadAllCertificateMapping();
+
             return this;
         }
 
@@ -348,21 +339,6 @@ namespace Echoes
                 ConnectionPerHost =  8, 
                 AnticipatedConnectionPerHost = 3
             };
-        }
-
-        /// <summary>
-        /// TODO : Move to another class as it's another role
-        /// </summary>
-        /// <returns></returns>
-        internal bool ShouldSkipDecryption(string hostName, int port)
-        {
-            if (SkipSslDecryption)
-                return true;
-
-            if (TunneledOnlyHosts == null)
-                return false;
-
-            return TunneledOnlyHosts.Contains(hostName);
         }
 
         internal IConsoleOutput GetDefaultOutput()

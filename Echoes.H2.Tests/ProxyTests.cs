@@ -400,6 +400,66 @@ namespace Echoes.H2.Tests
             
         }
         
+        
+
+        [Fact]
+        public async Task Test_GetThrough_Blind_Tunnel()
+        {
+            var bindHost = "127.0.0.1";
+            var bindPort = PortProvider.Next();
+            var timeoutSeconds = 500; 
+
+            var startupSetting = ProxyStartupSetting
+                .CreateDefault()
+                .SetAsSystemProxy(false)
+                .SetBoundAddress(bindHost)
+                .SetSkipSslDecryption(true)
+                .SetListenPort(bindPort);
+
+            var messageHandler = new HttpClientHandler()
+            {
+                Proxy = new WebProxy($"http://{bindHost}:{bindPort}")
+            };
+
+            var httpClient = new HttpClient(messageHandler); 
+
+            var requestReceived = new TaskCompletionSource<Exchange>();
+            var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
+
+            cancellationTokenSource.Token.Register(() =>
+            {
+                if (!requestReceived.Task.IsCompleted)
+                {
+                    requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
+                }
+            });
+
+            Task OnNewExchange(Exchange ex)
+            {
+                requestReceived.TrySetResult(ex);
+                return Task.CompletedTask;
+            }
+
+            using var proxy = new Proxy(startupSetting,
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                OnNewExchange);
+
+            proxy.Run();
+
+            var response = await httpClient.GetAsync("https://sandbox.smartizy.com:5001/protocol",
+                cancellationTokenSource.Token);
+
+            var responseString = await response.Content.ReadAsStringAsync(
+                cancellationTokenSource.Token); 
+
+            Assert.Equal("HTTP/1.1", responseString);
+
+            //await requestReceived.Task;
+            
+        }
+        
+        
+        
         [Fact]
         public async Task Test_GetThrough_Post()
         {

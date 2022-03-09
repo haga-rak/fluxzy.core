@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Clients.Common;
 using Echoes.Clients.H2.Encoder.Utils;
-using Echoes.Core;
 
 namespace Echoes.Clients.DotNetBridge
 {
@@ -30,7 +29,7 @@ namespace Echoes.Clients.DotNetBridge
 
             var exchange = new Exchange(authority, reqHttpString.AsMemory(), _parser, null, DateTime.Now);
 
-            var connection = await _poolBuilder.GetPool(exchange, ClientSetting.Default, cancellationToken);
+            var connection = await _poolBuilder.GetPool(exchange, ProxyRuntimeSetting.Default, cancellationToken);
             
             await connection.Send(exchange, null, new byte[32* 1024],
                 cancellationToken).ConfigureAwait(false);

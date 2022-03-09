@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Echoes.Clients.H2
 {
-    internal class StreamPool :  IDisposable, IAsyncDisposable
+    internal class StreamPool : IDisposable, IAsyncDisposable
     {
-        private readonly IDictionary<int, StreamManager> _runningStreams = new Dictionary<int, StreamManager>();
+        private readonly IDictionary<int, StreamWorker> _runningStreams = new Dictionary<int, StreamWorker>();
 
         private int _lastStreamIdentifier = -1;
 
@@ -27,7 +27,7 @@ namespace Echoes.Clients.H2
         
         public StreamContext Context { get; }
 
-        public bool TryGetExistingActiveStream(int streamIdentifier, out StreamManager result)
+        public bool TryGetExistingActiveStream(int streamIdentifier, out StreamWorker result)
         {
             return _runningStreams.TryGetValue(streamIdentifier, out result); 
         }
@@ -35,7 +35,7 @@ namespace Echoes.Clients.H2
         // WARNING : to be improved, may be extreme volatile 
         public int ActiveStreamCount => _runningStreams.Count; 
 
-        private StreamManager CreateActiveStream(Exchange exchange,
+        private StreamWorker CreateActiveStream(Exchange exchange,
             CancellationToken callerCancellationToken,
             SemaphoreSlim ongoingStreamInit, CancellationTokenSource resetTokenSource)
         {
@@ -46,7 +46,7 @@ namespace Echoes.Clients.H2
 
             var streamId = Interlocked.Add(ref _lastStreamIdentifier, 2);
 
-            var activeStream = new StreamManager(streamId, this, exchange, resetTokenSource); 
+            var activeStream = new StreamWorker(streamId, this, exchange, resetTokenSource); 
             
             _runningStreams[streamId] = activeStream;
 
@@ -59,7 +59,7 @@ namespace Echoes.Clients.H2
         /// Get or create  active stream 
         /// </summary>
         /// <returns></returns>
-        public async Task<StreamManager> CreateNewStreamProcessing(Exchange exchange,
+        public async Task<StreamWorker> CreateNewStreamProcessing(Exchange exchange,
             CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit, CancellationTokenSource resetTokenSource)
         {
             if (_onError)
@@ -73,14 +73,14 @@ namespace Echoes.Clients.H2
             return res;
         }
         
-        public void NotifyDispose(StreamManager streamManager)
+        public void NotifyDispose(StreamWorker streamWorker)
         {
             // reset can happens here 
 
-            if (_runningStreams.Remove(streamManager.StreamIdentifier))
+            if (_runningStreams.Remove(streamWorker.StreamIdentifier))
             {
                 _maxConcurrentStreamBarrier.Release();
-                streamManager.Dispose();
+                streamWorker.Dispose();
             }
         }
 

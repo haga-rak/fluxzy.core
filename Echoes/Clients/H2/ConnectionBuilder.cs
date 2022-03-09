@@ -59,8 +59,8 @@ namespace Echoes.Clients.H2
         {
             var connectionPool =  new Http11ConnectionPool(authority,
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
-                ITimingProvider.Default, ClientSetting.Default, new Http11Parser(
-                    ClientSetting.Default.MaxHeaderLineSize), null);
+                ITimingProvider.Default, ProxyRuntimeSetting.Default, new Http11Parser(
+                    16 * 1024), null);
 
             await connectionPool.Init();
 

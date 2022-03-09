@@ -17,7 +17,7 @@ namespace Echoes.Clients.H11
         
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
-        private readonly ClientSetting _clientSetting;
+        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly Http11Parser _parser;
         private readonly RealtimeArchiveWriter _archiveWriter;
         private readonly SemaphoreSlim _semaphoreSlim;
@@ -28,17 +28,17 @@ namespace Echoes.Clients.H11
             Authority authority,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
-            ClientSetting clientSetting, 
+            ProxyRuntimeSetting proxyRuntimeSetting, 
             Http11Parser parser,
             RealtimeArchiveWriter archiveWriter)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
-            _clientSetting = clientSetting;
+            _proxyRuntimeSetting = proxyRuntimeSetting;
             _parser = parser;
             _archiveWriter = archiveWriter;
             Authority = authority;
-            _semaphoreSlim = new SemaphoreSlim(clientSetting.ConcurrentConnection);
+            _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
             _logger = new H1Logger(authority);
             
             ITimingProvider.Default.Instant();
@@ -80,7 +80,7 @@ namespace Echoes.Clients.H11
 
                     while (_processingStates.TryDequeue(out var state))
                     {
-                        if ((requestDate - state.LastUsed) > TimeSpan.FromSeconds(_clientSetting.TimeOutSecondsUnusedConnection))
+                        if ((requestDate - state.LastUsed) > TimeSpan.FromSeconds(_proxyRuntimeSetting.TimeOutSecondsUnusedConnection))
                         {
                             // The connection pool exceeds timing connection ..
 
@@ -100,7 +100,7 @@ namespace Echoes.Clients.H11
 
                     var openingResult = 
                         await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false, Http11Protocols,
-                        _clientSetting, cancellationToken);
+                        _proxyRuntimeSetting, cancellationToken);
                     
                     exchange.Connection = openingResult.Connection;
 
