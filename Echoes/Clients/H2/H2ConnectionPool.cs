@@ -27,6 +27,7 @@ namespace Echoes.H2
         private CancellationTokenSource _connectionCancellationTokenSource = new();
         
         private readonly H2StreamSetting _setting;
+        private readonly Connection _connection;
         private readonly Action<H2ConnectionPool> _onConnectionFaulted;
 
         private bool _complete;
@@ -69,6 +70,7 @@ namespace Echoes.H2
             Authority = authority;
             _baseStream = baseStream;
             _setting = setting;
+            _connection = connection;
             _onConnectionFaulted = onConnectionFaulted;
             _logger = new H2Logger(Authority, Id); 
 
@@ -643,6 +645,8 @@ namespace Echoes.H2
             try
             {
                 _logger.Trace(exchange, "Send start");
+
+                exchange.Connection = _connection; 
 
                 await InternalSend(exchange, buffer, cancellationToken);
 

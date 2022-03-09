@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Threading;
+using Echoes.Archiving.Abstractions;
 
 namespace Echoes
 {
@@ -37,6 +39,10 @@ namespace Echoes
         }
 
         public Authority Authority { get; set; }
+
+        public IPAddress RemoteAddress { get; set; }
+
+        public SslInfo SslInfo { get; set; }
 
         public DateTime DnsSolveStart { get; set; }
 

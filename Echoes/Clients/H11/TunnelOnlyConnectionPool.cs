@@ -8,6 +8,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Archiving.Abstractions;
 using Echoes.IO;
 
 namespace Echoes.H11
@@ -58,7 +59,7 @@ namespace Echoes.H11
                 await using var ex = new TunneledConnectionProcess(
                     Authority, _timingProvider,
                     _connectionBuilder, 
-                    _clientSetting);
+                    _clientSetting, null);
 
                 await ex.Process(exchange, localLink, buffer, CancellationToken.None);
             }
@@ -86,16 +87,19 @@ namespace Echoes.H11
         private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ClientSetting _creationSetting;
+        private readonly RealtimeArchiveWriter _archiveWriter;
 
         public TunneledConnectionProcess(Authority authority,
             ITimingProvider timingProvider,
             RemoteConnectionBuilder remoteConnectionBuilder,
-            ClientSetting creationSetting )
+            ClientSetting creationSetting,
+            RealtimeArchiveWriter archiveWriter)
         {
             _authority = authority;
             _timingProvider = timingProvider;
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _creationSetting = creationSetting;
+            _archiveWriter = archiveWriter;
         }
 
         public async Task Process(Exchange exchange, ILocalLink localLink, byte[] buffer, CancellationToken cancellationToken)
@@ -109,6 +113,9 @@ namespace Echoes.H11
                 cancellationToken).ConfigureAwait(false);
             
             exchange.Connection = openingResult.Connection;
+
+            if (_archiveWriter != null)
+                await _archiveWriter.Update(exchange.Connection, cancellationToken);
 
             if (exchange.Request.Header.IsWebSocketRequest)
             {

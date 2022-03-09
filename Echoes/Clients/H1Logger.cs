@@ -160,7 +160,7 @@ namespace Echoes
             var message =
                 $"{method.PadRight(6, ' ')} - " +
                 $"({path}) - " +
-                $"Cid = {exchange.Id} " +
+                $"Cid = {exchange.Connection?.Id ?? 0} " +
                 $" - {preMessage}";
 
             WriteLn(exchange.Id, message);

@@ -26,7 +26,7 @@ namespace Echoes
         private bool _halted; 
         
         private ProxyOrchestrator _proxyOrchestrator;
-        private IArchiveWriter _writer;
+        private RealtimeArchiveWriter _writer;
 
         public Proxy(
             ProxyStartupSetting startupSetting,
@@ -52,17 +52,18 @@ namespace Echoes
                // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
                 certificateProvider);
 
-            var http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength);
-            var poolBuilder = new PoolBuilder(
-                new RemoteConnectionBuilder(ITimingProvider.Default), ITimingProvider.Default, http1Parser);
-            
             if (_startupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
             {
                 Directory.CreateDirectory(_startupSetting.ArchivingPolicy.Directory);
 
                 _writer = new DirectoryArchiveWriter(
-                    Path.Combine(_startupSetting.ArchivingPolicy.Directory, SessionIdentifier)); 
+                    Path.Combine(_startupSetting.ArchivingPolicy.Directory, SessionIdentifier));
             }
+
+            var http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength);
+            var poolBuilder = new PoolBuilder(
+                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default, http1Parser,
+                _writer);
 
             _proxyOrchestrator = new ProxyOrchestrator(
                 onNewExchange,

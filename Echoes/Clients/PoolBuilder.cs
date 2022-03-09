@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Archiving.Abstractions;
 using Echoes.Core.Utils;
 using Echoes.H11;
 using Echoes.H2;
@@ -28,6 +29,7 @@ namespace Echoes
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
         private readonly Http11Parser _http11Parser;
+        private readonly RealtimeArchiveWriter _archiveWriter;
 
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
             new Dictionary<Authority, IHttpConnectionPool>();
@@ -39,11 +41,13 @@ namespace Echoes
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
-            Http11Parser http11Parser)
+            Http11Parser http11Parser, 
+            RealtimeArchiveWriter archiveWriter)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
             _http11Parser = http11Parser;
+            _archiveWriter = archiveWriter;
 
             CheckPoolStatus(_poolCheckHaltSource.Token); 
         }
@@ -124,7 +128,7 @@ namespace Echoes
                 {
                     // Plain HTTP/1.1
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, null,
-                        _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser);
+                        _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser, _archiveWriter);
 
                     exchange.HttpVersion = "HTTP/1.1";
 
@@ -138,12 +142,18 @@ namespace Echoes
                     await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false,
                         AllProtocols, clientSetting, cancellationToken);
 
+                exchange.Connection = openingResult.Connection; 
+
                 if (openingResult.Type == RemoteConnectionResultType.Http11)
                 {
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority, exchange.Connection,
-                        _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser);
+                        _remoteConnectionBuilder, _timingProvider, clientSetting, _http11Parser, _archiveWriter);
+                    
+                    exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";
+                    
 
-                    exchange.HttpVersion = "HTTP/1.1";
+                    if (_archiveWriter != null)
+                        await _archiveWriter.Update(openingResult.Connection, cancellationToken); 
 
                     lock (_connectionPools)
                         return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
@@ -156,7 +166,10 @@ namespace Echoes
                         new H2StreamSetting(),
                         exchange.Authority, exchange.Connection, OnConnectionFaulted);
 
-                    exchange.HttpVersion = "HTTP/2";
+                    exchange.HttpVersion = exchange.Connection.HttpVersion =  "HTTP/2";
+
+                    if (_archiveWriter != null)
+                        await _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
                     lock (_connectionPools)
                         return result = _connectionPools[exchange.Authority] = h2ConnectionPool;

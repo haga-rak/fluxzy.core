@@ -10,7 +10,7 @@ using Echoes.H2.Encoder.Utils;
 
 namespace Echoes
 {
-    public class RequestHeader : Header, IRequestHeader
+    public class RequestHeader : Header
     {
         public RequestHeader(
             ReadOnlyMemory<char> headerContent,
@@ -52,7 +52,7 @@ namespace Echoes
         }
     }
 
-    public class ResponseHeader : Header, IResponseHeader
+    public class ResponseHeader : Header
     {
         public ResponseHeader(
             ReadOnlyMemory<char> headerContent,

@@ -20,7 +20,32 @@ namespace Echoes.Archiving.Abstractions
         Stream CreateResponseBodyStream(int exchangeId);
     }
 
-    public class DirectoryArchiveWriter : IArchiveWriter
+
+    public abstract class RealtimeArchiveWriter : IArchiveWriter
+    {
+
+        public virtual async Task Update(Connection connection, CancellationToken cancellationToken)
+        {
+            ConnectionInfo connectionInfo = new ConnectionInfo(connection);
+
+            await Update(connectionInfo, cancellationToken); 
+
+        }
+        public virtual async Task Update(Exchange exchange, CancellationToken cancellationToken)
+        {
+            await Update(new ExchangeInfo(exchange), cancellationToken); 
+        }
+
+        public abstract Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
+
+        public abstract Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
+
+        public abstract Stream CreateRequestBodyStream(int exchangeId);
+
+        public abstract Stream CreateResponseBodyStream(int exchangeId);
+    }
+
+    public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {
         private static readonly int MaxItemPerDirectory = 100; 
 
@@ -37,7 +62,7 @@ namespace Echoes.Archiving.Abstractions
 
         private string GetExchangePath(ExchangeInfo exchangeInfo)
         {
-            var baseNumber = exchangeInfo.Id / MaxItemPerDirectory; 
+            var baseNumber = (exchangeInfo.Id / MaxItemPerDirectory) * 100; 
             var directoryHint = $"{baseNumber}-{(baseNumber + MaxItemPerDirectory)}";
 
             var preDir = Path.Combine(_baseDirectory, "exchanges", directoryHint);
@@ -49,57 +74,41 @@ namespace Echoes.Archiving.Abstractions
 
         private string GetConnectionPath(ConnectionInfo connectionInfo)
         {
-            var baseNumber = connectionInfo.Id / MaxItemPerDirectory; 
+            var baseNumber = (connectionInfo.Id / MaxItemPerDirectory) * 100; 
             var directoryHint = $"{(baseNumber)}-{(baseNumber + MaxItemPerDirectory)}";
 
-            var preDir = Path.Combine(_baseDirectory, "exchanges", directoryHint);
+            var preDir = Path.Combine(_baseDirectory, "connections", directoryHint);
 
             Directory.CreateDirectory(preDir);
 
-            return Path.Combine(preDir, $"ex-{connectionInfo.Id}.json");
+            return Path.Combine(preDir, $"con-{connectionInfo.Id}.json");
         }
 
 
-        public async Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        public override async Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
             var exchangePath = GetExchangePath(exchangeInfo);
             await using var fileStream = File.Create(exchangePath);
             await JsonSerializer.SerializeAsync(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions, cancellationToken);
         }
 
-        public async Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
+        public override async Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
         {
             var connectionPath = GetConnectionPath(connectionInfo);
             await using var fileStream = File.Create(connectionPath);
             await JsonSerializer.SerializeAsync(fileStream, connectionInfo, GlobalArchiveOption.JsonSerializerOptions, cancellationToken);
         }
 
-        public Stream CreateRequestBodyStream(int exchangeId)
+        public override Stream CreateRequestBodyStream(int exchangeId)
         {
             var path = Path.Combine(_contentDirectory, $"req-{exchangeId}.data");
             return File.Create(path);
         }
 
-        public Stream CreateResponseBodyStream(int exchangeId)
+        public override Stream CreateResponseBodyStream(int exchangeId)
         {
             var path = Path.Combine(_contentDirectory, $"res-{exchangeId}.data");
             return File.Create(path);
         }
-    }
-
-    public class GlobalArchiveOption
-    {
-        public static JsonSerializerOptions JsonSerializerOptions { get; } =  new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-            Converters = { new ReadonlyMemoryCharConverter() }
-        };
-    }
-
-
-    public class ConnectionInfo
-    {
-        public int Id { get; set; }
     }
 }

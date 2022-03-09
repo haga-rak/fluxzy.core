@@ -6,6 +6,8 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Archiving.Abstractions;
+using Echoes.Core;
 using Echoes.IO;
 
 namespace Echoes
@@ -33,10 +35,12 @@ namespace Echoes
     public class RemoteConnectionBuilder
     {
         private readonly ITimingProvider _timeProvider;
+        private readonly IDnsSolver _dnsSolver;
 
-        public RemoteConnectionBuilder(ITimingProvider timeProvider)
+        public RemoteConnectionBuilder(ITimingProvider timeProvider, IDnsSolver dnsSolver)
         {
             _timeProvider = timeProvider;
+            _dnsSolver = dnsSolver;
         }
 
         public async ValueTask<RemoteConnectionResult> OpenConnectionToRemote(
@@ -53,7 +57,15 @@ namespace Echoes
                 TcpConnectionOpening = _timeProvider.Instant()
             };
 
-            await tcpClient.ConnectAsync(authority.HostName, authority.Port).ConfigureAwait(false);
+            connection.DnsSolveStart = _timeProvider.Instant();
+
+            var ipAddress = await _dnsSolver.SolveDns(authority.HostName);
+
+            connection.RemoteAddress = ipAddress;
+
+            connection.DnsSolveEnd = _timeProvider.Instant();
+
+            await tcpClient.ConnectAsync(ipAddress, authority.Port).ConfigureAwait(false);
 
             connection.TcpConnectionOpened = _timeProvider.Instant();
 
@@ -80,6 +92,8 @@ namespace Echoes
             };
 
             await sslStream.AuthenticateAsClientAsync(authenticationOptions, token).ConfigureAwait(false);
+
+            connection.SslInfo = new SslInfo(sslStream); 
 
             connection.SslNegotiationEnd = _timeProvider.Instant();
 

@@ -20,7 +20,7 @@ namespace Echoes.Core
         private readonly ClientSetting _clientSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
-        private readonly IArchiveWriter _archiveWriter;
+        private readonly RealtimeArchiveWriter _archiveWriter;
 
         public ProxyOrchestrator(
             Func<Exchange, Task> exchangeListener,
@@ -28,8 +28,8 @@ namespace Echoes.Core
             ProxyStartupSetting startupSetting,
             ClientSetting clientSetting,
             ExchangeBuilder exchangeBuilder,
-            PoolBuilder poolBuilder, 
-            IArchiveWriter archiveWriter)
+            PoolBuilder poolBuilder,
+            RealtimeArchiveWriter archiveWriter)
         {
             _exchangeListener = exchangeListener;
             _throttlePolicy = throttlePolicy;
@@ -87,7 +87,7 @@ namespace Echoes.Core
                                 .Header["Connection".AsMemory()].Any(c =>
                                     c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
 
-                            IHttpConnectionPool connectionPool = null;
+                            IHttpConnectionPool connectionPool;
 
                             try
                             {
@@ -96,10 +96,9 @@ namespace Echoes.Core
                                     if (_archiveWriter != null)
                                     {
                                         await _archiveWriter.Update(
-                                            IArchiveInfoBuilder.FromExchange.Build(exchange),
+                                            exchange,
                                             CancellationToken.None
                                         );
-
 
                                         if (exchange.Request.Body != null &&
                                             (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0))
@@ -168,10 +167,10 @@ namespace Echoes.Core
                                     exchange.Response.Body != null &&
                                     exchange.HttpVersion == "HTTP/2")
                                 {
-                                    // In HTTP2, server is allowed to send a response body
+                                    // HTTP2 server is allowed to send a response body
                                     // without specifying a content-length or transfer-encoding chunked.
                                     // In case content-length is not present, we force transfer-encoding chunked 
-                                    // to allowed HTTP/1.1 client to know the end of the content body
+                                    // in order to inform HTTP/1.1 receiver of the content body end
 
                                     exchange.Response.Header.ForceTransferChunked();
                                 }
@@ -184,7 +183,7 @@ namespace Echoes.Core
                                         exchange.GetMetricsSummaryAsHeader());
                                 }
 
-                                var intHeaderCount = exchange.Response.Header.WriteHttp11(buffer, true, true);
+                                var responseHeaderLength = exchange.Response.Header.WriteHttp11(buffer, true, true);
 
                                 // headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
                                 
@@ -197,8 +196,7 @@ namespace Echoes.Core
                                 if (_archiveWriter != null)
                                 {
                                     // Update the state of the exchange 
-                                    await _archiveWriter.Update(
-                                        IArchiveInfoBuilder.FromExchange.Build(exchange),
+                                    await _archiveWriter.Update(exchange,
                                         CancellationToken.None
                                     );
 
@@ -216,7 +214,7 @@ namespace Echoes.Core
                                     // Start sending response to browser
 
                                     await localConnection.WriteStream.WriteAsync(
-                                        new ReadOnlyMemory<byte>(buffer, 0, intHeaderCount),
+                                        new ReadOnlyMemory<byte>(buffer, 0, responseHeaderLength),
                                         token);
                                 }
                                 catch (Exception ex)
@@ -258,8 +256,9 @@ namespace Echoes.Core
                                     {
                                         if (ex is IOException || ex is OperationCanceledException)
                                         {
-                                            // Local connection may close the underlying connection before 
-                                            // receiving the entire message. In that case, we just leave
+                                            // Local connection may close the underlying stream before 
+                                            // receiving the entire message. Particulary when waiting for the last 0\r\n\r\n on chunked stream.
+                                            // In that case, we just leave
                                             // without any error
 
                                             if (ex is IOException && ex.InnerException is SocketException sex)
@@ -289,7 +288,7 @@ namespace Echoes.Core
 
                                     shouldClose = shouldClose || await exchange.Complete;
                                 }
-                                catch (ExchangeException ex)
+                                catch (ExchangeException)
                                 {
                                     // Enhance your calm
                                 }

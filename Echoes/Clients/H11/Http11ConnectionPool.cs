@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Archiving.Abstractions;
 using Echoes.H2.Encoder.Utils;
 
 namespace Echoes.H11
@@ -19,32 +20,30 @@ namespace Echoes.H11
         private readonly ITimingProvider _timingProvider;
         private readonly ClientSetting _clientSetting;
         private readonly Http11Parser _parser;
+        private readonly RealtimeArchiveWriter _archiveWriter;
         private readonly SemaphoreSlim _semaphoreSlim;
         private readonly Queue<Http11ProcessingState> _processingStates = new Queue<Http11ProcessingState>();
 
         private DateTime _lastActivity = ITimingProvider.Default.Instant(); 
 
-        public Http11ConnectionPool(
+        internal Http11ConnectionPool(
             Authority authority, 
             Connection ? existingConnection,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
             ClientSetting clientSetting, 
-            Http11Parser parser)
+            Http11Parser parser,
+            RealtimeArchiveWriter archiveWriter)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
             _clientSetting = clientSetting;
             _parser = parser;
+            _archiveWriter = archiveWriter;
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(clientSetting.ConcurrentConnection);
             _logger = new H1Logger(authority);
-
-            if (existingConnection != null)
-            {
-                _processingStates.Enqueue(new Http11ProcessingState(existingConnection, _timingProvider));
-            }
-
+            
             _lastActivity = ITimingProvider.Default.Instant();
         }
 
@@ -107,6 +106,11 @@ namespace Echoes.H11
                         _clientSetting, cancellationToken);
                     
                     exchange.Connection = openingResult.Connection;
+
+                    openingResult.Connection.HttpVersion = exchange.HttpVersion;
+
+                    if (_archiveWriter != null)
+                        await _archiveWriter.Update(exchange.Connection, cancellationToken);
 
                     _logger.Trace(exchange.Id, () => $"New connection obtained: {exchange.Connection.Id}");
                 }

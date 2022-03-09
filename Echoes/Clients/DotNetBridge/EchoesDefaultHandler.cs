@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Core;
 using Echoes.DotNetBridge;
 using Echoes.H2.Encoder.Utils;
 
@@ -15,8 +16,8 @@ namespace Echoes.Clients.DotNetBridge
 
         public EchoesDefaultHandler()
         {
-            _poolBuilder = new PoolBuilder(new RemoteConnectionBuilder(ITimingProvider.Default),
-                ITimingProvider.Default, _parser);
+            _poolBuilder = new PoolBuilder(new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
+                ITimingProvider.Default, _parser, null);
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(

@@ -6,6 +6,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Echoes.Core;
 using Echoes.H11;
 using Echoes.H2.Encoder.Utils;
 
@@ -57,9 +58,9 @@ namespace Echoes.H2
             CancellationToken token = default)
         {
             var connectionPool =  new Http11ConnectionPool(authority, null,
-                new RemoteConnectionBuilder(ITimingProvider.Default),
+                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
                 ITimingProvider.Default, ClientSetting.Default, new Http11Parser(
-                    ClientSetting.Default.MaxHeaderLineSize));
+                    ClientSetting.Default.MaxHeaderLineSize), null);
 
             await connectionPool.Init();
 
