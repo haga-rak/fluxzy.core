@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.12" />
+    <PackageReference Include="Splat.Ninject" Version="14.1.45" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Echoes\Echoes.csproj" />
+  </ItemGroup>
+
+</Project>

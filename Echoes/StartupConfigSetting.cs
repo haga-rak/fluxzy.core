@@ -2,12 +2,13 @@
 
 using System.Text.Json;
 
-namespace Echoes;
-
-public class StartupConfigSetting
+namespace Echoes
 {
-    public static JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions()
+    public class StartupConfigSetting
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    }; 
+        public static JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        }; 
+    }
 }

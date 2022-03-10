@@ -2,27 +2,28 @@
 
 using System.Security.Cryptography.X509Certificates;
 
-namespace Echoes;
-
-public class CertificateConfiguration
+namespace Echoes
 {
-    public CertificateConfiguration(byte[] rawCertificate, string password)
+    public class CertificateConfiguration
     {
-        if (rawCertificate == null)
-            return; 
-
-        Certificate = new X509Certificate2(rawCertificate, password);
-    }
-
-
-    internal X509Certificate2 Certificate { get; set; }
-
-
-    public bool DefaultConfig
-    {
-        get
+        public CertificateConfiguration(byte[] rawCertificate, string password)
         {
-            return Certificate == null;
+            if (rawCertificate == null)
+                return; 
+
+            Certificate = new X509Certificate2(rawCertificate, password);
+        }
+
+
+        internal X509Certificate2 Certificate { get; set; }
+
+
+        public bool DefaultConfig
+        {
+            get
+            {
+                return Certificate == null;
+            }
         }
     }
 }

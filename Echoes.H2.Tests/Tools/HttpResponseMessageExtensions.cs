@@ -5,20 +5,21 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Sandbox.Models;
 
-namespace Echoes.H2.Tests.Tools;
-
-public static class HttpResponseMessageExtensions
+namespace Echoes.H2.Tests.Tools
 {
-    public static async Task<HealthCheckResult> GetCheckResult(this HttpResponseMessage message)
+    public static class HttpResponseMessageExtensions
     {
-        var resultText = await message.Content.ReadAsStringAsync();
-        var res = JsonSerializer.Deserialize<HealthCheckResult>(resultText, new JsonSerializerOptions()
+        public static async Task<HealthCheckResult> GetCheckResult(this HttpResponseMessage message)
         {
-            PropertyNameCaseInsensitive = true
-        } );
+            var resultText = await message.Content.ReadAsStringAsync();
+            var res = JsonSerializer.Deserialize<HealthCheckResult>(resultText, new JsonSerializerOptions()
+            {
+                PropertyNameCaseInsensitive = true
+            } );
 
-        return res; 
-    }
+            return res; 
+        }
 
     
+    }
 }

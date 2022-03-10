@@ -11,17 +11,15 @@
     <Description>Echoes is a .NET Core proxy engine that allows you to decrypt SSL trafic with your own certificate.</Description>
     <Copyright />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

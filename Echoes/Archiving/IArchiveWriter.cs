@@ -14,4 +14,12 @@ namespace Echoes
 
         Stream CreateResponseBodyStream(int exchangeId);
     }
+
+    public class ZipArchiveHelper
+    {
+        public static Task Compress(string directoryInitial, Stream stream)
+        {
+            return Task.CompletedTask; 
+        }
+    }
 }

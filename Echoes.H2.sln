@@ -15,6 +15,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SubModules", "SubModules", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox.Models", "SubModules\Sandbox\Sandbox.Models\Sandbox.Models.csproj", "{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Desktop", "Echoes.Desktop\Echoes.Desktop.csproj", "{26927AF9-DFA1-45B9-942D-BB12904E6774}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Desktop.Common", "Echoes.Desktop.Common\Echoes.Desktop.Common.csproj", "{FB7E80FE-64CC-4CC6-AFE5-D7029172A7C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +45,14 @@ Global
 		{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26927AF9-DFA1-45B9-942D-BB12904E6774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26927AF9-DFA1-45B9-942D-BB12904E6774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26927AF9-DFA1-45B9-942D-BB12904E6774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26927AF9-DFA1-45B9-942D-BB12904E6774}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB7E80FE-64CC-4CC6-AFE5-D7029172A7C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB7E80FE-64CC-4CC6-AFE5-D7029172A7C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB7E80FE-64CC-4CC6-AFE5-D7029172A7C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB7E80FE-64CC-4CC6-AFE5-D7029172A7C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

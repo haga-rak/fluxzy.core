@@ -39,7 +39,7 @@ namespace Echoes
             Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s)); 
         }
 
-        public int StatusCode { get; } = -1;
+        public int StatusCode { get; } 
 
         public IEnumerable<HeaderFieldInfo> Headers { get;  }
 
