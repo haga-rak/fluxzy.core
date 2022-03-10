@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Text;
 using Echoes.Desktop.Common;
+using Echoes.Desktop.Common.Models;
+using Echoes.Desktop.Common.Services;
 
 namespace Echoes.Desktop.ViewModels
 {

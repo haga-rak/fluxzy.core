@@ -307,7 +307,7 @@ namespace Echoes.Cli
 
             var statPrinter = new StatPrinter(Console.CursorTop, startupSetting.BoundAddress, startupSetting.ListenPort);
 
-            async Task OnNewExchange(Exchange exchange)
+            async Task OnNewExchange(Exchange exchange, ProxyExecutionContext proxyExecutionContext)
             {
                 await statPrinter.OnNewExchange(exchange).ConfigureAwait(false);
 

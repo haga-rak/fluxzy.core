@@ -6,6 +6,7 @@ using Splat;
 using System;
 using Avalonia.Interactivity;
 using Echoes.Desktop.Common.Extensions;
+using Echoes.Desktop.Common.Services;
 using Echoes.Desktop.ViewModels;
 
 namespace Echoes.Desktop.Views.UserControls

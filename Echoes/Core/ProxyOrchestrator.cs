@@ -12,22 +12,24 @@ namespace Echoes.Core
 {
     internal class ProxyOrchestrator : IDisposable
     {
-        private readonly Func<Exchange, Task> _exchangeListener;
+        private readonly Func<Exchange, ProxyExecutionContext, Task> _exchangeListener;
         private readonly Func<string, Stream> _throttlePolicy;
         private readonly ProxyStartupSetting _startupSetting;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
         private readonly RealtimeArchiveWriter _archiveWriter;
+        private readonly ProxyExecutionContext _executionContext;
 
         public ProxyOrchestrator(
-            Func<Exchange, Task> exchangeListener,
+            Func<Exchange, ProxyExecutionContext, Task> exchangeListener,
             Func<string, Stream> throttlePolicy,
             ProxyStartupSetting startupSetting,
             ProxyRuntimeSetting proxyRuntimeSetting,
             ExchangeBuilder exchangeBuilder,
             PoolBuilder poolBuilder,
-            RealtimeArchiveWriter archiveWriter)
+            RealtimeArchiveWriter archiveWriter,
+            ProxyExecutionContext executionContext)
         {
             _exchangeListener = exchangeListener;
             _throttlePolicy = throttlePolicy;
@@ -36,6 +38,7 @@ namespace Echoes.Core
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;
             _archiveWriter = archiveWriter;
+            _executionContext = executionContext;
         }
 
         public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)
@@ -191,9 +194,8 @@ namespace Echoes.Core
                                 
                                 if (_exchangeListener != null)
                                 {
-                                    await _exchangeListener(exchange);
+                                    await _exchangeListener(exchange, _executionContext);
                                 }
-
 
                                 if (_archiveWriter != null)
                                 {

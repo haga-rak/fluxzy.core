@@ -4,7 +4,7 @@ using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
-namespace Echoes.Desktop.Common
+namespace Echoes.Desktop.Common.Services
 {
     public class SettingHolder
     {

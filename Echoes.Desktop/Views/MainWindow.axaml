@@ -39,25 +39,14 @@
                 </Panel>
 
                 <Panel>
+                    <Grid ColumnDefinitions="*, 4, *">
+                        <userControls:ExchangeListView  Grid.Column="0" />
 
-                    <Grid RowDefinitions="*, 4, *">
-                        <Panel Grid.Row="0">
-                            <Grid ColumnDefinitions="*, 4, *">
-                                <Rectangle Grid.Column="0" Fill="Blue"/>
-                                <GridSplitter Grid.Column="1" Background="Black" ResizeDirection="Columns"/>
-                                <Rectangle Grid.Column="2" Fill="Pink"/>
-                            </Grid>
-						</Panel>
-						<GridSplitter Grid.Row="1" Background="Black" ResizeDirection="Rows"/>
-						<Rectangle Grid.Row="2" Fill="Green"/>
-					</Grid>
-
+                        <GridSplitter Grid.Column="1" Background="Black" ResizeDirection="Columns"/>
+                        <Rectangle Grid.Column="2" Fill="Pink"/>
+                    </Grid>
 				</Panel>
-
-
-
 			</DockPanel>
-
 
         </Panel>
     </DockPanel>

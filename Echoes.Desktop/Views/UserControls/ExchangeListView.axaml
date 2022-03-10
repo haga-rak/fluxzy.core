@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:userControls="clr-namespace:Echoes.Desktop.Views.UserControls"
+             xmlns:viewModels="clr-namespace:Echoes.Desktop.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Echoes.Desktop.Views.UserControls.ExchangeListView">
+
+    <Design.DataContext>
+        <viewModels:ExchangeListViewModel/>
+    </Design.DataContext>
+
+    <ItemsControl Items="{Binding Items}" >
+        <ItemsControl.ItemTemplate >
+            <DataTemplate>
+				<userControls:ExchangeView />
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+</UserControl>

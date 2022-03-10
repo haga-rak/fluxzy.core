@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Echoes.Desktop.Common
+﻿namespace Echoes.Desktop.Common.Models
 {
     public enum CaptureStateType
     {

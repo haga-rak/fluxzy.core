@@ -20,6 +20,7 @@ namespace Echoes.Clients
             Authority = this[Http11Constants.AuthorityVerb].First().Value;
             Path = this[Http11Constants.PathVerb].First().Value;
             Method = this[Http11Constants.MethodVerb].First().Value;
+            Scheme = this[Http11Constants.SchemeVerb].First().Value;
             IsWebSocketRequest = this[Http11Constants.ConnectionVerb]
                 .Any(c => c.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase)) 
                 && 
@@ -32,6 +33,8 @@ namespace Echoes.Clients
         public ReadOnlyMemory<char> Path { get;  }
 
         public ReadOnlyMemory<char> Method { get;  }
+
+        public ReadOnlyMemory<char> Scheme { get;  }
 
         public bool IsWebSocketRequest { get;  }
 

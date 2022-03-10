@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using Echoes.Clients;
 using Echoes.Core;
 using Echoes.Desktop.Common.Extensions;
-using ReactiveUI;
+using Echoes.Desktop.Common.Models;
 using Splat;
 
-namespace Echoes.Desktop.Common
+namespace Echoes.Desktop.Common.Services
 {
     public class CaptureService
     {
@@ -54,9 +54,9 @@ namespace Echoes.Desktop.Common
             _proxyInstance.Run();
         }
 
-        private Task OnNewExchange(Exchange arg)
+        private Task OnNewExchange(Exchange arg, ProxyExecutionContext proxyExecutionContext)
         {
-            _captureSession.AddExchange(arg);
+            _captureSession.AddExchange(arg, proxyExecutionContext.SessionId);
 
             if (_captureSession != null)
                 _captureSessionSubject.OnNext(_captureSession);
@@ -64,23 +64,25 @@ namespace Echoes.Desktop.Common
             return Task.CompletedTask;
         }
 
-        public async Task Stop()
+        public Task Stop()
         {
             if (_proxyInstance == null)
-                return;
+                return Task.CompletedTask;
 
             if (_captureSession != null)
                 _captureSession.Started = false; 
 
             try
             {
-                await _proxyInstance.DisposeAsync();
+                _proxyInstance.Dispose();
             }
             finally
             {
                 _proxyInstance = null;
                 _captureSessionSubject.OnNext(_captureSession);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

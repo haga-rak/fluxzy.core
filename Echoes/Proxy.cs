@@ -32,7 +32,7 @@ namespace Echoes
         public Proxy(
             ProxyStartupSetting startupSetting,
             ICertificateProvider certificateProvider,
-            Func<Exchange, Task> onNewExchange = null,
+            Func<Exchange, ProxyExecutionContext, Task> onNewExchange = null,
             ProxyAlterationRule alterationRule = null
             )
         {
@@ -66,12 +66,18 @@ namespace Echoes
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default, http1Parser,
                 _writer);
 
+            ExecutionContext = new ProxyExecutionContext()
+            {
+                SessionId = SessionIdentifier,
+                StartupSetting = startupSetting
+            };
+
             _proxyOrchestrator = new ProxyOrchestrator(
                 onNewExchange,
                 ThrottlePolicyStream, 
                 _startupSetting, 
                 new ProxyRuntimeSetting(startupSetting),
-                new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer);
+                new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer, ExecutionContext);
 
             if (!_startupSetting.SkipSslDecryption && _startupSetting.AutoInstallCertificate)
             {
@@ -80,6 +86,8 @@ namespace Echoes
 
             startupSetting.GetDefaultOutput().WriteLine($@"Listening on {startupSetting.BoundAddress}:{startupSetting.ListenPort}");
         }
+
+        public ProxyExecutionContext ExecutionContext { get; }
 
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss"); 
 
@@ -183,6 +191,13 @@ namespace Echoes
             _disposed = true;
 
         }
+    }
+
+    public class ProxyExecutionContext
+    {
+        public string SessionId { get; set; }
+
+        public ProxyStartupSetting StartupSetting { get; set; } 
     }
 
 }

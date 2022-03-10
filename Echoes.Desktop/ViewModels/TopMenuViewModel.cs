@@ -2,9 +2,8 @@
 
 using System;
 using System.Reactive.Linq;
-using Avalonia.Markup.Xaml;
-using Echoes.Desktop.Common;
-using Splat;
+using Echoes.Desktop.Common.Models;
+using Echoes.Desktop.Common.Services;
 
 namespace Echoes.Desktop.ViewModels
 {
