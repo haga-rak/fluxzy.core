@@ -50,12 +50,17 @@ namespace Echoes.Desktop.Common
             captureSession.Started = true; 
 
             _captureSessionSubject.OnNext(captureSession);
+
             _proxyInstance.Run();
         }
 
         private Task OnNewExchange(Exchange arg)
         {
             _captureSession.AddExchange(arg);
+
+            if (_captureSession != null)
+                _captureSessionSubject.OnNext(_captureSession);
+
             return Task.CompletedTask;
         }
 
