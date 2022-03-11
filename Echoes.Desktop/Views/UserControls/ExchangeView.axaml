@@ -12,7 +12,7 @@
         <models:ExchangeViewModel/>
     </Design.DataContext>
 
-	<Border Padding="4" Classes.SelectedStyle="{Binding Selected^}" PointerReleased="OnPanelClick"  >
+	<Border Padding="4" Classes.SelectedExchange="{Binding Selected^}" PointerReleased="OnPanelClick"  >
         <StackPanel Orientation="Horizontal"  >
             <TextBlock Text="{Binding Selected^}" MaxWidth="75" MinWidth="75"></TextBlock>
             <TextBlock Text="{Binding Url}"></TextBlock>

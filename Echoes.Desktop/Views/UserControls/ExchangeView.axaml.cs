@@ -24,13 +24,18 @@ namespace Echoes.Desktop.Views.UserControls
 
         private void OnPanelClick(object? sender, PointerReleasedEventArgs e)
         {
-            var model = (ExchangeViewModel) DataContext!; 
+            var model = (ExchangeViewModel) DataContext!;
+            var uiService = Locator.Current.GetRequiredService<UiService>(); 
 
-            Console.WriteLine("click");
-
-            Locator
-                .Current.GetRequiredService<UiService>()
-                .Set(model.FullId);
+            switch (e.KeyModifiers)
+            {
+                case KeyModifiers.Control:
+                    uiService.Add(model.FullId);
+                    break;
+                default:
+                    uiService.Set(model.FullId);
+                    break;
+            }
         }
     }
 }

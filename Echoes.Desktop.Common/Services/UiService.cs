@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,27 +12,34 @@ namespace Echoes.Desktop.Common.Services
 {
     public class UiService
     {
-        private readonly BehaviorSubject<HashSet<string>> _currentSelection = new(new HashSet<string>());
-        private HashSet<string> _latest;
+        private readonly CaptureService _captureService;
+        private readonly BehaviorSubject<SortedSet<string>> _currentSelection = new(new SortedSet<string>());
+
+        private SortedSet<string> _latest;
 
         public UiService(CaptureService captureService)
         {
+            _captureService = captureService;
             _currentSelection.Subscribe(t => _latest = t);
 
             CurrentSelectedIds = _currentSelection.AsObservable();
 
-            Selected = _currentSelection
+            SelectedItems = _currentSelection
                 .CombineLatest(captureService.CaptureSession)
-                .Select(s => s.Second.Items.Where(i => s.First.Contains(i.FullId)).ToList()); 
+                .Select(s => s.Second.Items.Where(i => s.First.Contains(i.FullId)).ToList());
+
+            SelectedItem = SelectedItems.Select(s => s.Any() ? s.Last() : null); 
         }
 
-        public IObservable<List<ExchangeViewModel>> Selected { get; }
+        public IObservable<ExchangeViewModel ?> SelectedItem { get; }
 
-        public IObservable<HashSet<string>> CurrentSelectedIds { get; }
+        public IObservable<List<ExchangeViewModel>> SelectedItems { get; }
+
+        public IObservable<SortedSet<string>> CurrentSelectedIds { get; }
 
         public void Reset()
         {
-            _currentSelection.OnNext(new HashSet<string>());
+            _currentSelection.OnNext(new SortedSet<string>());
         }
         
 
@@ -45,12 +53,26 @@ namespace Echoes.Desktop.Common.Services
         {
             _latest.Clear();
             _latest.Add(fullId);
+            
+            _currentSelection.OnNext(_latest);
+        }
 
-           _currentSelection.OnNext(_latest);
+        public void SetUntil(string fullId)
+        {
+            if (!_latest.Any())
+            {
+                Add(fullId);
+                return; 
+            }
+
+            var indexOf 
+
+                
         }
 
         public void Remove(string fullId)
         {
+            
             if (_latest.Remove(fullId))
                 _currentSelection.OnNext(_latest);
         }

@@ -53,5 +53,7 @@ namespace Echoes.Desktop.Common.Models
         public bool Done { get; set; }
 
         public IObservable<bool> Selected { get; }
+
+        public bool AlwaysTrue { get;  } = true;
     }
 }
