@@ -11,12 +11,16 @@
         <viewModels:ExchangeListViewModel/>
     </Design.DataContext>
 
-    <ItemsControl Items="{Binding Items}" >
-        <ItemsControl.ItemTemplate >
-            <DataTemplate>
-				<userControls:ExchangeView />
-            </DataTemplate>
-        </ItemsControl.ItemTemplate>
-    </ItemsControl>
+    <ScrollViewer HorizontalScrollBarVisibility="Auto">
+
+        <ItemsControl Items="{Binding Items}" >
+            <ItemsControl.ItemTemplate >
+                <DataTemplate>
+                    <userControls:ExchangeView />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+	</ScrollViewer>
 
 </UserControl>

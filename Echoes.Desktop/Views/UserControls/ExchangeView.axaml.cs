@@ -1,7 +1,12 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Echoes.Desktop.Common.Extensions;
 using Echoes.Desktop.Common.Models;
+using Echoes.Desktop.Common.Services;
+using Splat;
 
 namespace Echoes.Desktop.Views.UserControls
 {
@@ -17,18 +22,15 @@ namespace Echoes.Desktop.Views.UserControls
             AvaloniaXamlLoader.Load(this);
         }
 
-        private object _coco; 
-
-        public object Coco
+        private void OnPanelClick(object? sender, PointerReleasedEventArgs e)
         {
-            get
-            {
-                return _coco; 
-            }
-            set
-            {
-                _coco = value; 
-            }
+            var model = (ExchangeViewModel) DataContext!; 
+
+            Console.WriteLine("click");
+
+            Locator
+                .Current.GetRequiredService<UiService>()
+                .Set(model.FullId);
         }
     }
 }

@@ -1,7 +1,11 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using System.Reactive.Linq;
 using Echoes.Clients;
+using Echoes.Desktop.Common.Extensions;
+using Echoes.Desktop.Common.Services;
+using Splat;
 
 namespace Echoes.Desktop.Common.Models
 {
@@ -23,11 +27,18 @@ namespace Echoes.Desktop.Common.Models
             }
 
             Done = exchange.Complete.IsCompleted;
+
+            Selected = Locator.Current.GetRequiredService<UiService>()
+                .CurrentSelectedIds
+                .Select(s => s.Contains(FullId)); 
         }
+
 
         public int Id { get; set; }
 
         public string SessionId { get; set; }
+
+        public string FullId => $"{SessionId}_{Id}"; 
 
         public string Method { get; set; } 
 
@@ -40,5 +51,7 @@ namespace Echoes.Desktop.Common.Models
         public string FormattedSize { get; set; }
 
         public bool Done { get; set; }
+
+        public IObservable<bool> Selected { get; }
     }
 }

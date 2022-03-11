@@ -16,12 +16,12 @@ namespace Echoes.Desktop.Common
             var kernel = new StandardKernel();
 
             kernel.Bind<CaptureService>().ToSelf().InSingletonScope();
+            kernel.Bind<UiService>().ToSelf().InSingletonScope();
             kernel.Bind<SettingHolder>().ToSelf().InSingletonScope();
             
             kernel.Bind<MainWindow>().ToSelf().InSingletonScope();
 
             kernel.Bind<TopMenuViewModel>().ToSelf();
-
             kernel.Bind<MainWindowViewModel>().ToSelf();
             kernel.Bind<ExchangeListViewModel>().ToSelf();
 
