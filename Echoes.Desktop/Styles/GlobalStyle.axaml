@@ -6,7 +6,7 @@
         </Border>
     </Design.PreviewWith>
 
-	<Style Selector="MenuItem,Menu,TextBox">
+	<Style Selector="MenuItem,Menu,TextBox,Label">
         <Setter Property="FontFamily" Value="Roboto"/>
         <Setter Property="FontSize" Value="12"/>
     </Style>

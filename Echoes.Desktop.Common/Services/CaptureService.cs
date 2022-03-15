@@ -21,6 +21,7 @@ namespace Echoes.Desktop.Common.Services
         private ProxyStartupSetting _startupSetting;
         private Proxy _proxyInstance;
         private CaptureSession  _captureSession;
+        private UiService _uiService;
 
         public CaptureService(SettingHolder holder)
         {
@@ -35,15 +36,22 @@ namespace Echoes.Desktop.Common.Services
         public IObservable<CaptureSession> CaptureSession => _captureSessionSubject.AsObservable(); 
 
         public IObservable<CaptureStateType> CaptureState => _captureSessionSubject
-            .Select(s => s.Started ? CaptureStateType.Running : CaptureStateType.Halted ); 
+            .Select(s => s.Started ? CaptureStateType.Running : CaptureStateType.Halted );
+
+        public CaptureSession Session => _captureSession;
 
         public void Start()
         {
             if (_startupSetting == null || _proxyInstance != null)
                 return;
 
-            _proxyInstance = new Proxy(_startupSetting, new CertificateProvider(
-                _startupSetting, new InMemoryCertificateCache()), OnNewExchange);
+            if (_uiService == null)
+                _uiService = Locator.Current.GetRequiredService<UiService>();
+
+            _proxyInstance = Proxy.Create(_startupSetting);
+
+            _proxyInstance.BeforeRequest += ProxyInstanceOnBeforeRequest;
+            _proxyInstance.BeforeResponse += ProxyInstanceOnBeforeResponse;
 
             var captureSession = Locator.Current.GetRequiredService<CaptureSession>();
 
@@ -54,15 +62,26 @@ namespace Echoes.Desktop.Common.Services
             _proxyInstance.Run();
         }
 
-        private Task OnNewExchange(Exchange arg, ProxyExecutionContext proxyExecutionContext)
+        private void ProxyInstanceOnBeforeResponse(object? sender, BeforeResponseEventArgs e)
         {
-            _captureSession.AddExchange(arg, proxyExecutionContext.SessionId);
 
-            if (_captureSession != null)
+            lock (this)
+            {
+                _captureSession.Update(e.Exchange, e.ExecutionContext.SessionId, _uiService);
                 _captureSessionSubject.OnNext(_captureSession);
-
-            return Task.CompletedTask;
+            }
         }
+
+        private void ProxyInstanceOnBeforeRequest(object? sender, BeforeRequestEventArgs e)
+        {
+
+            lock (this)
+            {
+                _captureSession.AddExchange(e.Exchange, e.ExecutionContext.SessionId, _uiService);
+                _captureSessionSubject.OnNext(_captureSession);
+            }
+        }
+
 
         public Task Stop()
         {
@@ -74,6 +93,9 @@ namespace Echoes.Desktop.Common.Services
 
             try
             {
+                _proxyInstance.BeforeRequest -= ProxyInstanceOnBeforeRequest;
+                _proxyInstance.BeforeResponse -= ProxyInstanceOnBeforeResponse;
+
                 _proxyInstance.Dispose();
             }
             finally

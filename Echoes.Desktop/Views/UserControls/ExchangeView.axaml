@@ -6,15 +6,17 @@
              xmlns:converters="clr-namespace:Echoes.Desktop.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Echoes.Desktop.Views.UserControls.ExchangeView"
+             PointerPressed="OnPanelClick"
              >
 
     <Design.DataContext>
         <models:ExchangeViewModel/>
     </Design.DataContext>
 
-	<Border Padding="4" Classes.SelectedExchange="{Binding Selected^}" PointerReleased="OnPanelClick"  >
-        <StackPanel Orientation="Horizontal"  >
-            <TextBlock Text="{Binding Selected^}" MaxWidth="75" MinWidth="75"></TextBlock>
+	<Border Padding="4" Classes.SelectedExchange="{Binding Selected^}"  >
+        <StackPanel Orientation="Horizontal" >
+            <TextBlock Text="{Binding Method}" MaxWidth="75" MinWidth="75"></TextBlock>
+            <TextBlock Text="{Binding StatusCode}" MaxWidth="50" MinWidth="50"></TextBlock>
             <TextBlock Text="{Binding Url}"></TextBlock>
         </StackPanel>
     </Border>

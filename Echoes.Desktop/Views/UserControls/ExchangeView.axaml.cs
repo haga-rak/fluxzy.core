@@ -22,15 +22,18 @@ namespace Echoes.Desktop.Views.UserControls
             AvaloniaXamlLoader.Load(this);
         }
 
-        private void OnPanelClick(object? sender, PointerReleasedEventArgs e)
+        private void OnPanelClick(object? sender, PointerPressedEventArgs e)
         {
             var model = (ExchangeViewModel) DataContext!;
-            var uiService = Locator.Current.GetRequiredService<UiService>(); 
-
+            var uiService = Locator.Current.GetRequiredService<UiService>();
+            
             switch (e.KeyModifiers)
             {
                 case KeyModifiers.Control:
                     uiService.Add(model.FullId);
+                    break;
+                case KeyModifiers.Shift: 
+                    uiService.SetUntil(model.FullId);
                     break;
                 default:
                     uiService.Set(model.FullId);

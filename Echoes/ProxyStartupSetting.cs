@@ -24,6 +24,9 @@ namespace Echoes
         /// </summary>
         public string BoundAddress { get; internal set; } = "127.0.0.1";
         
+        /// <summary>
+        /// Verbose mode 
+        /// </summary>
         public bool Verbose { get; internal set; } = false;
 
         /// <summary>

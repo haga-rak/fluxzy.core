@@ -15,7 +15,7 @@ namespace Echoes.Desktop.Common.Services
         private readonly CaptureService _captureService;
         private readonly BehaviorSubject<SortedSet<string>> _currentSelection = new(new SortedSet<string>());
 
-        private SortedSet<string> _latest;
+        private SortedSet<string> _latest = new();
 
         public UiService(CaptureService captureService)
         {
@@ -45,8 +45,10 @@ namespace Echoes.Desktop.Common.Services
 
         public void Add(string fullId)
         {
-            if (_latest.Add(fullId))
-                _currentSelection.OnNext(_latest);
+            if (!_latest.Add(fullId))
+                _latest.Remove(fullId);
+
+            _currentSelection.OnNext(_latest);
         }
 
         public void Set(string fullId)
@@ -65,9 +67,28 @@ namespace Echoes.Desktop.Common.Services
                 return; 
             }
 
-            var indexOf 
+            var lastSelectedItem = _latest.Last(); 
 
-                
+            var initialList = _captureService.Session.Items.ToList(); 
+
+            var indexOfClick =
+                initialList.FindIndex(t => t.FullId == fullId); 
+
+            var indexOfLatest =
+                initialList.FindIndex(t => t.FullId == lastSelectedItem);
+
+            if (indexOfClick == -1 || indexOfLatest == -1)
+                return; 
+
+            var start = indexOfClick < indexOfLatest ? indexOfClick  : indexOfLatest;
+            var end = indexOfClick > indexOfLatest ? indexOfClick  : indexOfLatest;
+
+            for (var i = start; i <= end; i++)
+            {
+                _latest.Add(initialList[i].FullId);
+            }
+
+            _currentSelection.OnNext(_latest);
         }
 
         public void Remove(string fullId)

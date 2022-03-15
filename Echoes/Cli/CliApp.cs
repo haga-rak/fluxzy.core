@@ -317,7 +317,12 @@ namespace Echoes.Cli
                 //}
             }
 
-            var proxy = new Proxy(startupSetting, certificateProviderFactory(startupSetting), OnNewExchange);
+            var proxy = new Proxy(startupSetting, certificateProviderFactory(startupSetting));
+
+
+            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+            {
+            };
 
             proxy.Run();
 

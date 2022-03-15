@@ -12,33 +12,29 @@ namespace Echoes.Core
 {
     internal class ProxyOrchestrator : IDisposable
     {
-        private readonly Func<Exchange, ProxyExecutionContext, Task> _exchangeListener;
         private readonly Func<string, Stream> _throttlePolicy;
-        private readonly ProxyStartupSetting _startupSetting;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
         private readonly RealtimeArchiveWriter _archiveWriter;
+        private readonly IExchangeEventSource _eventSource;
         private readonly ProxyExecutionContext _executionContext;
 
         public ProxyOrchestrator(
-            Func<Exchange, ProxyExecutionContext, Task> exchangeListener,
             Func<string, Stream> throttlePolicy,
-            ProxyStartupSetting startupSetting,
             ProxyRuntimeSetting proxyRuntimeSetting,
             ExchangeBuilder exchangeBuilder,
             PoolBuilder poolBuilder,
             RealtimeArchiveWriter archiveWriter,
-            ProxyExecutionContext executionContext)
+            IExchangeEventSource eventSource)
         {
-            _exchangeListener = exchangeListener;
             _throttlePolicy = throttlePolicy;
-            _startupSetting = startupSetting;
             _proxyRuntimeSetting = proxyRuntimeSetting;
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;
             _archiveWriter = archiveWriter;
-            _executionContext = executionContext;
+            _executionContext = proxyRuntimeSetting.ExecutionContext;
+            _eventSource = eventSource;
         }
 
         public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)
@@ -91,6 +87,8 @@ namespace Echoes.Core
                             shouldClose = exchange.Request
                                 .Header["Connection".AsMemory()].Any(c =>
                                     c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+
+                            _eventSource.OnBeforeRequest(new BeforeRequestEventArgs(_executionContext, exchange));
 
                             IHttpConnectionPool connectionPool;
 
@@ -191,11 +189,8 @@ namespace Echoes.Core
                                 var responseHeaderLength = exchange.Response.Header.WriteHttp11(buffer, true, true);
 
                                 // headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
-                                
-                                if (_exchangeListener != null)
-                                {
-                                    await _exchangeListener(exchange, _executionContext);
-                                }
+
+                                _eventSource.OnBeforeResponse(new BeforeResponseEventArgs(_executionContext, exchange));
 
                                 if (_archiveWriter != null)
                                 {
@@ -281,6 +276,9 @@ namespace Echoes.Core
                                     finally
                                     {
                                         await SafeCloseRequestBody(exchange);
+
+                                        _eventSource.OnExchangeComplete(new ExchangeCompleteEventArgs(
+                                            _executionContext, exchange));
                                     }
                                 }
 

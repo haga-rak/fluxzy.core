@@ -50,7 +50,8 @@
                         <userControls:ExchangeListView  Grid.Column="0" />
 
                         <GridSplitter Grid.Column="1" Background="Black" ResizeDirection="Columns"/>
-                        <Rectangle Grid.Column="2" Fill="Pink"/>
+
+						<userControls:Detail  Grid.Column="2" />
                     </Grid>
 				</Panel>
 			</DockPanel>

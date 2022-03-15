@@ -40,8 +40,10 @@ namespace Echoes.H2.Tests.Tools
 
             _proxy = new Proxy(_startupSetting,
                 new CertificateProvider(_startupSetting,
-                    new InMemoryCertificateCache()),
-                OnNewExchange);
+                    new InMemoryCertificateCache()));
+
+
+            _proxy.BeforeResponse +=  ProxyOnBeforeResponse;
 
             _cancellationSource = new CancellationTokenSource(timeoutSeconds * 1000);
             _completionSource = new TaskCompletionSource();
@@ -58,25 +60,23 @@ namespace Echoes.H2.Tests.Tools
             _proxy.Run();
         }
 
-        public int BindPort { get; }
-
-        public string BindHost { get; }
-
-        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
-
-        private Task OnNewExchange(Exchange exchange)
+        private void ProxyOnBeforeResponse(object? sender, BeforeResponseEventArgs e)
         {
             lock (_capturedExchanges)
-                _capturedExchanges.Add(exchange);
+                _capturedExchanges.Add(e.Exchange);
 
             if (Interlocked.Increment(ref _requestCount) >= _expectedRequestCount)
             {
                 _completionSource.TrySetResult();
             }
-
-            return Task.CompletedTask; 
         }
 
+        public int BindPort { get; }
+
+        public string BindHost { get; }
+
+        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
+        
         public Task WaitUntilDone()
         {
             return _completionSource.Task; 

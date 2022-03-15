@@ -268,15 +268,13 @@ namespace Echoes.H2.Tests
                 }
             });
 
-            Task OnNewExchange(Exchange ex)
-            {
-                requestReceived.TrySetResult(ex);
-                return Task.CompletedTask;
-            }
-
             using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
-                OnNewExchange);
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+
+            proxy.BeforeResponse += delegate(object? sender, BeforeResponseEventArgs args)
+            {
+                requestReceived.TrySetResult(args.Exchange);
+            };
 
             proxy.Run();
 
@@ -322,16 +320,14 @@ namespace Echoes.H2.Tests
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
                 }
             });
-
-            Task OnNewExchange(Exchange ex)
-            {
-                requestReceived.TrySetResult(ex);
-                return Task.CompletedTask;
-            }
-
+            
             using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
-                OnNewExchange);
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+            
+            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+            {
+                requestReceived.TrySetResult(args.Exchange);
+            };
 
             proxy.Run();
 
@@ -375,16 +371,15 @@ namespace Echoes.H2.Tests
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
                 }
             });
-
-            Task OnNewExchange(Exchange ex)
-            {
-                requestReceived.TrySetResult(ex);
-                return Task.CompletedTask;
-            }
+            
 
             using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
-                OnNewExchange);
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+
+            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+            {
+                requestReceived.TrySetResult(args.Exchange);
+            };
 
             proxy.Run();
 
@@ -433,16 +428,14 @@ namespace Echoes.H2.Tests
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
                 }
             });
-
-            Task OnNewExchange(Exchange ex)
-            {
-                requestReceived.TrySetResult(ex);
-                return Task.CompletedTask;
-            }
-
+            
             using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
-                OnNewExchange);
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+            
+            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+            {
+                requestReceived.TrySetResult(args.Exchange);
+            };
 
             proxy.Run();
 
@@ -491,15 +484,13 @@ namespace Echoes.H2.Tests
                 }
             });
 
-            Task OnNewExchange(Exchange ex)
-            {
-                requestReceived.TrySetResult(ex);
-                return Task.CompletedTask;
-            }
-
             using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
-                OnNewExchange);
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+
+            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+            {
+                requestReceived.TrySetResult(args.Exchange);
+            };
 
             proxy.Run();
 

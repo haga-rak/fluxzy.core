@@ -17,12 +17,40 @@ namespace Echoes.Clients
 
         }
 
-        public ProxyRuntimeSetting(ProxyStartupSetting startupSetting)
+        public ProxyRuntimeSetting(ProxyStartupSetting startupSetting, 
+            ProxyExecutionContext executionContext,
+            IExchangeEventSource exchangeEventSource)
         {
+            ExecutionContext = executionContext;
+            ExchangeEventSource = exchangeEventSource;
             _startupSetting = startupSetting;
             ProxyTlsProtocols = startupSetting.ServerProtocols;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
         }
+
+        public ProxyExecutionContext ExecutionContext { get; }
+
+        public IExchangeEventSource ExchangeEventSource { get; } = new NoOpExchangeEventSource(); 
+
+        /// <summary>
+        /// Protocols supported by the current proxy 
+        /// </summary>
+        public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11;
+
+
+        /// <summary>
+        /// Process to validate the remote certificate 
+        /// </summary>
+        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; } = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int ConcurrentConnection { get; set; } = 8;
+
+
+        public int TimeOutSecondsUnusedConnection { get; set; } = 4;
+
 
         /// <summary>
         /// 
@@ -36,11 +64,11 @@ namespace Echoes.Clients
             if (_startupSetting != null &&
                 _startupSetting.ClientCertificateConfiguration != null &&
                 _startupSetting.ClientCertificateConfiguration.HasConfig
-                )
+               )
             {
-                var certificate  = _startupSetting.ClientCertificateConfiguration.GetCustomClientCertificate(
+                var certificate = _startupSetting.ClientCertificateConfiguration.GetCustomClientCertificate(
                     hostName);
-                
+
                 if (certificate != null)
                     result.Add(certificate);
             }
@@ -48,11 +76,6 @@ namespace Echoes.Clients
             return result;
         }
 
-        /// <summary>
-        /// Protocols supported by the current proxy 
-        /// </summary>
-        public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11;
-        
         internal bool ShouldTunneled(string hostName)
         {
             if (_startupSetting == null)
@@ -67,20 +90,8 @@ namespace Echoes.Clients
             // TODO : Regex contains may be slow in critical usage. Consider using
             // TODO : dictionary or updating implementation of WildCardContains()
 
-            return _startupSetting.TunneledOnlyHosts.WildCardContains(hostName); 
+            return _startupSetting.TunneledOnlyHosts.WildCardContains(hostName);
         }
 
-        /// <summary>
-        /// Process to validate the remote certificate 
-        /// </summary>
-        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; } = null;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int ConcurrentConnection { get; set; } = 8;
-
-
-        public int TimeOutSecondsUnusedConnection { get; set; } = 4;
     }
 }

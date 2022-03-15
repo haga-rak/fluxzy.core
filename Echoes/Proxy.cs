@@ -13,7 +13,7 @@ using Echoes.Core;
 
 namespace Echoes
 {
-    public class Proxy : IDisposable, IAsyncDisposable
+    public class Proxy : IDisposable, IAsyncDisposable, IExchangeEventSource
     {
         private readonly ProxyStartupSetting _startupSetting;
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
@@ -32,7 +32,6 @@ namespace Echoes
         public Proxy(
             ProxyStartupSetting startupSetting,
             ICertificateProvider certificateProvider,
-            Func<Exchange, ProxyExecutionContext, Task> onNewExchange = null,
             ProxyAlterationRule alterationRule = null
             )
         {
@@ -73,11 +72,9 @@ namespace Echoes
             };
 
             _proxyOrchestrator = new ProxyOrchestrator(
-                onNewExchange,
                 ThrottlePolicyStream, 
-                _startupSetting, 
-                new ProxyRuntimeSetting(startupSetting),
-                new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer, ExecutionContext);
+                new ProxyRuntimeSetting(startupSetting, ExecutionContext, this),
+                new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer, this);
 
             if (!_startupSetting.SkipSslDecryption && _startupSetting.AutoInstallCertificate)
             {
@@ -104,6 +101,11 @@ namespace Echoes
 
                 ProcessingConnection(client);
             }
+        }
+
+        public static Proxy Create(ProxyStartupSetting startupSetting)
+        {
+            return new Proxy(startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache())); 
         }
 
         private async void ProcessingConnection(TcpClient client)
@@ -189,7 +191,43 @@ namespace Echoes
             _writer = null;
 
             _disposed = true;
+        }
 
+
+        public event EventHandler<BeforeRequestEventArgs> BeforeRequest;
+
+        public event EventHandler<BeforeResponseEventArgs> BeforeResponse;
+
+        public event EventHandler<ExchangeCompleteEventArgs> ExchangeComplete;
+
+        public event EventHandler<ConnectionAddedEventArgs> ConnectionAdded;
+
+        public event EventHandler<ConnectionUpdateEventArgs> ConnectionUpdate;
+
+
+        public virtual void OnBeforeRequest(BeforeRequestEventArgs e)
+        {
+            BeforeRequest?.Invoke(this, e);
+        }
+
+        public virtual void OnBeforeResponse(BeforeResponseEventArgs e)
+        {
+            BeforeResponse?.Invoke(this, e);
+        }
+
+        public virtual void OnExchangeComplete(ExchangeCompleteEventArgs e)
+        {
+            ExchangeComplete?.Invoke(this, e);
+        }
+
+        public virtual void OnConnectionAdded(ConnectionAddedEventArgs e)
+        {
+            ConnectionAdded?.Invoke(this, e);
+        }
+
+        public virtual void OnConnectionUpdate(ConnectionUpdateEventArgs e)
+        {
+            ConnectionUpdate?.Invoke(this, e);
         }
     }
 
@@ -199,5 +237,6 @@ namespace Echoes
 
         public ProxyStartupSetting StartupSetting { get; set; } 
     }
+
 
 }

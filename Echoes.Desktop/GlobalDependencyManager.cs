@@ -22,6 +22,7 @@ namespace Echoes.Desktop.Common
             kernel.Bind<MainWindow>().ToSelf().InSingletonScope();
 
             kernel.Bind<TopMenuViewModel>().ToSelf();
+            kernel.Bind<DetailViewModel>().ToSelf();
             kernel.Bind<MainWindowViewModel>().ToSelf();
             kernel.Bind<ExchangeListViewModel>().ToSelf();
 
