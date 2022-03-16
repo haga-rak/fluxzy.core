@@ -23,6 +23,7 @@
 								<RowDefinition Height="25"/>
 								<RowDefinition Height="25"/>
 								<RowDefinition Height="25"/>
+								<RowDefinition Height="25"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="75"/>
@@ -46,6 +47,18 @@
                             </Label>
                             <TextBlock Grid.Row="2" Grid.Column="1"
                                        Text="{Binding ExchangeModel^.StatusCode}"/>
+
+                            <Label Grid.Row="3" Grid.Column="0">
+								Protocol
+                            </Label>
+                            <TextBlock Grid.Row="3" Grid.Column="1"
+                                       Text="{Binding ExchangeModel^.Protocol}"/>
+
+                            <Label Grid.Row="4" Grid.Column="0">
+                                Authority
+							</Label>
+                            <TextBlock Grid.Row="4" Grid.Column="1"
+                                       Text="{Binding ExchangeModel^.Authority}"/>
 
                         </Grid>
                     </Panel>

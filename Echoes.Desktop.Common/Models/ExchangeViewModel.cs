@@ -21,6 +21,7 @@ namespace Echoes.Desktop.Common.Models
                 new Uri($"{exchange.Request.Header.Scheme}://{exchange.Request.Header.Authority}{exchange.Request.Header.Path}")
                     .ToString();
             Protocol = exchange.HttpVersion;
+            Authority = exchange.Request.Header.Authority.ToString();
 
             if (exchange.Response?.Header != null)
             {
@@ -31,6 +32,8 @@ namespace Echoes.Desktop.Common.Models
 
             Selected = uiService.CurrentSelectedIds.Select(s => s.Contains(FullId));
         }
+
+        public string Authority { get; }
 
 
         public int Id { get; set; }
