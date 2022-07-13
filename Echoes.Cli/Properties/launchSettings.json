@@ -2,7 +2,8 @@
   "profiles": {
     "Echoes.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "start -l 0.0.0.0 -sp -p 45232 --skip-ssl-decryption -d d:\\capture-out"
+      "commandLineArgs": "start -l 0.0.0.0 -sp -p 45232"
+      //"commandLineArgs": "start -l 0.0.0.0 -sp -p 45232 -d d:\\capture-out"
     }
   }
 }

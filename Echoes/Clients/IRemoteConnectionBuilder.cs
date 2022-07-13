@@ -10,14 +10,14 @@ using Echoes.Misc;
 
 namespace Echoes.Clients
 {
-    public enum RemoteConnectionResultType : byte
+    internal enum RemoteConnectionResultType : byte
     {
         Unknown = 0,
         Http11,
         Http2
     }
 
-    public readonly struct RemoteConnectionResult
+    internal readonly struct RemoteConnectionResult
     {
         public RemoteConnectionResult(RemoteConnectionResultType type, Connection connection)
         {
@@ -54,6 +54,9 @@ namespace Echoes.Clients
             {
                 TcpConnectionOpening = _timeProvider.Instant()
             };
+            
+
+           // tcpClient.LingerState.
 
             connection.DnsSolveStart = _timeProvider.Instant();
 

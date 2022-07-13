@@ -162,7 +162,8 @@ namespace Echoes.Core
 
                             // We do not need to read websocket response
 
-                            if (!exchange.Request.Header.IsWebSocketRequest && !exchange.TunneledOnly)
+                            if (!exchange.Request.Header.IsWebSocketRequest && !exchange.TunneledOnly
+                                && exchange.Response.Header != null)
                             {
                                 // Request processed by IHttpConnectionPool returns before complete response body
                                 

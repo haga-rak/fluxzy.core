@@ -34,9 +34,8 @@ namespace Echoes.Core
         public void Init(CancellationToken token)
         {
             _token = token;
-            _listener.Start();
+            _listener.Start(Int32.MaxValue);
         }
-
 
         public async Task<TcpClient> GetNextPendingConnection()
         {
@@ -44,7 +43,7 @@ namespace Echoes.Core
                 return null;
 
             try
-            {
+            { 
                 TcpClient tcpClient = await _listener.AcceptTcpClientAsync().ConfigureAwait(false);
 
                 tcpClient.NoDelay = true;  // NO Delay for local connection
@@ -53,11 +52,8 @@ namespace Echoes.Core
                 tcpClient.SendBufferSize = 32 * 1024;
                 tcpClient.SendTimeout = 200;
 
-                var utcNow = ITimingProvider.Default.Instant();
-
                 // var result = new TcpDownStreamConnection(tcpClient, utcNow, utcNow, _referenceClock);
-
-                _token.Register(() => tcpClient.Dispose());
+                
 
                 return tcpClient; 
             }

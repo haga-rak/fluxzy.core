@@ -17,7 +17,7 @@ namespace Echoes
     {
         private readonly ProxyStartupSetting _startupSetting;
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
-        private CancellationTokenSource _proxyHaltTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _proxyHaltTokenSource = new();
 
         private SystemProxyRegistration _proxyRegister;
 
@@ -110,6 +110,8 @@ namespace Echoes
 
         private async void ProcessingConnection(TcpClient client)
         {
+            await Task.Yield();
+
             using (client)
             {
                 var buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
@@ -124,7 +126,6 @@ namespace Echoes
                     ArrayPool<byte>.Shared.Return(buffer);
                     client.Close();
                 }
-             
             }
         }
 
@@ -203,8 +204,7 @@ namespace Echoes
         public event EventHandler<ConnectionAddedEventArgs> ConnectionAdded;
 
         public event EventHandler<ConnectionUpdateEventArgs> ConnectionUpdate;
-
-
+        
         public virtual void OnBeforeRequest(BeforeRequestEventArgs e)
         {
             BeforeRequest?.Invoke(this, e);

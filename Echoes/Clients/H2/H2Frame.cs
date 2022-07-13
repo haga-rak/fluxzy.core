@@ -25,6 +25,8 @@ namespace Echoes.Clients.H2
             BodyType = (H2FrameType) headerFrames[3];
             Flags = (HeaderFlags) headerFrames[4];
             StreamIdentifier = BinaryPrimitives.ReadInt32BigEndian(headerFrames.Slice(5, 4));
+
+
         }
 
         public int BodyLength { get; }
@@ -65,17 +67,5 @@ namespace Echoes.Clients.H2
 
             return new H2Frame(length, first ? H2FrameType.Headers : H2FrameType.Continuation, flags, streamIdentifier);
         }
-    }
-
-    [Flags]
-    public enum HeaderFlags : byte
-    {
-        None = 0x0,
-        EndStream = 0x1,
-        Ack = 0x1,
-        EndHeaders = 0x4,
-        Padded = 0x8,
-        Priority = 0x20
-
     }
 }

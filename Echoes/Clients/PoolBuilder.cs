@@ -215,6 +215,15 @@ namespace Echoes.Clients
             {
                 _connectionPools.Remove(h2ConnectionPool.Authority);
             }
+
+            try
+            {
+
+            }
+            catch
+            {
+                h2ConnectionPool.Dispose();
+            }
         }
 
         public void Dispose()
