@@ -314,8 +314,10 @@ namespace Echoes.Cli
             });
         }
 
-        private async Task StartBlockingProxy(ProxyStartupSetting startupSetting, string outputFileName,
-            Func<ProxyStartupSetting, ICertificateProvider> certificateProviderFactory)
+        private async Task StartBlockingProxy(ProxyStartupSetting startupSetting, 
+            string outputFileName,
+            Func<ProxyStartupSetting, 
+            ICertificateProvider> certificateProviderFactory)
         {
             var echoArchiveFile = (string) null;
 

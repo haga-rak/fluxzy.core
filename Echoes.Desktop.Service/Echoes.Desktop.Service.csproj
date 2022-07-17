@@ -11,4 +11,8 @@
     <Folder Include="Services\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Echoes\Echoes.csproj" />
+  </ItemGroup>
+
 </Project>

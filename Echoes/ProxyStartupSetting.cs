@@ -15,7 +15,6 @@ namespace Echoes
     public class ProxyStartupSetting
     { 
 
-
         private ProxyStartupSetting()
         {
 
@@ -203,7 +202,6 @@ namespace Echoes
             
             return this; 
         }
-        
 
         public ProxyStartupSetting SetConnectionPerHost(int connectionPerHost)
         {

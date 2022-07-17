@@ -106,7 +106,6 @@ namespace Echoes.Core
                                         if (exchange.Request.Body != null &&
                                             (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0))
                                         {
-
                                             exchange.Request.Body = new DispatchStream(exchange.Request.Body,
                                                 true,
                                                 _archiveWriter.CreateRequestBodyStream(exchange.Id));

@@ -30,6 +30,6 @@ namespace Echoes.Desktop.Service
 
     public class EchoesSettings
     {
-
+        public ProxyStartupSetting StartupSetting { get; set; }
     }
 }

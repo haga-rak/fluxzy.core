@@ -44,7 +44,6 @@ namespace Echoes
             return Path.Combine(preDir, $"con-{connectionInfo.Id}.json");
         }
 
-
         public override async Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
             var exchangePath = GetExchangePath(exchangeInfo);
