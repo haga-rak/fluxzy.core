@@ -17,13 +17,12 @@ namespace Echoes.Cli
         private readonly Task _workTask;
         private readonly StatViewModel _viewModel;
 
-        public StatPrinter(int topPosition, string boundAddress, int boundPort)
+        public StatPrinter(int topPosition, string boundPointsDescription)
         {
             _topPosition = topPosition;
             _viewModel = new StatViewModel()
             {
-                BoundAddress = boundAddress,
-                BoundPort = boundPort
+                BoundPointsDescription = boundPointsDescription
             };
             _workTask = null; // InnerRun();
 
@@ -119,7 +118,7 @@ namespace Echoes.Cli
 
             Console.SetCursorPosition(0, _topPosition);
 
-            await Console.Out.WriteLineAsync($" Proxy is listening on {viewModel.BoundAddress}:{viewModel.BoundPort}").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync($" Proxy is listening on {viewModel.BoundPointsDescription}").ConfigureAwait(false);
             await Console.Out.WriteLineAsync(new string('-', _consoleWidth)).ConfigureAwait(false);
 
             int titleWidth = 40;

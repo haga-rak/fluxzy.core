@@ -35,8 +35,7 @@ namespace Echoes.H2.Tests.Tools
             _startupSetting = ProxyStartupSetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
-                .SetBoundAddress(BindHost)
-                .SetListenPort(BindPort);
+                .SetBoundAddress(BindHost, BindPort);
 
             _proxy = new Proxy(_startupSetting,
                 new CertificateProvider(_startupSetting,

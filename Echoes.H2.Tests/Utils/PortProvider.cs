@@ -1,4 +1,6 @@
 using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 
 namespace Echoes.H2.Tests.Utils
@@ -9,7 +11,17 @@ namespace Echoes.H2.Tests.Utils
 
         public static int Next()
         {
-            return Interlocked.Increment(ref _portCounter); 
+            return NextFreeTcpPort(); 
+            //return Interlocked.Increment(ref _portCounter); 
+        }
+
+        private static int NextFreeTcpPort()
+        {
+            TcpListener l = new TcpListener(IPAddress.Loopback, 0);
+            l.Start();
+            int port = ((IPEndPoint)l.LocalEndpoint).Port;
+            l.Stop();
+            return port;
         }
     }
 }

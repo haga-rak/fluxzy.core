@@ -247,8 +247,7 @@ namespace Echoes.H2.Tests
             var startupSetting = ProxyStartupSetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
-                .SetBoundAddress(bindHost)
-                .SetListenPort(bindPort);
+                .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()
             {
@@ -300,8 +299,7 @@ namespace Echoes.H2.Tests
             var startupSetting = ProxyStartupSetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
-                .SetBoundAddress(bindHost)
-                .SetListenPort(bindPort);
+                .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()
             {
@@ -351,8 +349,7 @@ namespace Echoes.H2.Tests
             var startupSetting = ProxyStartupSetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
-                .SetBoundAddress(bindHost)
-                .SetListenPort(bindPort);
+                .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()
             {
@@ -407,9 +404,8 @@ namespace Echoes.H2.Tests
             var startupSetting = ProxyStartupSetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
-                .SetBoundAddress(bindHost)
                 .SetSkipSslDecryption(true)
-                .SetListenPort(bindPort);
+                .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()
             {
@@ -463,8 +459,7 @@ namespace Echoes.H2.Tests
             var startupSetting = ProxyStartupSetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
-                .SetBoundAddress(bindHost)
-                .SetListenPort(bindPort);
+                .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()
             {

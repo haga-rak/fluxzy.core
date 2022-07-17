@@ -64,7 +64,6 @@ namespace Echoes.Desktop.Common.Services
 
         private void ProxyInstanceOnBeforeResponse(object? sender, BeforeResponseEventArgs e)
         {
-
             lock (this)
             {
                 _captureSession.Update(e.Exchange, e.ExecutionContext.SessionId, _uiService);

@@ -128,15 +128,17 @@ namespace Echoes.Cli
 
             target.HelpOption("-h | --help");
 
-            var portOption = target.Option(
-                "-p | --port <portnumber>",
-                "Set up the proxy listen port",
-                CommandOptionType.SingleValue);
+            //var portOption = target.Option(
+            //    "-p | --port <portnumber>",
+            //    "Set up the proxy listen port",
+            //    CommandOptionType.SingleValue);
+
 
             var listenInterfaceOption = target.Option(
                 "-l | --listen-iface <interface>",
-                "Set up the binding address. Default value is loopback. 0.0.0.0 to listen on all interface",
-                CommandOptionType.SingleValue);
+                "Set up the binding address. Default value is 127.0.0.1:44344 which listen to localhost on port 44344. 0.0.0.0:4434 to listen on all interface. You " +
+                " can specify multiple values.",
+                CommandOptionType.MultipleValue);
 
             var outputFileOption = target.Option(
                 "-o | --output-file <fileName>",
@@ -191,21 +193,33 @@ namespace Echoes.Cli
                 string outputFileName = string.Empty;
 
                 var proxyStartUpSetting = ProxyStartupSetting.CreateDefault();
-
-                if (portOption.HasValue())
-                {
-                    if (!int.TryParse(portOption.Value(), out var port) || (port < 1) ||
-                        port > ushort.MaxValue)
-                    {
-                        throw new Exception("port must be a number between 1 and 65535");
-                    }
-
-                    proxyStartUpSetting.SetListenPort(port);
-                }
-
+                
                 if (listenInterfaceOption.HasValue())
                 {
-                    proxyStartUpSetting.SetBoundAddress(listenInterfaceOption.Value());
+                    foreach (var value in listenInterfaceOption.Values)
+                    {
+                        var splitedTab = value.Split(":"); 
+
+                        if (splitedTab.Length < 2)
+                            throw new Exception(
+                                $"error in listen interface option \"{value}\", " +
+                                $"string format must be address:port");
+
+                        var address = string.Join(":", splitedTab.Take(splitedTab.Length - 1));
+
+                        if (!int.TryParse(splitedTab.Last(), out var port) || (port < 1) ||
+                            port > ushort.MaxValue)
+                        {
+                            throw new Exception("port must be a number between 1 and 65535");
+                        }
+
+                        proxyStartUpSetting.AddBoundAddress(address, port);
+                    }
+                }
+
+                if (!proxyStartUpSetting.BoundPoints.Any())
+                {
+                    proxyStartUpSetting.AddBoundAddress("127.0.0.1", 44344);
                 }
 
                 if (outputFileOption.HasValue())
@@ -305,7 +319,7 @@ namespace Echoes.Cli
         {
             var echoArchiveFile = (string) null;
 
-            var statPrinter = new StatPrinter(Console.CursorTop, startupSetting.BoundAddress, startupSetting.ListenPort);
+            var statPrinter = new StatPrinter(Console.CursorTop, startupSetting.BoundPointsDescription);
 
             async Task OnNewExchange(Exchange exchange, ProxyExecutionContext proxyExecutionContext)
             {

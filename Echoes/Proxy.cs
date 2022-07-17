@@ -36,13 +36,9 @@ namespace Echoes
             )
         {
             _startupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
-
-            var address = string.IsNullOrWhiteSpace(startupSetting.BoundAddress)
-                ? IPAddress.Any
-                : IPAddress.Parse(startupSetting.BoundAddress);
-
+            
             _downStreamConnectionProvider =
-                new DownStreamConnectionProvider(address, startupSetting.ListenPort);
+                new DownStreamConnectionProvider(_startupSetting.BoundPoints);
             
             var throtleStream = startupSetting.GetThrottlerStream();
 
@@ -81,7 +77,8 @@ namespace Echoes
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
             }
 
-            startupSetting.GetDefaultOutput().WriteLine($@"Listening on {startupSetting.BoundAddress}:{startupSetting.ListenPort}");
+            startupSetting.GetDefaultOutput()
+                .WriteLine($@"Listening on {startupSetting.BoundPointsDescription}");
         }
 
         public ProxyExecutionContext ExecutionContext { get; }
@@ -140,10 +137,16 @@ namespace Echoes
             if (_started)
                 throw new InvalidOperationException("Proxy was already started");
 
-            _started = true; 
+            _started = true;
 
             if (_startupSetting.RegisterAsSystemProxy)
-                _proxyRegister = new SystemProxyRegistration(_startupSetting.GetDefaultOutput(), _startupSetting.BoundAddress, _startupSetting.ListenPort, _startupSetting.ByPassHost.ToArray());
+            {
+                var defaultPort = _startupSetting.BoundPoints.OrderByDescending(d => d.Default)
+                    .Select(t => t.Port).First(); 
+
+                _proxyRegister = new SystemProxyRegistration(_startupSetting.GetDefaultOutput(), "127.0.0.1", defaultPort, _startupSetting.ByPassHost.ToArray());
+            }
+               
 
             _downStreamConnectionProvider.Init(_proxyHaltTokenSource.Token);
             //_loopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);

@@ -13,26 +13,36 @@ using Echoes.Core;
 namespace Echoes
 {
     public class ProxyStartupSetting
-    {
+    { 
+
+
         private ProxyStartupSetting()
         {
 
         }
 
         /// <summary>
-        /// The address on which the proxy is listening to. Default value is 127.0.0.1. 0.0.0.0 to listen to all network interfaces
+        /// Proxy listen address 
         /// </summary>
-        public string BoundAddress { get; internal set; } = "127.0.0.1";
-        
+        public HashSet<ProxyBindPoint> BoundPoints { get; internal set; } = new();
+
+        /// <summary>
+        /// Returns a friendly description of the bound points
+        /// </summary>
+        public string BoundPointsDescription
+        {
+            get
+            {
+                return string.Join(", ", BoundPoints
+                    .OrderByDescending(d => d.Default)
+                    .Select(s => $"[{s.Address}:{s.Port}]"));
+            }
+        }
+
         /// <summary>
         /// Verbose mode 
         /// </summary>
         public bool Verbose { get; internal set; } = false;
-
-        /// <summary>
-        /// The proxy port. Default value is ...
-        /// </summary>
-        public int ListenPort { get; internal set; } = 44344;
 
         /// <summary>
         /// If set to true. All ssl connection will be tunneled disregards of TunneledOnlyHosts
@@ -158,28 +168,42 @@ namespace Echoes
             return this;
         }
         
-        public ProxyStartupSetting SetBoundAddress(string boundAddress)
+        public ProxyStartupSetting AddBoundAddress(string boundAddress, int port, bool ? @default = null)
         {
             if (!IPAddress.TryParse(boundAddress, out _))
             {
                 throw new ArgumentException($"{boundAddress} is not a valid IP address");
             }
 
-            BoundAddress = boundAddress;
+            if (port < 1 || port >= ushort.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
+            }
+            
+            var isDefault = @default ?? BoundPoints.All(e => !e.Default);
+            BoundPoints.Add(new ProxyBindPoint(boundAddress, port, isDefault)); 
+            
             return this; 
         }
-
-        public ProxyStartupSetting SetListenPort(int port)
+        
+        public ProxyStartupSetting SetBoundAddress(string boundAddress, int port)
         {
+            if (!IPAddress.TryParse(boundAddress, out _))
+            {
+                throw new ArgumentException($"{boundAddress} is not a valid IP address");
+            }
 
             if (port < 1 || port >= ushort.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
             }
 
-            ListenPort = port;
+            BoundPoints.Clear();
+            BoundPoints.Add(new ProxyBindPoint(boundAddress, port, true)); 
+            
             return this; 
         }
+        
 
         public ProxyStartupSetting SetConnectionPerHost(int connectionPerHost)
         {
@@ -337,11 +361,9 @@ namespace Echoes
         {
             return new ProxyStartupSetting()
             {
-                BoundAddress = "127.0.0.1",
-                ListenPort = 44344,
                 ConnectionPerHost =  8, 
                 AnticipatedConnectionPerHost = 3
-            };
+            }.SetBoundAddress("127.0.0.1", 44344);
         }
 
         internal IConsoleOutput GetDefaultOutput()
@@ -350,7 +372,60 @@ namespace Echoes
         }
     }
 
-    
+
+    public class ProxyBindPoint : IEquatable<ProxyBindPoint>
+    {
+        public bool Equals(ProxyBindPoint other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Address == other.Address && Port == other.Port && Default == other.Default;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((ProxyBindPoint)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Address, Port, Default);
+        }
+
+        public ProxyBindPoint(string address, int port)
+        {
+            Address = address;
+            Port = port;
+        }
+
+        public ProxyBindPoint(string address, int port, bool @default)
+        {
+            Address = address;
+            Port = port;
+            Default = @default;
+        }
+
+        /// <summary>
+        /// The address on with the proxy will listen to 
+        /// </summary>
+        public string Address { get;  }
+
+        /// <summary>
+        /// Port number 
+        /// </summary>
+        public int Port { get;  }
+
+        /// <summary>
+        /// Whether this setting is the default bound address port. When true,
+        /// this setting will be choosed as system proxy
+        /// </summary>
+        public bool Default { get; set; }
+    }
+
+
     public enum ArchivingPolicyType
     {
         // The proxy 

@@ -7,7 +7,6 @@ namespace Echoes
 {
     public abstract class RealtimeArchiveWriter : IArchiveWriter
     {
-
         public virtual async Task Update(Connection connection, CancellationToken cancellationToken)
         {
             ConnectionInfo connectionInfo = new ConnectionInfo(connection);

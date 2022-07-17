@@ -51,10 +51,11 @@
             }
         }
 
-        public string BoundAddress { get; set;  }
+        //public string BoundAddress { get; set;  }
 
-        public int BoundPort { get; set; } 
+        //public int BoundPort { get; set; } 
         
+        public string BoundPointsDescription { get; set; }
     }
 
 }

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Echoes.Clients;
 
@@ -9,53 +12,93 @@ namespace Echoes.Core
 {
     internal class DownStreamConnectionProvider : IDownStreamConnectionProvider
     {
-        private TcpListener _listener;
+        private readonly List<TcpListener> _listeners;
+
+        private readonly Channel<TcpClient> _pendingClientConnections =
+            Channel.CreateBounded<TcpClient>(new BoundedChannelOptions(4));
+
+        private CancellationTokenSource _tokenSource = new();
+
         private CancellationToken _token;
 
-        public DownStreamConnectionProvider(IPAddress bindingAddress, int port)
+        public DownStreamConnectionProvider(IEnumerable<ProxyBindPoint> boundPoints)
         {
-            _listener = new TcpListener(bindingAddress, port);
+            _listeners = boundPoints.Select(b => 
+                new TcpListener(string.IsNullOrWhiteSpace(b.Address)
+                    ? IPAddress.Any : IPAddress.Parse(b.Address) , b.Port)).ToList();
+
+            _token = _tokenSource.Token; 
         }
 
         public void Dispose()
         {
-            try
+            foreach (var listener in _listeners)
             {
-                _listener.Stop();
-            }
-            catch (Exception)
-            {
-                // Ignore errors
+                try
+                {
+                    listener.Stop();
+                }
+                catch (Exception)
+                {
+                    // Ignore errors
+                }
             }
 
-            _listener = null;
+            _tokenSource.Cancel();
         }
 
         public void Init(CancellationToken token)
         {
             _token = token;
-            _listener.Start(Int32.MaxValue);
+
+            foreach (var listener in _listeners)
+            {
+                listener.Start(Int32.MaxValue);
+
+                var listenerCopy = listener;
+
+                Task.Run(async () => await HandleAcceptConnection(listenerCopy));
+            }
         }
+
+        private async Task HandleAcceptConnection(TcpListener listener)
+        {
+            try
+            {
+                while (true)
+                {
+                    var tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+
+
+                    tcpClient.NoDelay = true; // NO Delay for local connection
+                    // tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
+                    tcpClient.ReceiveBufferSize = 1024 * 64;
+                    tcpClient.SendBufferSize = 32 * 1024;
+                    tcpClient.SendTimeout = 200;
+
+                    await _pendingClientConnections.Writer.WriteAsync(tcpClient, _token); 
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+
 
         public async Task<TcpClient> GetNextPendingConnection()
         {
-            if (_listener == null)
+            if (!_listeners.Any())
                 return null;
 
             try
-            { 
-                TcpClient tcpClient = await _listener.AcceptTcpClientAsync().ConfigureAwait(false);
+            {
 
-                tcpClient.NoDelay = true;  // NO Delay for local connection
-                // tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
-                tcpClient.ReceiveBufferSize = 1024 * 64;
-                tcpClient.SendBufferSize = 32 * 1024;
-                tcpClient.SendTimeout = 200;
+                var nextConnection = await
+                    _pendingClientConnections.Reader.ReadAsync(_token);
 
-                // var result = new TcpDownStreamConnection(tcpClient, utcNow, utcNow, _referenceClock);
-                
-
-                return tcpClient; 
+                return nextConnection;
             }
             catch (Exception)
             {

@@ -14,7 +14,6 @@ namespace Echoes
         private readonly ConcurrentDictionary<string, Lazy<byte[]>> _certificateRepository = new ConcurrentDictionary<string, Lazy<byte[]>>();
         private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new ConcurrentDictionary<string, X509Certificate2>();
         private readonly X509Certificate2 _baseCertificate;
-
         
         private readonly RSA _rsaKeyEngine = RSA.Create(2048);
 
