@@ -75,4 +75,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Archiving\Har\Models\" />
+  </ItemGroup>
+
 </Project>

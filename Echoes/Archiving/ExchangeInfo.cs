@@ -21,7 +21,6 @@ namespace Echoes
             RequestHeader = new RequestHeaderInfo(exchange.Request.Header); 
         }
 
-
         public int Id { get; set; }
 
         public int ConnectionId { get; set; }

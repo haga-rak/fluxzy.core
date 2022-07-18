@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Echoes.Core;
+using Echoes.Saz;
 using Microsoft.Extensions.CommandLineUtils;
 
 namespace Echoes.Cli
