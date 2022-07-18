@@ -354,6 +354,7 @@ namespace Echoes.Clients.H2
 
                 _logger.Trace(_exchange, StreamIdentifier,
                     () => $"First body block received");
+                
             }
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 2");
@@ -380,6 +381,11 @@ namespace Echoes.Clients.H2
 
             if (shouldEnd)
             {
+                if (_exchange.Metrics.ResponseBodyEnd == default)
+                {
+                    _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+                }
+
 
                 _logger.Trace(_exchange, StreamIdentifier,
                     () => $"End");

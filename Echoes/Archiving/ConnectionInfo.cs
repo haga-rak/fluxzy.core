@@ -1,10 +1,17 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using Echoes.Clients;
 
 namespace Echoes
 {
-    public readonly struct ConnectionInfo
+    public class ConnectionInfo
     {
+        [JsonConstructor]
+        public ConnectionInfo()
+        {
+
+        }
+
         public ConnectionInfo(Connection original)
         {
             Id = original.Id;
@@ -14,34 +21,49 @@ namespace Echoes
             TcpConnectionOpened = original.TcpConnectionOpened;
             SslNegotiationStart = original.SslNegotiationStart;
             SslNegotiationEnd = original.SslNegotiationEnd;
-            RequestProcessed = original.RequestProcessed; 
+            RequestProcessed = original.RequestProcessed;
+            LocalPort = original.LocalPort;
+            LocalAddress = original.LocalAddress;
+            RemoteAddress = original.RemoteAddress.ToString();
             Authority = new AuthorityInfo(original.Authority);
             SslInfo = original.SslInfo; 
         }
 
-        public int Id { get;  }
+        public int Id { get; set; }
 
-        public AuthorityInfo Authority { get; }
+        public AuthorityInfo Authority { get; set; }
 
-        public SslInfo SslInfo { get; }
+        public SslInfo SslInfo { get; set; }
 
-        public int RequestProcessed { get;  }
+        public int RequestProcessed { get; set; }
 
-        public DateTime DnsSolveStart { get;  }
+        public DateTime DnsSolveStart { get; set; }
 
-        public DateTime DnsSolveEnd { get;  }
+        public DateTime DnsSolveEnd { get; set; }
 
-        public DateTime TcpConnectionOpening { get;  }
+        public DateTime TcpConnectionOpening { get; set; }
 
-        public DateTime TcpConnectionOpened { get;  }
+        public DateTime TcpConnectionOpened { get; set; }
 
-        public DateTime SslNegotiationStart { get;  }
+        public DateTime SslNegotiationStart { get; set; }
 
-        public DateTime SslNegotiationEnd { get;  }
+        public DateTime SslNegotiationEnd { get; set; }
+
+        public int LocalPort { get; set; }
+
+        public string LocalAddress { get; set; }
+
+        public string RemoteAddress { get; set; }
     }
 
-    public readonly struct AuthorityInfo
+    public class AuthorityInfo
     {
+        [JsonConstructor]
+        public AuthorityInfo()
+        {
+
+        }
+
         public AuthorityInfo(Authority original)
         {
             HostName = original.HostName;
@@ -49,10 +71,10 @@ namespace Echoes
             Secure = original.Secure;
         }
 
-        public string HostName { get; }
+        public string HostName { get; set; }
 
-        public int Port { get; }
+        public int Port { get; set; }
 
-        public bool Secure { get;  }
+        public bool Secure { get; set; }
     }
 }

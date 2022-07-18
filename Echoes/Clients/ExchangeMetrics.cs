@@ -33,5 +33,9 @@ namespace Echoes.Clients
         public long TotalSent { get; set; }
 
         public long TotalReceived { get; set; }
+
+        public int LocalPort { get; set; }
+
+        public string LocalAddress { get; set; }
     }
 }

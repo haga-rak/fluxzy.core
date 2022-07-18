@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Text.Json.Serialization;
 using Echoes.Clients;
 using Echoes.Clients.H2.Encoder;
 using Echoes.Clients.H2.Encoder.Utils;
@@ -12,8 +13,15 @@ namespace Echoes
     /// <summary>
     /// This data structure is used for serialization only 
     /// </summary>
-    public readonly struct RequestHeaderInfo
+    public class RequestHeaderInfo
     {
+        [JsonConstructor]
+        public RequestHeaderInfo()
+        {
+
+        }
+
+
         public RequestHeaderInfo(RequestHeader originalHeader)
         {
             Method = originalHeader.Method;
@@ -22,31 +30,43 @@ namespace Echoes
             Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s)); 
         }
 
-        public ReadOnlyMemory<char> Method { get;  }
+        public ReadOnlyMemory<char> Method { get; set; }
 
-        public ReadOnlyMemory<char> Path { get;  }
+        public ReadOnlyMemory<char> Path { get; set; }
 
-        public ReadOnlyMemory<char> Authority { get;  }
+        public ReadOnlyMemory<char> Authority { get; set; }
 
-        public IEnumerable<HeaderFieldInfo> Headers { get;  }
+        public IEnumerable<HeaderFieldInfo> Headers { get; set; }
     }
 
-    public readonly struct ResponseHeaderInfo
+    public class ResponseHeaderInfo
     {
+        [JsonConstructor]
+        public ResponseHeaderInfo()
+        {
+
+        }
+
         public ResponseHeaderInfo(ResponseHeader originalHeader)
         {
             StatusCode = originalHeader.StatusCode;
             Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s)); 
         }
 
-        public int StatusCode { get; } 
+        public int StatusCode { get; set;  } 
 
-        public IEnumerable<HeaderFieldInfo> Headers { get;  }
+        public IEnumerable<HeaderFieldInfo> Headers { get; set; }
 
     }
 
-    public readonly struct HeaderFieldInfo
+    public class HeaderFieldInfo
     {
+        [JsonConstructor]
+        public HeaderFieldInfo()
+        {
+
+        }
+
         public HeaderFieldInfo(HeaderField original)
         {
             Name = original.Name;
@@ -54,15 +74,21 @@ namespace Echoes
             Forwarded = !Http11Constants.IsNonForwardableHeader(original.Name); 
         }
 
-        public ReadOnlyMemory<char> Name { get;  } 
+        public ReadOnlyMemory<char> Name { get; set; } 
 
-        public ReadOnlyMemory<char> Value { get;  } 
+        public ReadOnlyMemory<char> Value { get; set; } 
         
-        public bool Forwarded { get;  }
+        public bool Forwarded { get; set; }
     }
 
     public class SslInfo
     {
+        [JsonConstructor]
+        public SslInfo()
+        {
+
+        }
+
         public SslInfo(SslStream sslStream)
         {
             CipherAlgorithm = sslStream.CipherAlgorithm;

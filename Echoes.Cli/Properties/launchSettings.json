@@ -3,7 +3,7 @@
     "Echoes.Cli": {
       "commandName": "Project",
       // "commandLineArgs": "start -l 127.0.0.1:45232 -sp -d dede"
-      "commandLineArgs": "pack -i dede -o r.ec.zip"
+      "commandLineArgs": "pack -i \"dodo2/20220718-170728\" -o rec.saz"
     }
   }
 }

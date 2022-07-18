@@ -54,5 +54,8 @@ namespace Echoes.Clients
         public DateTime SslNegotiationStart { get; set; }
 
         public DateTime SslNegotiationEnd { get; set; }
+
+        public int LocalPort { get; set; }
+        public string LocalAddress { get; set; }
     }
 }

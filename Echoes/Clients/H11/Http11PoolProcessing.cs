@@ -100,7 +100,9 @@ namespace Echoes.Clients.H11
 
                 shouldCloseConnection = true; 
 
-                exchange.Metrics.ResponseBodyStart = exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+                exchange.Metrics.ResponseBodyStart = 
+                    exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+
                 exchange.Response.Body = StreamUtils.EmptyStream;
 
                 exchange.ExchangeCompletionSource.TrySetResult(true);

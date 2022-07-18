@@ -125,6 +125,11 @@ namespace Echoes.Clients.H11
                     var res = exchange.Complete
                         .ContinueWith(completeTask =>
                         {
+                            if (exchange.Metrics.ResponseBodyEnd == default)
+                            {
+                                exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+                            }
+
                             if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any())
                             {
                                 _logger.Trace(exchange.Id, () => $"Complete on error {completeTask.Exception.GetType()} : {completeTask.Exception.Message}");

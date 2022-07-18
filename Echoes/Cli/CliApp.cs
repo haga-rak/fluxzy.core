@@ -18,7 +18,8 @@ namespace Echoes.Cli
 
         private readonly List<IDirectoryPackager> _packagers = new()
         {
-            new EczDirectoryPackager()
+            new EczDirectoryPackager(),
+            new SazPackager(),
         };
 
 
@@ -226,12 +227,14 @@ namespace Echoes.Cli
                     proxyStartUpSetting.AddBoundAddress("127.0.0.1", 44344);
                 }
 
+                string outputDirectory =  null; 
+
 
                 if (outputDirectoryOption.HasValue())
                 {
                     proxyStartUpSetting.SetArchivingPolicy(
                         ArchivingPolicy.CreateFromDirectory(
-                        outputDirectoryOption.Value())); 
+                            outputDirectory = outputDirectoryOption.Value())); 
                 }
 
                 if (outputFileOption.HasValue())
@@ -242,7 +245,6 @@ namespace Echoes.Cli
                         proxyStartUpSetting.ArchivingPolicy.Type != ArchivingPolicyType.Directory)
                     {
                         // Create a temporary directory 
-
                         Directory.CreateDirectory(_tempDirectory);
                         proxyStartUpSetting.SetArchivingPolicy(ArchivingPolicy.CreateFromDirectory(_tempDirectory));
                     }
@@ -324,13 +326,15 @@ namespace Echoes.Cli
 
                 try
                 {
-                    await StartBlockingProxy(proxyStartUpSetting, _certificateProviderFactory);
+                    var sessionIdentifier = 
+                        await StartBlockingProxy(proxyStartUpSetting, _certificateProviderFactory);
 
                     if (!string.IsNullOrWhiteSpace(outputFileName))
                     {
                         Console.WriteLine("Packing output ....");
 
-                        await PackDirectoryToFile(new DirectoryInfo(_tempDirectory),
+                        await PackDirectoryToFile(new DirectoryInfo(Path.Combine(proxyStartUpSetting.ArchivingPolicy.Directory,
+                                sessionIdentifier)),
                             outputFileName);
 
                         Console.WriteLine("Packing output done.");
@@ -347,7 +351,7 @@ namespace Echoes.Cli
             });
         }
 
-        private async Task StartBlockingProxy(ProxyStartupSetting startupSetting,
+        private async Task<string> StartBlockingProxy(ProxyStartupSetting startupSetting,
             Func<ProxyStartupSetting, 
             ICertificateProvider> certificateProviderFactory)
         {
@@ -368,6 +372,8 @@ namespace Echoes.Cli
             await proxy.DisposeAsync();
 
             Console.WriteLine(@"Proxy halted. Bye.");
+
+            return proxy.SessionIdentifier; 
         }
 
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,6 +70,10 @@ namespace Echoes.Core
                     Exchange exchange =
                         localConnection.ProvisionalExchange;
 
+                    var endPoint = (IPEndPoint) client.Client.RemoteEndPoint;
+
+                    exchange.Metrics.LocalPort = endPoint.Port; 
+                    exchange.Metrics.LocalAddress = endPoint.Address.ToString(); 
 
                     var shouldClose = false;
 
@@ -288,6 +293,14 @@ namespace Echoes.Core
                                             _executionContext, exchange));
                                     }
                                 }
+                                else
+                                {
+                                    if (exchange.Response.Body != null)
+                                    {
+                                        await SafeCloseRequestBody(exchange);
+                                        await SafeCloseResponseBody(exchange);
+                                    }
+                                }
 
                                 // In case the down stream connection is persisted, 
                                 // we wait for the current exchange to complete before reading further request
@@ -323,6 +336,14 @@ namespace Echoes.Core
                                 localConnection.Authority,
                                 buffer, token
                             );
+
+                            if (exchange != null && exchange.Metrics != null)
+                            {
+                                var ep2 = (IPEndPoint)client.Client.RemoteEndPoint;
+
+                                exchange.Metrics.LocalPort = ep2.Port;
+                                exchange.Metrics.LocalAddress = ep2.Address.ToString();
+                            }
                         }
                         catch (IOException)
                         {

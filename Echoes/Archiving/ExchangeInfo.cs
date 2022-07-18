@@ -1,9 +1,16 @@
-﻿using Echoes.Clients;
+﻿using System.Text.Json.Serialization;
+using Echoes.Clients;
 
 namespace Echoes
 {
     public class ExchangeInfo
     {
+        [JsonConstructor]
+        public ExchangeInfo()
+        {
+
+        }
+
         public ExchangeInfo(Exchange exchange)
         {
             Id = exchange.Id;
@@ -12,8 +19,9 @@ namespace Echoes
             Metrics = exchange.Metrics;  
             ResponseHeader = exchange.Response?.Header == null ? default : new ResponseHeaderInfo(exchange.Response.Header);
             RequestHeader = new RequestHeaderInfo(exchange.Request.Header); 
-
         }
+
+
         public int Id { get; set; }
 
         public int ConnectionId { get; set; }

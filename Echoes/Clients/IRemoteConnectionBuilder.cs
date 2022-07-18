@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
@@ -72,7 +73,12 @@ namespace Echoes.Clients
 
             await tcpClient.ConnectAsync(ipAddress, authority.Port).ConfigureAwait(false);
 
+            var localEndpoint = (IPEndPoint) tcpClient.Client.LocalEndPoint;
+
+
             connection.TcpConnectionOpened = _timeProvider.Instant();
+            connection.LocalPort = localEndpoint.Port;
+            connection.LocalAddress = localEndpoint.Address.ToString();
 
             setting.ExchangeEventSource.OnConnectionUpdate(new ConnectionUpdateEventArgs(setting.ExecutionContext, connection));
 
