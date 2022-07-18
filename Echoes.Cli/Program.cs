@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Echoes.Core;
+﻿using Echoes.Core;
 
 namespace Echoes.Cli
 {
@@ -14,11 +12,11 @@ namespace Echoes.Cli
             // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
             // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
 
-            Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-                System.GC.Collect();
-            }); 
+            //Task.Run(async () =>
+            //{
+            //    await Task.Delay(3000);
+            //    System.GC.Collect();
+            //}); 
 
             return new CliApp(s => new CertificateProvider(s, new FileSystemCertificateCache(s))).Start(args);
        

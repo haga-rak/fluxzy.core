@@ -14,7 +14,6 @@ namespace Echoes
 {
     public class ProxyStartupSetting
     { 
-
         private ProxyStartupSetting()
         {
 
@@ -428,6 +427,7 @@ namespace Echoes
     {
         // The proxy 
         None = 0 , 
+
         // Content is set on server  
         Directory
     }

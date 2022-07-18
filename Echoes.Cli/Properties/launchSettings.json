@@ -2,8 +2,8 @@
   "profiles": {
     "Echoes.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "start -l 127.0.0.1:45232 -sp -d dede"
-      //"commandLineArgs": "start -l 0.0.0.0 -sp -p 45232 -d d:\\capture-out"
+      // "commandLineArgs": "start -l 127.0.0.1:45232 -sp -d dede"
+      "commandLineArgs": "pack -i dede -o r.ec.zip"
     }
   }
 }

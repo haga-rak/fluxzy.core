@@ -80,8 +80,6 @@ namespace Echoes.Core
                              || localConnection.TunnelOnly)
                            )
                         {
-
-
                             // Check whether the local browser ask for a connection close 
 
                             shouldClose = exchange.Request
@@ -110,13 +108,14 @@ namespace Echoes.Core
                                                 true,
                                                 _archiveWriter.CreateRequestBodyStream(exchange.Id));
                                         }
-
                                     }
 
                                     // get a connection pool for the current exchange 
                                     // the connection pool may 
 
                                     connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
+
+                                    // Actual request send 
 
                                     try
                                     {
@@ -127,14 +126,19 @@ namespace Echoes.Core
                                     {
                                         // This connection was "goawayed" while current exchange 
                                         // tries to use it. 
-                                        
+
                                         // let a chance for the _poolbuilder to release it
-                                        
+
                                         await Task.Yield();
 
                                         continue;
                                     }
-                                    // Actual request send 
+                                    finally
+                                    {
+                                        // We close the request body dispatchstream
+                                        await SafeCloseRequestBody(exchange);
+                                    }
+
                                     
 
                                     break; 
@@ -146,6 +150,7 @@ namespace Echoes.Core
                                 // The caller cancelled the task 
 
                                 await SafeCloseRequestBody(exchange);
+                                await SafeCloseResponseBody(exchange);
 
                                 if (exception is OperationCanceledException)
                                     break;
@@ -218,8 +223,9 @@ namespace Echoes.Core
                                 }
                                 catch (Exception ex)
                                 {
-                                    
+
                                     await SafeCloseRequestBody(exchange);
+                                    await SafeCloseResponseBody(exchange);
 
                                     if (ex is OperationCanceledException || ex is IOException)
                                     {
@@ -276,6 +282,7 @@ namespace Echoes.Core
                                     finally
                                     {
                                         await SafeCloseRequestBody(exchange);
+                                        await SafeCloseResponseBody(exchange);
 
                                         _eventSource.OnExchangeComplete(new ExchangeCompleteEventArgs(
                                             _executionContext, exchange));
@@ -344,6 +351,24 @@ namespace Echoes.Core
         }
 
         private async Task SafeCloseRequestBody(Exchange exchange)
+        {
+            if (exchange.Request.Body != null)
+            {
+                try
+                {
+                    // Clean the pipe 
+
+                    await exchange.Request.Body.DisposeAsync();
+                    exchange.Request.Body = null;
+                }
+                catch
+                {
+                    // ignore errors when closing pipe 
+                }
+            }
+        }
+
+        private async Task SafeCloseResponseBody(Exchange exchange)
         {
             if (exchange.Response.Body != null)
             {

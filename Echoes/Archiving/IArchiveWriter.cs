@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Echoes
 {
-    internal interface IArchiveWriter
+    internal interface IArchiveWriter : IDisposable
     {
         Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken); 
 

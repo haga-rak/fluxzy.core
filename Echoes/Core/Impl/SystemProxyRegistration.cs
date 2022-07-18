@@ -49,8 +49,8 @@ namespace Echoes.Core
             {
                 _oldSetting.Enabled = false; // Il s'agit d'un setting précédent mal libéré
             }
-            _oldSetting.Enabled = false;
 
+            _oldSetting.Enabled = false;
             _systemProxySetter?.ApplySetting(_oldSetting);
         }
 

@@ -6,6 +6,4 @@
 
         ProxySetting ReadSetting();
     }
-
-
 }

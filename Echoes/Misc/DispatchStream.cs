@@ -133,6 +133,8 @@ namespace Echoes.Misc
 
         public override async ValueTask DisposeAsync()
         {
+             // Console.WriteLine($"Dispatched stream realeased async {_closeOnDone}");
+
             if (_destinations != null && _closeOnDone)
             {
                 foreach (var dest in _destinations)
@@ -148,6 +150,7 @@ namespace Echoes.Misc
 
         protected override void Dispose(bool disposing)
         {
+            // Console.WriteLine($"Dispatched stream realeased sync {_closeOnDone}");
 
             if (_destinations != null && _closeOnDone)
             {

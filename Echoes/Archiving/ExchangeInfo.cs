@@ -32,5 +32,4 @@ namespace Echoes
     {
         public int Length { get; set; }
     }
-    
 }

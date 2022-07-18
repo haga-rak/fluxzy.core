@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Echoes.Clients;
@@ -14,6 +15,7 @@ namespace Echoes
             await Update(connectionInfo, cancellationToken); 
 
         }
+
         public virtual async Task Update(Exchange exchange, CancellationToken cancellationToken)
         {
             await Update(new ExchangeInfo(exchange), cancellationToken); 
@@ -26,5 +28,15 @@ namespace Echoes
         public abstract Stream CreateRequestBodyStream(int exchangeId);
 
         public abstract Stream CreateResponseBodyStream(int exchangeId);
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

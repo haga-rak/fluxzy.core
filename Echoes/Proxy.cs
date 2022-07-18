@@ -29,6 +29,8 @@ namespace Echoes
         private ProxyOrchestrator _proxyOrchestrator;
         private RealtimeArchiveWriter _writer;
 
+        private  int _currentConcurrentCount = 0; 
+
         public Proxy(
             ProxyStartupSetting startupSetting,
             ICertificateProvider certificateProvider,
@@ -84,7 +86,7 @@ namespace Echoes
         public ProxyExecutionContext ExecutionContext { get; }
 
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss"); 
-
+        
         private async Task MainLoop()
         {
 
@@ -98,6 +100,15 @@ namespace Echoes
 
                 ProcessingConnection(client);
             }
+
+            // Proxy is disposing, waiting for all operation to be done 
+
+
+            while (_currentConcurrentCount > 0)
+            {
+                Console.WriteLine("Waiting concurrent");
+                await Task.Delay(50); 
+            }
         }
 
         public static Proxy Create(ProxyStartupSetting startupSetting)
@@ -107,22 +118,32 @@ namespace Echoes
 
         private async void ProcessingConnection(TcpClient client)
         {
-            await Task.Yield();
+            Interlocked.Increment(ref _currentConcurrentCount);
 
-            using (client)
+            try
             {
-                var buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
 
-                try
+                await Task.Yield();
+
+                using (client)
                 {
-                    await _proxyOrchestrator.Operate(client, buffer,
-                        _proxyHaltTokenSource.Token).ConfigureAwait(false);
+                    var buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
+
+                    try
+                    {
+                        await _proxyOrchestrator.Operate(client, buffer,
+                            _proxyHaltTokenSource.Token).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(buffer);
+                        client.Close();
+                    }
                 }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                    client.Close();
-                }
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _currentConcurrentCount);
             }
         }
 
@@ -144,12 +165,12 @@ namespace Echoes
                 var defaultPort = _startupSetting.BoundPoints.OrderByDescending(d => d.Default)
                     .Select(t => t.Port).First(); 
 
-                _proxyRegister = new SystemProxyRegistration(_startupSetting.GetDefaultOutput(), "127.0.0.1", defaultPort, _startupSetting.ByPassHost.ToArray());
+                _proxyRegister = new SystemProxyRegistration(_startupSetting.GetDefaultOutput(), 
+                    "127.0.0.1", defaultPort, _startupSetting.ByPassHost.ToArray());
             }
                
 
             _downStreamConnectionProvider.Init(_proxyHaltTokenSource.Token);
-            //_loopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
 
             _loopTask = Task.Run(MainLoop);
         }

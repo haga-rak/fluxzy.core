@@ -13,7 +13,7 @@
 
     <Style Selector="TextBlock">
         <Setter Property="FontFamily" Value="Roboto"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="11"/>
     </Style>
 
     <Style Selector="Border.SelectedExchange">

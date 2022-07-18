@@ -50,14 +50,24 @@ namespace Echoes.Core
         public void Init(CancellationToken token)
         {
             _token = token;
-
             foreach (var listener in _listeners)
             {
-                listener.Start(Int32.MaxValue);
 
-                var listenerCopy = listener;
+                try
+                {
+                    listener.Start(Int32.MaxValue);
 
-                Task.Run(async () => await HandleAcceptConnection(listenerCopy));
+                    var listenerCopy = listener;
+
+                    Task.Run(async () => await HandleAcceptConnection(listenerCopy));
+
+                }
+                catch (SocketException sex)
+                {
+                    throw new Exception($"Impossible port : " +
+                                        $"{((IPEndPoint)listener.LocalEndpoint).Address} - " +
+                                        $"{((IPEndPoint) listener.LocalEndpoint).Port}");
+                }
             }
         }
 

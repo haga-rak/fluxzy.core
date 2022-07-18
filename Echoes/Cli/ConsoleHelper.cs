@@ -11,6 +11,7 @@ namespace Echoes.Cli
 
             Console.CancelKeyPress += (sender, args) =>
             {
+                args.Cancel = true;
                 source.SetResult(null); ;
             };
 

@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using Echoes.Clients;
 using Echoes.Core;
 using Microsoft.Extensions.CommandLineUtils;
 
@@ -13,10 +13,22 @@ namespace Echoes.Cli
     public class CliApp
     {
         private readonly Func<ProxyStartupSetting, ICertificateProvider> _certificateProviderFactory;
+        private readonly string _instanceIdentifier = Guid.NewGuid().ToString();
+        private readonly string _tempDirectory;
+
+        private readonly List<IDirectoryPackager> _packagers = new()
+        {
+            new EczDirectoryPackager()
+        };
+
 
         public CliApp(Func<ProxyStartupSetting, ICertificateProvider> certificateProviderFactory)
         {
             _certificateProviderFactory = certificateProviderFactory;
+
+            _tempDirectory = Path.Combine(Environment.ExpandEnvironmentVariables("%TEMP%"),
+                "echoescli", _instanceIdentifier);
+
         }
 
         public int Start(string[] args)
@@ -30,12 +42,8 @@ namespace Echoes.Cli
 
             commandLineApplication.HelpOption("-h | --help");
 
-            commandLineApplication.VersionOption("-v | --version", () =>
-            {
-                return
-                    "\tEchoes proxy engine version : " +
-                    FileVersionInfo.GetVersionInfo(typeof(Proxy).Assembly.Location).ProductVersion;
-            });
+            commandLineApplication.VersionOption("-v | --version", () => "\tEchoes proxy engine version : " +
+                                                                         FileVersionInfo.GetVersionInfo(typeof(Proxy).Assembly.Location).ProductVersion);
 
             commandLineApplication
                 .Command("start", OnProxyStartCommand);
@@ -44,7 +52,7 @@ namespace Echoes.Cli
                 .Command("certificate-dump", OnCertificateDump);
 
             commandLineApplication
-                .Command("parse", OnParse);
+                .Command("pack", OnPack);
 
             commandLineApplication.OnExecute(() =>
             {
@@ -63,24 +71,22 @@ namespace Echoes.Cli
             }
         }
 
-        private void OnParse(CommandLineApplication target)
+        private void OnPack(CommandLineApplication target)
         {
-            target.Description = "Parse the default *.ecz format to other format";
+            target.Description = "Pack an output directory to a specify format, supported ecz, har, saz";
+
             target.HelpOption("-h | --help");
 
             var inputOption =
-                target.Option("-i <eczFile>", "Specify the .ecz input file to parse", CommandOptionType.SingleValue);
+                target.Option("-i <inputDirectory>", "The directory to be packed", CommandOptionType.SingleValue);
 
             var outputOption =
                 target.Option("-o <outputFile>", "Specify the file output", CommandOptionType.SingleValue);
-
-            // TODO uncommunet when HAR is set up 
-            //var formatOption = 
-            //    target.Option("-f <format>", "Specify the file format among har and saz", CommandOptionType.SingleValue);
-
+            
             target.OnExecute(async () =>
             {
-                if (!inputOption.HasValue() || string.IsNullOrWhiteSpace(inputOption.Value()))
+                if (!inputOption.HasValue() 
+                    || string.IsNullOrWhiteSpace(inputOption.Value()))
                 {
                     throw new ArgumentException("You must specify a valid input file");
                 }
@@ -90,11 +96,17 @@ namespace Echoes.Cli
                     throw new ArgumentException("You must specify a valid output file");
                 }
 
-               // await ExportUtility.ConvertToSazFile(inputOption.Value(), outputOption.Value()).ConfigureAwait(false);
+                var dInfo = new DirectoryInfo(inputOption.Value()); 
+
+                if (!dInfo.Exists)
+                {
+                    throw new ArgumentException($"Directory\"{dInfo.FullName}\" does not exist");
+                }
+                
+                await PackDirectoryToFile(dInfo, outputOption.Value());
 
                 return 0;
             });
-
         }
 
         private void OnCertificateDump(CommandLineApplication target)
@@ -120,23 +132,16 @@ namespace Echoes.Cli
             });
         }
 
-        private void OnProxyStartCommand(CommandLineApplication target
-          )
+        private void OnProxyStartCommand(CommandLineApplication target)
         {
             target.FullName = "echoescli start";
             target.Description = "Start the proxy engine";
 
             target.HelpOption("-h | --help");
 
-            //var portOption = target.Option(
-            //    "-p | --port <portnumber>",
-            //    "Set up the proxy listen port",
-            //    CommandOptionType.SingleValue);
-
-
             var listenInterfaceOption = target.Option(
                 "-l | --listen-iface <interface>",
-                "Set up the binding address. Default value is 127.0.0.1:44344 which listen to localhost on port 44344. 0.0.0.0:4434 to listen on all interface. You " +
+                "Set up the binding address. Default value is 127.0.0.1:44344 which will listen to localhost on port 44344. 0.0.0.0:4434 to listen on all interface. You " +
                 " can specify multiple values.",
                 CommandOptionType.MultipleValue);
 
@@ -172,7 +177,7 @@ namespace Echoes.Cli
                 CommandOptionType.MultipleValue);
 
             var certificateFileOption = target.Option(
-                "--cert-file=<certificatPfx>", "Set a compatible p12, pfx, or pkcs12 root certificate used by the SSL decryptor",
+                "--cert-file=<certificatPfx>", "Set a compatible p12, pfx, or pkcs12 root CA certificate used by the SSL decryptor",
                 CommandOptionType.SingleValue);
 
             var certificatePasswordOption = target.Option(
@@ -186,7 +191,6 @@ namespace Echoes.Cli
             var throttleIntervalOption = target.Option(
                 "--throttleInterval <intervalms>", "Set the throttling interval check. Default value is 50ms",
                 CommandOptionType.SingleValue);
-
 
             target.OnExecute(async () =>
             {
@@ -222,10 +226,6 @@ namespace Echoes.Cli
                     proxyStartUpSetting.AddBoundAddress("127.0.0.1", 44344);
                 }
 
-                if (outputFileOption.HasValue())
-                {
-                    outputFileName = outputFileOption.Value();
-                }
 
                 if (outputDirectoryOption.HasValue())
                 {
@@ -233,6 +233,21 @@ namespace Echoes.Cli
                         ArchivingPolicy.CreateFromDirectory(
                         outputDirectoryOption.Value())); 
                 }
+
+                if (outputFileOption.HasValue())
+                {
+                    outputFileName = outputFileOption.Value();
+
+                    if (proxyStartUpSetting.ArchivingPolicy == null ||
+                        proxyStartUpSetting.ArchivingPolicy.Type != ArchivingPolicyType.Directory)
+                    {
+                        // Create a temporary directory 
+
+                        Directory.CreateDirectory(_tempDirectory);
+                        proxyStartUpSetting.SetArchivingPolicy(ArchivingPolicy.CreateFromDirectory(_tempDirectory));
+                    }
+                }
+
 
                 if (throttleOption.HasValue())
                 {
@@ -307,42 +322,44 @@ namespace Echoes.Cli
                 //});
                     //proxyStartUpSetting.SetConnectionPerHost(16);
 
-                await StartBlockingProxy(proxyStartUpSetting, outputFileName, _certificateProviderFactory);
+                try
+                {
+                    await StartBlockingProxy(proxyStartUpSetting, _certificateProviderFactory);
+
+                    if (!string.IsNullOrWhiteSpace(outputFileName))
+                    {
+                        Console.WriteLine("Packing output ....");
+
+                        await PackDirectoryToFile(new DirectoryInfo(_tempDirectory),
+                            outputFileName);
+
+                        Console.WriteLine("Packing output done.");
+                    }
+                }
+                finally
+                {
+                    if (Directory.Exists(_tempDirectory))
+                        Directory.Delete(_tempDirectory, true);
+                }
 
 
                 return 0;
             });
         }
 
-        private async Task StartBlockingProxy(ProxyStartupSetting startupSetting, 
-            string outputFileName,
+        private async Task StartBlockingProxy(ProxyStartupSetting startupSetting,
             Func<ProxyStartupSetting, 
             ICertificateProvider> certificateProviderFactory)
         {
-            var echoArchiveFile = (string) null;
+            var waitForExitStart = ConsoleHelper.WaitForExit();
 
             var statPrinter = new StatPrinter(Console.CursorTop, startupSetting.BoundPointsDescription);
-
-            async Task OnNewExchange(Exchange exchange, ProxyExecutionContext proxyExecutionContext)
-            {
-                await statPrinter.OnNewExchange(exchange).ConfigureAwait(false);
-
-                //if (echoArchiveFile != null)
-                //{
-                //    await echoArchiveFile.Append(exchange).ConfigureAwait(false);
-                //}
-            }
-
+            
             var proxy = new Proxy(startupSetting, certificateProviderFactory(startupSetting));
-
-
-            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
-            {
-            };
 
             proxy.Run();
 
-            await ConsoleHelper.WaitForExit().ConfigureAwait(false);
+            await waitForExitStart.ConfigureAwait(false);
 
             statPrinter.Dispose();
 
@@ -352,5 +369,21 @@ namespace Echoes.Cli
 
             Console.WriteLine(@"Proxy halted. Bye.");
         }
+
+
+        private async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)
+        {
+            var packager = _packagers.FirstOrDefault(p => p.ShouldApplyTo(outFileName));
+
+            if (packager == null)
+            {
+                throw new ArgumentException(
+                    $"Could not infer file format from output extension. Currently supported extension are : ecz, har and saz");
+            }
+
+            await using var outStream = File.Create(outFileName);
+            await packager.Pack(dInfo.FullName, outStream);
+        }
+
     }
 }
