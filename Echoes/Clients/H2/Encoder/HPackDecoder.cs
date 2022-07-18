@@ -127,8 +127,6 @@ namespace Echoes.Clients.H2.Encoder
                         var currentByteReaden = _primitiveOperation.ReadInt32(buffer, 5, out var maxSize);
                         _decodingContext.UpdateMaxSize(maxSize);
 
-                        Console.WriteLine($"dynamic table update : {maxSize}");
-
                         var res = ReadNextField(buffer.Slice(currentByteReaden), out var nextRead);
                         bytesReaden = currentByteReaden + nextRead;
 

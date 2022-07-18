@@ -30,7 +30,7 @@ namespace Echoes.Saz
             int sessionId = 0;
             
             var exchanges = await IDirectoryPackager
-                .ReadExchanges(new DirectoryInfo(Path.Combine(directoryInfo.FullName, "exchanges")))
+                .ReadExchanges(directoryInfo)
                 .ToListAsync();
 
             using var zipArchive = new ZipArchive(outputStream, ZipArchiveMode.Create);

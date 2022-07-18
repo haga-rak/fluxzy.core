@@ -31,7 +31,6 @@ namespace Echoes.Clients.H11
         /// <returns>True if remote server close connection</returns>
         public async Task<bool> Process(Exchange exchange, byte[] buffer, CancellationToken cancellationToken)
         {
-            // Here is the opportunity to change header 
             var bufferRaw = buffer;
 
             Memory<byte> headerBuffer = bufferRaw;
@@ -39,10 +38,6 @@ namespace Echoes.Clients.H11
             exchange.Connection.AddNewRequestProcessed();
             
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
-
-
-            //exchange.Request.Header
-            //    .AddExtraHeaderFieldToLocalConnection(new HeaderField("Connection", "close"));
             
             _logger.Trace(exchange.Id, () => $"Begin writing header");
             var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true, true);
