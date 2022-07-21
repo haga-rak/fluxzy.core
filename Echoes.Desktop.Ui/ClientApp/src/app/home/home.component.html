@@ -1,25 +1,39 @@
 
-<div class="middle-content">
-    
-    <div class="right-vert-bar">
-        
-        <app-toggle [materialIcon]="'filter_alt'" [label]="'Filters'">
+<div class="main-division">
+    <div class="block-left-parent">
+        <div style="width:100%">sdfs</div>
+        <div class="block-left">
+            <div class="right-vert-bar">
+                
+                <app-toggle [materialIcon]="'filter_alt'" [label]="'Filters'">
+                    
+                </app-toggle>    
+                <app-toggle [materialIcon]="'dvr'" [label]="'Hosts'">
+                    
+                </app-toggle>    
+                <app-toggle [materialIcon]="'http'" [label]="'Objects'">
+                    
+                </app-toggle>
+            </div>
             
-        </app-toggle>    
-        <app-toggle [materialIcon]="'dvr'" [label]="'Hosts'">
-            
-        </app-toggle>    
-        <app-toggle [materialIcon]="'http'" [label]="'Objects'">
-            
-        </app-toggle>
+            <div class="filter-pane">
+                <app-filter></app-filter>
+            </div>
+        </div>
     </div>
-    
-    <div class="filter-pane">
-        <app-filter></app-filter>
-    </div>
-    <div class="objects-pane"></div>
+    <div class="block-right">
+        <div class="middle-content">
+            
+            <div class="objects-pane">
+                
+            </div>
 
 
+        </div>
+    </div>
 </div>
+
+
+
 
 <app-status-bar></app-status-bar>

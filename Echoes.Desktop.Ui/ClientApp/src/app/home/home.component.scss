@@ -1,10 +1,37 @@
+.main-division {
+
+    display : flex; 
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+.block-left-parent {
+    width : 400px; 
+    display : flex; 
+    align-items: stretch;
+    flex-direction:  column;
+}
+
+.block-left {
+    width : 400px; 
+    display : flex; 
+    flex-wrap: nowrap;
+    align-items: stretch;
+
+}
+
+.block-right {
+    width : 300px; 
+    flex-grow: 4;
+    align-items: stretch;
+}
+
 .middle-content {
     width : 100%; 
     height: calc(100vh - 56px);
 
     display : flex; 
     flex-wrap: nowrap;
-
     align-items: stretch;
     
 }
@@ -23,9 +50,11 @@
 .filter-pane {
     
     background-color: var(--bs-gray-600);
-    width: 250px;
+ 
     border : 2px solid var(--gray-900);
     box-shadow:  var(--gray-700)  0px 4px 16px;
+    flex-grow: 4;
+
 }
 .objects-pane {
     background-color: var(--bs-gray-700);
