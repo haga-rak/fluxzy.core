@@ -4,7 +4,7 @@
 .menu {
     font-size : 13px; 
     width: 100%; 
-    background : $other-dark ;
+    background : $gray-900 ;
 }
 
 .menu-box {
@@ -21,20 +21,25 @@
 }
 
 .menu-box:hover {
-    background : $main-primary 
+    background :  $main-primary 
 }
 
 .menu-item-children-container {
     position: absolute; 
-    background :  $other-dark;
+    background :  $gray-900;
     margin-left: -14px;
     margin-top: 6px;
-    border-radius: 4px;
+    border-radius: 0 0 4px 4px !important;
+
+
+    overflow:  hidden;
+    box-shadow: $gray-700  0px 4px 16px;
+   
 }
 
 .menu-item-children {
     min-width: 300px; 
-    padding: 8px 20px 8px 20px;
+    padding: 6px 24px 6px 24px;
     
 }
 
@@ -43,7 +48,8 @@
 }
 
 .menu-item-children-separator {
-    border-bottom : 1px solid $main-dark; 
+    border-bottom : 1px solid $gray-700; 
     height: 1px;
     width : 100%; 
 }
+

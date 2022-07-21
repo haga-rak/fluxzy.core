@@ -1,9 +1,14 @@
-@import "../node_modules/@fontsource/roboto/"; 
+/* Importing Bootstrap SCSS file. */
+@import "~bootstrap/scss/bootstrap";
 
-$primary-color: #e6ebf0;
-$main-dark : #010d1a;
-$other-dark : #131f2b;
-$main-primary : #00abec;
+/* Importing Datepicker SCSS file. */
+@import "node_modules/ngx-bootstrap/datepicker/bs-datepicker";
+ 
+
+@import "../node_modules/@fontsource/roboto/";  
+
+@import "variables-colors.scss";
+
 
 /* You can add global styles to this file, and also import other style files */
 html, body {
@@ -11,7 +16,7 @@ html, body {
   padding: 0;
   height: 100%;
   font-family: "Roboto";
-  background : $primary-color;
+  background : $gray-800;
 } 
 
 /* CAN (MUST) BE REMOVED ! Sample Global style */

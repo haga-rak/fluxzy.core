@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { DefaultMenuItems, IMenuItem } from '../core/models/menu-models';
 import { ElectronService } from '../core/services';
 
@@ -9,11 +9,23 @@ import { ElectronService } from '../core/services';
 })
 export class MenuComponent implements OnInit {
    
+    
     public menuItems : IMenuItem [] = DefaultMenuItems; 
 
-    
-    constructor() { 
+    public menuVisibility : any = {} ; 
 
+    
+    constructor(private eRef: ElementRef) { 
+
+    }
+
+    
+    @HostListener('document:click', ['$event'])
+    clickout(event) : void{
+      if(!this.eRef.nativeElement.contains(event.target)) {
+         console.log('click outside') ; 
+         this.menuVisibility = {} ; 
+      }
     }
     
     ngOnInit(): void {

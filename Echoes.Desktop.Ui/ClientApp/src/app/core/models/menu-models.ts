@@ -42,8 +42,17 @@ export const DefaultMenuItems : IMenuItem[] = [
         label : "Capture"
     },
     {
+        label : "Debug"
+    },
+    {
+        label : "Settings"
+    },
+    {
         label : "Help",
-        children :  [ 
+        children :  [  
+            {
+                label : "About"
+            }
         ]
     },
 ]
