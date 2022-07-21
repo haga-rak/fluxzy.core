@@ -4,7 +4,7 @@
     {
         Task<IFileState> New();
 
-        Task<IFileState> Close();
+        Task<IFileState> Import(ImportFileModel importFileModel);
 
         Task<IFileState> Open(string fileName); 
 
@@ -13,12 +13,19 @@
         Task<IFileState> Export(Stream outStream, IFileState fileState, EchoesFileType fileType); 
     }
 
+
+    public class ImportFileModel
+    {
+
+    }
+
     public interface IFileSessionManager
     {
         Task<UiState> New(); 
 
-        Task<IReadOnlyCollection<IEchoesSession>> ReadEntries(Guid fileIdentifier,
-            int start, int count); 
+        Task<IReadOnlyCollection<ExchangeInfo>> ReadExchanges(Guid fileIdentifier, int start, int count);
+        
+        Task<IReadOnlyCollection<ConnectionInfo>> ReadConnections(Guid fileIdentifier); 
 
         Task AppendEntries(Guid fileIdentifier,
             IEnumerable<IEchoesSession> sessions); 

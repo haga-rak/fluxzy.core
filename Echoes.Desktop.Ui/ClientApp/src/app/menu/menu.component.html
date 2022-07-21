@@ -1,0 +1,22 @@
+
+<div class="menu">
+    <span class="menu-box">
+        &nbsp;&nbsp;
+    </span>
+    <div *ngFor="let menuItem of menuItems" class="menu-box">
+        {{menuItem.label}}
+
+        <div *ngIf="menuItem.children" class="menu-item-children-container">
+            <div   *ngFor="let child of menuItem.children">
+                <div *ngIf="!child.isSeparator" class="menu-item-children">
+                    {{ child.label }}
+                    <span *ngIf="child.shortCut" class="pull-right">
+                        {{ child.shortCut }}
+                    </span>
+                </div>
+                <div *ngIf="child.isSeparator" class="menu-item-children-separator">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

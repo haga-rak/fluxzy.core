@@ -1,0 +1,23 @@
+@import "../node_modules/@fontsource/roboto/"; 
+
+$primary-color: #e6ebf0;
+$main-dark : #010d1a;
+$other-dark : #131f2b;
+$main-primary : #00abec;
+
+/* You can add global styles to this file, and also import other style files */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Roboto";
+  background : $primary-color;
+} 
+
+/* CAN (MUST) BE REMOVED ! Sample Global style */
+
+* {
+    color: $primary-color; 
+    font-family: "Roboto";
+}
+
