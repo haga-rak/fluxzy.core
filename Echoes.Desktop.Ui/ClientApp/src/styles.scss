@@ -1,4 +1,10 @@
 /* Importing Bootstrap SCSS file. */
+
+
+
+ 
+@import "variables-colors.scss";
+
 @import "~bootstrap/scss/bootstrap";
 
 /* Importing Datepicker SCSS file. */
@@ -6,23 +12,19 @@
  
 
 @import "../node_modules/@fontsource/roboto/";  
-
-@import "variables-colors.scss";
-
+@import "../node_modules/@fortawesome/fontawesome-free/";  
+@import '../node_modules/material-icons/';
 
 /* You can add global styles to this file, and also import other style files */
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
   font-family: "Roboto";
-  background : $gray-800;
 } 
 
 /* CAN (MUST) BE REMOVED ! Sample Global style */
 
 * {
-    color: $primary-color; 
     font-family: "Roboto";
 }
 

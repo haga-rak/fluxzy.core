@@ -1,7 +1,24 @@
-<div class="container">
-  <h1 class="title">
-    {{ 'PAGES.HOME.TITLE' | translate }}
-  </h1>
+<div class="middle-content">
+    
+    <div class="right-vert-bar">
+        
+        <app-toggle [materialIcon]="'filter_alt'" [label]="'Filters'">
+            
+        </app-toggle>    
+        <app-toggle [materialIcon]="'dvr'" [label]="'Hosts'">
+            
+        </app-toggle>    
+        <app-toggle [materialIcon]="'http'" [label]="'Objects'">
+            
+        </app-toggle>
+    </div>
+    
+    <div class="filter-pane">
+        <app-filter></app-filter>
+    </div>
+    <div class="objects-pane"></div>
 
-  <a routerLink="/detail">{{ 'PAGES.HOME.GO_TO_DETAIL' | translate }}</a>
+
 </div>
+
+<app-status-bar></app-status-bar>

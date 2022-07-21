@@ -1,0 +1,10 @@
+ .hard-border {
+    
+    border-right: 2px solid  transparent ; 
+    margin-left: 2px;
+    margin-bottom: 2px;
+ }
+ 
+ .hard-border-selected {
+    border-right: 2px solid  var(--bs-red) ; 
+ }

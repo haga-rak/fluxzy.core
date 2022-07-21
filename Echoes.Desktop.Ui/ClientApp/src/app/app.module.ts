@@ -3,35 +3,42 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { CoreModule } from './core/core.module';
-import { SharedModule } from './shared/shared.module';
-
-import { AppRoutingModule } from './app-routing.module';
 
 // NG Translate
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
-import { HomeModule } from './home/home.module';
-import { DetailModule } from './detail/detail.module';
 
 import { AppComponent } from './app.component';
 import { MenuComponent } from './menu/menu.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToggleComponent } from './widgets/toggle/toggle.component';
+import { RouterModule, Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { StatusBarComponent } from './status-bar/status-bar.component';
+import { FilterComponent } from './filter/filter.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new TranslateHttpLoader(http, './assets/i18n/', '.json');
 
+
 @NgModule({
-    declarations: [AppComponent, MenuComponent],
+    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent],
     imports: [
         BrowserModule,
         FormsModule,
         HttpClientModule,
         CoreModule,
-        SharedModule,
-        HomeModule,
-        DetailModule,
-        AppRoutingModule,
+        RouterModule.forRoot([
+            {
+              path: '',
+              redirectTo: 'home',
+              pathMatch: 'full'
+            },
+            {
+              path: 'home',
+              component: HomeComponent
+            }]),
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,
@@ -39,7 +46,9 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
                 deps: [HttpClient]
             }
         }),
-        BrowserAnimationsModule
+        BrowserAnimationsModule, 
+       
+        
     ],
     providers: [],
     bootstrap: [AppComponent]
