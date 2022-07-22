@@ -1,10 +1,21 @@
  .hard-border {
     
-    border-right: 2px solid  transparent ; 
+    border-left: 2px solid  transparent ; 
     margin-left: 2px;
     margin-bottom: 2px;
+ } 
+ 
+ .hard-border-selected{
+    background-color: var(--bs-info);
+ }
+
+a.erase-right-radius {
+    border-top-right-radius: none !important;
+    border-bottom-right-radius: none !important;
+
  }
  
  .hard-border-selected {
-    border-right: 2px solid  var(--bs-red) ; 
+    border-left: 2px solid  var(--bs-red) ; 
+
  }

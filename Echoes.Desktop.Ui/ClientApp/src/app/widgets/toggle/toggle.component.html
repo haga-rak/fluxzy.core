@@ -2,10 +2,10 @@
 <div class="hard-border" style="" [ngClass]="{'hard-border-selected' : internalToggled }">
 
     <a href="javascript:;" (click)="click()" 
-    class="btn" [ngClass]="{ 'btn-dark' : !internalToggled , 'bg-info' : internalToggled  }" style="width:100%">
+    class="btn erase-right-radius" [ngClass]="{ 'btn-dark' : !internalToggled , 'bg-info' : internalToggled  }" style="width:100%">
     <span class="material-icons">{{ materialIcon }}</span>
     <br/>
-    {{ label}}
+    {{ label}} 
 </a>
 
 </div>

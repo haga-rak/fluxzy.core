@@ -5,6 +5,11 @@
     align-items: stretch;
 }
 
+.title-box {
+    padding : 4px 16px 4px 16px;
+    width : 100%;
+}
+
 .block-left-parent {
     width : 400px; 
     display : flex; 
@@ -17,13 +22,14 @@
     display : flex; 
     flex-wrap: nowrap;
     align-items: stretch;
+    height : 100%;
 
 }
 
 .block-right {
-    width : 300px; 
     flex-grow: 4;
     align-items: stretch;
+    border-left: 2px solid var(--bs-gray-500); 
 }
 
 .middle-content {
@@ -51,8 +57,7 @@
     
     background-color: var(--bs-gray-600);
  
-    border : 2px solid var(--gray-900);
-    box-shadow:  var(--gray-700)  0px 4px 16px;
+    
     flex-grow: 4;
 
 }
