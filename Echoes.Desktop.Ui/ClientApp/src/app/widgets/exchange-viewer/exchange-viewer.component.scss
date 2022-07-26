@@ -1,0 +1,23 @@
+.exchange-viewer-main {
+    display : flex; 
+    flex-direction: column;
+    height : 100%;
+}
+
+.exchange-viewer-main-content {
+    flex-grow: 4; 
+    display : flex; 
+    flex-direction: column;
+}
+
+.exchange-content-box {
+    flex-grow: 4; 
+}
+
+.exchange-viewer-main-status {
+    margin-top: 10px;
+    height: 30px; 
+    width: 100%; 
+    align-self: flex-end
+}
+
