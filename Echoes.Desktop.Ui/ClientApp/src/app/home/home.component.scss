@@ -30,11 +30,22 @@
 
 
 .block-left-parent {
-    width : 550px; 
+    flex-grow: 4;
     display : flex; 
     align-items: stretch;
     flex-direction:  column;
 }
+.block-thin {
+    width : 2px; 
+    background: transparent;
+    cursor:  e-resize;
+}
+
+.block-thin:hover {
+    background:  var(--bs-gray-300); ;
+   
+}
+
 
 .block-left {
     width : 100%; 
