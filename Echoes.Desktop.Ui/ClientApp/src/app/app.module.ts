@@ -19,6 +19,7 @@ import { StatusBarComponent } from './status-bar/status-bar.component';
 import { FilterComponent } from './filter/filter.component';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TabsModule } from 'ngx-bootstrap/tabs';
+import { ExchangeViewerComponent } from './widgets/exchange-viewer/exchange-viewer.component';
 
 
 // AoT requires an exported function for factories
@@ -27,7 +28,7 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
 
 
 @NgModule({
-    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent],
+    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent],
     imports: [
         BrowserModule,
         FormsModule,
