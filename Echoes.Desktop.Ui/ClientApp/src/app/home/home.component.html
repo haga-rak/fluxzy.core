@@ -1,6 +1,6 @@
 
 <div class="main-division">
-    <div class="block-left-parent">
+    <div class="block-left-parent" #objectPane>
         <div class="title-box">
             <div class="title-box-inside">
                 
@@ -65,7 +65,7 @@
             </div>
         </div>
     </div>
-    <div class="block-thin "></div>
+    <div class="block-thin" appVerticalSeparator [leftBlock]="objectPane"></div>
     <div class="block-right">
         <div class="middle-content">
             <app-exchange-viewer style="width:100%"></app-exchange-viewer>            
