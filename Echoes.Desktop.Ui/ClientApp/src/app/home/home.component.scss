@@ -11,7 +11,6 @@
     background-color: var(--bs-gray-500);
     display : flex; 
     align-items: stretch;
-    border-bottom: 2px solid var(--bs-gray-600); 
 }
 
 .title-box-inside {
@@ -42,14 +41,14 @@
     display : flex; 
     flex-wrap: nowrap;
     align-items: stretch;
-    height : 100%;
-
+    height : calc(100% - 60px);
 }
 
 .block-right {
     flex-grow: 4;
     align-items: stretch;
     border-left: 2px solid var(--bs-gray-500); 
+    background-color: var(--bs-gray-500); ;
 }
 
 .middle-content {
@@ -59,7 +58,10 @@
     display : flex; 
     flex-wrap: nowrap;
     align-items: stretch;
+    flex-grow: 4;
     
+    padding: 8px 16px 8px 16px; 
+    width: 100%;
 }
 
 .right-vert-bar {
@@ -76,6 +78,8 @@
 .filter-pane {
     
     background-color: var(--bs-gray-600);
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
  
     
     flex-grow: 4;

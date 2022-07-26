@@ -16,15 +16,15 @@
                 <span>Filters</span> : &nbsp; &nbsp;
                 <div class="btn-group"  role="group">
                     <button type="button"  href="javascript:;" class="btn btn-dark active" aria-current="page">all</button>
-                    <button type="button"  href="javascript:;" class="btn btn-dark">json</button>
+                    <button type="button"  href="javascript:;" class="btn btn-dark" title="every exchange having response content-type equals to json">json</button>
                     <button type="button"  href="javascript:;" class="btn btn-dark">(x)html</button>
                     <button type="button"  href="javascript:;" class="btn btn-dark">post</button>
-                    <button type="button"  href="javascript:;" class="btn btn-dark">img</button>
+                    <button type="button"  href="javascript:;" class="btn btn-dark" title="dynamic datas are structure who can holds models. This includes (json, bson, proto-buf, xml) ">dyn</button>
 
                     <div class="btn-group" role="group" dropdown>
                         <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
                         dropdownToggle>
-                           ...
+                           create
                         </button>
                         <ul class="dropdown-menu bg-light text-primary"  *dropdownMenu aria-labelledby="btnGroupDrop851">
                           <li role="menuitem"><a class="dropdown-item"  href="javascript:;">Quick create host filter</a></li>
@@ -37,7 +37,7 @@
                           
                           <li role="menuitem"><a class="dropdown-item"  href="javascript:;">host <strong>smartizy.com</strong></a></li>
                           <li class="divider dropdown-divider"></li>
-                          <li role="menuitem"><a class="dropdown-item"  href="javascript:;">Custom filter</a></li>
+                          <li role="menuitem"><a class="dropdown-item"  href="javascript:;">Create advanced filter</a></li>
                         </ul>
                       </div>
                   </div>
@@ -68,10 +68,61 @@
     <div class="block-right">
         <div class="middle-content">
             
-            <div class="objects-pane">
-                
+            <div style="width: 100%">
+                <div>
+
+
+                    <div style="margin-bottom: 8px">
+                        <span>
+                            <strong>POST</strong>&nbsp; <a href="javascript:;" title="Click to copy full URL">/api/users/ad466e12f4621bc</a>
+                        </span>
+                        <span class="float-end">
+                                <span>api.smartizy.com</span> 
+                        </span>
+                    </div>
+                    <div class="btn-group"  role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
+                        <button type="button"  href="javascript:;" class="btn btn-dark active" aria-current="page">headers</button>
+                        <button type="button"  href="javascript:;" class="btn btn-dark" >body (436b)</button>
+                        <button type="button"  href="javascript:;" class="btn btn-dark">cookies</button>
+                        <button type="button"  href="javascript:;" class="btn btn-dark">authentication</button>
+                        <button type="button"  href="javascript:;" class="btn btn-dark">json viewer</button>
+                    </div>
+    
+                    <div style="background: var(--bs-gray-600); width : 100%; height: 200px; margin-top: 10px; border-radius: 8px;;
+                    box-shadow: var(--bs-gray-700) 0px 7px 29px 0px !important;">
+                        
+                    </div>
+                </div>
+
+                <div style="margin-top : 10px">
+
+
+                    <div style="margin-bottom: 8px">
+                        <span>
+                            <strong>201</strong>&nbsp; <a href="javascript:;">Content Created</a>
+                        </span>
+                        <span class="float-end">
+                                <span class="badge badge-warning bg-secondary">HTTP/1.1</span> <span>TLS1.2</span>
+                        </span>
+                    </div>
+                    <div class="btn-group"  role="group">
+                        <button type="button"  href="javascript:;" class="btn btn-dark active" aria-current="page">headers</button>
+                        <button type="button"  href="javascript:;" class="btn btn-dark" >body (1236b)</button>
+                        <button type="button"  href="javascript:;" class="btn btn-dark">set-cookies</button>
+                        <button type="button"  href="javascript:;" class="btn btn-dark">authentication</button>
+                        <button type="button"  href="javascript:;" class="btn btn-dark">json viewer</button>
+                    </div>
+    
+                    <div style="background: var(--bs-gray-600); width : 100%; height: 200px; margin-top: 10px; border-radius: 8px;;">
+                        
+                    </div>
+                </div>
+
+
+
             </div>
-            
+
+
             
         </div>
     </div>

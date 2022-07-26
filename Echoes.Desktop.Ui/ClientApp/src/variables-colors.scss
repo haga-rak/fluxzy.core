@@ -14,8 +14,8 @@ $gray-100: #f8f9fa ;
 $gray-200: #e9ecef ;
 $gray-300: #dee2e6 ;
 $gray-400: #ced4da ;
-$gray-500: #242527 ;
-$gray-600: #000508 ;
+$gray-500: #1c2027 ;
+$gray-600: #2e2e2f ;
 $gray-700: #0c1216 ;
 $gray-800: #041118 ;
 $gray-900: #1E1D1D ;
@@ -47,6 +47,6 @@ $material-icons-font-size : 24px;
 $min-contrast-ratio:   2 ;
 
 $body-color: $primary-color;
-$body-bg:  $gray-800;
+$body-bg:  $gray-500;
 
 $btn-border-width : 0 ;

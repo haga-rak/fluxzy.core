@@ -18,6 +18,7 @@ import { HomeComponent } from './home/home.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
 import { FilterComponent } from './filter/filter.component';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { TabsModule } from 'ngx-bootstrap/tabs';
 
 
 // AoT requires an exported function for factories
@@ -33,6 +34,7 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
         HttpClientModule,
         CoreModule,
         BsDropdownModule.forRoot(),
+        TabsModule.forRoot(),
         RouterModule.forRoot([
             {
               path: '',
