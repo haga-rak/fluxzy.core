@@ -42,6 +42,9 @@ export const DefaultMenuItems : IMenuItem[] = [
         label : "Capture"
     },
     {
+        label : "Trafic alterations"
+    },
+    {
         label : "Debug"
     },
     {

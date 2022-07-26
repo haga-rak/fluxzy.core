@@ -17,9 +17,12 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
 import { FilterComponent } from './filter/filter.component';
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new TranslateHttpLoader(http, './assets/i18n/', '.json');
+
 
 
 @NgModule({
@@ -29,6 +32,7 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
         FormsModule,
         HttpClientModule,
         CoreModule,
+        BsDropdownModule.forRoot(),
         RouterModule.forRoot([
             {
               path: '',

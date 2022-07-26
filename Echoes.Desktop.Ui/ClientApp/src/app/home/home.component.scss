@@ -6,19 +6,39 @@
 }
 
 .title-box {
-    padding : 4px 16px 4px 16px;
+    padding : 6px;
     width : 100%;
+    background-color: var(--bs-gray-500);
+    display : flex; 
+    align-items: stretch;
+    border-bottom: 2px solid var(--bs-gray-600); 
 }
 
+.title-box-inside {
+    box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;
+    border-radius : 8px !important; 
+}
+
+.filter-header{
+    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    flex-grow: 4;
+    padding: 4px; 
+    padding-left: 32px;
+}
+
+
+
 .block-left-parent {
-    width : 400px; 
+    width : 550px; 
     display : flex; 
     align-items: stretch;
     flex-direction:  column;
 }
 
 .block-left {
-    width : 400px; 
+    width : 100%; 
     display : flex; 
     flex-wrap: nowrap;
     align-items: stretch;

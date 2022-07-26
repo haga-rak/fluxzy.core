@@ -6,6 +6,7 @@
 @import "variables-colors.scss";
 
 @import "~bootstrap/scss/bootstrap";
+@import "../node_modules/bootstrap-icons/";  
 
 /* Importing Datepicker SCSS file. */
 @import "node_modules/ngx-bootstrap/datepicker/bs-datepicker";

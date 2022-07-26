@@ -2,19 +2,60 @@
 <div class="main-division">
     <div class="block-left-parent">
         <div class="title-box">
-           
-             <strong>save425632.ecz</strong>
+            <div class="title-box-inside">
+                
+                <a href="javascript:;" class="btn btn-outline-light" style="font-size: 18px">
+                    <i class="bi bi-play-circle-fill"></i>
+                </a>
+                &nbsp;
+                <a href="javascript:;" class="btn btn-outline-danger" style="font-size: 18px">
+                    <i class="bi bi-record-circle-fill"></i>
+                </a>
+            </div>
+            <div class="filter-header">
+                <span>Filters</span> : &nbsp; &nbsp;
+                <div class="btn-group"  role="group">
+                    <button type="button"  href="javascript:;" class="btn btn-dark active" aria-current="page">all</button>
+                    <button type="button"  href="javascript:;" class="btn btn-dark">json</button>
+                    <button type="button"  href="javascript:;" class="btn btn-dark">(x)html</button>
+                    <button type="button"  href="javascript:;" class="btn btn-dark">post</button>
+                    <button type="button"  href="javascript:;" class="btn btn-dark">img</button>
+
+                    <div class="btn-group" role="group" dropdown>
+                        <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
+                        dropdownToggle>
+                           ...
+                        </button>
+                        <ul class="dropdown-menu bg-light text-primary"  *dropdownMenu aria-labelledby="btnGroupDrop851">
+                          <li role="menuitem"><a class="dropdown-item"  href="javascript:;">Quick create host filter</a></li>
+                          <li role="menuitem"><a class="dropdown-item"  href="javascript:;">Quick create method filter</a></li>
+                          <li role="menuitem"><a class="dropdown-item"  href="javascript:;">Quick create process filter</a></li>
+                          <li class="divider dropdown-divider"></li>
+
+                          <li role="menuitem"><span class="dropdown-item" ><i>Last filters</i></span></li>
+
+                          
+                          <li role="menuitem"><a class="dropdown-item"  href="javascript:;">host <strong>smartizy.com</strong></a></li>
+                          <li class="divider dropdown-divider"></li>
+                          <li role="menuitem"><a class="dropdown-item"  href="javascript:;">Custom filter</a></li>
+                        </ul>
+                      </div>
+                  </div>
+            </div>
+            
+            
+            
         </div>
         <div class="block-left">
             <div class="right-vert-bar">
                 
-                <app-toggle [materialIcon]="'filter_alt'" [label]="'Filters'">
+                <app-toggle [materialIcon]="'http'" [label]="'Objects'">
                     
                 </app-toggle>    
                 <app-toggle [materialIcon]="'dvr'" [label]="'Hosts'">
                     
                 </app-toggle>    
-                <app-toggle [materialIcon]="'http'" [label]="'Objects'">
+                <app-toggle [materialIcon]="'memory'" [label]="'Processes'">
                     
                 </app-toggle>
             </div>
@@ -30,8 +71,8 @@
             <div class="objects-pane">
                 
             </div>
-
-
+            
+            
         </div>
     </div>
 </div>
