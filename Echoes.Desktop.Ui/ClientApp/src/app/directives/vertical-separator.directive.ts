@@ -1,32 +1,39 @@
-import { Directive, ElementRef, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, HostListener, Input, OnInit } from '@angular/core';
 
 @Directive({
     selector: '[appVerticalSeparator]'
 })
-export class VerticalSeparatorDirective {
-    @Input() leftBlock : ElementRef ;     
+export class VerticalSeparatorDirective implements OnInit {
+    @Input()  minLeftBlockWidth = 494 ; 
+    @Input() leftBlock : HTMLElement ;     
+    @Input() rightBlock : HTMLElement ;     
 
     private moving = false; 
     private startX : number;
     
     constructor(private leftElement: ElementRef) {
     }
+
+    ngOnInit(): void {
+    }
+
+    release() : void {
+        this.moving = false; 
+    }
     
     @HostListener('document:click', ['$event'])
     clickout(event : MouseEvent) : void{
-        this.moving = false; 
+        this.release();
     }
     
     @HostListener('document:mouseup', ['$event'])
     onMouseUp(event : MouseEvent) : void{
-        this.moving = false; 
-        console.log('document:mouseup');
+        this.release();
     }
 
     @HostListener('document:mouseleave', ['$event'])
     onMouseLeave(event : MouseEvent) : void{
-        this.moving = false; 
-        console.log('document:mouseleave');
+        this.release();
     }
 
 
@@ -34,13 +41,27 @@ export class VerticalSeparatorDirective {
     onMouseMove(event : MouseEvent) : void{
         if (this.moving) {
             let currentX = event.clientX - this.startX; 
-            console.log(currentX);
+
+            this.startX = event.clientX;
+
+            if (!currentX)
+                return;
+
+            let leftValue = this.leftBlock.offsetWidth + currentX;  
+
+            if (leftValue < this.minLeftBlockWidth)
+                return;
+
+            this.leftBlock.style.flexGrow = "0";
+
+            this.leftBlock.style.width = `${leftValue}px` ; 
         }
     }
     
 
     @HostListener('mousedown', ['$event']) onMouseDown(event : MouseEvent) {
-        this.moving = true; 
         this.startX = event.clientX; 
+        this.moving = true; 
+        console.log (this.leftBlock.offsetWidth);
     }
 }

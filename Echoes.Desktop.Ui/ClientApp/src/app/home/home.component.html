@@ -65,8 +65,8 @@
             </div>
         </div>
     </div>
-    <div class="block-thin" appVerticalSeparator [leftBlock]="objectPane"></div>
-    <div class="block-right">
+    <div class="block-thin" appVerticalSeparator [leftBlock]="objectPane" [rightBlock]="righblock"></div>
+    <div class="block-right" #righblock>
         <div class="middle-content">
             <app-exchange-viewer style="width:100%"></app-exchange-viewer>            
         </div>

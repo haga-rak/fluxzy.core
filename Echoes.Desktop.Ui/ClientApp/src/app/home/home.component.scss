@@ -27,14 +27,14 @@
     padding-left: 32px;
 }
 
-
-
 .block-left-parent {
-    flex-grow: 4;
     display : flex; 
     align-items: stretch;
     flex-direction:  column;
+    flex-grow: 4;
+    min-width: 494px;
 }
+
 .block-thin {
     width : 2px; 
     background: transparent;
