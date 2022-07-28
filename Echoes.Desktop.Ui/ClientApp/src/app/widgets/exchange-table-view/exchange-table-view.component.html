@@ -4,6 +4,7 @@
             <tr>
                 <th style="width:20px">&nbsp;</th>
                 <th style="width:150px">Host</th>
+                <th  style="width:50px">Method</th>
                 <th>Path</th>
                 <th  style="width:45px">Status</th>
                 <th  style="width:50px">Type</th>
@@ -16,7 +17,10 @@
                     <span *ngIf="!exchange.success" class="text-danger bold"><i class="bi bi-exclamation-diamond-fill"></i></span>
                     
                 </td>
-                <td>{{ exchange.host }}</td>
+                <td>
+                    <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i>
+                    {{ exchange.host }}</td>
+                <td class="">{{ exchange.method }}&nbsp;&nbsp;</td>
                 <td>
                     <spa  [ngClass]="{ 'text-secondary' : exchange.contentType === 'json' }"></spa>
                     {{ exchange.path }}
