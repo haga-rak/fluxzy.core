@@ -1,0 +1,30 @@
+<div class="exchange-table-view-container">
+    <table style="width:100%" class="exchange-table-view">
+        <thead>
+            <tr>
+                <th style="width:20px">&nbsp;</th>
+                <th style="width:150px">Host</th>
+                <th>Path</th>
+                <th  style="width:45px">Status</th>
+                <th  style="width:50px">Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let exchange of exchanges">
+                <td class="text-center">
+                    <span *ngIf="exchange.success" class="text-success"><i class="bi bi-circle-fill"></i></span>
+                    <span *ngIf="!exchange.success" class="text-danger bold"><i class="bi bi-exclamation-diamond-fill"></i></span>
+                    
+                </td>
+                <td>{{ exchange.host }}</td>
+                <td>
+                    <spa  [ngClass]="{ 'text-secondary' : exchange.contentType === 'json' }"></spa>
+                    {{ exchange.path }}
+                </td>
+                <td>{{ exchange.status }}</td>
+                <td>{{ exchange.contentType }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+

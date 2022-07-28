@@ -23,7 +23,6 @@ export class MenuComponent implements OnInit {
     @HostListener('document:click', ['$event'])
     clickout(event) : void{
       if(!this.eRef.nativeElement.contains(event.target)) {
-         console.log('click outside') ; 
          this.menuVisibility = {} ; 
       }
     }

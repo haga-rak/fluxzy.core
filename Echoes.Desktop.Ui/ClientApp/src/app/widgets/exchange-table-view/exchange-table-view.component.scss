@@ -1,0 +1,33 @@
+.exchange-table-view-container {
+}
+
+.exchange-table-view {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.exchange-table-view td {
+    border: solid 1px transparent;
+    border-style: none solid solid none;
+}
+
+.exchange-table-view th:first {
+    border-top-left-radius: 8px;
+}
+
+.exchange-table-view th:last {
+    border-top-right-radius: 8px;
+}
+
+.exchange-table-view tbody tr:nth-child(odd) td {
+    background-color: var(--bs-gray-400);
+}
+
+.exchange-table-view tbody tr:nth-child(odd) td:last-child {
+    border-top-right-radius:4px;
+    border-bottom-right-radius:4px;
+}
+.exchange-table-view tbody tr:nth-child(odd) td:first-child {
+    border-top-left-radius:4px;
+    border-bottom-left-radius:4px;
+}

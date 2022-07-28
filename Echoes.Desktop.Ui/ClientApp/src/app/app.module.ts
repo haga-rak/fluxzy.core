@@ -21,6 +21,8 @@ import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { ExchangeViewerComponent } from './widgets/exchange-viewer/exchange-viewer.component';
 import { VerticalSeparatorDirective } from './directives/vertical-separator.directive';
+import { FilterHeaderViewComponent } from './widgets/filter-header-view/filter-header-view.component';
+import { ExchangeTableViewComponent } from './widgets/exchange-table-view/exchange-table-view.component';
 
 
 // AoT requires an exported function for factories
@@ -29,7 +31,7 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
 
 
 @NgModule({
-    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective],
+    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent],
     imports: [
         BrowserModule,
         FormsModule,
