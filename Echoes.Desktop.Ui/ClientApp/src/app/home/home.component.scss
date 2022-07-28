@@ -91,10 +91,9 @@
     background-color: var(--bs-gray-600);
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
-  
-    
     flex-grow: 4;
-
+    height : 100%; 
+    overflow: hidden;
 }
 .objects-pane {
     background-color: var(--bs-gray-700);

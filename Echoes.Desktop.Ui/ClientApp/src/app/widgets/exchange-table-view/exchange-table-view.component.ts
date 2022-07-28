@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { BuildMockExchanges } from '../../core/models/exchanges-mock';
+import { tap } from 'rxjs';
+import { BuildMockExchanges, IExchange } from '../../core/models/exchanges-mock';
+import { ExchangeSelection, UiStateService } from '../../services/ui-state.service';
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -8,14 +10,21 @@ import { BuildMockExchanges } from '../../core/models/exchanges-mock';
 })
 export class ExchangeTableViewComponent implements OnInit {
     
-    public exchanges = BuildMockExchanges();
+    public exchanges : IExchange[] = BuildMockExchanges();
+    public exchangeSelection : ExchangeSelection ; 
     
-    constructor() { }
+    constructor(private uiService : UiStateService) { }
     
     ngOnInit(): void {
-        
+        this.uiService.currentSelection$.pipe(
+            tap(e => this.exchangeSelection = e)
+        ).subscribe() ; 
     }
-    
+        
+    public setSelectionChange (exchange : IExchange) : void {
+        this.exchangeSelection.map[exchange.id] = !this.exchangeSelection.map[exchange.id];
+        this.uiService.currentSelection$.next(this.exchangeSelection)
+    }        
 }
-
-
+    
+    

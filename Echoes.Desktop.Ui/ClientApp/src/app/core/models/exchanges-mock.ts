@@ -18,7 +18,7 @@ export const BuildMockExchanges = (count : number | null = null) : IExchange[] =
     const randomStatus = [200,201,304,200,200,200] ; 
     const randomFailStatus = [500,504,403,401] ; 
 
-    const totalItems = count ?? 32 ; 
+    const totalItems = count ?? 300 ; 
 
     const res : IExchange[] = []; 
 

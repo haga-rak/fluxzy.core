@@ -1,3 +1,6 @@
+
+<perfect-scrollbar style="max-height: calc(100vh - 120px);">
+    
 <div class="exchange-table-view-container">
     <table style="width:100%" class="exchange-table-view">
         <thead>
@@ -11,7 +14,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let exchange of exchanges">
+            <tr *ngFor="let exchange of exchanges" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchange.id] }" (mousedown)="setSelectionChange(exchange)">
                 <td class="text-center">
                     <span *ngIf="exchange.success" class="text-success"><i class="bi bi-circle-fill"></i></span>
                     <span *ngIf="!exchange.success" class="text-danger bold"><i class="bi bi-exclamation-diamond-fill"></i></span>
@@ -31,4 +34,6 @@
         </tbody>
     </table>
 </div>
+
+</perfect-scrollbar>
 

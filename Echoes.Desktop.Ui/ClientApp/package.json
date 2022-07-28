@@ -1,6 +1,6 @@
 {
   "name": "echoes-desktop-ui",
-  "version": "10.5.2",
+  "version": "0.1.18",
   "description": "",
   "keywords": [],
   "main": "app/main.js",
@@ -41,6 +41,7 @@
     "bootstrap-icons": "1.9.1",
     "material-icons": "1.11.6",
     "ngx-bootstrap": "8.0.0",
+    "ngx-perfect-scrollbar": "10.1.1",
     "rxjs": "7.5.5",
     "tslib": "^2.1.0",
     "uuid": "8.3.2",

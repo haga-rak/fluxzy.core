@@ -23,11 +23,15 @@ import { ExchangeViewerComponent } from './widgets/exchange-viewer/exchange-view
 import { VerticalSeparatorDirective } from './directives/vertical-separator.directive';
 import { FilterHeaderViewComponent } from './widgets/filter-header-view/filter-header-view.component';
 import { ExchangeTableViewComponent } from './widgets/exchange-table-view/exchange-table-view.component';
+import { PerfectScrollbarConfigInterface, PerfectScrollbarModule, PERFECT_SCROLLBAR_CONFIG } from 'ngx-perfect-scrollbar';
 
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new TranslateHttpLoader(http, './assets/i18n/', '.json');
 
+const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
+    suppressScrollX: true
+  };
 
 
 @NgModule({
@@ -39,6 +43,7 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
         CoreModule,
         BsDropdownModule.forRoot(),
         TabsModule.forRoot(),
+        PerfectScrollbarModule,
         RouterModule.forRoot([
             {
               path: '',
@@ -60,7 +65,10 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
        
         
     ],
-    providers: [],
+    providers: [ {
+        provide: PERFECT_SCROLLBAR_CONFIG,
+        useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG
+    }],
     bootstrap: [AppComponent]
 })
 export class AppModule {}
