@@ -12,5 +12,7 @@ namespace Echoes.Rules.Filters.ResponseFilters
             return statusCode is >= 200 and < 300; 
         }
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
+
+        public override string FriendlyName => $"Success status code (2XX)";
     }
 }

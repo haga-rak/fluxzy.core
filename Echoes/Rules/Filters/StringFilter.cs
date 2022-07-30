@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Echoes.Clients;
 
@@ -55,6 +57,8 @@ namespace Echoes.Rules.Filters
         public bool CaseSensitive { get; set; }
         
         public string Pattern { get; set; }
+        
+        public override string FriendlyName => $"{Operation.GetDescription()} : `{Pattern}`";
     }
 
     public enum SelectorCollectionOperation
@@ -65,10 +69,19 @@ namespace Echoes.Rules.Filters
 
     public enum StringSelectorOperation
     {
+        [Description("equals")]
         Exact,
+
+        [Description("contains")]
         Contains,
+
+        [Description("starts with")]
         StartsWith,
+
+        [Description("ends with")]
         EndsWith,
+
+        [Description("matchs (regex)")]
         Regex,
     }
 
@@ -80,5 +93,33 @@ namespace Echoes.Rules.Filters
         RequestHeader,
         RequestBody,
         StatusCode
+    }
+
+    public static class GenericDescriptionExtension
+    {
+        public static string GetDescription<T>(this T enumerationValue)
+            where T : struct
+        {
+            var type = typeof(T);
+
+            if (!type.IsEnum)
+            {
+                throw new ArgumentException($"{nameof(enumerationValue)} must be an enum");
+            }
+            
+            var memberInfo = type.GetMember(enumerationValue.ToString());
+
+            if (memberInfo.Length > 0)
+            {
+               var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+
+                if (attrs.Length > 0)
+                {
+                    return ((DescriptionAttribute)attrs[0]).Description;
+                }
+            }
+
+            return enumerationValue.ToString();
+        }
     }
 }

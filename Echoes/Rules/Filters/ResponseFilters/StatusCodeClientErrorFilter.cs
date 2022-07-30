@@ -11,5 +11,7 @@ namespace Echoes.Rules.Filters.ResponseFilters
         }
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
+
+        public override string FriendlyName => $"Client errors (status code is 4XX)";
     }
 }

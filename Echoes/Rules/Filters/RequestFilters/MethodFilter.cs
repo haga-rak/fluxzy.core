@@ -16,5 +16,7 @@ namespace Echoes.Rules.Filters.RequestFilters
             return base.InternalApply(exchange);
         }
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
+
+        public override string FriendlyName => $"Request method {base.FriendlyName}";
     }
 }

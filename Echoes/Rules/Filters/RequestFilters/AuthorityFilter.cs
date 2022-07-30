@@ -11,5 +11,7 @@ namespace Echoes.Rules.Filters.RequestFilters
         }
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
+
+        public override string FriendlyName => $"Authority {base.FriendlyName}";
     }
 }

@@ -13,5 +13,7 @@ namespace Echoes.Rules.Filters.RequestFilters
         }
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
+
+        public override string FriendlyName => $"Full url {base.FriendlyName}";
     }
 }

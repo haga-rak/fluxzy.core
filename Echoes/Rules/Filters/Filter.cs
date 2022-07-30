@@ -15,6 +15,8 @@ namespace Echoes.Rules.Filters
         protected abstract bool InternalApply(IExchange exchange);
 
         public abstract FilterScope FilterScope { get; }
+
+        public virtual string FriendlyName { get; } = "Filter" ; 
         
         public virtual bool Apply(IExchange exchange)
         {

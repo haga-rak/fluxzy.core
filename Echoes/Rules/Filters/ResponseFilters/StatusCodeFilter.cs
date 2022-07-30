@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
+using System.Linq;
 using Echoes.Clients;
 
 namespace Echoes.Rules.Filters.ResponseFilters
@@ -15,5 +16,8 @@ namespace Echoes.Rules.Filters.ResponseFilters
         public List<int> StatusCodes { get; set; } = new();
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
+
+
+        public override string FriendlyName => $"Status code among {string.Join(", ", StatusCodes.Select(s => s.ToString()))}";
     }
 }

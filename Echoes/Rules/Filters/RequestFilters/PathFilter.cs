@@ -10,5 +10,7 @@ namespace Echoes.Rules.Filters.RequestFilters
             yield return exchange.Path;
         }
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
+
+        public override string FriendlyName => $"Request path {base.FriendlyName}";
     }
 }
