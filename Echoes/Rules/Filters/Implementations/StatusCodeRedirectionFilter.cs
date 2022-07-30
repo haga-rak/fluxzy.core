@@ -1,12 +1,14 @@
 ﻿using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.Implementations;
-
-public class StatusCodeRedirectionFilter : Filter
+namespace Echoes.Rules.Filters.Implementations
 {
-    protected override bool InternalApply(Exchange exchange)
+    public class StatusCodeRedirectionFilter : Filter
     {
-        var statusCode = exchange.Response?.Header.StatusCode ?? -1;
-        return statusCode is >= 300 and < 400; 
+        protected override bool InternalApply(Exchange exchange)
+        {
+            var statusCode = exchange.Response?.Header.StatusCode ?? -1;
+            return statusCode is >= 300 and < 400; 
+        }
+        public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
     }
 }

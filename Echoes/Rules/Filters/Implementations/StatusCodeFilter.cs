@@ -12,6 +12,8 @@ namespace Echoes.Rules.Filters.Implementations
             return StatusCodes.Contains(exchange.Response?.Header.StatusCode ?? -1); 
         }
 
-        public List<int> StatusCodes { get; set; } = new(); 
+        public List<int> StatusCodes { get; set; } = new();
+
+        public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
     }
 }

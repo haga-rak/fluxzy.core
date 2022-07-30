@@ -21,7 +21,6 @@ namespace Echoes
 
         }
 
-
         public RequestHeaderInfo(RequestHeader originalHeader)
         {
             Method = originalHeader.Method;

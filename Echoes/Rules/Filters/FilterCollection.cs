@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
+using System.Linq;
 using Echoes.Clients;
 
 namespace Echoes.Rules.Filters
@@ -26,5 +27,7 @@ namespace Echoes.Rules.Filters
 
             return Operation == SelectorCollectionOperation.And; 
         }
+
+        public override FilterScope FilterScope => Children.Max(c => c.FilterScope); 
     }
 }

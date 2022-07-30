@@ -161,6 +161,10 @@ namespace Echoes.Clients
         /// </summary>
         public long ContentLength { get; set; } = -1;
 
+
+        /// <summary>
+        /// Returns all headers, including non-forwardable 
+        /// </summary>
         public IReadOnlyCollection<HeaderField> HeaderFields => _rawHeaderFields;
 
         protected abstract int WriteHeaderLine(Span<byte> buffer);
@@ -170,6 +174,9 @@ namespace Echoes.Clients
             return RawHeader.ToString();
         }
 
+        /// <summary>
+        /// Returns all headers, excluding non-forwardable 
+        /// </summary>
         public IEnumerable<HeaderField> Headers
         {
             get

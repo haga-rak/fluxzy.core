@@ -11,5 +11,7 @@ namespace Echoes.Rules.Filters.Implementations
         {
             yield return exchange.Request.Header.GetFullUrl();
         }
+
+        public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
     }
 }

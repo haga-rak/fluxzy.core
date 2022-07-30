@@ -2,13 +2,15 @@
 
 using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.Implementations;
-
-public class StatusCodeSuccess : Filter
+namespace Echoes.Rules.Filters.Implementations
 {
-    protected override bool InternalApply(Exchange exchange)
+    public class StatusCodeSuccess : Filter
     {
-        var statusCode = exchange.Response?.Header.StatusCode ?? -1;
-        return statusCode is >= 200 and < 300; 
+        protected override bool InternalApply(Exchange exchange)
+        {
+            var statusCode = exchange.Response?.Header.StatusCode ?? -1;
+            return statusCode is >= 200 and < 300; 
+        }
+        public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
     }
 }

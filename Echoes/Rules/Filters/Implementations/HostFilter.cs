@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
 using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.Implementations;
-
-public class HostFilter : StringFilter
+namespace Echoes.Rules.Filters.Implementations
 {
-    protected override IEnumerable<string> GetMatchInput(Exchange exchange)
+    public class HostFilter : StringFilter
     {
-        yield return exchange.Request.Header.Authority.ToString();
+        protected override IEnumerable<string> GetMatchInput(Exchange exchange)
+        {
+            yield return exchange.Request.Header.Authority.ToString();
+        }
+
+        public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
     }
 }
