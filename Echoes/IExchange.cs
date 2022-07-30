@@ -20,5 +20,9 @@ namespace Echoes
         IEnumerable<HeaderFieldInfo> GetResponseHeaders();
 
         int StatusCode { get; }
+
+        string EgressIp { get;  }
+
+        
     }
 }

@@ -48,8 +48,7 @@ namespace Echoes.Clients
 
             _exchangeCompletionSource.SetResult(false);
         }
-
-
+        
         public Exchange(
             Authority authority, 
             RequestHeader requestHeader, Stream bodyStream, string httpVersion, DateTime receivedFromProxy)
@@ -183,6 +182,8 @@ namespace Echoes.Clients
         }
 
         public int StatusCode => Response.Header.StatusCode;
+
+        public string EgressIp => Connection.RemoteAddress.ToString(); 
     }
 
 

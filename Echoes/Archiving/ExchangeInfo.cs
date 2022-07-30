@@ -21,7 +21,8 @@ namespace Echoes
             ConnectionId = exchange.Connection?.Id ?? 0;
             Metrics = exchange.Metrics;  
             ResponseHeader = exchange.Response?.Header == null ? default : new ResponseHeaderInfo(exchange.Response.Header);
-            RequestHeader = new RequestHeaderInfo(exchange.Request.Header); 
+            RequestHeader = new RequestHeaderInfo(exchange.Request.Header);
+            EgressIp = exchange.EgressIp; 
         }
 
         public int Id { get; set; }
@@ -55,6 +56,8 @@ namespace Echoes
         }
 
         public int StatusCode => ResponseHeader.StatusCode;
+
+        public string EgressIp { get; set; }
     }
 
     public class BodyContent
