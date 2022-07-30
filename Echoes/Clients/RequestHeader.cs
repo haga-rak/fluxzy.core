@@ -38,6 +38,11 @@ namespace Echoes.Clients
 
         public bool IsWebSocketRequest { get;  }
 
+        public string GetFullUrl()
+        {
+            return $"{Scheme}://{Authority}{Path}"; 
+        }
+
         protected override int WriteHeaderLine(Span<byte> buffer)
         {
             var totalLength = 0;

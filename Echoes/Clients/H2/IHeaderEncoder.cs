@@ -11,7 +11,7 @@ namespace Echoes.Clients.H2
         HPackDecoder Decoder { get; }
 
         /// <summary>
-        /// Apply header + hpack to headerbuffer 
+        /// InternalApply header + hpack to headerbuffer 
         /// </summary>
         /// <param name="encodingJob"></param>
         /// <param name="destinationBuffer"></param>

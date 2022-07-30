@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Echoes.Clients;
+using Echoes.Rules.Filters;
 
 namespace Echoes.Rules.Selectors
 {
@@ -11,7 +12,7 @@ namespace Echoes.Rules.Selectors
     {
         public ActionTiming Timing { get; set; }
 
-        public SelectorCollection Selector { get; set; } = new(); 
+        public FilterCollection Filter { get; set; } = new(); 
 
         public List<IAction> Actions { get; set; }
 
@@ -19,7 +20,7 @@ namespace Echoes.Rules.Selectors
             ProxyContext proxyContext, 
             Exchange exchange, Connection connectionInfo)
         {
-            if (Selector.Apply(exchange))
+            if (Filter.Apply(exchange))
             {
                 foreach (var action in Actions)
                 {
