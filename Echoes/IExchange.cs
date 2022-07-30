@@ -22,7 +22,5 @@ namespace Echoes
         int StatusCode { get; }
 
         string EgressIp { get;  }
-
-        
     }
 }

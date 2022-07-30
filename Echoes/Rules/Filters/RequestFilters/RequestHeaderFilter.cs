@@ -9,7 +9,7 @@ namespace Echoes.Rules.Filters.RequestFilters
 {
     public class RequestHeaderFilter : HeaderFilter
     {
-        protected override IEnumerable<string> GetMatchInput(IExchange exchange)
+        protected override IEnumerable<string> GetMatchInputs(IExchange exchange)
         {
             return exchange.GetRequestHeaders().Where(e =>
                     MemoryExtensions.Equals(e.Name.Span, HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))

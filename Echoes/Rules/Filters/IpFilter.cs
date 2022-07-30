@@ -8,7 +8,7 @@ namespace Echoes.Rules.Filters
     {
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        protected override IEnumerable<string> GetMatchInput(IExchange exchange)
+        protected override IEnumerable<string> GetMatchInputs(IExchange exchange)
         {
             yield return exchange.EgressIp;
         }

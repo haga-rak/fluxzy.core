@@ -11,7 +11,7 @@ namespace Echoes.Rules.Filters
     {
         protected override bool InternalApply(IExchange exchange)
         {
-            var inputList = GetMatchInput(exchange);
+            var inputList = GetMatchInputs(exchange);
 
             var comparisonType = CaseSensitive ? StringComparison.InvariantCulture :
                 StringComparison.InvariantCultureIgnoreCase;
@@ -48,7 +48,7 @@ namespace Echoes.Rules.Filters
             return false; 
         }
 
-        protected abstract IEnumerable<string> GetMatchInput(IExchange exchange);
+        protected abstract IEnumerable<string> GetMatchInputs(IExchange exchange);
 
         public StringSelectorOperation Operation { get; set; } = StringSelectorOperation.Exact;
 
