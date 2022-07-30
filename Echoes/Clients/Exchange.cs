@@ -13,7 +13,7 @@ using Echoes.Misc;
 
 namespace Echoes.Clients
 {
-    public class Exchange
+    public class Exchange : IExchange
     {
         private static int ExchangeCounter = 0;
 
@@ -163,6 +163,26 @@ namespace Echoes.Clients
                 "echoes-metrics",
                 $" {string.Join(", ", collection.AllKeys.Select(s => $"({s})={collection[s]}"))}");
         }
+
+        public string FullUrl => Request.Header.GetFullUrl();
+
+        public string KnownAuthority => Request.Header.Authority.ToString();
+
+        public string Method => Request.Header.Method.ToString();
+
+        public string Path => Request.Header.Path.ToString();
+
+        public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
+        {
+            return Request.Header.Headers.Select(t => (HeaderFieldInfo) t);
+        }
+
+        public IEnumerable<HeaderFieldInfo> GetResponseHeaders()
+        {
+            return Response.Header.Headers.Select(t => (HeaderFieldInfo)t);
+        }
+
+        public int StatusCode => Response.Header.StatusCode;
     }
 
 

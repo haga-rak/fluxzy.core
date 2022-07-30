@@ -18,7 +18,7 @@ namespace Echoes.Rules.Selectors
 
         public async Task Enforce(
             ProxyContext proxyContext, 
-            Exchange exchange, Connection connectionInfo)
+            IExchange exchange, Connection connectionInfo)
         {
             if (Filter.Apply(exchange))
             {
@@ -51,7 +51,7 @@ namespace Echoes.Rules.Selectors
 
     public interface IAction
     {
-        Task<bool> Alter(ProxyContext proxyContext, Exchange exchange, Connection connection);
+        Task<bool> Alter(ProxyContext proxyContext, IExchange exchange, Connection connection);
     }
 
     public class AddRequestHeaderAction : IAction
@@ -62,7 +62,7 @@ namespace Echoes.Rules.Selectors
 
         public Task<bool> Alter(
             ProxyContext proxyContext, 
-            Exchange exchange, 
+            IExchange exchange, 
             Connection connection)
         {
             throw new NotImplementedException("Show how to alter exchange here" +

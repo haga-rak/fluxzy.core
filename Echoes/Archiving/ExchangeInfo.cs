@@ -1,9 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json.Serialization;
 using Echoes.Clients;
+using Echoes.Clients.H2.Encoder;
 
 namespace Echoes
 {
-    public class ExchangeInfo
+    public class ExchangeInfo : IExchange
     {
         [JsonConstructor]
         public ExchangeInfo()
@@ -33,6 +36,25 @@ namespace Echoes
         
         public ExchangeMetrics Metrics { get; set; }
 
+        public string FullUrl => RequestHeader.GetFullUrl();
+
+        public string KnownAuthority => RequestHeader.Authority.ToString();
+
+        public string Method => RequestHeader.Method.ToString();
+
+        public string Path => RequestHeader.Path.ToString();
+
+        public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
+        {
+            return RequestHeader.Headers;
+        }
+
+        public IEnumerable<HeaderFieldInfo> GetResponseHeaders()
+        {
+            return ResponseHeader.Headers;
+        }
+
+        public int StatusCode => ResponseHeader.StatusCode;
     }
 
     public class BodyContent

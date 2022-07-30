@@ -24,6 +24,7 @@ namespace Echoes
         public RequestHeaderInfo(RequestHeader originalHeader)
         {
             Method = originalHeader.Method;
+            Scheme = originalHeader.Scheme;
             Path = originalHeader.Path;
             Authority = originalHeader.Authority;
             Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s)); 
@@ -31,11 +32,18 @@ namespace Echoes
 
         public ReadOnlyMemory<char> Method { get; set; }
 
+        public ReadOnlyMemory<char> Scheme { get; set; }
+
         public ReadOnlyMemory<char> Path { get; set; }
 
         public ReadOnlyMemory<char> Authority { get; set; }
 
         public IEnumerable<HeaderFieldInfo> Headers { get; set; }
+
+        public string GetFullUrl()
+        {
+            return $"{Scheme}://{Authority}{Path}";
+        }
     }
 
     public class ResponseHeaderInfo
@@ -78,6 +86,8 @@ namespace Echoes
         public ReadOnlyMemory<char> Value { get; set; } 
         
         public bool Forwarded { get; set; }
+
+        public static implicit operator HeaderFieldInfo(HeaderField d) => new HeaderFieldInfo(d);
     }
 
     public class SslInfo

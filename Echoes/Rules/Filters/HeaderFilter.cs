@@ -1,8 +1,9 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-namespace Echoes.Rules.Filters;
-
-public abstract class HeaderFilter : StringFilter
+namespace Echoes.Rules.Filters
 {
-    public string HeaderName { get; set; }
+    public abstract class HeaderFilter : StringFilter
+    {
+        public string HeaderName { get; set; }
+    }
 }

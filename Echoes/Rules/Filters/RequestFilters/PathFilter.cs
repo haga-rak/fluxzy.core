@@ -5,9 +5,9 @@ namespace Echoes.Rules.Filters.RequestFilters
 {
     public class PathFilter : StringFilter
     {
-        protected override IEnumerable<string> GetMatchInput(Exchange exchange)
+        protected override IEnumerable<string> GetMatchInput(IExchange exchange)
         {
-            yield return exchange.Request.Header.Path.ToString();
+            yield return exchange.Path;
         }
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
     }

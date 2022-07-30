@@ -3,11 +3,11 @@ using Echoes.Clients;
 
 namespace Echoes.Rules.Filters.RequestFilters
 {
-    public class HostFilter : StringFilter
+    public class AuthorityFilter : StringFilter
     {
-        protected override IEnumerable<string> GetMatchInput(Exchange exchange)
+        protected override IEnumerable<string> GetMatchInput(IExchange exchange)
         {
-            yield return exchange.Request.Header.Authority.ToString();
+            yield return exchange.KnownAuthority;
         }
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

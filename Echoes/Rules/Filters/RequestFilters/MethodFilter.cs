@@ -5,12 +5,12 @@ namespace Echoes.Rules.Filters.RequestFilters
 {
     public class MethodFilter : StringFilter
     {
-        protected override IEnumerable<string> GetMatchInput(Exchange exchange)
+        protected override IEnumerable<string> GetMatchInput(IExchange exchange)
         {
-            yield return exchange.Request.Header.Path.ToString();
+            yield return exchange.Method;
         }
 
-        protected override bool InternalApply(Exchange exchange)
+        protected override bool InternalApply(IExchange exchange)
         {
             CaseSensitive = false;
             return base.InternalApply(exchange);

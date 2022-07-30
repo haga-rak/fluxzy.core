@@ -9,9 +9,9 @@ namespace Echoes.Rules.Filters.ResponseFilters;
 
 public class ResponseHeaderFilter : HeaderFilter
 {
-    protected override IEnumerable<string> GetMatchInput(Exchange exchange)
+    protected override IEnumerable<string> GetMatchInput(IExchange exchange)
     {
-        return exchange.Response.Header.Headers.Where(e =>
+        return exchange.GetResponseHeaders().Where(e =>
                 MemoryExtensions.Equals(e.Name.Span, HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
             .Select(s => s.Value.ToString());
     }

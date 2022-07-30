@@ -6,9 +6,9 @@ namespace Echoes.Rules.Filters.ResponseFilters
 {
     public class StatusCodeSuccess : Filter
     {
-        protected override bool InternalApply(Exchange exchange)
+        protected override bool InternalApply(IExchange exchange)
         {
-            var statusCode = exchange.Response?.Header.StatusCode ?? -1;
+            var statusCode = exchange.StatusCode;
             return statusCode is >= 200 and < 300; 
         }
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;

@@ -7,9 +7,9 @@ namespace Echoes.Rules.Filters.ResponseFilters
 {
     public class StatusCodeFilter : Filter
     {
-        protected override bool InternalApply(Exchange exchange)
+        protected override bool InternalApply(IExchange exchange)
         {
-            return StatusCodes.Contains(exchange.Response?.Header.StatusCode ?? -1); 
+            return StatusCodes.Contains(exchange.StatusCode); 
         }
 
         public List<int> StatusCodes { get; set; } = new();

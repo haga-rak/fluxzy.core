@@ -4,9 +4,9 @@ namespace Echoes.Rules.Filters.ResponseFilters
 {
     public class StatusCodeClientErrorFilter : Filter
     {
-        protected override bool InternalApply(Exchange exchange)
+        protected override bool InternalApply(IExchange exchange)
         {
-            var statusCode = exchange.Response?.Header.StatusCode ?? -1;
+            var statusCode = exchange.StatusCode;
             return statusCode is >= 400 and < 500; 
         }
 

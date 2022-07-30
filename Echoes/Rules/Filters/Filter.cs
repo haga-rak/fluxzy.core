@@ -6,25 +6,17 @@ using Echoes.Clients;
 
 namespace Echoes.Rules.Filters
 {
-    public enum FilterScope
-    {
-        RequestHeaderReceivedFromClient = 1,
-        RequestBodyReceivedFromClient,
-        ResponseHeaderReceivedFromRemote,
-        ResponseBodyReceivedFromRemote
-    }
-
     public abstract class Filter
     {
         public Guid Identifier { get; set; } = Guid.NewGuid();
 
         public bool Inverted { get; set; }
 
-        protected abstract bool InternalApply(Exchange exchange);
+        protected abstract bool InternalApply(IExchange exchange);
 
         public abstract FilterScope FilterScope { get; }
         
-        public virtual bool Apply(Exchange exchange)
+        public virtual bool Apply(IExchange exchange)
         {
             var internalApplyResult = InternalApply(exchange);
 

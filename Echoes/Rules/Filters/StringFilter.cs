@@ -1,17 +1,15 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Echoes.Clients;
-using Echoes.Rules.Selectors;
 
 namespace Echoes.Rules.Filters
 {
     public abstract class StringFilter : Filter
     {
-        protected override bool InternalApply(Exchange exchange)
+        protected override bool InternalApply(IExchange exchange)
         {
             var inputList = GetMatchInput(exchange);
 
@@ -50,7 +48,7 @@ namespace Echoes.Rules.Filters
             return false; 
         }
 
-        protected abstract IEnumerable<string> GetMatchInput(Exchange exchange);
+        protected abstract IEnumerable<string> GetMatchInput(IExchange exchange);
 
         public StringSelectorOperation Operation { get; set; } = StringSelectorOperation.Exact;
 

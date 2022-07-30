@@ -12,7 +12,7 @@ namespace Echoes.Rules.Filters
 
         public SelectorCollectionOperation Operation { get; set; }
 
-        protected override bool InternalApply(Exchange exchange)
+        protected override bool InternalApply(IExchange exchange)
         {
             foreach (var child in Children)
             {

@@ -7,9 +7,9 @@ namespace Echoes.Rules.Filters.RequestFilters
 {
     public class FullUrlFilter : StringFilter
     {
-        protected override IEnumerable<string> GetMatchInput(Exchange exchange)
+        protected override IEnumerable<string> GetMatchInput(IExchange exchange)
         {
-            yield return exchange.Request.Header.GetFullUrl();
+            yield return exchange.FullUrl;
         }
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
