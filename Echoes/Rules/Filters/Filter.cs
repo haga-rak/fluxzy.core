@@ -14,10 +14,8 @@ namespace Echoes.Rules.Filters
         ResponseBodyReceivedFromRemote
     }
 
-
     public abstract class Filter
     {
-        
         public Guid Identifier { get; set; } = Guid.NewGuid();
 
         public bool Inverted { get; set; }
@@ -31,18 +29,6 @@ namespace Echoes.Rules.Filters
             var internalApplyResult = InternalApply(exchange);
 
             return !Inverted ? internalApplyResult : !internalApplyResult;
-        }
-    }
-
-    public static class ExchangeExtensions
-    {
-        public static string GetUrl(this Exchange exchange)
-        {
-            throw new NotImplementedException(); 
-        }
-        public static string GetRequestHeader(this Exchange exchange)
-        {
-            throw new NotImplementedException(); 
         }
     }
 }

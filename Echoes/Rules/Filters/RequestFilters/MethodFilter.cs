@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.Implementations
+namespace Echoes.Rules.Filters.RequestFilters
 {
     public class MethodFilter : StringFilter
     {

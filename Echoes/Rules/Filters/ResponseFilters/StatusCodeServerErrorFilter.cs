@@ -1,6 +1,6 @@
 ﻿using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.Implementations
+namespace Echoes.Rules.Filters.ResponseFilters
 {
     public class StatusCodeServerErrorFilter : Filter
     {

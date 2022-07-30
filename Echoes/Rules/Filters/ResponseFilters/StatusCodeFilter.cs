@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.Implementations
+namespace Echoes.Rules.Filters.ResponseFilters
 {
     public class StatusCodeFilter : Filter
     {

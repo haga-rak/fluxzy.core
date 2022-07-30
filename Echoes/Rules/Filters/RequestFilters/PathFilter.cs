@@ -1,17 +1,14 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.Implementations
+namespace Echoes.Rules.Filters.RequestFilters
 {
-    public class FullUrlFilter : StringFilter
+    public class PathFilter : StringFilter
     {
         protected override IEnumerable<string> GetMatchInput(Exchange exchange)
         {
-            yield return exchange.Request.Header.GetFullUrl();
+            yield return exchange.Request.Header.Path.ToString();
         }
-
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
     }
 }
