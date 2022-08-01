@@ -30,6 +30,6 @@ namespace Fluxzy.Desktop.Services
 
     public class EchoesSettings
     {
-        public ProxyStartupSetting StartupSetting { get; set; }
+        public FluxzySetting StartupSetting { get; set; }
     }
 }

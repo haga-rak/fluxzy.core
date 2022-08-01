@@ -13,7 +13,7 @@ namespace Fluxzy.Cli
 {
     public class CliApp
     {
-        private readonly Func<ProxyStartupSetting, ICertificateProvider> _certificateProviderFactory;
+        private readonly Func<FluxzySetting, ICertificateProvider> _certificateProviderFactory;
         private readonly string _instanceIdentifier = Guid.NewGuid().ToString();
         private readonly string _tempDirectory;
 
@@ -24,7 +24,7 @@ namespace Fluxzy.Cli
         };
 
 
-        public CliApp(Func<ProxyStartupSetting, ICertificateProvider> certificateProviderFactory)
+        public CliApp(Func<FluxzySetting, ICertificateProvider> certificateProviderFactory)
         {
             _certificateProviderFactory = certificateProviderFactory;
 
@@ -198,7 +198,7 @@ namespace Fluxzy.Cli
             {
                 string outputFileName = string.Empty;
 
-                var proxyStartUpSetting = ProxyStartupSetting.CreateDefault();
+                var proxyStartUpSetting = FluxzySetting.CreateDefault();
                 
                 if (listenInterfaceOption.HasValue())
                 {
@@ -352,8 +352,8 @@ namespace Fluxzy.Cli
             });
         }
 
-        private async Task<string> StartBlockingProxy(ProxyStartupSetting startupSetting,
-            Func<ProxyStartupSetting, 
+        private async Task<string> StartBlockingProxy(FluxzySetting startupSetting,
+            Func<FluxzySetting, 
             ICertificateProvider> certificateProviderFactory)
         {
             var waitForExitStart = ConsoleHelper.WaitForExit();

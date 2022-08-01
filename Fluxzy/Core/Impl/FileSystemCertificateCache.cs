@@ -6,10 +6,10 @@ namespace Fluxzy.Core
 {
     public class FileSystemCertificateCache : ICertificateCache
     {
-        private readonly ProxyStartupSetting _startupSetting;
+        private readonly FluxzySetting _startupSetting;
         private readonly string _baseDirectory;
 
-        public FileSystemCertificateCache(ProxyStartupSetting startupSetting)
+        public FileSystemCertificateCache(FluxzySetting startupSetting)
         {
             _startupSetting = startupSetting;
             _baseDirectory = Environment.ExpandEnvironmentVariables(startupSetting.CertificateCacheDirectory);

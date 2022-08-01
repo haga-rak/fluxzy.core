@@ -12,7 +12,7 @@ namespace Fluxzy.Tests.Tools
     {
         private readonly int _portNumber;
         private readonly int _expectedRequestCount;
-        private readonly ProxyStartupSetting _startupSetting;
+        private readonly FluxzySetting _startupSetting;
         private readonly Proxy _proxy;
         private readonly CancellationTokenSource _cancellationSource;
         private readonly List<Exchange> _capturedExchanges = new();
@@ -28,7 +28,7 @@ namespace Fluxzy.Tests.Tools
             BindHost = "127.0.0.1";
             BindPort = portNumber;
 
-            _startupSetting = ProxyStartupSetting
+            _startupSetting = FluxzySetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
                 .SetBoundAddress(BindHost, BindPort);
