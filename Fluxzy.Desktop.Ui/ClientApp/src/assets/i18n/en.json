@@ -1,0 +1,12 @@
+{
+  "PAGES": {
+      "HOME": {
+          "TITLE": "Hello ooo",
+          "GO_TO_DETAIL": "Go to Detail"
+      },
+      "DETAIL": {
+        "TITLE": "Detail page !",
+        "BACK_TO_HOME": "Back to Home"
+    }
+  }
+}

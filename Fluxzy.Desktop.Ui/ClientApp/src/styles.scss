@@ -1,0 +1,36 @@
+/* Importing Bootstrap SCSS file. */
+
+
+
+ 
+@import "variables-colors.scss";
+
+@import "~bootstrap/scss/bootstrap";
+@import "../node_modules/bootstrap-icons/";  
+
+/* Importing Datepicker SCSS file. */
+@import "node_modules/ngx-bootstrap/datepicker/bs-datepicker";
+ 
+
+@import "../node_modules/@fontsource/roboto/";  
+@import "../node_modules/@fortawesome/fontawesome-free/";  
+@import '../node_modules/material-icons/';
+
+/* You can add global styles to this file, and also import other style files */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto";
+} 
+
+/* CAN (MUST) BE REMOVED ! Sample Global style */
+
+* {
+    font-family: "Roboto";
+}
+
+.material-icons-aligned {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
