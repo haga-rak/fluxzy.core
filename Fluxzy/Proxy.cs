@@ -9,7 +9,6 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
-using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 
@@ -102,15 +101,6 @@ namespace Fluxzy
 
                 ProcessingConnection(client);
             }
-
-            // Proxy is disposing, waiting for all operation to be done 
-
-
-            //while (_currentConcurrentCount > 0)
-            //{
-            //    Console.WriteLine("Waiting concurrent");
-            //    await Task.Delay(50); 
-            //}
         }
 
         public static Proxy Create(ProxyStartupSetting startupSetting)

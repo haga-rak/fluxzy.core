@@ -2,37 +2,37 @@
 
 using System.Text.Json.Serialization;
 
-namespace Fluxzy;
-
-public class ArchivingPolicy
+namespace Fluxzy
 {
-    [JsonConstructor]
-    internal ArchivingPolicy()
+    public class ArchivingPolicy
     {
-
-    }
-
-    public ArchivingPolicyType Type { get; internal set; }
-
-    public string Directory { get; internal set; }
-
-    public static ArchivingPolicy None { get; } = new();
-
-    public static ArchivingPolicy CreateFromDirectory(string path)
-    {
-        return new ArchivingPolicy()
+        [JsonConstructor]
+        internal ArchivingPolicy()
         {
-            Type = ArchivingPolicyType.Directory,
-            Directory = path
-        }; 
+
+        }
+
+        public ArchivingPolicyType Type { get; internal set; }
+
+        public string Directory { get; internal set; }
+
+        public static ArchivingPolicy None { get; } = new();
+
+        public static ArchivingPolicy CreateFromDirectory(string path)
+        {
+            return new ArchivingPolicy()
+            {
+                Type = ArchivingPolicyType.Directory,
+                Directory = path
+            }; 
+        }
     }
 
     public enum ArchivingPolicyType
     {
         // The proxy 
         None = 0,
-
-        // Content is set on server  
+        
         Directory
     }
 }

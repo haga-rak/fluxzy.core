@@ -16,7 +16,7 @@ namespace Fluxzy.Clients
         }
 
         /// <summary>
-        /// Host IP that shall be used to decrypt this trafic 
+        /// Host IP that shall be used instead of a classic DNS resolution 
         /// </summary>
         public IPAddress RemoteHostIp { get; set; }
 

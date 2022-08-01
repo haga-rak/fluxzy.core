@@ -49,7 +49,6 @@ namespace Fluxzy
             return IsCertificateInstalled(FluxzySecurity.DefaultSerialNumber);
 
         }
-
         public static bool RemoveCertificate(string serialNumber)
         {
             using (X509Store store = new X509Store(StoreName.Root))

@@ -64,7 +64,6 @@ namespace Fluxzy.Misc
 
         public override async ValueTask DisposeAsync()
         {
-           // await WriteEof();
             await base.DisposeAsync();
         }
 
