@@ -82,7 +82,7 @@ namespace Fluxzy
                     RSASignaturePadding.Pkcs1);
 
                 watch.Stop();
-
+                
                 certificateRequest.CertificateExtensions.Add(
                     new X509BasicConstraintsExtension(false, false, 0, false));
 
@@ -98,7 +98,7 @@ namespace Fluxzy
                         false));
 
                 var alternativeName = new SubjectAlternativeNameBuilder();
-                    
+
                 alternativeName.AddDnsName(rootDomain);
                 alternativeName.AddDnsName($"*.{rootDomain}");
 

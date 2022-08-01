@@ -44,7 +44,7 @@ namespace Fluxzy.Misc
 
             return read;
         }
-
+        
         public override long Seek(long offset, SeekOrigin origin)
         {
             return _innerStream.Seek(offset, origin);

@@ -308,7 +308,7 @@ namespace Fluxzy
         }
         
         /// <summary>
-        /// Change the default certificate used by fiddler
+        /// Change the default certificate used by fluxzy
         /// </summary>
         /// <param name="file"></param>
         /// <param name="password"></param>
