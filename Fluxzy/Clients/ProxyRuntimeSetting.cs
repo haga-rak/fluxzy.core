@@ -10,7 +10,7 @@ namespace Fluxzy.Clients
 {
     internal class ProxyRuntimeSetting
     {
-        private readonly ProxyStartupSetting _startupSetting;
+        private readonly FluxzySetting _startupSetting;
 
         public static ProxyRuntimeSetting Default { get; } = new();
 
@@ -20,7 +20,7 @@ namespace Fluxzy.Clients
         }
 
         public ProxyRuntimeSetting(
-            ProxyStartupSetting startupSetting, 
+            FluxzySetting startupSetting, 
             ProxyExecutionContext executionContext,
             IExchangeEventSource exchangeEventSource)
         {

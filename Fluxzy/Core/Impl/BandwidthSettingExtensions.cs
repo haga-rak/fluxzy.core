@@ -5,7 +5,7 @@ namespace Fluxzy.Core
 {
     internal static class BandwidthSettingExtensions
     {
-        internal static Stream GetThrottlerStream(this ProxyStartupSetting startUpSetting)
+        internal static Stream GetThrottlerStream(this FluxzySetting startUpSetting)
         {
             var referenceClock = new ReferenceClock();
             

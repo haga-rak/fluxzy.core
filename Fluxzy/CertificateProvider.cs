@@ -19,7 +19,7 @@ namespace Fluxzy
 
         //private static int ParralelTaskCount => 1;
 
-        public CertificateProvider(ProxyStartupSetting startupSetting, ICertificateCache certCache)
+        public CertificateProvider(FluxzySetting startupSetting, ICertificateCache certCache)
         {
             _certCache = certCache;
 

@@ -16,7 +16,7 @@ namespace Fluxzy
 {
     public class Proxy : IDisposable, IAsyncDisposable, IExchangeEventSource
     {
-        private readonly ProxyStartupSetting _startupSetting;
+        private readonly FluxzySetting _startupSetting;
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
         private CancellationTokenSource _proxyHaltTokenSource = new();
 
@@ -33,7 +33,7 @@ namespace Fluxzy
         private  int _currentConcurrentCount = 0; 
 
         public Proxy(
-            ProxyStartupSetting startupSetting,
+            FluxzySetting startupSetting,
             ICertificateProvider certificateProvider
             )
         {
@@ -103,7 +103,7 @@ namespace Fluxzy
             }
         }
 
-        public static Proxy Create(ProxyStartupSetting startupSetting)
+        public static Proxy Create(FluxzySetting startupSetting)
         {
             return new Proxy(startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache())); 
         }
@@ -251,7 +251,7 @@ namespace Fluxzy
     {
         public string SessionId { get; set; }
 
-        public ProxyStartupSetting StartupSetting { get; set; } 
+        public FluxzySetting StartupSetting { get; set; } 
     }
 
 

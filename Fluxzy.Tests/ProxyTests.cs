@@ -244,7 +244,7 @@ namespace Fluxzy.Tests
             var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
-            var startupSetting = ProxyStartupSetting
+            var startupSetting = FluxzySetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
                 .SetBoundAddress(bindHost, bindPort);
@@ -296,7 +296,7 @@ namespace Fluxzy.Tests
             var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
-            var startupSetting = ProxyStartupSetting
+            var startupSetting = FluxzySetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
                 .SetBoundAddress(bindHost, bindPort);
@@ -346,7 +346,7 @@ namespace Fluxzy.Tests
             var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
-            var startupSetting = ProxyStartupSetting
+            var startupSetting = FluxzySetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
                 .SetBoundAddress(bindHost, bindPort);
@@ -401,7 +401,7 @@ namespace Fluxzy.Tests
             var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
-            var startupSetting = ProxyStartupSetting
+            var startupSetting = FluxzySetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
                 .SetSkipSslDecryption(true)
@@ -456,7 +456,7 @@ namespace Fluxzy.Tests
             var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
-            var startupSetting = ProxyStartupSetting
+            var startupSetting = FluxzySetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
                 .SetBoundAddress(bindHost, bindPort);

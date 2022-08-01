@@ -15,9 +15,9 @@ using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy
 {
-    public class ProxyStartupSetting
+    public class FluxzySetting
     { 
-        private ProxyStartupSetting()
+        private FluxzySetting()
         {
 
         }
@@ -129,7 +129,7 @@ namespace Fluxzy
         /// </summary>
         /// <param name="hosts"></param>
         /// <returns></returns>
-        public ProxyStartupSetting SetByPassedHosts(params string[] hosts)
+        public FluxzySetting SetByPassedHosts(params string[] hosts)
         {
             ByPassHost = new ReadOnlyCollection<string>(hosts.Where(h => !string.IsNullOrWhiteSpace(h)).ToList()) ;
             return this; 
@@ -141,7 +141,7 @@ namespace Fluxzy
         /// <param name="archivingPolicy"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-         public ProxyStartupSetting SetArchivingPolicy(ArchivingPolicy archivingPolicy)
+         public FluxzySetting SetArchivingPolicy(ArchivingPolicy archivingPolicy)
          {
              ArchivingPolicy = archivingPolicy ?? throw new ArgumentNullException(nameof(archivingPolicy));
              return this; 
@@ -152,7 +152,7 @@ namespace Fluxzy
         /// </summary>
         /// <param name="hosts"></param>
         /// <returns></returns>
-        public ProxyStartupSetting AddTunneledHosts(params string[] hosts)
+        public FluxzySetting AddTunneledHosts(params string[] hosts)
         {
             foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h)))
             {
@@ -165,7 +165,7 @@ namespace Fluxzy
         }
         
 
-        public ProxyStartupSetting AddBoundAddress(string boundAddress, int port, bool ? @default = null)
+        public FluxzySetting AddBoundAddress(string boundAddress, int port, bool ? @default = null)
         {
             if (!IPAddress.TryParse(boundAddress, out _))
             {
@@ -184,7 +184,7 @@ namespace Fluxzy
         }
         
 
-        public ProxyStartupSetting SetBoundAddress(string boundAddress, int port)
+        public FluxzySetting SetBoundAddress(string boundAddress, int port)
         {
             if (!IPAddress.TryParse(boundAddress, out _))
             {
@@ -203,7 +203,7 @@ namespace Fluxzy
         }
 
 
-        public ProxyStartupSetting SetConnectionPerHost(int connectionPerHost)
+        public FluxzySetting SetConnectionPerHost(int connectionPerHost)
         {
             if (connectionPerHost < 1 || connectionPerHost >= 64)
             {
@@ -214,13 +214,13 @@ namespace Fluxzy
             return this; 
         }
 
-        public ProxyStartupSetting SetAsSystemProxy(bool value)
+        public FluxzySetting SetAsSystemProxy(bool value)
         {
             RegisterAsSystemProxy = value;
             return this; 
         }
 
-        public ProxyStartupSetting SetThrottleKoPerSecond(int value)
+        public FluxzySetting SetThrottleKoPerSecond(int value)
         {
             // To do controller supérieur à une valeur minimum 
 
@@ -233,7 +233,7 @@ namespace Fluxzy
             return this; 
         }
 
-        public ProxyStartupSetting SetClientCertificateConfiguration(
+        public FluxzySetting SetClientCertificateConfiguration(
             ClientCertificateConfiguration clientCertificateConfiguration)
         {
             ClientCertificateConfiguration = clientCertificateConfiguration;
@@ -243,7 +243,7 @@ namespace Fluxzy
             return this;
         }
 
-        public ProxyStartupSetting SetClientCertificateConfiguration(
+        public FluxzySetting SetClientCertificateConfiguration(
              string fileName)
         {
             try
@@ -266,7 +266,7 @@ namespace Fluxzy
         /// Set the interval on which the throttle setting will be adjusted. Default value is 50ms
         /// </summary>
         /// <returns></returns>
-        public ProxyStartupSetting SetThrottleIntervalCheck(TimeSpan delay)
+        public FluxzySetting SetThrottleIntervalCheck(TimeSpan delay)
         {
             if (delay < TimeSpan.FromMilliseconds(40) || delay > TimeSpan.FromSeconds(2))
                 throw new ArgumentException($"{nameof(delay)} must be between than 40ms and 2s");
@@ -275,33 +275,33 @@ namespace Fluxzy
             return this;
         }
 
-        public ProxyStartupSetting SetServerProtocols(SslProtocols protocols)
+        public FluxzySetting SetServerProtocols(SslProtocols protocols)
         {
             ServerProtocols = protocols;
             return this;
         }
 
-        public ProxyStartupSetting SetCheckCertificateRevocation(bool value)
+        public FluxzySetting SetCheckCertificateRevocation(bool value)
         {
             CheckCertificateRevocation = value;
 
             return this; 
         }
         
-        public ProxyStartupSetting SetAutoInstallCertificate(bool value)
+        public FluxzySetting SetAutoInstallCertificate(bool value)
         {
             AutoInstallCertificate = value;
             return this; 
         }
 
-        public ProxyStartupSetting SetSkipSslDecryption(bool value)
+        public FluxzySetting SetSkipSslDecryption(bool value)
         {
             AlterationRules.Add(new Rule(new SkipSslTunnelingAction(), new AnyFilter()));
 
             return this; 
         }
 
-        public ProxyStartupSetting SetVerbose(bool value)
+        public FluxzySetting SetVerbose(bool value)
         {
             Verbose = value;
             return this; 
@@ -313,7 +313,7 @@ namespace Fluxzy
         /// <param name="file"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public ProxyStartupSetting SetSecureCertificate(byte[] file, string password)
+        public FluxzySetting SetSecureCertificate(byte[] file, string password)
         {
             try
             {
@@ -335,7 +335,7 @@ namespace Fluxzy
             return this;
         }
 
-        public ProxyStartupSetting SetDisableCertificateCache(bool value)
+        public FluxzySetting SetDisableCertificateCache(bool value)
         {
             DisableCertificateCache = value; 
             return this; 
@@ -345,9 +345,9 @@ namespace Fluxzy
         /// Get the default setting 
         /// </summary>
         /// <returns></returns>
-        public static ProxyStartupSetting CreateDefault()
+        public static FluxzySetting CreateDefault()
         {
-            return new ProxyStartupSetting()
+            return new FluxzySetting()
             {
                 ConnectionPerHost =  8, 
                 AnticipatedConnectionPerHost = 3

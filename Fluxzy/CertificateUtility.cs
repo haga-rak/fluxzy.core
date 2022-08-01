@@ -88,7 +88,7 @@ namespace Fluxzy
             InstallCertificate(FluxzySecurity.DefaultCertificate);
         }
 
-        public static void CheckAndInstallCertificate(ProxyStartupSetting startupSetting)
+        public static void CheckAndInstallCertificate(FluxzySetting startupSetting)
         {
             var certificate = startupSetting.CertificateConfiguration.DefaultConfig
                 ? FluxzySecurity.DefaultCertificate
