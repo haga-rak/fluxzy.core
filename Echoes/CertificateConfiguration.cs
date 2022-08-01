@@ -14,9 +14,7 @@ namespace Echoes
             Certificate = new X509Certificate2(rawCertificate, password);
         }
 
-
         internal X509Certificate2 Certificate { get; set; }
-
 
         public bool DefaultConfig
         {

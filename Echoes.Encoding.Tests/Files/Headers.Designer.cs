@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Echoes.H2.Encoding.Tests.Files {
+namespace Fluxzy.Encoding.Tests.Files {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Echoes.H2.Encoding.Tests.Files {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Echoes.H2.Encoding.Tests.Files.Headers", typeof(Headers).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Fluxzy.Encoding.Tests.Files.Headers", typeof(Headers).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

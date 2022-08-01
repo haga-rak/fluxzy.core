@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using Echoes.Clients.H2.Encoder.Utils;
-using Echoes.H2.Encoding.Tests.Files;
+using Fluxzy.Encoding.Tests.Files;
 using Xunit;
 
 namespace Echoes.Encoding.Tests

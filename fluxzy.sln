@@ -3,19 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.H2.Encoding.Tests", "Echoes.Encoding.Tests\Echoes.H2.Encoding.Tests.csproj", "{05C4473E-AAB1-4E21-AF36-5F7FA81572B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Encoding.Tests", "Echoes.Encoding.Tests\Fluxzy.Encoding.Tests.csproj", "{05C4473E-AAB1-4E21-AF36-5F7FA81572B9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes", "Echoes\Echoes.csproj", "{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy", "Echoes\Fluxzy.csproj", "{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Cli", "Echoes.Cli\Echoes.Cli.csproj", "{A020742E-DADE-42CE-8235-18C084DFC597}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Cli", "Echoes.Cli\Fluxzy.Cli.csproj", "{A020742E-DADE-42CE-8235-18C084DFC597}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Tests", "Echoes.H2.Tests\Echoes.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests", "Echoes.H2.Tests\Fluxzy.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SubModules", "SubModules", "{78CCD077-82E0-44B1-AF2F-D4C640C25907}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox.Models", "SubModules\Sandbox\Sandbox.Models\Sandbox.Models.csproj", "{EFE42F72-004B-49DD-89D6-8E0EDDFBD0DA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Desktop.Service", "Echoes.Desktop.Service\Echoes.Desktop.Service.csproj", "{A6E1E399-F217-4D00-8341-228E6F4839AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Services", "Echoes.Desktop.Service\Fluxzy.Desktop.Services.csproj", "{A6E1E399-F217-4D00-8341-228E6F4839AD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4199FBC2-2541-4076-ADCD-217778E07BAB}"
 	ProjectSection(SolutionItems) = preProject
@@ -24,7 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CAD5F2E1-227B-43AD-AFF9-1311097038D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Echoes.Desktop.Ui", "Echoes.Desktop.Ui\Echoes.Desktop.Ui.csproj", "{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Ui", "Echoes.Desktop.Ui\Fluxzy.Desktop.Ui.csproj", "{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

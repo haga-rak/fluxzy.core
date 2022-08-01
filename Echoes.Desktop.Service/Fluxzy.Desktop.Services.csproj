@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Echoes\Echoes.csproj" />
+    <ProjectReference Include="..\Echoes\Fluxzy.csproj" />
   </ItemGroup>
 
 </Project>

@@ -28,7 +28,7 @@ namespace Echoes.H2.Tests.Utils
             l.Start();
             int port = ((IPEndPoint)l.LocalEndpoint).Port;
             l.Stop();
-            File.AppendAllText(@"c:\port.txt", $"{port}\r\n");
+           
             return port;
         }
     }

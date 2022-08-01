@@ -3,7 +3,7 @@ using System.Linq;
 using Echoes.Clients.H2.Encoder;
 using Echoes.Clients.H2.Encoder.HPack;
 using Echoes.Clients.H2.Encoder.Utils;
-using Echoes.H2.Encoding.Tests.Files;
+using Fluxzy.Encoding.Tests.Files;
 using Xunit;
 
 namespace Echoes.Encoding.Tests

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <AssemblyName>echoescli</AssemblyName>
+    <AssemblyName>fxzy</AssemblyName>
     <LangVersion>7.3</LangVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
   </PropertyGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Echoes\Echoes.csproj" />
+    <ProjectReference Include="..\Echoes\Fluxzy.csproj" />
   </ItemGroup>
 
 </Project>

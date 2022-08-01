@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Echoes.Console")]
-[assembly: InternalsVisibleTo("Echoes.ConsoleNet")]
-[assembly: InternalsVisibleTo("Echoes.Core")]
-[assembly: InternalsVisibleTo("Echoes.Core.NetFramework")]
-[assembly: InternalsVisibleTo("Echoes.H2.Encoding.Tests")]
-[assembly: InternalsVisibleTo("Echoes.Desktop.Common")] 
+[assembly: InternalsVisibleTo("Fluxzy.Cli")]
+[assembly: InternalsVisibleTo("Fluxzy.Desktop.Services")]
+[assembly: InternalsVisibleTo("Fluxzy.Desktop.Ui")]
+[assembly: InternalsVisibleTo("Fluxzy.Encoding.Tests")]
+[assembly: InternalsVisibleTo("Fluxzy.Tests")] 
