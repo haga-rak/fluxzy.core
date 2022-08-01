@@ -4,7 +4,15 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class MethodFilter : StringFilter
     {
-        protected override IEnumerable<string> GetMatchInputs(IExchange exchange)
+        public MethodFilter(string pattern) : base(pattern)
+        {
+        }
+
+        public MethodFilter(string pattern, StringSelectorOperation operation) : base(pattern, operation)
+        {
+        }
+
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
         {
             yield return exchange.Method;
         }
@@ -17,5 +25,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 
         public override string FriendlyName => $"Request method {base.FriendlyName}";
+
     }
 }

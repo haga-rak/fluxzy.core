@@ -9,9 +9,20 @@ namespace Fluxzy.Rules.Filters
 {
     public abstract class StringFilter : Filter
     {
+        protected StringFilter(string pattern)
+            : this (pattern, StringSelectorOperation.Exact)
+        {
+        }
+
+        protected StringFilter(string pattern, StringSelectorOperation operation)
+        {
+            Pattern = pattern;
+            Operation = operation;
+        }
+
         protected override bool InternalApply(IAuthority authority, IExchange exchange)
         {
-            var inputList = GetMatchInputs(exchange);
+            var inputList = GetMatchInputs(authority, exchange);
 
             var comparisonType = CaseSensitive ? StringComparison.InvariantCulture :
                 StringComparison.InvariantCultureIgnoreCase;
@@ -48,7 +59,7 @@ namespace Fluxzy.Rules.Filters
             return false; 
         }
 
-        protected abstract IEnumerable<string> GetMatchInputs(IExchange exchange);
+        protected abstract IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange);
 
         public StringSelectorOperation Operation { get; set; } = StringSelectorOperation.Exact;
 

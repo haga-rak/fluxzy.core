@@ -6,7 +6,17 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class FullUrlFilter : StringFilter
     {
-        protected override IEnumerable<string> GetMatchInputs(IExchange exchange)
+        public FullUrlFilter(string pattern) : base(pattern)
+        {
+
+        }
+
+        public FullUrlFilter(string pattern, StringSelectorOperation operation) : base(pattern, operation)
+        {
+
+        }
+
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
         {
             yield return exchange.FullUrl;
         }
@@ -14,5 +24,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 
         public override string FriendlyName => $"Full url {base.FriendlyName}";
+
     }
 }

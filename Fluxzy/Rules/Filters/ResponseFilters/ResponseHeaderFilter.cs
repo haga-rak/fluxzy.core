@@ -8,7 +8,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class ResponseHeaderFilter : HeaderFilter
     {
-        protected override IEnumerable<string> GetMatchInputs(IExchange exchange)
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
         {
             return exchange.GetResponseHeaders().Where(e =>
                     e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))

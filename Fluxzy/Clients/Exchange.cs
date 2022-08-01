@@ -13,10 +13,9 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Clients
 {
-
     public class Exchange : IExchange
     {
-        private static int ExchangeCounter = 0;
+        private static int _exchangeCounter = 0;
 
         private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>();
 
@@ -30,7 +29,7 @@ namespace Fluxzy.Clients
             bool isSecure,
             Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
-            Id = Interlocked.Increment(ref ExchangeCounter);
+            Id = Interlocked.Increment(ref _exchangeCounter);
 
             Context = context;
             Authority = authority;
@@ -60,7 +59,7 @@ namespace Fluxzy.Clients
             string httpVersion, 
             DateTime receivedFromProxy)
         {
-            Id = Interlocked.Increment(ref ExchangeCounter);
+            Id = Interlocked.Increment(ref _exchangeCounter);
             Context = context;
             Authority = authority;
             HttpVersion = httpVersion;
@@ -76,7 +75,7 @@ namespace Fluxzy.Clients
             ReadOnlyMemory<char> header, 
             Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
-            Id = Interlocked.Increment(ref ExchangeCounter);
+            Id = Interlocked.Increment(ref _exchangeCounter);
             Context = new ExchangeContext(authority);
             Authority = authority;
             HttpVersion = httpVersion;
@@ -219,7 +218,6 @@ namespace Fluxzy.Clients
 
         public Stream Body { get; set;  }
     }
-
 
     public class Error
     {
