@@ -9,7 +9,7 @@ namespace Fluxzy.Rules.Filters
 {
     public abstract class StringFilter : Filter
     {
-        protected override bool InternalApply(IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange)
         {
             var inputList = GetMatchInputs(exchange);
 

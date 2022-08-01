@@ -1,8 +1,10 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Clients
 {
@@ -14,10 +16,10 @@ namespace Fluxzy.Clients
 
         private ProxyRuntimeSetting()
         {
-
         }
 
-        public ProxyRuntimeSetting(ProxyStartupSetting startupSetting, 
+        public ProxyRuntimeSetting(
+            ProxyStartupSetting startupSetting, 
             ProxyExecutionContext executionContext,
             IExchangeEventSource exchangeEventSource)
         {
@@ -48,50 +50,17 @@ namespace Fluxzy.Clients
         /// </summary>
         public int ConcurrentConnection { get; set; } = 8;
 
-
         public int TimeOutSecondsUnusedConnection { get; set; } = 4;
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="hostName"></param>
-        /// <returns></returns>
-        public X509Certificate2Collection GetCertificateByHost(string hostName)
+        
+        public async Task EnforceRules(ExchangeContext context, FilterScope filterScope, 
+             Connection connection = null, Exchange exchange = null)
         {
-            var result = new X509Certificate2Collection();
-
-            if (_startupSetting != null &&
-                _startupSetting.ClientCertificateConfiguration != null &&
-                _startupSetting.ClientCertificateConfiguration.HasConfig
-               )
+            foreach (var rule in _startupSetting.AlterationRules.Where(a => a.Action.ActionScope == filterScope))
             {
-                var certificate = _startupSetting.ClientCertificateConfiguration.GetCustomClientCertificate(
-                    hostName);
-
-                if (certificate != null)
-                    result.Add(certificate);
+                await rule.Enforce(context, exchange, connection);
             }
-
-            return result;
         }
-
-        internal bool ShouldTunneled(string hostName)
-        {
-            if (_startupSetting == null)
-                return false;
-
-            if (_startupSetting.SkipSslDecryption)
-                return true;
-
-            if (_startupSetting.TunneledOnlyHosts == null)
-                return false;
-
-            // TODO : Regex contains may be slow in critical usage. Consider using
-            // TODO : dictionary or updating implementation of WildCardContains()
-
-            return _startupSetting.TunneledOnlyHosts.WildCardContains(hostName);
-        }
-
     }
+
+    
 }

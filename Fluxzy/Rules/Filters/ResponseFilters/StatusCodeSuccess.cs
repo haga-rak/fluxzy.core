@@ -4,7 +4,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class StatusCodeSuccess : Filter
     {
-        protected override bool InternalApply(IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange)
         {
             var statusCode = exchange.StatusCode;
             return statusCode is >= 200 and < 300; 

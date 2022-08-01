@@ -44,7 +44,7 @@ namespace Fluxzy.Clients
 
         public async ValueTask<RemoteConnectionResult> OpenConnectionToRemote(
             Authority authority, 
-            bool blind,
+            ExchangeContext context,
             List<SslApplicationProtocol> httpProtocols,
             ProxyRuntimeSetting setting, 
             CancellationToken token)
@@ -63,7 +63,8 @@ namespace Fluxzy.Clients
 
             setting.ExchangeEventSource.OnConnectionAdded(new ConnectionAddedEventArgs(setting.ExecutionContext, connection));
 
-            var ipAddress = await _dnsSolver.SolveDns(authority.HostName);
+            var ipAddress = context.RemoteHostIp ?? 
+                            await _dnsSolver.SolveDns(authority.HostName);
 
             setting.ExchangeEventSource.OnConnectionUpdate(new ConnectionUpdateEventArgs(setting.ExecutionContext, connection));
 
@@ -71,10 +72,10 @@ namespace Fluxzy.Clients
 
             connection.DnsSolveEnd = _timeProvider.Instant();
 
-            await tcpClient.ConnectAsync(ipAddress, authority.Port).ConfigureAwait(false);
+            await tcpClient.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
+                authority.Port).ConfigureAwait(false);
 
             var localEndpoint = (IPEndPoint) tcpClient.Client.LocalEndPoint;
-
 
             connection.TcpConnectionOpened = _timeProvider.Instant();
             connection.LocalPort = localEndpoint.Port;
@@ -84,7 +85,7 @@ namespace Fluxzy.Clients
 
             var newlyOpenedStream = tcpClient.GetStream();
             
-            if (!authority.Secure || blind)
+            if (!authority.Secure || context.BlindMode)
             {
                 connection.ReadStream = connection.WriteStream = newlyOpenedStream;
                 return new RemoteConnectionResult(RemoteConnectionResultType.Unknown,  connection);
@@ -98,7 +99,7 @@ namespace Fluxzy.Clients
 
             SslClientAuthenticationOptions authenticationOptions = new SslClientAuthenticationOptions()
             {
-                ClientCertificates = setting.GetCertificateByHost(authority.HostName), 
+                ClientCertificates = context.ClientCertificates, 
                 TargetHost = authority.HostName , 
                 EnabledSslProtocols = setting.ProxyTlsProtocols,
                 ApplicationProtocols = httpProtocols

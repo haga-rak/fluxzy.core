@@ -10,15 +10,15 @@ namespace Fluxzy.Rules.Filters
 
         public bool Inverted { get; set; }
 
-        protected abstract bool InternalApply(IExchange exchange);
+        protected abstract bool InternalApply(IAuthority authority, IExchange exchange);
 
         public abstract FilterScope FilterScope { get; }
 
         public virtual string FriendlyName { get; } = "Filter" ; 
         
-        public virtual bool Apply(IExchange exchange)
+        public virtual bool Apply(IAuthority authority, IExchange exchange)
         {
-            var internalApplyResult = InternalApply(exchange);
+            var internalApplyResult = InternalApply(authority, exchange);
 
             return !Inverted ? internalApplyResult : !internalApplyResult;
         }

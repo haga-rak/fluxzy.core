@@ -7,7 +7,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class StatusCodeFilter : Filter
     {
-        protected override bool InternalApply(IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange)
         {
             return StatusCodes.Contains(exchange.StatusCode); 
         }

@@ -2,7 +2,7 @@
 {
     public class StatusCodeServerErrorFilter : Filter
     {
-        protected override bool InternalApply(IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange)
         {
             var statusCode = exchange.StatusCode;
             return statusCode is >= 500 and < 600; 

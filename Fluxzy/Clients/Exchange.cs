@@ -13,19 +13,6 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Clients
 {
-    public enum ExchangeAlteration
-    {
-        ModifyRequestHeader,
-        ModifyRequestBody,
-        ModifyResponseHeader,
-        ModifyResponseBody,
-    }
-
-    public interface IExchangeAlteration
-    {
-        void Alter(Exchange exchange, Connection connection);  
-    }
-
 
     public class Exchange : IExchange
     {
@@ -34,6 +21,7 @@ namespace Fluxzy.Clients
         private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>();
 
         public Exchange(
+            ExchangeContext context,
             Authority authority, 
             ReadOnlyMemory<char> requestHeader,
             Stream requestBody,
@@ -44,6 +32,7 @@ namespace Fluxzy.Clients
         {
             Id = Interlocked.Increment(ref ExchangeCounter);
 
+            Context = context;
             Authority = authority;
             HttpVersion = httpVersion;
             Request = new Request(new RequestHeader(requestHeader, isSecure, parser))
@@ -64,10 +53,15 @@ namespace Fluxzy.Clients
         }
         
         public Exchange(
+            ExchangeContext context,
             Authority authority, 
-            RequestHeader requestHeader, Stream bodyStream, string httpVersion, DateTime receivedFromProxy)
+            RequestHeader requestHeader,
+            Stream bodyStream,
+            string httpVersion, 
+            DateTime receivedFromProxy)
         {
-            Id = Interlocked.Increment(ref ExchangeCounter); 
+            Id = Interlocked.Increment(ref ExchangeCounter);
+            Context = context;
             Authority = authority;
             HttpVersion = httpVersion;
             Request = new Request(requestHeader)
@@ -82,7 +76,8 @@ namespace Fluxzy.Clients
             ReadOnlyMemory<char> header, 
             Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
-            Id = Interlocked.Increment(ref ExchangeCounter); 
+            Id = Interlocked.Increment(ref ExchangeCounter);
+            Context = new ExchangeContext(authority);
             Authority = authority;
             HttpVersion = httpVersion;
             Request = new Request(new RequestHeader(header, authority.Secure, parser));
@@ -103,10 +98,10 @@ namespace Fluxzy.Clients
         /// </summary>
         public Authority Authority { get;  }
 
-        /// <summary>
-        /// state indicating if proxy shouldn't try to decrypt 
-        /// </summary>
-        public bool TunneledOnly { get; set; }
+        ///// <summary>
+        ///// state indicating if proxy shouldn't try to decrypt 
+        ///// </summary>
+        //public bool TunneledOnly { get; set; }
 
         /// <summary>
         /// Contains the request sent from the proxy to the remote server 
@@ -133,7 +128,6 @@ namespace Fluxzy.Clients
         /// Contains a list of errors 
         /// </summary>
         public List<Error> Errors { get; private set; } = new List<Error>(); 
-        
 
         internal TaskCompletionSource<bool> ExchangeCompletionSource => _exchangeCompletionSource;
 
@@ -196,9 +190,10 @@ namespace Fluxzy.Clients
 
         public int StatusCode => Response.Header.StatusCode;
 
-        public string EgressIp => Connection.RemoteAddress.ToString(); 
-    }
+        public string EgressIp => Connection.RemoteAddress.ToString();
 
+        public ExchangeContext Context { get;  }
+    }
 
     public class Request
     {

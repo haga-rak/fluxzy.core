@@ -168,7 +168,7 @@ namespace Fluxzy.Core
 
                             // We do not need to read websocket response
 
-                            if (!exchange.Request.Header.IsWebSocketRequest && !exchange.TunneledOnly
+                            if (!exchange.Request.Header.IsWebSocketRequest && !exchange.Context.BlindMode
                                 && exchange.Response.Header != null)
                             {
                                 // Request processed by IHttpConnectionPool returns before complete response body
@@ -331,7 +331,7 @@ namespace Fluxzy.Core
                             exchange = await _exchangeBuilder.ReadExchange(
                                 localConnection.ReadStream,
                                 localConnection.Authority,
-                                buffer, token
+                                buffer, _proxyRuntimeSetting, token
                             );
 
                             if (exchange != null && exchange.Metrics != null)

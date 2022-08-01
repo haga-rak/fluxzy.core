@@ -9,6 +9,8 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
+using Fluxzy.Rules;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy
 {
@@ -48,7 +50,7 @@ namespace Fluxzy
                // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
                 certificateProvider);
 
-            if (_startupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
+            if (_startupSetting.ArchivingPolicy.Type == ArchivingPolicy.ArchivingPolicyType.Directory)
             {
                 Directory.CreateDirectory(_startupSetting.ArchivingPolicy.Directory);
 
@@ -70,7 +72,10 @@ namespace Fluxzy
             _proxyOrchestrator = new ProxyOrchestrator(new ProxyRuntimeSetting(startupSetting, ExecutionContext, this),
                 new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer, this);
 
-            if (!_startupSetting.SkipSslDecryption && _startupSetting.AutoInstallCertificate)
+            if (!_startupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction && 
+                                                          t.Filter.Children.OfType<AnyFilter>().Any() 
+                                                          && t.Filter.Children.Count == 1) 
+                && _startupSetting.AutoInstallCertificate)
             {
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
             }
