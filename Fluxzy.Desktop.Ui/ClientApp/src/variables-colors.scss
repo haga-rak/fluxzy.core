@@ -1,0 +1,52 @@
+$primary-color: #dbe1e4;
+$main-primary : #0778a9;
+
+// Variables
+//
+// Variables should follow the `$component-state-property-size` formula for
+// consistent naming. Ex: $nav-link-disabled-color and $modal-content-box-shadow-xs.
+
+// Color system
+
+// scss-docs-start gray-color-variables
+$white:    #fff ;
+$gray-100: #e9ecef ;
+$gray-200: #e9ecef ;
+$gray-300: #888888 ;
+$gray-400: #373737 ;
+$gray-500: #1c2027 ;
+$gray-600: #2e2e2f ;
+$gray-700: #0c1216 ;
+$gray-800: #041118 ;
+$gray-900: #1E1D1D ;
+$black:    #000508 ;
+// scss-docs-end gray-color-variables
+
+
+// scss-docs-end gray-colors-map
+// fusv-enable
+
+// scss-docs-start color-variables
+$blue:    #3384a6 ;
+$indigo:  #6610f2 ;
+$purple:  #6f42c1 ;
+$pink:    #d63384 ;
+$red:     #dc3545 ;
+$orange:  #fd7e14 ;
+$yellow:  #ffc107 ;
+$green:   #11d479 ;
+$teal:    #20c997 ;
+$cyan:    $gray-600 ;
+// scss-docs-end color-variables
+
+
+$font-family-sans-serif:     "Roboto";
+$font-size-root: 12px;
+$material-icons-font-size : 24px;
+
+$min-contrast-ratio:   2 ;
+
+$body-color: $primary-color;
+$body-bg:  $gray-500;
+
+$btn-border-width : 0 ;

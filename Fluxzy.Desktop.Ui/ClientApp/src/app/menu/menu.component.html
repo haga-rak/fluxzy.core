@@ -1,0 +1,23 @@
+
+<div class="menu bg-dark">
+    <span class="menu-box">
+        &nbsp;&nbsp;
+    </span>
+    <div *ngFor="let menuItem of menuItems" class="menu-box" (click)="menuVisibility[menuItem.label] = !menuVisibility[menuItem.label]">
+        {{menuItem.label}}
+
+        <div *ngIf="menuItem.children" class="menu-item-children-container" [hidden]="!menuVisibility[menuItem.label]"
+                (focusout)="menuVisibility[menuItem.label] = false">
+            <div   *ngFor="let child of menuItem.children">
+                <div *ngIf="!child.isSeparator" class="menu-item-children">
+                    {{ child.label }}
+                    <span *ngIf="child.shortCut" class="float-end">
+                        {{ child.shortCut }}
+                    </span>
+                </div>
+                <div *ngIf="child.isSeparator" class="menu-item-children-separator">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

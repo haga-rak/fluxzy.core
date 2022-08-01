@@ -1,0 +1,49 @@
+
+<div class="main-division">
+    <div class="block-left-parent" #objectPane>
+        <div class="title-box">
+            <div class="title-box-inside">
+                
+                <a href="javascript:;" class="btn btn-outline-light" style="font-size: 18px">
+                    <i class="bi bi-play-circle-fill"></i>
+                </a>
+                &nbsp;
+                <a href="javascript:;" class="btn btn-outline-danger" style="font-size: 18px">
+                    <i class="bi bi-record-circle-fill"></i>
+                </a>
+            </div>
+            <div class="filter-header">
+                <app-filter-header-view></app-filter-header-view>
+            </div>
+        </div>
+        <div class="block-left">
+            <div class="right-vert-bar">
+                
+                <app-toggle [materialIcon]="'http'" [label]="'Objects'">
+                    
+                </app-toggle>    
+                <app-toggle [materialIcon]="'dvr'" [label]="'Hosts'">
+                    
+                </app-toggle>    
+                <app-toggle [materialIcon]="'memory'" [label]="'Processes'">
+                    
+                </app-toggle>
+            </div>
+            
+            <div class="filter-pane shady-box" style="padding: 8px">
+                <app-exchange-table-view style="height:100vh"></app-exchange-table-view>
+            </div>
+        </div>
+    </div>
+    <div class="block-thin" appVerticalSeparator [leftBlock]="objectPane" [rightBlock]="righblock"></div>
+    <div class="block-right" #righblock>
+        <div class="middle-content">
+            <app-exchange-viewer style="width:100%"></app-exchange-viewer>            
+        </div>
+    </div>
+</div>
+
+
+
+
+<app-status-bar></app-status-bar>

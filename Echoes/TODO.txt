@@ -1,2 +1,0 @@
-﻿- Adapt H2ConnectionPool to exchange 
-- Write Http 1.1 processing 
