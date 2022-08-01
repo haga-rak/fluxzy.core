@@ -16,6 +16,7 @@ namespace Fluxzy.Clients
 
         private ProxyRuntimeSetting()
         {
+
         }
 
         public ProxyRuntimeSetting(

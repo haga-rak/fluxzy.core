@@ -10,6 +10,7 @@ using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
 using Fluxzy.Rules;
+using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy
