@@ -1,12 +1,10 @@
-;
+# fluxzy 
+Fluxzy is a HTTP analyzer/debugger engine, focused on measuring performance. fluxzy is build with .NET, that means that it runs on any platform supporting this later. 
 
-## fluxzy 
-Fluxzy is a HTTP analyzer/debugger engine, focused on measuring performance. 
-
-## fluxzy.cli (fxzy) 
+# fluxzy.cli (fxzy) 
 fxzy is a command line tool taking full advantage of the fluxzy engine, allowing you to a automate fluxzy features without writing any line of code. Run `fxzy --help` to get more information about this tool. 
 
-## fluxzy.desktop
+# fluxzy.desktop
 fluxzy.desktop is a desktop application taking full advandage the fluxzy engine. Build with electron/angular/.NET, it runs on major platform supporting this later. 
 
 ## Features list 
@@ -24,7 +22,9 @@ Find below the list of features that is currently implemented :
  - By any response header
  - By cookie 
  
- ### Currently available alterations
+### Currently available 
+
+#### Low level alterations
  - Spoofing DNS
  - Remapping hostname
  - Disabling decryption 
@@ -34,6 +34,12 @@ Find below the list of features that is currently implemented :
  - Replacing request body
  - Replacing response status 
  - Replacing response body 
+ 
+### High level alterations :
+ - Replacing, removing adding cookie 
+ - Response with a premade response 
+ - Remove caches
+ - Build caches (see tutorial) 
  
  
  
