@@ -11,7 +11,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         protected override IEnumerable<string> GetMatchInputs(IExchange exchange)
         {
             return exchange.GetResponseHeaders().Where(e =>
-                    MemoryExtensions.Equals(e.Name.Span, HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
+                    e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
                 .Select(s => s.Value.ToString());
         }
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
 using Fluxzy.Misc;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core
 {
@@ -96,6 +97,10 @@ namespace Fluxzy.Core
                             {
                                 while (true)
                                 {
+                                    await _proxyRuntimeSetting.EnforceRules(exchange.Context, 
+                                        FilterScope.RequestHeaderReceivedFromClient,
+                                        exchange.Connection, exchange);
+
                                     if (_archiveWriter != null)
                                     {
                                         await _archiveWriter.Update(
@@ -172,7 +177,11 @@ namespace Fluxzy.Core
                                 && exchange.Response.Header != null)
                             {
                                 // Request processed by IHttpConnectionPool returns before complete response body
-                                
+
+                                await _proxyRuntimeSetting.EnforceRules(exchange.Context,
+                                    FilterScope.ResponseHeaderReceivedFromRemote,
+                                    exchange.Connection, exchange);
+
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     exchange.Response.Body != null &&
                                     exchange.HttpVersion == "HTTP/2")
@@ -194,8 +203,6 @@ namespace Fluxzy.Core
                                 }
 
                                 var responseHeaderLength = exchange.Response.Header.WriteHttp11(buffer, true, true);
-
-                                // headerContent = Encoding.ASCII.GetString(buffer, 0, intHeaderCount);
 
                                 _eventSource.OnBeforeResponse(new BeforeResponseEventArgs(_executionContext, exchange));
 
@@ -225,7 +232,6 @@ namespace Fluxzy.Core
                                 }
                                 catch (Exception ex)
                                 {
-
                                     await SafeCloseRequestBody(exchange);
                                     await SafeCloseResponseBody(exchange);
 
