@@ -1,4 +1,4 @@
-﻿namespace Echoes.Rules.Filters.ResponseFilters
+﻿namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class ContentTypeJsonFilter : ResponseHeaderFilter
     {

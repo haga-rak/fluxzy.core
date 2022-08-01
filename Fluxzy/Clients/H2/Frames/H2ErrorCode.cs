@@ -1,6 +1,6 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
-namespace Echoes.Clients.H2.Frames
+namespace Fluxzy.Clients.H2.Frames
 {
     public enum H2ErrorCode : int
     {

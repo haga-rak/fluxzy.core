@@ -7,9 +7,9 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Misc;
+using Fluxzy.Misc;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     internal enum RemoteConnectionResultType : byte
     {

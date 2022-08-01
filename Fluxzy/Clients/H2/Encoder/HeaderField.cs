@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.H2.Encoder
+namespace Fluxzy.Clients.H2.Encoder
 {
     /// <summary>
     /// This struct represents a name pair value of a HTTP header.

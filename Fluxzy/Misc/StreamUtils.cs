@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Echoes.Misc
+namespace Fluxzy.Misc
 {
     internal static class StreamUtils
     {

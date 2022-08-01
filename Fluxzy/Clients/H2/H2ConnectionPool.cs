@@ -6,12 +6,12 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Echoes.Clients.H2.Encoder;
-using Echoes.Clients.H2.Encoder.Utils;
-using Echoes.Clients.H2.Frames;
-using Echoes.Misc;
+using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Frames;
+using Fluxzy.Misc;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
 
     public class H2ConnectionPool : IHttpConnectionPool

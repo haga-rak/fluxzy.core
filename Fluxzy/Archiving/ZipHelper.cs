@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace Echoes
+namespace Fluxzy
 {
     /// <summary>
     /// Utilities for zipping a directory

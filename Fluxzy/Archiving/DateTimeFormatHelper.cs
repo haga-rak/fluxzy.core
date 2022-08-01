@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes
+namespace Fluxzy
 {
     internal static class DateTimeFormatHelper
     {

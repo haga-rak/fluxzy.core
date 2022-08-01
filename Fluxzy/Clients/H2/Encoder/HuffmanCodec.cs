@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
-using Echoes.Clients.H2.Encoder.Huffman;
-using Echoes.Clients.H2.Encoder.Huffman.Interfaces;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder.Huffman;
+using Fluxzy.Clients.H2.Encoder.Huffman.Interfaces;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.H2.Encoder
+namespace Fluxzy.Clients.H2.Encoder
 {
     public class HuffmanCodec
     {

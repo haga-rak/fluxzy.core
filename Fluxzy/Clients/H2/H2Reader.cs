@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Misc;
+using Fluxzy.Misc;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
 
     public class H2FrameReader

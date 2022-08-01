@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Sandbox.Models;
 
-namespace Echoes.H2.Tests.Tools
+namespace Fluxzy.Tests.Tools
 {
     public static class HttpResponseMessageExtensions
     {

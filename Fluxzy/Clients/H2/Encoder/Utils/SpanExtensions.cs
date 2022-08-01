@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 
-namespace Echoes.Clients.H2.Encoder.Utils
+namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     internal static class SpanExtensions
     {

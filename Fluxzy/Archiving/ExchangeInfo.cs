@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
-using Echoes.Clients;
-using Echoes.Clients.H2.Encoder;
+using Fluxzy.Clients;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class ExchangeInfo : IExchange
     {

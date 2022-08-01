@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     public interface IDnsSolver
     {

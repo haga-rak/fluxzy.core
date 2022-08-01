@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 
-namespace Echoes.Rules.Filters
+namespace Fluxzy.Rules.Filters
 {
     public abstract class StringFilter : Filter
     {

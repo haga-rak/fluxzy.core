@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Echoes.Clients.H2.Encoder.HPack;
-using Echoes.Clients.H2.Encoder.Huffman;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder.HPack;
+using Fluxzy.Clients.H2.Encoder.Huffman;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.H2.Encoder
+namespace Fluxzy.Clients.H2.Encoder
 {
     public class HPackDecoder : IDisposable
     {

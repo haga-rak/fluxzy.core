@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public interface ICertificateCache
     {

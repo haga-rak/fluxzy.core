@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Echoes.Cli
+namespace Fluxzy.Cli
 {
     public static class ConsoleHelper
     {

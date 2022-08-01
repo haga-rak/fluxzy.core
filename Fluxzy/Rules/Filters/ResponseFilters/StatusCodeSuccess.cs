@@ -1,8 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Echoes.Clients;
-
-namespace Echoes.Rules.Filters.ResponseFilters
+namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class StatusCodeSuccess : Filter
     {

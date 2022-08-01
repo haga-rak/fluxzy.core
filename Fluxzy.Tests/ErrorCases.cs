@@ -1,15 +1,13 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Echoes.H2.Tests;
-using Echoes.H2.Tests.Tools;
-using Echoes.H2.Tests.Utils;
+using Fluxzy.Tests.Tools;
+using Fluxzy.Tests.Utils;
 using Xunit;
 
-namespace Echoes.Tests
+namespace Fluxzy.Tests
 {
     public class ErrorCases
     {

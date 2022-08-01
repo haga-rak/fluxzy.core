@@ -4,7 +4,7 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     internal class ProxyRuntimeSetting
     {

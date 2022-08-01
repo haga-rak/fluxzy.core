@@ -1,6 +1,6 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     //public class H2ResponseStream : Stream
     //{

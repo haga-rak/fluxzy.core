@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Misc
+namespace Fluxzy.Misc
 {
     public static class StreamExtensions
     {

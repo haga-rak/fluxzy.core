@@ -4,10 +4,10 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H2.Encoder;
-using Echoes.Clients.H2.Frames;
+using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Frames;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     internal sealed class StreamWorker: IDisposable
     {

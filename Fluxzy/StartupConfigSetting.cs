@@ -2,7 +2,7 @@
 
 using System.Text.Json;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class StartupConfigSetting
     {

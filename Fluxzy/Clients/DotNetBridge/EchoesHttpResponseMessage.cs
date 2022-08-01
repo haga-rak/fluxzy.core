@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using Echoes.Clients.H2.Encoder;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.DotNetBridge
+namespace Fluxzy.Clients.DotNetBridge
 {
     public class EchoesHttpResponseMessage : HttpResponseMessage
     {

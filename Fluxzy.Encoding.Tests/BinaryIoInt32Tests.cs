@@ -1,8 +1,8 @@
 using System;
-using Echoes.Clients.H2.Encoder.HPack;
+using Fluxzy.Clients.H2.Encoder.HPack;
 using Xunit;
 
-namespace Echoes.Encoding.Tests
+namespace Fluxzy.Encoding.Tests
 {
     public class BinaryIoInt32Tests
     {

@@ -1,6 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
-namespace Echoes.H2.Tests
+namespace Fluxzy.Tests
 {
     public static class TestConstants
     {

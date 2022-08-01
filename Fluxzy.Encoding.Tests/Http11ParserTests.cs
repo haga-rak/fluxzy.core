@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Encoding.Tests.Files;
 using Xunit;
 
-namespace Echoes.Encoding.Tests
+namespace Fluxzy.Encoding.Tests
 {
     public class Http11ParserTests
     {

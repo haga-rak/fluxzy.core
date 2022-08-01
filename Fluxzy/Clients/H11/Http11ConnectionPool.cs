@@ -7,9 +7,9 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.H11
+namespace Fluxzy.Clients.H11
 {
     public class Http11ConnectionPool : IHttpConnectionPool
     {

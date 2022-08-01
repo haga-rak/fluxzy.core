@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.H2.Tests.Tools
+namespace Fluxzy.Tests.Tools
 {
     /// <summary>
     /// Read an inner stream and automatically produces hash 

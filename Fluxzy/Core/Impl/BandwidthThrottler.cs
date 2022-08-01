@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients;
-using Echoes.Core.Utils;
+using Fluxzy.Clients;
+using Fluxzy.Core.Utils;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     /// <summary>
     /// The purpose of BandwidthLimiter is to create throttle 

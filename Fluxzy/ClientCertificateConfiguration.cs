@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class ClientCertificateConfiguration
     {

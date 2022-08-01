@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public interface ICertificateProvider : IDisposable
     {

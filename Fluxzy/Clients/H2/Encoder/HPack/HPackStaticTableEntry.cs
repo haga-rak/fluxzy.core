@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.H2.Encoder.HPack
+namespace Fluxzy.Clients.H2.Encoder.HPack
 {
     internal class HPackStaticTableEntry
     {

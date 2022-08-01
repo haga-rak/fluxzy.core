@@ -5,11 +5,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients;
-using Echoes.Clients.H2;
-using Echoes.Misc;
+using Fluxzy.Clients;
+using Fluxzy.Clients.H2;
+using Fluxzy.Misc;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     internal class ProxyOrchestrator : IDisposable
     {

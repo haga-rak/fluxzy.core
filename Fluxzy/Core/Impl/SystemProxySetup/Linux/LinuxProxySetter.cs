@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes.Core.SystemProxySetup.Linux
+namespace Fluxzy.Core.SystemProxySetup.Linux
 {
     internal class LinuxProxySetter : ISystemProxySetter
     {

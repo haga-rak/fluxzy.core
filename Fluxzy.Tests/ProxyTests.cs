@@ -8,15 +8,15 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients;
-using Echoes.Core;
-using Echoes.H2.Tests.Tools;
-using Echoes.H2.Tests.Utils;
-using Echoes.Misc;
+using Fluxzy.Clients;
+using Fluxzy.Core;
+using Fluxzy.Misc;
+using Fluxzy.Tests.Tools;
+using Fluxzy.Tests.Utils;
 using Xunit;
 using Header2 = Sandbox.Models.Header;
 
-namespace Echoes.H2.Tests
+namespace Fluxzy.Tests
 {
     public class ProxyTests
     {

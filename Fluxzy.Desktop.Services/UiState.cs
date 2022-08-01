@@ -1,6 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-namespace Echoes.Desktop.Service
+namespace Fluxzy.Desktop.Services
 {
     public class UiState
     {

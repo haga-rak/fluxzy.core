@@ -3,11 +3,11 @@ using System.IO;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
-using Echoes.Clients;
-using Echoes.Clients.H2;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients;
+using Fluxzy.Clients.H2;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public static class ConnectionErrorConstants
     {

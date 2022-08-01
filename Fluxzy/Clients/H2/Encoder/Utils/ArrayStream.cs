@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Echoes.Clients.H2.Encoder.Utils
+namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     public class AsyncArrayReadonlyStream : Stream
     {

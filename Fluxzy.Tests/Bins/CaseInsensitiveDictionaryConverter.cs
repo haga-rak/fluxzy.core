@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Echoes.H2.Tests.Bins
+namespace Fluxzy.Tests.Bins
 {
     public sealed class CaseInsensitiveDictionaryConverter<TValue>
         : JsonConverter<Dictionary<string, TValue>>

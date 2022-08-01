@@ -1,15 +1,14 @@
-using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.DotNetBridge;
-using Echoes.H2.Tests.Tools;
-using Echoes.H2.Tests.Utils;
+using Fluxzy.Clients.DotNetBridge;
+using Fluxzy.Tests.Tools;
+using Fluxzy.Tests.Utils;
 using Xunit;
 
-namespace Echoes.H2.Tests
+namespace Fluxzy.Tests
 {
     public class Http2_SingleCallUrl
     {

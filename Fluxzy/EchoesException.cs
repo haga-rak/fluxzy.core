@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class EchoesException : Exception
     {

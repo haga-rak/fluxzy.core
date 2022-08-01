@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {

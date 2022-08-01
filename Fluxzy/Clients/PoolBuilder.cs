@@ -7,11 +7,11 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H11;
-using Echoes.Clients.H2;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H11;
+using Fluxzy.Clients.H2;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     /// <summary>
     /// Main entry of remote connection

@@ -2,7 +2,7 @@
 
 using System.Security.Cryptography.X509Certificates;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class CertificateConfiguration
     {

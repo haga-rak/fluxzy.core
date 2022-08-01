@@ -1,9 +1,9 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
-using Echoes.Clients;
+using Fluxzy.Clients;
 
-namespace Echoes
+namespace Fluxzy
 {
     internal interface IExchangeEventSource
     {

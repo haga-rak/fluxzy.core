@@ -8,9 +8,9 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Echoes.Core;
+using Fluxzy.Core;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class ProxyStartupSetting
     { 

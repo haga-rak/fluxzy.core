@@ -1,9 +1,8 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
-using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.RequestFilters
+namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class FullUrlFilter : StringFilter
     {

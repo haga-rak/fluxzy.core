@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.Clients;
+using Fluxzy.Clients;
 
-namespace Echoes.Rules
+namespace Fluxzy.Rules
 {
     public class ByRequestRule
     {

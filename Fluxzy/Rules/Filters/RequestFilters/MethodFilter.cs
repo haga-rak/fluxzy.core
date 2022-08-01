@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.RequestFilters
+namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class MethodFilter : StringFilter
     {

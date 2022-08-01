@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.IO;
-using Echoes.Misc;
+using Fluxzy.Misc;
 
-namespace Echoes.Clients.H2.Frames
+namespace Fluxzy.Clients.H2.Frames
 {
     public readonly ref struct SettingFrame
     {

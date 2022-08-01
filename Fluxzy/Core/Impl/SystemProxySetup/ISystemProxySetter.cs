@@ -1,4 +1,4 @@
-﻿namespace Echoes.Core.SystemProxySetup
+﻿namespace Fluxzy.Core.SystemProxySetup
 {
     internal interface ISystemProxySetter
     {

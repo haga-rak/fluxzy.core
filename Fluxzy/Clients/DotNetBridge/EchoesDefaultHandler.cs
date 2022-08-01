@@ -2,10 +2,10 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.Common;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.Common;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.DotNetBridge
+namespace Fluxzy.Clients.DotNetBridge
 {
     public class EchoesDefaultHandler : HttpMessageHandler
     {

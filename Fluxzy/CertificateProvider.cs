@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Echoes.Core;
+using Fluxzy.Core;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class CertificateProvider : ICertificateProvider
     {

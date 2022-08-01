@@ -1,8 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public interface IConsoleOutput
     {

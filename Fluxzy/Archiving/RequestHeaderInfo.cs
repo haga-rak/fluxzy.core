@@ -4,11 +4,11 @@ using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
-using Echoes.Clients;
-using Echoes.Clients.H2.Encoder;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients;
+using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes
+namespace Fluxzy
 {
     /// <summary>
     /// This data structure is used for serialization only 

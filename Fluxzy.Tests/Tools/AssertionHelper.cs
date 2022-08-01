@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Echoes.H2.Tests.Tools
+namespace Fluxzy.Tests.Tools
 {
     public static class AssertionHelper
     {

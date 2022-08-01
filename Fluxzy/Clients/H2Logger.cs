@@ -4,10 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Echoes.Clients.H2;
-using Echoes.Clients.H2.Frames;
+using Fluxzy.Clients.H2;
+using Fluxzy.Clients.H2.Frames;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     /// <summary>
     /// Utility for tracing H2 Connection 

@@ -2,9 +2,9 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients;
+using Fluxzy.Clients;
 
-namespace Echoes
+namespace Fluxzy
 {
     public abstract class RealtimeArchiveWriter : IArchiveWriter
     {

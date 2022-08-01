@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients;
-using Echoes.Core;
-using Echoes.H2.Tests.Utils;
+using Fluxzy.Clients;
+using Fluxzy.Core;
 
-namespace Echoes.H2.Tests.Tools
+namespace Fluxzy.Tests.Tools
 {
     public class AddHocProxy : IDisposable
     {

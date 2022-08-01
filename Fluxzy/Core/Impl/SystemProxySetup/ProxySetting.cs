@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Echoes.Core.SystemProxySetup
+namespace Fluxzy.Core.SystemProxySetup
 {
     internal class ProxySetting
     {

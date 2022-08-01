@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Buffers.Binary;
-using Echoes.Misc;
+using Fluxzy.Misc;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     public readonly struct H2Frame 
     {

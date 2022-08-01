@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public interface IReferenceClock
     {

@@ -5,12 +5,12 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients;
-using Echoes.Clients.Common;
-using Echoes.Clients.H2.Encoder.Utils;
-using Echoes.Core;
+using Fluxzy.Clients;
+using Fluxzy.Clients.Common;
+using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Core;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class Proxy : IDisposable, IAsyncDisposable, IExchangeEventSource
     {

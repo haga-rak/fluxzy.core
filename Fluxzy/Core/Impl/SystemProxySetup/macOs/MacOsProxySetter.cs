@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes.Core.SystemProxySetup.macOs
+namespace Fluxzy.Core.SystemProxySetup.macOs
 {
     internal class MacOsProxySetter : ISystemProxySetter
     {

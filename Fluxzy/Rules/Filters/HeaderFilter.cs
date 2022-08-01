@@ -1,6 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-namespace Echoes.Rules.Filters
+namespace Fluxzy.Rules.Filters
 {
     public abstract class HeaderFilter : StringFilter
     {

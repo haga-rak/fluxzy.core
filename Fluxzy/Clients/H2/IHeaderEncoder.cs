@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     internal interface IHeaderEncoder
     {

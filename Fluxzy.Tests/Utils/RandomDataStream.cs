@@ -5,7 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
-namespace Echoes.H2.Tests.Utils
+namespace Fluxzy.Tests.Utils
 {
     public class RandomDataStream : Stream
     {

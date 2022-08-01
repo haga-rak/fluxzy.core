@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Misc
+namespace Fluxzy.Misc
 {
     /// <summary>
     /// Read stream and duplicate read bytes to listener streams

@@ -6,13 +6,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Echoes.Clients.DotNetBridge;
-using Echoes.H2.Tests.Tools;
-using Echoes.H2.Tests.Utils;
+using Fluxzy.Clients.DotNetBridge;
+using Fluxzy.Tests.Tools;
+using Fluxzy.Tests.Utils;
 using Xunit;
 using Header2 = Sandbox.Models.Header; 
 
-namespace Echoes.H2.Tests
+namespace Fluxzy.Tests
 {
     public class Http2_ConcurrentCall
     {

@@ -1,14 +1,11 @@
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 
-namespace Echoes.H2.Tests.Utils
+namespace Fluxzy.Tests.Utils
 {
     public static class PortProvider
     {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text.Json.Serialization;
-using Echoes.Clients;
+using Fluxzy.Clients;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class ConnectionInfo
     {

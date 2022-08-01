@@ -7,9 +7,9 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Misc;
+using Fluxzy.Misc;
 
-namespace Echoes.Clients.H11
+namespace Fluxzy.Clients.H11
 {
     internal class TunnelOnlyConnectionPool : IHttpConnectionPool
     {

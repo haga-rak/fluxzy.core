@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     public static class H2Writer
     {

@@ -5,9 +5,9 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Misc;
+using Fluxzy.Misc;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public class SecureConnectionUpdater
     {

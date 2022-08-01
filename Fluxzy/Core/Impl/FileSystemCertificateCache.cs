@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public class FileSystemCertificateCache : ICertificateCache
     {

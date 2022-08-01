@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     internal static class BandwidthSettingExtensions
     {

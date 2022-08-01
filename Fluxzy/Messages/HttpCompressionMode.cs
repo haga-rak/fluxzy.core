@@ -1,4 +1,4 @@
-﻿namespace Echoes
+﻿namespace Fluxzy
 {
     public enum HttpCompressionMode
     {

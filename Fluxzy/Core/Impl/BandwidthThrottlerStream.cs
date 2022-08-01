@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     /// <summary>
     /// This stream limit bandwidth while writing to it

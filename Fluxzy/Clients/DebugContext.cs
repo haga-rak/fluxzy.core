@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     public static class DebugContext
     {

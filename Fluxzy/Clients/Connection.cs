@@ -3,7 +3,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     /// <summary>
     /// Contains information about transport layer 

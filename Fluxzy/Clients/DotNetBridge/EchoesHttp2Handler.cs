@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H2;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.DotNetBridge
+namespace Fluxzy.Clients.DotNetBridge
 {
     public class EchoesHttp2Handler : HttpMessageHandler
     {

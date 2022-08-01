@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Echoes.Core.SystemProxySetup;
-using Echoes.Core.SystemProxySetup.Linux;
-using Echoes.Core.SystemProxySetup.macOs;
-using Echoes.Core.SystemProxySetup.Win32;
+using Fluxzy.Core.SystemProxySetup;
+using Fluxzy.Core.SystemProxySetup.Linux;
+using Fluxzy.Core.SystemProxySetup.macOs;
+using Fluxzy.Core.SystemProxySetup.Win32;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public class SystemProxyRegistration : IDisposable
     {

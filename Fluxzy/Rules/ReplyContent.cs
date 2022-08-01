@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace Echoes.Rules
+namespace Fluxzy.Rules
 {
     public class ReplyContent : IDisposable
     {

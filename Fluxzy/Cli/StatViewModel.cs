@@ -1,4 +1,4 @@
-﻿namespace Echoes.Cli
+﻿namespace Fluxzy.Cli
 {
     public class StatViewModel
     {

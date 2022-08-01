@@ -1,4 +1,4 @@
-﻿namespace Echoes.Clients.H11
+﻿namespace Fluxzy.Clients.H11
 {
     public readonly struct HeaderBlockReadResult
     {

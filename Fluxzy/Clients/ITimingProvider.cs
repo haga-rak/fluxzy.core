@@ -3,7 +3,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     public interface ITimingProvider
     {

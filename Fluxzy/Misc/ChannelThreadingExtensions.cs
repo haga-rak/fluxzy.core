@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Threading.Channels;
 
-namespace Echoes.Misc
+namespace Fluxzy.Misc
 {
     internal static class ChannelThreadingExtensions
     {

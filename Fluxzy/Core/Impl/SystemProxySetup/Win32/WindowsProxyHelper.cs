@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
-namespace Echoes.Core.SystemProxySetup.Win32
+namespace Fluxzy.Core.SystemProxySetup.Win32
 {
     internal static class WindowsProxyHelper
     {

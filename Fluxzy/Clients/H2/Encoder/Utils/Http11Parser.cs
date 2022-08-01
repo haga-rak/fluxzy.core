@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Echoes.Clients.H2.Encoder.HPack;
+using Fluxzy.Clients.H2.Encoder.HPack;
 
-namespace Echoes.Clients.H2.Encoder.Utils
+namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     /// <summary>
     /// Converts a flat HTTP/1.1 request to a list of (name, value) headers compatible with HTTP/2

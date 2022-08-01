@@ -2,9 +2,9 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Echoes.Core.Utils;
+using Fluxzy.Core.Utils;
 
-namespace Echoes
+namespace Fluxzy
 {
     public class CertificateUtility
     {

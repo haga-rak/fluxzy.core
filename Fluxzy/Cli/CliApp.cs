@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using Echoes.Core;
-using Echoes.Saz;
+using Fluxzy.Core;
+using Fluxzy.Saz;
 using Microsoft.Extensions.CommandLineUtils;
 
-namespace Echoes.Cli
+namespace Fluxzy.Cli
 {
     public class CliApp
     {

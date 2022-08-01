@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Echoes.Clients;
-using Echoes.Misc;
+using Fluxzy.Clients;
+using Fluxzy.Misc;
 
-namespace Echoes.Cli
+namespace Fluxzy.Cli
 {
     public class StatPrinter : IDisposable
     {

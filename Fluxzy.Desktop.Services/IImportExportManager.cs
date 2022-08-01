@@ -1,4 +1,4 @@
-﻿namespace Echoes.Desktop.Service
+﻿namespace Fluxzy.Desktop.Services
 {
     public interface IGlobalFileManager
     {

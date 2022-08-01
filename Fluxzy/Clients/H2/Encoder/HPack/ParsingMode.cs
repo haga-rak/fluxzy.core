@@ -1,6 +1,6 @@
 using System;
 
-namespace Echoes.Clients.H2.Encoder.HPack
+namespace Fluxzy.Clients.H2.Encoder.HPack
 {
     internal static class ParsingMode
     {

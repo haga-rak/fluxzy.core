@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Misc
+namespace Fluxzy.Misc
 {
     public class ChunkedTransferReadStream : Stream
     {

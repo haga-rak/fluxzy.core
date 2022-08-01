@@ -6,11 +6,11 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.Common;
-using Echoes.Clients.H11;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.Common;
+using Fluxzy.Clients.H11;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     public static class ConnectionBuilder
     {

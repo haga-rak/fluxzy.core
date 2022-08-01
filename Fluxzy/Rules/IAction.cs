@@ -3,10 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Echoes.Clients;
-using Echoes.Rules.Filters;
+using Fluxzy.Clients;
+using Fluxzy.Rules.Filters;
 
-namespace Echoes.Rules.Selectors
+namespace Fluxzy.Rules
 {
     public class Rule
     {

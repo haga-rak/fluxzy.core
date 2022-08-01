@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Echoes.Clients.Common
+namespace Fluxzy.Clients.Common
 {
     internal class DefaultDnsSolver : IDnsSolver
     {

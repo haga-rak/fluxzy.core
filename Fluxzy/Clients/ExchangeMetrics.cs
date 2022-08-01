@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     public class ExchangeMetrics
     {

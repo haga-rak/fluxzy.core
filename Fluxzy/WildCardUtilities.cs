@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace Echoes
+namespace Fluxzy
 {
     internal static class WildCardUtilities
     {

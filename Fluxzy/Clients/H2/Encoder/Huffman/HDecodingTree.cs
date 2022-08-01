@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 
-namespace Echoes.Clients.H2.Encoder.Huffman
+namespace Fluxzy.Clients.H2.Encoder.Huffman
 {
     internal class HPackDecodingTree
     {

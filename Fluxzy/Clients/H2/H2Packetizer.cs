@@ -1,9 +1,9 @@
 // Copyright © 2021 Haga Rakotoharivelo
 
 using System;
-using Echoes.Clients.H2.Frames;
+using Fluxzy.Clients.H2.Frames;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     public class Packetizer
     {

@@ -5,13 +5,13 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H11;
-using Echoes.Clients.H2.Encoder.Utils;
-using Echoes.Core;
-using Echoes.Misc;
-using CombinedReadonlyStream = Echoes.Misc.CombinedReadonlyStream;
+using Fluxzy.Clients.H11;
+using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Core;
+using Fluxzy.Misc;
+using CombinedReadonlyStream = Fluxzy.Misc.CombinedReadonlyStream;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     public interface ILink 
     {

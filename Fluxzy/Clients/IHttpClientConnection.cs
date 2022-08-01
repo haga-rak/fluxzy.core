@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     /// <summary>
     /// Represents a connection pool to the same authority, using the same .

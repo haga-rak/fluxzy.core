@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes
+namespace Fluxzy
 {
     internal interface IArchiveWriter : IDisposable
     {

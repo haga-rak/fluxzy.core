@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Misc
+namespace Fluxzy.Misc
 {
     /// <summary>
     /// Aims to build an I/O stream from a read and a write stream

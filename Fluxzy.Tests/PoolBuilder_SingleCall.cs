@@ -1,9 +1,9 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using Echoes.Clients.DotNetBridge;
+using Fluxzy.Clients.DotNetBridge;
 using Xunit;
 
-namespace Echoes.H2.Tests
+namespace Fluxzy.Tests
 {
     public class PoolBuilder_SingleCall
     {

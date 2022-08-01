@@ -1,6 +1,6 @@
-﻿using Echoes.Clients.H2.Encoder.Utils;
+﻿using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     internal class StreamContext
     {

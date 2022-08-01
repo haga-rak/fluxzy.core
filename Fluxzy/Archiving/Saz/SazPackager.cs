@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Echoes.Saz
+namespace Fluxzy.Saz
 {
     public class SazPackager : IDirectoryPackager
     {

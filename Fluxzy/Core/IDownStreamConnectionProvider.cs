@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Core
+namespace Fluxzy.Core
 {
     public interface IDownStreamConnectionProvider : IDisposable
     {

@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     public readonly ref struct HeaderEncodingJob
     {

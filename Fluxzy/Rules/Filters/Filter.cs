@@ -1,10 +1,8 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
-using System.Collections;
-using Echoes.Clients;
 
-namespace Echoes.Rules.Filters
+namespace Fluxzy.Rules.Filters
 {
     public abstract class Filter
     {

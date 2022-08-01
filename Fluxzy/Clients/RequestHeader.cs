@@ -4,10 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Echoes.Clients.H2.Encoder;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     public class RequestHeader : Header
     {

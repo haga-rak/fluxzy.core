@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     internal class StreamPool : IDisposable, IAsyncDisposable
     {

@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Core.Utils
+namespace Fluxzy.Core.Utils
 {
     public class QuickSlim : IDisposable
     {

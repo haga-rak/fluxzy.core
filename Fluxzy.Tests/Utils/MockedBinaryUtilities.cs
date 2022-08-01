@@ -3,7 +3,7 @@
 using System;
 using System.Security.Cryptography;
 
-namespace Echoes.H2.Tests.Utils
+namespace Fluxzy.Tests.Utils
 {
     public static class MockedBinaryUtilities
     {

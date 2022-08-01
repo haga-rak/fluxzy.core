@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Echoes.Clients.H2.Encoder.Utils
+namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     public class TableEntryComparer : IEqualityComparer<HeaderField> 
     {

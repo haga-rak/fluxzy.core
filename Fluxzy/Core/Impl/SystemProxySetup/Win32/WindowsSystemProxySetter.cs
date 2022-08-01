@@ -1,4 +1,4 @@
-﻿namespace Echoes.Core.SystemProxySetup.Win32
+﻿namespace Fluxzy.Core.SystemProxySetup.Win32
 {
     internal class WindowsSystemProxySetter : ISystemProxySetter
     {

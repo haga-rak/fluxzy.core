@@ -5,10 +5,10 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H2.Encoder.Utils;
-using Echoes.Misc;
+using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc;
 
-namespace Echoes.Clients.H11
+namespace Fluxzy.Clients.H11
 {
     internal class Http11PoolProcessing
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Echoes.Clients.H2.Frames
+namespace Fluxzy.Clients.H2.Frames
 {
     public readonly ref struct DataFrame
     {

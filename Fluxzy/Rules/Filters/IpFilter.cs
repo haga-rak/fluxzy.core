@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace Echoes.Rules.Filters
+namespace Fluxzy.Rules.Filters
 {
     public class IpFilter : StringFilter
     {

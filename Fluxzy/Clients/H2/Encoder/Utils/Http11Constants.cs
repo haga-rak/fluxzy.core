@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Echoes.Clients.H2.Encoder.Utils
+namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     public sealed class Http11Constants
     {

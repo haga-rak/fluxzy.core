@@ -7,11 +7,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H2.Encoder;
-using Echoes.Clients.H2.Encoder.Utils;
-using Echoes.Misc;
+using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc;
 
-namespace Echoes.Clients
+namespace Fluxzy.Clients
 {
     public enum ExchangeAlteration
     {

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
-using Echoes.Clients.H2.Encoder.Huffman.Interfaces;
+using Fluxzy.Clients.H2.Encoder.Huffman.Interfaces;
 
-namespace Echoes.Clients.H2.Encoder.Huffman
+namespace Fluxzy.Clients.H2.Encoder.Huffman
 {
     public class HPackDictionary : IHuffmanDictionary
     {

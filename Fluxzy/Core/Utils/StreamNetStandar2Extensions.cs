@@ -1,8 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 
-namespace Echoes.Core.Utils
+namespace Fluxzy.Core.Utils
 {
 
     public static class StreamNetStandar2Extensions

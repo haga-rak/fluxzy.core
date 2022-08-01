@@ -1,7 +1,6 @@
-﻿using System;
-using Echoes.Core;
+﻿using Fluxzy.Core;
 
-namespace Echoes.Cli
+namespace Fluxzy.Cli
 {
     class Program
     {

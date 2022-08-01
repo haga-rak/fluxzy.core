@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Echoes.Rules.Filters
+namespace Fluxzy.Rules.Filters
 {
     public class FilterCollection : Filter
     {

@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H2;
+using Fluxzy.Clients.H2;
 
-namespace Echoes.Clients.H11
+namespace Fluxzy.Clients.H11
 {
     internal static class Http11HeaderBlockReader
     {

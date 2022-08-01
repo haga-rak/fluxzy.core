@@ -1,4 +1,4 @@
-﻿namespace Echoes.Rules
+﻿namespace Fluxzy.Rules
 {
     internal static class HeaderHelper
     {

@@ -2,7 +2,7 @@
 using System.Buffers.Binary;
 using System.IO;
 
-namespace Echoes.Misc
+namespace Fluxzy.Misc
 {
     /// <summary>
     /// 

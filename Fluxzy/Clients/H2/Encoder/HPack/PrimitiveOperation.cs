@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.Clients.H2.Encoder.Huffman;
+using Fluxzy.Clients.H2.Encoder.Huffman;
 
-namespace Echoes.Clients.H2.Encoder.HPack
+namespace Fluxzy.Clients.H2.Encoder.HPack
 {
     internal class PrimitiveOperation
     {

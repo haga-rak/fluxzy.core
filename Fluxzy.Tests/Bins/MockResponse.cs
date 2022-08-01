@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Echoes.H2.Tests.Bins
+namespace Fluxzy.Tests.Bins
 {
     public class MockResponse
     {

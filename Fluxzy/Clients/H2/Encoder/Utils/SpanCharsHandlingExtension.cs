@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Echoes.Clients.H2.Encoder.HPack;
+using Fluxzy.Clients.H2.Encoder.HPack;
 
-namespace Echoes.Clients.H2.Encoder.Utils
+namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     internal static class SpanCharsHelper
     {

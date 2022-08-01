@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Echoes.Clients.H2.Frames;
+using Fluxzy.Clients.H2.Frames;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     internal static class SettingHelper
     {

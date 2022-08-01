@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.Clients.H2.Frames;
+using Fluxzy.Clients.H2.Frames;
 
-namespace Echoes.Clients.H2
+namespace Fluxzy.Clients.H2
 {
     /// <summary>
     /// We choose not to use a common interface for Http/2 frames to avoid boxing/unboxing. 

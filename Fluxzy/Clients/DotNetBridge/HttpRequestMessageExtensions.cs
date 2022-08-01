@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Text;
 
-namespace Echoes.Clients.DotNetBridge
+namespace Fluxzy.Clients.DotNetBridge
 {
     public static class HttpRequestMessageExtensions
     {

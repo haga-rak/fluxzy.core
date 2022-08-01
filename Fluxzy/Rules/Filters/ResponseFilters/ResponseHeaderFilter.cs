@@ -3,9 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Echoes.Clients;
 
-namespace Echoes.Rules.Filters.ResponseFilters
+namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class ResponseHeaderFilter : HeaderFilter
     {

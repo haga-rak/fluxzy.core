@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Echoes.Misc
+namespace Fluxzy.Misc
 {
     /// <summary>
     /// Used to dump a stream to file. 

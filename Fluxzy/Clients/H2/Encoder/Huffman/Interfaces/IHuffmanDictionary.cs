@@ -1,4 +1,4 @@
-﻿namespace Echoes.Clients.H2.Encoder.Huffman.Interfaces
+﻿namespace Fluxzy.Clients.H2.Encoder.Huffman.Interfaces
 {
     public interface IHuffmanDictionary
     {

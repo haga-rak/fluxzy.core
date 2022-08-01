@@ -4,7 +4,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Echoes
+namespace Fluxzy
 {
     internal class ReadonlyMemoryCharConverter : JsonConverter<ReadOnlyMemory<char>>
     {

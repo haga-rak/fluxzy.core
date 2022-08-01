@@ -5,10 +5,10 @@ using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Echoes.H2.Tests.Bins;
+using Fluxzy.Tests.Bins;
 using Xunit;
 
-namespace Echoes.H2.Tests.Utils
+namespace Fluxzy.Tests.Utils
 {
     public static class AssertHelpers
     {

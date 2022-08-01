@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
-using Echoes.Clients.H2.Encoder;
-using Echoes.Clients.H2.Encoder.HPack;
-using Echoes.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.HPack;
+using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Encoding.Tests.Files;
 using Xunit;
 
-namespace Echoes.Encoding.Tests
+namespace Fluxzy.Encoding.Tests
 {
     public class HPackCodecTests
     {

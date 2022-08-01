@@ -6,7 +6,7 @@ using Xunit.Sdk;
 
 [assembly: Xunit.TestFramework("Echoes.H2.Tests.TestAssemblyInitialization", "Echoes.Tests")]
 
-namespace Echoes.H2.Tests
+namespace Fluxzy.Tests
 {
     public class TestAssemblyInitialization : XunitTestFramework
     {

@@ -1,7 +1,7 @@
 ﻿using System;
-using Echoes.Clients.H2.Encoder.HPack;
+using Fluxzy.Clients.H2.Encoder.HPack;
 
-namespace Echoes.Clients.H2.Encoder.Utils
+namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     public static class EncodingExtensions
     {
