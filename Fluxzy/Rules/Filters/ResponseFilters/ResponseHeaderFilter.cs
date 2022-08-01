@@ -16,7 +16,5 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         }
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
-
-        public override string FriendlyName { get; } = "XML response only";
     }
 }

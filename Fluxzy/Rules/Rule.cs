@@ -1,5 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
@@ -10,11 +12,21 @@ namespace Fluxzy.Rules
     {
         public Rule(IAction action, FilterCollection filter)
         {
+            if (!filter.Children.Any())
+            {
+                throw new ArgumentException(
+                    $"You must specify at least one filter. Use {nameof(AnyFilter)} if the filter is a blank filter.",
+                    nameof(filter)); 
+            }
+
             Filter = filter;
             Action = action;
 
+
             // TODO : validate filter and action scope coherency 
             // TODO : Example response header filter should not match with DoNotDecrypt action
+
+
         }
 
         public Rule(IAction action, params Filter [] filters)
