@@ -1,6 +1,5 @@
 #00abec
 
-
 // Les filtres peuvent s'appliquer :
 
 à l'archivage Max OnAuthorityReceived 

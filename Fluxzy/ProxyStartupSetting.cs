@@ -11,6 +11,7 @@ using Fluxzy.Core;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy
 {
@@ -72,11 +73,6 @@ namespace Fluxzy
         /// Time interval on which the bandwidth throttle will be adjusted. Default value is 50ms.
         /// </summary>
         public TimeSpan ThrottleIntervalCheck { get; internal set; } = TimeSpan.FromMilliseconds(50);
-
-        /// <summary>
-        /// List of host where encryption is not set.
-        /// </summary>
-        public HashSet<string> TunneledOnlyHosts { get; internal set; }  = new HashSet<string>();
 
         /// <summary>
         /// The certificate used 
@@ -160,7 +156,9 @@ namespace Fluxzy
         {
             foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h)))
             {
-                TunneledOnlyHosts.Add(host);
+                AlterationRules.Add(new Rule(
+                    new SkipSslTunnelingAction(),
+                    new HostFilter(host, StringSelectorOperation.Exact)));
             }
 
             return this;
@@ -213,17 +211,6 @@ namespace Fluxzy
             }
 
             ConnectionPerHost = connectionPerHost;
-            return this; 
-        }
-
-        public ProxyStartupSetting SetAnticipatedConnectionPerHost(int anticipatedConnectionPerHost)
-        {
-            if (anticipatedConnectionPerHost < 1 || anticipatedConnectionPerHost >= 32)
-            {
-                throw new ArgumentOutOfRangeException(nameof(anticipatedConnectionPerHost), "value should be between 1 and 32");
-            }
-
-            AnticipatedConnectionPerHost = anticipatedConnectionPerHost;
             return this; 
         }
 

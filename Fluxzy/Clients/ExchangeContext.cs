@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Collections.Generic;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 
@@ -33,6 +34,7 @@ namespace Fluxzy.Clients
         /// true if fluxzy should not decrypt this exchange
         /// </summary>
         public bool BlindMode { get; set; }
+        
     }
 
     
