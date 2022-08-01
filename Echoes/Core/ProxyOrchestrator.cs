@@ -13,7 +13,6 @@ namespace Echoes.Core
 {
     internal class ProxyOrchestrator : IDisposable
     {
-        private readonly Func<string, Stream> _throttlePolicy;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
@@ -22,14 +21,12 @@ namespace Echoes.Core
         private readonly ProxyExecutionContext _executionContext;
 
         public ProxyOrchestrator(
-            Func<string, Stream> throttlePolicy,
             ProxyRuntimeSetting proxyRuntimeSetting,
             ExchangeBuilder exchangeBuilder,
             PoolBuilder poolBuilder,
             RealtimeArchiveWriter archiveWriter,
             IExchangeEventSource eventSource)
         {
-            _throttlePolicy = throttlePolicy;
             _proxyRuntimeSetting = proxyRuntimeSetting;
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;

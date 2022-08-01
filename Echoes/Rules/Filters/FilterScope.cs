@@ -1,11 +1,13 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-namespace Echoes.Rules.Filters;
-
-public enum FilterScope
+namespace Echoes.Rules.Filters
 {
-    RequestHeaderReceivedFromClient = 1,
-    RequestBodyReceivedFromClient,
-    ResponseHeaderReceivedFromRemote,
-    ResponseBodyReceivedFromRemote
+    public enum FilterScope
+    {
+        OnAuthorityReceived,
+        RequestHeaderReceivedFromClient,
+        RequestBodyReceivedFromClient,
+        ResponseHeaderReceivedFromRemote,
+        ResponseBodyReceivedFromRemote
+    }
 }

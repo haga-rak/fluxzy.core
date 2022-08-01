@@ -32,8 +32,7 @@ namespace Echoes
 
         public Proxy(
             ProxyStartupSetting startupSetting,
-            ICertificateProvider certificateProvider,
-            ProxyAlterationRule alterationRule = null
+            ICertificateProvider certificateProvider
             )
         {
             _startupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
@@ -68,9 +67,7 @@ namespace Echoes
                 StartupSetting = startupSetting
             };
 
-            _proxyOrchestrator = new ProxyOrchestrator(
-                ThrottlePolicyStream, 
-                new ProxyRuntimeSetting(startupSetting, ExecutionContext, this),
+            _proxyOrchestrator = new ProxyOrchestrator(new ProxyRuntimeSetting(startupSetting, ExecutionContext, this),
                 new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer, this);
 
             if (!_startupSetting.SkipSslDecryption && _startupSetting.AutoInstallCertificate)

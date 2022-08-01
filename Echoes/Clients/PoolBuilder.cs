@@ -34,7 +34,6 @@ namespace Echoes.Clients
 
         private readonly ConcurrentDictionary<Authority, SemaphoreSlim> _lock = new();
         private readonly CancellationTokenSource _poolCheckHaltSource = new(); 
-        
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,

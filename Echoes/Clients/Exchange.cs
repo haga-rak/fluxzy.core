@@ -13,6 +13,20 @@ using Echoes.Misc;
 
 namespace Echoes.Clients
 {
+    public enum ExchangeAlteration
+    {
+        ModifyRequestHeader,
+        ModifyRequestBody,
+        ModifyResponseHeader,
+        ModifyResponseBody,
+    }
+
+    public interface IExchangeAlteration
+    {
+        void Alter(Exchange exchange, Connection connection);  
+    }
+
+
     public class Exchange : IExchange
     {
         private static int ExchangeCounter = 0;
@@ -76,7 +90,6 @@ namespace Echoes.Clients
         }
 
         public int Id { get;  }
-
 
         public string HttpVersion { get; set; }
 

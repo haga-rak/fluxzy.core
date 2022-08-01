@@ -6,7 +6,7 @@ namespace Echoes.Rules.Filters
 {
     public class IpFilter : StringFilter
     {
-        public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
+        public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 
         protected override IEnumerable<string> GetMatchInputs(IExchange exchange)
         {

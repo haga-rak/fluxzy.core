@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Reflection;
 using System.Text.RegularExpressions;
-using Echoes.Clients;
 
 namespace Echoes.Rules.Filters
 {
