@@ -17,14 +17,14 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
     }
 
 
-    public class EchoesException : Exception
+    public class FluxzyException : Exception
     {
-        public EchoesException(string message)
+        public FluxzyException(string message)
             : base(message)
         {
 
         }
-        public EchoesException(string message, Exception exception)
+        public FluxzyException(string message, Exception exception)
             : base(message, exception)
         {
 

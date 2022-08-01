@@ -15,7 +15,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_IIS()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -31,7 +31,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Abc_Test()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
             
             var requestMessage = new HttpRequestMessage(HttpMethod.Post,
@@ -51,7 +51,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Error_Case()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -66,7 +66,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Error_Case_Discord()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -82,7 +82,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Error_Case_Ws_Static()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -99,7 +99,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Error_Case_Nvidia()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -116,7 +116,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Error_Case_LargeMaxFrameSize()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -135,7 +135,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Error_Case_Ws_Analytics_Valiz()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -152,7 +152,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Error_Case_Ws_Ad_recover()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -169,7 +169,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Control_Single_Headers()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -187,7 +187,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_With_200_Simple()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -205,7 +205,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_With_204_No_Body()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -223,7 +223,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Control_Duplicate_Headers()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -245,7 +245,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Data_Lt_Max_Frame()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -271,7 +271,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Data_Gt_Max_Frame()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -298,7 +298,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Data_Unknown_Size()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -325,7 +325,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_With_InvalidHeaders()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -344,7 +344,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_With_Extra_Column_Header()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -365,7 +365,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_And_Cancel()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(

@@ -7,13 +7,13 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
-    public class EchoesDefaultHandler : HttpMessageHandler
+    public class FluxzyDefaultHandler : HttpMessageHandler
     {
         private readonly SemaphoreSlim _semaphore = new(1);
         private readonly Http11Parser _parser = new(16384);
         private readonly PoolBuilder _poolBuilder;
 
-        public EchoesDefaultHandler()
+        public FluxzyDefaultHandler()
         {
             _poolBuilder = new PoolBuilder(new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
                 ITimingProvider.Default, _parser, null);
@@ -34,7 +34,7 @@ namespace Fluxzy.Clients.DotNetBridge
             await connection.Send(exchange, null, new byte[32* 1024],
                 cancellationToken).ConfigureAwait(false);
             
-            return new EchoesHttpResponseMessage(exchange);
+            return new FluxzyHttpResponseMessage(exchange);
         }
 
         protected override void Dispose(bool disposing)

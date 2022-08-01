@@ -10,7 +10,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_H2()
         {
-            using var handler = new EchoesDefaultHandler();
+            using var handler = new FluxzyDefaultHandler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -26,7 +26,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_H1()
         {
-            using var handler = new EchoesDefaultHandler();
+            using var handler = new FluxzyDefaultHandler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -49,7 +49,7 @@ namespace Fluxzy.Tests
                 "https://sandbox.smartizy.com/content-produce/400000/400000" // H1 only url
             };
 
-            using var handler = new EchoesDefaultHandler();
+            using var handler = new FluxzyDefaultHandler();
             using var httpClient = new HttpClient(handler);
 
             for (int i = 0; i < 100; i ++ )

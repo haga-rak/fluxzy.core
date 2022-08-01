@@ -59,7 +59,7 @@ namespace Fluxzy.Core
             }
             catch (Exception ex)
             {
-                throw new EchoesException("Client closed connection while trying to negotiate SSL/TLS settings", ex);
+                throw new FluxzyException("Client closed connection while trying to negotiate SSL/TLS settings", ex);
             }
 
 

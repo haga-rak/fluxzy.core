@@ -12,7 +12,7 @@ namespace Fluxzy.Clients
 
         /// <summary>
         /// Get the value whether network file dump is active. Can be modified by setting environment variable
-        /// "Echoes_EnableNetworkFileDump"
+        /// "Fluxzy_EnableNetworkFileDump"
         /// </summary>
         public static bool EnableNetworkFileDump { get; }
 
@@ -26,14 +26,14 @@ namespace Fluxzy.Clients
                 .GetEnvironmentVariable("EnableDumpStackTraceOn502"));
 
 
-        public static bool InsertEchoesMetricsOnResponseHeader { get; }
+        public static bool InsertFluxzyMetricsOnResponseHeader { get; }
             = !string.IsNullOrWhiteSpace(Environment
-                .GetEnvironmentVariable("InsertEchoesMetricsOnResponseHeader"));
+                .GetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader"));
 
 
         /// <summary>
         /// When EnableNetworkFileDump is enable. Get the dump directory. Default value is "./raw".
-        /// Can be modified by setting environment variable "Echoes_FileDumpDirectory" ; 
+        /// Can be modified by setting environment variable "Fluxzy_FileDumpDirectory" ; 
         /// 
         /// </summary>
         public static string NetworkFileDumpDirectory { get; }
@@ -52,20 +52,20 @@ namespace Fluxzy.Clients
         static DebugContext()
         {
             var fileDump = Environment
-                .GetEnvironmentVariable("Echoes_EnableNetworkFileDump")?.Trim();
+                .GetEnvironmentVariable("Fluxzy_EnableNetworkFileDump")?.Trim();
 
             EnableNetworkFileDump = string.Equals(fileDump, "true", StringComparison.OrdinalIgnoreCase)
                              || string.Equals(fileDump, "1", StringComparison.OrdinalIgnoreCase);
 
 
             var windowSizeTrace = Environment
-                .GetEnvironmentVariable("Echoes_EnableWindowSizeTrace")?.Trim();
+                .GetEnvironmentVariable("Fluxzy_EnableWindowSizeTrace")?.Trim();
 
             EnableWindowSizeTrace = string.Equals(windowSizeTrace, "true", StringComparison.OrdinalIgnoreCase)
                                     || string.Equals(windowSizeTrace, "1", StringComparison.OrdinalIgnoreCase);
 
             NetworkFileDumpDirectory = Environment
-                .GetEnvironmentVariable("Echoes_FileDumpDirectory")?.Trim() ?? "raw";
+                .GetEnvironmentVariable("Fluxzy_FileDumpDirectory")?.Trim() ?? "raw";
             
             if (EnableNetworkFileDump) 
                 Directory.CreateDirectory(DebugContext.NetworkFileDumpDirectory);

@@ -9,7 +9,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
-    public class EchoesHttp11Handler : HttpMessageHandler
+    public class FluxzyHttp11Handler : HttpMessageHandler
     {
         private readonly IDictionary<string, Http11ConnectionPool>
             _activeConnections = new Dictionary<string, Http11ConnectionPool>();
@@ -17,7 +17,7 @@ namespace Fluxzy.Clients.DotNetBridge
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         private readonly Http11Parser _parser = new(16384); 
         
-        public EchoesHttp11Handler()
+        public FluxzyHttp11Handler()
         {
         }
 
@@ -52,7 +52,7 @@ namespace Fluxzy.Clients.DotNetBridge
             await _activeConnections[request.RequestUri.Authority].Send(exchange, null, new byte[32 * 1024],
                 cancellationToken).ConfigureAwait(false);
             
-            return new EchoesHttpResponseMessage(exchange);
+            return new FluxzyHttpResponseMessage(exchange);
         }
 
 

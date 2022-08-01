@@ -29,7 +29,7 @@ namespace Fluxzy.Cli
             _certificateProviderFactory = certificateProviderFactory;
 
             _tempDirectory = Path.Combine(Environment.ExpandEnvironmentVariables("%TEMP%"),
-                "echoescli", _instanceIdentifier);
+                "fxzy", _instanceIdentifier);
 
         }
 
@@ -39,13 +39,13 @@ namespace Fluxzy.Cli
 
             CommandLineApplication commandLineApplication = new CommandLineApplication
             {
-                FullName = "echoescli is a command line tool which let you use features of the echoes proxy engine."
+                FullName = "fxzy is a command line tool which let you use features of the echoes proxy engine."
             };
 
             commandLineApplication.HelpOption("-h | --help");
 
-            commandLineApplication.VersionOption("-v | --version", () => "\tEchoes proxy engine version : " +
-                                                                         FileVersionInfo.GetVersionInfo(typeof(Proxy).Assembly.Location).ProductVersion);
+            commandLineApplication.VersionOption("-v | --version", () =>
+                $"\tFluxzy proxy engine version : {FileVersionInfo.GetVersionInfo(typeof(Proxy).Assembly.Location).ProductVersion} - created by Haga Rakotoharivelo");
 
             commandLineApplication
                 .Command("start", OnProxyStartCommand);

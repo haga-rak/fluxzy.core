@@ -13,7 +13,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_IIS()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -29,7 +29,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Error_Case()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -45,7 +45,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Control_Single_Headers()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -63,7 +63,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_With_200_Simple()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -81,7 +81,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_With_204_No_Body()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -99,7 +99,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_File_Small_UnknownSize()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -120,7 +120,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_File_Large_UnknownSize()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -141,7 +141,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_Control_Duplicate_Headers()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -163,7 +163,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Data_Lt_Max_Frame()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -189,7 +189,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Data_Gt_Max_Frame()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -216,7 +216,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Data_Unknown_Size()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler); 
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -243,7 +243,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_With_InvalidHeaders()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -262,7 +262,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_With_Extra_Column_Header()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -283,7 +283,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Get_And_Cancel()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(

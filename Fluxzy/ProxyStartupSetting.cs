@@ -58,7 +58,7 @@ namespace Fluxzy
         public int AnticipatedConnectionPerHost { get; internal set; } = 0;
 
         /// <summary>
-        /// When set to true. Echoes will be set as system proxy when started. 
+        /// When set to true. Fluxzy will be set as system proxy when started. 
         /// </summary>
         public bool RegisterAsSystemProxy { get; internal set; } = false;
 

@@ -1,2 +1,2 @@
-﻿Fichier à installer sur l'OS. Echoes.pfx 
+﻿Fichier à installer sur l'OS. Fluxzy.pfx 
 

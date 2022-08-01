@@ -10,7 +10,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
-    public class EchoesHttp2Handler : HttpMessageHandler
+    public class FluxzyHttp2Handler : HttpMessageHandler
     {
         private readonly H2StreamSetting _streamSetting;
         private readonly IDictionary<string, H2ConnectionPool>
@@ -19,7 +19,7 @@ namespace Fluxzy.Clients.DotNetBridge
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         private readonly Http11Parser _parser = new Http11Parser(16384); 
         
-        public EchoesHttp2Handler(H2StreamSetting streamSetting = null)
+        public FluxzyHttp2Handler(H2StreamSetting streamSetting = null)
         {
             _streamSetting = streamSetting ?? new H2StreamSetting();
         }
@@ -54,7 +54,7 @@ namespace Fluxzy.Clients.DotNetBridge
             await _activeConnections[request.RequestUri.Authority].Send(exchange, null, new byte[32 * 1024],
                 cancellationToken).ConfigureAwait(false);
             
-            return new EchoesHttpResponseMessage(exchange);
+            return new FluxzyHttpResponseMessage(exchange);
         }
 
 

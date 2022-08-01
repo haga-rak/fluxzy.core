@@ -37,7 +37,7 @@ namespace Fluxzy.Tests.Utils
 
         public SingleGlobalInstance()
         {
-            string appGuid = "echoes-unit-tests";
+            string appGuid = "Fluxzy-unit-tests";
 
             string mutexId = $"Global\\{{{appGuid}}}";
 

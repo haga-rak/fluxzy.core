@@ -51,7 +51,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Random_Data_And_Validate_Content()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler, false);
 
             Random random = new Random(9);
@@ -72,7 +72,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Multi_Header_Dynamic_Table_Evict_Simple()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler, false);
 
             int count = 20;
@@ -100,7 +100,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Dynamic_Table_Evict_Simple_Large_Object()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
 
             using var httpClient = new HttpClient(handler, false);
 
@@ -128,7 +128,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Headers_Multiple_Reception()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
 
             using var httpClient = new HttpClient(handler, false);
 
@@ -165,7 +165,7 @@ namespace Fluxzy.Tests
 
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call()
         {
-            using var handler = new EchoesHttp2Handler();
+            using var handler = new FluxzyHttp2Handler();
 
             using var httpClient = new HttpClient(handler, false);
 

@@ -10,7 +10,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
-    public class EchoesHttpResponseMessage : HttpResponseMessage
+    public class FluxzyHttpResponseMessage : HttpResponseMessage
     {
         private static HttpStatusCode ReadStatusCode(IEnumerable<HeaderField> headerFields, 
             out Dictionary<ReadOnlyMemory<char>, List<ReadOnlyMemory<char>>> dictionaryMapping)
@@ -28,7 +28,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
         public Exchange Exchange { get; }
 
-        public EchoesHttpResponseMessage(Exchange exchange)
+        public FluxzyHttpResponseMessage(Exchange exchange)
             : base(ReadStatusCode(exchange.Response.Header.HeaderFields, out _))
         {
             Exchange = exchange;

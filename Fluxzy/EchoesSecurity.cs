@@ -2,11 +2,11 @@
 
 namespace Fluxzy
 {
-    internal static class EchoesSecurity
+    internal static class FluxzySecurity
     {
-        static EchoesSecurity()
+        static FluxzySecurity()
         {
-            DefaultCertificate = new X509Certificate2(FileStore.Echoes, "echoes");
+            DefaultCertificate = new X509Certificate2(FileStore.Fluxzy, "echoes");
         }
 
         public static X509Certificate2 DefaultCertificate { get;  }

@@ -25,7 +25,7 @@ namespace Fluxzy
 
             _baseCertificate = 
                 startupSetting.CertificateConfiguration.DefaultConfig ?
-                    EchoesSecurity.DefaultCertificate : startupSetting.CertificateConfiguration.Certificate;
+                    FluxzySecurity.DefaultCertificate : startupSetting.CertificateConfiguration.Certificate;
 
             // Warming : Make RSA Threadsafe
             BuildCertificateForRootDomain("domain.com"); 

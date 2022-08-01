@@ -4,7 +4,7 @@ using System;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-[assembly: Xunit.TestFramework("Echoes.H2.Tests.TestAssemblyInitialization", "Echoes.Tests")]
+[assembly: Xunit.TestFramework("Fluxzy.H2.Tests.TestAssemblyInitialization", "Fluxzy.Tests")]
 
 namespace Fluxzy.Tests
 {
@@ -14,8 +14,8 @@ namespace Fluxzy.Tests
             : base(messageSink)
         {
 
-            //Environment.SetEnvironmentVariable("Echoes_EnableNetworkFileDump", "true");
-            //Environment.SetEnvironmentVariable("Echoes_EnableWindowSizeTrace", "true");
+            //Environment.SetEnvironmentVariable("Fluxzy_EnableNetworkFileDump", "true");
+            //Environment.SetEnvironmentVariable("Fluxzy_EnableWindowSizeTrace", "true");
 
 
             Environment.SetEnvironmentVariable("EnableH1Tracing", "true");

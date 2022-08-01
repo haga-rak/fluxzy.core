@@ -63,9 +63,9 @@ namespace Fluxzy {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
-        internal static byte[] Echoes {
+        internal static byte[] Fluxzy {
             get {
-                object obj = ResourceManager.GetObject("Echoes", resourceCulture);
+                object obj = ResourceManager.GetObject("Fluxzy", resourceCulture);
                 return ((byte[])(obj));
             }
         }

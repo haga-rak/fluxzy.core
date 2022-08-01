@@ -47,7 +47,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Random_Data_And_Validate_Content()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler, false);
 
             Random random = new Random(9);
@@ -68,7 +68,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Post_Multi_Header_Dynamic_Table_Evict_Simple()
         {
-            using var handler = new EchoesHttp11Handler();
+            using var handler = new FluxzyHttp11Handler();
 
             using var httpClient = new HttpClient(handler, false);
 

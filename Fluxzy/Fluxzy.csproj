@@ -8,7 +8,7 @@
     <Version>0.2.001</Version>
     <Company>2Be-FFICIENT</Company>
     <Authors>Haga Rakotoharivelo</Authors>
-    <Description>Echoes is a .NET Core proxy engine that allows you to decrypt SSL trafic with your own certificate.</Description>
+    <Description>Fluxzy is a .NET Core proxy engine that allows you to decrypt SSL trafic with your own certificate.</Description>
     <Copyright />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <LangVersion>preview</LangVersion>
@@ -29,14 +29,6 @@
     <Compile Remove="Messages\Hrm.Public.cs" />
     <Compile Remove="Messages\HrmMethod.cs" />
     <Compile Remove="Messages\HrmVersion.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Ressources\Certificate\Echoes.pfx" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Ressources\Certificate\Echoes.pfx" />
   </ItemGroup>
 
   <ItemGroup>

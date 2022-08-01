@@ -13,7 +13,7 @@ namespace Fluxzy
         static CertificateUtility()
         {
             DefaultTempPath =
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Echoes", "Temp");
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Fluxzy", "Temp");
 
             Directory.CreateDirectory(DefaultTempPath);
         }
@@ -25,7 +25,7 @@ namespace Fluxzy
         /// <returns></returns>
         public static async Task DumpDefaultCertificate(Stream stream)
         {
-            await stream.WriteAsyncNS2(EchoesSecurity.DefaultCertificate.Export(X509ContentType.Cert)).ConfigureAwait(false);
+            await stream.WriteAsyncNS2(FluxzySecurity.DefaultCertificate.Export(X509ContentType.Cert)).ConfigureAwait(false);
         }
         
         /// <summary>
@@ -46,7 +46,7 @@ namespace Fluxzy
 
         public static bool IsDefaultCertificateInstalled()
         {
-            return IsCertificateInstalled(EchoesSecurity.DefaultSerialNumber);
+            return IsCertificateInstalled(FluxzySecurity.DefaultSerialNumber);
 
         }
 
@@ -86,13 +86,13 @@ namespace Fluxzy
 
         public static void InstallDefaultCertificate()
         {
-            InstallCertificate(EchoesSecurity.DefaultCertificate);
+            InstallCertificate(FluxzySecurity.DefaultCertificate);
         }
 
         public static void CheckAndInstallCertificate(ProxyStartupSetting startupSetting)
         {
             var certificate = startupSetting.CertificateConfiguration.DefaultConfig
-                ? EchoesSecurity.DefaultCertificate
+                ? FluxzySecurity.DefaultCertificate
                 : startupSetting.CertificateConfiguration.Certificate;
 
             if (!IsCertificateInstalled(certificate.SerialNumber))

@@ -10,7 +10,7 @@
                 $"Content-type : {contentType}\r\n" +
                 $"Cache-Control: no-cache, no-store, must-revalidate\r\n" +
                 $"Pragma: no-cache\r\n" +
-                $"Server: Echoes\r\n" +
+                $"Server: Fluxzy\r\n" +
                 $"Expires: 0\r\n" +
                 $"\r\n";
 

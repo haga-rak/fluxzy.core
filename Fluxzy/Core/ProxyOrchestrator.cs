@@ -187,7 +187,7 @@ namespace Fluxzy.Core
 
                                 // Writing the received header to downstream
 
-                                if (DebugContext.InsertEchoesMetricsOnResponseHeader)
+                                if (DebugContext.InsertFluxzyMetricsOnResponseHeader)
                                 {
                                     exchange.Response.Header.AddExtraHeaderFieldToLocalConnection(
                                         exchange.GetMetricsSummaryAsHeader());
