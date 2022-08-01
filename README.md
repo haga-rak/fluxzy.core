@@ -22,7 +22,8 @@ Find below the list of features that is currently implemented :
  - By any response header
  - By cookie 
  
-### Currently available 
+### Currently available alterations
+Alterations are active trafic modification operated by the fluxzy engine. 
 
 #### Low level alterations
  - Spoofing DNS
@@ -36,10 +37,13 @@ Find below the list of features that is currently implemented :
  - Replacing response body 
  
 ### High level alterations :
+High level alterations are build around low level alterations, and aspires to give a better accessibility to commonly used alteration. 
+
  - Replacing, removing adding cookie 
  - Response with a premade response 
  - Remove caches
  - Build caches (see tutorial) 
+ - Changing user agent 
  
  
  
