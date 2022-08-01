@@ -7,15 +7,20 @@ namespace Fluxzy.Rules.Filters
 {
     public class FilterCollection : Filter
     {
+        public FilterCollection(params Filter [] filters)
+        {
+            Children = filters?.ToList() ?? new();
+        }
+
         public List<Filter> Children { get; set; }
 
         public SelectorCollectionOperation Operation { get; set; }
 
-        protected override bool InternalApply(IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange)
         {
             foreach (var child in Children)
             {
-                var res = child.Apply(exchange);
+                var res = child.Apply(authority, exchange);
 
                 if (Operation == SelectorCollectionOperation.And && !res)
                     return false; 

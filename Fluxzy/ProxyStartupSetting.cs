@@ -7,8 +7,9 @@ using System.Net;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Fluxzy.Core;
+using Fluxzy.Rules;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy
 {
@@ -41,11 +42,6 @@ namespace Fluxzy
         /// Verbose mode 
         /// </summary>
         public bool Verbose { get; internal set; } = false;
-
-        /// <summary>
-        /// If set to true. All ssl connection will be tunneled disregards of TunneledOnlyHosts
-        /// </summary>
-        public bool SkipSslDecryption { get; internal set; } = false;
 
         /// <summary>
         /// Number of concurrent connection per host maintained by the connection pool excluding websocket connections. Default value is 8.
@@ -128,7 +124,10 @@ namespace Fluxzy
         /// </summary>
         public ArchivingPolicy ArchivingPolicy { get; internal set; } = ArchivingPolicy.None;
 
-         /// <summary>
+
+        public List<Rule> AlterationRules { get; set; } = new();
+
+        /// <summary>
         /// Set hosts that bypass the proxy
         /// </summary>
         /// <param name="hosts"></param>
@@ -166,6 +165,7 @@ namespace Fluxzy
             return this;
         }
         
+
         public ProxyStartupSetting AddBoundAddress(string boundAddress, int port, bool ? @default = null)
         {
             if (!IPAddress.TryParse(boundAddress, out _))
@@ -184,6 +184,7 @@ namespace Fluxzy
             return this; 
         }
         
+
         public ProxyStartupSetting SetBoundAddress(string boundAddress, int port)
         {
             if (!IPAddress.TryParse(boundAddress, out _))
@@ -201,6 +202,7 @@ namespace Fluxzy
             
             return this; 
         }
+
 
         public ProxyStartupSetting SetConnectionPerHost(int connectionPerHost)
         {
@@ -306,7 +308,8 @@ namespace Fluxzy
 
         public ProxyStartupSetting SetSkipSslDecryption(bool value)
         {
-            SkipSslDecryption = value;
+            AlterationRules.Add(new Rule(new SkipSslTunnelingAction(), new AnyFilter()));
+
             return this; 
         }
 
@@ -370,92 +373,4 @@ namespace Fluxzy
     }
 
 
-    public class ProxyBindPoint : IEquatable<ProxyBindPoint>
-    {
-        public bool Equals(ProxyBindPoint other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Address == other.Address && Port == other.Port && Default == other.Default;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((ProxyBindPoint)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Address, Port, Default);
-        }
-
-        public ProxyBindPoint(string address, int port)
-        {
-            Address = address;
-            Port = port;
-        }
-
-        public ProxyBindPoint(string address, int port, bool @default)
-        {
-            Address = address;
-            Port = port;
-            Default = @default;
-        }
-
-        /// <summary>
-        /// The address on with the proxy will listen to 
-        /// </summary>
-        public string Address { get;  }
-
-        /// <summary>
-        /// Port number 
-        /// </summary>
-        public int Port { get;  }
-
-        /// <summary>
-        /// Whether this setting is the default bound address port. When true,
-        /// this setting will be choosed as system proxy
-        /// </summary>
-        public bool Default { get; set; }
-    }
-
-
-    public enum ArchivingPolicyType
-    {
-        // The proxy 
-        None = 0 , 
-
-        // Content is set on server  
-        Directory
-    }
-
-    public class ArchivingPolicy
-    {
-        [JsonConstructor]
-        internal ArchivingPolicy()
-        {
-
-        }
-
-        public ArchivingPolicyType Type { get; internal set; }
-
-        public string Directory { get; internal set; }
-
-        public static ArchivingPolicy None { get; } = new();
-
-        public static ArchivingPolicy CreateFromDirectory(string path)
-        {
-            return new ArchivingPolicy()
-            {
-                Type = ArchivingPolicyType.Directory,
-                Directory = path
-            }; 
-        }
-
-
-    }
-    
 }

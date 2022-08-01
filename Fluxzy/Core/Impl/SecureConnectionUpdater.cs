@@ -69,25 +69,17 @@ namespace Fluxzy.Core
         }
     }
 
-    public class SecureConnectionUpdateResult
+    public record SecureConnectionUpdateResult(bool IsSsl, bool IsWebSocket,
+        Stream InStream, Stream OutStream)
     {
-        public SecureConnectionUpdateResult(bool isSsl, bool isWebSocket,
-            Stream inStream, Stream outStream)
-        {
-            IsSsl = isSsl;
-            IsWebSocket = isWebSocket;
-            InStream = inStream;
-            OutStream = outStream;
-        }
+        public bool IsSsl { get; } = IsSsl;
 
-        public bool IsSsl { get; }
-
-        public bool IsWebSocket { get; }
+        public bool IsWebSocket { get; } = IsWebSocket;
 
         public bool IsOnError => !IsSsl && !IsWebSocket;
 
-        public Stream InStream { get; }
+        public Stream InStream { get; } = InStream;
 
-        public Stream OutStream { get; }
+        public Stream OutStream { get; } = OutStream;
     }
 }

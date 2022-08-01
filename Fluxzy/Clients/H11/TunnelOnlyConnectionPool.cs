@@ -107,7 +107,7 @@ namespace Fluxzy.Clients.H11
 
             var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(
                 exchange.Authority, 
-                exchange.TunneledOnly,
+                exchange.Context,
                 new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
                 _creationSetting,
                 cancellationToken).ConfigureAwait(false);

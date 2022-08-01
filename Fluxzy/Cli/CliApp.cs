@@ -243,7 +243,7 @@ namespace Fluxzy.Cli
                     outputFileName = outputFileOption.Value();
 
                     if (proxyStartUpSetting.ArchivingPolicy == null ||
-                        proxyStartUpSetting.ArchivingPolicy.Type != ArchivingPolicyType.Directory)
+                        proxyStartUpSetting.ArchivingPolicy.Type != ArchivingPolicy.ArchivingPolicyType.Directory)
                     {
                         // Create a temporary directory 
                         Directory.CreateDirectory(_tempDirectory);

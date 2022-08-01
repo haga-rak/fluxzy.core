@@ -99,7 +99,8 @@ namespace Fluxzy.Clients.H11
                     _logger.Trace(exchange.Id, () => $"New connection request");
 
                     var openingResult = 
-                        await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false, Http11Protocols,
+                        await _remoteConnectionBuilder.OpenConnectionToRemote(
+                            exchange.Authority, exchange.Context, Http11Protocols,
                         _proxyRuntimeSetting, cancellationToken);
                     
                     exchange.Connection = openingResult.Connection;

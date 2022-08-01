@@ -4,6 +4,15 @@ using System.Collections.Generic;
 
 namespace Fluxzy
 {
+    public interface IAuthority
+    {
+        string HostName { get; }
+
+        int Port { get; }
+
+        bool Secure { get; }
+    }
+
     public interface IExchange
     {
         string FullUrl { get; }

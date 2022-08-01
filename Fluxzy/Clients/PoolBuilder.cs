@@ -112,7 +112,7 @@ namespace Fluxzy.Clients
                     }
 
                 //  pool 
-                if (exchange.TunneledOnly
+                if (exchange.Context.BlindMode
                     || exchange.Request.Header.IsWebSocketRequest)
                 {
                     var tunneledConnectionPool = new TunnelOnlyConnectionPool(
@@ -137,7 +137,8 @@ namespace Fluxzy.Clients
                 // HTTPS test 1.1/2
 
                 var openingResult =
-                    await _remoteConnectionBuilder.OpenConnectionToRemote(exchange.Authority, false,
+                    await _remoteConnectionBuilder.OpenConnectionToRemote(
+                        exchange.Authority,  exchange.Context,
                         AllProtocols, proxyRuntimeSetting, cancellationToken);
 
                 exchange.Connection = openingResult.Connection; 

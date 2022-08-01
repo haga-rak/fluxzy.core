@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
 using Fluxzy.Misc;
+using Fluxzy.Rules.Filters;
 using CombinedReadonlyStream = Fluxzy.Misc.CombinedReadonlyStream;
 
 namespace Fluxzy.Clients
@@ -78,7 +80,6 @@ namespace Fluxzy.Clients
 
         private static string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
 
-
         private static readonly byte [] AcceptTunnelResponse =
             Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
 
@@ -127,21 +128,23 @@ namespace Fluxzy.Clients
 
                 await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse),
                     token);
+
+                var exchangeContext = new ExchangeContext(authority);
+
+                await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
                 
-                if (runtimeSetting.ShouldTunneled(authority.HostName))
+                if (exchangeContext.BlindMode)
                 {
                     return
                         new ExchangeBuildingResult(
                             authority, plainStream, plainStream,
                             new Exchange(
+                                exchangeContext,
                                 authority, plainHeaderChars, null,
                                 AcceptTunnelResponseString.AsMemory(),
                                 null, false, _http11Parser, 
                                 "HTTP/1.1",
-                                receivedFromProxy)
-                            {
-                                TunneledOnly = true
-                            }, true);
+                                receivedFromProxy), true);
                 }
 
                 // TODO : Create an Exchange representing the CONNECT REQUEST
@@ -160,6 +163,7 @@ namespace Fluxzy.Clients
                         authenticateResult.InStream,
                         authenticateResult.OutStream, 
                         new Exchange(
+                                exchangeContext,
                                 authority, plainHeaderChars, null,
                                 AcceptTunnelResponseString.AsMemory(), 
                                 null, false, _http11Parser, "HTTP/1.1", receivedFromProxy)
@@ -179,18 +183,25 @@ namespace Fluxzy.Clients
 
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
 
+            var plainExchangeContext = new ExchangeContext(plainAuthority);
+
+            await runtimeSetting.EnforceRules(plainExchangeContext, FilterScope.OnAuthorityReceived);
+
             return new ExchangeBuildingResult(
                 plainAuthority, 
                 plainStream, 
                 plainStream, 
-                new Exchange(plainAuthority, 
-                plainHeader, plainHeader.ContentLength > 0
+                new Exchange(
+                    plainExchangeContext,
+                    plainAuthority, 
+                    plainHeader, plainHeader.ContentLength > 0
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
                     : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy), false); 
         }
 
         public async Task<Exchange> ReadExchange(
             Stream inStream, Authority authority, byte[] buffer,
+            ProxyRuntimeSetting runTimeSetting,
             CancellationToken token)
         {
             var blockReadResult = await
@@ -200,7 +211,6 @@ namespace Fluxzy.Clients
                 return null;
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
-
 
             var secureHeaderChars = new char[blockReadResult.HeaderLength];
 
@@ -217,7 +227,11 @@ namespace Fluxzy.Clients
                     inStream); 
             }
 
-            return new Exchange(authority, secureHeader,
+            var exchangeContext = new ExchangeContext(authority);
+            await runTimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
+
+            return new Exchange(
+                exchangeContext, authority, secureHeader,
                 secureHeader.ContentLength > 0
                     ? new ContentBoundStream(inStream, secureHeader.ContentLength)
                     : StreamUtils.EmptyStream, null, receivedFromProxy

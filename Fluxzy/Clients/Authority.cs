@@ -7,7 +7,7 @@ namespace Fluxzy.Clients
     /// <summary>
     /// Hold information about a hostname and a port number 
     /// </summary>
-    public readonly struct Authority : IEquatable<Authority>
+    public readonly struct Authority : IEquatable<Authority>, IAuthority
     {
         public Authority(string hostName, int port, bool secure)
         {
