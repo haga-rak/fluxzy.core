@@ -1,5 +1,5 @@
 # fluxzy 
-Fluxzy is a HTTP analyzer/debugger engine, focused on measuring performance. fluxzy is build with .NET, that means that it runs on any platform supporting this later. 
+HTTP analyzer/debugger engine, focused on measuring performance. fluxzy is build with .NET, that means that it runs on any platform supporting this later. 
 
 # fluxzy.cli (fxzy) 
 fxzy is a command line tool taking full advantage of the fluxzy engine, allowing you to a automate fluxzy features without writing any line of code. Run `fxzy --help` to get more information about this tool. 
