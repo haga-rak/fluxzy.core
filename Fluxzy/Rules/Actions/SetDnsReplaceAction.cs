@@ -7,7 +7,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class SetDnsMockAction : IAction
+    public class SetDnsReplaceAction : IAction
     {
         public IPAddress RemoteHostIp { get; set; }
 

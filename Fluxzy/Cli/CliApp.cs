@@ -298,13 +298,13 @@ namespace Fluxzy.Cli
 
                     var password = certificatePasswordOption.HasValue() ? certificatePasswordOption.Value() : null;
 
-                    proxyStartUpSetting.SetSecureCertificate(
+                    proxyStartUpSetting.SetCaCertificate(
                         Certificate.LoadFromPkcs12(
                             File.ReadAllBytes(certificateFileOption.Value()), password ?? string.Empty));
                 }
 
                 proxyStartUpSetting.SetAutoInstallCertificate(!skiptCertInstallOption.HasValue());
-                proxyStartUpSetting.SetSkipSslDecryption(skipSslDecryptionOption.HasValue());
+                proxyStartUpSetting.SetSkipGlobalSslDecryption(skipSslDecryptionOption.HasValue());
                 proxyStartUpSetting.SetAsSystemProxy(systemProxyOption.HasValue());
                 proxyStartUpSetting.SetDisableCertificateCache(noCertCacheOption.HasValue());
                 
