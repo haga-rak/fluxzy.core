@@ -90,9 +90,7 @@ namespace Fluxzy
 
         public static void CheckAndInstallCertificate(FluxzySetting startupSetting)
         {
-            var certificate = startupSetting.CertificateConfiguration.DefaultConfig
-                ? FluxzySecurity.DefaultCertificate
-                : startupSetting.CertificateConfiguration.Certificate;
+            var certificate = startupSetting.CaCertificate.GetCertificate();
 
             if (!IsCertificateInstalled(certificate.SerialNumber))
             {

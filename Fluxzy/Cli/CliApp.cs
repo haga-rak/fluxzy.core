@@ -23,7 +23,6 @@ namespace Fluxzy.Cli
             new SazPackager(),
         };
 
-
         public CliApp(Func<FluxzySetting, ICertificateProvider> certificateProviderFactory)
         {
             _certificateProviderFactory = certificateProviderFactory;
@@ -299,31 +298,16 @@ namespace Fluxzy.Cli
 
                     var password = certificatePasswordOption.HasValue() ? certificatePasswordOption.Value() : null;
 
-                    proxyStartUpSetting.SetSecureCertificate(File.ReadAllBytes(certificateFileOption.Value()), password ?? string.Empty);
+                    proxyStartUpSetting.SetSecureCertificate(
+                        Certificate.LoadFromPkcs12(
+                            File.ReadAllBytes(certificateFileOption.Value()), password ?? string.Empty));
                 }
 
                 proxyStartUpSetting.SetAutoInstallCertificate(!skiptCertInstallOption.HasValue());
                 proxyStartUpSetting.SetSkipSslDecryption(skipSslDecryptionOption.HasValue());
                 proxyStartUpSetting.SetAsSystemProxy(systemProxyOption.HasValue());
                 proxyStartUpSetting.SetDisableCertificateCache(noCertCacheOption.HasValue());
-
-                //proxyStartUpSetting.SetClientCertificateConfiguration(
-                //    new ClientCertificateConfiguration(){
-                //    ClientSettings = { new ClientConfigItem()
-                //    {
-                //        HostNames = new List<string>() { "*.staging.bnpparibas"},
-                //        CertificateSerialNumber = "56f4fe08b6e489150ecbf18414f326c8",
-                //    },
-                //        new ClientConfigItem()
-                //        {
-                //            HostNames = { "*.lcl.fr"},
-                //            CertificateSerialNumber = "00b90d117253cb6c6d39e14b26"
-                //        }
-
-
-                //    }
-                //});
-                    //proxyStartUpSetting.SetConnectionPerHost(16);
+                
 
                 try
                 {

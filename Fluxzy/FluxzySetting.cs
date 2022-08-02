@@ -75,14 +75,14 @@ namespace Fluxzy
         public TimeSpan ThrottleIntervalCheck { get; internal set; } = TimeSpan.FromMilliseconds(50);
 
         /// <summary>
-        /// The certificate used 
+        /// The CA certificate for the man on the middle 
         /// </summary>
-        public CertificateConfiguration CertificateConfiguration { get; internal set; } = new CertificateConfiguration(null, string.Empty);
+        public Certificate CaCertificate { get; internal set; } = Certificate.UseDefault();
 
         /// <summary>
         /// The default certificate cache directory used by echoes proxy
         /// </summary>
-        
+
         public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.echoes/cert-caches";
 
         /// <summary>
@@ -101,13 +101,7 @@ namespace Fluxzy
         /// </summary>
         public bool DisableCertificateCache { get; internal set; } = false;
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public ClientCertificateConfiguration ClientCertificateConfiguration { get; internal set; }
-
-
+        
         public IReadOnlyCollection<string> ByPassHost { get; internal set; } = new List<string>() { "localhost", "127.0.0.1" };
 
 
@@ -121,7 +115,9 @@ namespace Fluxzy
         /// </summary>
         public ArchivingPolicy ArchivingPolicy { get; internal set; } = ArchivingPolicy.None;
 
-
+        /// <summary>
+        /// Global alteration rules 
+        /// </summary>
         public List<Rule> AlterationRules { get; set; } = new();
 
         /// <summary>
@@ -233,31 +229,22 @@ namespace Fluxzy
             return this; 
         }
 
-        public FluxzySetting SetClientCertificateConfiguration(
-            ClientCertificateConfiguration clientCertificateConfiguration)
+        public FluxzySetting SetClientCertificateOnHost(string host, Certificate certificate)
         {
-            ClientCertificateConfiguration = clientCertificateConfiguration;
-
-            clientCertificateConfiguration.ReadAllCertificateMapping();
-
+            AlterationRules.Add(new Rule(new SetClientCertificateAction(certificate), new HostFilter(host)));
             return this;
         }
 
-        public FluxzySetting SetClientCertificateConfiguration(
-             string fileName)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="subDomain"></param>
+        /// <param name="certificate"></param>
+        /// <returns></returns>
+        public FluxzySetting SetClientCertificateOnSubdomain(string subDomain, Certificate certificate)
         {
-            try
-            {
-                ClientCertificateConfiguration =
-                    JsonSerializer.Deserialize<ClientCertificateConfiguration>(File.ReadAllText(fileName), 
-                        StartupConfigSetting.JsonOptions);
-
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException($"An error occurs when trying to read client certificate configuration from {fileName} : {ex.Message}");
-            }
-
+            AlterationRules.Add(new Rule(new SetClientCertificateAction(certificate),
+                new HostFilter(subDomain, StringSelectorOperation.EndsWith)));
             return this;
         }
 
@@ -274,6 +261,7 @@ namespace Fluxzy
             ThrottleIntervalCheck = delay;
             return this;
         }
+
 
         public FluxzySetting SetServerProtocols(SslProtocols protocols)
         {
@@ -310,27 +298,10 @@ namespace Fluxzy
         /// <summary>
         /// Change the default certificate used by fluxzy
         /// </summary>
-        /// <param name="file"></param>
-        /// <param name="password"></param>
         /// <returns></returns>
-        public FluxzySetting SetSecureCertificate(byte[] file, string password)
+        public FluxzySetting SetSecureCertificate(Certificate caCertificate)
         {
-            try
-            {
-                using (var cer = new X509Certificate2(file, password))
-                {
-                    if (!cer.HasPrivateKey)
-                    {
-                        throw new ArgumentException($"The provide certificate must contains a private key");
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                throw new ArgumentException("Error when trying to load certificate");
-            }
-
-            CertificateConfiguration = new CertificateConfiguration(file, password);
+            CaCertificate = caCertificate;
 
             return this;
         }

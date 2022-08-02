@@ -19,7 +19,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
         {
             return exchange.GetRequestHeaders().Where(e =>
-                    MemoryExtensions.Equals(e.Name.Span, HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
+                    e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
                 .Select(s => s.Value.ToString());
         }
 
