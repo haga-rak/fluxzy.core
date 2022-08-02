@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace Fluxzy.Rules.Filters
@@ -58,7 +60,7 @@ namespace Fluxzy.Rules.Filters
 
             return false; 
         }
-
+        
         protected abstract IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange);
 
         public StringSelectorOperation Operation { get; set; } = StringSelectorOperation.Exact;
@@ -94,16 +96,6 @@ namespace Fluxzy.Rules.Filters
         Regex,
     }
 
-    public enum SelectorType
-    {
-        Collection,
-        Hostname,
-        FullUrl,
-        RequestHeader,
-        RequestBody,
-        StatusCode
-    }
-
     public static class GenericDescriptionExtension
     {
         public static string GetDescription<T>(this T enumerationValue)
@@ -112,19 +104,19 @@ namespace Fluxzy.Rules.Filters
             var type = typeof(T);
 
             if (!type.IsEnum)
-            {
                 throw new ArgumentException($"{nameof(enumerationValue)} must be an enum");
-            }
             
-            var memberInfo = type.GetMember(enumerationValue.ToString());
+            var memberInfos = type.GetMember(enumerationValue.ToString());
 
-            if (memberInfo.Length > 0)
+            if (memberInfos.Any())
             {
-               var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+               var attr = memberInfos.First()
+                   .GetCustomAttributes<DescriptionAttribute>(false)
+                   .FirstOrDefault();
 
-                if (attrs.Length > 0)
+                if (attr != null)
                 {
-                    return ((DescriptionAttribute)attrs[0]).Description;
+                    return attr.Description;
                 }
             }
 

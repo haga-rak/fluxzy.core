@@ -16,5 +16,13 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         }
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
+
+        public ResponseHeaderFilter(string pattern, string headerName) : base(pattern, headerName)
+        {
+        }
+
+        public ResponseHeaderFilter(string pattern, StringSelectorOperation operation, string headerName) : base(pattern, operation, headerName)
+        {
+        }
     }
 }

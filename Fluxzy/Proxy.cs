@@ -50,7 +50,7 @@ namespace Fluxzy
                // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
                 certificateProvider);
 
-            if (_startupSetting.ArchivingPolicy.Type == ArchivingPolicy.ArchivingPolicyType.Directory)
+            if (_startupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
             {
                 Directory.CreateDirectory(_startupSetting.ArchivingPolicy.Directory);
 

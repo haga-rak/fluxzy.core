@@ -8,10 +8,12 @@ namespace Fluxzy.Rules.Filters
     {
         public IpFilter(string pattern) : base(pattern)
         {
+
         }
 
         public IpFilter(string pattern, StringSelectorOperation operation) : base(pattern, operation)
         {
+
         }
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;

@@ -2,14 +2,10 @@
 {
     public class ContentTypeXmlFilter : ResponseHeaderFilter
     {
-        public ContentTypeXmlFilter()
-        {
-            HeaderName = "Content-Type";
-            Pattern = "xml";
-            CaseSensitive = false;
-            Operation = StringSelectorOperation.Contains;
-        }
-
         public override string FriendlyName { get; } = "XML response only";
+        
+        public ContentTypeXmlFilter() : base("xml", StringSelectorOperation.Contains, "Content-Type")
+        {
+        }
     }
 }
