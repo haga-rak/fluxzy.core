@@ -187,7 +187,7 @@ namespace Fluxzy.Core
                                     exchange.Response.Body != null &&
                                     exchange.HttpVersion == "HTTP/2")
                                 {
-                                    // HTTP2 server is allowed to send a response body
+                                    // HTTP2 servers are allowed to send response body
                                     // without specifying a content-length or transfer-encoding chunked.
                                     // In case content-length is not present, we force transfer-encoding chunked 
                                     // in order to inform HTTP/1.1 receiver of the content body end
