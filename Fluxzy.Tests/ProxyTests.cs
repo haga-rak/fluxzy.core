@@ -404,7 +404,7 @@ namespace Fluxzy.Tests
             var startupSetting = FluxzySetting
                 .CreateDefault()
                 .SetAsSystemProxy(false)
-                .SetSkipSslDecryption(true)
+                .SetSkipGlobalSslDecryption(true)
                 .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()

@@ -49,28 +49,28 @@ namespace Fluxzy
             return IsCertificateInstalled(FluxzySecurity.DefaultSerialNumber);
 
         }
+
         public static bool RemoveCertificate(string serialNumber)
         {
-            using (X509Store store = new X509Store(StoreName.Root))
+            using X509Store store = new X509Store(StoreName.Root);
+
+            store.Open(OpenFlags.ReadWrite);
+
+            foreach (var certificate in store.Certificates.Find(X509FindType.FindBySerialNumber, serialNumber, false))
             {
-                store.Open(OpenFlags.ReadWrite);
-
-                foreach (var certificate in store.Certificates.Find(X509FindType.FindBySerialNumber, serialNumber, false))
+                try
                 {
-                    try
-                    {
-                        store.Remove(certificate);
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
+                    store.Remove(certificate);
                 }
-
-                return true;  
+                catch (Exception)
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
-        
+
         public static void InstallCertificate(X509Certificate2 certificate)
         {
             using (var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert)))

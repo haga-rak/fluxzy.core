@@ -53,7 +53,7 @@ namespace Fluxzy
             return ResponseHeader.Headers;
         }
 
-        public int StatusCode => ResponseHeader.StatusCode;
+        public int StatusCode => ResponseHeader?.StatusCode ?? 0;
 
         public string EgressIp { get; set; }
     }

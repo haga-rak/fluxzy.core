@@ -189,7 +189,7 @@ namespace Fluxzy.Clients
 
         public int StatusCode => Response.Header.StatusCode;
 
-        public string EgressIp => Connection.RemoteAddress.ToString();
+        public string EgressIp => Connection?.RemoteAddress.ToString();
 
         public ExchangeContext Context { get;  }
     }

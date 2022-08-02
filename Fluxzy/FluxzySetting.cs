@@ -282,9 +282,10 @@ namespace Fluxzy
             return this; 
         }
 
-        public FluxzySetting SetSkipSslDecryption(bool value)
+        public FluxzySetting SetSkipGlobalSslDecryption(bool value)
         {
-            AlterationRules.Add(new Rule(new SkipSslTunnelingAction(), new AnyFilter()));
+            if (value)
+                AlterationRules.Add(new Rule(new SkipSslTunnelingAction(), new AnyFilter()));
 
             return this; 
         }
@@ -299,7 +300,7 @@ namespace Fluxzy
         /// Change the default certificate used by fluxzy
         /// </summary>
         /// <returns></returns>
-        public FluxzySetting SetSecureCertificate(Certificate caCertificate)
+        public FluxzySetting SetCaCertificate(Certificate caCertificate)
         {
             CaCertificate = caCertificate;
 
