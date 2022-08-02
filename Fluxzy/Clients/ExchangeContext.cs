@@ -29,6 +29,7 @@ namespace Fluxzy.Clients
         /// Client certificate for this exchange 
         /// </summary>
         public X509Certificate2Collection ClientCertificates { get; set; }
+        
 
         /// <summary>
         /// true if fluxzy should not decrypt this exchange

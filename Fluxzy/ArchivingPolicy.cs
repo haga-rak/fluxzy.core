@@ -32,7 +32,6 @@ namespace Fluxzy
     {
         // The proxy 
         None = 0,
-        
         Directory
     }
 }

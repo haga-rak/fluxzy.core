@@ -17,15 +17,14 @@ namespace Fluxzy
         
         private readonly RSA _rsaKeyEngine = RSA.Create(2048);
 
-        //private static int ParralelTaskCount => 1;
-
-        public CertificateProvider(FluxzySetting startupSetting, ICertificateCache certCache)
+        public CertificateProvider(
+            FluxzySetting startupSetting, 
+            ICertificateCache certCache)
         {
             _certCache = certCache;
 
-            _baseCertificate = 
-                startupSetting.CertificateConfiguration.DefaultConfig ?
-                    FluxzySecurity.DefaultCertificate : startupSetting.CertificateConfiguration.Certificate;
+            _baseCertificate =
+                startupSetting.CaCertificate.GetCertificate(); 
 
             // Warming : Make RSA Threadsafe
             BuildCertificateForRootDomain("domain.com"); 

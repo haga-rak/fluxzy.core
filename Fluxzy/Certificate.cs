@@ -53,7 +53,7 @@ namespace Fluxzy
             };
         }
 
-        public static Certificate LoadDefault()
+        public static Certificate UseDefault()
         {
             return new Certificate()
             {

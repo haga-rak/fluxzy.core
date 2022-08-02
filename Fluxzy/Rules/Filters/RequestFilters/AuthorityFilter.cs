@@ -17,7 +17,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             yield return authority.HostName;
         }
 
-        public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
+        public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 
         public override string FriendlyName => $"Authority {base.FriendlyName}";
 
