@@ -91,15 +91,16 @@ namespace Fluxzy.Core
 
                             _eventSource.OnBeforeRequest(new BeforeRequestEventArgs(_executionContext, exchange));
 
+                            await _proxyRuntimeSetting.EnforceRules(exchange.Context,
+                                FilterScope.RequestHeaderReceivedFromClient,
+                                exchange.Connection, exchange);
+
                             IHttpConnectionPool connectionPool;
 
                             try
                             {
                                 while (true)
                                 {
-                                    await _proxyRuntimeSetting.EnforceRules(exchange.Context, 
-                                        FilterScope.RequestHeaderReceivedFromClient,
-                                        exchange.Connection, exchange);
 
                                     if (_archiveWriter != null)
                                     {

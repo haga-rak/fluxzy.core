@@ -18,7 +18,7 @@ using Header2 = Sandbox.Models.Header;
 
 namespace Fluxzy.Tests
 {
-    public class ProxyTests
+    public class EndToEndTests
     {
         [Theory]
         [InlineData(TestConstants.Http2Host)]
