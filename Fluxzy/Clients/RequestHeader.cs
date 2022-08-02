@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Fluxzy.Clients.H2.Encoder;
@@ -108,22 +109,39 @@ namespace Fluxzy.Clients
 
     public abstract class Header
     {
-        public ReadOnlyMemory<char> RawHeader { get; }
+        public ReadOnlyMemory<char> GetH2RawHeader()
+        {
+            return _rawHeader;
+
+            Span<byte> maxHeader = stackalloc byte[1024 * 32] ; // TODO :  this is hard coded need more effot
+
+            var totalReadByte = WriteHttp2(maxHeader, true, true);
+
+            return Encoding.UTF8.GetString(maxHeader.Slice(totalReadByte)).AsMemory(); 
+
+            // return _rawHeader;
+        }
 
         protected List<HeaderField> _rawHeaderFields;
 
         protected ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields ;
-
+        private readonly ReadOnlyMemory<char> _rawHeader;
+        
         internal void AddExtraHeaderFieldToLocalConnection(HeaderField headerField)
         {
             _rawHeaderFields.Add(headerField);
         }
 
+        public void AltAddHeader(string name, string value)
+        {
+            _rawHeaderFields.Add(new HeaderField(name, value));
+        }
+        
         protected Header(
             ReadOnlyMemory<char> rawHeader, 
             bool isSecure, Http11Parser parser)
         {
-            RawHeader = rawHeader;
+            _rawHeader = rawHeader;
             HeaderLength = rawHeader.Length; 
 
             _rawHeaderFields = parser.Read(rawHeader, isSecure, true, false).ToList();
@@ -167,7 +185,7 @@ namespace Fluxzy.Clients
 
         public override string ToString()
         {
-            return RawHeader.ToString();
+            return GetH2RawHeader().ToString();
         }
 
         /// <summary>
@@ -192,13 +210,40 @@ namespace Fluxzy.Clients
         {
             var totalLength = 0;
            
+            // Writing Method Path Http Protocol Version
             totalLength += WriteHeaderLine(data);
-
 
             foreach (var header in _rawHeaderFields)
             {
                 if (header.Name.Span[0] == ':') // H2 control header 
                     continue;
+
+                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name))
+                    continue;
+
+                totalLength += Encoding.ASCII.GetBytes(header.Name.Span, data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+            }
+            
+            totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+
+            return totalLength; 
+        }
+        
+        public int WriteHttp2(in Span<byte> data, 
+            bool skipNonForwardableHeader, bool writeExtraHeaderField = false)
+        {
+            var totalLength = 0;
+           
+            // Writing Method Path Http Protocol Version
+            // totalLength += WriteHeaderLine(data);
+
+            foreach (var header in _rawHeaderFields)
+            {
+                //if (header.Name.Span[0] == ':') // H2 control header 
+                //    continue;
 
                 if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name))
                     continue;
