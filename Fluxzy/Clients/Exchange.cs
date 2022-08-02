@@ -22,7 +22,7 @@ namespace Fluxzy.Clients
         public Exchange(
             ExchangeContext context,
             Authority authority, 
-            ReadOnlyMemory<char> requestHeader,
+            ReadOnlyMemory<char> requestHeaderPlain,
             Stream requestBody,
             ReadOnlyMemory<char> responseHeader,
             Stream responseBody,
@@ -34,7 +34,7 @@ namespace Fluxzy.Clients
             Context = context;
             Authority = authority;
             HttpVersion = httpVersion;
-            Request = new Request(new RequestHeader(requestHeader, isSecure, parser))
+            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure, parser))
             {
                 Body = requestBody ?? StreamUtils.EmptyStream
             };
@@ -72,14 +72,14 @@ namespace Fluxzy.Clients
 
         public Exchange(
             Authority authority, 
-            ReadOnlyMemory<char> header, 
+            ReadOnlyMemory<char> requestHeaderPlain, 
             Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
             Id = Interlocked.Increment(ref _exchangeCounter);
             Context = new ExchangeContext(authority);
             Authority = authority;
             HttpVersion = httpVersion;
-            Request = new Request(new RequestHeader(header, authority.Secure, parser));
+            Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure, parser));
             Metrics.ReceivedFromProxy = receivedFromProxy;
         }
 

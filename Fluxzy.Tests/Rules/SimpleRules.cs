@@ -18,7 +18,7 @@ namespace Fluxzy.Tests.Rules
     {
         [Theory]
         [InlineData(TestConstants.Http11Host)]
-        // [InlineData(TestConstants.Http2Host)]
+        // [InlineData(TestConstants.Http2Host)] <--- Need debug 
         public async Task CheckAlterationAddRuleWithFilterHostOnly(string host)
         {
             var headerValue = "anyrandomtextyoo!!";
