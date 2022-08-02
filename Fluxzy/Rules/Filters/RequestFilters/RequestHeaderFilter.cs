@@ -8,6 +8,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class RequestHeaderFilter : HeaderFilter
     {
+        public RequestHeaderFilter(string pattern, string headerName)
+            : base(pattern, headerName)
+        {
+        }
+
+        public RequestHeaderFilter(string pattern, StringSelectorOperation operation, string headerName) : base(pattern, operation, headerName)
+        {
+        }
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
         {
             return exchange.GetRequestHeaders().Where(e =>
@@ -16,5 +24,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         }
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
+
     }
 }
