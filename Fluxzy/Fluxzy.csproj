@@ -69,7 +69,6 @@
 
   <ItemGroup>
     <Folder Include="Archiving\Har\Models\" />
-    <Folder Include="Rules\Actions\HighLevelActions\" />
   </ItemGroup>
 
 </Project>
