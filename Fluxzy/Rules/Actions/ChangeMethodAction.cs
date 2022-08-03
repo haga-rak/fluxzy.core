@@ -7,9 +7,9 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class ChangeMethodAction : IAction
+    public class ChangeRequestMethodAction : IAction
     {
-        public ChangeMethodAction(string newMethod)
+        public ChangeRequestMethodAction(string newMethod)
         {
             NewMethod = newMethod;
         }
