@@ -5,7 +5,7 @@ using System.Net;
 
 namespace Fluxzy.Clients.Mock
 {
-    public class ReplyStreamContent : PremadeResponse
+    public class ReplyStreamContent : PreMadeResponse
     {
         public ReplyStreamContent(int statusCode, BodyContent bodyContent)
         {
@@ -22,16 +22,29 @@ namespace Fluxzy.Clients.Mock
             // TODO : introduce length and content encoding 
 
             var header =
-                @$"HTTP/1.1 {StatusCode} {((HttpStatusCode)StatusCode).ToString()}\r\n" 
-              + @$"Host : {authority.HostName}:{authority.Port}\r\n"
-              + @$"\r\n";
+                $"HTTP/1.1 {StatusCode} {((HttpStatusCode)StatusCode).ToString()}\r\n"
+                + $"Host: {authority.HostName}:{authority.Port}\r\n";
 
-            return string.Empty; 
+            var bodyContentLength = BodyContent.GetLength();
+
+            if (bodyContentLength > 0)
+            {
+                header += $"Content-length: {bodyContentLength}\r\n";
+            }
+
+            if (!string.IsNullOrWhiteSpace(BodyContent.MimeType))
+            {
+                header += $"Content-type: {BodyContent.MimeType}\r\n";
+            }
+
+            header += "\r\n"; 
+
+            return header; 
         }
 
         public override Stream ReadBody(Authority authority)
         {
-            throw new System.NotImplementedException();
+            return BodyContent.GetStream();
         }
     }
 }

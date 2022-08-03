@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Fluxzy.Clients.Mock
 {
-    public abstract class PremadeResponse
+    public abstract class PreMadeResponse
     {
         public abstract string GetFlatH11Header(Authority authority); 
 
