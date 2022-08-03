@@ -31,5 +31,6 @@ export class UiStateService {
 
 
 export interface ExchangeSelection {
-    map : { [exchangeId : string] : boolean }
+    map : { [exchangeId : string] : boolean } ,
+    lastSelectedExchangeId? : number
 }
