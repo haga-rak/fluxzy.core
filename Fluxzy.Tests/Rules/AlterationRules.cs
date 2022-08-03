@@ -212,7 +212,7 @@ namespace Fluxzy.Tests.Rules
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
-                    new ChangeMethodAction("PATCH"),
+                    new ChangeRequestMethodAction("PATCH"),
                     new HostFilter("sandbox.smartizy.com")));
 
             proxy.Run();
