@@ -18,10 +18,10 @@ namespace Fluxzy.Tests.Rules
     {
         [Theory]
         [InlineData(TestConstants.Http11Host)]
-        // [InlineData(TestConstants.Http2Host)] <--- Need debug 
+        [InlineData(TestConstants.Http2Host)]  // TODO <--- Need debug 
         public async Task CheckAlterationAddRuleWithFilterHostOnly(string host)
         {
-            var headerValue = "anyrandomtextyoo!!";
+            var headerValue = "anyrandomtexTyoo!!";
             var headerName = "X-Haga-Unit-Test";
 
             using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
@@ -48,10 +48,13 @@ namespace Fluxzy.Tests.Rules
 
             var responseRawText = await response.Content.ReadAsStringAsync(); 
             var checkResult = await response.GetCheckResult();
-
+            
             var matchingHeaders = checkResult.
-                Headers.Where(h => h.Name == headerName && h.Value == headerValue)
-                .ToList(); ;
+                Headers
+                .Where(h => 
+                    h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase) 
+                    && h.Value == headerValue)
+                .ToList();
 
             Assert.Single(matchingHeaders);
 

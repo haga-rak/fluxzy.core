@@ -111,13 +111,15 @@ namespace Fluxzy.Clients
     {
         public ReadOnlyMemory<char> GetH2RawHeader()
         {
-            return _rawHeader;
+           // return _rawHeader;
 
             Span<byte> maxHeader = stackalloc byte[1024 * 32] ; // TODO :  this is hard coded need more effot
 
-            var totalReadByte = WriteHttp2(maxHeader, true, true);
+            var totalReadByte = WriteHttp11(maxHeader, true, true);
 
-            return Encoding.UTF8.GetString(maxHeader.Slice(totalReadByte)).AsMemory(); 
+            var res =  Encoding.UTF8.GetString(maxHeader.Slice(0, totalReadByte));
+
+            return res.AsMemory(); 
 
             // return _rawHeader;
         }
