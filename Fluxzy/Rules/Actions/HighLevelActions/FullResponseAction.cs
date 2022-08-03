@@ -5,22 +5,23 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Rules.Filters;
 
-namespace Fluxzy.Rules.Actions;
-
-public class FullResponseAction : IAction
+namespace Fluxzy.Rules.Actions.HighLevelActions
 {
-    public FullResponseAction(PreMadeResponse preMadeResponse)
+    public class FullResponseAction : IAction
     {
-        PreMadeResponse = preMadeResponse;
-    }
+        public FullResponseAction(PreMadeResponse preMadeResponse)
+        {
+            PreMadeResponse = preMadeResponse;
+        }
 
-    public PreMadeResponse PreMadeResponse { get; set; }
+        public PreMadeResponse PreMadeResponse { get; set; }
 
-    public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient; 
+        public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient; 
 
-    public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
-    {
-        context.PreMadeResponse = PreMadeResponse;
-        return Task.CompletedTask; 
+        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        {
+            context.PreMadeResponse = PreMadeResponse;
+            return Task.CompletedTask; 
+        }
     }
 }
