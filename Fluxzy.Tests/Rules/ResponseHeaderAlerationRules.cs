@@ -16,7 +16,6 @@ namespace Fluxzy.Tests.Rules
 {
     public class ResponseHeaderAlterationRules
     {
-
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]

@@ -75,13 +75,11 @@ namespace Fluxzy.Clients.H11
 
             Encoding.ASCII
                 .GetChars(headerBuffer.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
-
             
             exchange.Response.Header = new ResponseHeader(
                 headerContent, exchange.Authority.Secure, _parser);
 
             _logger.TraceResponse(exchange);
-            
 
             var shouldCloseConnection =
                 exchange.Response.Header.ConnectionCloseRequest
