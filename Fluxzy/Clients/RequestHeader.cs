@@ -27,11 +27,11 @@ namespace Fluxzy.Clients
                 .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase)); 
         }
 
-        public ReadOnlyMemory<char> Authority { get;  }
+        public ReadOnlyMemory<char> Authority { get; internal set; }
 
-        public ReadOnlyMemory<char> Path { get;  }
+        public ReadOnlyMemory<char> Path { get; internal set; }
 
-        public ReadOnlyMemory<char> Method { get;  }
+        public ReadOnlyMemory<char> Method { get; internal set; }
 
         public ReadOnlyMemory<char> Scheme { get;  }
 

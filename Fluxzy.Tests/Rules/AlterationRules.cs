@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Fluxzy.Tests.Rules
 {
-    public class AlterationRules
+    public class RequestHeaderAlterationRules
     {
         [Theory]
         [InlineData(TestConstants.Http11Host)]
@@ -197,5 +197,41 @@ namespace Fluxzy.Tests.Rules
             await proxy.WaitUntilDone();
         }
 
+
+        [Theory]
+        [InlineData(TestConstants.Http11Host)]
+        [InlineData(TestConstants.Http2Host)]
+        public async Task ChangeMethodFilterHostOnly(string host)
+        {
+            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            };
+
+            proxy.StartupSetting.AlterationRules.Add(
+                new Rule(
+                    new ChangeMethodAction("PATCH"),
+                    new HostFilter("sandbox.smartizy.com")));
+
+            proxy.Run();
+
+            using var httpClient = new HttpClient(clientHandler);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"{host}/global-health-check");
+
+            using var response = await httpClient.SendAsync(requestMessage);
+
+            var checkResult = await response.GetCheckResult();
+            
+            Assert.Equal("PATCH", checkResult.Method, StringComparer.OrdinalIgnoreCase);
+
+            await proxy.WaitUntilDone();
+        }
+
     }
+
+    
 }
