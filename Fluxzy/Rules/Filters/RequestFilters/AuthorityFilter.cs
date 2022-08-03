@@ -6,6 +6,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     {
         public HostFilter(string pattern) : base(pattern)
         {
+
         }
 
         public HostFilter(string pattern, StringSelectorOperation operation) : base(pattern, operation)

@@ -5,22 +5,23 @@ using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
-namespace Fluxzy.Rules.Actions;
-
-public class ChangeRequestPathAction : IAction
+namespace Fluxzy.Rules.Actions
 {
-    public ChangeRequestPathAction(string newPath)
+    public class ChangeRequestPathAction : IAction
     {
-        NewPath = newPath;
-    }
+        public ChangeRequestPathAction(string newPath)
+        {
+            NewPath = newPath;
+        }
 
-    public string NewPath { get; set; }
+        public string NewPath { get; set; }
 
-    public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+        public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
-    public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
-    {
-        exchange.Request.Header.Path = NewPath.AsMemory();
-        return Task.CompletedTask; 
+        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        {
+            exchange.Request.Header.Path = NewPath.AsMemory();
+            return Task.CompletedTask; 
+        }
     }
 }
