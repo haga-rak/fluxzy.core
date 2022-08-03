@@ -288,7 +288,7 @@ namespace Fluxzy.Clients
             if (!_active)
                 return;
 
-            var firstLine = exchange.Response.Header.GetH2RawHeader().ToString().Split("\r\n").First();
+            var firstLine = exchange.Response.Header.GetHttp11Header().ToString().Split("\r\n").First();
 
             Trace(exchange, streamWorker.StreamIdentifier, $"Response : " + firstLine);
         }

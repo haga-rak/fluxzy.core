@@ -66,7 +66,7 @@ namespace Fluxzy.Cli
                             _viewModel.PlainRequestCount++;
 
                             _viewModel.PlainRequestSize +=
-                                (exchange.Request.Header.GetH2RawHeader().Length +
+                                (exchange.Request.Header.GetHttp11Header().Length +
                                  exchange.Request.Header.ContentLength);
 
                             if (exchange?.Response.Body != null)
@@ -74,7 +74,7 @@ namespace Fluxzy.Cli
                                 _viewModel.PlainResponseCount++;
 
                                 _viewModel.PlainResponseSize +=
-                                    (exchange.Response.Header.GetH2RawHeader().Length +
+                                    (exchange.Response.Header.GetHttp11Header().Length +
                                      exchange.Response.Header.ContentLength);
                             }
                         }
@@ -84,7 +84,7 @@ namespace Fluxzy.Cli
                             _viewModel.SecureRequestCount++;
 
                             _viewModel.SecureRequestSize +=
-                                (exchange.Request.Header.GetH2RawHeader().Length +
+                                (exchange.Request.Header.GetHttp11Header().Length +
                                  exchange.Request.Header.ContentLength);
 
                             if (exchange?.Response.Body != null)
@@ -92,7 +92,7 @@ namespace Fluxzy.Cli
                                 _viewModel.SecureResponseCount++;
 
                                 _viewModel.SecureResponseSize +=
-                                    (exchange.Response.Header.GetH2RawHeader().Length +
+                                    (exchange.Response.Header.GetHttp11Header().Length +
                                      exchange.Response.Header.ContentLength);
                             }
                         }
