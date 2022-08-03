@@ -22,6 +22,11 @@ public abstract class Header
         _rawHeaderFields.Add(headerField);
     }
 
+    public void AltDeleteHeader(string name)
+    {
+        _rawHeaderFields.RemoveAll(h => h.Name.Span.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
     public void AltAddHeader(string name, string value)
     {
         _rawHeaderFields.Add(new HeaderField(name, value));
