@@ -89,6 +89,12 @@ namespace Fluxzy.Clients
         {
             // At this point, we'll trying the suitable pool for exchange
 
+            if (exchange.Context.PreMadeResponse != null)
+            {
+                return new MockedConnectionPool(_http11Parser, exchange.Authority,
+                    exchange.Context.PreMadeResponse); 
+            }
+
             IHttpConnectionPool result = null;
 
             var semaphore = _lock.GetOrAdd(exchange.Authority, (auth) => new SemaphoreSlim(1));

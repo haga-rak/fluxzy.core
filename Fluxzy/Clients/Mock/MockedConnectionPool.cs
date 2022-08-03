@@ -13,14 +13,14 @@ namespace Fluxzy.Clients
     {
         private readonly Http11Parser _parser;
         private readonly Authority _authority;
-        private readonly PremadeResponse _premadeResponse;
+        private readonly PreMadeResponse _preMadeResponse;
         private bool _complete; 
 
-        public MockedConnectionPool(Http11Parser parser, Authority authority, PremadeResponse premadeResponse)
+        public MockedConnectionPool(Http11Parser parser, Authority authority, PreMadeResponse preMadeResponse)
         {
             _parser = parser;
             _authority = authority;
-            _premadeResponse = premadeResponse;
+            _preMadeResponse = preMadeResponse;
         }
 
         public async ValueTask DisposeAsync()
@@ -59,7 +59,7 @@ namespace Fluxzy.Clients
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
             
             exchange.Response.Header = new ResponseHeader(
-                _premadeResponse.GetFlatH11Header(_authority).AsMemory(), 
+                _preMadeResponse.GetFlatH11Header(_authority).AsMemory(), 
                 exchange.Authority.Secure, _parser);
 
             exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
@@ -67,7 +67,7 @@ namespace Fluxzy.Clients
 
 
             exchange.Response.Body =
-                new MetricsStream(_premadeResponse.ReadBody(_authority),
+                new MetricsStream(_preMadeResponse.ReadBody(_authority),
                     () =>
                     {
                         exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
@@ -76,7 +76,7 @@ namespace Fluxzy.Clients
                     {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
-                        exchange.ExchangeCompletionSource.SetResult(false);
+                        exchange.ExchangeCompletionSource.SetResult(true);
                       
                     },
                     (exception) =>

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using Fluxzy.Clients.Mock;
 
 namespace Fluxzy.Clients
 {
@@ -29,13 +30,15 @@ namespace Fluxzy.Clients
         /// Client certificate for this exchange 
         /// </summary>
         public X509Certificate2Collection ClientCertificates { get; set; }
-        
 
         /// <summary>
         /// true if fluxzy should not decrypt this exchange
         /// </summary>
         public bool BlindMode { get; set; }
-        
+
+
+        public PreMadeResponse PreMadeResponse { get; set; }
+
     }
 
     

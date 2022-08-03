@@ -58,7 +58,6 @@ namespace Fluxzy.Tests.Rules
 
             await proxy.WaitUntilDone();
         }
-        
 
         [Theory]
         [InlineData(TestConstants.Http11Host)]
