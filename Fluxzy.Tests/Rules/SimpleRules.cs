@@ -105,5 +105,53 @@ namespace Fluxzy.Tests.Rules
 
             await proxy.WaitUntilDone();
         }
+
+        [Theory]
+        [InlineData(TestConstants.Http11Host)]
+        [InlineData(TestConstants.Http2Host)]  
+        public async Task UpdateRequestHeaderReuseExistingValueWithFilterHostOnly(string host)
+        {
+            var headerName = "x-h";
+            var headerValue = "Cd";
+            var headerNewValue = "{{previous}} Ab";
+            var headerValueAltered = "Cd Ab"; 
+
+            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            };
+
+            proxy.StartupSetting.AlterationRules.Add(
+                new Rule(
+                    new UpdateRequestHeaderAction(
+                        headerName, headerNewValue),
+                    new HostFilter("sandbox.smartizy.com")));
+
+            proxy.Run();
+
+            using var httpClient = new HttpClient(clientHandler);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"{host}/global-health-check");
+
+            requestMessage.Headers.Add(headerName, headerValue);
+
+            using var response = await httpClient.SendAsync(requestMessage);
+            
+            var checkResult = await response.GetCheckResult();
+
+            var matchingHeaders = checkResult.
+                Headers?.Where(h => 
+                    h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase) 
+                    && h.Value == headerValueAltered)
+                .ToList();
+
+            Assert.NotNull(matchingHeaders);
+            Assert.Single(matchingHeaders);
+
+            await proxy.WaitUntilDone();
+        }
     }
 }
