@@ -115,11 +115,11 @@ namespace Fluxzy.Clients.H2
 
             if (errorCode != H2ErrorCode.NoError)
             {
-                string value = _exchange.Request.Header.GetH2RawHeader().ToString();
+                string value = _exchange.Request.Header.GetHttp11Header().ToString();
 
                 if (_exchange.Response.Header != null)
                 {
-                    value += _exchange.Response.Header.GetH2RawHeader().ToString();
+                    value += _exchange.Response.Header.GetHttp11Header().ToString();
                 }
 
                 _logger.Trace(StreamIdentifier, $"Receive RST : {errorCode} from server.\r\n{value}");
@@ -143,11 +143,9 @@ namespace Fluxzy.Clients.H2
             var endStream = exchange.Request.Header.ContentLength == 0 ||
                             exchange.Request.Body == null ||
                             exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0;
-
-            // broke hear because exchange.Request.Header.RawHeader should not be used here
-
+            
             var readyToBeSent = _parent.Context.HeaderEncoder.Encode(
-                new HeaderEncodingJob(exchange.Request.Header.GetH2RawHeader(), StreamIdentifier, StreamDependency),
+                new HeaderEncodingJob(exchange.Request.Header.GetHttp11Header(), StreamIdentifier, StreamDependency),
                 buffer, endStream);
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();

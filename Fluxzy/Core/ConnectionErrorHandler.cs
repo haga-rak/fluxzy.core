@@ -35,7 +35,7 @@ namespace Fluxzy.Core
                 var message = $"Fluxzy close connection due to server connection errors.\r\n\r\n";
 
                 if (DebugContext.EnableDumpStackTraceOn502 && exchange.Request?.Header != null)
-                    message += exchange.Request.Header.GetH2RawHeader().ToString();
+                    message += exchange.Request.Header.GetHttp11Header().ToString();
 
                 if (DebugContext.EnableDumpStackTraceOn502)
                     message += ex.ToString();
