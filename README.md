@@ -9,7 +9,7 @@ fluxzy.desktop is a desktop application taking full advandage the fluxzy engine.
 
 ## Features list 
 Find below the list of features that are currently supported : 
- - **SSL/TLS decryption** : fluxzy performs man on the middle to enable viewing HTTP(S) sessions in plain text. By default, fluxzy uses a default embedded certificate but using a custom certificate is supported.
+ - **SSL/TLS decryption** : fluxzy performs man on the middle to enable viewing HTTP(S) sessions in plain text. By default, fluxzy uses a default embedded certificate.  Using a custom certificate is also supported.
  - **H2 on egress** : fluxzy support H2 protocol on egress. This means that ingress HTTP/1.1 requests can be translated into H2 as long as server supports it. fluxzy uses a custom implementation of the H2 protocol, thus, customizing low level H2 setting is possible (window size algorithm, dynamic table size, ...)
  - **Powerful rules filter** : the filter system of fluxzy is designed to give the most flexibility for end user. Alterations goes from spoofing DNS IP to complete, conditional rewrite of a response. 
  - **Always streaming** : fluxzy was designed to produced the minimal overhead possible in order to deliver the most accurate performance measurement. 
