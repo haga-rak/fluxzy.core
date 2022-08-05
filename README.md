@@ -1,5 +1,5 @@
 # fluxzy 
-fluxzy is an HTTP analyzer and debugger engine, designed for measuring performance and providing high-end diagnosis. fluxzy targets .NET Standard 2.1, that means that it runs on any platform supporting this later. 
+fluxzy is an HTTP analyzer and debugger engine, designed for delivering high end diagnosis and accurate performance measures. fluxzy targets .NET Standard 2.1, that means that it runs on any platform supporting this later. 
 
 # fluxzy.cli (fxzy) 
 fxzy is a command line tool taking full advantage of the fluxzy engine, allowing you to a automate fluxzy features without writing any line of code. Run `fxzy --help` to get more information about this tool. 
@@ -8,9 +8,8 @@ fxzy is a command line tool taking full advantage of the fluxzy engine, allowing
 fluxzy.desktop is a desktop application build with electron/angular/.NET. It is available on major platform (macOS, linux, Windows) and aims to be a strong tool for analyzing and debugging HTTP traffic.
 
 ### How does fluxzy works? 
-Fluxzy is an HTTP proxy like many other tool on market. Under the hood, fluxzy is quiet different for not being a simple combination of an HTTP client and HTTP server. In fact fluxzy is build a with a low level HTTP/1.1 fluxzy treats HTTP streams on lower level and have some custom build http engines allowing it to be to
-Fluxy 
-
+Fluxzy is an HTTP proxy like many other tool on market. It takes advantages of the man on the middle technics to enable viewing and debuging secure HTTP streams. However, under the hood, fluxzy is quiet different from the common market HTTP debugger for not being a simple combination of an HTTP client and an HTTP server. 
+In fact fluxzy was build with a custom HTTP client / server and engine allowing the lowest level of passive behavior. 
 
 ## Features list 
 Find below the list of features that are currently supported : 
