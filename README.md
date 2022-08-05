@@ -12,10 +12,10 @@ Fluxzy is an HTTP proxy like many other tool on market. It takes advantages of t
 In fact fluxzy was build with a custom HTTP client / server and engine allowing the lowest level of passive behavior. 
 
 ## Features list 
-Find below the list of features that are currently supported : 
+You will find below the list of features that are currently supported : 
  - **SSL/TLS decryption** : fluxzy performs man on the middle to enable viewing HTTP(S) sessions in plain text. By default, fluxzy uses a default embedded certificate.  Using a custom certificate is also supported.
  - **H2 on egress** : fluxzy support H2 protocol on egress. This means that ingress HTTP/1.1 requests can be translated into H2 as long as server supports it. fluxzy uses a custom implementation of the H2 protocol, thus, customizing low level H2 setting is possible (window size algorithm, dynamic table size, ...)
- - **Powerful rules filter** : fluxzy uses an unique and powerfull filter system to manipulate and alter the traffic.
+ - **Powerful rules filter** : fluxzy uses an unique and powerfull filter system to manipulate the output and alter the traffic.
  - **Always streaming** : fluxzy was designed to produced a minimal overhead in order to deliver the most accurate performance measurement. 
  
  ### Current filters available in fluxzy.desktop
