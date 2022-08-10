@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { tap } from 'rxjs';
-import { UiStateService } from '../services/ui-state.service';
+import { ExchangeState, UiStateService } from '../services/ui-state.service';
 
 @Component({
     selector: 'app-status-bar',
@@ -9,6 +9,7 @@ import { UiStateService } from '../services/ui-state.service';
 })
 export class StatusBarComponent implements OnInit {
     public selectedCount: number;
+    public exchangeState : ExchangeState;
     
     constructor(private uiService : UiStateService) { }
     
@@ -16,6 +17,10 @@ export class StatusBarComponent implements OnInit {
         this.uiService.currenSelectionCount$.pipe(
             tap(n => this.selectedCount = n)
         ).subscribe(); 
+        
+        this.uiService.exchangeState$.pipe(
+            tap(exState => this.exchangeState = exState)
+        ).subscribe();
     }
     
 }

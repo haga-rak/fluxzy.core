@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, concatMap, map, Observable,switchMap } from 'rxjs';
+import { BehaviorSubject, tap, map, Observable,switchMap,distinctUntilChanged } from 'rxjs';
 import { BuildMockExchangesAsObservable, IExchange } from '../core/models/exchanges-mock';
 
 @Injectable({
@@ -12,7 +12,7 @@ export class UiStateService {
     
     public exchangeBrowsingState$ : BehaviorSubject<ExchangeBrowsingState> = new BehaviorSubject<ExchangeBrowsingState>(
     { 
-        count : 500,
+        count : 150,
         endIndex : 500,
         startIndex : 0
     }); 
@@ -33,6 +33,10 @@ export class UiStateService {
             })) ; 
 
         this.exchangeState$ = this.exchangeBrowsingState$.pipe(
+            //    tap(state => {
+            //         console.log(`${state.startIndex} | ${state.endIndex} | ${state.count}`)
+            //    }),
+               distinctUntilChanged( (prev, current) => prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex),
                 switchMap(state => 
                     BuildMockExchangesAsObservable(state)
                 ))
@@ -61,3 +65,47 @@ export interface ExchangeBrowsingState {
     endIndex : number | null;  // when null browse from the end 
     count : number; 
 }
+
+export const NextBrowsingState = (current : ExchangeBrowsingState, maxCount : number) : ExchangeBrowsingState => {
+
+    let result = {
+        ... current
+    } ;
+
+    if (result.endIndex === null)
+        return result; 
+
+    result.endIndex = result.endIndex + current.count ; 
+    result.startIndex = result.endIndex ; 
+
+    if (result.endIndex > maxCount) {
+        result.endIndex = null ; 
+        result.startIndex  = null ; 
+    }
+
+    return result; 
+}
+
+export const PreviousBrowsingState = (current : ExchangeBrowsingState, currentStartIndex : number, maxCount : number) : ExchangeBrowsingState => {
+
+    let result =   {
+        ... current
+    } ;
+
+    result.startIndex = currentStartIndex - current.count  ; 
+
+    if (result.startIndex < 0 ) {
+        result.startIndex = 0 ; 
+    }
+
+    result.endIndex =  result.startIndex  + current.count ;
+
+    if (result.endIndex > maxCount)
+        result.endIndex = maxCount;
+
+    return result; 
+}
+
+
+
+
