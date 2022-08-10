@@ -1,5 +1,6 @@
 
-<perfect-scrollbar style="max-height: calc(100vh - 120px);">
+<perfect-scrollbar id="ps-exchange" style="max-height: calc(100vh - 120px); max-width: 600px;"
+ (psYReachStart)="reachStart($event)" (psYReachEnd)="reachEnd($event)" [usePSClass]="true" [autoPropagation]="true" >
     
 <div class="exchange-table-view-container">
     <table style="width:100%" class="exchange-table-view noselect">
@@ -14,7 +15,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let exchange of exchanges" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchange.id] }" (mouseup)="setSelectionChange($event, exchange)">
+            <tr *ngFor="let exchange of exchangeState.exchanges;  trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchange.id] }" (mouseup)="setSelectionChange($event, exchange)">
                 <td class="text-center">
                     <span *ngIf="exchange.success" class="text-success"><i class="bi bi-circle-fill"></i></span>
                     <span *ngIf="!exchange.success" class="text-danger bold"><i class="bi bi-exclamation-diamond-fill"></i></span>
@@ -28,7 +29,7 @@
                     <spa  [ngClass]="{ 'text-secondary' : exchange.contentType === 'json' }"></spa>
                     {{ exchange.path }}
                 </td>
-                <td>{{ exchange.status }}</td>
+                <td>{{ exchange.id }}</td>
                 <td>{{ exchange.contentType }}</td>
             </tr>
         </tbody>
