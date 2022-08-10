@@ -42,6 +42,7 @@
     "material-icons": "1.11.6",
     "ngx-bootstrap": "8.0.0",
     "ngx-perfect-scrollbar": "10.1.1",
+    "random-seed": "0.3.0",
     "rxjs": "7.5.5",
     "tslib": "^2.1.0",
     "uuid": "8.3.2",

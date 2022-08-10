@@ -3,7 +3,7 @@ import { MouseInputEvent } from 'electron';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { BuildMockExchanges, IExchange } from '../../core/models/exchanges-mock';
-import { ExchangeBrowsingState, ExchangeSelection, ExchangeState, NextBrowsingState, PreviousBrowsingState, UiStateService } from '../../services/ui-state.service';
+import { ExchangeBrowsingState, ExchangeSelection, ExchangeState, FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, UiStateService } from '../../services/ui-state.service';
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -27,6 +27,7 @@ export class ExchangeTableViewComponent implements OnInit {
 
         this.uiService.exchangeState$.pipe(
             tap(exState => this.exchangeState = exState),
+            tap(_ => this.cdr.detectChanges())
             //tap(_ => this.perfectScroll.directiveRef.update())
         ).subscribe();
 
@@ -37,6 +38,13 @@ export class ExchangeTableViewComponent implements OnInit {
 
 
     public scrollY(event : any) {
+        var position = this.perfectScroll.directiveRef.position(false);
+
+        if (position.y === 0 && this.exchangeState && this.browsingState) {
+            let newBrowsingState = FreezeBrowsingState( this.browsingState, this.exchangeState.totalCount);
+            this.uiService.exchangeBrowsingState$.next(newBrowsingState); 
+            this.cdr.detectChanges();
+        }
     }
 
     public reachStart(event : any)  {
