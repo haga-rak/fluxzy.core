@@ -24,7 +24,7 @@ export const BuildMockExchanges = (browsingState : ExchangeBrowsingState) : Exch
     const randomStatus = [200,201,304,200,200,200] ; 
     const randomFailStatus = [500,504,403,401] ; 
 
-    const grandTotalCount = 15000 ;
+    const grandTotalCount = 2000 ;
 
 
     const totalItems = browsingState.count; 
@@ -39,9 +39,17 @@ export const BuildMockExchanges = (browsingState : ExchangeBrowsingState) : Exch
         endIndex = browsingState.endIndex; 
         startIndex = endIndex - browsingState.count ; 
 
-        if(startIndex < 0)
-            startIndex = 0 ; 
     }
+
+    if (endIndex > grandTotalCount) {
+        endIndex = grandTotalCount ; 
+        startIndex =  endIndex - browsingState.count ; 
+
+    }
+
+    if(startIndex < 0)
+    startIndex = 0 ; 
+
 
     const res : IExchange[] = []; 
 

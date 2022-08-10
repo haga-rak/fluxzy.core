@@ -1,8 +1,9 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { MouseInputEvent } from 'electron';
+import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { BuildMockExchanges, IExchange } from '../../core/models/exchanges-mock';
-import { ExchangeBrowsingState, ExchangeSelection, ExchangeState, UiStateService } from '../../services/ui-state.service';
+import { ExchangeBrowsingState, ExchangeSelection, ExchangeState, NextBrowsingState, PreviousBrowsingState, UiStateService } from '../../services/ui-state.service';
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -14,6 +15,8 @@ export class ExchangeTableViewComponent implements OnInit {
     public exchangeState : ExchangeState;
     public exchangeSelection : ExchangeSelection ; 
     public browsingState: ExchangeBrowsingState;
+
+    @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
     
     constructor(private uiService : UiStateService, private cdr: ChangeDetectorRef) { }
     
@@ -23,7 +26,8 @@ export class ExchangeTableViewComponent implements OnInit {
         ).subscribe() ; 
 
         this.uiService.exchangeState$.pipe(
-            tap(exState => this.exchangeState = exState)
+            tap(exState => this.exchangeState = exState),
+            //tap(_ => this.perfectScroll.directiveRef.update())
         ).subscribe();
 
         this.uiService.exchangeBrowsingState$.pipe(
@@ -31,25 +35,48 @@ export class ExchangeTableViewComponent implements OnInit {
         ).subscribe();
     }
 
-    public reachStart(event : any)  {
-        
-        console.log('reach start');
+
+    public scrollY(event : any) {
     }
 
+    public reachStart(event : any)  {
+
+        if(this.exchangeState && this.browsingState) {
+            
+            let startIndexInitial = this.browsingState.startIndex;
+            let nextState =  PreviousBrowsingState( this.browsingState, this.exchangeState.startIndex, this.exchangeState.totalCount);
+
+            this.uiService.exchangeBrowsingState$.next(nextState); 
+            this.cdr.detectChanges();
+
+            if (startIndexInitial !==  0) {
+                this.perfectScroll.directiveRef.scrollToY(2); 
+                this.perfectScroll.directiveRef.update();
+            }
+
+        }
+    }
 
     public reachEnd(event : any)  {
         if(this.exchangeState && this.browsingState) {
-            let copyBrowsingSate  = this.browsingState ;  
 
-            copyBrowsingSate.endIndex = this.exchangeState.endIndex + this.browsingState.count ; 
-            copyBrowsingSate.startIndex = this.exchangeState.startIndex + this.browsingState.count ;
+            let endIndexInitial = this.browsingState.endIndex;
 
-            console.log(copyBrowsingSate);
+            let nextState = NextBrowsingState( this.browsingState, this.exchangeState.totalCount); 
 
-            this.uiService.exchangeBrowsingState$.next(copyBrowsingSate); 
+            this.uiService.exchangeBrowsingState$.next(nextState); 
             this.cdr.detectChanges();
-        }
 
+            let position = this.perfectScroll.directiveRef.position(true); 
+
+            let y = position.y as number; 
+
+            if (y && nextState.endIndex !==  endIndexInitial) {
+                this.perfectScroll.directiveRef.scrollToY(y-2); 
+                this.perfectScroll.directiveRef.update();
+            }
+
+        }
     }
 
 
