@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { tap } from 'rxjs';
 import { ExchangeState, UiStateService } from '../services/ui-state.service';
 
@@ -11,7 +11,7 @@ export class StatusBarComponent implements OnInit {
     public selectedCount: number;
     public exchangeState : ExchangeState;
     
-    constructor(private uiService : UiStateService) { }
+    constructor(private uiService : UiStateService, private cdr: ChangeDetectorRef) { }
     
     ngOnInit(): void {
         this.uiService.currenSelectionCount$.pipe(
@@ -19,7 +19,8 @@ export class StatusBarComponent implements OnInit {
         ).subscribe(); 
         
         this.uiService.exchangeState$.pipe(
-            tap(exState => this.exchangeState = exState)
+            tap(exState => this.exchangeState = exState),
+            tap(_ => this.cdr.detectChanges()),
         ).subscribe();
     }
     

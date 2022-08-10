@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, tap, map, Observable,switchMap,distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, tap, map, Observable,switchMap,distinctUntilChanged, combineLatest, interval, merge, of } from 'rxjs';
 import { BuildMockExchangesAsObservable, IExchange } from '../core/models/exchanges-mock';
 
 @Injectable({
@@ -12,18 +12,20 @@ export class UiStateService {
     
     public exchangeBrowsingState$ : BehaviorSubject<ExchangeBrowsingState> = new BehaviorSubject<ExchangeBrowsingState>(
     { 
-        count : 150,
+        count : 500,
         endIndex : 500,
         startIndex : 0
     }); 
 
     public exchangeState$ : Observable<ExchangeState> = new Observable<ExchangeState>(); 
     
+    private mockIntervalSource = interval(1000) ; 
+    
     constructor() { 
         this.currenSelectionCount$ = 
             this.currentSelection$.pipe(map(s =>  {
                 let count = 0 ; 
-                for (let key in s.map) {
+                for (let key in s.map) { 
                     if (s.map[key]) {
                         count ++ ; 
                     }
@@ -32,15 +34,23 @@ export class UiStateService {
                 
             })) ; 
 
-        this.exchangeState$ = this.exchangeBrowsingState$.pipe(
-            //    tap(state => {
-            //         console.log(`${state.startIndex} | ${state.endIndex} | ${state.count}`)
-            //    }),
-               distinctUntilChanged( (prev, current) => prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex),
+        const finalSource = merge(of(0), this.mockIntervalSource);
+            
+        let finalObservable = combineLatest([
+                this.exchangeBrowsingState$.pipe(
+                distinctUntilChanged( (prev, current) => prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex)), 
+                finalSource
+            ])
+
+        this.exchangeState$ = 
+            finalObservable.pipe(
                 switchMap(state => 
-                    BuildMockExchangesAsObservable(state)
-                ))
-        ;
+                    BuildMockExchangesAsObservable(state[0], state[1])
+                )
+            ) ; 
+        
+        
+        
     }
 }
 
@@ -102,6 +112,26 @@ export const PreviousBrowsingState = (current : ExchangeBrowsingState, currentSt
 
     if (result.endIndex > maxCount)
         result.endIndex = maxCount;
+
+    return result; 
+}
+
+
+export const FreezeBrowsingState = (current : ExchangeBrowsingState, maxCount : number) : ExchangeBrowsingState => {
+
+    let result =   {
+        ... current
+    } ;
+
+    if (current.endIndex !== null)
+        return current;
+
+    result.endIndex = maxCount; 
+    result.startIndex =  result.endIndex - current.count;
+
+    if (result.startIndex < 0 ) {
+        result.startIndex = 0 ; 
+    }
 
     return result; 
 }
