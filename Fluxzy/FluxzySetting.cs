@@ -7,6 +7,7 @@ using System.Net;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Fluxzy.Core;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
@@ -16,8 +17,9 @@ using Fluxzy.Rules.Filters.RequestFilters;
 namespace Fluxzy
 {
     public class FluxzySetting
-    { 
-        private FluxzySetting()
+    {
+        [JsonConstructor]
+        public FluxzySetting()
         {
 
         }
@@ -323,7 +325,8 @@ namespace Fluxzy
             {
                 ConnectionPerHost =  8, 
                 AnticipatedConnectionPerHost = 3
-            }.SetBoundAddress("127.0.0.1", 44344);
+            }
+                .SetBoundAddress("127.0.0.1", 44344);
         }
 
         internal IConsoleOutput GetDefaultOutput()

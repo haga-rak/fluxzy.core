@@ -4,16 +4,16 @@ namespace Fluxzy.Desktop.Services
 {
     public class UiState
     {
-        public IFileState ?  FileStateState { get; set; }
+        public FileState ?  FileStateState { get; set; }
 
         public ProxyState  ProxyState { get; set; }
 
-        public EchoesSettings Settings { get; set; }
+        public FluxzySettingsHolder SettingsHolder { get; set; }
     }
 
     public class ProxyState
     {
-        public bool IsSystemProxy { get; set; }
+        public bool IsSystemProxyOn { get; set; }
 
         public bool IsListening { get; set; }
 
@@ -28,8 +28,4 @@ namespace Fluxzy.Desktop.Services
     }
 
 
-    public class EchoesSettings
-    {
-        public FluxzySetting StartupSetting { get; set; }
-    }
 }

@@ -19,7 +19,7 @@ namespace Fluxzy.Cli
 
         private readonly List<IDirectoryPackager> _packagers = new()
         {
-            new EczDirectoryPackager(),
+            new FxzyDirectoryPackager(),
             new SazPackager(),
         };
 
