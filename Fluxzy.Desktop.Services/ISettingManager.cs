@@ -4,8 +4,13 @@ namespace Fluxzy.Desktop.Services
 {
     public interface ISettingManager
     {
-        Task Update(EchoesSettings settings);
+        Task Update(FluxzySettingsHolder settingsHolder);
 
-        Task<EchoesSettings> Get();
+        Task<FluxzySettingsHolder> Get();
+    }
+
+    public class FluxzySettingsHolder
+    {
+        public FluxzySetting StartupSetting { get; set; } = new();
     }
 }

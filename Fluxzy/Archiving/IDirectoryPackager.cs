@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -86,35 +85,6 @@ namespace Fluxzy
                                .ConfigureAwait(false))
                 results.Add(item);
             return results;
-        }
-    }
-
-    public class EczDirectoryPackager : IDirectoryPackager
-    {
-        public bool ShouldApplyTo(string fileName)
-        {
-            return
-                fileName.EndsWith(".ecz", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".eczip", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".ec.zip", StringComparison.CurrentCultureIgnoreCase) ; 
-        }
-
-        public async Task Pack(string directory, Stream outputStream)
-        {
-            await ZipHelper.Compress(new DirectoryInfo(directory),
-                outputStream, fileInfo =>
-                {
-                    if (fileInfo.Length == 0)
-                        return false;
-
-                    if (!fileInfo.Name.EndsWith(".data")
-                        && !fileInfo.Name.EndsWith(".json"))
-                    {
-                        return false; 
-                    }
-
-                    return true; 
-                }); 
         }
     }
 }

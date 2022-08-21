@@ -1,24 +1,5 @@
 ﻿namespace Fluxzy.Desktop.Services
 {
-    public interface IGlobalFileManager
-    {
-        Task<IFileState> New();
-
-        Task<IFileState> Import(ImportFileModel importFileModel);
-
-        Task<IFileState> Open(string fileName); 
-
-        Task<IFileState> Save(string fileName, Guid fileSessionIdentifier); 
-
-        Task<IFileState> Export(Stream outStream, IFileState fileState, EchoesFileType fileType); 
-    }
-
-
-    public class ImportFileModel
-    {
-
-    }
-
     public interface IFileSessionManager
     {
         Task<UiState> New(); 
@@ -42,20 +23,25 @@
         Saz = 50 , 
     }
 
-    public interface IFileState
+    public class FileState
     {
-        Guid Identifier { get;  }
-        
-        string ?  FullPath { get;  }
+        public FileState(Guid identifier, string workingDirectory)
+        {
+            WorkingDirectory = workingDirectory;
+            Identifier = identifier;
+        }
 
-        EchoesFileType Type { get;  }
+        public Guid Identifier { get; set; }
 
-        long ? EntryCount { get; }
+        public string WorkingDirectory { get; set; }
 
-        DateTime ? LastModificationUtc { get;  }
+        public string ?  MappedFile { get; set; }
+
+        public bool Changed { get; set; }
+
+        public DateTime LastModification { get; set; } = DateTime.Now; 
     }
-
-
+    
     public interface IEchoesSession
     {
         long Id { get;  }

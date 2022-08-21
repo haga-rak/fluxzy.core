@@ -12,7 +12,7 @@ export interface IExchange {
 }
 
 
-let currentCount = 19880;
+let currentCount = 250;
 let lastSeed = -1 ; 
 
 

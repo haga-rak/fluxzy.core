@@ -10,6 +10,20 @@ namespace Fluxzy
     /// </summary>
     public static class ZipHelper
     {
+        public static Task Decompress(
+            Stream input,
+            DirectoryInfo directoryInfo)
+        {
+            if (directoryInfo.Exists)
+                Directory.CreateDirectory(directoryInfo.FullName); 
+            
+            new FastZip().ExtractZip(input, directoryInfo.FullName, FastZip.Overwrite.Always,
+                s => true, "*", "*", true, true);
+
+            return Task.CompletedTask;
+        }
+
+
         public static async Task Compress(DirectoryInfo directoryInfo, 
             Stream output,
             Func<FileInfo, bool> policy)
