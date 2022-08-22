@@ -14,7 +14,7 @@ using Fluxzy.Misc;
 using Fluxzy.Tests.Tools;
 using Fluxzy.Tests.Utils;
 using Xunit;
-using Header2 = Sandbox.Models.Header;
+using Header2 = fluxzy.sandbox.models.Header;
 
 namespace Fluxzy.Tests
 {

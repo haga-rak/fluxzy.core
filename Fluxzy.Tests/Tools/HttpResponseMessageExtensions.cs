@@ -3,7 +3,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Sandbox.Models;
+using fluxzy.sandbox.models;
 
 namespace Fluxzy.Tests.Tools
 {
