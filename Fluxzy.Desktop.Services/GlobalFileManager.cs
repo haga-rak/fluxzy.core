@@ -4,10 +4,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class GlobalFileManager : IGlobalFileManager
+    public class GlobalFileManager
     {
-        private FileState? _current = null;
-
         private readonly FxzyDirectoryPackager _directoryPackager;
         private readonly string _tempDirectory;
 
@@ -21,6 +19,8 @@ namespace Fluxzy.Desktop.Services
 
             Directory.CreateDirectory(_tempDirectory); 
         }
+
+        public FileState? Current { get; private set; } = null;
 
         private (Guid,string) GenerateNewDirectory()
         {
@@ -38,9 +38,9 @@ namespace Fluxzy.Desktop.Services
         {
             var (id, fullPath) = GenerateNewDirectory();
 
-            _current = new FileState(id, fullPath);
+            Current = new FileState(id, fullPath);
 
-            return Task.FromResult(_current); 
+            return Task.FromResult(Current); 
         }
 
         public async Task<FileState> Open(string fileName)
@@ -63,25 +63,34 @@ namespace Fluxzy.Desktop.Services
 
         public async Task<FileState> Save(string fileName)
         {
-            if (_current == null)
+            if (Current == null)
                 throw new InvalidOperationException("Current working directory/file is not set");
 
             var outStream = File.Create(fileName);
             
-            await _directoryPackager.Pack(_current.WorkingDirectory,
+            await _directoryPackager.Pack(Current.WorkingDirectory,
                 outStream
             );
 
-            _current.WorkingDirectory = fileName;
-            _current.Changed = false; 
+            Current.WorkingDirectory = fileName;
+            Current.Changed = false; 
 
-            return _current;
+            return Current;
 
         }
 
-        public Task<FileState> Export(Stream outStream, EchoesFileType fileType)
+        public Task<FileState> Export(Stream outStream, FluxzyFileType fileType)
         {
             throw new NotImplementedException();
         }
     }
+
+    public enum FluxzyFileType
+    {
+        Error = 0,
+        Native = 1,
+        Har = 5,
+        Saz = 50,
+    }
+
 }

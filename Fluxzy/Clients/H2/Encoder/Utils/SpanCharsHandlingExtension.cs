@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fluxzy.Clients.H2.Encoder.HPack;
 
 namespace Fluxzy.Clients.H2.Encoder.Utils
@@ -119,6 +120,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             offset += addition.Length;
             return input.Slice(addition.Length);
         }
+        
 
         public static Span<char> Concat(this Span<char> input, char @char, ref int offset)
         {
@@ -141,7 +143,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             bool first = true;
             int offset = 0;
 
-            var offsetBuffer = buffer; 
+            var offsetBuffer = buffer;
 
             foreach (var item in items)
             {

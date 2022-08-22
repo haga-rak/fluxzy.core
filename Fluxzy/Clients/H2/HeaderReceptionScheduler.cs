@@ -14,15 +14,15 @@ namespace Fluxzy.Clients.H2
 
         internal class ScheduledItem
         {
-            public ScheduledItem(Action<object?> action, object? arg)
+            public ScheduledItem(Action<object> action, object arg)
             {
                 Action = action;
                 Arg = arg;
             }
 
-            public Action<object?> Action { get;  }
+            public Action<object> Action { get;  }
              
-            public object? Arg { get; }
+            public object Arg { get; }
 
         }
 
@@ -48,7 +48,7 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        public override void Schedule(Action<object?> action, object? state)
+        public override void Schedule(Action<object> action, object state)
         {
             Sync.Wait();
             _channel.Writer.TryWrite(new ScheduledItem(action, state)); 

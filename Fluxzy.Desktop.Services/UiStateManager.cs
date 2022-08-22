@@ -4,6 +4,9 @@ namespace Fluxzy.Desktop.Services
 {
     public class UiStateManager
     {
-
+        public async Task<UiState> BuidlUiState()
+        {
+            return null; 
+        }
     }
 }
