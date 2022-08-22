@@ -22,6 +22,12 @@ namespace Fluxzy.Desktop.Services
 
     public class ProxyEndPoint
     {
+        public ProxyEndPoint(string address, int port)
+        {
+            Address = address;
+            Port = port;
+        }
+
         public string Address { get; set; } 
 
         public int Port { get; set; }

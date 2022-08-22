@@ -10,8 +10,8 @@
     <Authors>Haga Rakotoharivelo</Authors>
     <Description>fluxzy. HTTP engine for analyzing and altering HTTP requests</Description>
     <Copyright />
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <LangVersion>preview</LangVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -21,6 +21,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Archiving\Har\**" />
+    <EmbeddedResource Remove="Archiving\Har\**" />
+    <None Remove="Archiving\Har\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Messages\Hpm.cs" />
@@ -65,10 +71,6 @@
       <LastGenOutput>FileStore.Designer.cs</LastGenOutput>
       <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Archiving\Har\Models\" />
   </ItemGroup>
 
 </Project>

@@ -16,7 +16,6 @@ namespace Fluxzy
 {
     public class Proxy : IDisposable, IAsyncDisposable, IExchangeEventSource
     {
-        private readonly FluxzySetting _startupSetting;
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
         private CancellationTokenSource _proxyHaltTokenSource = new();
 
@@ -37,28 +36,26 @@ namespace Fluxzy
             ICertificateProvider certificateProvider
             )
         {
-            _startupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
+            StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
             
             _downStreamConnectionProvider =
-                new DownStreamConnectionProvider(_startupSetting.BoundPoints);
+                new DownStreamConnectionProvider(StartupSetting.BoundPoints);
             
             var throtleStream = startupSetting.GetThrottlerStream();
-
-            Stream ThrottlePolicyStream(string s) => throtleStream;
 
             var secureConnectionManager = new SecureConnectionUpdater(
                // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
                 certificateProvider);
 
-            if (_startupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
+            if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
             {
-                Directory.CreateDirectory(_startupSetting.ArchivingPolicy.Directory);
+                Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
 
                 _writer = new DirectoryArchiveWriter(
-                    Path.Combine(_startupSetting.ArchivingPolicy.Directory, SessionIdentifier));
+                    Path.Combine(StartupSetting.ArchivingPolicy.Directory, SessionIdentifier));
             }
 
-            var http1Parser = new Http11Parser(_startupSetting.MaxHeaderLength);
+            var http1Parser = new Http11Parser(StartupSetting.MaxHeaderLength);
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default, http1Parser,
                 _writer);
@@ -72,10 +69,10 @@ namespace Fluxzy
             _proxyOrchestrator = new ProxyOrchestrator(new ProxyRuntimeSetting(startupSetting, ExecutionContext, this),
                 new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer, this);
 
-            if (!_startupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction && 
+            if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction && 
                                                           t.Filter.Children.OfType<AnyFilter>().Any() 
                                                           && t.Filter.Children.Count == 1) 
-                && _startupSetting.AutoInstallCertificate)
+                && StartupSetting.AutoInstallCertificate)
             {
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
             }
@@ -83,6 +80,8 @@ namespace Fluxzy
             startupSetting.GetDefaultOutput()
                 .WriteLine($@"Listening on {startupSetting.BoundPointsDescription}");
         }
+        
+        public FluxzySetting StartupSetting { get; }
 
         public ProxyExecutionContext ExecutionContext { get; }
 
@@ -152,13 +151,9 @@ namespace Fluxzy
 
             _started = true;
 
-            if (_startupSetting.RegisterAsSystemProxy)
+            if (StartupSetting.RegisterAsSystemProxy)
             {
-                var defaultPort = _startupSetting.BoundPoints.OrderByDescending(d => d.Default)
-                    .Select(t => t.Port).First(); 
-
-                _proxyRegister = new SystemProxyRegistration(_startupSetting.GetDefaultOutput(), 
-                    "127.0.0.1", defaultPort, _startupSetting.ByPassHost.ToArray());
+                SetAsSystemProxy();
             }
                
 
@@ -166,7 +161,31 @@ namespace Fluxzy
 
             _loopTask = Task.Run(MainLoop);
         }
+
+        public bool SystemProxyOn => _proxyRegister != null; 
         
+
+        public void SetAsSystemProxy()
+        {
+            if (_proxyRegister != null)
+                return; 
+
+            var defaultPort = StartupSetting.BoundPoints.OrderByDescending(d => d.Default)
+                .Select(t => t.Port).First();
+
+            _proxyRegister = new SystemProxyRegistration(StartupSetting.GetDefaultOutput(),
+                "127.0.0.1", defaultPort, StartupSetting.ByPassHost.ToArray());
+        }
+
+        public void UnsetAsSystemProxy()
+        {
+            if (_proxyRegister == null)
+                return;  
+
+            _proxyRegister?.Dispose();
+            _proxyRegister = null;
+        }
+
         public void Dispose()
         {
             InternalDispose();
