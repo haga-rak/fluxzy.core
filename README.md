@@ -9,7 +9,7 @@ fluxzy.desktop is a desktop application build with electron/angular/.NET. It is 
 
 ### How does fluxzy works? 
 Fluxzy is an HTTP proxy like many other tool on market. It takes advantages of the man on the middle technics to enable viewing and debuging secure HTTP streams. However, under the hood, fluxzy is quiet different from the common market HTTP debugger for not being a simple combination of an HTTP client and an HTTP server. 
-In fact fluxzy was build with a custom HTTP client / server and engine allowing the lowest level of passive behavior. 
+In fact fluxzy was build with a custom HTTP client / server and engine allowing the smoothest streaming capabilities. 
 
 ## Features list 
 You will find below the list of features that are currently supported : 
