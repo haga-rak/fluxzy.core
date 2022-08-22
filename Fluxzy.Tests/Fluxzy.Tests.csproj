@@ -30,7 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
-    <ProjectReference Include="..\SubModules\Sandbox\Sandbox.Models\Sandbox.Models.csproj" />
+    <ProjectReference Include="..\SubModules\Sandbox\fluxzy.sandbox.models\fluxzy.sandbox.models.csproj" />
   </ItemGroup>
 
 </Project>
