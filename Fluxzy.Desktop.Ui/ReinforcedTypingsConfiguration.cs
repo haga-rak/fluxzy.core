@@ -47,6 +47,12 @@ namespace Echoes.Desktop.Ui
             builder.ExportAsInterface<FluxzySetting>()
                 .ApplyGenericProperties();
 
+            builder.ExportAsInterface<ExchangeState>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ExchangeBrowsingState>()
+                .ApplyGenericProperties();
+
 
             // Core objects 
 

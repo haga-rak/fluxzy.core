@@ -1,12 +1,13 @@
 ﻿using System.Text.Json;
+using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class FileSessionManager
+    public class TrunkManager
     {
         private readonly GlobalFileManager _globalFileManager;
 
-        public FileSessionManager(GlobalFileManager globalFileManager)
+        public TrunkManager(GlobalFileManager globalFileManager)
         {
             _globalFileManager = globalFileManager;
         }
@@ -18,8 +19,12 @@ namespace Fluxzy.Desktop.Services
             if (current == null)
                 return Task.FromResult(0);
 
+            var exchangeDir = Path.Combine(current.WorkingDirectory, "exchanges");
+
+            Directory.CreateDirectory(exchangeDir); 
+
             var count =
-                new DirectoryInfo(Path.Combine(current.WorkingDirectory, "exchanges"))
+                new DirectoryInfo(exchangeDir)
                     .EnumerateFiles("*.json").Count();
 
             return Task.FromResult(count);
@@ -32,8 +37,12 @@ namespace Fluxzy.Desktop.Services
             if (current == null)
                 yield break;
 
+            var exchangeDir = Path.Combine(current.WorkingDirectory, "exchanges");
+
+            Directory.CreateDirectory(exchangeDir);
+
             var fileInfos =
-                new DirectoryInfo(Path.Combine(current.WorkingDirectory, "exchanges"))
+                new DirectoryInfo(exchangeDir)
                     .EnumerateFiles("*.json")
                     .OrderBy(o => o.Name)
                     .Skip(start)
@@ -49,7 +58,7 @@ namespace Fluxzy.Desktop.Services
                 }
                 catch
                 {
-                    // We ignore read errors (engine is writing to file )
+                    // We ignore read errors (engine is probably writing to file )
                     continue; 
                 }
 
@@ -88,6 +97,44 @@ namespace Fluxzy.Desktop.Services
                     yield return connection;
             }
         }
+
+        public async Task<ExchangeState> ReadState(ExchangeBrowsingState browsingState)
+        {
+            var totalCount = await ExchangeCount();
+
+            int endIndex, startIndex;
+
+            if (browsingState.EndIndex == null)
+            {
+                endIndex = totalCount;
+                startIndex = endIndex - totalCount; 
+            }
+            else
+            {
+                if (browsingState.StartIndex == null)
+                {
+                    endIndex = browsingState.EndIndex.Value;
+                    startIndex = endIndex - totalCount;
+                }
+                else
+                {
+                    startIndex = browsingState.StartIndex.Value;
+                    endIndex = Math.Min(
+                        startIndex + totalCount,
+                        startIndex + browsingState.Count); 
+                }
+            }
+            
+            var exchanges = await ReadExchanges(startIndex, endIndex).ToListAsync();
+
+            return new ExchangeState()
+            {
+                StartIndex = startIndex,
+                Count = exchanges.Count,
+                EndIndex = endIndex,
+                Exchanges = exchanges,
+                TotalCount = totalCount
+            }; 
+        }
     }
-    
 }

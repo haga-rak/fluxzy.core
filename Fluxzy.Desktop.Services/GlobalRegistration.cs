@@ -7,7 +7,7 @@ namespace Fluxzy.Desktop.Services
         public static void AddFluxzyDesktopServices(this IServiceCollection collection)
         {
             collection.AddSingleton<GlobalFileManager>();
-            collection.AddSingleton<FileSessionManager>();
+            collection.AddSingleton<TrunkManager>();
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();
 

@@ -1,6 +1,5 @@
 import { interval, Observable, of, map } from "rxjs";
-import { ExchangeBrowsingState, ExchangeState } from "../../services/ui-state.service";
-import { ExchangeInfo } from "./auto-generated";
+import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from "./auto-generated";
 
 let currentCount = 250;
 let lastSeed = -1 ; 
