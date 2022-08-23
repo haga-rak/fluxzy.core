@@ -17,13 +17,13 @@
         <tbody>
             <tr *ngFor="let exchange of exchangeState.exchanges;  trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchange.id] }" (mouseup)="setSelectionChange($event, exchange)">
                 <td class="text-center">
-                    <span *ngIf="exchange.success" class="text-success"><i class="bi bi-circle-fill"></i></span>
-                    <span *ngIf="!exchange.success" class="text-danger bold"><i class="bi bi-exclamation-diamond-fill"></i></span>
+                    <span *ngIf="exchange.done" class="text-success"><i class="bi bi-circle-fill"></i></span>
+                    <span *ngIf="!exchange.done" class="text-danger bold"><i class="bi bi-exclamation-diamond-fill"></i></span>
                     
                 </td>
                 <td>
                     <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i>
-                    {{ exchange.host }}</td>
+                    {{ exchange.knownAuthority }}</td>
                 <td class="">{{ exchange.method }}&nbsp;&nbsp;</td>
                 <td>
                     <spa  [ngClass]="{ 'text-secondary' : exchange.contentType === 'json' }"></spa>

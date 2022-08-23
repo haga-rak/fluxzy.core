@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Desktop.Services.Models;
 using Microsoft.Extensions.Configuration;
 
 namespace Fluxzy.Desktop.Services

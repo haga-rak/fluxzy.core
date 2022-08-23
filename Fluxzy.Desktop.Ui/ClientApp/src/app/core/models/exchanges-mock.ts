@@ -1,21 +1,9 @@
 import { interval, Observable, of, map } from "rxjs";
 import { ExchangeBrowsingState, ExchangeState } from "../../services/ui-state.service";
-
-export interface IExchange {
-    id : number;
-    path : string;
-    status : number | null; 
-    contentType : string ; 
-    host : string; 
-    method : string; 
-    success : boolean; 
-}
-
+import { ExchangeInfo } from "./auto-generated";
 
 let currentCount = 250;
 let lastSeed = -1 ; 
-
-
 
 export const BuildMockExchangesAsObservable = (browsingState : ExchangeBrowsingState, seed : number) : Observable<ExchangeState> => {
     if (lastSeed !== seed) {
@@ -63,21 +51,28 @@ export const BuildMockExchanges = (browsingState : ExchangeBrowsingState, grandT
     startIndex = 0 ; 
 
 
-    const res : IExchange[] = []; 
+    const res : ExchangeInfo[] = []; 
 
     for (let i = startIndex ; i < endIndex ; i ++ ) {
-        let item = {
-            id : i + 1 ,
+        let item : ExchangeInfo = {
+            connectionId :1 ,
             path : randomPath[randomInt(i,randomPath.length)], 
-            status : randomStatus[randomInt(i,randomStatus.length)], 
+            statusCode : randomStatus[randomInt(i,randomStatus.length)], 
             contentType : randomContentType[randomInt(i,randomContentType.length)], 
-            host : randomHost[randomInt(i,randomHost.length)], 
+            knownAuthority : randomHost[randomInt(i,randomHost.length)], 
             method : randomMethods[randomInt(i,randomMethods.length)], 
-            success : randomInt(i,100) < 91
+            done : randomInt(i,100) < 91,
+            egressIp : null, 
+            fullUrl : '',
+            httpVersion : 'HTTP/1.1',
+            id : i + 1,
+            metrics : null,
+            requestHeader : null, 
+            responseHeader : null
         };
 
-        if (!item.success) {
-            item.status = randomFailStatus[randomInt(i,randomFailStatus.length)]
+        if (!item.done) {
+            item.statusCode = randomFailStatus[randomInt(i,randomFailStatus.length)]
         }
 
         res.push( item);

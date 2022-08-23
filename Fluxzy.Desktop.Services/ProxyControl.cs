@@ -1,4 +1,5 @@
 ﻿using Fluxzy.Core;
+using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {

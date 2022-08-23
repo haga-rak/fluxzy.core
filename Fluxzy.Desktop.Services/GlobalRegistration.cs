@@ -12,6 +12,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<FluxzySettingManager>();
 
             collection.AddScoped<UiStateManager>();
+            collection.AddTransient<FxzyDirectoryPackager>();
         }
     }
 }
