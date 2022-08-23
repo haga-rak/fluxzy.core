@@ -29,7 +29,6 @@ namespace Fluxzy.Desktop.Services
                 using var outStream = File.Create(_settingPath);
                 JsonSerializer.Serialize(outStream, settingsHolder);
             }
-
         }
 
         public FluxzySettingsHolder Get()

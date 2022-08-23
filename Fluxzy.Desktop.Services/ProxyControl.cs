@@ -25,7 +25,7 @@ namespace Fluxzy.Desktop.Services
                 _proxy = null; 
             }
 
-            var currentSettingHolder = await _settingManager.Get();
+            var currentSettingHolder = _settingManager.Get();
 
             _proxy = new Proxy(currentSettingHolder.StartupSetting,
                 new CertificateProvider(currentSettingHolder.StartupSetting, new InMemoryCertificateCache()));
