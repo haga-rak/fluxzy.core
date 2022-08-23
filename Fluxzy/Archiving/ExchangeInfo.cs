@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
+using System.Web;
 using Fluxzy.Clients;
+using Fluxzy.Utils;
 
 namespace Fluxzy
 {
@@ -42,6 +45,10 @@ namespace Fluxzy
         public string Method => RequestHeader.Method.ToString();
 
         public string Path => RequestHeader.Path.ToString();
+
+        public string ContentType => HeaderUtility.GetSimplifiedContentType(this);
+
+        public bool Done => ResponseHeader.StatusCode > 0; 
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {

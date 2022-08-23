@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, tap, map, Observable,switchMap,distinctUntilChanged, combineLatest, interval, merge, of } from 'rxjs';
-import { BuildMockExchangesAsObservable, IExchange } from '../core/models/exchanges-mock';
+import { ExchangeInfo } from '../core/models/auto-generated';
+import { BuildMockExchangesAsObservable } from '../core/models/exchanges-mock';
 
 @Injectable({
     providedIn: 'root'
@@ -62,7 +63,7 @@ export interface ExchangeSelection {
 
 
 export interface ExchangeState {
-    exchanges: IExchange [], 
+    exchanges: ExchangeInfo [], 
     startIndex : number, 
     endIndex : number, 
     count : number,

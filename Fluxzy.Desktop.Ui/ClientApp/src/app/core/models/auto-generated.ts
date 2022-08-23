@@ -2,36 +2,36 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-interface UiState
+export interface UiState
 {
 	fileStateState?: FileState;
 	proxyState: ProxyState;
 	settingsHolder: FluxzySettingsHolder;
 }
-interface ProxyState
+export interface ProxyState
 {
 	isSystemProxyOn: boolean;
 	isListening: boolean;
 	boundConnections: ProxyEndPoint[];
 }
-interface ProxyEndPoint
+export interface ProxyEndPoint
 {
 	address: string;
 	port: number;
 }
-interface ProxyBindPoint
+export interface ProxyBindPoint
 {
 	address: string;
 	port: number;
 	default: boolean;
 }
-interface ArchivingPolicy
+export interface ArchivingPolicy
 {
 	type: number;
 	directory: string;
 	none: ArchivingPolicy;
 }
-interface FileState
+export interface FileState
 {
 	identifier: string;
 	workingDirectory: string;
@@ -39,11 +39,11 @@ interface FileState
 	changed: boolean;
 	lastModification: Date;
 }
-interface FluxzySettingsHolder
+export interface FluxzySettingsHolder
 {
 	startupSetting: FluxzySetting;
 }
-interface FluxzySetting
+export interface FluxzySetting
 {
 	boundPoints: ProxyBindPoint[];
 	boundPointsDescription: string;
@@ -64,7 +64,7 @@ interface FluxzySetting
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: any[];
 }
-interface ExchangeInfo
+export interface ExchangeInfo
 {
 	id: number;
 	connectionId: number;
@@ -76,10 +76,12 @@ interface ExchangeInfo
 	knownAuthority: string;
 	method: string;
 	path: string;
+	contentType: string;
+	done: boolean;
 	statusCode: number;
 	egressIp: string;
 }
-interface RequestHeaderInfo
+export interface RequestHeaderInfo
 {
 	method: string;
 	scheme: string;
@@ -87,12 +89,12 @@ interface RequestHeaderInfo
 	authority: string;
 	headers: HeaderFieldInfo[];
 }
-interface ResponseHeaderInfo
+export interface ResponseHeaderInfo
 {
 	statusCode: number;
 	headers: HeaderFieldInfo[];
 }
-interface ExchangeMetrics
+export interface ExchangeMetrics
 {
 	receivedFromProxy: Date;
 	retrievingPool: Date;
@@ -111,13 +113,13 @@ interface ExchangeMetrics
 	localPort: number;
 	localAddress: string;
 }
-interface HeaderFieldInfo
+export interface HeaderFieldInfo
 {
 	name: string;
 	value: string;
 	forwarded: boolean;
 }
-interface ConnectionInfo
+export interface ConnectionInfo
 {
 	id: number;
 	authority: AuthorityInfo;
@@ -133,13 +135,13 @@ interface ConnectionInfo
 	localAddress: string;
 	remoteAddress: string;
 }
-interface AuthorityInfo
+export interface AuthorityInfo
 {
 	hostName: string;
 	port: number;
 	secure: boolean;
 }
-interface SslInfo
+export interface SslInfo
 {
 	sslProtocol: number;
 	remoteCertificateIssuer: string;

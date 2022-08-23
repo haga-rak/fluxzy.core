@@ -2,7 +2,7 @@
 
 using Fluxzy;
 using Fluxzy.Clients;
-using Fluxzy.Desktop.Services;
+using Fluxzy.Desktop.Services.Models;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
 using Reinforced.Typings.Fluent;
@@ -17,6 +17,10 @@ namespace Echoes.Desktop.Ui
     {
         public static void Configure(ConfigurationBuilder builder)
         {
+            builder.Global(config => config.CamelCaseForProperties()
+                .AutoOptionalProperties()
+                .UseModules());
+
             // UI objects
 
             builder.ExportAsInterface<UiState>()

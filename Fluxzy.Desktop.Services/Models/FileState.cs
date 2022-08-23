@@ -1,4 +1,4 @@
-﻿namespace Fluxzy.Desktop.Services
+﻿namespace Fluxzy.Desktop.Services.Models
 {
     public class FileState
     {
@@ -12,10 +12,10 @@
 
         public string WorkingDirectory { get; set; }
 
-        public string ?  MappedFile { get; set; }
+        public string? MappedFile { get; set; }
 
         public bool Changed { get; set; }
 
-        public DateTime LastModification { get; set; } = DateTime.Now; 
+        public DateTime LastModification { get; set; } = DateTime.Now;
     }
 }

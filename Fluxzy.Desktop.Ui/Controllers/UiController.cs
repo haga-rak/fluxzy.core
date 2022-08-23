@@ -1,4 +1,5 @@
 ﻿using Fluxzy.Desktop.Services;
+using Fluxzy.Desktop.Services.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Echoes.Desktop.Ui.Controllers

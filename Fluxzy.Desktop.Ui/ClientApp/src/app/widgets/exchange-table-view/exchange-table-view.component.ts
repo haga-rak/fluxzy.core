@@ -2,7 +2,8 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '
 import { MouseInputEvent } from 'electron';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
-import { BuildMockExchanges, IExchange } from '../../core/models/exchanges-mock';
+import { ExchangeInfo } from '../../core/models/auto-generated';
+import { BuildMockExchanges } from '../../core/models/exchanges-mock';
 import { ExchangeBrowsingState, ExchangeSelection, ExchangeState, FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, UiStateService } from '../../services/ui-state.service';
 
 @Component({
@@ -89,11 +90,11 @@ export class ExchangeTableViewComponent implements OnInit {
 
 
 
-    public identify(index : number, item : IExchange) : number {
+    public identify(index : number, item : ExchangeInfo) : number {
         return item.id;
     } 
         
-    public setSelectionChange (event : MouseEvent, exchange : IExchange) : void {
+    public setSelectionChange (event : MouseEvent, exchange : ExchangeInfo) : void {
 
         if (event.ctrlKey){
             this.exchangeSelection.map[exchange.id] = !this.exchangeSelection.map[exchange.id];

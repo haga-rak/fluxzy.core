@@ -1,5 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Desktop.Services.Models;
+
 namespace Fluxzy.Desktop.Services
 {
     public class UiStateManager
