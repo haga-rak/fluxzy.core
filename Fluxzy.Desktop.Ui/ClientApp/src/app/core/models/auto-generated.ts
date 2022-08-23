@@ -64,6 +64,20 @@ export interface FluxzySetting
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: any[];
 }
+export interface ExchangeState
+{
+	exchanges: ExchangeInfo[];
+	count: number;
+	startIndex: number;
+	endIndex: number;
+	totalCount: number;
+}
+export interface ExchangeBrowsingState
+{
+	startIndex?: number;
+	endIndex?: number;
+	count: number;
+}
 export interface ExchangeInfo
 {
 	id: number;

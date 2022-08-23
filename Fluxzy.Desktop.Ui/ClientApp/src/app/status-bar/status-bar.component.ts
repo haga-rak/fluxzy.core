@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { tap } from 'rxjs';
-import { ExchangeState, UiStateService } from '../services/ui-state.service';
+import { ExchangeState } from '../core/models/auto-generated';
+import {  UiStateService } from '../services/ui-state.service';
 
 @Component({
     selector: 'app-status-bar',

@@ -2,9 +2,9 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '
 import { MouseInputEvent } from 'electron';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
-import { ExchangeInfo } from '../../core/models/auto-generated';
+import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../../core/models/auto-generated';
 import { BuildMockExchanges } from '../../core/models/exchanges-mock';
-import { ExchangeBrowsingState, ExchangeSelection, ExchangeState, FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, UiStateService } from '../../services/ui-state.service';
+import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, UiStateService } from '../../services/ui-state.service';
 
 @Component({
     selector: 'app-exchange-table-view',

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, of, Subject,tap,take, map } from 'rxjs';
-import { FileState, UiState } from '../../models/auto-generated';
+import { ExchangeBrowsingState, ExchangeState, FileState, UiState } from '../core/models/auto-generated';
 
 @Injectable({
     providedIn: 'root'
@@ -28,5 +28,10 @@ export class UiService {
 
     public getFileState() : Observable<FileState> {
         return this.uiState$.asObservable().pipe(map(u => u.fileStateState )) ; 
+    }
+
+    public getExchangeState(browsingState : ExchangeBrowsingState) : Observable<ExchangeState> {
+        return this.httpClient.post<ExchangeState>(`api/trunk/read`, browsingState)
+            .pipe(take(1)); 
     }
 }
