@@ -45,6 +45,7 @@ export class ExchangeTableViewComponent implements OnInit {
             let newBrowsingState = FreezeBrowsingState( this.browsingState, this.exchangeState.totalCount);
             this.uiService.exchangeBrowsingState$.next(newBrowsingState); 
             this.cdr.detectChanges();
+            console.log('scrolly') ;
         }
     }
 
@@ -56,6 +57,9 @@ export class ExchangeTableViewComponent implements OnInit {
             let nextState =  PreviousBrowsingState( this.browsingState, this.exchangeState.startIndex, this.exchangeState.totalCount);
 
             this.uiService.exchangeBrowsingState$.next(nextState); 
+            
+            console.log('reachStart') ;
+
             this.cdr.detectChanges();
 
             if (startIndexInitial !==  0) {
@@ -73,8 +77,12 @@ export class ExchangeTableViewComponent implements OnInit {
 
             let nextState = NextBrowsingState( this.browsingState, this.exchangeState.totalCount); 
 
+            if (!this.exchangeState.totalCount)
+                return;
+
             this.uiService.exchangeBrowsingState$.next(nextState); 
             this.cdr.detectChanges();
+            
 
             let position = this.perfectScroll.directiveRef.position(true); 
 

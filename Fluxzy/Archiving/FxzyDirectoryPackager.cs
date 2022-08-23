@@ -11,9 +11,10 @@ namespace Fluxzy
         public bool ShouldApplyTo(string fileName)
         {
             return
-                fileName.EndsWith(".ecz", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".eczip", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".ec.zip", StringComparison.CurrentCultureIgnoreCase) ; 
+                fileName.EndsWith(".fxyz", StringComparison.CurrentCultureIgnoreCase) ||
+                fileName.EndsWith(".fyz", StringComparison.CurrentCultureIgnoreCase) ||
+                fileName.EndsWith(".fluxzy", StringComparison.CurrentCultureIgnoreCase) ||
+                fileName.EndsWith(".fxyz.zip", StringComparison.CurrentCultureIgnoreCase) ; 
         }
 
         public async Task Unpack(Stream inputStream, string directoryOutput)
