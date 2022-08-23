@@ -8,6 +8,7 @@ namespace Fluxzy.Desktop.Services
     public class FluxzySettingManager
     {
         private readonly string _settingPath;
+        private FluxzySettingsHolder?  _current = null; 
 
         public FluxzySettingManager(IConfiguration configuration)
         {
@@ -19,23 +20,36 @@ namespace Fluxzy.Desktop.Services
             _settingPath = Path.Combine(_settingPath, "settings.json"); 
         }
 
-        public  async Task Update(FluxzySettingsHolder settingsHolder)
+
+        public  void Update(FluxzySettingsHolder settingsHolder)
         {
-            await using var outStream = File.Create(_settingPath);
-            await JsonSerializer.SerializeAsync(outStream, settingsHolder);
+            lock (_settingPath)
+            {
+                _current = settingsHolder;
+                using var outStream = File.Create(_settingPath);
+                JsonSerializer.Serialize(outStream, settingsHolder);
+            }
+
         }
 
-        public async Task<FluxzySettingsHolder> Get()
+        public FluxzySettingsHolder Get()
         {
+            if (_current != null)
+                return _current; 
+
             if (!File.Exists(_settingPath))
-                return new FluxzySettingsHolder()
+            {
+                return _current = new FluxzySettingsHolder()
                 {
                     StartupSetting = FluxzySetting.CreateDefault()
                 };
+            }
 
-            await using var inStream = File.OpenRead(_settingPath)!; 
-
-            return (await JsonSerializer.DeserializeAsync<FluxzySettingsHolder>(inStream))!; 
+            lock (_settingPath)
+            {
+                using var inStream = File.OpenRead(_settingPath)!;
+                return (JsonSerializer.Deserialize<FluxzySettingsHolder>(inStream))!;
+            }
         }
     }
 }

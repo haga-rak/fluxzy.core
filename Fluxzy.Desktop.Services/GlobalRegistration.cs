@@ -10,6 +10,8 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<FileSessionManager>();
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();
+
+            collection.AddScoped<UiStateManager>();
         }
     }
 }
