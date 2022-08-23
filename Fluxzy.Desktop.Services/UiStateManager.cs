@@ -17,13 +17,13 @@ namespace Fluxzy.Desktop.Services
         }
 
 
-        public async Task<UiState> GetUiState()
+        public UiState GetUiState()
         {
             return new UiState()
             {
                 FileStateState = _globalFileManager.Current,
                 ProxyState = _proxyControl.GetProxyState(),
-                SettingsHolder = await _settingManager.Get()
+                SettingsHolder =  _settingManager.Get()
             };
         }
     }
