@@ -25,6 +25,7 @@ app.MapHub<GlobalHub>("/global");
 app.MapFallbackToFile("index.html");
 
 var globalFileManager = app.Services.GetRequiredService<GlobalFileManager>();
-await globalFileManager.New();
+//await globalFileManager.New();
+await globalFileManager.Open(@"d:\testboot.fxyz");
 
 app.Run();

@@ -46,16 +46,16 @@ namespace Fluxzy
 
         public string ContentType => HeaderUtility.GetSimplifiedContentType(this);
 
-        public bool Done => ResponseHeader.StatusCode > 0; 
+        public bool Done => ResponseHeader?.StatusCode > 0; 
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
-            return RequestHeader.Headers;
+            return RequestHeader?.Headers;
         }
 
         public IEnumerable<HeaderFieldInfo> GetResponseHeaders()
         {
-            return ResponseHeader.Headers;
+            return ResponseHeader?.Headers;
         }
 
         public int StatusCode => ResponseHeader?.StatusCode ?? 0;

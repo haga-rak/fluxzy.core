@@ -39,6 +39,13 @@ export class UiStateService {
         
         if (!this.mocked) {
             this.exchangeState$ = this.exchangeBrowsingState$.pipe(
+                distinctUntilChanged((prev, current) => {
+                    console.log('prev');
+                    console.log(prev);
+                    console.log('current');
+                    console.log(current);
+                    return prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
+                }),
                 switchMap(browsingState => uiService.getExchangeState(browsingState))
             );
         }
@@ -47,7 +54,10 @@ export class UiStateService {
                 
             let finalObservable = combineLatest([
                     this.exchangeBrowsingState$.pipe(
-                    distinctUntilChanged( (prev, current) => prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex)), 
+                        distinctUntilChanged( (prev, current) => 
+                           {
+                                return current === prev && prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
+                            })), 
                     finalSource
                 ])
     

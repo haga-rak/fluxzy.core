@@ -38,7 +38,7 @@ namespace Fluxzy.Cli
 
             CommandLineApplication commandLineApplication = new CommandLineApplication
             {
-                FullName = "fxzy is a command line tool which let you use features of the echoes proxy engine."
+                FullName = "fxzy is a cli-app build around fluxzy engine.\r\n"
             };
 
             commandLineApplication.HelpOption("-h | --help");
@@ -74,7 +74,7 @@ namespace Fluxzy.Cli
 
         private void OnPack(CommandLineApplication target)
         {
-            target.Description = "Pack an output directory to a specify format, supported ecz, har, saz";
+            target.Description = "Pack an output directory to a specify format, supported fxyz, har, saz";
 
             target.HelpOption("-h | --help");
 
@@ -112,10 +112,10 @@ namespace Fluxzy.Cli
 
         private void OnCertificateDump(CommandLineApplication target)
         {
-            target.Description = "Export the default certificate used by echoes to file";
+            target.Description = "Export the default certificate used by fluxzy to a file";
             target.HelpOption("-h | --help");
 
-            var argument = target.Argument("fileName", "Dump the default public certificate used by echoes to file");
+            var argument = target.Argument("fileName", "Dump the default public certificate used by fluxzy to file");
 
             target.OnExecute(async () =>
             {
@@ -135,7 +135,7 @@ namespace Fluxzy.Cli
 
         private void OnProxyStartCommand(CommandLineApplication target)
         {
-            target.FullName = "echoescli start";
+            target.FullName = "fxzy start";
             target.Description = "Start the proxy engine";
 
             target.HelpOption("-h | --help");
@@ -158,15 +158,15 @@ namespace Fluxzy.Cli
 
             var systemProxyOption = target.Option(
                 "-sp",
-                "Register echoes as system proxy when started",
+                "Register fluxzy as system proxy when started",
                 CommandOptionType.NoValue);
 
             var skipSslDecryptionOption = target.Option(
-                "--skip-ssl-decryption", "echoes will not try to decrypt ssl traffic.",
+                "--skip-ssl-decryption", "fluxzy will not try to decrypt ssl traffic.",
                 CommandOptionType.NoValue);
 
             var skiptCertInstallOption = target.Option(
-                "--skip-cert-install", "Do not register echoes certificate as root authority",
+                "--skip-cert-install", "Do not register fluxzy certificate as root authority",
                 CommandOptionType.NoValue);
 
             var noCertCacheOption = target.Option(
@@ -369,7 +369,7 @@ namespace Fluxzy.Cli
             if (packager == null)
             {
                 throw new ArgumentException(
-                    $"Could not infer file format from output extension. Currently supported extension are : ecz, har and saz");
+                    $"Could not infer file format from output extension. Currently supported extension are : fxyz, har and saz");
             }
 
             await using var outStream = File.Create(outFileName);

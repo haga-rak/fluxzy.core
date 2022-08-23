@@ -18,7 +18,7 @@ namespace Fluxzy
                 Directory.CreateDirectory(directoryInfo.FullName); 
             
             new FastZip().ExtractZip(input, directoryInfo.FullName, FastZip.Overwrite.Always,
-                s => true, "*", "*", true, true);
+                s => true, ".*", ".*", true, true);
 
             return Task.CompletedTask;
         }
