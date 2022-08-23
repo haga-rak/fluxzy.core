@@ -25,7 +25,7 @@ namespace Fluxzy.Desktop.Services
 
             var count =
                 new DirectoryInfo(exchangeDir)
-                    .EnumerateFiles("*.json").Count();
+                    .EnumerateFiles("*.json", SearchOption.AllDirectories).Count();
 
             return Task.FromResult(count);
         }
@@ -43,7 +43,7 @@ namespace Fluxzy.Desktop.Services
 
             var fileInfos =
                 new DirectoryInfo(exchangeDir)
-                    .EnumerateFiles("*.json")
+                    .EnumerateFiles("*.json", SearchOption.AllDirectories)
                     .OrderBy(o => o.Name)
                     .Skip(start)
                     .Take(count);
@@ -76,7 +76,7 @@ namespace Fluxzy.Desktop.Services
 
             var fileInfos =
                 new DirectoryInfo(Path.Combine(current.WorkingDirectory, "connections"))
-                    .EnumerateFiles("*.json")
+                    .EnumerateFiles("*.json", SearchOption.AllDirectories)
                     .OrderBy(o => o.Name); 
 
             foreach (var fileInfo in fileInfos)

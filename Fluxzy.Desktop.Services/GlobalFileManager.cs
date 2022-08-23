@@ -54,7 +54,7 @@ namespace Fluxzy.Desktop.Services
 
             await _directoryPackager.Unpack(fileStream, directoryInfo.FullName);
 
-            var result = new FileState(id, fullPath)
+            var result = Current = new FileState(id, fullPath)
             {
                 MappedFile = directoryInfo.FullName,
             };
