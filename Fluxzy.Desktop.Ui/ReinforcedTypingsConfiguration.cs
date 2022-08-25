@@ -1,5 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
+using Echoes.Desktop.Ui.ViewModels;
 using Fluxzy;
 using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
@@ -15,11 +16,20 @@ namespace Echoes.Desktop.Ui
 {
     public static class ReinforcedTypingsConfiguration
     {
+        private static void ConfigureViewModels(ConfigurationBuilder builder)
+        {
+            builder.ExportAsInterface<FileOpeningViewModel>()
+                .ApplyGenericProperties();
+        }
+
         public static void Configure(ConfigurationBuilder builder)
         {
             builder.Global(config => config.CamelCaseForProperties()
                 .AutoOptionalProperties()
                 .UseModules());
+
+
+            ConfigureViewModels(builder); 
 
             // UI objects
 

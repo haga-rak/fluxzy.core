@@ -18,7 +18,6 @@ namespace Fluxzy.Desktop.Services
             _proxyControl = proxyControl;
         }
 
-
         public UiState GetUiState()
         {
             return new UiState()

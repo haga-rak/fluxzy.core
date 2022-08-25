@@ -32,7 +32,7 @@ export class ExchangeTableViewComponent implements OnInit {
             //tap(_ => this.perfectScroll.directiveRef.update())
         ).subscribe();
 
-        this.uiService.exchangeBrowsingState$.pipe(
+        this.uiService.getBrowsingState().pipe(
                 tap(browsingState => this.browsingState = browsingState)
         ).subscribe();
     }
@@ -43,7 +43,7 @@ export class ExchangeTableViewComponent implements OnInit {
 
         if (position.y === 0 && this.exchangeState && this.browsingState) {
             let newBrowsingState = FreezeBrowsingState( this.browsingState, this.exchangeState.totalCount);
-            this.uiService.exchangeBrowsingState$.next(newBrowsingState); 
+            this.uiService.updateBrowsingState(newBrowsingState); 
             this.cdr.detectChanges();
         }
     }
@@ -55,7 +55,7 @@ export class ExchangeTableViewComponent implements OnInit {
             let startIndexInitial = this.browsingState.startIndex;
             let nextState =  PreviousBrowsingState( this.browsingState, this.exchangeState.startIndex, this.exchangeState.totalCount);
 
-            this.uiService.exchangeBrowsingState$.next(nextState); 
+            this.uiService.updateBrowsingState(nextState); 
             
             this.cdr.detectChanges();
 
@@ -77,7 +77,7 @@ export class ExchangeTableViewComponent implements OnInit {
             if (!this.exchangeState.totalCount)
                 return;
 
-            this.uiService.exchangeBrowsingState$.next(nextState); 
+            this.uiService.updateBrowsingState(nextState); 
             this.cdr.detectChanges();
             
 
