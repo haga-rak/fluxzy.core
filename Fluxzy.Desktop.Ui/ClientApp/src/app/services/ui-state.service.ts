@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, tap, map, Observable,switchMap,distinctUntilChanged, combineLatest, interval, merge, of, distinct } from 'rxjs';
+import { BehaviorSubject, tap, map, Observable,switchMap,distinctUntilChanged, combineLatest, interval, merge, of, debounceTime } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../core/models/auto-generated';
 import { BuildMockExchangesAsObservable } from '../core/models/exchanges-mock';
 import { UiService } from './ui.service';
@@ -38,7 +38,14 @@ export class UiStateService {
             })) ; 
         
         if (!this.mocked) {
+            // FROM SERVER
+
             this.exchangeState$ = this.exchangeBrowsingState$.pipe(
+                distinctUntilChanged( (prev, current) => 
+                {
+                     return  prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
+                 }), 
+                debounceTime(50),
                 switchMap(browsingState => uiService.getExchangeState(browsingState))
             );
         }

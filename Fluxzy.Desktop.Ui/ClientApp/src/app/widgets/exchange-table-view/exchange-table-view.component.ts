@@ -45,7 +45,6 @@ export class ExchangeTableViewComponent implements OnInit {
             let newBrowsingState = FreezeBrowsingState( this.browsingState, this.exchangeState.totalCount);
             this.uiService.exchangeBrowsingState$.next(newBrowsingState); 
             this.cdr.detectChanges();
-            console.log('scrolly') ;
         }
     }
 
