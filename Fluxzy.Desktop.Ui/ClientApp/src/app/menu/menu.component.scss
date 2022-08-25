@@ -3,7 +3,6 @@
 
 .menu {
     width: 100%; 
-    z-index: 9999;
 }
 
 .menu-box {
@@ -16,10 +15,11 @@
     border-radius:2px;
     margin-top: 2px;
     margin-bottom: 2px;
+    z-index: 2147483647 ;
 
 }
 
-.menu-box:hover {
+.menu-box:hover { 
     background :  $main-primary 
 }
 
@@ -33,18 +33,23 @@
 
     overflow:  hidden;
     box-shadow: $gray-700  0px 4px 16px;
+    z-index: 2147483647 ;
    
 }
 
 .menu-item-children {
     min-width: 300px; 
     padding: 6px 24px 6px 24px;
-    
 }
 
-.menu-item-children:hover {
+.menu-item-children-enabled:hover {
     background: $main-primary;
 }
+
+.menu-item-children-disabled {
+    color: $gray-300;
+}
+
 
 .menu-item-children-separator {
     border-bottom : 1px solid $gray-700; 
