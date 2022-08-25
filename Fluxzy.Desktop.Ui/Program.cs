@@ -1,12 +1,20 @@
 
 using Echoes.Desktop.Ui.Hubs;
+using Fluxzy;
 using Fluxzy.Desktop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddJsonOptions(options =>
+{
+    foreach (var converter in GlobalArchiveOption.JsonSerializerOptions.Converters)
+    {
+        options.JsonSerializerOptions.Converters.Add(converter);
+    }
+});
+
 builder.Services.AddFluxzyDesktopServices();
 builder.Services.AddSignalR();
 
@@ -26,6 +34,6 @@ app.MapFallbackToFile("index.html");
 
 var globalFileManager = app.Services.GetRequiredService<GlobalFileManager>();
 //await globalFileManager.New();
-await globalFileManager.Open(@"d:\testboot.fxyz");
+await globalFileManager.Open(@"../Samples/boot.fxyz");
 
 app.Run();
