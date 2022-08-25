@@ -57,8 +57,6 @@ export class ExchangeTableViewComponent implements OnInit {
 
             this.uiService.exchangeBrowsingState$.next(nextState); 
             
-            console.log('reachStart') ;
-
             this.cdr.detectChanges();
 
             if (startIndexInitial !==  0) {

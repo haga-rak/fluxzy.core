@@ -1,7 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { TabsetComponent } from 'ngx-bootstrap/tabs';
-import { BuildMockExchanges } from '../core/models/exchanges-mock';
+import { MenuItemConstructorOptions } from 'electron';
+import { GlobalMenuItems } from '../core/models/menu-models';
+import { ElectronService } from '../core/services';
+import { MenuServiceService } from '../core/services/menu-service.service';
 import { UiService } from '../services/ui.service';
 
 @Component({
@@ -10,12 +12,11 @@ import { UiService } from '../services/ui.service';
     styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
-
-    
-    constructor(private router: Router, private uiService : UiService) { }
+    constructor(private router: Router, private uiService : UiService, private electronService : ElectronService, private menuService : MenuServiceService) { }
     
     ngOnInit(): void {
-        console.log('HomeComponent INIT');
+
+        this.menuService.init(); 
     }
     
 }

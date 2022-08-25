@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu } from 'electron';
+import { app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as url from 'url';
@@ -18,7 +18,6 @@ function createWindow(): BrowserWindow {
         y: 100,
         width: 1400,
         height: 900,
-        autoHideMenuBar: true,
         frame : true,
         webPreferences: {
             nodeIntegration: true,
@@ -48,6 +47,7 @@ function createWindow(): BrowserWindow {
             slashes: true
         }));
     }
+     
     
     // Emitted when the window is closed.
     win.on('closed', () => {
@@ -56,36 +56,52 @@ function createWindow(): BrowserWindow {
         // when you should delete the corresponding element.
         win = null;
     });
+    
 
-    
-    return win;
-}
+        ipcMain.on('install-menu-bar', (event, arg) => {
+            const templateConstruction : MenuItemConstructorOptions [] = arg ; 
+            try {
+                const menu = Menu.buildFromTemplate(templateConstruction)
+                Menu.setApplicationMenu(menu);
+            }
+            catch (exc) {
+                event.returnValue = exc;
+                return; 
+            }
 
-try {
-    // This method will be called when Electron has finished
-    // initialization and is ready to create browser windows.
-    // Some APIs can only be used after this event occurs.
-    // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
-    app.on('ready', () => setTimeout(createWindow, 400));
+            event.returnValue = templateConstruction;
+
+        }) ; 
+
+        return win;
+    }
     
-    // Quit when all windows are closed.
-    app.on('window-all-closed', () => {
-        // On OS X it is common for applications and their menu bar
-        // to stay active until the user quits explicitly with Cmd + Q
-        if (process.platform !== 'darwin') {
-            app.quit();
-        }
-    });
-    
-    app.on('activate', () => {
-        // On OS X it's common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
-        if (win === null) {
-            createWindow();
-        }
-    });
-    
-} catch (e) {
-    // Catch Error
-    // throw e;
-}
+    try {
+        // This method will be called when Electron has finished
+        // initialization and is ready to create browser windows.
+        // Some APIs can only be used after this event occurs.
+        // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
+        app.on('ready', () => setTimeout(createWindow, 400));
+        
+        // Quit when all windows are closed.
+        app.on('window-all-closed', () => {
+            // On OS X it is common for applications and their menu bar
+            // to stay active until the user quits explicitly with Cmd + Q
+            if (process.platform !== 'darwin') {
+                app.quit();
+            }
+        });
+        
+        app.on('activate', () => {
+            // On OS X it's common to re-create a window in the app when the
+            // dock icon is clicked and there are no other windows open.
+            if (win === null) {
+                createWindow();
+            }
+        });
+        
+    } catch (e) {
+        // Catch Error
+        // throw e;
+    }
+    ;

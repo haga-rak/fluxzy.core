@@ -1,61 +1,84 @@
-export interface IMenuItem {
-    id ? : string ; 
-    label ? : string ; 
-    isSeparator ? : boolean; 
-    children ? : IMenuItem [] ; 
-    shortCut ? : string; 
-} 
+import { MenuItemConstructorOptions } from "electron";
 
-export const DefaultMenuItems : IMenuItem[] = [
+export const GlobalMenuItems : MenuItemConstructorOptions []=  [
     {
-        label : "File",
-        children : [
+        label : 'File',
+        submenu : [
             {
-                label : "New",
-                shortCut : 'Ctrl+N'
+                label : 'New', 
+                accelerator: process.platform === 'darwin' ? 'Cmd+N' : 'Ctrl+N',
             },
             {
-                label : "Open",
-                shortCut : 'Ctrl+O'
+                label : 'Open', 
+                accelerator: process.platform === 'darwin' ? 'Cmd+O' : 'Ctrl+O',
+            },
+            { 
+                type :  'separator'
+            },
+            { 
+                label : 'Import', 
+            },
+            { 
+                label : 'Export', 
+            },
+            { 
+                type :  'separator'
             },
             {
-                isSeparator : true
-            },
-            {
-                label : "Import",
-            },
-            {
-                label : "Export",
-            },
-            {
-                isSeparator : true
-            },
-            {
-                label : "Quit",
+                label : 'Quit', 
             },
         ]
     },
     {
-        label : "Edit"
-    },
-    {
-        label : "Capture"
-    },
-    {
-        label : "Trafic alterations"
-    },
-    {
-        label : "Debug"
-    },
-    {
-        label : "Settings"
-    },
-    {
-        label : "Help",
-        children :  [  
+        label : 'Edit',
+        submenu : [
             {
-                label : "About"
+                label : 'Manage filters', 
+            },
+        ]
+    },
+    {
+        label : 'Selection',
+        submenu : [
+            {
+                label : 'Manage filters', 
+            },
+        ]
+    },
+    {
+        label : 'Filter',
+        submenu : [
+            {
+                label : 'Manage filters', 
+            },
+        ]
+    },
+    {
+        label : 'Settings',
+        submenu : [
+            {
+                label : 'Proxy settings', 
+            },
+            {
+                label : 'Ui settings', 
+                accelerator: process.platform === 'darwin' ? 'Cmd+O' : 'Ctrl+O',
             }
         ]
     },
-]
+    {
+        label : 'Help',
+        submenu : [
+            {
+                label : 'Online docs', 
+            },
+            { 
+                type :  'separator'
+            },
+            {
+                label : 'About', 
+            },
+        ]
+    },
+
+
+];
