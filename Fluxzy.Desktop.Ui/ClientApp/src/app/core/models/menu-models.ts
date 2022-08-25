@@ -1,4 +1,6 @@
-import { MenuItemConstructorOptions } from "electron";
+import { MenuItem, MenuItemConstructorOptions } from "electron";
+
+
 
 export const GlobalMenuItems : MenuItemConstructorOptions []=  [
     {
@@ -6,10 +8,12 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         submenu : [
             {
                 label : 'New', 
+                id : 'new', 
                 accelerator: process.platform === 'darwin' ? 'Cmd+N' : 'Ctrl+N',
             },
             {
                 label : 'Open', 
+                id : 'open', 
                 accelerator: process.platform === 'darwin' ? 'Cmd+O' : 'Ctrl+O',
             },
             { 
