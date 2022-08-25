@@ -125,7 +125,7 @@ namespace Fluxzy.Desktop.Services
                 }
             }
             
-            var exchanges = await ReadExchanges(startIndex, endIndex).ToListAsync();
+            var exchanges = (await ReadExchanges(startIndex, endIndex).ToListAsync()).OrderBy(r => r.Id).ToList();
 
             return new ExchangeState()
             {

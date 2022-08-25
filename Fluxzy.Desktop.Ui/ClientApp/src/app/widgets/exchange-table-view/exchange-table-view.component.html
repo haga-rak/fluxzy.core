@@ -22,15 +22,25 @@
                     
                 </td>
                 <td>
-                    <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i>
-                    {{ exchange.knownAuthority }}</td>
+                    <span style="display: inline-block;  white-space: nowrap; max-width:180px; overflow : hidden; text-overflow: ellipsis;">
+                        <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i>
+                        {{ exchange.knownAuthority }}
+                    </span></td>
                 <td class="">{{ exchange.method }}&nbsp;&nbsp;</td>
-                <td>
-                    <span  [ngClass]="{ 'text-secondary' : exchange.contentType === 'json' }"></span>
-                    {{ exchange.path }}
+                <td  [title]="exchange.path">
+                    <div style="margin-right: 10px; position: relative; overflow: hidden">
+                        &nbsp;
+                        <div class="limited-length">
+                            {{ exchange.path }}
+                        </div>
+                    </div>
                 </td>
                 <td>{{ exchange.id }}</td>
-                <td>{{ exchange.contentType }}</td>
+                <td [title]="exchange.contentType">
+                    <span  style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; ">
+                        {{ exchange.contentType }}
+                    </span>
+                </td>
             </tr>
         </tbody>
     </table>

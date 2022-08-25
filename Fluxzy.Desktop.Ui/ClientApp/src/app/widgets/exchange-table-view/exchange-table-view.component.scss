@@ -48,7 +48,6 @@
 }
 
 
-
 .exchange-table-view tbody tr:hover td {
     background-color: var(--bs-gray-900);
     cursor: default;
@@ -57,4 +56,14 @@
 .exchange-table-view tbody tr.exchange-selected td {
     background-color: var(--bs-gray-800);
     cursor: default;
+}
+
+
+.limited-length {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display : block;
+    position: absolute;
+    top : 0px;
 }

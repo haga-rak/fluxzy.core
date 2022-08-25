@@ -19,6 +19,7 @@ import { StatusBarComponent } from './status-bar/status-bar.component';
 import { FilterComponent } from './filter/filter.component';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TabsModule } from 'ngx-bootstrap/tabs';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { ExchangeViewerComponent } from './widgets/exchange-viewer/exchange-viewer.component';
 import { VerticalSeparatorDirective } from './directives/vertical-separator.directive';
 import { FilterHeaderViewComponent } from './widgets/filter-header-view/filter-header-view.component';
@@ -33,7 +34,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     suppressScrollX: true
   };
 
-
 @NgModule({
     declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent],
     imports: [
@@ -43,6 +43,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         CoreModule,
         BsDropdownModule.forRoot(),
         TabsModule.forRoot(),
+        TooltipModule.forRoot(),
         PerfectScrollbarModule,
         RouterModule.forRoot([
             {
