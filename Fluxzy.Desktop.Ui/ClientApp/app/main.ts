@@ -2,6 +2,8 @@ import { app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, MenuItemConstru
 import * as path from 'path';
 import * as fs from 'fs';
 import * as url from 'url';
+import { InstallMenuBar } from './menu-prepare';
+import { InstallSystemEvents } from './system-events';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -58,23 +60,12 @@ function createWindow(): BrowserWindow {
     });
     
 
-        ipcMain.on('install-menu-bar', (event, arg) => {
-            const templateConstruction : MenuItemConstructorOptions [] = arg ; 
-            try {
-                const menu = Menu.buildFromTemplate(templateConstruction)
-                Menu.setApplicationMenu(menu);
-            }
-            catch (exc) {
-                event.returnValue = exc;
-                return; 
-            }
-
-            event.returnValue = templateConstruction;
-
-        }) ; 
+        InstallMenuBar() ; 
+        InstallSystemEvents(win) ; 
+    
 
         return win;
-    }
+ }
     
     try {
         // This method will be called when Electron has finished
