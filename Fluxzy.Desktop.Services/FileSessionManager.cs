@@ -1,56 +1,31 @@
 ﻿using System.Text.Json;
+using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
     public class TrunkManager
     {
-        private readonly GlobalFileManager _globalFileManager;
+        private Guid? _currentIdentifier;
+        private List<ExchangeInfo> _currentExchanges = new(); 
+        private List<ConnectionInfo> _currentConnectionInfos = new();
 
-        public TrunkManager(GlobalFileManager globalFileManager)
+        private async Task ReadDirectory(FileState current)
         {
-            _globalFileManager = globalFileManager;
-        }
-
-        public Task<int> ExchangeCount()
-        {
-            var current = _globalFileManager.Current;
-
-            if (current == null)
-                return Task.FromResult(0);
-
-            var exchangeDir = Path.Combine(current.WorkingDirectory, "exchanges");
-
-            Directory.CreateDirectory(exchangeDir); 
-
-            var count =
-                new DirectoryInfo(exchangeDir)
-                    .EnumerateFiles("*.json", SearchOption.AllDirectories).Count();
-
-            return Task.FromResult(count);
-        }
-
-        public async IAsyncEnumerable<ExchangeInfo> ReadExchanges(int start, int count)
-        {
-            var current = _globalFileManager.Current;
-
-            if (current == null)
-                yield break;
-
             var exchangeDir = Path.Combine(current.WorkingDirectory, "exchanges");
 
             Directory.CreateDirectory(exchangeDir);
 
-            var fileInfos =
+            var exchangeFileInfos =
                 new DirectoryInfo(exchangeDir)
-                    .EnumerateFiles("*.json", SearchOption.AllDirectories)
-                    .OrderBy(o => o.Name)
-                    .Skip(start)
-                    .Take(count);
+                    .EnumerateFiles("*.json", SearchOption.AllDirectories);
 
-            foreach (var fileInfo in fileInfos)
+            var tempList = new List<ExchangeInfo>(); 
+            var tempListConnection = new List<ConnectionInfo>(); 
+
+            foreach (var fileInfo in exchangeFileInfos)
             {
-                ExchangeInfo ? exchange = null; 
+                ExchangeInfo? exchange = null;
                 try
                 {
                     exchange = await JsonSerializer.DeserializeAsync<ExchangeInfo>(fileInfo.OpenRead(),
@@ -59,27 +34,19 @@ namespace Fluxzy.Desktop.Services
                 catch
                 {
                     // We ignore read errors (engine is probably writing to file )
-                    continue; 
+                    continue;
                 }
 
                 if (exchange != null)
-                    yield return exchange;
+                    tempList.Add(exchange);
             }
-        }
-
-        public async IAsyncEnumerable<ConnectionInfo> ReadConnections()
-        {
-            var current = _globalFileManager.Current;
-
-            if (current == null)
-                yield break;
-
-            var fileInfos =
+            
+            var connectionFileInfos =
                 new DirectoryInfo(Path.Combine(current.WorkingDirectory, "connections"))
                     .EnumerateFiles("*.json", SearchOption.AllDirectories)
-                    .OrderBy(o => o.Name); 
+                    .OrderBy(o => o.Name);
 
-            foreach (var fileInfo in fileInfos)
+            foreach (var fileInfo in connectionFileInfos)
             {
                 ConnectionInfo? connection = null;
                 try
@@ -94,13 +61,41 @@ namespace Fluxzy.Desktop.Services
                 }
 
                 if (connection != null)
-                    yield return connection;
+                    tempListConnection.Add(connection);
             }
+
+            _currentIdentifier = current.Identifier; 
+            _currentExchanges = tempList.OrderBy(r => r.Id).ToList();
+            _currentConnectionInfos = tempListConnection;
         }
 
-        public async Task<ExchangeState> ReadState(ExchangeBrowsingState browsingState)
+        public async Task<int> ExchangeCount(FileState current)
         {
-            var totalCount = await ExchangeCount();
+            if (_currentIdentifier != current.Identifier)
+                await ReadDirectory(current);
+
+            return _currentExchanges.Count;
+        }
+
+        public async Task<List<ExchangeInfo>> ReadExchanges(FileState current, int start, int count)
+        {
+            if (_currentIdentifier != current.Identifier)
+                await ReadDirectory(current);
+
+            return _currentExchanges.Skip(start).Take(count).ToList();
+        }
+
+        public async Task<List<ConnectionInfo>> ReadConnections(FileState current)
+        {
+            if (_currentIdentifier != current.Identifier)
+                await ReadDirectory(current);
+
+            return _currentConnectionInfos;
+        }
+
+        public async Task<ExchangeState> ReadState(FileState current, ExchangeBrowsingState browsingState)
+        {
+            var totalCount = await ExchangeCount(current);
 
             int endIndex, startIndex;
 
@@ -125,7 +120,7 @@ namespace Fluxzy.Desktop.Services
                 }
             }
             
-            var exchanges = (await ReadExchanges(startIndex, endIndex).ToListAsync()).OrderBy(r => r.Id).ToList();
+            var exchanges = (await ReadExchanges(current, startIndex, endIndex)).OrderBy(r => r.Id).ToList();
 
             return new ExchangeState()
             {
@@ -137,4 +132,5 @@ namespace Fluxzy.Desktop.Services
             }; 
         }
     }
+    
 }
