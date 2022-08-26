@@ -369,7 +369,7 @@ namespace Fluxzy.Cli
             if (packager == null)
             {
                 throw new ArgumentException(
-                    $"Could not infer file format from output extension. Currently supported extension are : fxyz, har and saz");
+                    $"Could not infer file format from output extension. Currently supported extension are : fxzy, har and saz");
             }
 
             await using var outStream = File.Create(outFileName);

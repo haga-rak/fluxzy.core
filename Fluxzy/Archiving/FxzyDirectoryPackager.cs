@@ -12,9 +12,10 @@ namespace Fluxzy
         {
             return
                 fileName.EndsWith(".fxyz", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".fyz", StringComparison.CurrentCultureIgnoreCase) ||
+                fileName.EndsWith(".fxzy", StringComparison.CurrentCultureIgnoreCase) ||
+                fileName.EndsWith(".fzy", StringComparison.CurrentCultureIgnoreCase) ||
                 fileName.EndsWith(".fluxzy", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".fxyz.zip", StringComparison.CurrentCultureIgnoreCase) ; 
+                fileName.EndsWith(".fxzy.zip", StringComparison.CurrentCultureIgnoreCase) ; 
         }
 
         public async Task Unpack(Stream inputStream, string directoryOutput)
