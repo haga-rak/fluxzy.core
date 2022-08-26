@@ -1,6 +1,8 @@
 <div class="status-container">
     <strong class="font-primary">
-        {{ this.fileState.mappedFileName}}
+        <span *ngIf="this.fileState.mappedFileName">{{ this.fileState.mappedFileName}}</span>
+        <span *ngIf="!this.fileState.mappedFileName">(*new file)</span>
+       
     </strong>
     &nbsp;|&nbsp;
     <span *ngIf="exchangeState">

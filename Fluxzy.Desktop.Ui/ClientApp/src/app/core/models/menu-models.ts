@@ -19,6 +19,19 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             { 
                 type :  'separator'
             },
+            {
+                label : 'Save', 
+                id : 'save', 
+                accelerator: process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S',
+            },
+            {
+                label : 'Save as', 
+                id : 'save as', 
+                accelerator: process.platform === 'darwin' ? 'Cmd+Shift+S' : 'Ctrl+Shift+S',
+            },
+            { 
+                type :  'separator'
+            },
             { 
                 label : 'Import', 
             },
