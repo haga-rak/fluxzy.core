@@ -3,6 +3,7 @@ import { MouseInputEvent } from 'electron';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../../core/models/auto-generated';
+import { ExchangeStyle } from '../../core/models/exchange-extensions';
 import { BuildMockExchanges } from '../../core/models/exchanges-mock';
 import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
 
@@ -16,6 +17,8 @@ export class ExchangeTableViewComponent implements OnInit {
     public exchangeState : ExchangeState;
     public exchangeSelection : ExchangeSelection ; 
     public browsingState: ExchangeBrowsingState;
+
+    public ExchangeStyle = ExchangeStyle ; 
 
     @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
     
@@ -92,8 +95,6 @@ export class ExchangeTableViewComponent implements OnInit {
 
         }
     }
-
-
 
     public identify(index : number, item : ExchangeInfo) : number {
         return item.id;
