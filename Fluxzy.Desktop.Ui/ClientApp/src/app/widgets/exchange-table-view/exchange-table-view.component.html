@@ -17,8 +17,7 @@
         <tbody>
             <tr *ngFor="let exchange of exchangeState.exchanges;  trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchange.id] }" (mouseup)="setSelectionChange($event, exchange)">
                 <td class="text-center">
-                    <span *ngIf="exchange.done" class="text-success"><i class="bi bi-circle-fill"></i></span>
-                    <span *ngIf="!exchange.done" class="text-danger bold"><i class="bi bi-exclamation-diamond-fill"></i></span>
+                    <span [title]="exchange.statusCode" [ngClass]="ExchangeStyle(exchange).textClass"><i [ngClass]="ExchangeStyle(exchange).iconClass"></i></span>
                     
                 </td>
                 <td>
