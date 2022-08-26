@@ -11,12 +11,16 @@ export class MenuService {
 
     private applicationMenuEvents$ : Subject<IApplicationMenuEvent> ; 
 
+
     private nextOpenFile$ = new Subject<string>() ; 
     
     constructor( private electronService : ElectronService) {
         this.applicationMenuEvents$ = new Subject<IApplicationMenuEvent>(); 
      }
 
+    public getApplicationMenuEvents() : Observable<IApplicationMenuEvent> {
+        return this.applicationMenuEvents$.asObservable() ; 
+    }
 
     public init() : void {
         console.log('init electron service') ;
@@ -34,15 +38,14 @@ export class MenuService {
             this.applicationMenuEvents$.pipe(
                     filter(e => e.menuId === 'open') , 
                     map(e => this.electronService.ipcRenderer.sendSync('request-file-opening', null) as string),
-                    filter(t => !!t),
                     tap(t => this.nextOpenFile$.next(t)),
             ).subscribe() ;
-        }
-    }
 
-    
-    public getApplicationMenuEvents() : Observable<IApplicationMenuEvent> {
-        return this.applicationMenuEvents$.asObservable() ; 
+            this.applicationMenuEvents$.pipe(
+                    filter(e => e.menuId === 'new') , 
+                    tap(t => this.nextOpenFile$.next('')),
+            ).subscribe() ;
+        }
     }
 
     public getNextOpenFile() : Observable<string> {

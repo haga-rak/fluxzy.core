@@ -23,10 +23,19 @@ export class UiStateService {
                 take(1)
             ).subscribe();
 
+        // Open file 
         this.menuService.getNextOpenFile()
                 .pipe(
                     filter(t => !!t), 
                     switchMap(fileName => this.fileOpen(fileName)),
+                    tap(t => this.uiState$.next(t))
+                ).subscribe() ; 
+
+        // New file
+        this.menuService.getNextOpenFile()
+                .pipe(
+                    filter(t => t === ''), // new file 
+                    switchMap(fileName => this.fileNew()),
                     tap(t => this.uiState$.next(t))
                 ).subscribe() ; 
     }
@@ -46,6 +55,13 @@ export class UiStateService {
 
     public fileOpen(fileName : string) : Observable<UiState> {
         return this.httpClient.post<UiState>(`api/file/open`, { fileName })
+            .pipe(
+                take(1)
+            );
+    }
+
+    public fileNew() : Observable<UiState> {
+        return this.httpClient.post<UiState>(`api/file/new`, null)
             .pipe(
                 take(1)
             );
