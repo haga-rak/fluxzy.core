@@ -22,7 +22,7 @@ namespace Fluxzy.Desktop.Services
         {
             return new UiState()
             {
-                FileStateState = _globalFileManager.Current,
+                FileState = _globalFileManager.Current,
                 ProxyState = _proxyControl.GetProxyState(),
                 SettingsHolder =  _settingManager.Get()
             };

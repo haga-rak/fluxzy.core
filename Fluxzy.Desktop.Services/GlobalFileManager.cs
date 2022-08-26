@@ -48,15 +48,18 @@ namespace Fluxzy.Desktop.Services
         {
             var (id, fullPath) = GenerateNewDirectory();
 
-            var directoryInfo = new DirectoryInfo(fullPath); 
+            var directoryInfo = new DirectoryInfo(fullPath);
 
-            using var fileStream = File.OpenRead(fileName);
+            var openFileInfo = new FileInfo(fileName);
+
+            using var fileStream = openFileInfo.OpenRead();
 
             await _directoryPackager.Unpack(fileStream, directoryInfo.FullName);
 
             var result = Current = new FileState(id, fullPath)
             {
-                MappedFile = directoryInfo.FullName,
+                MappedFileFullPath = fileName,
+                MappedFileName = openFileInfo.Name
             };
 
             return result; 

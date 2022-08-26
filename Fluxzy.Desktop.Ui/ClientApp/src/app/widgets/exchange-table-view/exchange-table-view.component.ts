@@ -4,7 +4,7 @@ import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../../core/models/auto-generated';
 import { BuildMockExchanges } from '../../core/models/exchanges-mock';
-import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, UiStateService } from '../../services/ui-state.service';
+import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -19,7 +19,7 @@ export class ExchangeTableViewComponent implements OnInit {
 
     @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
     
-    constructor(private uiService : UiStateService, private cdr: ChangeDetectorRef) { }
+    constructor(private uiService : ExchangeManagementService, private cdr: ChangeDetectorRef) { }
     
     ngOnInit(): void {
         this.uiService.currentSelection$.pipe(

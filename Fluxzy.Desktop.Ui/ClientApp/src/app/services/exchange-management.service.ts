@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, tap, map, Observable,switchMap,distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../core/models/auto-generated';
 import { BuildMockExchangesAsObservable } from '../core/models/exchanges-mock';
-import { UiService } from './ui.service';
+import { UiStateService } from './ui.service';
 
 @Injectable({
     providedIn: 'root'
 })
-export class UiStateService {
+export class ExchangeManagementService {
     
     public currentSelection$ : BehaviorSubject<ExchangeSelection> = new BehaviorSubject<ExchangeSelection>({ map : {}}); 
     public currenSelectionCount$ : Observable<number>  ; 
@@ -24,7 +24,7 @@ export class UiStateService {
     
     private mockIntervalSource = interval(1000) ; 
     
-    constructor(private uiService : UiService) { 
+    constructor(private uiService : UiStateService) { 
         this.setUpCurrentSelectionObservable(); 
         
         if (!this.mocked) {

@@ -12,7 +12,9 @@
 
         public string WorkingDirectory { get; set; }
 
-        public string? MappedFile { get; set; }
+        public string? MappedFileFullPath { get; set; }
+
+        public string ? MappedFileName { get; set; }
 
         public bool Changed { get; set; }
 
