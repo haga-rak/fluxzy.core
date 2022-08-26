@@ -13,5 +13,13 @@ namespace Fluxzy.Desktop.Services.Models
         public int EndIndex { get; set; }
 
         public int TotalCount { get; set; }
+
+        public static ExchangeState Empty()
+        {
+            return new ExchangeState()
+            {
+                Exchanges = new()
+            };
+        }
     }
 }
