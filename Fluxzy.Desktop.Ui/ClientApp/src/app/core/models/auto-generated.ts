@@ -8,7 +8,7 @@ export interface FileOpeningViewModel
 }
 export interface UiState
 {
-	fileStateState?: FileState;
+	fileState?: FileState;
 	proxyState: ProxyState;
 	settingsHolder: FluxzySettingsHolder;
 }
@@ -39,7 +39,8 @@ export interface FileState
 {
 	identifier: string;
 	workingDirectory: string;
-	mappedFile?: string;
+	mappedFileFullPath?: string;
+	mappedFileName?: string;
 	changed: boolean;
 	lastModification: Date;
 }

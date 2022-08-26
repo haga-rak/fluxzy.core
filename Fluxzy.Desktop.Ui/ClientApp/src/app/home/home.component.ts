@@ -5,7 +5,7 @@ import { filter } from 'rxjs';
 import { GlobalMenuItems } from '../core/models/menu-models';
 import { ElectronService } from '../core/services';
 import { MenuService } from '../core/services/menu-service.service';
-import { UiService } from '../services/ui.service';
+import { UiStateService } from '../services/ui.service';
 
 @Component({
     selector: 'app-home',
@@ -13,7 +13,7 @@ import { UiService } from '../services/ui.service';
     styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
-    constructor(private router: Router, private uiService : UiService, private electronService : ElectronService, private menuService : MenuService) { }
+    constructor(private router: Router, private uiService : UiStateService, private electronService : ElectronService, private menuService : MenuService) { }
     
     ngOnInit(): void {
 

@@ -34,6 +34,6 @@ app.MapFallbackToFile("index.html");
 
 var globalFileManager = app.Services.GetRequiredService<GlobalFileManager>();
 //await globalFileManager.New();
-await globalFileManager.Open(@"../Samples/boot.fxyz");
+await globalFileManager.Open(@"../Samples/boot.fxzy");
 
 app.Run();
