@@ -10,7 +10,7 @@
     <Authors>Haga Rakotoharivelo</Authors>
     <Description>fluxzy. HTTP engine for analyzing and altering HTTP requests</Description>
     <Copyright />
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <LangVersion>default</LangVersion>
   </PropertyGroup>
 

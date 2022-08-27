@@ -10,8 +10,10 @@ namespace Fluxzy.Desktop.Services
         private readonly GlobalFileManager _globalFileManager;
         private readonly ProxyControl _proxyControl;
 
-        public UiStateManager(FluxzySettingManager settingManager,
-            GlobalFileManager globalFileManager, ProxyControl proxyControl)
+        public UiStateManager(
+            FluxzySettingManager settingManager,
+            GlobalFileManager globalFileManager, 
+            ProxyControl proxyControl)
         {
             _settingManager = settingManager;
             _globalFileManager = globalFileManager;
