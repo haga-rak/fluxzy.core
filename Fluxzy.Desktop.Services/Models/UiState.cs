@@ -4,6 +4,12 @@ namespace Fluxzy.Desktop.Services.Models
 {
     public class UiState
     {
+
+        public UiState()
+        {
+
+        }
+
         public FileState? FileState { get; set; }
 
         public ProxyState ProxyState { get; set; }

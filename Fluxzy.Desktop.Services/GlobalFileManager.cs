@@ -64,7 +64,7 @@ namespace Fluxzy.Desktop.Services
 
             return result; 
         }
-
+        
         public async Task<FileState> Save(string fileName)
         {
             if (Current == null)
