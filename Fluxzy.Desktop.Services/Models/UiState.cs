@@ -11,10 +11,10 @@ namespace Fluxzy.Desktop.Services.Models
             SettingsHolder = settingsHolder;
         }
 
-        public FileState FileState { get; set; }
+        public FileState FileState { get;  }
 
-        public ProxyState ProxyState { get; set; }
+        public ProxyState ProxyState { get;  }
 
-        public FluxzySettingsHolder SettingsHolder { get; set; }
+        public FluxzySettingsHolder SettingsHolder { get;  }
     }
 }
