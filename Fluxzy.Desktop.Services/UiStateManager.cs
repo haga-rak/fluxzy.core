@@ -1,33 +1,34 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
     public class UiStateManager
     {
-        private readonly FluxzySettingManager _settingManager;
-        private readonly GlobalFileManager _globalFileManager;
-        private readonly ProxyControl _proxyControl;
-
+        private IObservable<UiState> _globalState;
+        private UiState _uiState;
+        
         public UiStateManager(
-            FluxzySettingManager settingManager,
-            GlobalFileManager globalFileManager, 
-            ProxyControl proxyControl)
+            IObservable<FileState> fileState,
+            IObservable<ProxyState> proxyState,
+            IObservable<FluxzySettingsHolder> settingHolder)
         {
-            _settingManager = settingManager;
-            _globalFileManager = globalFileManager;
-            _proxyControl = proxyControl;
+            _globalState =
+                fileState.CombineLatest(
+                    proxyState,
+                    settingHolder,
+                    (f, p, s) => new UiState(fileState: f, proxyState: p, settingsHolder: s));
+
+            _globalState
+                .Do(uiState => _uiState = uiState).Subscribe();
         }
 
         public UiState GetUiState()
         {
-            return new UiState()
-            {
-                FileState = _globalFileManager.Current,
-                ProxyState = _proxyControl.GetProxyState(),
-                SettingsHolder =  _settingManager.Get()
-            };
+            return _uiState;
         }
     }
 }

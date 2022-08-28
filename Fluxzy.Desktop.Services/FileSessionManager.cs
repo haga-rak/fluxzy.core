@@ -13,8 +13,10 @@ namespace Fluxzy.Desktop.Services
         private async Task ReadDirectory(FileState current)
         {
             var exchangeDir = Path.Combine(current.WorkingDirectory, "exchanges");
+            var connectionDir = Path.Combine(current.WorkingDirectory, "connections");
 
             Directory.CreateDirectory(exchangeDir);
+            Directory.CreateDirectory(connectionDir);
 
             var exchangeFileInfos =
                 new DirectoryInfo(exchangeDir)
@@ -42,7 +44,7 @@ namespace Fluxzy.Desktop.Services
             }
             
             var connectionFileInfos =
-                new DirectoryInfo(Path.Combine(current.WorkingDirectory, "connections"))
+                    new DirectoryInfo(connectionDir)
                     .EnumerateFiles("*.json", SearchOption.AllDirectories)
                     .OrderBy(o => o.Name);
 

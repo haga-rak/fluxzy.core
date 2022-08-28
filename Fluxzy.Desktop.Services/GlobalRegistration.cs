@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Fluxzy.Desktop.Services.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -11,7 +12,16 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();
 
-            collection.AddScoped<UiStateManager>();
+            collection.AddSingleton<IObservable<FileState>>
+                (s => s.GetRequiredService<GlobalFileManager>().Observable);
+
+            collection.AddSingleton<IObservable<FluxzySettingsHolder>>
+                (s => s.GetRequiredService<FluxzySettingManager>().Observable);
+
+            collection.AddSingleton<IObservable<ProxyState>>
+                (s => s.GetRequiredService<ProxyControl>().Observable);
+
+            collection.AddSingleton<UiStateManager>();
             collection.AddTransient<FxzyDirectoryPackager>();
         }
     }

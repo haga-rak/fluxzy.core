@@ -1,14 +1,18 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.Extensions.Configuration;
 
+
 namespace Fluxzy.Desktop.Services
 {
-    public class GlobalFileManager
+    public class GlobalFileManager : IObservableProvider<FileState>
     {
         private readonly FxzyDirectoryPackager _directoryPackager;
         private readonly string _tempDirectory;
+        private readonly BehaviorSubject<FileState> _internalSubject;
 
         public GlobalFileManager(IConfiguration configuration, FxzyDirectoryPackager directoryPackager)
         {
@@ -18,35 +22,48 @@ namespace Fluxzy.Desktop.Services
                                  "Fluxzy.Desktop", "temp");
             _tempDirectory = Environment.ExpandEnvironmentVariables(_tempDirectory);
 
-            Directory.CreateDirectory(_tempDirectory); 
+            Directory.CreateDirectory(_tempDirectory);
+
+            _internalSubject = new BehaviorSubject<FileState>(CreateNewFileState(_tempDirectory));
+            Observable = _internalSubject.AsObservable();
+            Observable.Do(fileState => Current = fileState).Subscribe();
         }
 
         public FileState? Current { get; private set; } = null;
 
-        private (Guid,string) GenerateNewDirectory()
+        public IObservable<FileState> Observable { get; }
+
+        private static (Guid,string) GenerateNewDirectory(string tempDirectory)
         {
             var id = Guid.NewGuid(); 
 
             var pathSuffix = $"capture-{DateTime.Now.ToString("yyyyMMddHHmmss")}-{id}";
 
-            var fullPath = Path.Combine(_tempDirectory, pathSuffix);
+            var fullPath = Path.Combine(tempDirectory, pathSuffix);
 
             Directory.CreateDirectory(fullPath);
             return (id, fullPath);
         }
 
-        public Task<FileState> New()
+        public Task New()
         {
-            var (id, fullPath) = GenerateNewDirectory();
+            var newFileState = CreateNewFileState(_tempDirectory);
 
-            Current = new FileState(id, fullPath);
+            _internalSubject.OnNext(newFileState);
 
-            return Task.FromResult(Current); 
+            return Task.CompletedTask; 
         }
 
-        public async Task<FileState> Open(string fileName)
+        private static FileState CreateNewFileState(string tempDirectory)
         {
-            var (id, fullPath) = GenerateNewDirectory();
+            var (id, fullPath) = GenerateNewDirectory(tempDirectory);
+            var newFileState = new FileState(id, fullPath);
+            return newFileState;
+        }
+
+        public async Task Open(string fileName)
+        {
+            var (id, fullPath) = GenerateNewDirectory(_tempDirectory);
 
             var directoryInfo = new DirectoryInfo(fullPath);
 
@@ -56,16 +73,16 @@ namespace Fluxzy.Desktop.Services
 
             await _directoryPackager.Unpack(fileStream, directoryInfo.FullName);
 
-            var result = Current = new FileState(id, fullPath)
+            var result = new FileState(id, fullPath)
             {
                 MappedFileFullPath = fileName,
                 MappedFileName = openFileInfo.Name
             };
 
-            return result; 
+            _internalSubject.OnNext(result);
         }
         
-        public async Task<FileState> Save(string fileName)
+        public async Task Save(string fileName)
         {
             if (Current == null)
                 throw new InvalidOperationException("Current working directory/file is not set");
@@ -76,14 +93,16 @@ namespace Fluxzy.Desktop.Services
                 outStream
             );
 
-            Current.WorkingDirectory = fileName;
-            Current.Changed = false; 
+            var newInstance = Current;
 
-            return Current;
+            newInstance.WorkingDirectory = fileName;
+            newInstance.Changed = false;
+
+            _internalSubject.OnNext(Current);
 
         }
 
-        public Task<FileState> Export(Stream outStream, FluxzyFileType fileType)
+        public Task Export(Stream outStream, FluxzyFileType fileType)
         {
             throw new NotImplementedException();
         }
