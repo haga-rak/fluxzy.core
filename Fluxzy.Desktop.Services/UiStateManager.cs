@@ -8,7 +8,6 @@ namespace Fluxzy.Desktop.Services
 {
     public class UiStateManager
     {
-        private IObservable<UiState> _globalState;
         private UiState _uiState;
         
         public UiStateManager(
@@ -16,13 +15,12 @@ namespace Fluxzy.Desktop.Services
             IObservable<ProxyState> proxyState,
             IObservable<FluxzySettingsHolder> settingHolder)
         {
-            _globalState =
-                fileState.CombineLatest(
-                    proxyState,
-                    settingHolder,
-                    (f, p, s) => new UiState(fileState: f, proxyState: p, settingsHolder: s));
+            var globalState = fileState.CombineLatest(
+                proxyState,
+                settingHolder,
+                (f, p, s) => new UiState(fileState: f, proxyState: p, settingsHolder: s));
 
-            _globalState
+            globalState
                 .Do(uiState => _uiState = uiState).Subscribe();
         }
 

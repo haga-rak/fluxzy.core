@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text.Json;
@@ -49,10 +48,7 @@ namespace Fluxzy.Desktop.Services
         {
             if (!File.Exists(_settingPath))
             {
-                return new FluxzySettingsHolder()
-                {
-                    StartupSetting = FluxzySetting.CreateDefault()
-                };
+                return new FluxzySettingsHolder(startupSetting: FluxzySetting.CreateDefault());
             }
 
             lock (_settingPath)
