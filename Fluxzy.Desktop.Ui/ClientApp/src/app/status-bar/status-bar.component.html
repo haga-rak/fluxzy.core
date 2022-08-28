@@ -1,7 +1,7 @@
 <div class="status-container">
     <strong class="font-primary">
-        <span *ngIf="this.fileState.mappedFileName">{{ this.fileState.mappedFileName}}</span>
-        <span *ngIf="!this.fileState.mappedFileName">(*new file)</span>
+        <span *ngIf="fileState?.mappedFileName">{{ fileState.mappedFileName}}</span>
+        <span *ngIf="!fileState?.mappedFileName">(*new file)</span>
        
     </strong>
     &nbsp;|&nbsp;

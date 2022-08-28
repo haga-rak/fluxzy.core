@@ -1,24 +1,38 @@
-﻿using Fluxzy.Core;
+﻿using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class ProxyControl
+    public class ProxyControl : IObservableProvider<ProxyState>
     {
-        private readonly FluxzySettingManager _settingManager;
-        private Proxy?  _proxy; 
+        private Proxy?  _proxy;
+        private readonly BehaviorSubject<ProxyState> _internalSubject;  
 
-        public ProxyControl(FluxzySettingManager settingManager)
+        public ProxyControl(IObservable<FluxzySettingsHolder> fluxzySettingHolder)
         {
-            _settingManager = settingManager;
-        }
+            _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState());
 
-        public async Task Init()
-        {
-            await UpdateSettings(); 
-        }
+            _internalSubject.Do(p => Current = p).Subscribe();
 
-        private async Task UpdateSettings()
+            fluxzySettingHolder
+                .Select(m =>
+                    System.Reactive.Linq.Observable.Create<ProxyState>(
+                        async (observer, token) =>
+                        {
+                            var proxyState = await UpdateSettings(m);
+                            observer.OnNext(proxyState);
+                            observer.OnCompleted();
+                        }))
+                .Switch()
+                .Do(proxyState => 
+                    _internalSubject.OnNext(proxyState)).Subscribe();
+
+            Observable = _internalSubject.AsObservable();
+        }
+        
+        private async Task<ProxyState> UpdateSettings(FluxzySettingsHolder settingHolder)
         {
             if (_proxy != null)
             {
@@ -26,12 +40,14 @@ namespace Fluxzy.Desktop.Services
                 _proxy = null; 
             }
 
-            var currentSettingHolder = _settingManager.Get();
+            var currentSettingHolder = settingHolder;
 
             _proxy = new Proxy(currentSettingHolder.StartupSetting,
                 new CertificateProvider(currentSettingHolder.StartupSetting, new InMemoryCertificateCache()));
 
             _proxy.Run();
+
+            return GetProxyState();
         }
 
         public Task<bool> SetAsSystemProxy()
@@ -40,6 +56,8 @@ namespace Fluxzy.Desktop.Services
                 return Task.FromResult(false); 
 
             _proxy.SetAsSystemProxy();
+
+            _internalSubject.OnNext(GetProxyState());
 
             return Task.FromResult(true); 
         }
@@ -51,10 +69,12 @@ namespace Fluxzy.Desktop.Services
 
             _proxy.UnsetAsSystemProxy();
 
+            _internalSubject.OnNext(GetProxyState());
+
             return Task.FromResult(true);
         }
 
-        public ProxyState GetProxyState()
+        private ProxyState GetProxyState()
         {
             return new ProxyState()
             {
@@ -66,5 +86,9 @@ namespace Fluxzy.Desktop.Services
             }; 
         }
 
+        public ProxyState? Current { get; private set; }
+
+        public IObservable<ProxyState> Observable { get; }
+    
     }
 }
