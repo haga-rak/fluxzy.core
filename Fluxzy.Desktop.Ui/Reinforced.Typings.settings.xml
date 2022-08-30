@@ -34,7 +34,7 @@
 			in attributes and in fluent methods then configuration from fluent methods will
 			be used.
 		-->
-		<RtConfigurationMethod>Echoes.Desktop.Ui.ReinforcedTypingsConfiguration.Configure</RtConfigurationMethod>
+		<RtConfigurationMethod>Fluxzy.Desktop.Ui.ReinforcedTypingsConfiguration.Configure</RtConfigurationMethod>
 		
 		<!--
 			By default all of your typings will be located in single file specified by RtTargetFile.
@@ -109,6 +109,6 @@
 
 	<ItemGroup>
 		<RtAdditionalAssembly Include="Fluxzy"/>
-		<RtAdditionalAssembly Include="Fluxzy.Dekstop.Services"/>
+		<RtAdditionalAssembly Include="Fluxzy.Desktop.Services"/>
 	</ItemGroup>
 </Project>

@@ -43,7 +43,8 @@ namespace Fluxzy.Desktop.Services
             var currentSettingHolder = settingHolder;
 
             _proxy = new Proxy(currentSettingHolder.StartupSetting,
-                new CertificateProvider(currentSettingHolder.StartupSetting, new InMemoryCertificateCache()));
+                        new CertificateProvider(currentSettingHolder.StartupSetting,
+                        new InMemoryCertificateCache()));
 
             _proxy.Run();
 

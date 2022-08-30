@@ -1,18 +1,16 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
-using Echoes.Desktop.Ui.ViewModels;
-using Fluxzy;
 using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Desktop.Ui.ViewModels;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
 using Reinforced.Typings.Fluent;
 using ConfigurationBuilder = Reinforced.Typings.Fluent.ConfigurationBuilder;
-using ConnectionInfo = Fluxzy.ConnectionInfo;
 
 [assembly: TsGlobal(CamelCaseForProperties = true, AutoOptionalProperties = true)]
 
-namespace Echoes.Desktop.Ui
+namespace Fluxzy.Desktop.Ui
 {
     public static class ReinforcedTypingsConfiguration
     {
