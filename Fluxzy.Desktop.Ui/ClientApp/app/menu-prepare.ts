@@ -4,6 +4,7 @@ import { BrowserWindow, ipcMain, Menu, MenuItem, MenuItemConstructorOptions } fr
 export interface IApplicationMenuEvent {
     menuLabel : string ; 
     menuId ? : string ; 
+    checked ? : boolean ;
 }
 
 export const InstallMenuBar = () : void => {
@@ -26,14 +27,16 @@ export const InstallMenuBar = () : void => {
     }) ; 
 }
 
-const menuClickEventHandler = (menuItem : MenuItem, browserWindow : BrowserWindow, event : KeyboardEvent ) : void => {
+const menuClickEventHandler = (menuItem : MenuItem, browserWindow : BrowserWindow, event : KeyboardEvent ) : boolean => {
 
     let payload : IApplicationMenuEvent = {
         menuLabel : menuItem.label, 
-        menuId : menuItem.id
+        menuId : menuItem.id,
+        checked: menuItem.checked 
     };
 
     browserWindow.webContents.send('application-menu-event', payload);
+    return false; 
 }
 
 

@@ -1,5 +1,29 @@
-import { MenuItem, MenuItemConstructorOptions } from "electron";
+import { Menu, MenuItem, MenuItemConstructorOptions } from "electron";
+import { arrayBuffer } from "stream/consumers";
 
+
+
+export const FindMenu : (arrayf : MenuItemConstructorOptions [] , condition : (item : MenuItemConstructorOptions) => boolean ) => MenuItemConstructorOptions | null  = 
+    (array, condition) => {
+        for (let item of array) {
+            let option: MenuItemConstructorOptions = item;
+            if (!option)
+                continue;
+
+            if (condition(option)) 
+                return option;
+            
+            let children : MenuItemConstructorOptions [] = option.submenu  as MenuItemConstructorOptions []  ;
+
+            if (children) {
+                let result = FindMenu(children, condition);
+
+                if (result)
+                    return result; 
+            }
+        }
+        return null;
+    }
 
 
 export const GlobalMenuItems : MenuItemConstructorOptions []=  [
@@ -43,6 +67,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 label : 'Quit', 
+                role : 'quit'
             },
         ]
     },
@@ -51,6 +76,19 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         submenu : [
             {
                 label : 'Manage filters', 
+            },
+        ]
+    },
+    {
+        label : 'Capture',
+        submenu : [
+            {
+                id : 'capture',
+                label : 'Capture trafic', 
+                checked : true,
+                type : 'checkbox',
+                accelerator : 'F5',
+                icon : '',
             },
         ]
     },

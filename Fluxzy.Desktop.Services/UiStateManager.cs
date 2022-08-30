@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Hubs;
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.VisualBasic;
 
 namespace Fluxzy.Desktop.Services
 {

@@ -1,12 +1,11 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Echoes.Desktop.Ui.ViewModels;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Desktop.Ui.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 
-namespace Echoes.Desktop.Ui.Controllers
+namespace Fluxzy.Desktop.Ui.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

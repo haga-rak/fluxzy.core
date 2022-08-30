@@ -2,7 +2,7 @@
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Echoes.Desktop.Ui.Controllers
+namespace Fluxzy.Desktop.Ui.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

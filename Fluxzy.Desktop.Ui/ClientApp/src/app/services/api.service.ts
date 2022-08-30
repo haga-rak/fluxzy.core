@@ -51,4 +51,18 @@ export class ApiService {
                 take(1)
             );
     }
+
+    public proxyOn() : Observable<UiState> {
+        return this.httpClient.post<UiState>(`api/proxy/on`, null)
+            .pipe(
+                take(1)
+            );
+    }
+
+    public proxyOff() : Observable<UiState> {
+        return this.httpClient.post<UiState>(`api/proxy/off`, null)
+            .pipe(
+                take(1)
+            );
+    }
 }

@@ -21,9 +21,11 @@ exports.InstallMenuBar = InstallMenuBar;
 var menuClickEventHandler = function (menuItem, browserWindow, event) {
     var payload = {
         menuLabel: menuItem.label,
-        menuId: menuItem.id
+        menuId: menuItem.id,
+        checked: menuItem.checked
     };
     browserWindow.webContents.send('application-menu-event', payload);
+    return false;
 };
 var InstallEvents = function (menuConstructorOptions) {
     for (var _i = 0, menuConstructorOptions_1 = menuConstructorOptions; _i < menuConstructorOptions_1.length; _i++) {

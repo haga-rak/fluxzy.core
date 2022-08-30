@@ -37,7 +37,7 @@ app.MapHub<GlobalHub>("/xs");
 app.MapFallbackToFile("index.html");
 
 var globalFileManager = app.Services.GetRequiredService<GlobalFileManager>();
-//await globalFileManager.New();
+//await globalFileManager.Off();
 await globalFileManager.Open(@"../Samples/boot.fxzy");
 
 app.Run();

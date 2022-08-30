@@ -1,4 +1,4 @@
-﻿namespace Echoes.Desktop.Ui.ViewModels
+﻿namespace Fluxzy.Desktop.Ui.ViewModels
 {
     public class FileOpeningViewModel
     {

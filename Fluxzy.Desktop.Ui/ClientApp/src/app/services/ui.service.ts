@@ -17,6 +17,8 @@ export class UiStateService {
         this.apiService.registerEvent('uiUpdate', (state : UiState) => {
             this.uiState$.next(state);
         });
+
+        this.getUiState().pipe(tap(t => this.menuService.updateMenu(t))).subscribe();
     }
 
     private refreshUiState() : void {
