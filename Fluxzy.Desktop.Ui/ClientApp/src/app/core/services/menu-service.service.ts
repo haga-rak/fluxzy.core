@@ -23,10 +23,7 @@ export class MenuService {
     }
 
     public init() : void {
-        console.log('init electron service') ;
-        if (this.electronService.isElectron){
-            console.log(this.electronService);
-         
+        if (this.electronService.isElectron){         
             this.electronService.ipcRenderer.sendSync('install-menu-bar', GlobalMenuItems) ; 
 
             this.electronService.ipcRenderer.on('application-menu-event',  (evt, message) => {

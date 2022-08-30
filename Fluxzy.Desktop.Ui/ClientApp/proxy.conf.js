@@ -7,9 +7,15 @@ const PROXY_CONFIG = [
   {
     context: [
       "/api",
-   ],
+      "/xs",
+    ],
     target: target,
     secure: false,
+    ws : true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/stream": ""
+    },
     headers: {
       Connection: 'Keep-Alive'
     }

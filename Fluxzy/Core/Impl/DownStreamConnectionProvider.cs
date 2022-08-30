@@ -65,7 +65,8 @@ namespace Fluxzy.Core
                 {
                     throw new Exception($"Impossible port : " +
                                         $"{((IPEndPoint)listener.LocalEndpoint).Address} - " +
-                                        $"{((IPEndPoint) listener.LocalEndpoint).Port}", sex);
+                                        $"{((IPEndPoint) listener.LocalEndpoint).Port}  - \r\n" 
+                        + sex.ToString(), sex) ;
                 }
             }
         }

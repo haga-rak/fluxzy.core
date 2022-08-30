@@ -4,6 +4,7 @@ using Echoes.Desktop.Ui.ViewModels;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Echoes.Desktop.Ui.Controllers
 {

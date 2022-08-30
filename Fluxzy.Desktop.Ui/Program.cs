@@ -1,7 +1,7 @@
-
-using Echoes.Desktop.Ui.Hubs;
 using Fluxzy;
 using Fluxzy.Desktop.Services;
+using Fluxzy.Desktop.Services.Hubs;
+using Microsoft.AspNetCore.Routing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +16,7 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 });
 
 builder.Services.AddFluxzyDesktopServices();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(a => a.ClientTimeoutInterval = TimeSpan.FromSeconds(5));
 
 var app = builder.Build();
 
@@ -28,8 +28,12 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 
-app.MapHub<GlobalHub>("/global");
+//app.UseEndpoints((endpointRouteBuilder) =>
+//{
+//    endpointRouteBuilder.MapHub<GlobalHub>("/xs/ui-state-update");
+//});
 
+app.MapHub<GlobalHub>("/xs");
 app.MapFallbackToFile("index.html");
 
 var globalFileManager = app.Services.GetRequiredService<GlobalFileManager>();

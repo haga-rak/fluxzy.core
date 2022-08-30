@@ -1,67 +1,70 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, tap, map, Observable,switchMap,distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe } from 'rxjs';
+import { BehaviorSubject, tap, map, Observable, switchMap, distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../core/models/auto-generated';
 import { BuildMockExchangesAsObservable } from '../core/models/exchanges-mock';
+import { ApiService } from './api.service';
 import { UiStateService } from './ui.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ExchangeManagementService {
-    
-    public currentSelection$ : BehaviorSubject<ExchangeSelection> = new BehaviorSubject<ExchangeSelection>({ map : {}}); 
-    public currenSelectionCount$ : Observable<number>  ; 
-    private mocked = false; 
-    
-    private exchangeBrowsingState$ : BehaviorSubject<ExchangeBrowsingState> = new BehaviorSubject<ExchangeBrowsingState>(
-    { 
-        count : 500,
-        endIndex : 500,
-        startIndex : 0
-    }); 
 
-    public exchangeState$ : Observable<ExchangeState> = new Observable<ExchangeState>(); 
-    
-    private mockIntervalSource = interval(1000) ; 
-    
-    constructor(private uiService : UiStateService) { 
-        this.setUpCurrentSelectionObservable(); 
-        
+    public currentSelection$: BehaviorSubject<ExchangeSelection> = new BehaviorSubject<ExchangeSelection>({ map: {} });
+    public currenSelectionCount$: Observable<number>;
+    private mocked = false;
+
+    private exchangeBrowsingState$: BehaviorSubject<ExchangeBrowsingState> = new BehaviorSubject<ExchangeBrowsingState>(
+        {
+            count: 500,
+            endIndex: 500,
+            startIndex: 0
+        });
+
+    public exchangeState$: Observable<ExchangeState> = new Observable<ExchangeState>();
+
+    private mockIntervalSource = interval(1000);
+
+    constructor(private uiService: UiStateService, private apiService: ApiService) {
+        this.setUpCurrentSelectionObservable();
+
         if (!this.mocked) {
             // FROM SERVER
-
-            this.exchangeState$ = 
+            this.exchangeState$ =
                 combineLatest([
                     this.uiService.getUiState(),
-                    this.getBrowsingState()
+                    this.getBrowsingState().pipe(
+                        distinctUntilChanged((prev, current) => {
+                            return prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
+                        }
+                        ))
                 ]).
                     pipe(
                         debounceTime(50),
-                        switchMap(comb => uiService.getExchangeState(comb[1]))
+                        switchMap(comb => apiService.getExchangeState(comb[1]))
                     );
         }
-        else{
+        else {
             const finalSource = merge(of(0), this.mockIntervalSource);
-                
+
             let finalObservable = combineLatest([
-                    this.getBrowsingState().pipe(
-                        distinctUntilChanged( (prev, current) => 
-                           {
-                                return current === prev && prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
-                            })), 
-                    finalSource
-                ])
-    
-            this.exchangeState$ = 
+                this.getBrowsingState().pipe(
+                    distinctUntilChanged((prev, current) => {
+                        return current === prev && prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
+                    })),
+                finalSource
+            ])
+
+            this.exchangeState$ =
                 finalObservable.pipe(
-                    switchMap(state => 
+                    switchMap(state =>
                         BuildMockExchangesAsObservable(state[0], state[1])
                     )
-                ) ; 
+                );
         }
     }
 
-    
+
     private setUpCurrentSelectionObservable() {
         this.currenSelectionCount$ =
             this.currentSelection$.pipe(map(s => {
@@ -76,85 +79,84 @@ export class ExchangeManagementService {
             }));
     }
 
-    public updateBrowsingState (browsingState : ExchangeBrowsingState)  : void {
+    public updateBrowsingState(browsingState: ExchangeBrowsingState): void {
         this.exchangeBrowsingState$.next(browsingState);
     }
 
-    public getBrowsingState() : Observable<ExchangeBrowsingState> {
+    public getBrowsingState(): Observable<ExchangeBrowsingState> {
         return this.exchangeBrowsingState$.asObservable()
-            .pipe( distinctUntilChanged( (prev, current) => 
-            {
+            .pipe(distinctUntilChanged((prev, current) => {
                 return current === prev && prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
-            })) ; 
+            }));
     }
 
 }
 
 
 export interface ExchangeSelection {
-    map : { [exchangeId : string] : boolean } ,
-    lastSelectedExchangeId? : number
+    map: { [exchangeId: string]: boolean },
+    lastSelectedExchangeId?: number
 }
 
 
-export const NextBrowsingState = (current : ExchangeBrowsingState, maxCount : number) : ExchangeBrowsingState => {
+export const NextBrowsingState = (current: ExchangeBrowsingState, maxCount: number): ExchangeBrowsingState => {
 
     let result = {
-        ... current
-    } ;
+        ...current
+    };
 
     if (result.endIndex === null)
-        return result; 
+        return result;
 
-    result.endIndex = result.endIndex + current.count ; 
-    result.startIndex = result.endIndex ; 
+    result.endIndex = result.endIndex + current.count;
+    result.startIndex = result.endIndex;
 
     if (result.endIndex > maxCount) {
-        result.endIndex = null ; 
-        result.startIndex  = null ; 
+        result.endIndex = null;
+        result.startIndex = null;
     }
 
-    return result; 
+    return result;
 }
 
-export const PreviousBrowsingState = (current : ExchangeBrowsingState, currentStartIndex : number, maxCount : number) : ExchangeBrowsingState => {
+export const PreviousBrowsingState = (current: ExchangeBrowsingState, currentStartIndex: number, maxCount: number): ExchangeBrowsingState => {
 
-    let result =   {
-        ... current
-    } ;
+    let result = {
+        ...current
+    };
 
-    result.startIndex = currentStartIndex - current.count  ; 
+    result.startIndex = currentStartIndex - current.count;
 
-    if (result.startIndex < 0 ) {
-        result.startIndex = 0 ; 
+    if (result.startIndex < 0) {
+        result.startIndex = 0;
     }
 
-    result.endIndex =  result.startIndex  + current.count ;
+    result.endIndex = result.startIndex + current.count;
 
     if (result.endIndex > maxCount)
         result.endIndex = maxCount;
 
-    return result; 
+    return result;
 }
 
 
-export const FreezeBrowsingState = (current : ExchangeBrowsingState, maxCount : number) : ExchangeBrowsingState => {
+export const FreezeBrowsingState = (current: ExchangeBrowsingState, maxCount: number): ExchangeBrowsingState => {
 
-    let result =   {
-        ... current
-    } ;
+    let result = {
+        ...current
+    };
 
     if (current.endIndex !== null)
         return current;
 
-    result.endIndex = maxCount; 
-    result.startIndex =  result.endIndex - current.count;
+    result.endIndex = maxCount;
+    result.startIndex = result.endIndex - current.count;
 
-    if (result.startIndex < 0 ) {
-        result.startIndex = 0 ; 
+    if (result.startIndex < 0) {
+        result.startIndex = 0;
     }
 
-    return result; 
+    return result;
 }
 
 

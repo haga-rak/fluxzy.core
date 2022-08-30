@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace Echoes.Desktop.Ui.Hubs
+namespace Fluxzy.Desktop.Services.Hubs
 {
     public class GlobalHub : Hub
     {
