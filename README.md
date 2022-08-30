@@ -1,5 +1,5 @@
 # fluxzy 
-fluxzy is an HTTP analyzer and debugger engine with powerful and flexible alteration feature. 
+fluxzy is an HTTP analyzer and debugger engine with powerful and flexible alteration system. 
 fluxzy designed for delivering high end diagnosis and accurate performance measures. fluxzy targets .NET Standard 2.1, that means that it runs on any platform supporting this later. 
 
 # fluxzy.cli (fxzy) 
