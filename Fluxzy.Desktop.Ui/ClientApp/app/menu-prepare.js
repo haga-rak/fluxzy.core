@@ -19,6 +19,9 @@ var InstallMenuBar = function () {
 };
 exports.InstallMenuBar = InstallMenuBar;
 var menuClickEventHandler = function (menuItem, browserWindow, event) {
+    if (menuItem.type === 'checkbox') {
+        menuItem.checked = !menuItem.checked;
+    }
     var payload = {
         menuLabel: menuItem.label,
         menuId: menuItem.id,

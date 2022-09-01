@@ -18,7 +18,9 @@ export class UiStateService {
             this.uiState$.next(state);
         });
 
-        this.getUiState().pipe(tap(t => this.menuService.updateMenu(t))).subscribe();
+        this.getUiState().pipe(
+            tap(t => console.log(t)),
+            tap(t => this.menuService.updateMenu(t))).subscribe();
     }
 
     private refreshUiState() : void {
