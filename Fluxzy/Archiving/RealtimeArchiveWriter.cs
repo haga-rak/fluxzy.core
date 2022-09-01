@@ -8,18 +8,36 @@ namespace Fluxzy
 {
     public abstract class RealtimeArchiveWriter : IArchiveWriter
     {
+        public event EventHandler<ExchangeUpdateEventArgs> ExchangeUpdated;
+        public event EventHandler<ConnectionUpdateEventArgs> ConnectionUpdated;
+
         public virtual async Task Update(Connection connection, CancellationToken cancellationToken)
         {
             ConnectionInfo connectionInfo = new ConnectionInfo(connection);
 
             await Update(connectionInfo, cancellationToken); 
 
+            // fire event 
+            if (ConnectionUpdated != null)
+            {
+                ConnectionUpdated(this, new ConnectionUpdateEventArgs(connectionInfo)); 
+            }
+
         }
 
         public virtual async Task Update(Exchange exchange, CancellationToken cancellationToken)
         {
-            await Update(new ExchangeInfo(exchange), cancellationToken); 
+            var exchangeInfo = new ExchangeInfo(exchange);
+            await Update(exchangeInfo, cancellationToken);
+
+            // fire event 
+            if (ExchangeUpdated != null)
+            {
+                ExchangeUpdated(this, new ExchangeUpdateEventArgs(exchangeInfo));
+            }
+
         }
+
 
         public abstract Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
 
@@ -37,6 +55,9 @@ namespace Fluxzy
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+
+            ExchangeUpdated = null;
+            ConnectionUpdated = null; 
         }
     }
 }

@@ -4,22 +4,23 @@ using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
-namespace Fluxzy.Rules.Actions;
-
-public class DeleteResponseHeaderAction : IAction
+namespace Fluxzy.Rules.Actions
 {
-    public DeleteResponseHeaderAction(string headerName)
+    public class DeleteResponseHeaderAction : IAction
     {
-        HeaderName = headerName;
-    }
+        public DeleteResponseHeaderAction(string headerName)
+        {
+            HeaderName = headerName;
+        }
 
-    public string HeaderName { get; set;  }
+        public string HeaderName { get; set;  }
 
-    public FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
+        public FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
-    public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
-    {
-        exchange.Response.Header.AltDeleteHeader(HeaderName);
-        return Task.CompletedTask;
+        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        {
+            exchange.Response.Header.AltDeleteHeader(HeaderName);
+            return Task.CompletedTask;
+        }
     }
 }

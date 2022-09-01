@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
-import { Observable, take } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeState, UiState } from '../core/models/auto-generated';
+import { Observable, take, map, tap } from 'rxjs';
+import { ExchangeBrowsingState, ExchangeState, FileState, TrunkState, UiState } from '../core/models/auto-generated';
 
 @Injectable({
   providedIn: 'root'
@@ -28,14 +28,27 @@ export class ApiService {
     }
 
     public registerEvent<T>(name : string, callback : (arg : T) => void ){
-        this.hubConnection.on('uiUpdate', (data: T) => {
+        this.hubConnection.on(name, (data: T) => {
             callback(data);
         });
     }
 
-    public getExchangeState(browsingState : ExchangeBrowsingState) : Observable<ExchangeState> {
-         return this.httpClient.post<ExchangeState>(`api/trunk/read`, browsingState)
-        .pipe(take(1)); 
+    public getTrunkState(fileState: FileState) : Observable<TrunkState> {
+         return this.httpClient.post<TrunkState>(`api/trunk/read`, null)
+        .pipe(
+            take(1),
+            tap(t => {
+                console.log('reading trunk state with fileState: ')
+                console.log(fileState) ;
+                // here we build the dictionary used for this trunk 
+
+                if (t) {
+                    for(let item of t.exchanges ) {
+                        t.exchangeIndex[item.id] = item; 
+                    }
+                }
+            })            
+            ); 
     }
 
     public fileOpen(fileName : string) : Observable<UiState> {

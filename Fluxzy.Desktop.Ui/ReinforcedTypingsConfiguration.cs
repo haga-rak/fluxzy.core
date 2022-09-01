@@ -62,6 +62,10 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
 
+            builder.ExportAsInterface<TrunkState>()
+                .ApplyGenericProperties();
+
+
             // Core objects 
 
 

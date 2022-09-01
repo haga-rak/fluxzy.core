@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, tap, map, Observable, switchMap, distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../core/models/auto-generated';
-import { BuildMockExchangesAsObservable } from '../core/models/exchanges-mock';
+import { table } from 'console';
+import { BehaviorSubject, Subject, tap, map, Observable, switchMap, distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe, filter } from 'rxjs';
+import { ExchangeBrowsingState, ExchangeInfo, ExchangeState, TrunkState } from '../core/models/auto-generated';
 import { ApiService } from './api.service';
 import { UiStateService } from './ui.service';
 
@@ -11,14 +11,17 @@ import { UiStateService } from './ui.service';
 export class ExchangeManagementService {
 
     public currentSelection$: BehaviorSubject<ExchangeSelection> = new BehaviorSubject<ExchangeSelection>({ map: {} });
+    private trunkState$ = new Subject<TrunkState>() ; 
+    private trunkState : TrunkState | null; 
+
     public currenSelectionCount$: Observable<number>;
     private mocked = false;
 
     private exchangeBrowsingState$: BehaviorSubject<ExchangeBrowsingState> = new BehaviorSubject<ExchangeBrowsingState>(
         {
-            count: 500,
-            endIndex: 500,
-            startIndex: 0
+            count: 250,
+            startIndex: 0,
+            type : 0
         });
 
     public exchangeState$: Observable<ExchangeState> = new Observable<ExchangeState>();
@@ -28,40 +31,82 @@ export class ExchangeManagementService {
     constructor(private uiService: UiStateService, private apiService: ApiService) {
         this.setUpCurrentSelectionObservable();
 
-        if (!this.mocked) {
-            // FROM SERVER
-            this.exchangeState$ =
-                combineLatest([
-                    this.uiService.getUiState(),
-                    this.getBrowsingState().pipe(
-                        distinctUntilChanged((prev, current) => {
-                            return prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
-                        }
-                        ))
-                ]).
-                    pipe(
-                        debounceTime(50),
-                        switchMap(comb => apiService.getExchangeState(comb[1]))
-                    );
-        }
-        else {
-            const finalSource = merge(of(0), this.mockIntervalSource);
+        this.uiService.getFileState()
+        .pipe(
+            filter(t => !!t),
+            switchMap(r => this.apiService.getTrunkState(r)), 
+            filter(t => !!t),
+            tap(ts => this.trunkState = ts),
+            tap(ts => this.trunkState$.next(ts))
+        ).subscribe(); 
 
-            let finalObservable = combineLatest([
-                this.getBrowsingState().pipe(
-                    distinctUntilChanged((prev, current) => {
-                        return current === prev && prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
-                    })),
-                finalSource
-            ])
+        this.getBrowsingState().
+            pipe(tap(t => console.log(t))).subscribe(); 
+            
+        this.apiService.registerEvent('exchangeUpdate', (exchangeInfo : ExchangeInfo) => {
+            if (!this.trunkState) {
+                return; 
+            }
 
-            this.exchangeState$ =
-                finalObservable.pipe(
-                    switchMap(state =>
-                        BuildMockExchangesAsObservable(state[0], state[1])
-                    )
-                );
-        }
+           // console.log('newexchange') ; 
+
+            if (!this.trunkState.exchangeIndex[exchangeInfo.id]){
+                this.trunkState.exchanges.push(exchangeInfo); // On ajoute si pas existant 
+            }
+            else{
+                modify( this.trunkState.exchangeIndex[exchangeInfo.id] , exchangeInfo); 
+            }
+
+            // on met à jour dans tous les cas 
+            this.trunkState.exchangeIndex[exchangeInfo.id] = exchangeInfo;
+            this.trunkState$.next(this.trunkState);
+        });
+
+        function modify(obj, newObj) {
+
+            Object.keys(obj).forEach(function(key) {
+              delete obj[key];
+            });
+          
+            Object.keys(newObj).forEach(function(key) {
+              obj[key] = newObj[key];
+            });
+            
+          }
+    
+        this.exchangeState$  = combineLatest(
+            [
+                this.trunkState$.asObservable(),
+                this.getBrowsingState(),
+            ]).pipe(
+                map((tab) => {  let browsingState = tab[1] ;
+                    let truncateState : TrunkState = tab[0] ; 
+
+                    let startIndex , endIndex = 0 ; 
+
+                    if (browsingState.type === 0 ) { // from start ;
+                        startIndex = 0 ; 
+                        endIndex = Math.min(truncateState.exchanges.length, startIndex +browsingState.count)
+                    }
+                    else  { // (browsingState.type === 1) from the end
+                        endIndex = truncateState.exchanges.length,
+                        startIndex = Math.max(0, endIndex - browsingState.count)
+                    }
+
+                    let result : ExchangeState = {
+                        totalCount : truncateState.exchanges.length,
+                        endIndex : endIndex,
+                        startIndex : startIndex,
+                        exchanges : truncateState.exchanges.slice(startIndex, endIndex)
+                    } ; 
+
+                    return result;
+                }
+        ));
+    }
+
+    public getTrunkState() : Observable<TrunkState>  {
+        return this.trunkState$.asObservable();
     }
 
 
@@ -79,6 +124,8 @@ export class ExchangeManagementService {
             }));
     }
 
+    
+
     public updateBrowsingState(browsingState: ExchangeBrowsingState): void {
         this.exchangeBrowsingState$.next(browsingState);
     }
@@ -86,10 +133,9 @@ export class ExchangeManagementService {
     public getBrowsingState(): Observable<ExchangeBrowsingState> {
         return this.exchangeBrowsingState$.asObservable()
             .pipe(distinctUntilChanged((prev, current) => {
-                return current === prev && prev.startIndex === current.startIndex && prev.count === current.count && prev.endIndex === current.endIndex;
+                return prev.startIndex === current.startIndex && prev.count === current.count && prev.type === current.type;
             }));
     }
-
 }
 
 
@@ -100,21 +146,27 @@ export interface ExchangeSelection {
 
 
 export const NextBrowsingState = (current: ExchangeBrowsingState, maxCount: number): ExchangeBrowsingState => {
+    // Client probably reach end 
 
     let result = {
         ...current
     };
 
-    if (result.endIndex === null)
-        return result;
+    let reachEnd =false; 
 
-    result.endIndex = result.endIndex + current.count;
-    result.startIndex = result.endIndex;
+    result.startIndex = (result.startIndex + current.count /4) ; 
 
-    if (result.endIndex > maxCount) {
-        result.endIndex = null;
-        result.startIndex = null;
+    if (result.startIndex > (maxCount - current.count)) {
+        result.startIndex = maxCount - current.count;  
+        reachEnd = true; 
     }
+
+    if (result.startIndex < 0) {
+        result.startIndex = 0 ; 
+    }
+
+    result.type = 1 ; 
+
 
     return result;
 }
@@ -125,16 +177,11 @@ export const PreviousBrowsingState = (current: ExchangeBrowsingState, currentSta
         ...current
     };
 
-    result.startIndex = currentStartIndex - current.count;
+    result.startIndex =  Math.max(0, result.startIndex- (current.count/4));
 
-    if (result.startIndex < 0) {
-        result.startIndex = 0;
-    }
+    if (result.type === 1)
+        result.type = 0 ; 
 
-    result.endIndex = result.startIndex + current.count;
-
-    if (result.endIndex > maxCount)
-        result.endIndex = maxCount;
 
     return result;
 }
@@ -145,16 +192,6 @@ export const FreezeBrowsingState = (current: ExchangeBrowsingState, maxCount: nu
     let result = {
         ...current
     };
-
-    if (current.endIndex !== null)
-        return current;
-
-    result.endIndex = maxCount;
-    result.startIndex = result.endIndex - current.count;
-
-    if (result.startIndex < 0) {
-        result.startIndex = 0;
-    }
 
     return result;
 }

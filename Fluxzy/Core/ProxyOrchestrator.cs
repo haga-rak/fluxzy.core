@@ -18,22 +18,19 @@ namespace Fluxzy.Core
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
         private readonly RealtimeArchiveWriter _archiveWriter;
-        private readonly IExchangeEventSource _eventSource;
         private readonly ProxyExecutionContext _executionContext;
 
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
             ExchangeBuilder exchangeBuilder,
             PoolBuilder poolBuilder,
-            RealtimeArchiveWriter archiveWriter,
-            IExchangeEventSource eventSource)
+            RealtimeArchiveWriter archiveWriter)
         {
             _proxyRuntimeSetting = proxyRuntimeSetting;
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;
             _archiveWriter = archiveWriter;
             _executionContext = proxyRuntimeSetting.ExecutionContext;
-            _eventSource = eventSource;
         }
 
         public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)
@@ -88,9 +85,7 @@ namespace Fluxzy.Core
                             shouldClose = exchange.Request
                                 .Header["Connection".AsMemory()].Any(c =>
                                     c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
-
-                            _eventSource.OnBeforeRequest(new BeforeRequestEventArgs(_executionContext, exchange));
-
+                            
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);
@@ -99,27 +94,26 @@ namespace Fluxzy.Core
 
                             try
                             {
+                                if (_archiveWriter != null)
+                                {
+                                    await _archiveWriter.Update(
+                                        exchange,
+                                        CancellationToken.None
+                                    );
+
+                                    if (exchange.Request.Body != null &&
+                                        (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0))
+                                    {
+                                        exchange.Request.Body = new DispatchStream(exchange.Request.Body,
+                                            true,
+                                            _archiveWriter.CreateRequestBodyStream(exchange.Id));
+                                    }
+                                }
+
                                 while (true)
                                 {
 
-                                    if (_archiveWriter != null)
-                                    {
-                                        await _archiveWriter.Update(
-                                            exchange,
-                                            CancellationToken.None
-                                        );
-
-                                        if (exchange.Request.Body != null &&
-                                            (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0))
-                                        {
-                                            exchange.Request.Body = new DispatchStream(exchange.Request.Body,
-                                                true,
-                                                _archiveWriter.CreateRequestBodyStream(exchange.Id));
-                                        }
-                                    }
-
                                     // get a connection pool for the current exchange 
-                                    // the connection pool may 
 
                                     connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
 
@@ -204,8 +198,6 @@ namespace Fluxzy.Core
                                 }
 
                                 var responseHeaderLength = exchange.Response.Header.WriteHttp11(buffer, true, true);
-
-                                _eventSource.OnBeforeResponse(new BeforeResponseEventArgs(_executionContext, exchange));
 
                                 if (_archiveWriter != null)
                                 {
@@ -292,9 +284,6 @@ namespace Fluxzy.Core
                                     {
                                         await SafeCloseRequestBody(exchange);
                                         await SafeCloseResponseBody(exchange);
-
-                                        _eventSource.OnExchangeComplete(new ExchangeCompleteEventArgs(
-                                            _executionContext, exchange));
                                     }
                                 }
                                 else
@@ -334,6 +323,14 @@ namespace Fluxzy.Core
 
                         try
                         {
+                            if (exchange != null && !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // Update the state of the exchange 
+                                await _archiveWriter.Update(exchange,
+                                    CancellationToken.None
+                                );
+                            }
+
                             // Read the nex HTTP message 
                             exchange = await _exchangeBuilder.ReadExchange(
                                 localConnection.ReadStream,
@@ -343,7 +340,7 @@ namespace Fluxzy.Core
 
                             if (exchange != null && exchange.Metrics != null)
                             {
-                                var ep2 = (IPEndPoint)client.Client.RemoteEndPoint;
+                                var ep2 = (IPEndPoint) client.Client.RemoteEndPoint;
 
                                 exchange.Metrics.LocalPort = ep2.Port;
                                 exchange.Metrics.LocalAddress = ep2.Address.ToString();
