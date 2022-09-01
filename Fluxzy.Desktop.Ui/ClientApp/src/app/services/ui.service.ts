@@ -14,6 +14,7 @@ export class UiStateService {
     
     constructor(private httpClient: HttpClient, private menuService : MenuService, private apiService : ApiService) { 
         this.refreshUiState() ; 
+        
         this.apiService.registerEvent('uiUpdate', (state : UiState) => {
             this.uiState$.next(state);
         });

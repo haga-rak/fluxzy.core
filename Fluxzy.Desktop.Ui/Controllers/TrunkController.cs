@@ -20,16 +20,16 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("read")]
-        public async Task<ExchangeState> ReadState([FromBody] ExchangeBrowsingState browsingState)
+        public ActionResult<TrunkState?> ReadState()
         {
             var current = _globalFileManager.Current;
 
             if (current == null)
             {
-                return ExchangeState.Empty();
+                return TrunkState.Empty();
             }
 
-            return await _trunkManager.ReadState(current, browsingState); 
+            return _trunkManager.Current; 
         }
     }
 }

@@ -4,7 +4,6 @@ import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../../core/models/auto-generated';
 import { ExchangeStyle } from '../../core/models/exchange-extensions';
-import { BuildMockExchanges } from '../../core/models/exchanges-mock';
 import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
 
 @Component({
@@ -42,13 +41,13 @@ export class ExchangeTableViewComponent implements OnInit {
 
 
     public scrollY(event : any) {
-        var position = this.perfectScroll.directiveRef.position(false);
+        // var position = this.perfectScroll.directiveRef.position(false);
 
-        if (position.y === 0 && this.exchangeState && this.browsingState) {
-            let newBrowsingState = FreezeBrowsingState( this.browsingState, this.exchangeState.totalCount);
-            this.uiService.updateBrowsingState(newBrowsingState); 
-            this.cdr.detectChanges();
-        }
+        // if (position.y === 0 && this.exchangeState && this.browsingState) {
+        //     let newBrowsingState = FreezeBrowsingState( this.browsingState, this.exchangeState.totalCount);
+        //     this.uiService.updateBrowsingState(newBrowsingState); 
+        //     this.cdr.detectChanges();
+        // }
     }
 
     public reachStart(event : any)  {
@@ -73,8 +72,6 @@ export class ExchangeTableViewComponent implements OnInit {
     public reachEnd(event : any)  {
         if(this.exchangeState && this.browsingState) {
 
-            let endIndexInitial = this.browsingState.endIndex;
-
             let nextState = NextBrowsingState( this.browsingState, this.exchangeState.totalCount); 
 
             if (!this.exchangeState.totalCount)
@@ -82,13 +79,12 @@ export class ExchangeTableViewComponent implements OnInit {
 
             this.uiService.updateBrowsingState(nextState); 
             this.cdr.detectChanges();
-            
 
             let position = this.perfectScroll.directiveRef.position(true); 
 
             let y = position.y as number; 
 
-            if (y && nextState.endIndex !==  endIndexInitial) {
+            if (y && nextState.type == 1) {
                 this.perfectScroll.directiveRef.scrollToY(y-2); 
                 this.perfectScroll.directiveRef.update();
             }

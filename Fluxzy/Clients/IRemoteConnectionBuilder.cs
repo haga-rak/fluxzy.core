@@ -61,12 +61,8 @@ namespace Fluxzy.Clients
 
             connection.DnsSolveStart = _timeProvider.Instant();
 
-            setting.ExchangeEventSource.OnConnectionAdded(new ConnectionAddedEventArgs(setting.ExecutionContext, connection));
-
             var ipAddress = context.RemoteHostIp ?? 
                             await _dnsSolver.SolveDns(authority.HostName);
-
-            setting.ExchangeEventSource.OnConnectionUpdate(new ConnectionUpdateEventArgs(setting.ExecutionContext, connection));
 
             connection.RemoteAddress = ipAddress;
 
@@ -80,9 +76,7 @@ namespace Fluxzy.Clients
             connection.TcpConnectionOpened = _timeProvider.Instant();
             connection.LocalPort = localEndpoint.Port;
             connection.LocalAddress = localEndpoint.Address.ToString();
-
-            setting.ExchangeEventSource.OnConnectionUpdate(new ConnectionUpdateEventArgs(setting.ExecutionContext, connection));
-
+            
             var newlyOpenedStream = tcpClient.GetStream();
             
             if (!authority.Secure || context.BlindMode)
@@ -104,18 +98,12 @@ namespace Fluxzy.Clients
                 EnabledSslProtocols = setting.ProxyTlsProtocols,
                 ApplicationProtocols = httpProtocols
             };
-
-
-            setting.ExchangeEventSource.OnConnectionUpdate(new ConnectionUpdateEventArgs(setting.ExecutionContext, connection));
-
+            
             await sslStream.AuthenticateAsClientAsync(authenticationOptions, token).ConfigureAwait(false);
 
             connection.SslInfo = new SslInfo(sslStream); 
 
             connection.SslNegotiationEnd = _timeProvider.Instant();
-
-
-            setting.ExchangeEventSource.OnConnectionUpdate(new ConnectionUpdateEventArgs(setting.ExecutionContext, connection));
 
             if (DebugContext.EnableNetworkFileDump)
             {

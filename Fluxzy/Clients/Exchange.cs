@@ -18,7 +18,6 @@ namespace Fluxzy.Clients
         private static int _exchangeCounter = 0;
 
         private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>();
-
         public Exchange(
             ExchangeContext context,
             Authority authority, 

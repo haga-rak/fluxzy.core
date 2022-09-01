@@ -16,7 +16,10 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 });
 
 builder.Services.AddFluxzyDesktopServices();
-builder.Services.AddSignalR(a => a.ClientTimeoutInterval = TimeSpan.FromSeconds(5));
+builder.Services.AddSignalR().AddJsonProtocol(
+    options => 
+        options.PayloadSerializerOptions = GlobalArchiveOption.JsonSerializerOptions
+    );
 
 var app = builder.Build();
 

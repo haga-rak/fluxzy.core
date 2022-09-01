@@ -14,7 +14,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy
 {
-    public class Proxy : IDisposable, IAsyncDisposable, IExchangeEventSource
+    public class Proxy : IDisposable, IAsyncDisposable
     {
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
         private CancellationTokenSource _proxyHaltTokenSource = new();
@@ -27,7 +27,7 @@ namespace Fluxzy
         private bool _halted; 
         
         private ProxyOrchestrator _proxyOrchestrator;
-        private RealtimeArchiveWriter _writer;
+        public RealtimeArchiveWriter Writer { get; private set; }
 
         private  int _currentConcurrentCount = 0; 
 
@@ -51,14 +51,14 @@ namespace Fluxzy
             {
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
 
-                _writer = new DirectoryArchiveWriter(
+                Writer = new DirectoryArchiveWriter(
                     Path.Combine(StartupSetting.ArchivingPolicy.Directory, SessionIdentifier));
             }
 
             var http1Parser = new Http11Parser(StartupSetting.MaxHeaderLength);
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default, http1Parser,
-                _writer);
+                Writer);
 
             ExecutionContext = new ProxyExecutionContext()
             {
@@ -66,8 +66,8 @@ namespace Fluxzy
                 StartupSetting = startupSetting
             };
 
-            _proxyOrchestrator = new ProxyOrchestrator(new ProxyRuntimeSetting(startupSetting, ExecutionContext, this),
-                new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, _writer, this);
+            _proxyOrchestrator = new ProxyOrchestrator(new ProxyRuntimeSetting(startupSetting, ExecutionContext),
+                new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, Writer);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction && 
                                                           t.Filter.Children.OfType<AnyFilter>().Any() 
@@ -155,7 +155,6 @@ namespace Fluxzy
             {
                 SetAsSystemProxy();
             }
-               
 
             _downStreamConnectionProvider.Init(_proxyHaltTokenSource.Token);
 
@@ -210,6 +209,9 @@ namespace Fluxzy
         {
             _halted = true;
 
+            Writer?.Dispose();
+            Writer = null;
+
             _proxyRegister?.Dispose();
             _proxyRegister = null;
 
@@ -223,46 +225,12 @@ namespace Fluxzy
 
             _proxyHaltTokenSource?.Dispose();
             _proxyHaltTokenSource = null;
-            
+
 
             _disposed = true;
         }
 
-
-        public event EventHandler<BeforeRequestEventArgs> BeforeRequest;
-
-        public event EventHandler<BeforeResponseEventArgs> BeforeResponse;
-
-        public event EventHandler<ExchangeCompleteEventArgs> ExchangeComplete;
-
-        public event EventHandler<ConnectionAddedEventArgs> ConnectionAdded;
-
-        public event EventHandler<ConnectionUpdateEventArgs> ConnectionUpdate;
         
-        public virtual void OnBeforeRequest(BeforeRequestEventArgs e)
-        {
-            BeforeRequest?.Invoke(this, e);
-        }
-
-        public virtual void OnBeforeResponse(BeforeResponseEventArgs e)
-        {
-            BeforeResponse?.Invoke(this, e);
-        }
-
-        public virtual void OnExchangeComplete(ExchangeCompleteEventArgs e)
-        {
-            ExchangeComplete?.Invoke(this, e);
-        }
-
-        public virtual void OnConnectionAdded(ConnectionAddedEventArgs e)
-        {
-            ConnectionAdded?.Invoke(this, e);
-        }
-
-        public virtual void OnConnectionUpdate(ConnectionUpdateEventArgs e)
-        {
-            ConnectionUpdate?.Invoke(this, e);
-        }
     }
 
     public class ProxyExecutionContext

@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.IO;
 using System.Text.Json.Serialization;
 
 namespace Fluxzy
@@ -20,11 +21,14 @@ namespace Fluxzy
 
         public static ArchivingPolicy CreateFromDirectory(string path)
         {
+            var directoryInfo = new DirectoryInfo(path);
+
+            directoryInfo.Create();
             return new ArchivingPolicy()
             {
-                Type = ArchivingPolicyType.Directory,
-                Directory = path
-            }; 
+                Directory = directoryInfo.FullName,
+                Type = ArchivingPolicyType.Directory
+            };
         }
     }
 

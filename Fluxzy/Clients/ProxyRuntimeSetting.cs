@@ -21,20 +21,16 @@ namespace Fluxzy.Clients
 
         public ProxyRuntimeSetting(
             FluxzySetting startupSetting, 
-            ProxyExecutionContext executionContext,
-            IExchangeEventSource exchangeEventSource)
+            ProxyExecutionContext executionContext)
         {
             ExecutionContext = executionContext;
-            ExchangeEventSource = exchangeEventSource;
             _startupSetting = startupSetting;
             ProxyTlsProtocols = startupSetting.ServerProtocols;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
         }
 
         public ProxyExecutionContext ExecutionContext { get; }
-
-        public IExchangeEventSource ExchangeEventSource { get; } = new NoOpExchangeEventSource(); 
-
+        
         /// <summary>
         /// Protocols supported by the current proxy 
         /// </summary>
