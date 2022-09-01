@@ -67,7 +67,7 @@ namespace Fluxzy.Desktop.Services
                 // TODO notify TrunkManager for this update 
 
                 _hub.Clients.All.SendAsync(
-                    "exchangeUpdate", args.Exchange);
+                    "exchangeUpdate", args.ExchangeInfo);
             };
 
             _proxy.Writer.ConnectionUpdated += delegate(object? sender, ConnectionUpdateEventArgs args)

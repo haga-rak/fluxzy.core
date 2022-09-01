@@ -270,9 +270,10 @@ namespace Fluxzy.Tests
             using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
-            proxy.BeforeResponse += delegate(object? sender, BeforeResponseEventArgs args)
+            proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
             {
-                requestReceived.TrySetResult(args.Exchange);
+                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                    requestReceived.TrySetResult(args.Original);
             };
 
             proxy.Run();
@@ -321,10 +322,11 @@ namespace Fluxzy.Tests
             
             using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
-            
-            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+
+            proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                requestReceived.TrySetResult(args.Exchange);
+                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                    requestReceived.TrySetResult(args.Original);
             };
 
             proxy.Run();
@@ -373,9 +375,10 @@ namespace Fluxzy.Tests
             using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
-            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+            proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                requestReceived.TrySetResult(args.Exchange);
+                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                    requestReceived.TrySetResult(args.Original);
             };
 
             proxy.Run();
@@ -427,10 +430,11 @@ namespace Fluxzy.Tests
             
             using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
-            
-            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+
+            proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                requestReceived.TrySetResult(args.Exchange);
+                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                    requestReceived.TrySetResult(args.Original);
             };
 
             proxy.Run();
@@ -482,11 +486,11 @@ namespace Fluxzy.Tests
             using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
-            proxy.BeforeResponse += delegate (object? sender, BeforeResponseEventArgs args)
+            proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                requestReceived.TrySetResult(args.Exchange);
+                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                    requestReceived.TrySetResult(args.Original);
             };
-
             proxy.Run();
 
             var response = await httpClient.PostAsync("https://sandbox.smartizy.com/content-control/sha256", 

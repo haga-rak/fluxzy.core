@@ -75,7 +75,8 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         label : 'Edit',
         submenu : [
             {
-                label : 'Manage filters', 
+                id : 'clear',
+                label : 'Clear', 
             },
         ]
     },

@@ -7,7 +7,7 @@ namespace Fluxzy.Desktop.Services.Models
     /// </summary>
     public class ExchangeState
     {
-        public List<ExchangeInfo> Exchanges { get; set; }
+        public List<ExchangeContainer> Exchanges { get; set; }
         
         public int StartIndex { get; set; }
 

@@ -3,9 +3,11 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Misc;
 
 namespace Fluxzy
 {
+    
     public abstract class RealtimeArchiveWriter : IArchiveWriter
     {
         public event EventHandler<ExchangeUpdateEventArgs> ExchangeUpdated;
@@ -22,10 +24,9 @@ namespace Fluxzy
             {
                 ConnectionUpdated(this, new ConnectionUpdateEventArgs(connectionInfo)); 
             }
-
         }
 
-        public virtual async Task Update(Exchange exchange, CancellationToken cancellationToken)
+        public virtual async Task Update(Exchange exchange, UpdateType updateType, CancellationToken cancellationToken)
         {
             var exchangeInfo = new ExchangeInfo(exchange);
             await Update(exchangeInfo, cancellationToken);
@@ -33,9 +34,8 @@ namespace Fluxzy
             // fire event 
             if (ExchangeUpdated != null)
             {
-                ExchangeUpdated(this, new ExchangeUpdateEventArgs(exchangeInfo));
+                ExchangeUpdated(this, new ExchangeUpdateEventArgs(exchangeInfo, exchange, updateType));
             }
-
         }
 
 
@@ -60,4 +60,37 @@ namespace Fluxzy
             ConnectionUpdated = null; 
         }
     }
+
+    public enum UpdateType
+    {
+        BeforeRequestHeader, 
+        AfterResponseHeader, 
+        AfterResponse
+    }
+
+
+    public class EventOnlyArchiveWriter : RealtimeArchiveWriter
+    {
+        public override Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask; 
+        }
+
+        public override Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public override Stream CreateRequestBodyStream(int exchangeId)
+        {
+            return new MockedWriteStream(); 
+        }
+
+        public override Stream CreateResponseBodyStream(int exchangeId)
+        {
+            return new MockedWriteStream();
+        }
+    }
+
+    
 }

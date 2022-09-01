@@ -5,11 +5,17 @@ namespace Fluxzy
 {
     public class ExchangeUpdateEventArgs : EventArgs
     {
-        public ExchangeInfo Exchange { get; }
+        public ExchangeInfo ExchangeInfo { get; }
+        public Exchange Original { get; }
 
-        public ExchangeUpdateEventArgs(ExchangeInfo exchange)
+        public UpdateType UpdateType { get; }
+
+        public ExchangeUpdateEventArgs(ExchangeInfo exchangeInfo,
+            Exchange original, UpdateType updateType)
         {
-            Exchange = exchange;
+            ExchangeInfo = exchangeInfo;
+            Original = original;
+            UpdateType = updateType;
         }
     }
 }

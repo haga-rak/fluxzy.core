@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '
 import { MouseInputEvent } from 'electron';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from '../../core/models/auto-generated';
+import { ExchangeBrowsingState, ExchangeContainer, ExchangeInfo, ExchangeState } from '../../core/models/auto-generated';
 import { ExchangeStyle } from '../../core/models/exchange-extensions';
 import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
 
@@ -92,7 +92,7 @@ export class ExchangeTableViewComponent implements OnInit {
         }
     }
 
-    public identify(index : number, item : ExchangeInfo) : number {
+    public identify(index : number, item : ExchangeContainer) : number {
         return item.id;
     } 
         

@@ -71,7 +71,7 @@ export interface FluxzySetting
 }
 export interface ExchangeState
 {
-	exchanges: ExchangeInfo[];
+	exchanges: ExchangeContainer[];
 	startIndex: number;
 	endIndex: number;
 	totalCount: number;
@@ -82,11 +82,21 @@ export interface ExchangeBrowsingState
 	count: number;
 	type: number;
 }
+export interface ExchangeContainer
+{
+	id: number;
+	exchangeInfo: ExchangeInfo;
+}
+export interface ConnectionContainer
+{
+	id: number;
+	connectionInfo: ConnectionInfo;
+}
 export interface TrunkState
 {
-	exchanges: ExchangeInfo[];
-	connections: ConnectionInfo[];
-	exchangeIndex: { [key:number]: ExchangeInfo };
+	exchanges: ExchangeContainer[];
+	connections: ConnectionContainer[];
+	exchangeIndex: { [key:number]: ExchangeContainer };
 }
 export interface ExchangeInfo
 {

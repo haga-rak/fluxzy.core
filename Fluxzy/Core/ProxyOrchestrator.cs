@@ -98,6 +98,7 @@ namespace Fluxzy.Core
                                 {
                                     await _archiveWriter.Update(
                                         exchange,
+                                        UpdateType.BeforeRequestHeader,
                                         CancellationToken.None
                                     );
 
@@ -203,6 +204,7 @@ namespace Fluxzy.Core
                                 {
                                     // Update the state of the exchange 
                                     await _archiveWriter.Update(exchange,
+                                        UpdateType.AfterResponseHeader,
                                         CancellationToken.None
                                     );
 
@@ -327,6 +329,7 @@ namespace Fluxzy.Core
                             {
                                 // Update the state of the exchange 
                                 await _archiveWriter.Update(exchange,
+                                    UpdateType.AfterResponse,
                                     CancellationToken.None
                                 );
                             }
