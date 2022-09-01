@@ -1,6 +1,7 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
 using Fluxzy.Clients;
+using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
 using Reinforced.Typings.Ast.TypeNames;
@@ -61,6 +62,11 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<ExchangeBrowsingState>()
                 .ApplyGenericProperties();
 
+            builder.ExportAsInterface<ExchangeContainer>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ConnectionContainer>()
+                .ApplyGenericProperties();
 
             builder.ExportAsInterface<TrunkState>()
                 .ApplyGenericProperties();

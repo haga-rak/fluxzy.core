@@ -27,7 +27,7 @@ namespace Fluxzy
         private bool _halted; 
         
         private ProxyOrchestrator _proxyOrchestrator;
-        public RealtimeArchiveWriter Writer { get; private set; }
+        public RealtimeArchiveWriter Writer { get; private set; } = new EventOnlyArchiveWriter();
 
         private  int _currentConcurrentCount = 0; 
 
@@ -54,7 +54,7 @@ namespace Fluxzy
                 Writer = new DirectoryArchiveWriter(
                     Path.Combine(StartupSetting.ArchivingPolicy.Directory, SessionIdentifier));
             }
-
+            
             var http1Parser = new Http11Parser(StartupSetting.MaxHeaderLength);
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default, http1Parser,

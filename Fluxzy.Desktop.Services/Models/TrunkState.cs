@@ -2,21 +2,20 @@
 {
     public class TrunkState
     {
-        public TrunkState(List<ExchangeInfo> exchanges, List<ConnectionInfo> connections)
+        public TrunkState(List<ExchangeContainer> exchanges, List<ConnectionContainer> connections)
         {
             Exchanges = exchanges;
             Connections = connections;
         }
 
-        public List<ExchangeInfo> Exchanges { get; }
+        public List<ExchangeContainer> Exchanges { get; }
 
-        public List<ConnectionInfo> Connections { get; }
+        public List<ConnectionContainer> Connections { get; }
 
         /// <summary>
         /// Used at client level 
         /// </summary>
-        public Dictionary<int, ExchangeInfo> ExchangeIndex { get; } = new();
-
+        public Dictionary<int, ExchangeContainer> ExchangeIndex { get; } = new();
 
         public static TrunkState Empty()
         {

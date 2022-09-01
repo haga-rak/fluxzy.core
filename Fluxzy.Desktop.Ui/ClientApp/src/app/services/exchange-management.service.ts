@@ -48,31 +48,20 @@ export class ExchangeManagementService {
                 return; 
             }
 
-           // console.log('newexchange') ; 
-
             if (!this.trunkState.exchangeIndex[exchangeInfo.id]){
-                this.trunkState.exchanges.push(exchangeInfo); // On ajoute si pas existant 
-            }
-            else{
-                modify( this.trunkState.exchangeIndex[exchangeInfo.id] , exchangeInfo); 
+                const newContainer = {
+                    exchangeInfo : exchangeInfo, 
+                    id : exchangeInfo.id
+                };
+
+                this.trunkState.exchanges.push( newContainer); 
+                this.trunkState.exchangeIndex[exchangeInfo.id] = newContainer; 
             }
 
-            // on met à jour dans tous les cas 
-            this.trunkState.exchangeIndex[exchangeInfo.id] = exchangeInfo;
+            this.trunkState.exchangeIndex[exchangeInfo.id].exchangeInfo = exchangeInfo; 
             this.trunkState$.next(this.trunkState);
         });
 
-        function modify(obj, newObj) {
-
-            Object.keys(obj).forEach(function(key) {
-              delete obj[key];
-            });
-          
-            Object.keys(newObj).forEach(function(key) {
-              obj[key] = newObj[key];
-            });
-            
-          }
     
         this.exchangeState$  = combineLatest(
             [

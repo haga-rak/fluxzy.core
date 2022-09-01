@@ -40,7 +40,7 @@ public class AddHocConfigurableProxy : IDisposable
                 new InMemoryCertificateCache()));
 
 
-        _proxy.BeforeResponse +=  ProxyOnBeforeResponse;
+        _proxy.Writer.ExchangeUpdated +=  ProxyOnBeforeResponse;
 
         _cancellationSource = new CancellationTokenSource(timeoutSeconds * 1000);
         _completionSource = new TaskCompletionSource();
@@ -61,10 +61,13 @@ public class AddHocConfigurableProxy : IDisposable
         _proxy.Run();
     }
 
-    private void ProxyOnBeforeResponse(object? sender, BeforeResponseEventArgs e)
+    private void ProxyOnBeforeResponse(object? sender, ExchangeUpdateEventArgs exchangeUpdateEventArgs)
     {
+        if (exchangeUpdateEventArgs.UpdateType != UpdateType.AfterResponseHeader)
+            return; 
+
         lock (_capturedExchanges)
-            _capturedExchanges.Add(e.Exchange);
+            _capturedExchanges.Add(exchangeUpdateEventArgs.Original);
 
         if (Interlocked.Increment(ref _requestCount) >= _expectedRequestCount)
         {

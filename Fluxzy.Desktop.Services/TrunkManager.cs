@@ -1,13 +1,14 @@
 ﻿using System.Reactive.Linq;
 using System.Text.Json;
+using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
     public class TrunkManager : IObservableProvider<TrunkState>
     {
-        private List<ExchangeInfo> _currentExchanges = new(); 
-        private List<ConnectionInfo> _currentConnectionInfos = new();
+        private List<ExchangeContainer> _currentExchanges = new(); 
+        private List<ConnectionContainer> _currentConnectionInfos = new();
 
         public TrunkManager(IObservable<FileState> fileState)
         {
@@ -40,8 +41,8 @@ namespace Fluxzy.Desktop.Services
                 new DirectoryInfo(exchangeDir)
                     .EnumerateFiles("*.json", SearchOption.AllDirectories);
 
-            var tempList = new List<ExchangeInfo>(); 
-            var tempListConnection = new List<ConnectionInfo>(); 
+            var tempList = new List<ExchangeContainer>(); 
+            var tempListConnection = new List<ConnectionContainer>(); 
 
             foreach (var fileInfo in exchangeFileInfos)
             {
@@ -58,7 +59,7 @@ namespace Fluxzy.Desktop.Services
                 }
 
                 if (exchange != null)
-                    tempList.Add(exchange);
+                    tempList.Add(new ExchangeContainer(exchange));
             }
             
             var connectionFileInfos =
@@ -81,7 +82,7 @@ namespace Fluxzy.Desktop.Services
                 }
 
                 if (connection != null)
-                    tempListConnection.Add(connection);
+                    tempListConnection.Add(new ConnectionContainer(connection));
             }
 
             _currentExchanges = tempList.OrderBy(r => r.Id).ToList();
@@ -91,5 +92,10 @@ namespace Fluxzy.Desktop.Services
         public TrunkState? Current { get; private set; }
 
         public IObservable<TrunkState> Observable { get; }
+
+        public void Update(ExchangeInfo exchangeInfo)
+        {
+
+        }
     }
 }

@@ -15,29 +15,30 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let exchange of exchangeState.exchanges;  trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchange.id] }" (mouseup)="setSelectionChange($event, exchange)">
+            <tr *ngFor="let exchangeContainer of exchangeState.exchanges;  trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchangeContainer.id] }" 
+            (mouseup)="setSelectionChange($event, exchangeContainer.exchangeInfo)">
                 <td class="text-center">
-                    <span [title]="exchange.statusCode" [ngClass]="ExchangeStyle(exchange).textClass"><i [ngClass]="ExchangeStyle(exchange).iconClass"></i></span>
+                    <span [title]="exchangeContainer.exchangeInfo.statusCode" [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).textClass"><i [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).iconClass"></i></span>
                     
                 </td>
                 <td>
                     <div style="  white-space: nowrap; max-width:180px; overflow : hidden; text-overflow: ellipsis;">
                         <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i>
-                        {{ exchange.knownAuthority }}
+                        {{ exchangeContainer.exchangeInfo.knownAuthority }}
                     </div></td>
-                <td class="">{{ exchange.method }}&nbsp;&nbsp;</td>
-                <td  [title]="exchange.path">
+                <td class="">{{ exchangeContainer.exchangeInfo.method }}&nbsp;&nbsp;</td>
+                <td  [title]="exchangeContainer.exchangeInfo.path">
                     <div style="margin-right: 10px; position: relative; overflow: hidden">
                         &nbsp;
                         <div class="limited-length">
-                            {{ exchange.path }}
+                            {{ exchangeContainer.exchangeInfo.path }}
                         </div>
                     </div>
                 </td>
-                <td>{{ exchange.statusCode }}</td>
-                <td [title]="exchange.contentType">
+                <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td>
+                <td [title]="exchangeContainer.exchangeInfo.contentType">
                     <span  style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; ">
-                        {{ exchange.contentType }}
+                        {{ exchangeContainer.exchangeInfo.contentType }}
                     </span>
                 </td>
             </tr>
