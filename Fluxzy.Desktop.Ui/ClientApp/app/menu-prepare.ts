@@ -29,11 +29,16 @@ export const InstallMenuBar = () : void => {
 
 const menuClickEventHandler = (menuItem : MenuItem, browserWindow : BrowserWindow, event : KeyboardEvent ) : boolean => {
 
+    if (menuItem.type === 'checkbox') {
+        menuItem.checked = !menuItem.checked; 
+    }
+    
     let payload : IApplicationMenuEvent = {
         menuLabel : menuItem.label, 
         menuId : menuItem.id,
         checked: menuItem.checked 
     };
+
 
     browserWindow.webContents.send('application-menu-event', payload);
     return false; 

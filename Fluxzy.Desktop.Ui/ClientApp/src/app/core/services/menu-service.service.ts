@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { filter, map, Observable, Subject, tap } from 'rxjs';
+import { filter, map, Observable, Subject, tap, switchMap } from 'rxjs';
 import { IApplicationMenuEvent } from '../../../../app/menu-prepare';
 import { ApiService } from '../../services/api.service';
 import { UiState } from '../models/auto-generated';
@@ -11,15 +11,13 @@ import { ElectronService } from './electron/electron.service';
 })
 export class MenuService {
 
-    private applicationMenuEvents$ : Subject<IApplicationMenuEvent> ; 
-
+    private applicationMenuEvents$ : Subject<IApplicationMenuEvent>=  new Subject<IApplicationMenuEvent>(); ; 
 
     private nextOpenFile$ = new Subject<string>() ; 
     private _currentMenu = GlobalMenuItems ; 
     
-    constructor( private electronService : ElectronService, private apiService : ApiService) {
-        this.applicationMenuEvents$ = new Subject<IApplicationMenuEvent>(); 
-     }
+    constructor(private electronService : ElectronService, private apiService : ApiService) {
+    }
 
     public getApplicationMenuEvents() : Observable<IApplicationMenuEvent> {
         return this.applicationMenuEvents$.asObservable() ; 
@@ -46,8 +44,11 @@ export class MenuService {
             ).subscribe() ;
 
             this.applicationMenuEvents$.pipe(
-                    filter(e => e.menuId === 'capture') , 
+                    filter(e => e.menuId === 'capture') ,                    
                     tap(t => t.menuId),
+                    switchMap(t => {
+                        return t.checked ? this.apiService.proxyOff() : this.apiService.proxyOn()
+                    })
             ).subscribe() ;
         }
     }
@@ -66,8 +67,8 @@ export class MenuService {
         // Capture status 
         let captureMenu = FindMenu(menus, (menu) => menu.id === 'capture') ;
 
-        captureMenu.enabled = uiState.proxyState?.isListening  ??  false; 
-        captureMenu.checked = captureMenu.enabled  && (uiState.proxyState?.isSystemProxyOn ?? false); 
+        captureMenu.enabled = uiState.proxyState?.isSystemProxyOn  ??  false; 
+        captureMenu.checked = captureMenu.enabled  && (uiState.proxyState?.isListening ?? false); 
         
         this.electronService.ipcRenderer.sendSync('install-menu-bar', this._currentMenu) ; 
     }
