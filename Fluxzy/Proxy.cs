@@ -224,7 +224,6 @@ namespace Fluxzy
             _proxyHaltTokenSource?.Dispose();
             _proxyHaltTokenSource = null;
             
-            _writer = null;
 
             _disposed = true;
         }
