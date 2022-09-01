@@ -108,6 +108,7 @@ namespace Fluxzy.Core
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body,
                                             true,
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
+                                        
                                     }
                                 }
 
@@ -220,7 +221,6 @@ namespace Fluxzy.Core
                                 try
                                 {
                                     // Start sending response to browser
-
                                     await localConnection.WriteStream.WriteAsync(
                                         new ReadOnlyMemory<byte>(buffer, 0, responseHeaderLength),
                                         token);
