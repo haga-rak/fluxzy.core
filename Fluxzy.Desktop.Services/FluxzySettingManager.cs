@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class FluxzySettingManager : IObservableProvider<FluxzySettingsHolder>
+    public class FluxzySettingManager : ObservableProvider<FluxzySettingsHolder>
     {
         private readonly string _settingPath;
 
@@ -24,13 +24,10 @@ namespace Fluxzy.Desktop.Services
             _settingPath = Path.Combine(_settingPath, "settings.json");
 
             _internalSubject = new BehaviorSubject<FluxzySettingsHolder>(ReadFromFile());
-            Observable = _internalSubject.AsObservable();
-            Observable.Do(settingHolder => Current = settingHolder).Subscribe();
+            Subject = _internalSubject;
         }
-
-        public FluxzySettingsHolder?  Current { get; private set; }
-
-        public IObservable<FluxzySettingsHolder> Observable { get; }
+        
+        public override BehaviorSubject<FluxzySettingsHolder> Subject { get; }
 
         public void Update(FluxzySettingsHolder settingsHolder)
         {

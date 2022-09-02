@@ -34,7 +34,7 @@ export class ApiService {
     }
 
     public getTrunkState(fileState: FileState) : Observable<TrunkState> {
-         return this.httpClient.post<TrunkState>(`api/trunk/read`, null)
+         return this.httpClient.post<TrunkState>(`api/file-content/read`, null)
         .pipe(
             take(1),
             tap(trunkState => {

@@ -8,11 +8,10 @@ using Microsoft.Extensions.Configuration;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class FileManager : IObservableProvider<FileState>
+    public class FileManager : ObservableProvider<FileState>
     {
         private readonly FxzyDirectoryPackager _directoryPackager;
         private readonly string _tempDirectory;
-        private readonly BehaviorSubject<FileState> _internalSubject;
 
         public FileManager(IConfiguration configuration, FxzyDirectoryPackager directoryPackager)
         {
@@ -24,14 +23,13 @@ namespace Fluxzy.Desktop.Services
 
             Directory.CreateDirectory(_tempDirectory);
 
-            _internalSubject = new BehaviorSubject<FileState>(CreateNewFileState(_tempDirectory));
-            Observable = _internalSubject.AsObservable();
-            Observable.Do(fileState => Current = fileState).Subscribe();
+            Subject = new BehaviorSubject<FileState>(CreateNewFileState(_tempDirectory));
+            CurrentContent = Subject.AsObservable().Select(fileState => new FileContentManager(fileState)); 
         }
+        
+        public sealed override BehaviorSubject<FileState> Subject { get; }
 
-        public FileState? Current { get; private set; } = null;
-
-        public IObservable<FileState> Observable { get; }
+        public IObservable<FileContentManager> CurrentContent { get; }
 
         private static (Guid,string) GenerateNewDirectory(string tempDirectory)
         {
@@ -49,7 +47,7 @@ namespace Fluxzy.Desktop.Services
         {
             var newFileState = CreateNewFileState(_tempDirectory);
 
-            _internalSubject.OnNext(newFileState);
+            Subject.OnNext(newFileState);
 
             return Task.CompletedTask; 
         }
@@ -79,26 +77,28 @@ namespace Fluxzy.Desktop.Services
                 MappedFileName = openFileInfo.Name
             };
 
-            _internalSubject.OnNext(result);
+            Subject.OnNext(result);
         }
         
         public async Task Save(string fileName)
         {
-            if (Current == null)
+            var current = await Observable.FirstAsync(); 
+
+            if (current == null)
                 throw new InvalidOperationException("Current working directory/file is not set");
 
             var outStream = File.Create(fileName);
             
-            await _directoryPackager.Pack(Current.WorkingDirectory,
+            await _directoryPackager.Pack(current.WorkingDirectory,
                 outStream
             );
 
-            var newInstance = Current;
+            var newInstance = current;
 
             newInstance.WorkingDirectory = fileName;
             newInstance.Changed = false;
 
-            _internalSubject.OnNext(Current);
+            Subject.OnNext(current);
 
         }
 
