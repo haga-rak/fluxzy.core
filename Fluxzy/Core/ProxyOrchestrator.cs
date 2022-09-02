@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -104,7 +103,6 @@ namespace Fluxzy.Core
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body,
                                             true,
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
-                                        
                                     }
                                 }
 

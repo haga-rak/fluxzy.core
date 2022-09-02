@@ -117,8 +117,11 @@ namespace Fluxzy
 
                     try
                     {
-                        await _proxyOrchestrator.Operate(client, buffer,
-                            _proxyHaltTokenSource.Token).ConfigureAwait(false);
+                        // already disposed
+                        if (_proxyHaltTokenSource == null)
+                            return; 
+
+                        await _proxyOrchestrator.Operate(client, buffer, _proxyHaltTokenSource.Token).ConfigureAwait(false);
                     }
                     finally
                     {

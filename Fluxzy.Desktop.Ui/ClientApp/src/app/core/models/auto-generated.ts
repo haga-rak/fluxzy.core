@@ -114,6 +114,7 @@ export interface ExchangeInfo
 	done: boolean;
 	statusCode: number;
 	egressIp: string;
+	pending: boolean;
 }
 export interface RequestHeaderInfo
 {
