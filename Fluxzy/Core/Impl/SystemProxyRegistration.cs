@@ -60,7 +60,7 @@ namespace Fluxzy.Core
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return new Win32SystemProxySetter();
+                return new WindowsSystemProxySetter();
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
