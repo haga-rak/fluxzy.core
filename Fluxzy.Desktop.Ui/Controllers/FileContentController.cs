@@ -1,7 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Reactive.Linq;
-using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,19 +10,17 @@ namespace Fluxzy.Desktop.Ui.Controllers
     [ApiController]
     public class FileContentController : ControllerBase
     {
-        private readonly FileManager _fileManager;
+        private readonly IObservable<TrunkState> _trunkObservable;
 
-        public FileContentController(FileManager fileManager)
+        public FileContentController(IObservable<TrunkState> trunkObservable)
         {
-            _fileManager = fileManager;
+            _trunkObservable = trunkObservable;
         }
 
         [HttpPost("read")]
         public async Task<ActionResult<TrunkState?>> ReadState()
         {
-            var contentManager = await _fileManager.CurrentContent.FirstAsync();
-
-            return  await contentManager.Observable.FirstAsync();
+            return await _trunkObservable.FirstAsync();
         }
     }
 }

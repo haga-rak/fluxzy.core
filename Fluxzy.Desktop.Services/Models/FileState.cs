@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Desktop.Services.Models
+﻿using System.Text.Json.Serialization;
+
+namespace Fluxzy.Desktop.Services.Models
 {
     public class FileState
     {
@@ -6,6 +8,8 @@
         {
             WorkingDirectory = workingDirectory;
             Identifier = identifier;
+
+            Content = new FileContentManager(this);
         }
 
         public Guid Identifier { get; set; }
@@ -19,5 +23,8 @@
         public bool Changed { get; set; }
 
         public DateTime LastModification { get; set; } = DateTime.Now;
+
+        [JsonIgnore]
+        public FileContentManager Content { get;  }
     }
 }

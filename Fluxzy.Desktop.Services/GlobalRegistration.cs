@@ -1,4 +1,5 @@
-﻿using Fluxzy.Desktop.Services.Models;
+﻿using System.Reactive.Linq;
+using Fluxzy.Desktop.Services.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Fluxzy.Desktop.Services
@@ -20,6 +21,13 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton<IObservable<ProxyState>>
                 (s => s.GetRequiredService<ProxyControl>().Subject);
+
+            collection.AddSingleton<IObservable<FileContentManager>>
+                (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.Content));
+
+            collection.AddSingleton<IObservable<TrunkState>>
+                (s => s.GetRequiredService<IObservable<FileContentManager>>()
+                    .Select(t => t.Observable).Switch());
 
             collection.AddTransient<FxzyDirectoryPackager>();
         }

@@ -24,13 +24,10 @@ namespace Fluxzy.Desktop.Services
             Directory.CreateDirectory(_tempDirectory);
 
             Subject = new BehaviorSubject<FileState>(CreateNewFileState(_tempDirectory));
-            CurrentContent = Subject.AsObservable().Select(fileState => new FileContentManager(fileState)); 
         }
         
         public sealed override BehaviorSubject<FileState> Subject { get; }
-
-        public IObservable<FileContentManager> CurrentContent { get; }
-
+        
         private static (Guid,string) GenerateNewDirectory(string tempDirectory)
         {
             var id = Guid.NewGuid(); 

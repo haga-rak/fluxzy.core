@@ -14,14 +14,14 @@ namespace Fluxzy.Desktop.Services
         private readonly BehaviorSubject<ProxyState> _internalSubject; 
         public ProxyControl(
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
-            IObservable<FileState> fileStateObservable,
+            IObservable<FileContentManager> contentObservable,
             IHubContext<GlobalHub> hub)
         {
             _hub = hub;
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState());
             
             fluxzySettingHolderObservable
-                .CombineLatest(fileStateObservable)
+                .CombineLatest(contentObservable)
                 .Select(stateAndSetting =>
                     System.Reactive.Linq.Observable.Create<ProxyState>(
                         async (observer, token) =>
@@ -32,10 +32,9 @@ namespace Fluxzy.Desktop.Services
 
                             setting.ArchivingPolicy = 
                                 ArchivingPolicy.CreateFromDirectory(
-                                    stateAndSetting.Second.WorkingDirectory
-                                );
+                                    stateAndSetting.Second.State.WorkingDirectory                                );
 
-                            var proxyState = await ReloadProxy(setting);
+                            var proxyState = await ReloadProxy(setting, stateAndSetting.Second);
 
                             observer.OnNext(proxyState);
                             observer.OnCompleted();
@@ -47,7 +46,9 @@ namespace Fluxzy.Desktop.Services
             Subject = _internalSubject;
         }
         
-        private async Task<ProxyState> ReloadProxy(FluxzySetting fluxzySetting)
+        private async Task<ProxyState> ReloadProxy(
+            FluxzySetting fluxzySetting, 
+            FileContentManager currentContentManager)
         {
             if (_proxy != null)
             {
@@ -61,7 +62,8 @@ namespace Fluxzy.Desktop.Services
 
             _proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                // TODO notify TrunkManager for this update 
+                currentContentManager.Update(args.ExchangeInfo, currentContentManager.State);
+
                 _hub.Clients.All.SendAsync(
                     "exchangeUpdate", args.ExchangeInfo);
             };

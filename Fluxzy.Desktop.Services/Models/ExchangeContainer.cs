@@ -10,6 +10,6 @@
 
         public int Id { get;  }
 
-        public ExchangeInfo ExchangeInfo { get; }
+        public ExchangeInfo ExchangeInfo { get; set;  }
     }
 }
