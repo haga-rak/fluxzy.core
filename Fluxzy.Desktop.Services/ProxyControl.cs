@@ -14,7 +14,7 @@ namespace Fluxzy.Desktop.Services
         private readonly BehaviorSubject<ProxyState> _internalSubject; 
         public ProxyControl(
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
-            IObservable<FileContentManager> contentObservable,
+            IObservable<FileContentOperationManager> contentObservable,
             IHubContext<GlobalHub> hub)
         {
             _hub = hub;
@@ -48,7 +48,7 @@ namespace Fluxzy.Desktop.Services
         
         private async Task<ProxyState> ReloadProxy(
             FluxzySetting fluxzySetting, 
-            FileContentManager currentContentManager)
+            FileContentOperationManager currentContentOperationManager)
         {
             if (_proxy != null)
             {
@@ -62,7 +62,7 @@ namespace Fluxzy.Desktop.Services
 
             _proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                currentContentManager.Update(args.ExchangeInfo, currentContentManager.State);
+                currentContentOperationManager.AddOrUpdate(args.ExchangeInfo);
 
                 _hub.Clients.All.SendAsync(
                     "exchangeUpdate", args.ExchangeInfo);

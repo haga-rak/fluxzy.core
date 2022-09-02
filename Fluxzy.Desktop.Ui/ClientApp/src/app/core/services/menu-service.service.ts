@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { filter, map, Observable, Subject, tap, switchMap } from 'rxjs';
 import { IApplicationMenuEvent } from '../../../../app/menu-prepare';
 import { ApiService } from '../../services/api.service';
+import { ExchangeSelectionService } from '../../services/exchange-selection.service';
 import { UiState } from '../models/auto-generated';
 import { FindMenu, GlobalMenuItems } from '../models/menu-models';
 import { ElectronService } from './electron/electron.service';
@@ -12,6 +13,8 @@ import { ElectronService } from './electron/electron.service';
 export class MenuService {
 
     private applicationMenuEvents$ : Subject<IApplicationMenuEvent>=  new Subject<IApplicationMenuEvent>(); ; 
+
+    private deleteEvent$ : Subject<boolean> = new Subject<boolean>() ; 
 
     private nextOpenFile$ = new Subject<string>() ; 
     private _currentMenu = GlobalMenuItems ; 
@@ -44,11 +47,15 @@ export class MenuService {
             ).subscribe() ;
 
             this.applicationMenuEvents$.pipe(
-                    filter(e => e.menuId === 'capture') ,                    
-                    tap(t => t.menuId),
+                    filter(e => e.menuId === 'capture') ,       
                     switchMap(t => {
                         return t.checked ? this.apiService.proxyOff() : this.apiService.proxyOn()
                     })
+            ).subscribe() ;
+
+            this.applicationMenuEvents$.pipe(
+                    filter(e => e.menuId === 'delete') ,    
+                    tap(e => this.deleteEvent$.next(true))
             ).subscribe() ;
         }
     }
@@ -57,18 +64,31 @@ export class MenuService {
     public getNextOpenFile() : Observable<string> {
         return this.nextOpenFile$ ;
     }
+
+    public getNextDeletedRequest() : Observable<boolean> {
+        return this.deleteEvent$.asObservable() ; 
+    }
     
-    public updateMenu(uiState : UiState) : void {
+    public updateMenu(uiState : UiState, selectionCount : number) : void {
         if (!this.electronService.isElectron)
             return; 
 
         const menus = this._currentMenu ; 
 
-        // Capture status 
-        let captureMenu = FindMenu(menus, (menu) => menu.id === 'capture') ;
+        // Handling start/stop listening
+        {
+            let captureMenu = FindMenu(menus, (menu) => menu.id === 'capture') ;
 
-        captureMenu.enabled = uiState.proxyState?.isSystemProxyOn  ??  false; 
-        captureMenu.checked = captureMenu.enabled  && (uiState.proxyState?.isListening ?? false); 
+            captureMenu.enabled = uiState.proxyState?.isSystemProxyOn  ??  false; 
+            captureMenu.checked = captureMenu.enabled  && (uiState.proxyState?.isListening ?? false); 
+        }
+
+        // Delete status
+        {
+            // selectionService
+            let menu = FindMenu(menus, (menu) => menu.id === 'delete') ;
+            menu.enabled = selectionCount > 0 ; 
+        }
         
         this.electronService.ipcRenderer.sendSync('install-menu-bar', this._currentMenu) ; 
     }

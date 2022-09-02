@@ -22,11 +22,12 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<IObservable<ProxyState>>
                 (s => s.GetRequiredService<ProxyControl>().Subject);
 
-            collection.AddSingleton<IObservable<FileContentManager>>
-                (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.Content));
+            collection.AddSingleton<IObservable<FileContentOperationManager>>
+                (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));
+            
 
             collection.AddSingleton<IObservable<TrunkState>>
-                (s => s.GetRequiredService<IObservable<FileContentManager>>()
+                (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
                     .Select(t => t.Observable).Switch());
 
             collection.AddTransient<FxzyDirectoryPackager>();

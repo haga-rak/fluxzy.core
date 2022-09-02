@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable, of, Subject,tap,take, map, filter,switchMap } from 'rxjs';
+import { Observable, of, Subject,tap,take, map, filter,switchMap, combineLatest } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeState, FileState, UiState } from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { ApiService } from './api.service';
+import { ExchangeSelectedIds } from './exchange-management.service';
+import { ExchangeSelectionService } from './exchange-selection.service';
 
 @Injectable({
     providedIn: 'root'
@@ -12,16 +14,28 @@ export class UiStateService {
 
     private uiState$ : Subject<UiState> = new Subject<UiState>() ; 
     
-    constructor(private httpClient: HttpClient, private menuService : MenuService, private apiService : ApiService) { 
+    constructor(private httpClient: HttpClient, private menuService : MenuService, private apiService : ApiService, private selectionService : ExchangeSelectionService) { 
         this.refreshUiState() ; 
         
         this.apiService.registerEvent('uiUpdate', (state : UiState) => {
             this.uiState$.next(state);
         });
 
-        this.getUiState().pipe(
-            tap(t => console.log(t)),
-            tap(t => this.menuService.updateMenu(t))).subscribe();
+
+        combineLatest(
+            [
+                this.getUiState(),
+                this.selectionService.getCurrentSelection()
+            ]
+        )
+            .pipe(
+           // tap(t => console.log(t)),
+            tap(t => {
+                const uiState = t[0] ;
+                const selection = t[1] ; 
+                
+                this.menuService.updateMenu(uiState, ExchangeSelectedIds(selection).length);
+            })).subscribe();
     }
 
     private refreshUiState() : void {

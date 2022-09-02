@@ -44,7 +44,7 @@ export interface FileState
 	mappedFileName?: string;
 	changed: boolean;
 	lastModification: Date;
-	content: any;
+	contentOperation: any;
 }
 export interface FluxzySettingsHolder
 {
@@ -99,6 +99,10 @@ export interface TrunkState
 	exchanges: ExchangeContainer[];
 	connections: ConnectionContainer[];
 	exchangeIndex: { [key:number]: ExchangeContainer };
+}
+export interface FileContentDelete
+{
+	identifiers: number[];
 }
 export interface ExchangeInfo
 {

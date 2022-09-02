@@ -9,7 +9,7 @@ namespace Fluxzy.Desktop.Services.Models
             WorkingDirectory = workingDirectory;
             Identifier = identifier;
 
-            Content = new FileContentManager(this);
+            ContentOperation = new FileContentOperationManager(this);
         }
 
         public Guid Identifier { get; set; }
@@ -25,6 +25,6 @@ namespace Fluxzy.Desktop.Services.Models
         public DateTime LastModification { get; set; } = DateTime.Now;
 
         [JsonIgnore]
-        public FileContentManager Content { get;  }
+        public FileContentOperationManager ContentOperation { get;  }
     }
 }

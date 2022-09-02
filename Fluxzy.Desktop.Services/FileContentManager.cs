@@ -5,13 +5,20 @@ using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class FileContentManager
+    public interface IFileContentOperationManager
+    {
+        void AddOrUpdate(ExchangeInfo exchangeInfo);
+
+        void Delete(FileContentDelete deleteOp);
+    }
+
+    public class FileContentOperationManager : IFileContentOperationManager
     {
         public FileState State { get; }
 
         private BehaviorSubject<TrunkState> _subject;
 
-        public FileContentManager(FileState fileState)
+        public FileContentOperationManager(FileState fileState)
         {
             State = fileState;
             _subject = new(ReadDirectory(fileState));
@@ -82,11 +89,8 @@ namespace Fluxzy.Desktop.Services
 
         public IObservable<TrunkState> Observable { get; }
 
-        public void Update(ExchangeInfo exchangeInfo, FileState fileState)
+        public void AddOrUpdate(ExchangeInfo exchangeInfo)
         {
-            if (fileState.Identifier != State.Identifier)
-                return; // No for current 
-
             var current = _subject.Value;
 
             lock (current)
@@ -99,10 +103,40 @@ namespace Fluxzy.Desktop.Services
                 }
 
                 container.ExchangeInfo = exchangeInfo;
+
+                _subject.OnNext(current);
             }
+        }
 
-            _subject.OnNext(current);
+        public void Delete(FileContentDelete deleteOp)
+        {
+            var current = _subject.Value;
 
+            lock (current)
+            {
+                var removableIndexes = current.Exchanges
+                    .Select((e, index) => new
+                    {
+                        Exchange = e, 
+                        Index = index
+                    })
+                    .Where(c =>
+                        deleteOp.Identifiers.Contains(c.Exchange.Id))
+                    .Select(c => c.Index)
+                    .ToList();
+                
+                foreach (var removableIndex in removableIndexes)
+                {
+                    current.Exchanges.RemoveAt(removableIndex);
+                }
+
+                foreach (var id in deleteOp.Identifiers)
+                {
+                    current.ExchangeIndex.Remove(id);
+                }
+
+                _subject.OnNext(current);
+            }
         }
     }
-}
+} 
