@@ -331,7 +331,7 @@ namespace Fluxzy.Clients.H2
                 // This stream as no more body 
                 await _pipeResponseBody.Writer.CompleteAsync();
 
-                _exchange.ExchangeCompletionSource.TrySetResult(true);
+                _exchange.ExchangeCompletionSource.TrySetResult(false);
 
                 _parent.NotifyDispose(this);
             }
@@ -395,7 +395,7 @@ namespace Fluxzy.Clients.H2
 
                 _logger.TraceDeep(StreamIdentifier, () => "a - 5");
 
-                _exchange.ExchangeCompletionSource.TrySetResult(true);
+                _exchange.ExchangeCompletionSource.TrySetResult(false);
                 
                 // Give a chance for semaphores to released before disposed
 

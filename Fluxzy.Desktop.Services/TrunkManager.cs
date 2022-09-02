@@ -15,7 +15,7 @@ namespace Fluxzy.Desktop.Services
             Observable =
                 fileState
                     .Select(fs => System.Reactive.Linq.Observable.Create<TrunkState>(
-                    async (next, state) =>
+                    async (next, _) =>
                     {
                         await ReadDirectory(fs);
 
