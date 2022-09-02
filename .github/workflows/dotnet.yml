@@ -25,4 +25,4 @@ jobs:
     - name: Build
       run: dotnet build fluxzy --no-restore
     - name: Test
-      run: dotnet test --verbosity normal
+      run: dotnet test
