@@ -11,8 +11,7 @@ namespace Fluxzy.Desktop.Services
     {
         private readonly IHubContext<GlobalHub> _hub;
         private Proxy?  _proxy;
-        private readonly BehaviorSubject<ProxyState> _internalSubject;  
-
+        private readonly BehaviorSubject<ProxyState> _internalSubject; 
         public ProxyControl(
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<FileState> fileStateObservable,

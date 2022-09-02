@@ -8,6 +8,7 @@ export interface FileOpeningViewModel
 }
 export interface UiState
 {
+	id: string;
 	fileState: FileState;
 	proxyState: ProxyState;
 	settingsHolder: FluxzySettingsHolder;

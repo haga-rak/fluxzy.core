@@ -16,7 +16,6 @@ namespace Fluxzy.Desktop.Services
 
         public FluxzySettingManager(IConfiguration configuration)
         {
-            
             _settingPath = configuration["UiSettings:CaptureTemp"]
                            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                                "Fluxzy.Desktop");
