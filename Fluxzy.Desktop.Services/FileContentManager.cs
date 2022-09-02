@@ -1,16 +1,23 @@
-﻿using System.Reactive.Subjects;
+﻿using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text.Json;
 using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class FileContentManager : ObservableProvider<TrunkState>
+    public class FileContentManager
     {
+        public FileState State { get; }
+
+        private BehaviorSubject<TrunkState> _subject;
+
         public FileContentManager(FileState fileState)
         {
-            Subject = new(ReadDirectory(fileState));
+            State = fileState;
+            _subject = new(ReadDirectory(fileState));
+            Observable = _subject.AsObservable();
         }
-
+        
         private static TrunkState ReadDirectory(FileState current)
         {
             var result = new TrunkState(new(), new());
@@ -72,13 +79,30 @@ namespace Fluxzy.Desktop.Services
 
             return result ;
         }
-        
-        public override BehaviorSubject<TrunkState> Subject { get; }
 
+        public IObservable<TrunkState> Observable { get; }
 
-        public void Update(ExchangeInfo exchangeInfo)
+        public void Update(ExchangeInfo exchangeInfo, FileState fileState)
         {
-            // TODO when update here 
+            if (fileState.Identifier != State.Identifier)
+                return; // No for current 
+
+            var current = _subject.Value;
+
+            lock (current)
+            {
+                if (!current.ExchangeIndex.TryGetValue(exchangeInfo.Id, out var container))
+                {
+                    container = new ExchangeContainer(exchangeInfo);
+                    current.ExchangeIndex[exchangeInfo.Id] = container;
+                    current.Exchanges.Add(container);
+                }
+
+                container.ExchangeInfo = exchangeInfo;
+            }
+
+            _subject.OnNext(current);
+
         }
     }
 }

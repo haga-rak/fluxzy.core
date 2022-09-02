@@ -44,6 +44,7 @@ export interface FileState
 	mappedFileName?: string;
 	changed: boolean;
 	lastModification: Date;
+	content: any;
 }
 export interface FluxzySettingsHolder
 {

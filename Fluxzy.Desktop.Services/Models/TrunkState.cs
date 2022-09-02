@@ -2,6 +2,13 @@
 {
     public class TrunkState
     {
+        public TrunkState(TrunkState copy)
+        {
+            Exchanges = copy.Exchanges.ToList();
+            Connections = copy.Connections.ToList();
+            ExchangeIndex = ExchangeIndex.ToDictionary(t => t.Key, t => t.Value); 
+        }
+
         public TrunkState(List<ExchangeContainer> exchanges, List<ConnectionContainer> connections)
         {
             Exchanges = exchanges;
