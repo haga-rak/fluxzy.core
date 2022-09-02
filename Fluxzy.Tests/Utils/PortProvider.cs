@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Fluxzy.Tests.Utils
 {
@@ -25,7 +26,9 @@ namespace Fluxzy.Tests.Utils
             l.Start();
             int port = ((IPEndPoint)l.LocalEndpoint).Port;
             l.Stop();
-           
+
+            Thread.Sleep(70);
+
             return port;
         }
     }
