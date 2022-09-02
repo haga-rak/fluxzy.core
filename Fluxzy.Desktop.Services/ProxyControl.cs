@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class ProxyControl : IObservableProvider<ProxyState>
+    public class ProxyControl : ObservableProvider<ProxyState>
     {
         private readonly IHubContext<GlobalHub> _hub;
         private Proxy?  _proxy;
@@ -20,8 +20,6 @@ namespace Fluxzy.Desktop.Services
             _hub = hub;
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState());
             
-            _internalSubject.Do(p => Current = p).Subscribe();
-            
             fluxzySettingHolderObservable
                 .CombineLatest(fileStateObservable)
                 .Select(stateAndSetting =>
@@ -30,7 +28,7 @@ namespace Fluxzy.Desktop.Services
                         {
                             var setting = stateAndSetting.First.StartupSetting;
 
-                            setting.RegisterAsSystemProxy = Current?.IsListening ?? false;
+                            setting.RegisterAsSystemProxy = Subject?.Value?.IsListening ?? false;
 
                             setting.ArchivingPolicy = 
                                 ArchivingPolicy.CreateFromDirectory(
@@ -46,7 +44,7 @@ namespace Fluxzy.Desktop.Services
                 .Do(proxyState => 
                     _internalSubject.OnNext(proxyState)).Subscribe();
 
-            Observable = _internalSubject.AsObservable();
+            Subject = _internalSubject;
         }
         
         private async Task<ProxyState> ReloadProxy(FluxzySetting fluxzySetting)
@@ -64,7 +62,6 @@ namespace Fluxzy.Desktop.Services
             _proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
                 // TODO notify TrunkManager for this update 
-
                 _hub.Clients.All.SendAsync(
                     "exchangeUpdate", args.ExchangeInfo);
             };
@@ -115,10 +112,9 @@ namespace Fluxzy.Desktop.Services
                     .ToList() ?? new List<ProxyEndPoint>()
             }; 
         }
+        
 
-        public ProxyState? Current { get; private set; }
-
-        public IObservable<ProxyState> Observable { get; }
+        public override BehaviorSubject<ProxyState> Subject { get; }
     
     }
 }

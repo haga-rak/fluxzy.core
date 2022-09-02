@@ -1,36 +1,20 @@
-﻿using System.Reactive.Linq;
+﻿using System.Reactive.Subjects;
 using System.Text.Json;
-using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
-    public class TrunkManager : IObservableProvider<TrunkState>
+    public class FileContentManager : ObservableProvider<TrunkState>
     {
-        private List<ExchangeContainer> _currentExchanges = new(); 
-        private List<ConnectionContainer> _currentConnectionInfos = new();
-
-        public TrunkManager(IObservable<FileState> fileState)
+        public FileContentManager(FileState fileState)
         {
-            Observable =
-                fileState
-                    .Select(fs => System.Reactive.Linq.Observable.Create<TrunkState>(
-                    async (next, _) =>
-                    {
-                        await ReadDirectory(fs);
-
-                        var result = new TrunkState(_currentExchanges, _currentConnectionInfos);
-
-                        next.OnNext(result);
-                        next.OnCompleted();
-                    }))
-                    .Switch();
-
-            Observable.Do(ts => Current = ts).Subscribe();
+            Subject = new(ReadDirectory(fileState));
         }
 
-        private async Task ReadDirectory(FileState current)
+        private static TrunkState ReadDirectory(FileState current)
         {
+            var result = new TrunkState(new(), new());
+
             var exchangeDir = Path.Combine(current.WorkingDirectory, "exchanges");
             var connectionDir = Path.Combine(current.WorkingDirectory, "connections");
 
@@ -41,15 +25,12 @@ namespace Fluxzy.Desktop.Services
                 new DirectoryInfo(exchangeDir)
                     .EnumerateFiles("*.json", SearchOption.AllDirectories);
 
-            var tempList = new List<ExchangeContainer>(); 
-            var tempListConnection = new List<ConnectionContainer>(); 
-
             foreach (var fileInfo in exchangeFileInfos)
             {
                 ExchangeInfo? exchange = null;
                 try
                 {
-                    exchange = await JsonSerializer.DeserializeAsync<ExchangeInfo>(fileInfo.OpenRead(),
+                    exchange = JsonSerializer.Deserialize<ExchangeInfo>(fileInfo.OpenRead(),
                         GlobalArchiveOption.JsonSerializerOptions);
                 }
                 catch
@@ -59,7 +40,11 @@ namespace Fluxzy.Desktop.Services
                 }
 
                 if (exchange != null)
-                    tempList.Add(new ExchangeContainer(exchange));
+                {
+                    var container = new ExchangeContainer(exchange);
+                    result.ExchangeIndex[container.Id] = container;
+                    result.Exchanges.Add(container);
+                }
             }
             
             var connectionFileInfos =
@@ -72,7 +57,7 @@ namespace Fluxzy.Desktop.Services
                 ConnectionInfo? connection = null;
                 try
                 {
-                    connection = await JsonSerializer.DeserializeAsync<ConnectionInfo>(fileInfo.OpenRead(),
+                    connection = JsonSerializer.Deserialize<ConnectionInfo>(fileInfo.OpenRead(),
                         GlobalArchiveOption.JsonSerializerOptions);
                 }
                 catch
@@ -82,20 +67,18 @@ namespace Fluxzy.Desktop.Services
                 }
 
                 if (connection != null)
-                    tempListConnection.Add(new ConnectionContainer(connection));
+                    result.Connections.Add(new ConnectionContainer(connection));
             }
 
-            _currentExchanges = tempList.OrderBy(r => r.Id).ToList();
-            _currentConnectionInfos = tempListConnection;
+            return result ;
         }
         
-        public TrunkState? Current { get; private set; }
+        public override BehaviorSubject<TrunkState> Subject { get; }
 
-        public IObservable<TrunkState> Observable { get; }
 
         public void Update(ExchangeInfo exchangeInfo)
         {
-
+            // TODO when update here 
         }
     }
 }
