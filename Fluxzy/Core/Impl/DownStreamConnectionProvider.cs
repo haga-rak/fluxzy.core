@@ -79,7 +79,6 @@ namespace Fluxzy.Core
                 {
                     var tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
 
-
                     tcpClient.NoDelay = true; // NO Delay for local connection
                     // tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
                     tcpClient.ReceiveBufferSize = 1024 * 64;

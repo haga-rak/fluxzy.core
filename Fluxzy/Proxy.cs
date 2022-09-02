@@ -41,11 +41,7 @@ namespace Fluxzy
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
             
-            var throtleStream = startupSetting.GetThrottlerStream();
-
-            var secureConnectionManager = new SecureConnectionUpdater(
-               // new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
-                certificateProvider);
+            var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
             {
@@ -113,7 +109,6 @@ namespace Fluxzy
 
             try
             {
-
                 await Task.Yield();
 
                 using (client)
@@ -162,7 +157,6 @@ namespace Fluxzy
         }
 
         public bool SystemProxyOn => _proxyRegister != null; 
-        
 
         public void SetAsSystemProxy()
         {
@@ -196,7 +190,6 @@ namespace Fluxzy
             
             try
             {
-
                 await _loopTask.ConfigureAwait(false); // Wait for main loop to end
             }
             catch (Exception)
@@ -226,11 +219,8 @@ namespace Fluxzy
             _proxyHaltTokenSource?.Dispose();
             _proxyHaltTokenSource = null;
 
-
             _disposed = true;
         }
-
-        
     }
 
     public class ProxyExecutionContext

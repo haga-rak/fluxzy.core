@@ -18,7 +18,6 @@ namespace Fluxzy.Core
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
         private readonly RealtimeArchiveWriter _archiveWriter;
-        private readonly ProxyExecutionContext _executionContext;
 
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
@@ -30,7 +29,6 @@ namespace Fluxzy.Core
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;
             _archiveWriter = archiveWriter;
-            _executionContext = proxyRuntimeSetting.ExecutionContext;
         }
 
         public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)
@@ -82,9 +80,7 @@ namespace Fluxzy.Core
                         {
                             // Check whether the local browser ask for a connection close 
 
-                            shouldClose = exchange.Request
-                                .Header["Connection".AsMemory()].Any(c =>
-                                    c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+                            shouldClose = exchange.ShouldClose();
                             
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
@@ -114,7 +110,6 @@ namespace Fluxzy.Core
 
                                 while (true)
                                 {
-
                                     // get a connection pool for the current exchange 
 
                                     connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
@@ -123,7 +118,6 @@ namespace Fluxzy.Core
 
                                     try
                                     {
-
                                         await connectionPool.Send(exchange, localConnection, buffer, token);
                                     }
                                     catch (ConnectionCloseException)
@@ -203,10 +197,9 @@ namespace Fluxzy.Core
 
                                 if (_archiveWriter != null)
                                 {
-                                    // Update the state of the exchange 
-                                    await _archiveWriter.Update(exchange,
-                                        UpdateType.AfterResponseHeader,
-                                        CancellationToken.None
+                                    // Update the state of the exchange
+                                    // 
+                                    await _archiveWriter.Update(exchange, UpdateType.AfterResponseHeader, CancellationToken.None
                                     );
 
                                     if (exchange.Response.Body != null &&
@@ -233,7 +226,6 @@ namespace Fluxzy.Core
                                     if (ex is OperationCanceledException || ex is IOException)
                                     {
                                         // local browser interrupt connection 
-
                                         break; 
                                     }
 

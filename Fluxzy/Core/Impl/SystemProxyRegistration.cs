@@ -15,7 +15,9 @@ namespace Fluxzy.Core
         private readonly ISystemProxySetter _systemProxySetter;
         private readonly ProxySetting _oldSetting;
 
-        public SystemProxyRegistration(IConsoleOutput consoleOutput, string hostName, int port, params string[] byPassHosts)
+        public SystemProxyRegistration(
+            IConsoleOutput consoleOutput,
+            string hostName, int port, params string[] byPassHosts)
         {
             _hostName = GetConnectableHostname(hostName);
             _port = port;
@@ -58,7 +60,7 @@ namespace Fluxzy.Core
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return new WindowsSystemProxySetter();
+                return new Win32SystemProxySetter();
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -70,7 +72,6 @@ namespace Fluxzy.Core
             {
                 return new MacOsProxySetter();
             }
-
 
             return null;
         }

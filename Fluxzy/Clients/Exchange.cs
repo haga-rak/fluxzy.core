@@ -17,8 +17,9 @@ namespace Fluxzy.Clients
     {
         private static int _exchangeCounter = 0;
 
-        private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new TaskCompletionSource<bool>();
-        public Exchange(
+        private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new();
+
+        private Exchange(
             ExchangeContext context,
             Authority authority, 
             ReadOnlyMemory<char> requestHeaderPlain,
@@ -49,7 +50,12 @@ namespace Fluxzy.Clients
 
             _exchangeCompletionSource.SetResult(false);
         }
-        
+
+        public static Exchange CreateUntrackedExchange(ExchangeContext context, Authority authority, ReadOnlyMemory<char> requestHeaderPlain, Stream requestBody, ReadOnlyMemory<char> responseHeader, Stream responseBody, bool isSecure, Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
+        {
+            return new Exchange(context, authority, requestHeaderPlain, requestBody, responseHeader, responseBody, isSecure, parser, httpVersion, receivedFromProxy);
+        }
+
         public Exchange(
             ExchangeContext context,
             Authority authority, 
@@ -129,6 +135,22 @@ namespace Fluxzy.Clients
 
         internal TaskCompletionSource<bool> ExchangeCompletionSource => _exchangeCompletionSource;
 
+
+        public string FullUrl => Request.Header.GetFullUrl();
+
+        public string KnownAuthority => Request.Header.Authority.ToString();
+
+        public string Method => Request.Header.Method.ToString();
+
+        public string Path => Request.Header.Path.ToString();
+
+
+        public int StatusCode => Response.Header.StatusCode;
+
+        public string EgressIp => Connection?.RemoteAddress.ToString();
+
+        public ExchangeContext Context { get;  }
+
         public HeaderField GetMetricsSummaryAsHeader()
         {
             NameValueCollection collection = new NameValueCollection();
@@ -140,25 +162,25 @@ namespace Fluxzy.Clients
                     .ToString());
 
             if (Connection != null && Connection.SslNegotiationEnd != default)
-                collection.Add("SSL", 
+                collection.Add("SSL",
                     ((int)
                         (Connection.SslNegotiationEnd - Connection.SslNegotiationStart).TotalMilliseconds)
                     .ToString());
 
             if (Metrics.RetrievingPool != default)
-                collection.Add("time-to-get-a-pool", 
+                collection.Add("time-to-get-a-pool",
                     ((int)
                         (Metrics.RetrievingPool - Metrics.ReceivedFromProxy).TotalMilliseconds)
                     .ToString());
 
             if (Metrics.RequestHeaderSent != default)
-                collection.Add("Time-to-send", 
+                collection.Add("Time-to-send",
                     ((int)
                         (Metrics.RequestHeaderSent - Metrics.ReceivedFromProxy).TotalMilliseconds)
                     .ToString());
 
             if (Metrics.ResponseHeaderEnd != default)
-                collection.Add("TTFB", 
+                collection.Add("TTFB",
                     ((int)
                         (Metrics.ResponseHeaderEnd - Metrics.RequestHeaderSent).TotalMilliseconds)
                     .ToString());
@@ -168,17 +190,9 @@ namespace Fluxzy.Clients
                 $" {string.Join(", ", collection.AllKeys.Select(s => $"({s})={collection[s]}"))}");
         }
 
-        public string FullUrl => Request.Header.GetFullUrl();
-
-        public string KnownAuthority => Request.Header.Authority.ToString();
-
-        public string Method => Request.Header.Method.ToString();
-
-        public string Path => Request.Header.Path.ToString();
-
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
-            return Request.Header.Headers.Select(t => (HeaderFieldInfo) t);
+            return Request.Header.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
         public IEnumerable<HeaderFieldInfo> GetResponseHeaders()
@@ -186,11 +200,12 @@ namespace Fluxzy.Clients
             return Response.Header.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
-        public int StatusCode => Response.Header.StatusCode;
-
-        public string EgressIp => Connection?.RemoteAddress.ToString();
-
-        public ExchangeContext Context { get;  }
+        public bool ShouldClose()
+        {
+            return Request
+                .Header["Connection".AsMemory()].Any(c =>
+                    c.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+        }
     }
 
     public class Request

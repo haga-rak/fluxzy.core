@@ -138,8 +138,7 @@ namespace Fluxzy.Clients
                     return
                         new ExchangeBuildingResult(
                             authority, plainStream, plainStream,
-                            new Exchange(
-                                exchangeContext,
+                            Exchange.CreateUntrackedExchange(exchangeContext,
                                 authority, plainHeaderChars, null,
                                 AcceptTunnelResponseString.AsMemory(),
                                 null, false, _http11Parser, 
@@ -157,23 +156,19 @@ namespace Fluxzy.Clients
                 var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
                     plainStream, authority.HostName, token);
 
+                var exchange = Exchange.CreateUntrackedExchange(exchangeContext,
+                    authority, plainHeaderChars, null,
+                    AcceptTunnelResponseString.AsMemory(),
+                    null, false, _http11Parser, "HTTP/1.1", receivedFromProxy);
+
+                exchange.Metrics.CreateCertStart = certStart; 
+                exchange.Metrics.CreateCertEnd = certEnd; 
+
                 return 
                     new ExchangeBuildingResult
                     (authority,
                         authenticateResult.InStream,
-                        authenticateResult.OutStream, 
-                        new Exchange(
-                                exchangeContext,
-                                authority, plainHeaderChars, null,
-                                AcceptTunnelResponseString.AsMemory(), 
-                                null, false, _http11Parser, "HTTP/1.1", receivedFromProxy)
-                                    {
-                                        Metrics =
-                                        {
-                                            CreateCertStart = certStart,
-                                            CreateCertEnd = certEnd
-                                        },
-                                    }, false);
+                        authenticateResult.OutStream, exchange, false);
             }
 
             // Plain request 
