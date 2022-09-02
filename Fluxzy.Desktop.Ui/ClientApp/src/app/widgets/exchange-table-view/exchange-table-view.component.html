@@ -2,7 +2,7 @@
 <perfect-scrollbar #perfectScroll style="max-height: calc(100vh - 120px);"
  (psYReachStart)="reachStart($event)" (psYReachEnd)="reachEnd($event)" (psScrollY)="scrollY($event)" [usePSClass]="true">
     
-<div class="exchange-table-view-container" *ngIf="exchangeState && exchangeState.exchanges"  (keypress)="keyPress($event)"  >
+<div class="exchange-table-view-container" *ngIf="exchangeState && exchangeState.exchanges"  >
     <table style="width:100%" class="exchange-table-view noselect">
         <thead>
             <tr>

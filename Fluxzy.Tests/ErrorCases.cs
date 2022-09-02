@@ -26,13 +26,21 @@ namespace Fluxzy.Tests
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/connection-broken-abort-before-response");
-            
-            using var response = await httpClient.SendAsync(requestMessage);
 
-            var responseBody = await response.Content.ReadAsStringAsync(); 
+            try
+            {
 
-            Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
-            Assert.True(!string.IsNullOrWhiteSpace(responseBody));
+                using var response = await httpClient.SendAsync(requestMessage);
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+                Assert.True(!string.IsNullOrWhiteSpace(responseBody));
+            }
+            catch (HttpRequestException)
+            {
+                // May reached here 
+            }
         }
 
         //TESTER SUR Sandbox UN ENVOI D ENTETE MULTIPLE POUR FORCER LE DYNAMIC TableAttribute UPDATE
