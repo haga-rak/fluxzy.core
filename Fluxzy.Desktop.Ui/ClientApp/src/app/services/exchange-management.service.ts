@@ -43,55 +43,64 @@ export class ExchangeManagementService {
         this.getBrowsingState().
             pipe(tap(t => console.log(t))).subscribe(); 
             
-        this.apiService.registerEvent('exchangeUpdate', (exchangeInfo : ExchangeInfo) => {
-            if (!this.trunkState) {
-                return; 
-            }
 
-            if (!this.trunkState.exchangeIndex[exchangeInfo.id]){
-                const newContainer = {
-                    exchangeInfo : exchangeInfo, 
-                    id : exchangeInfo.id
-                };
-
-                this.trunkState.exchanges.push( newContainer); 
-                this.trunkState.exchangeIndex[exchangeInfo.id] = newContainer; 
-            }
-
-            this.trunkState.exchangeIndex[exchangeInfo.id].exchangeInfo = exchangeInfo; 
-            this.trunkState$.next(this.trunkState);
-        });
-
+        this.registerExchangeUpdate();
     
-        this.exchangeState$  = combineLatest(
+        this.registerExchangeStateChange();
+    }
+
+    private registerExchangeStateChange() {
+        this.exchangeState$ = combineLatest(
             [
                 this.trunkState$.asObservable(),
                 this.getBrowsingState(),
             ]).pipe(
-                map((tab) => {  let browsingState = tab[1] ;
-                    let truncateState : TrunkState = tab[0] ; 
+                map((tab) => {
+                    let browsingState = tab[1];
+                    let truncateState: TrunkState = tab[0];
 
-                    let startIndex , endIndex = 0 ; 
+                    let startIndex, endIndex = 0;
 
-                    if (browsingState.type === 0 ) { // from start ;
-                        startIndex = 0 ; 
-                        endIndex = Math.min(truncateState.exchanges.length, startIndex +browsingState.count)
+                    if (browsingState.type === 0) { // from start ;
+                        startIndex = 0;
+                        endIndex = Math.min(truncateState.exchanges.length, startIndex + browsingState.count);
                     }
-                    else  { // (browsingState.type === 1) from the end
+                    else { // (browsingState.type === 1) from the end
                         endIndex = truncateState.exchanges.length,
-                        startIndex = Math.max(0, endIndex - browsingState.count)
+                            startIndex = Math.max(0, endIndex - browsingState.count);
                     }
 
-                    let result : ExchangeState = {
-                        totalCount : truncateState.exchanges.length,
-                        endIndex : endIndex,
-                        startIndex : startIndex,
-                        exchanges : truncateState.exchanges.slice(startIndex, endIndex)
-                    } ; 
+                    let result: ExchangeState = {
+                        totalCount: truncateState.exchanges.length,
+                        endIndex: endIndex,
+                        startIndex: startIndex,
+                        exchanges: truncateState.exchanges.slice(startIndex, endIndex)
+                    };
 
                     return result;
                 }
-        ));
+                ));
+    }
+
+    private registerExchangeUpdate() : void {
+        this.apiService.registerEvent('exchangeUpdate', (exchangeInfo: ExchangeInfo) => {
+            if (!this.trunkState) {
+                return;
+            }
+
+            if (!this.trunkState.exchangeIndex[exchangeInfo.id]) {
+                const newContainer = {
+                    exchangeInfo: exchangeInfo,
+                    id: exchangeInfo.id
+                };
+
+                this.trunkState.exchanges.push(newContainer);
+                this.trunkState.exchangeIndex[exchangeInfo.id] = newContainer;
+            }
+
+            this.trunkState.exchangeIndex[exchangeInfo.id].exchangeInfo = exchangeInfo;
+            this.trunkState$.next(this.trunkState);
+        });
     }
 
     public getTrunkState() : Observable<TrunkState>  {

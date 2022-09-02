@@ -37,14 +37,14 @@ export class ApiService {
          return this.httpClient.post<TrunkState>(`api/trunk/read`, null)
         .pipe(
             take(1),
-            tap(t => {
+            tap(trunkState => {
                 console.log('reading trunk state with fileState: ')
-                console.log(fileState) ;
+                console.log(trunkState) ;
                 // here we build the dictionary used for this trunk 
 
-                if (t) {
-                    for(let item of t.exchanges ) {
-                        t.exchangeIndex[item.id] = item; 
+                if (trunkState) {
+                    for(let item of trunkState.exchanges ) {
+                        trunkState.exchangeIndex[item.id] = item; 
                     }
                 }
             })            

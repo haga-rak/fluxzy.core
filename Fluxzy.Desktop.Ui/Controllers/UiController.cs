@@ -9,24 +9,17 @@ namespace Fluxzy.Desktop.Ui.Controllers
     public class UiController : ControllerBase
     {
         private readonly UiStateManager _stateManager;
-        private readonly ProxyControl _proxyControl;
-        private readonly GlobalFileManager _globalFileManager;
-        private readonly FluxzySettingManager _settingHolder;
 
-        public UiController(UiStateManager stateManager, 
-            ProxyControl proxyControl, GlobalFileManager globalFileManager, FluxzySettingManager settingHolder)
+        public UiController(UiStateManager stateManager)
         {
             _stateManager = stateManager;
-            _proxyControl = proxyControl;
-            _globalFileManager = globalFileManager;
-            _settingHolder = settingHolder;
         }
 
         // GET: api/<UiController>
         [HttpGet("state")]
-        public ActionResult<UiState> Get()
+        public async Task<ActionResult<UiState>> Get()
         {
-            return _stateManager.GetUiState(); 
+            return await _stateManager.GetUiState(); 
         }
     }
 }

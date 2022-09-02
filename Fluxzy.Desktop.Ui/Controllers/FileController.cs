@@ -11,27 +11,27 @@ namespace Fluxzy.Desktop.Ui.Controllers
     [ApiController]
     public class FileController : ControllerBase
     {
-        private readonly GlobalFileManager _globalFileManager;
+        private readonly FileManager _fileManager;
         private readonly UiStateManager _uiStateManager;
 
-        public FileController(GlobalFileManager globalFileManager, UiStateManager uiStateManager )
+        public FileController(FileManager fileManager, UiStateManager uiStateManager )
         {
-            _globalFileManager = globalFileManager;
+            _fileManager = fileManager;
             _uiStateManager = uiStateManager;
         }
 
         [HttpPost("new")]
         public async Task<ActionResult<UiState>> New()
         {
-            await _globalFileManager.New();
-            return _uiStateManager.GetUiState(); 
+            await _fileManager.New();
+            return await _uiStateManager.GetUiState();
         }
 
         [HttpPost("open")]
         public async Task<ActionResult<UiState>> Open(FileOpeningViewModel model)
         {
-            await _globalFileManager.Open(model.FileName);
-            return _uiStateManager.GetUiState();
+            await _fileManager.Open(model.FileName);
+            return await _uiStateManager.GetUiState();
         }
     }
 }

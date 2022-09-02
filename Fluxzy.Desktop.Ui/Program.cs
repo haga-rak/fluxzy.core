@@ -1,7 +1,6 @@
 using Fluxzy;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Hubs;
-using Microsoft.AspNetCore.Routing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +38,7 @@ app.MapControllerRoute(
 app.MapHub<GlobalHub>("/xs");
 app.MapFallbackToFile("index.html");
 
-var globalFileManager = app.Services.GetRequiredService<GlobalFileManager>();
+var globalFileManager = app.Services.GetRequiredService<FileManager>();
 //await globalFileManager.Off();
 await globalFileManager.Open(@"../Samples/boot.fxzy");
 

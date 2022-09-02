@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -11,25 +12,25 @@ namespace Fluxzy.Desktop.Ui.Controllers
     public class TrunkController : ControllerBase
     {
         private readonly TrunkManager _trunkManager;
-        private readonly GlobalFileManager _globalFileManager;
+        private readonly FileManager _fileManager;
 
-        public TrunkController(TrunkManager trunkManager, GlobalFileManager globalFileManager)
+        public TrunkController(TrunkManager trunkManager, FileManager fileManager)
         {
             _trunkManager = trunkManager;
-            _globalFileManager = globalFileManager;
+            _fileManager = fileManager;
         }
 
         [HttpPost("read")]
-        public ActionResult<TrunkState?> ReadState()
+        public async Task<ActionResult<TrunkState?>> ReadState()
         {
-            var current = _globalFileManager.Current;
+            var current = _fileManager.Current;
 
             if (current == null)
             {
                 return TrunkState.Empty();
             }
 
-            return _trunkManager.Current; 
+            return  await _trunkManager.Observable.FirstAsync();
         }
     }
 }
