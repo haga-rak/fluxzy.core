@@ -7,11 +7,22 @@ export interface ExchangeStyle {
 }
 
 export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
+
+    if (exchangeInfo && exchangeInfo.pending) {
+        return   {
+            iconClass : ["bi",  "bi-hourglass"],
+            textClass : ["text-primary", "bold"]
+        }; 
+    }
+    
+
     if (!exchangeInfo || !exchangeInfo.responseHeader || !exchangeInfo.responseHeader.statusCode)
         return   {
             iconClass : ["bi",  "bi-exclamation-triangle-fill"],
             textClass : ["text-danger", "bold"]
         }; 
+
+    
     
     if (exchangeInfo.responseHeader.statusCode < 300) {
         return   {

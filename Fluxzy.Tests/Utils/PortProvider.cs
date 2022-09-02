@@ -61,7 +61,6 @@ namespace Fluxzy.Tests.Utils
             }
         }
 
-
         public void Dispose()
         {
             if (_hasHandle)

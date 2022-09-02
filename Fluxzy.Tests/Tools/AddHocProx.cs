@@ -37,7 +37,6 @@ namespace Fluxzy.Tests.Tools
                 new CertificateProvider(_startupSetting,
                     new InMemoryCertificateCache()));
 
-
             _proxy.Writer.ExchangeUpdated +=  ProxyOnBeforeResponse;
 
             _cancellationSource = new CancellationTokenSource(timeoutSeconds * 1000);

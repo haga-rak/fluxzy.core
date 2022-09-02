@@ -21,7 +21,8 @@ namespace Fluxzy
             Metrics = exchange.Metrics;  
             ResponseHeader = exchange.Response?.Header == null ? default : new ResponseHeaderInfo(exchange.Response.Header);
             RequestHeader = new RequestHeaderInfo(exchange.Request.Header);
-            EgressIp = exchange.EgressIp; 
+            EgressIp = exchange.EgressIp;
+            Pending = !exchange.Complete.IsCompleted; 
         }
 
         public int Id { get; set; }
@@ -61,6 +62,8 @@ namespace Fluxzy
         public int StatusCode => ResponseHeader?.StatusCode ?? 0;
 
         public string EgressIp { get; set; }
+
+        public bool Pending { get; set; }
     }
 
     public class BodyContent
