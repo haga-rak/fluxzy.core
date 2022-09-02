@@ -130,22 +130,6 @@ export class ExchangeTableViewComponent implements OnInit {
         this.selectionService.selectionUpdate(this.exchangeSelection) ; 
 
     }        
-
-    // @HostListener('document:keypress', ['$event'])
-    // public keyPress(event: KeyboardEvent) : void {
-    //     console.log(event); 
-    //     if (event.key  === "Delete") {
-
-    //         if (!this.exchangeSelection)
-    //             return; 
-
-    //         const ids = ExchangeSelectedIds( this.exchangeSelection);
-
-    //         this.exchangeManagementService.exchangeDelete(ids); 
-    //     }
-        
-    //     event.preventDefault();
-    // }
 }
     
     
