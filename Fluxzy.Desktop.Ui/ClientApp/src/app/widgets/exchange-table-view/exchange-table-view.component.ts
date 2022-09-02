@@ -1,10 +1,11 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { MouseInputEvent } from 'electron';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeContainer, ExchangeInfo, ExchangeState } from '../../core/models/auto-generated';
 import { ExchangeStyle } from '../../core/models/exchange-extensions';
-import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
+import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService, ExchangeSelectedIds } from '../../services/exchange-management.service';
+import { ExchangeSelectionService } from '../../services/exchange-selection.service';
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -21,20 +22,20 @@ export class ExchangeTableViewComponent implements OnInit {
 
     @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
     
-    constructor(private uiService : ExchangeManagementService, private cdr: ChangeDetectorRef) { }
+    constructor(private exchangeManagementService : ExchangeManagementService, private cdr: ChangeDetectorRef, private selectionService : ExchangeSelectionService) { }
     
     ngOnInit(): void {
-        this.uiService.currentSelection$.pipe(
+        this.selectionService.getCurrentSelection().pipe(
             tap(e => this.exchangeSelection = e)
         ).subscribe() ; 
 
-        this.uiService.exchangeState$.pipe(
+        this.exchangeManagementService.exchangeState$.pipe(
             tap(exState => this.exchangeState = exState),
             tap(_ => this.cdr.detectChanges())
             //tap(_ => this.perfectScroll.directiveRef.update())
         ).subscribe();
 
-        this.uiService.getBrowsingState().pipe(
+        this.exchangeManagementService.getBrowsingState().pipe(
                 tap(browsingState => this.browsingState = browsingState)
         ).subscribe();
     }
@@ -57,7 +58,7 @@ export class ExchangeTableViewComponent implements OnInit {
             let startIndexInitial = this.browsingState.startIndex;
             let nextState =  PreviousBrowsingState( this.browsingState, this.exchangeState.startIndex, this.exchangeState.totalCount);
 
-            this.uiService.updateBrowsingState(nextState); 
+            this.exchangeManagementService.updateBrowsingState(nextState); 
             
             this.cdr.detectChanges();
 
@@ -77,7 +78,7 @@ export class ExchangeTableViewComponent implements OnInit {
             if (!this.exchangeState.totalCount)
                 return;
 
-            this.uiService.updateBrowsingState(nextState); 
+            this.exchangeManagementService.updateBrowsingState(nextState); 
             this.cdr.detectChanges();
 
             let position = this.perfectScroll.directiveRef.position(true); 
@@ -104,7 +105,7 @@ export class ExchangeTableViewComponent implements OnInit {
             if (this.exchangeSelection.map[exchange.id])
                 this.exchangeSelection.lastSelectedExchangeId = exchange.id; 
 
-            this.uiService.currentSelection$.next(this.exchangeSelection) ; 
+            this.selectionService.selectionUpdate(this.exchangeSelection) ; 
             return ; 
         }
 
@@ -118,7 +119,7 @@ export class ExchangeTableViewComponent implements OnInit {
                 this.exchangeSelection.map[i] = true;
             }
             
-            this.uiService.currentSelection$.next(this.exchangeSelection) ; 
+            this.selectionService.selectionUpdate(this.exchangeSelection) ; 
             return; 
         }
 
@@ -126,9 +127,25 @@ export class ExchangeTableViewComponent implements OnInit {
         this.exchangeSelection.map = {} ; 
         this.exchangeSelection.map[exchange.id] = true;
         this.exchangeSelection.lastSelectedExchangeId = exchange.id; 
-        this.uiService.currentSelection$.next(this.exchangeSelection) ; 
+        this.selectionService.selectionUpdate(this.exchangeSelection) ; 
 
     }        
+
+    // @HostListener('document:keypress', ['$event'])
+    // public keyPress(event: KeyboardEvent) : void {
+    //     console.log(event); 
+    //     if (event.key  === "Delete") {
+
+    //         if (!this.exchangeSelection)
+    //             return; 
+
+    //         const ids = ExchangeSelectedIds( this.exchangeSelection);
+
+    //         this.exchangeManagementService.exchangeDelete(ids); 
+    //     }
+        
+    //     event.preventDefault();
+    // }
 }
     
     

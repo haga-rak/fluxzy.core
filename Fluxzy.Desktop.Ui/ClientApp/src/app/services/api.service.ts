@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Observable, take, map, tap } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeState, FileState, TrunkState, UiState } from '../core/models/auto-generated';
+import { ExchangeBrowsingState, ExchangeState, FileContentDelete, FileState, TrunkState, UiState } from '../core/models/auto-generated';
 
 @Injectable({
   providedIn: 'root'
@@ -13,11 +13,12 @@ export class ApiService {
     constructor(private httpClient: HttpClient) 
     { 
         this.hubConnection = new HubConnectionBuilder()
-                              .withUrl('/xs'
-                                    , {  // localhost from **AspNetCore3.1 service**
-                                //skipNegotiation: true,
-                                transport: HttpTransportType.LongPolling // TODO remove in production
-                                }
+                              .withUrl('/xs', 
+                                    { 
+                                         // localhost from **AspNetCore3.1 service**
+                                        //skipNegotiation: true,
+                                        transport: HttpTransportType.LongPolling // TODO remove in production
+                                    }          
                                 )
                               .build();
                               
@@ -33,6 +34,14 @@ export class ApiService {
         });
     }
 
+    public trunkDelete(fileContentDelete : FileContentDelete ) : Observable<TrunkState> {
+        return this.httpClient.post<TrunkState>(`api/file-content/delete`, fileContentDelete)
+            .pipe(
+                take(1), 
+                tap(trunkState => this.buildTrunkStateIndexes(trunkState))
+                ) ; 
+    }
+
     public getTrunkState(fileState: FileState) : Observable<TrunkState> {
          return this.httpClient.post<TrunkState>(`api/file-content/read`, null)
         .pipe(
@@ -41,15 +50,20 @@ export class ApiService {
                 console.log('reading trunk state with fileState: ')
                 console.log(trunkState) ;
                 // here we build the dictionary used for this trunk 
-
-                if (trunkState) {
-                    for(let item of trunkState.exchanges ) {
-                        trunkState.exchangeIndex[item.id] = item; 
-                    }
-                }
+                this.buildTrunkStateIndexes(trunkState);
             })            
             ); 
     }
+    
+    private buildTrunkStateIndexes(trunkState: TrunkState) : void {
+        trunkState.exchangeIndex = {};
+        if (trunkState) {
+            for (let item of trunkState.exchanges) {
+                trunkState.exchangeIndex[item.id] = item;
+            }
+        }
+    }
+
 
     public fileOpen(fileName : string) : Observable<UiState> {
         return this.httpClient.post<UiState>(`api/file/open`, { fileName })

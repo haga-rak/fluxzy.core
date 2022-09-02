@@ -71,6 +71,8 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<TrunkState>()
                 .ApplyGenericProperties();
 
+            builder.ExportAsInterface<FileContentDelete>()
+                .ApplyGenericProperties();
 
             // Core objects 
 

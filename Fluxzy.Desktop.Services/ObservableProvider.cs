@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Fluxzy.Desktop.Services.Models;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 

@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Desktop.Services.Models
+﻿using System.Text.Json.Serialization;
+
+namespace Fluxzy.Desktop.Services.Models
 {
     public class TrunkState
     {
@@ -22,6 +24,7 @@
         /// <summary>
         /// Used at client level 
         /// </summary>
+        [JsonIgnore]
         public Dictionary<int, ExchangeContainer> ExchangeIndex { get; } = new();
 
         public static TrunkState Empty()

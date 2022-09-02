@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { tap } from 'rxjs';
 import { ExchangeState, FileState } from '../core/models/auto-generated';
 import {  ExchangeManagementService } from '../services/exchange-management.service';
+import { ExchangeSelectionService } from '../services/exchange-selection.service';
 import { UiStateService } from '../services/ui.service';
 
 @Component({
@@ -14,14 +15,19 @@ export class StatusBarComponent implements OnInit {
     public exchangeState : ExchangeState;
     public fileState: FileState;
     
-    constructor(private uiService : ExchangeManagementService, private cdr: ChangeDetectorRef, private uiStateService : UiStateService) { }
+    constructor(
+        private exchangeManagementService : ExchangeManagementService,
+         private cdr: ChangeDetectorRef, private uiStateService : UiStateService,
+         private selectionService : ExchangeSelectionService
+         
+         ) { }
     
     ngOnInit(): void {
-        this.uiService.currenSelectionCount$.pipe(
+        this.selectionService.getCurrenSelectionCount().pipe(
             tap(n => this.selectedCount = n)
         ).subscribe(); 
         
-        this.uiService.exchangeState$.pipe(
+        this.exchangeManagementService.exchangeState$.pipe(
             tap(exState => this.exchangeState = exState),
             tap(_ => this.cdr.detectChanges()),
         ).subscribe();

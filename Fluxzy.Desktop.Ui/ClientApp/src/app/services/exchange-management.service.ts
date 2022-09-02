@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { table } from 'console';
 import { BehaviorSubject, Subject, tap, map, Observable, switchMap, distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe, filter } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState, TrunkState } from '../core/models/auto-generated';
+import { MenuService } from '../core/services/menu-service.service';
 import { ApiService } from './api.service';
+import { ExchangeSelectionService } from './exchange-selection.service';
 import { UiStateService } from './ui.service';
 
 @Injectable({
@@ -10,11 +12,9 @@ import { UiStateService } from './ui.service';
 })
 export class ExchangeManagementService {
 
-    public currentSelection$: BehaviorSubject<ExchangeSelection> = new BehaviorSubject<ExchangeSelection>({ map: {} });
     private trunkState$ = new Subject<TrunkState>() ; 
     private trunkState : TrunkState | null; 
 
-    public currenSelectionCount$: Observable<number>;
     private mocked = false;
 
     private exchangeBrowsingState$: BehaviorSubject<ExchangeBrowsingState> = new BehaviorSubject<ExchangeBrowsingState>(
@@ -27,27 +27,42 @@ export class ExchangeManagementService {
     public exchangeState$: Observable<ExchangeState> = new Observable<ExchangeState>();
 
     private mockIntervalSource = interval(1000);
+    private currentSelection: ExchangeSelection;
 
-    constructor(private uiService: UiStateService, private apiService: ApiService) {
-        this.setUpCurrentSelectionObservable();
+    constructor(private uiService: UiStateService,
+         private apiService: ApiService,
+          private menuService : MenuService, 
+          private exchangeSelectionService : ExchangeSelectionService) {
+
+        this.trunkState$.pipe(tap(t => this.trunkState = t)).subscribe();
 
         this.uiService.getFileState()
         .pipe(
             filter(t => !!t),
             switchMap(r => this.apiService.getTrunkState(r)), 
             filter(t => !!t),
-            tap(ts => this.trunkState = ts),
             tap(ts => this.trunkState$.next(ts))
         ).subscribe(); 
 
         this.getBrowsingState().
             pipe(tap(t => console.log(t))).subscribe(); 
+
+        this.exchangeSelectionService.getCurrentSelection().pipe((tap(s => this.currentSelection = s))).subscribe(); 
+
+        this.menuService.getNextDeletedRequest()
+            .pipe(
+                filter(t => !!this.currentSelection),
+                switchMap(_ => this.exchangeDelete(ExchangeSelectedIds(this.currentSelection))),
+                tap(t => this.trunkState$.next(t))
+
+            ).subscribe();
             
 
         this.registerExchangeUpdate();
     
         this.registerExchangeStateChange();
     }
+
 
     private registerExchangeStateChange() {
         this.exchangeState$ = combineLatest(
@@ -108,22 +123,6 @@ export class ExchangeManagementService {
     }
 
 
-    private setUpCurrentSelectionObservable() {
-        this.currenSelectionCount$ =
-            this.currentSelection$.pipe(map(s => {
-                let count = 0;
-                for (let key in s.map) {
-                    if (s.map[key]) {
-                        count++;
-                    }
-                }
-                return count;
-
-            }));
-    }
-
-    
-
     public updateBrowsingState(browsingState: ExchangeBrowsingState): void {
         this.exchangeBrowsingState$.next(browsingState);
     }
@@ -134,12 +133,33 @@ export class ExchangeManagementService {
                 return prev.startIndex === current.startIndex && prev.count === current.count && prev.type === current.type;
             }));
     }
+
+    public exchangeDelete(exchangeIds : number []) : Observable<TrunkState> {
+        console.log('deleting') ; 
+        console.log(exchangeIds) ; 
+        return this.apiService.trunkDelete( {
+            identifiers : exchangeIds
+        })
+    }
 }
 
 
 export interface ExchangeSelection {
     map: { [exchangeId: string]: boolean },
     lastSelectedExchangeId?: number
+}
+
+export const ExchangeSelectedIds = (selection : ExchangeSelection) : number[] => {
+    const res : number [] = []; 
+
+    for (var key in selection.map) {
+        if (selection.map.hasOwnProperty(key) && selection.map[key]) {
+            res.push(parseInt(key)) ; 
+        }
+    }
+
+
+    return res; 
 }
 
 

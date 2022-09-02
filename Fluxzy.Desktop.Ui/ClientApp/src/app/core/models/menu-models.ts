@@ -75,6 +75,14 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         label : 'Edit',
         submenu : [
             {
+                id : 'delete',
+                label : 'Delete selection', 
+                accelerator: 'Delete',
+            },
+            { 
+                type :  'separator'
+            },
+            {
                 id : 'clear',
                 label : 'Clear', 
             },
