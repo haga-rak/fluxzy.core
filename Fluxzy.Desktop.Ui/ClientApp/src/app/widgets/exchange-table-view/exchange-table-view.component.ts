@@ -4,8 +4,8 @@ import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeContainer, ExchangeInfo, ExchangeState, TrunkState } from '../../core/models/auto-generated';
 import { ExchangeStyle } from '../../core/models/exchange-extensions';
-import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService, ExchangeSelectedIds } from '../../services/exchange-management.service';
-import { ExchangeSelectionService } from '../../services/exchange-selection.service';
+import {   FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService, ExchangeSelectedIds } from '../../services/exchange-management.service';
+import { ExchangeSelection, ExchangeSelectionService } from '../../services/exchange-selection.service';
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -105,12 +105,9 @@ export class ExchangeTableViewComponent implements OnInit {
     public setSelectionChange (event : MouseEvent, exchange : ExchangeInfo) : void {
 
         if (event.ctrlKey){
-            this.exchangeSelection.map[exchange.id] = !this.exchangeSelection.map[exchange.id];
-            
-            if (this.exchangeSelection.map[exchange.id])
-                this.exchangeSelection.lastSelectedExchangeId = exchange.id; 
+            // adding 
 
-            this.selectionService.selectionUpdate(this.exchangeSelection) ; 
+            this.selectionService.addOrRemoveSelection(exchange.id);
             return ; 
         }
 
@@ -118,21 +115,20 @@ export class ExchangeTableViewComponent implements OnInit {
             var start =  this.exchangeSelection.lastSelectedExchangeId < exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ; 
             var end = this.exchangeSelection.lastSelectedExchangeId > exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ; 
 
+            const result : number [] = [] ; 
+
             for (let i  = start ; i <= end  ; i++) {
                 if (this.trunkState.exchangesIndexer[i]) {
-                    this.exchangeSelection.map[i] = true;
+                    result.push(i);
                 }
             }
             
-            this.selectionService.selectionUpdate(this.exchangeSelection) ; 
+            this.selectionService.setSelection(...result);
+
             return; 
         }
 
-        
-        this.exchangeSelection.map = {} ; 
-        this.exchangeSelection.map[exchange.id] = true;
-        this.exchangeSelection.lastSelectedExchangeId = exchange.id; 
-        this.selectionService.selectionUpdate(this.exchangeSelection) ; 
+        this.selectionService.setSelection(exchange.id);
 
     }        
 }
