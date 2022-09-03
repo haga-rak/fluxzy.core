@@ -4,7 +4,8 @@ import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeContainer, ExchangeInfo, ExchangeState, TrunkState } from '../../core/models/auto-generated';
 import { ExchangeStyle } from '../../core/models/exchange-extensions';
-import {   FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService, ExchangeSelectedIds } from '../../services/exchange-management.service';
+import { ExchangeContentService } from '../../services/exchange-content.service';
+import {   FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
 import { ExchangeSelection, ExchangeSelectionService } from '../../services/exchange-selection.service';
 
 @Component({
@@ -20,10 +21,16 @@ export class ExchangeTableViewComponent implements OnInit {
 
     public ExchangeStyle = ExchangeStyle ; 
 
-    @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
+    @ViewChild('perfectScroll') private perfectScroll: PerfectScrollbarComponent;
+    
     private trunkState: TrunkState;
     
-    constructor(private exchangeManagementService : ExchangeManagementService, private cdr: ChangeDetectorRef, private selectionService : ExchangeSelectionService) { }
+    constructor(
+        private exchangeManagementService : ExchangeManagementService, 
+        private cdr: ChangeDetectorRef, 
+        private selectionService : ExchangeSelectionService,
+        private exchangeContentService : ExchangeContentService
+        ) { }
     
     ngOnInit(): void {
         this.selectionService.getCurrentSelection().pipe(
@@ -36,7 +43,7 @@ export class ExchangeTableViewComponent implements OnInit {
             //tap(_ => this.perfectScroll.directiveRef.update())
         ).subscribe();
 
-        this.exchangeManagementService.getTrunkState()
+        this.exchangeContentService.getTrunkState()
             .pipe(tap(t => this.trunkState = t))
             .subscribe() ; 
 

@@ -1,34 +1,53 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, map, Observable, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
 import { ExchangeInfo } from '../core/models/auto-generated';
-import { ExchangeSelectedIds } from './exchange-management.service';
+import { ExchangeContentService } from './exchange-content.service';
 
 @Injectable({
     providedIn: 'root',
 })
 export class ExchangeSelectionService {
-    private currentSelection$: BehaviorSubject<ExchangeSelection> =
+    private currentRawSelection$: BehaviorSubject<ExchangeSelection> =
         new BehaviorSubject<ExchangeSelection>({ map: {} });
 
-    private currentSelectionObservable$: Observable<ExchangeSelection>;
+    private currentRawSelectionObservable$: Observable<ExchangeSelection>;
     private currentSelectedIds$: Observable<number[]>;
     private currenSelectionCount$: Observable<number>;
     private currentSelection: ExchangeSelection = {
         map: {},
     };
+    private currentSelection$: Observable<ExchangeSelection>;
 
-    constructor() {
-        this.currentSelectionObservable$ =
-            this.currentSelection$.asObservable();
-        this.currentSelectedIds$ = this.currentSelectionObservable$.pipe(
+    constructor(private exchangeContentService : ExchangeContentService) {
+        this.currentRawSelectionObservable$ =   this.currentRawSelection$.asObservable();
+        this.currentSelection$ = combineLatest([
+            this.currentRawSelectionObservable$,
+            this.exchangeContentService.getTrunkState()
+            ]).pipe(
+                    map(t => {
+                        const rawSelection = t[0] ;
+                        const trunkState = t[1] 
+
+                        const selectedIds = ExchangeSelectedIds(rawSelection); 
+
+                        for (let selectedId of selectedIds) {
+                            if (!trunkState.exchangesIndexer[selectedId]) {
+                                rawSelection.map[selectedId] = false; 
+                            }
+                        }
+
+                        return rawSelection ; 
+                    })
+            ); 
+
+        this.currentSelectedIds$ = this.currentSelection$.pipe(
             map((t) => ExchangeSelectedIds(t))
         );
         this.currenSelectionCount$ = this.currentSelectedIds$.pipe(
             map((t) => t.length)
         );
-        this.currentSelectionObservable$
-            .pipe(tap((t) => (this.currentSelection = t)))
-            .subscribe();
+
+        this.currentSelection$.pipe(tap((t) => (this.currentSelection = t))).subscribe();
     }
 
     public setSelection(...exchangeIds: number[]): void {
@@ -42,13 +61,13 @@ export class ExchangeSelectionService {
                 exchangeSelection.map[exchangeId] = true;
             }
 
-            this.currentSelection$.next(exchangeSelection);
+            this.currentRawSelection$.next(exchangeSelection);
         } else {
             let exchangeSelection: ExchangeSelection = {
                 map: {},
             };
 
-            this.currentSelection$.next(exchangeSelection);
+            this.currentRawSelection$.next(exchangeSelection);
         }
     }
 
@@ -60,23 +79,37 @@ export class ExchangeSelectionService {
             if (nextResult.map[exchangeId])
                 nextResult.lastSelectedExchangeId = exchangeId;
         }
-        this.currentSelection$.next(nextResult);
+        this.currentRawSelection$.next(nextResult);
     }
 
     public getCurrenSelectionCount(): Observable<number> {
         return this.currenSelectionCount$;
     }
 
-    // public selectionUpdate(selection: ExchangeSelection): void {
-    //     this.currentSelection$.next(selection);
-    // }
-
     public getCurrentSelection(): Observable<ExchangeSelection> {
-        return this.currentSelectionObservable$;
+
+        return this.currentRawSelection$ ; 
+    }
+    
+    public getCurrentSelectedIds(): Observable<number[]> {
+        return this.currentSelectedIds$;
     }
 }
 
 export interface ExchangeSelection {
     map: { [exchangeId: string]: boolean };
     lastSelectedExchangeId?: number;
+}
+
+
+export const ExchangeSelectedIds = (selection : ExchangeSelection) : number[] => {
+    const res : number [] = []; 
+
+    for (var key in selection.map) {
+        if (selection.map.hasOwnProperty(key) && selection.map[key]) {
+            res.push(parseInt(key)) ; 
+        }
+    }
+
+    return res; 
 }
