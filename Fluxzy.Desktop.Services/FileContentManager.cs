@@ -90,19 +90,22 @@ namespace Fluxzy.Desktop.Services
 
         public void AddOrUpdate(ExchangeInfo exchangeInfo)
         {
-            lock (_subject)
+            lock (_subject) // TODO: think of do we really need a lock 
             {
                 var current = _subject.Value;
 
-                var exchangeListFinal = current.Exchanges; 
+                var exchangeListFinal = current.Exchanges;
 
-                if (!current.ExchangesIndexer.TryGetValue(exchangeInfo.Id, out var exchangeIndex))
-                {
-                    var newContainer = new ExchangeContainer(exchangeInfo);
+                var newContainer = new ExchangeContainer(exchangeInfo);
+              
+                exchangeListFinal = !current.ExchangesIndexer.TryGetValue(exchangeInfo.Id, out var exchangeIndex) ?
+                    // Add 
+                    exchangeListFinal.Add(newContainer) 
+                    :
+                    // Update 
+                    exchangeListFinal.SetItem(exchangeIndex , newContainer);
 
-                    exchangeListFinal = exchangeListFinal.Add(newContainer);
-                    current = new TrunkState(exchangeListFinal, current.Connections);
-                }
+                current = new TrunkState(exchangeListFinal, current.Connections);
 
                 _subject.OnNext(current);
             }
