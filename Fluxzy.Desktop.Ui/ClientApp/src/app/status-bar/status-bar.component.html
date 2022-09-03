@@ -1,12 +1,13 @@
-<div class="status-container">
+<div class="status-container" *ngIf="fileState">
+    
     <strong class="font-primary">
         <span *ngIf="fileState?.mappedFileName">{{ fileState.mappedFileName}}</span>
-        <span *ngIf="!fileState?.mappedFileName">(*new file)</span>
-       
+        <span *ngIf="!fileState?.mappedFileName">[new file]</span>
     </strong>
+    <small *ngIf="fileState.unsaved"> (*not saved)</small>
     &nbsp;|&nbsp;
     <span *ngIf="exchangeState">
-        {{ exchangeState.totalCount }} objects 
+        {{ exchangeState.totalCount }} items 
         <span *ngIf="selectedCount > 0">
             ({{selectedCount}} selected)
         </span>

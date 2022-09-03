@@ -108,6 +108,7 @@ namespace Fluxzy.Desktop.Services
                 current = new TrunkState(exchangeListFinal, current.Connections);
 
                 _subject.OnNext(current);
+                State.Owner.SetUnsaved(true);
             }
         }
 
@@ -123,6 +124,7 @@ namespace Fluxzy.Desktop.Services
                 current = new TrunkState(exchangeListFinal, current.Connections);
 
                 _subject.OnNext(current);
+                State.Owner.SetUnsaved(true);
             }
         }
     }

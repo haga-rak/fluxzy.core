@@ -40,6 +40,14 @@ namespace Fluxzy.Desktop.Services
             return (id, fullPath);
         }
 
+        private FileState CreateNewFileState(string tempDirectory)
+        {
+            var (_, fullPath) = GenerateNewDirectory(tempDirectory);
+            var newFileState = new FileState(this, fullPath);
+            return newFileState;
+        }
+
+
         public Task New()
         {
             var newFileState = CreateNewFileState(_tempDirectory);
@@ -49,18 +57,11 @@ namespace Fluxzy.Desktop.Services
             return Task.CompletedTask; 
         }
 
-        private static FileState CreateNewFileState(string tempDirectory)
-        {
-            var (id, fullPath) = GenerateNewDirectory(tempDirectory);
-            var newFileState = new FileState(id, fullPath);
-            return newFileState;
-        }
-
         public async Task Open(string fileName)
         {
-            var (id, fullPath) = GenerateNewDirectory(_tempDirectory);
+            var (_, workingDirectory) = GenerateNewDirectory(_tempDirectory);
 
-            var directoryInfo = new DirectoryInfo(fullPath);
+            var directoryInfo = new DirectoryInfo(workingDirectory);
 
             var openFileInfo = new FileInfo(fileName);
 
@@ -68,15 +69,17 @@ namespace Fluxzy.Desktop.Services
 
             await _directoryPackager.Unpack(fileStream, directoryInfo.FullName);
 
-            var result = new FileState(id, fullPath)
-            {
-                MappedFileFullPath = fileName,
-                MappedFileName = openFileInfo.Name
-            };
+            var result = new FileState(this, workingDirectory, fileName); 
 
             Subject.OnNext(result);
         }
-        
+
+        public void SetUnsaved(bool state)
+        {
+            Subject.OnNext(Subject.Value.SetUnsaved(state)); 
+        }
+
+
         public async Task Save(string fileName)
         {
             var current = await Observable.FirstAsync(); 
@@ -90,13 +93,9 @@ namespace Fluxzy.Desktop.Services
                 outStream
             );
 
-            var newInstance = current;
-
-            newInstance.WorkingDirectory = fileName;
-            newInstance.Changed = false;
+            var newInstance = current.SetFileName(fileName).SetUnsaved(false);
 
             Subject.OnNext(newInstance);
-
         }
 
         public Task Export(Stream outStream, FluxzyFileType fileType)

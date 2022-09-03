@@ -42,7 +42,7 @@ export interface FileState
 	workingDirectory: string;
 	mappedFileFullPath?: string;
 	mappedFileName?: string;
-	changed: boolean;
+	unsaved: boolean;
 	lastModification: Date;
 	contentOperation: any;
 }

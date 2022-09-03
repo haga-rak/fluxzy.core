@@ -1,30 +1,80 @@
 ﻿using System.Text.Json.Serialization;
+using Reinforced.Typings.Attributes;
 
 namespace Fluxzy.Desktop.Services.Models
 {
     public class FileState
     {
-        public FileState(Guid identifier, string workingDirectory)
+        private FileState()
         {
-            WorkingDirectory = workingDirectory;
-            Identifier = identifier;
 
+        }
+
+        public FileState(FileManager owner, string workingDirectory)
+        {
+            Owner = owner;
+            WorkingDirectory = new DirectoryInfo(workingDirectory).FullName;
+            Identifier = WorkingDirectory;
             ContentOperation = new FileContentOperationManager(this);
         }
 
-        public Guid Identifier { get; }
+        public FileState(FileManager owner, string workingDirectory, string mappedFilePullPath)
+            : this(owner, workingDirectory)
+        {
+            var fileInfo = new FileInfo(mappedFilePullPath);
+            MappedFileFullPath = fileInfo.FullName;
+            MappedFileName = fileInfo.Name; 
+        }
 
-        public string WorkingDirectory { get; set; }
+        public FileState SetFileName(string newFileName)
+        {
+            var fileInfo = new FileInfo(newFileName);
 
-        public string? MappedFileFullPath { get; set; }
+            return new FileState()
+            {
+                Owner = Owner,
+                MappedFileName = fileInfo.Name,
+                Unsaved = Unsaved,
+                ContentOperation = ContentOperation,
+                Identifier = Identifier,
+                LastModification = LastModification,
+                MappedFileFullPath = fileInfo.FullName,
+                WorkingDirectory = WorkingDirectory,
+            }; 
+        }
 
-        public string ? MappedFileName { get; set; }
+        public FileState SetUnsaved(bool state)
+        {
+            return new FileState()
+            {
+                Owner = Owner,
+                MappedFileName = MappedFileName,
+                Unsaved = state,
+                ContentOperation = ContentOperation,
+                Identifier = Identifier,
+                LastModification = LastModification,
+                MappedFileFullPath = MappedFileFullPath,
+                WorkingDirectory = WorkingDirectory,
+            }; 
+        }
 
-        public bool Changed { get; set; }
+        [TsIgnore]
+        [JsonIgnore]
+        public FileManager Owner { get; private init; }
 
-        public DateTime LastModification { get; set; } = DateTime.Now;
+        public string Identifier { get; private init; }
+
+        public string WorkingDirectory { get; private init; }
+
+        public string? MappedFileFullPath { get; private init; }
+
+        public string ? MappedFileName { get; private init; }
+
+        public bool Unsaved { get; private init; }
+
+        public DateTime LastModification { get; private init; } = DateTime.Now;
 
         [JsonIgnore]
-        public FileContentOperationManager ContentOperation { get;  }
+        public FileContentOperationManager ContentOperation { get; private init; }
     }
 }
