@@ -24,7 +24,7 @@ export class ExchangeManagementService {
             type : 0
         });
 
-    public exchangeState$: Observable<ExchangeState> = new Observable<ExchangeState>();
+    public exchangeState$: Observable<ExchangeState> ; 
 
     private mockIntervalSource = interval(1000);
     private currentSelection: ExchangeSelection;
@@ -60,7 +60,7 @@ export class ExchangeManagementService {
                 tap(t => this.trunkState$.next(t))
 
             ).subscribe();
-            
+
 
         this.registerExchangeUpdate();
     
@@ -69,6 +69,14 @@ export class ExchangeManagementService {
 
 
     private registerExchangeStateChange() {
+
+        const result: ExchangeState = {
+            totalCount:0,
+            endIndex: 0,
+            startIndex: 0,
+            exchanges: []
+        };
+
         this.exchangeState$ = combineLatest(
             [
                 this.trunkState$.asObservable(),
@@ -89,12 +97,13 @@ export class ExchangeManagementService {
                             startIndex = Math.max(0, endIndex - browsingState.count);
                     }
 
-                    let result: ExchangeState = {
-                        totalCount: truncateState.exchanges.length,
-                        endIndex: endIndex,
-                        startIndex: startIndex,
-                        exchanges: truncateState.exchanges.slice(startIndex, endIndex)
-                    };
+                    // 
+
+                    result.totalCount = truncateState.exchanges.length;
+                    result.endIndex = endIndex;
+                    result.startIndex = startIndex;
+                    result.exchanges.length = 0 ; 
+                    result.exchanges.push(... truncateState.exchanges.slice(startIndex, endIndex));
 
                     return result;
                 }
@@ -107,21 +116,23 @@ export class ExchangeManagementService {
                 return;
             }
 
-            if (!this.trunkState.exchangesIndexer[exchangeInfo.id]) {
+            const trukstateCopy = { ... this.trunkState };
+
+            if (!trukstateCopy.exchangesIndexer[exchangeInfo.id]) {
                 const newContainer = {
                     exchangeInfo: exchangeInfo,
                     id: exchangeInfo.id
                 };
 
-                this.trunkState.exchanges.push(newContainer); // add new item 
-                this.trunkState.exchangesIndexer[newContainer.id] = this.trunkState.exchanges.length -1; // setup indexer
+                trukstateCopy.exchanges.push(newContainer); // add new item 
+                trukstateCopy.exchangesIndexer[newContainer.id] = trukstateCopy.exchanges.length -1; // setup indexer
             }
-
+            else
             // update the field 
-            this.trunkState.exchanges[this.trunkState.exchangesIndexer[exchangeInfo.id]].exchangeInfo = exchangeInfo;
+            trukstateCopy.exchanges[trukstateCopy.exchangesIndexer[exchangeInfo.id]].exchangeInfo = exchangeInfo;
 
 
-            this.trunkState$.next(this.trunkState);
+            this.trunkState$.next(trukstateCopy);
         });
     }
 
