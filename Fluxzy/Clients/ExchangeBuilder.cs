@@ -77,6 +77,7 @@ namespace Fluxzy.Clients
     {
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
         private readonly Http11Parser _http11Parser;
+        private readonly IIdProvider _idProvider;
 
         private static string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
 
@@ -85,10 +86,12 @@ namespace Fluxzy.Clients
 
         public ExchangeBuilder(
             SecureConnectionUpdater secureConnectionUpdater,
-            Http11Parser http11Parser)
+            Http11Parser http11Parser, 
+            IIdProvider idProvider)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
             _http11Parser = http11Parser;
+            _idProvider = idProvider;
         }
 
         public async Task<ExchangeBuildingResult> InitClientConnection(
@@ -138,7 +141,7 @@ namespace Fluxzy.Clients
                     return
                         new ExchangeBuildingResult(
                             authority, plainStream, plainStream,
-                            Exchange.CreateUntrackedExchange(exchangeContext,
+                            Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                                 authority, plainHeaderChars, null,
                                 AcceptTunnelResponseString.AsMemory(),
                                 null, false, _http11Parser, 
@@ -156,7 +159,7 @@ namespace Fluxzy.Clients
                 var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
                     plainStream, authority.HostName, token);
 
-                var exchange = Exchange.CreateUntrackedExchange(exchangeContext,
+                var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, null,
                     AcceptTunnelResponseString.AsMemory(),
                     null, false, _http11Parser, "HTTP/1.1", receivedFromProxy);
@@ -186,7 +189,7 @@ namespace Fluxzy.Clients
                 plainAuthority, 
                 plainStream, 
                 plainStream, 
-                new Exchange(
+                new Exchange(_idProvider,
                     plainExchangeContext,
                     plainAuthority, 
                     plainHeader, plainHeader.ContentLength > 0
@@ -225,7 +228,7 @@ namespace Fluxzy.Clients
             var exchangeContext = new ExchangeContext(authority);
             await runTimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
-            return new Exchange(
+            return new Exchange(_idProvider,
                 exchangeContext, authority, secureHeader,
                 secureHeader.ContentLength > 0
                     ? new ContentBoundStream(inStream, secureHeader.ContentLength)

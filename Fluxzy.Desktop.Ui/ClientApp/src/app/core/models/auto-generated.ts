@@ -98,7 +98,9 @@ export interface TrunkState
 {
 	exchanges: ExchangeContainer[];
 	connections: ConnectionContainer[];
-	exchangeIndex: { [key:number]: ExchangeContainer };
+	maxExchangeId: number;
+	exchangesIndexer: { [key:number]: number };
+	connectionsIndexer: { [key:number]: number };
 }
 export interface FileContentDelete
 {

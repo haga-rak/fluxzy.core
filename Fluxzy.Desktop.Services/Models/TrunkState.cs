@@ -1,35 +1,54 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
+using Reinforced.Typings.Attributes;
 
 namespace Fluxzy.Desktop.Services.Models
 {
     public class TrunkState
     {
-        public TrunkState(TrunkState copy)
+        public TrunkState(
+            IEnumerable<ExchangeContainer> internalExchanges,
+            IEnumerable<ConnectionContainer> internalConnections)
         {
-            Exchanges = copy.Exchanges.ToList();
-            Connections = copy.Connections.ToList();
-            ExchangeIndex = ExchangeIndex.ToDictionary(t => t.Key, t => t.Value); 
+            Exchanges = internalExchanges.OrderBy(r => r.Id).ToImmutableList();
+            Connections = internalConnections.OrderBy(r => r.Id).ToImmutableList();
+            
+            for (int index = 0; index < Exchanges.Count; index++)
+            {
+                var exchange = Exchanges[index];
+                ExchangesIndexer[exchange.Id] = index;
+                MaxExchangeId = exchange.Id; 
+            }
+
+            for (var index = 0; index < Connections.Count; index++)
+            {
+                var connection = Connections[index];
+                ConnectionsIndexer[connection.Id] = index;
+            }
         }
 
-        public TrunkState(List<ExchangeContainer> exchanges, List<ConnectionContainer> connections)
-        {
-            Exchanges = exchanges;
-            Connections = connections;
-        }
+        public ImmutableList<ExchangeContainer> Exchanges { get; }
 
-        public List<ExchangeContainer> Exchanges { get; }
 
-        public List<ConnectionContainer> Connections { get; }
+        public ImmutableList<ConnectionContainer> Connections { get; }
+
+
+        public int MaxExchangeId { get;  }
 
         /// <summary>
-        /// Used at client level 
+        /// Map a exchange Id to its position (index) on Exchanges list
         /// </summary>
-        [JsonIgnore]
-        public Dictionary<int, ExchangeContainer> ExchangeIndex { get; } = new();
+        public Dictionary<int, int> ExchangesIndexer { get; } = new();
+
+        /// <summary>
+        /// same algorithm as ExchangesIndexer 
+        /// </summary>
+        public Dictionary<int, int> ConnectionsIndexer { get; } = new();
 
         public static TrunkState Empty()
         {
-            return new TrunkState(new(), new()); 
+            return new TrunkState(Array.Empty<ExchangeContainer>(), Array.Empty<ConnectionContainer>()); 
         }
     }
 }

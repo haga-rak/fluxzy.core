@@ -20,6 +20,7 @@ namespace Fluxzy.Clients
         private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new();
 
         private Exchange(
+            IIdProvider idProvider,
             ExchangeContext context,
             Authority authority, 
             ReadOnlyMemory<char> requestHeaderPlain,
@@ -27,9 +28,10 @@ namespace Fluxzy.Clients
             ReadOnlyMemory<char> responseHeader,
             Stream responseBody,
             bool isSecure,
-            Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
+            Http11Parser parser, 
+            string httpVersion, DateTime receivedFromProxy)
         {
-            Id = Interlocked.Increment(ref _exchangeCounter);
+            Id = idProvider.NextId();
 
             Context = context;
             Authority = authority;
@@ -51,12 +53,15 @@ namespace Fluxzy.Clients
             _exchangeCompletionSource.SetResult(false);
         }
 
-        public static Exchange CreateUntrackedExchange(ExchangeContext context, Authority authority, ReadOnlyMemory<char> requestHeaderPlain, Stream requestBody, ReadOnlyMemory<char> responseHeader, Stream responseBody, bool isSecure, Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
+        public static Exchange CreateUntrackedExchange(
+            IIdProvider idProvider, ExchangeContext context, Authority authority, ReadOnlyMemory<char> requestHeaderPlain, Stream requestBody, ReadOnlyMemory<char> responseHeader, Stream responseBody, bool isSecure, Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
-            return new Exchange(context, authority, requestHeaderPlain, requestBody, responseHeader, responseBody, isSecure, parser, httpVersion, receivedFromProxy);
+            return new Exchange(idProvider,context, authority, 
+                requestHeaderPlain, requestBody, responseHeader, responseBody, isSecure, parser, httpVersion, receivedFromProxy);
         }
 
         public Exchange(
+            IIdProvider idProvider,
             ExchangeContext context,
             Authority authority, 
             RequestHeader requestHeader,
@@ -64,7 +69,7 @@ namespace Fluxzy.Clients
             string httpVersion, 
             DateTime receivedFromProxy)
         {
-            Id = Interlocked.Increment(ref _exchangeCounter);
+            Id = idProvider.NextId();
             Context = context;
             Authority = authority;
             HttpVersion = httpVersion;
@@ -76,11 +81,12 @@ namespace Fluxzy.Clients
         }
 
         public Exchange(
+            IIdProvider idProvider,
             Authority authority, 
             ReadOnlyMemory<char> requestHeaderPlain, 
             Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
-            Id = Interlocked.Increment(ref _exchangeCounter);
+            Id = idProvider.NextId(); 
             Context = new ExchangeContext(authority);
             Authority = authority;
             HttpVersion = httpVersion;

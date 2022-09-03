@@ -16,7 +16,7 @@ namespace Fluxzy.Desktop.Services
     {
         public FileState State { get; }
 
-        private BehaviorSubject<TrunkState> _subject;
+        private readonly BehaviorSubject<TrunkState> _subject;
 
         public FileContentOperationManager(FileState fileState)
         {
@@ -27,10 +27,10 @@ namespace Fluxzy.Desktop.Services
         
         private static TrunkState ReadDirectory(FileState current)
         {
-            var result = new TrunkState(new(), new());
-
             var exchangeDir = Path.Combine(current.WorkingDirectory, "exchanges");
             var connectionDir = Path.Combine(current.WorkingDirectory, "connections");
+            var exchanges = new List<ExchangeContainer>(); 
+            var connections = new List<ConnectionContainer>(); 
 
             Directory.CreateDirectory(exchangeDir);
             Directory.CreateDirectory(connectionDir);
@@ -56,15 +56,13 @@ namespace Fluxzy.Desktop.Services
                 if (exchange != null)
                 {
                     var container = new ExchangeContainer(exchange);
-                    result.ExchangeIndex[container.Id] = container;
-                    result.Exchanges.Add(container);
+                    exchanges.Add(container);
                 }
             }
-            
+
             var connectionFileInfos =
-                    new DirectoryInfo(connectionDir)
-                    .EnumerateFiles("*.json", SearchOption.AllDirectories)
-                    .OrderBy(o => o.Name);
+                new DirectoryInfo(connectionDir)
+                    .EnumerateFiles("*.json", SearchOption.AllDirectories);
 
             foreach (var fileInfo in connectionFileInfos)
             {
@@ -81,28 +79,30 @@ namespace Fluxzy.Desktop.Services
                 }
 
                 if (connection != null)
-                    result.Connections.Add(new ConnectionContainer(connection));
+                    connections.Add(new ConnectionContainer(connection));
             }
 
-            return result ;
+            return new TrunkState(exchanges, connections);
+            
         }
 
         public IObservable<TrunkState> Observable { get; }
 
         public void AddOrUpdate(ExchangeInfo exchangeInfo)
         {
-            var current = _subject.Value;
-
-            lock (current)
+            lock (_subject)
             {
-                if (!current.ExchangeIndex.TryGetValue(exchangeInfo.Id, out var container))
-                {
-                    container = new ExchangeContainer(exchangeInfo);
-                    current.ExchangeIndex[exchangeInfo.Id] = container;
-                    current.Exchanges.Add(container);
-                }
+                var current = _subject.Value;
 
-                container.ExchangeInfo = exchangeInfo;
+                var exchangeListFinal = current.Exchanges; 
+
+                if (!current.ExchangesIndexer.TryGetValue(exchangeInfo.Id, out var exchangeIndex))
+                {
+                    var newContainer = new ExchangeContainer(exchangeInfo);
+
+                    exchangeListFinal = exchangeListFinal.Add(newContainer);
+                    current = new TrunkState(exchangeListFinal, current.Connections);
+                }
 
                 _subject.OnNext(current);
             }
@@ -110,30 +110,14 @@ namespace Fluxzy.Desktop.Services
 
         public void Delete(FileContentDelete deleteOp)
         {
-            var current = _subject.Value;
-
-            lock (current)
+            lock (_subject)
             {
-                var removableIndexes = current.Exchanges
-                    .Select((e, index) => new
-                    {
-                        Exchange = e, 
-                        Index = index
-                    })
-                    .Where(c =>
-                        deleteOp.Identifiers.Contains(c.Exchange.Id))
-                    .Select(c => c.Index)
-                    .ToList();
-                
-                foreach (var removableIndex in removableIndexes)
-                {
-                    current.Exchanges.RemoveAt(removableIndex);
-                }
+                var current = _subject.Value;
+                var exchangeListFinal = current.Exchanges;
 
-                foreach (var id in deleteOp.Identifiers)
-                {
-                    current.ExchangeIndex.Remove(id);
-                }
+                exchangeListFinal = exchangeListFinal.RemoveAll(e => deleteOp.Identifiers.Contains(e.Id));
+
+                current = new TrunkState(exchangeListFinal, current.Connections);
 
                 _subject.OnNext(current);
             }

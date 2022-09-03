@@ -107,17 +107,20 @@ export class ExchangeManagementService {
                 return;
             }
 
-            if (!this.trunkState.exchangeIndex[exchangeInfo.id]) {
+            if (!this.trunkState.exchangesIndexer[exchangeInfo.id]) {
                 const newContainer = {
                     exchangeInfo: exchangeInfo,
                     id: exchangeInfo.id
                 };
 
-                this.trunkState.exchanges.push(newContainer);
-                this.trunkState.exchangeIndex[exchangeInfo.id] = newContainer;
+                this.trunkState.exchanges.push(newContainer); // add new item 
+                this.trunkState.exchangesIndexer[newContainer.id] = this.trunkState.exchanges.length -1; // setup indexer
             }
 
-            this.trunkState.exchangeIndex[exchangeInfo.id].exchangeInfo = exchangeInfo;
+            // update the field 
+            this.trunkState.exchanges[this.trunkState.exchangesIndexer[exchangeInfo.id]].exchangeInfo = exchangeInfo;
+
+
             this.trunkState$.next(this.trunkState);
         });
     }

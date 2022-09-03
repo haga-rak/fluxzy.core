@@ -17,11 +17,16 @@ namespace Fluxzy.Clients.DotNetBridge
             _activeConnections = new Dictionary<string, H2ConnectionPool>();
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private readonly Http11Parser _parser = new Http11Parser(16384); 
-        
+        private readonly Http11Parser _parser = new Http11Parser(16384);
+
+
+        private readonly IIdProvider _idProvider;
+
         public FluxzyHttp2Handler(H2StreamSetting streamSetting = null)
         {
             _streamSetting = streamSetting ?? new H2StreamSetting();
+            _idProvider = IIdProvider.FromZero;
+
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
@@ -45,7 +50,7 @@ namespace Fluxzy.Clients.DotNetBridge
                 _semaphore.Release();
             }
 
-            var exchange = new Exchange(new Authority(request.RequestUri.Host, request.RequestUri.Port,
+            var exchange = new Exchange(_idProvider, new Authority(request.RequestUri.Host, request.RequestUri.Port,
                 true), request.ToHttp11String().AsMemory(), _parser, "HTTP/2", DateTime.Now);
 
             if (request.Content != null)

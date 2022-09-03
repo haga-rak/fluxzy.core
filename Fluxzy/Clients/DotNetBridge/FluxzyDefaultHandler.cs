@@ -12,11 +12,13 @@ namespace Fluxzy.Clients.DotNetBridge
         private readonly SemaphoreSlim _semaphore = new(1);
         private readonly Http11Parser _parser = new(16384);
         private readonly PoolBuilder _poolBuilder;
+        private readonly IIdProvider _idProvider;
 
         public FluxzyDefaultHandler()
         {
             _poolBuilder = new PoolBuilder(new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
                 ITimingProvider.Default, _parser, null);
+            _idProvider = IIdProvider.FromZero; 
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
@@ -27,7 +29,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
             var reqHttpString = request.ToHttp11String();
 
-            var exchange = new Exchange(authority, reqHttpString.AsMemory(), _parser, null, DateTime.Now);
+            var exchange = new Exchange(_idProvider, authority, reqHttpString.AsMemory(), _parser, null, DateTime.Now);
 
             var connection = await _poolBuilder.GetPool(exchange, ProxyRuntimeSetting.Default, cancellationToken);
             

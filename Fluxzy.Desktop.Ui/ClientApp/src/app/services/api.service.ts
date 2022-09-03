@@ -21,7 +21,7 @@ export class ApiService {
                                     }          
                                 )
                               .build();
-                              
+                               
         this.hubConnection
             .start()
             .then(() => console.log('signalR connected'))
@@ -38,7 +38,6 @@ export class ApiService {
         return this.httpClient.post<TrunkState>(`api/file-content/delete`, fileContentDelete)
             .pipe(
                 take(1), 
-                tap(trunkState => this.buildTrunkStateIndexes(trunkState))
                 ) ; 
     }
 
@@ -50,19 +49,10 @@ export class ApiService {
                 console.log('reading trunk state with fileState: ')
                 console.log(trunkState) ;
                 // here we build the dictionary used for this trunk 
-                this.buildTrunkStateIndexes(trunkState);
             })            
             ); 
     }
     
-    private buildTrunkStateIndexes(trunkState: TrunkState) : void {
-        trunkState.exchangeIndex = {};
-        if (trunkState) {
-            for (let item of trunkState.exchanges) {
-                trunkState.exchangeIndex[item.id] = item;
-            }
-        }
-    }
 
 
     public fileOpen(fileName : string) : Observable<UiState> {
