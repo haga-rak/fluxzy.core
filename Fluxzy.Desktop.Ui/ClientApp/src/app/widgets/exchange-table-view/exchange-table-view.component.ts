@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, HostListener, OnInit, View
 import { MouseInputEvent } from 'electron';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeContainer, ExchangeInfo, ExchangeState } from '../../core/models/auto-generated';
+import { ExchangeBrowsingState, ExchangeContainer, ExchangeInfo, ExchangeState, TrunkState } from '../../core/models/auto-generated';
 import { ExchangeStyle } from '../../core/models/exchange-extensions';
 import {  ExchangeSelection,  FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService, ExchangeSelectedIds } from '../../services/exchange-management.service';
 import { ExchangeSelectionService } from '../../services/exchange-selection.service';
@@ -21,6 +21,7 @@ export class ExchangeTableViewComponent implements OnInit {
     public ExchangeStyle = ExchangeStyle ; 
 
     @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
+    private trunkState: TrunkState;
     
     constructor(private exchangeManagementService : ExchangeManagementService, private cdr: ChangeDetectorRef, private selectionService : ExchangeSelectionService) { }
     
@@ -34,6 +35,10 @@ export class ExchangeTableViewComponent implements OnInit {
             tap(_ => this.cdr.detectChanges())
             //tap(_ => this.perfectScroll.directiveRef.update())
         ).subscribe();
+
+        this.exchangeManagementService.getTrunkState()
+            .pipe(tap(t => this.trunkState = t))
+            .subscribe() ; 
 
         this.exchangeManagementService.getBrowsingState().pipe(
                 tap(browsingState => this.browsingState = browsingState)
@@ -114,9 +119,9 @@ export class ExchangeTableViewComponent implements OnInit {
             var end = this.exchangeSelection.lastSelectedExchangeId > exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ; 
 
             for (let i  = start ; i <= end  ; i++) {
-                // TODO here : check if exchange.id present on file 
-
-                this.exchangeSelection.map[i] = true;
+                if (this.trunkState.exchangeIndex[i]) {
+                    this.exchangeSelection.map[i] = true;
+                }
             }
             
             this.selectionService.selectionUpdate(this.exchangeSelection) ; 

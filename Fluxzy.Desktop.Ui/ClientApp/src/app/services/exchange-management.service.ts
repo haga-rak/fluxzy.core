@@ -47,7 +47,11 @@ export class ExchangeManagementService {
         this.getBrowsingState().
             pipe(tap(t => console.log(t))).subscribe(); 
 
-        this.exchangeSelectionService.getCurrentSelection().pipe((tap(s => this.currentSelection = s))).subscribe(); 
+        this.exchangeSelectionService.getCurrentSelection().pipe(
+            tap(s => this.currentSelection = s), 
+            tap(s => console.log(ExchangeSelectedIds(s)))
+            
+            ).subscribe(); 
 
         this.menuService.getNextDeletedRequest()
             .pipe(
