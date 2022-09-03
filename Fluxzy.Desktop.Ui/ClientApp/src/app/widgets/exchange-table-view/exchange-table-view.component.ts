@@ -119,7 +119,7 @@ export class ExchangeTableViewComponent implements OnInit {
             var end = this.exchangeSelection.lastSelectedExchangeId > exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ; 
 
             for (let i  = start ; i <= end  ; i++) {
-                if (this.trunkState.exchangeIndex[i]) {
+                if (this.trunkState.exchangesIndexer[i]) {
                     this.exchangeSelection.map[i] = true;
                 }
             }

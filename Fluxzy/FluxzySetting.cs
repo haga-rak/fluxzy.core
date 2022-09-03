@@ -42,6 +42,8 @@ namespace Fluxzy
             }
         }
 
+        internal int ExchangeStartIndex { get; set; } = 0; 
+
         /// <summary>
         /// Verbose mode 
         /// </summary>

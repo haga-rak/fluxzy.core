@@ -24,15 +24,20 @@ namespace Fluxzy.Desktop.Services
                 .CombineLatest(contentObservable)
                 .Select(stateAndSetting =>
                     System.Reactive.Linq.Observable.Create<ProxyState>(
-                        async (observer, token) =>
+                        async (observer, _) =>
                         {
                             var setting = stateAndSetting.First.StartupSetting;
+
+                            var trunkState = await stateAndSetting.Second.Observable.FirstAsync();
+
+                            setting.ExchangeStartIndex = trunkState.MaxExchangeId;
 
                             setting.RegisterAsSystemProxy = Subject?.Value?.IsListening ?? false;
 
                             setting.ArchivingPolicy = 
                                 ArchivingPolicy.CreateFromDirectory(
-                                    stateAndSetting.Second.State.WorkingDirectory                                );
+                                    stateAndSetting.Second.State.WorkingDirectory    
+                                    );
 
                             var proxyState = await ReloadProxy(setting, stateAndSetting.Second);
 

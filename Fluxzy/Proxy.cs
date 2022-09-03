@@ -29,7 +29,8 @@ namespace Fluxzy
         private ProxyOrchestrator _proxyOrchestrator;
         public RealtimeArchiveWriter Writer { get; private set; } = new EventOnlyArchiveWriter();
 
-        private  int _currentConcurrentCount = 0; 
+        private  int _currentConcurrentCount = 0;
+        private readonly FromIndexIdProvider _idProvider;
 
         public Proxy(
             FluxzySetting startupSetting,
@@ -37,6 +38,7 @@ namespace Fluxzy
             )
         {
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
+            _idProvider = new FromIndexIdProvider(StartupSetting.ExchangeStartIndex);
             
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
@@ -63,7 +65,7 @@ namespace Fluxzy
             };
 
             _proxyOrchestrator = new ProxyOrchestrator(new ProxyRuntimeSetting(startupSetting, ExecutionContext),
-                new ExchangeBuilder(secureConnectionManager, http1Parser), poolBuilder, Writer);
+                new ExchangeBuilder(secureConnectionManager, http1Parser, _idProvider), poolBuilder, Writer);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction && 
                                                           t.Filter.Children.OfType<AnyFilter>().Any() 
