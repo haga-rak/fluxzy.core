@@ -95,7 +95,7 @@ namespace Fluxzy.Desktop.Services
             newInstance.WorkingDirectory = fileName;
             newInstance.Changed = false;
 
-            Subject.OnNext(current);
+            Subject.OnNext(newInstance);
 
         }
 

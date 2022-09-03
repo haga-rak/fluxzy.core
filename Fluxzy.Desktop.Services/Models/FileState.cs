@@ -12,7 +12,7 @@ namespace Fluxzy.Desktop.Services.Models
             ContentOperation = new FileContentOperationManager(this);
         }
 
-        public Guid Identifier { get; set; }
+        public Guid Identifier { get; }
 
         public string WorkingDirectory { get; set; }
 
