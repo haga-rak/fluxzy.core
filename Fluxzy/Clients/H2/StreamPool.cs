@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ namespace Fluxzy.Clients.H2
 {
     internal class StreamPool : IDisposable, IAsyncDisposable
     {
-        private readonly IDictionary<int, StreamWorker> _runningStreams = new Dictionary<int, StreamWorker>();
+        private readonly IDictionary<int, StreamWorker> _runningStreams = new ConcurrentDictionary<int, StreamWorker>();
 
         private int _lastStreamIdentifier = -1;
 
