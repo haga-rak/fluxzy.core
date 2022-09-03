@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { table } from 'console';
 import { BehaviorSubject, Subject, tap, map, Observable, switchMap, distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe, filter } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState, TrunkState } from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
@@ -15,7 +14,6 @@ export class ExchangeManagementService {
 
     private trunkState : TrunkState | null; 
 
-    private mocked = false;
 
     private exchangeBrowsingState$: BehaviorSubject<ExchangeBrowsingState> = new BehaviorSubject<ExchangeBrowsingState>(
         {
@@ -26,11 +24,9 @@ export class ExchangeManagementService {
 
     public exchangeState$: Observable<ExchangeState> ; 
 
-    private mockIntervalSource = interval(1000);
     private currentSelection: ExchangeSelection;
 
     constructor(
-        private uiService: UiStateService,
         private apiService: ApiService,
         private menuService : MenuService, 
         private exchangeSelectionService : ExchangeSelectionService,
@@ -38,24 +34,16 @@ export class ExchangeManagementService {
         
         ) {
 
-        this.exchangeContentService.getTrunkState().pipe(tap(t => this.trunkState = t)).subscribe();
-
-        this.uiService.getFileState()
+        this.exchangeContentService.getTrunkState()
         .pipe(
-            filter(t => !!t),
-            switchMap(r => this.apiService.getTrunkState(r)), 
-            filter(t => !!t),
-            tap(ts => this.exchangeContentService.update(ts))
-        ).subscribe(); 
+            tap(t => this.trunkState = t),
+            ).subscribe();
 
         this.getBrowsingState().
             pipe(tap(t => console.log(t))).subscribe(); 
 
         this.exchangeSelectionService.getCurrentSelection().pipe(
-            tap(s => this.currentSelection = s), 
-            tap(s => console.log(ExchangeSelectedIds(s)))
-            
-            ).subscribe(); 
+            tap(s => this.currentSelection = s),).subscribe(); 
 
         this.menuService.getNextDeletedRequest()
             .pipe(
@@ -120,9 +108,9 @@ export class ExchangeManagementService {
                 return;
             }
 
-            const trukstateCopy = { ... this.trunkState };
+            const trukstateCopy : TrunkState= { ... this.trunkState  };
 
-            if (!trukstateCopy.exchangesIndexer[exchangeInfo.id]) {
+            if (!trukstateCopy.exchangesIndexer[exchangeInfo.id] && trukstateCopy.exchangesIndexer[exchangeInfo.id] !== 0) {
                 const newContainer = {
                     exchangeInfo: exchangeInfo,
                     id: exchangeInfo.id

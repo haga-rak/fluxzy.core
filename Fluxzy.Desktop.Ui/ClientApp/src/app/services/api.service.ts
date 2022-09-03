@@ -41,15 +41,11 @@ export class ApiService {
                 ) ; 
     }
 
-    public getTrunkState(fileState: FileState) : Observable<TrunkState> {
+    public readTrunkState(workingDirectory: string) : Observable<TrunkState> {
          return this.httpClient.post<TrunkState>(`api/file-content/read`, null)
         .pipe(
-            take(1),
-            tap(trunkState => {
-                console.log('reading trunk state with fileState: ')
-                console.log(trunkState) ;
-                // here we build the dictionary used for this trunk 
-            })            
+            take(1)
+            
             ); 
     }
     
