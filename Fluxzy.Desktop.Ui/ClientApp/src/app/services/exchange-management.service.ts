@@ -4,7 +4,8 @@ import { BehaviorSubject, Subject, tap, map, Observable, switchMap, distinctUnti
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState, TrunkState } from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { ApiService } from './api.service';
-import { ExchangeSelection, ExchangeSelectionService } from './exchange-selection.service';
+import { ExchangeContentService } from './exchange-content.service';
+import { ExchangeSelectedIds, ExchangeSelection, ExchangeSelectionService } from './exchange-selection.service';
 import { UiStateService } from './ui.service';
 
 @Injectable({
@@ -12,7 +13,6 @@ import { UiStateService } from './ui.service';
 })
 export class ExchangeManagementService {
 
-    private trunkState$ = new Subject<TrunkState>() ; 
     private trunkState : TrunkState | null; 
 
     private mocked = false;
@@ -33,16 +33,19 @@ export class ExchangeManagementService {
         private uiService: UiStateService,
         private apiService: ApiService,
         private menuService : MenuService, 
-        private exchangeSelectionService : ExchangeSelectionService) {
+        private exchangeSelectionService : ExchangeSelectionService,
+        private exchangeContentService: ExchangeContentService
+        
+        ) {
 
-        this.trunkState$.pipe(tap(t => this.trunkState = t)).subscribe();
+        this.exchangeContentService.getTrunkState().pipe(tap(t => this.trunkState = t)).subscribe();
 
         this.uiService.getFileState()
         .pipe(
             filter(t => !!t),
             switchMap(r => this.apiService.getTrunkState(r)), 
             filter(t => !!t),
-            tap(ts => this.trunkState$.next(ts))
+            tap(ts => this.exchangeContentService.update(ts))
         ).subscribe(); 
 
         this.getBrowsingState().
@@ -58,7 +61,7 @@ export class ExchangeManagementService {
             .pipe(
                 filter(t => !!this.currentSelection),
                 switchMap(_ => this.exchangeDelete(ExchangeSelectedIds(this.currentSelection))),
-                tap(t => this.trunkState$.next(t))
+                tap(t => this.exchangeContentService.update(t))
 
             ).subscribe();
 
@@ -80,7 +83,7 @@ export class ExchangeManagementService {
 
         this.exchangeState$ = combineLatest(
             [
-                this.trunkState$.asObservable(),
+                this.exchangeContentService.getTrunkState(),
                 this.getBrowsingState(),
             ]).pipe(
                 map((tab) => {
@@ -133,12 +136,8 @@ export class ExchangeManagementService {
             trukstateCopy.exchanges[trukstateCopy.exchangesIndexer[exchangeInfo.id]].exchangeInfo = exchangeInfo;
 
 
-            this.trunkState$.next(trukstateCopy);
+            this.exchangeContentService.update(trukstateCopy);
         });
-    }
-
-    public getTrunkState() : Observable<TrunkState>  {
-        return this.trunkState$.asObservable();
     }
 
 
@@ -160,20 +159,6 @@ export class ExchangeManagementService {
             identifiers : exchangeIds
         })
     }
-}
-
-
-export const ExchangeSelectedIds = (selection : ExchangeSelection) : number[] => {
-    const res : number [] = []; 
-
-    for (var key in selection.map) {
-        if (selection.map.hasOwnProperty(key) && selection.map[key]) {
-            res.push(parseInt(key)) ; 
-        }
-    }
-
-
-    return res; 
 }
 
 

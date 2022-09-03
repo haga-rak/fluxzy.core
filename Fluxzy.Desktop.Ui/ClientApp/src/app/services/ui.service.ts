@@ -4,8 +4,7 @@ import { Observable, of, Subject,tap,take, map, filter,switchMap, combineLatest 
 import { ExchangeBrowsingState, ExchangeState, FileState, UiState } from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { ApiService } from './api.service';
-import { ExchangeSelectedIds } from './exchange-management.service';
-import { ExchangeSelectionService } from './exchange-selection.service';
+import { ExchangeSelectedIds, ExchangeSelectionService } from './exchange-selection.service';
 
 @Injectable({
     providedIn: 'root'
@@ -25,7 +24,7 @@ export class UiStateService {
         combineLatest(
             [
                 this.getUiState(),
-                this.selectionService.getCurrentSelection()
+                this.selectionService.getCurrentSelectedIds()
             ]
         )
             .pipe(
@@ -34,7 +33,7 @@ export class UiStateService {
                 const uiState = t[0] ;
                 const selection = t[1] ; 
                 
-                this.menuService.updateMenu(uiState, ExchangeSelectedIds(selection).length);
+                this.menuService.updateMenu(uiState,selection.length);
             })).subscribe();
     }
 
