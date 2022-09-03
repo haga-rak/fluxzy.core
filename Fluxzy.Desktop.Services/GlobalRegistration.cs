@@ -24,7 +24,6 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton<IObservable<FileContentOperationManager>>
                 (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));
-            
 
             collection.AddSingleton<IObservable<TrunkState>>
                 (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()

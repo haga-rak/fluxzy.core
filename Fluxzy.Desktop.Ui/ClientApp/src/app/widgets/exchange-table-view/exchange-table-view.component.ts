@@ -125,7 +125,7 @@ export class ExchangeTableViewComponent implements OnInit {
             const result : number [] = [] ; 
 
             for (let i  = start ; i <= end  ; i++) {
-                if (this.trunkState.exchangesIndexer[i]) {
+                if (this.trunkState.exchangesIndexer[i] || this.trunkState.exchangesIndexer[i] === 0) {
                     result.push(i);
                 }
             }

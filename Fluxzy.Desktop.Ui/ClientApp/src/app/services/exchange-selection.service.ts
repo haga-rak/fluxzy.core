@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
-import { ExchangeInfo } from '../core/models/auto-generated';
 import { ExchangeContentService } from './exchange-content.service';
 
 @Injectable({
@@ -31,7 +30,7 @@ export class ExchangeSelectionService {
                         const selectedIds = ExchangeSelectedIds(rawSelection); 
 
                         for (let selectedId of selectedIds) {
-                            if (!trunkState.exchangesIndexer[selectedId]) {
+                            if (!trunkState.exchangesIndexer[selectedId] && trunkState.exchangesIndexer[selectedId] !== 0) {
                                 rawSelection.map[selectedId] = false; 
                             }
                         }
@@ -90,7 +89,7 @@ export class ExchangeSelectionService {
 
         return this.currentRawSelection$ ; 
     }
-    
+
     public getCurrentSelectedIds(): Observable<number[]> {
         return this.currentSelectedIds$;
     }
