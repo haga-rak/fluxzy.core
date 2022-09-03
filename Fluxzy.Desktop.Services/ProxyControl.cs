@@ -21,7 +21,10 @@ namespace Fluxzy.Desktop.Services
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState());
             
             fluxzySettingHolderObservable
-                .CombineLatest(contentObservable)
+                .CombineLatest(
+                    contentObservable
+                        .DistinctUntilChanged(t => t.State.Identifier) // this will avoid unecessary refresh when 
+                    ) 
                 .Select(stateAndSetting =>
                     System.Reactive.Linq.Observable.Create<ProxyState>(
                         async (observer, _) =>
