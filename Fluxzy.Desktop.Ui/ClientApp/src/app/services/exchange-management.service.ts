@@ -4,7 +4,7 @@ import { BehaviorSubject, Subject, tap, map, Observable, switchMap, distinctUnti
 import { ExchangeBrowsingState, ExchangeInfo, ExchangeState, TrunkState } from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { ApiService } from './api.service';
-import { ExchangeSelectionService } from './exchange-selection.service';
+import { ExchangeSelection, ExchangeSelectionService } from './exchange-selection.service';
 import { UiStateService } from './ui.service';
 
 @Injectable({
@@ -29,10 +29,11 @@ export class ExchangeManagementService {
     private mockIntervalSource = interval(1000);
     private currentSelection: ExchangeSelection;
 
-    constructor(private uiService: UiStateService,
-         private apiService: ApiService,
-          private menuService : MenuService, 
-          private exchangeSelectionService : ExchangeSelectionService) {
+    constructor(
+        private uiService: UiStateService,
+        private apiService: ApiService,
+        private menuService : MenuService, 
+        private exchangeSelectionService : ExchangeSelectionService) {
 
         this.trunkState$.pipe(tap(t => this.trunkState = t)).subscribe();
 
@@ -161,11 +162,6 @@ export class ExchangeManagementService {
     }
 }
 
-
-export interface ExchangeSelection {
-    map: { [exchangeId: string]: boolean },
-    lastSelectedExchangeId?: number
-}
 
 export const ExchangeSelectedIds = (selection : ExchangeSelection) : number[] => {
     const res : number [] = []; 
