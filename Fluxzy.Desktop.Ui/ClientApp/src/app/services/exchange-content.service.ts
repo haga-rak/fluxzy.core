@@ -6,20 +6,18 @@ import { TrunkState } from '../core/models/auto-generated';
     providedIn: 'root',
 })
 export class ExchangeContentService {
-  
-    private trunkState$ = new Subject<TrunkState>() ; 
-    private trunkStateObservable$ : Observable<TrunkState> ; 
+    private trunkState$ = new Subject<TrunkState>();
+    private trunkStateObservable$: Observable<TrunkState>;
 
-    
     constructor() {
-      this.trunkStateObservable$ = this.trunkState$.asObservable() ; 
+        this.trunkStateObservable$ = this.trunkState$.asObservable();
     }
 
-    public update(trunkState : TrunkState) : void {
-        this.trunkState$.next(trunkState) ; 
+    public update(trunkState: TrunkState): void {
+        this.trunkState$.next(trunkState);
     }
 
-    public getTrunkState() : Observable<TrunkState> {
-      return this.trunkStateObservable$ ; 
+    public getTrunkState(): Observable<TrunkState> {
+        return this.trunkStateObservable$;
     }
 }

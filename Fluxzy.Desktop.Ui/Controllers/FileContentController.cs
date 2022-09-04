@@ -34,5 +34,12 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return await _trunkObservable.FirstAsync();
 
         }
+
+        [HttpDelete("")]
+        public async Task<ActionResult<TrunkState>> Clear()
+        {
+            (await _fileContentOperationManager.FirstAsync()).Clear();
+            return await _trunkObservable.FirstAsync();
+        }
     }
 }
