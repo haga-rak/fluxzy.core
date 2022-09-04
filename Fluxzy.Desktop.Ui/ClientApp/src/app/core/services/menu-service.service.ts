@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { filter, map, Observable, Subject, tap, switchMap } from 'rxjs';
+import { filter, map, Observable, Subject, tap, switchMap, of } from 'rxjs';
 import { IApplicationMenuEvent } from '../../../../app/menu-prepare';
 import { ApiService } from '../../services/api.service';
 import { ExchangeSelectionService } from '../../services/exchange-selection.service';
@@ -77,6 +77,18 @@ export class MenuService {
         }
     }
 
+    public confirm(message : string) : ConfirmResult {
+        if (this.electronService.isElectron) {
+                const result : ConfirmResult = this.electronService.ipcRenderer.sendSync(
+                    'show-confirm-dialog',
+                    message)
+            return result; 
+        }
+
+        return ConfirmResult.Cancel;
+    }
+
+
     public registerMenuEvent(menuId : string, callback : () => void) : void {
         this.callBacks[menuId]  = callback ; 
     }
@@ -123,4 +135,11 @@ export class MenuService {
     }
 
 
+}
+
+
+export enum ConfirmResult {
+    Yes = 0,
+    No,
+    Cancel
 }
