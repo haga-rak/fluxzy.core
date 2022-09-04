@@ -24,7 +24,6 @@ namespace Fluxzy
             return Task.CompletedTask;
         }
 
-
         public static async Task Compress(DirectoryInfo directoryInfo, 
             Stream output,
             Func<FileInfo, bool> policy)

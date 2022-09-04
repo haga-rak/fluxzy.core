@@ -1,4 +1,4 @@
-<div class="status-container" *ngIf="fileState">
+<div class="status-container" *ngIf="fileState && uiState">
     
     <strong class="font-primary">
         <span *ngIf="fileState?.mappedFileName">{{ fileState.mappedFileName}}</span>
@@ -29,9 +29,14 @@
             decrypt all 
         </span>
         &nbsp;|&nbsp;
-        <span class="text-primary">
-            <i class="bi bi-reception-4"></i>
+        <span>
+            <a *ngIf="uiState.proxyState.isListening" (click)="proxyOff()"
+             href="javascript:;" class="text-green" title="Capture is on. Clic to toggle off"><i class="bi bi-play-circle-fill"></i></a>
+            <a *ngIf="!uiState.proxyState.isListening" (click)="proxyOn()"
+             href="javascript:;" class="text-secondary" title="Capture is off. Clic to toggle on"><i class="bi bi-stop-circle-fill"></i></a>
         </span>
-        <strong>127.0.0.1:44344</strong>
+        <strong *ngIf="uiState.proxyState.boundConnections.length > 0">
+            {{uiState.proxyState.boundConnections[0].address}}:{{uiState.proxyState.boundConnections[0].port}}
+        </strong>
     </span>
 </div>

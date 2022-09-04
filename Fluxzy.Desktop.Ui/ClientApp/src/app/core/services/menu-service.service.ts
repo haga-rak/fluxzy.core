@@ -116,7 +116,7 @@ export class MenuService {
         }
 
         {
-            FindMenu(menus, (menu) => menu.id === 'save').enabled = uiState.fileState.unsaved; 
+            FindMenu(menus, (menu) => menu.id === 'save').enabled = uiState.fileState.unsaved && !!uiState.fileState.mappedFileName ; 
         }
         
         this.electronService.ipcRenderer.sendSync('install-menu-bar', this._currentMenu) ; 
