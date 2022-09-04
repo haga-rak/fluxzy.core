@@ -18,7 +18,7 @@ import {
     FileState,
     UiState,
 } from '../core/models/auto-generated';
-import { MenuService } from '../core/services/menu-service.service';
+import { ConfirmResult, MenuService } from '../core/services/menu-service.service';
 import { ApiService } from './api.service';
 import { ExchangeContentService } from './exchange-content.service';
 import {
@@ -31,6 +31,7 @@ import {
 })
 export class UiStateService {
     private uiState$: Subject<UiState> = new Subject<UiState>();
+    private uiState: UiState;
 
     constructor(
         private httpClient: HttpClient,
@@ -67,6 +68,11 @@ export class UiStateService {
                     tap(t => this.exchangeContentService.update(t))
                 )
                 .subscribe();
+        
+        this.getUiState()
+                .pipe(
+                    tap(t => this.uiState = t)
+                ).subscribe()    ;
 
         this.menuService.registerMenuEvent('save', () => {
             this.apiService.fileSave().subscribe() ; 
@@ -87,6 +93,7 @@ export class UiStateService {
             .getNextOpenFile()
             .pipe(
                 filter((t) => !!t),
+                filter(t => !this.uiState.fileState.unsaved || this.menuService.confirm( "This operation will discard changes made on current file. Do you wish to continue?") === ConfirmResult.Yes),
                 switchMap((fileName) => this.apiService.fileOpen(fileName))
             )
             .subscribe();
@@ -96,6 +103,7 @@ export class UiStateService {
             .getNextOpenFile()
             .pipe(
                 filter((t) => t === ''), // new file
+                filter(t => !this.uiState.fileState.unsaved || this.menuService.confirm( "This operation will discard changes made on current file. Do you wish to continue?") === ConfirmResult.Yes),
                 switchMap((fileName) => this.apiService.fileNew())
                 // tap(t => this.uiState$.next(t))
             )

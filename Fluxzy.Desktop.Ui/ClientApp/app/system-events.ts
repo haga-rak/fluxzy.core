@@ -41,7 +41,20 @@ export const InstallSystemEvents = (win : BrowserWindow) : void => {
             buttonLabel: "Save",
             properties: ["showOverwriteConfirmation"]
         });
-        event.returnValue = !result? null : result;
+        event.returnValue = !result ? null : result;
+    });
+    
+
+    ipcMain.on('show-confirm-dialog', function (event, arg) {
+        // 
+        let options  = {
+            buttons: ["Yes","No","Cancel"],
+            message: arg
+           }
+           
+        var resultIndex = dialog.showMessageBoxSync(win, options) ;
+
+        event.returnValue = resultIndex;
     });
 
 }

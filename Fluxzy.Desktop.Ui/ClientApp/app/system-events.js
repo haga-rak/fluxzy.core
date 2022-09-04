@@ -41,6 +41,15 @@ var InstallSystemEvents = function (win) {
         });
         event.returnValue = !result ? null : result;
     });
+    electron_1.ipcMain.on('show-confirm-dialog', function (event, arg) {
+        // 
+        var options = {
+            buttons: ["Yes", "No", "Cancel"],
+            message: arg
+        };
+        var resultIndex = electron_1.dialog.showMessageBoxSync(win, options);
+        event.returnValue = resultIndex;
+    });
 };
 exports.InstallSystemEvents = InstallSystemEvents;
 //# sourceMappingURL=system-events.js.map
