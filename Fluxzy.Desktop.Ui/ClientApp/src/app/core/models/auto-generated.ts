@@ -6,6 +6,10 @@ export interface FileOpeningViewModel
 {
 	fileName: string;
 }
+export interface FileSaveViewModel
+{
+	fileName: string;
+}
 export interface UiState
 {
 	id: string;

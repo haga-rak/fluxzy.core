@@ -1,7 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
 using Fluxzy.Clients;
-using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
 using Reinforced.Typings.Ast.TypeNames;
@@ -18,6 +17,9 @@ namespace Fluxzy.Desktop.Ui
         private static void ConfigureViewModels(ConfigurationBuilder builder)
         {
             builder.ExportAsInterface<FileOpeningViewModel>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FileSaveViewModel>()
                 .ApplyGenericProperties();
         }
 

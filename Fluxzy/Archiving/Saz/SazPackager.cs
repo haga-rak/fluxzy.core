@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -47,6 +48,11 @@ namespace Fluxzy.Saz
                 await DumpExchange(zipArchive, ++sessionId, exchangeInfo, connectionInfo, max,
                     requestPayloadPath, responsePayloadPath);
             }
+        }
+
+        public Task Pack(string directory, Stream outputStream, IEnumerable<ExchangeInfo> exchangeInfos, IEnumerable<ConnectionInfo> connectionInfos)
+        {
+            throw new NotImplementedException();
         }
 
         private static async Task WriteRequest(

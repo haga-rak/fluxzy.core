@@ -50,7 +50,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 label : 'Save as', 
-                id : 'save as', 
+                id : 'save-as', 
                 accelerator: process.platform === 'darwin' ? 'Cmd+Shift+S' : 'Ctrl+Shift+S',
             },
             { 
