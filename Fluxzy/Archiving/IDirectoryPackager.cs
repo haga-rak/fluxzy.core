@@ -13,6 +13,9 @@ namespace Fluxzy
 
         Task Pack(string directory, Stream outputStream);
 
+        Task Pack(string directory, Stream outputStream, IEnumerable<ExchangeInfo> exchangeInfos,
+            IEnumerable<ConnectionInfo> connectionInfos);
+
         internal static async Task<Dictionary<int, ConnectionInfo>> ReadConnectionInfos(DirectoryInfo directoryInfo)
         {
             Dictionary<int, ConnectionInfo> connectionInfos = new Dictionary<int, ConnectionInfo>();

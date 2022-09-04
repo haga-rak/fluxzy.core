@@ -30,11 +30,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 
-//app.UseEndpoints((endpointRouteBuilder) =>
-//{
-//    endpointRouteBuilder.MapHub<GlobalHub>("/xs/ui-state-update");
-//});
-
 app.MapHub<GlobalHub>("/xs");
 app.MapFallbackToFile("index.html");
 

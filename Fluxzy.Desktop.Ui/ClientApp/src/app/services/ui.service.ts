@@ -67,6 +67,10 @@ export class UiStateService {
                     tap(t => this.exchangeContentService.update(t))
                 )
                 .subscribe();
+
+        this.menuService.registerMenuEvent('save', () => {
+            this.apiService.fileSave().subscribe() ; 
+        }) ; 
     }
 
     private refreshUiState(): void {
@@ -84,7 +88,6 @@ export class UiStateService {
             .pipe(
                 filter((t) => !!t),
                 switchMap((fileName) => this.apiService.fileOpen(fileName))
-                //   tap(t => this.uiState$.next(t))
             )
             .subscribe();
 
@@ -95,6 +98,16 @@ export class UiStateService {
                 filter((t) => t === ''), // new file
                 switchMap((fileName) => this.apiService.fileNew())
                 // tap(t => this.uiState$.next(t))
+            )
+            .subscribe();
+
+        // Save as
+        this.menuService
+            .getNextSaveFile()
+            .pipe(
+                switchMap((fileName) => this.apiService.fileSaveAs({
+                    fileName : fileName
+                }))
             )
             .subscribe();
     }

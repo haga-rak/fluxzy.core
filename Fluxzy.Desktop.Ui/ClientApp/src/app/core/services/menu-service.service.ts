@@ -17,7 +17,11 @@ export class MenuService {
     private deleteEvent$ : Subject<boolean> = new Subject<boolean>() ; 
 
     private nextOpenFile$ = new Subject<string>() ; 
+    private nextSaveFile$ = new Subject<string>() ; 
     private _currentMenu = GlobalMenuItems ; 
+
+    private callBacks : { [menuId : string] : () => void}  = {}
+
     
     constructor(private electronService : ElectronService, private apiService : ApiService) {
     }
@@ -42,6 +46,13 @@ export class MenuService {
             ).subscribe() ;
 
             this.applicationMenuEvents$.pipe(
+                    filter(e => e.menuId === 'save-as') , 
+                    map(e => this.electronService.ipcRenderer.sendSync('request-file-saving', null) as string),
+                    filter(t => !!t),
+                    tap(t => this.nextSaveFile$.next(t)),
+            ).subscribe() ;
+
+            this.applicationMenuEvents$.pipe(
                     filter(e => e.menuId === 'new') , 
                     tap(t => this.nextOpenFile$.next('')),
             ).subscribe() ;
@@ -57,12 +68,26 @@ export class MenuService {
                     filter(e => e.menuId === 'delete') ,    
                     tap(e => this.deleteEvent$.next(true))
             ).subscribe() ;
+
+            // raise callbacks 
+            this.applicationMenuEvents$.pipe(
+                filter(m => !!this.callBacks[m.menuId]),
+                tap(m => this.callBacks[m.menuId]()) 
+            ).subscribe() ;
         }
+    }
+
+    public registerMenuEvent(menuId : string, callback : () => void) : void {
+        this.callBacks[menuId]  = callback ; 
     }
 
 
     public getNextOpenFile() : Observable<string> {
-        return this.nextOpenFile$ ;
+        return this.nextOpenFile$.asObservable() ;
+    }
+
+    public getNextSaveFile() : Observable<string> {
+        return this.nextSaveFile$.asObservable() ;
     }
 
     public getNextDeletedRequest() : Observable<boolean> {
@@ -88,6 +113,10 @@ export class MenuService {
             // selectionService
             let menu = FindMenu(menus, (menu) => menu.id === 'delete') ;
             menu.enabled = selectionCount > 0 ; 
+        }
+
+        {
+            FindMenu(menus, (menu) => menu.id === 'save').enabled = uiState.fileState.unsaved; 
         }
         
         this.electronService.ipcRenderer.sendSync('install-menu-bar', this._currentMenu) ; 

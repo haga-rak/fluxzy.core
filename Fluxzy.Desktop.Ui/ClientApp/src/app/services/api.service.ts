@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Observable, take, map, tap } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeState, FileContentDelete, FileState, TrunkState, UiState } from '../core/models/auto-generated';
+import { ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, TrunkState, UiState } from '../core/models/auto-generated';
 
 @Injectable({
   providedIn: 'root'
@@ -60,6 +60,19 @@ export class ApiService {
 
     public fileNew() : Observable<UiState> {
         return this.httpClient.post<UiState>(`api/file/new`, null)
+            .pipe(
+                take(1)
+            );
+    }
+
+    public fileSave() : Observable<UiState> {
+        return this.httpClient.post<UiState>(`api/file/save`, null)
+            .pipe(
+                take(1)
+            );
+    }
+    public fileSaveAs(model : FileSaveViewModel) : Observable<UiState> {
+        return this.httpClient.post<UiState>(`api/file/save-as`, model)
             .pipe(
                 take(1)
             );

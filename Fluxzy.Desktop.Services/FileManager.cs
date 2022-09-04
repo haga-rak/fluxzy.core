@@ -79,23 +79,42 @@ namespace Fluxzy.Desktop.Services
             Subject.OnNext(Subject.Value.SetUnsaved(state)); 
         }
 
+        public async Task Save(TrunkState trunkState)
+        {
+            var current = await Observable.FirstAsync(); 
 
-        public async Task Save(string fileName)
+            if (current.MappedFileFullPath == null)
+                throw new InvalidOperationException("No mapped filed");
+
+            using var outStream = File.Create(current.MappedFileFullPath);
+            
+            await _directoryPackager.Pack(current.WorkingDirectory, outStream, 
+                trunkState.Exchanges.Select(e => e.ExchangeInfo), 
+                trunkState.Connections.Select(c => c.ConnectionInfo));
+
+            var nextState = current.SetUnsaved(false);
+
+            Subject.OnNext(nextState);
+        }
+
+        public async Task SaveAs(TrunkState trunkState, string fileName)
         {
             var current = await Observable.FirstAsync(); 
 
             if (current == null)
                 throw new InvalidOperationException("Current working directory/file is not set");
 
-            var outStream = File.Create(fileName);
-            
-            await _directoryPackager.Pack(current.WorkingDirectory,
-                outStream
-            );
+            using var outStream = File.Create(fileName);
 
-            var newInstance = current.SetFileName(fileName).SetUnsaved(false);
+            await _directoryPackager.Pack(current.WorkingDirectory, outStream,
+                trunkState.Exchanges.Select(e => e.ExchangeInfo),
+                trunkState.Connections.Select(c => c.ConnectionInfo));
 
-            Subject.OnNext(newInstance);
+            var nextState = current
+                .SetFileName(fileName)
+                .SetUnsaved(false);
+
+            Subject.OnNext(nextState);
         }
 
         public Task Export(Stream outStream, FluxzyFileType fileType)

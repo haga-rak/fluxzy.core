@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
@@ -35,38 +36,90 @@ namespace Fluxzy
 
             zipStream.SetLevel(3);
 
-            await InternaCompressDirectory(directoryInfo, zipStream, 0, policy);
+            await InternalCompressDirectory(directoryInfo, zipStream, policy);
         }
         
-        private static async Task InternaCompressDirectory(
-            DirectoryInfo directoryInfo, ZipOutputStream zipStream, int folderOffset,
+        public static async Task CompressWithFileInfos(DirectoryInfo directoryInfo, 
+            Stream output, IReadOnlyCollection<FileInfo> fileInfos)
+        {
+            if (!directoryInfo.Exists)
+                throw new InvalidOperationException($"Directory {directoryInfo.FullName} does not exists");
+
+            await using var zipStream = new ZipOutputStream(output);
+
+            zipStream.SetLevel(3);
+
+            await InternaCompressDirectoryWithFileInfos(directoryInfo, zipStream, fileInfos);
+        }
+        
+        private static async Task InternalCompressDirectory(
+            DirectoryInfo directoryInfo, ZipOutputStream zipStream,
             Func<FileInfo, bool> policy)
         {
             var fileInfos = directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories);
             var directoryName = directoryInfo.FullName; 
 
-            foreach (var fi in fileInfos)
+            foreach (var fileInfo in fileInfos)
             {
-                if (!policy(fi))
+                if (!fileInfo.Exists)
                     continue;
 
-                var entryName = fi.FullName.Replace(directoryName, string.Empty);
+                if (!policy(fileInfo))
+                    continue;
+
+                await using var fsInput = fileInfo.OpenRead();
+
+                if (fsInput.Length == 0)
+                    continue;
+
+                var entryName = fileInfo.FullName.Replace(directoryName, string.Empty);
 
                 entryName = ZipEntry.CleanName(entryName);
 
                 var newEntry = new ZipEntry(entryName)
                 {
-                    DateTime = fi.LastWriteTime
+                    DateTime = fileInfo.LastWriteTime
                 };
 
                 zipStream.PutNextEntry(newEntry);
-
-                await using (var fsInput = fi.OpenRead())
-                {
-                    await fsInput.CopyToAsync(zipStream);
-                }
-
+                await fsInput.CopyToAsync(zipStream);
                 zipStream.CloseEntry();
+            }
+        }
+
+        private static async Task InternaCompressDirectoryWithFileInfos(
+            DirectoryInfo directoryInfo, ZipOutputStream zipStream,
+            IReadOnlyCollection<FileInfo> fileInfos)
+        {
+            var directoryName = directoryInfo.FullName; 
+
+            foreach (var fileInfo in fileInfos)
+            {
+                try
+                {
+                    if (!fileInfo.Exists)
+                        continue;
+
+                    await using var fsInput = fileInfo.OpenRead();
+
+                    if (fsInput.Length == 0)
+                        continue; 
+
+                    var entryName = fileInfo.FullName.Replace(directoryName, string.Empty);
+                    entryName = ZipEntry.CleanName(entryName);
+                    var newEntry = new ZipEntry(entryName)
+                    {
+                        DateTime = fileInfo.LastWriteTime
+                    };
+
+                    zipStream.PutNextEntry(newEntry);
+                    await fsInput.CopyToAsync(zipStream);
+                    zipStream.CloseEntry();
+                }
+                catch (IOException)
+                {
+                    // read input is ignored, file may currently used by engine
+                }
             }
         }
     }
