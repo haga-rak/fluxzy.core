@@ -41,6 +41,13 @@ export class ApiService {
                 ) ; 
     }
 
+    public trunkClear() : Observable<TrunkState> {
+        return this.httpClient.delete<TrunkState>(`api/file-content`)
+            .pipe(
+                take(1), 
+                ) ; 
+    }
+
     public readTrunkState(workingDirectory: string) : Observable<TrunkState> {
          return this.httpClient.post<TrunkState>(`api/file-content/read`, null)
         .pipe(

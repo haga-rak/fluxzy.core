@@ -52,5 +52,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
             await _fileManager.SaveAs(trunkState, model.FileName);
             return await _uiStateManager.GetUiState();
         }
+
+
+        
     }
 }

@@ -11,6 +11,7 @@ import {
     switchMap,
     combineLatest,
     distinct,
+    pipe,
 } from 'rxjs';
 import {
     ExchangeBrowsingState,
@@ -118,6 +119,13 @@ export class UiStateService {
                 }))
             )
             .subscribe();
+
+        this.menuService.registerMenuEvent('clear', () => {
+            this.apiService.trunkClear()
+                .pipe(
+                    tap(trunkState => this.exchangeContentService.update(trunkState))
+                ).subscribe() ; 
+        }); 
     }
 
     public getUiState(): Observable<UiState> {

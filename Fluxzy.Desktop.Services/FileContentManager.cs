@@ -127,5 +127,22 @@ namespace Fluxzy.Desktop.Services
                 State.Owner.SetUnsaved(true);
             }
         }
+
+
+        public void Clear()
+        {
+            lock (_subject)
+            {
+                var current = _subject.Value;
+
+                var exchangeListFinal = current.Exchanges.Clear();
+                var connectionListFinal = current.Connections.Clear(); 
+
+                current = new TrunkState(exchangeListFinal, connectionListFinal);
+
+                _subject.OnNext(current);
+                State.Owner.SetUnsaved(true);
+            }
+        }
     }
 } 
