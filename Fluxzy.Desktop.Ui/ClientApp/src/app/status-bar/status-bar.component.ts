@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { tap } from 'rxjs';
-import { ExchangeState, FileState } from '../core/models/auto-generated';
+import { ExchangeState, FileState, UiState } from '../core/models/auto-generated';
+import { ApiService } from '../services/api.service';
 import {  ExchangeManagementService } from '../services/exchange-management.service';
 import { ExchangeSelectionService } from '../services/exchange-selection.service';
 import { UiStateService } from '../services/ui.service';
@@ -14,11 +15,13 @@ export class StatusBarComponent implements OnInit {
     public selectedCount: number;
     public exchangeState : ExchangeState;
     public fileState: FileState;
+    public uiState: UiState;
     
     constructor(
         private exchangeManagementService : ExchangeManagementService,
          private cdr: ChangeDetectorRef, private uiStateService : UiStateService,
-         private selectionService : ExchangeSelectionService
+         private selectionService : ExchangeSelectionService,
+         private apiService:  ApiService
          
          ) { }
     
@@ -32,10 +35,23 @@ export class StatusBarComponent implements OnInit {
             tap(_ => this.cdr.detectChanges()),
         ).subscribe();
 
+        this.uiStateService.getUiState()
+            .pipe(
+                tap(u => this.uiState = u)
+            ).subscribe(); 
+
         this.uiStateService.getFileState()
             .pipe(
                 tap(f => this.fileState = f) 
             ).subscribe() ; 
+    }
+
+    public proxyOn() : void {
+        this.apiService.proxyOn().subscribe() ; 
+    }
+    
+    public proxyOff() : void {
+        this.apiService.proxyOff().subscribe() ; 
     }
     
 }

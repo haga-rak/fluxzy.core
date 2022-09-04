@@ -26,4 +26,22 @@ export const InstallSystemEvents = (win : BrowserWindow) : void => {
 
         event.returnValue = !result || !result.length ? null : result[0] ; 
     }) ; 
+
+    
+    ipcMain.on('request-file-saving', function (event, arg) {
+        // 
+        var result = dialog.showSaveDialogSync(win, {
+            filters: [
+                {
+                    name: "Fluxzy file",
+                    extensions: ["fxzy"]
+                }
+            ],
+            title: "Fluxzy - Save to a file",
+            buttonLabel: "Save",
+            properties: ["showOverwriteConfirmation"]
+        });
+        event.returnValue = !result? null : result;
+    });
+
 }
