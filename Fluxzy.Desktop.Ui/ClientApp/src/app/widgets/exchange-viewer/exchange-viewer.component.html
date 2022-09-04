@@ -5,23 +5,29 @@
                     <div class="exchange-viewer-header">
                         <div style="margin-bottom: 8px">
                             <span>
-                                <strong>POST</strong>&nbsp; <a href="javascript:;" title="Click to copy full URL">/api/users/ad466e12f4621bc</a>
+                                <strong>POST</strong>&nbsp; <a href="javascript:;" [title]="exchange.path">{{autoMaxLength(exchange.path, 64)}}</a>
                             </span>
                             <span class="float-end">
                                     <span>api.smartizy.com</span> 
                             </span>
                         </div>
                         <div class="btn-group"  role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
-                            <button type="button"  href="javascript:;" class="btn btn-dark active" aria-current="page">headers</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark" >body (436b)</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">cookies</button>
+                            
+                            <button type="button"  href="javascript:;" class="btn btn-dark" 
+                            [ngClass]="{'active' : isRequestTabSelected('requestHeader')}" (click)="setSelectedRequest('requestHeader')">
+                            headers</button>
+
+                            <button type="button"  href="javascript:;" class="btn btn-dark" 
+                            [ngClass]="{'active' : isRequestTabSelected('requestBody')}" (click)="setSelectedRequest('requestBody')"
+                            >body (1236b)</button>
+                            <button type="button"  href="javascript:;" class="btn btn-dark">set-cookies</button>
                             <button type="button"  href="javascript:;" class="btn btn-dark">authentication</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">multipart-form</button>
+                            <button type="button"  href="javascript:;" class="btn btn-dark">json viewer</button>
                         </div>
                     </div>
     
                     <div class="shady-box exchange-content-box" style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px;">
-                            
+                            <app-header-viewer *ngIf="currentRequestTabView === 'requestHeader'" [exchange]="exchange"></app-header-viewer>
                     </div>
 
 
@@ -37,11 +43,12 @@
                             </span>
                         </div>
                         <div class="btn-group"  role="group">
+                            
                             <button type="button"  href="javascript:;" class="btn btn-dark active" aria-current="page">headers</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark" >body (1236b)</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">set-cookies</button>
+                            <button type="button"  href="javascript:;" class="btn btn-dark" >body (436b)</button>
+                            <button type="button"  href="javascript:;" class="btn btn-dark">cookies</button>
                             <button type="button"  href="javascript:;" class="btn btn-dark">authentication</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">json viewer</button>
+                            <button type="button"  href="javascript:;" class="btn btn-dark">multipart-form</button>
                         </div>
                     </div>
         

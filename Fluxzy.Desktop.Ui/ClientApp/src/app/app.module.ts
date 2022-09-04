@@ -25,6 +25,7 @@ import { VerticalSeparatorDirective } from './directives/vertical-separator.dire
 import { FilterHeaderViewComponent } from './widgets/filter-header-view/filter-header-view.component';
 import { ExchangeTableViewComponent } from './widgets/exchange-table-view/exchange-table-view.component';
 import { PerfectScrollbarConfigInterface, PerfectScrollbarModule, PERFECT_SCROLLBAR_CONFIG } from 'ngx-perfect-scrollbar';
+import { HeaderViewerComponent } from './widgets/exchange-viewer/details/header-viewer/header-viewer.component';
 
 
 // AoT requires an exported function for factories
@@ -35,7 +36,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   };
 
 @NgModule({
-    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent],
+    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent],
     imports: [
         BrowserModule,
         FormsModule,

@@ -35,7 +35,7 @@
     <div class="block-thin" appVerticalSeparator [leftBlock]="objectPane" [rightBlock]="righblock"></div>
     <div class="block-right" #righblock>
         <div class="middle-content">
-            <app-exchange-viewer style="width:100%"></app-exchange-viewer>            
+            <app-exchange-viewer *ngIf="selectedExchange" [exchange]="selectedExchange" style="width:100%"></app-exchange-viewer>            
         </div>
     </div>
 </div>
