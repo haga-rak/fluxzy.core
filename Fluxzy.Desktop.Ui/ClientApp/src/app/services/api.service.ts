@@ -7,6 +7,7 @@ import { ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewMo
 @Injectable({
   providedIn: 'root'
 })
+// This service is responsible of delivering http service towards the .NET web service 
 export class ApiService {
     private hubConnection: HubConnection ; 
 

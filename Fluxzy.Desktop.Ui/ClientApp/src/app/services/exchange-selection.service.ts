@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
+import { ExchangeInfo } from '../core/models/auto-generated';
 import { ExchangeContentService } from './exchange-content.service';
 
 @Injectable({
@@ -12,6 +13,9 @@ export class ExchangeSelectionService {
     private currentRawSelectionObservable$: Observable<ExchangeSelection>;
     private currentSelectedIds$: Observable<number[]>;
     private currenSelectionCount$: Observable<number>;
+    private selected$ : Observable<ExchangeInfo | null>;
+
+
     private currentSelection: ExchangeSelection = {
         map: {},
     };
@@ -47,6 +51,29 @@ export class ExchangeSelectionService {
         );
 
         this.currentSelection$.pipe(tap((t) => (this.currentSelection = t))).subscribe();
+
+        this.selected$ = combineLatest([
+            
+            this.exchangeContentService.getTrunkState(), 
+            this.currentSelection$
+        ])
+            .pipe(
+                map(t =>  {
+                    const trunkState = t[0] ; 
+                    const selection = t[1]; 
+
+                    if (!selection.lastSelectedExchangeId)
+                        return null ; 
+
+                    const selectedIndex = trunkState.exchangesIndexer[selection.lastSelectedExchangeId] ; 
+
+                    if (!selectedIndex && selectedIndex !== 0 )
+                        return null; 
+                    
+                    const chosen = trunkState.exchanges[selectedIndex] ; 
+                    return chosen.exchangeInfo ; 
+                })
+            )
     }
 
     public setSelection(...exchangeIds: number[]): void {
@@ -79,6 +106,10 @@ export class ExchangeSelectionService {
                 nextResult.lastSelectedExchangeId = exchangeId;
         }
         this.currentRawSelection$.next(nextResult);
+    }
+
+    public getSelected() : Observable<ExchangeInfo> {
+        return this.selected$ ; 
     }
 
     public getCurrenSelectionCount(): Observable<number> {
