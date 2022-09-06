@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
 using Fluxzy.Rules;
@@ -58,13 +55,7 @@ namespace Fluxzy
         /// Number of anticipated connection per host
         /// </summary>
         public int AnticipatedConnectionPerHost { get; internal set; } = 0;
-
-        /// <summary>
-        /// When set to true. Fluxzy will be set as system proxy when started. 
-        /// </summary>
-        public bool RegisterAsSystemProxy { get; internal set; } = false;
-
-
+        
         /// <summary>
         /// Download bandwidth in KiloByte  (Byte = 8bits) per second. Default value is 0 which means no throttling.
         /// </summary>
@@ -202,7 +193,6 @@ namespace Fluxzy
             return this; 
         }
 
-
         public FluxzySetting SetConnectionPerHost(int connectionPerHost)
         {
             if (connectionPerHost < 1 || connectionPerHost >= 64)
@@ -213,13 +203,7 @@ namespace Fluxzy
             ConnectionPerHost = connectionPerHost;
             return this; 
         }
-
-        public FluxzySetting SetAsSystemProxy(bool value)
-        {
-            RegisterAsSystemProxy = value;
-            return this; 
-        }
-
+        
         public FluxzySetting SetThrottleKoPerSecond(int value)
         {
             // To do controller supérieur à une valeur minimum 

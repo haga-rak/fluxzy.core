@@ -8,33 +8,86 @@ using Fluxzy.Core.SystemProxySetup.Win32;
 
 namespace Fluxzy.Core
 {
-    public class SystemProxyRegistration : IDisposable
+    /// <summary>
+    /// System proxy management is static because related to OS management. 
+    /// </summary>
+    public static class SystemProxyRegistration
     {
-        private readonly string _hostName;
-        private readonly int _port;
-        private readonly ISystemProxySetter _systemProxySetter;
-        private readonly ProxySetting _oldSetting;
+        private static readonly ISystemProxySetter _systemProxySetter;
+        private static SystemProxySetting? _oldSetting;
+        private static SystemProxySetting? _currentSetting;
+        private static bool _registerDone = false;
 
-        public SystemProxyRegistration(
-            IConsoleOutput consoleOutput,
-            string hostName, int port, params string[] byPassHosts)
+        static SystemProxyRegistration()
         {
-            _hostName = GetConnectableHostname(hostName);
-            _port = port;
             _systemProxySetter = SolveSetter();
+        }
 
-            if (_systemProxySetter != null)
+        public static void Register(FluxzySetting fluxzySetting)
+        {
+            var boundPoints = fluxzySetting.BoundPoints;
+
+            if (!boundPoints.Any())
             {
-                _oldSetting = _systemProxySetter.ReadSetting();
-                _systemProxySetter
-                    .ApplySetting(
-                        new ProxySetting(_hostName, port, true, byPassHosts.Concat(new[] { "127.0.0.1" }).ToArray()));
+                return; 
+            }
 
-                consoleOutput.WriteLineAsync($"System proxy registered on {_hostName}:{port}");
+            var firstBoundPoint = boundPoints.OrderByDescending(t => 
+                            t.Address.Equals("127.0.0.1") || t.Address.Equals("localhost")).First();
+
+            Register(firstBoundPoint.Address, firstBoundPoint.Port, fluxzySetting.ByPassHost.ToArray()); 
+        }
+
+
+        public static void Register(string hostName, int port, params string[] byPassHosts)
+        {
+            var existingSetting = GetSystemProxySetting();
+
+            if (!existingSetting.Equals(_oldSetting))
+            {
+                _oldSetting = existingSetting;
+            }
+
+            if (!_registerDone)
+            {
+                ProxyUnregisterOnAppdomainExit();
+                _registerDone = true; 
+            }
+
+            var connectableHostName = GetConnectableHostname(hostName);
+
+            _currentSetting = new SystemProxySetting(connectableHostName,
+                port, byPassHosts.Concat(new[] { "127.0.0.1" })
+                    .ToArray());
+
+            _systemProxySetter.ApplySetting(_currentSetting);
+        }
+
+        internal static SystemProxySetting GetSystemProxySetting()
+        {
+            var existingSetting = _systemProxySetter.ReadSetting();
+            return existingSetting;
+        }
+
+        public static void UnRegister()
+        {
+            if (_oldSetting != null)
+            {
+                _systemProxySetter?.ApplySetting(_oldSetting);
+                _oldSetting = null; 
+                return; 
+            }
+
+            if (_currentSetting != null)
+            {
+                _currentSetting.Enabled = false; 
+                _systemProxySetter?.ApplySetting(_currentSetting);
+                _currentSetting = null; 
+                return; 
             }
         }
 
-        private string GetConnectableHostname(string hostName)
+        private static string GetConnectableHostname(string hostName)
         {
             if (string.IsNullOrWhiteSpace(hostName))
                 return "127.0.0.1";
@@ -44,18 +97,7 @@ namespace Fluxzy.Core
 
             return hostName;
         }
-
-        public void Dispose()
-        {
-            if (_oldSetting.BoundHost == _hostName && _oldSetting.ListenPort == _port)
-            {
-                _oldSetting.Enabled = false; // Il s'agit d'un setting précédent mal libéré
-            }
-
-            _oldSetting.Enabled = false;
-            _systemProxySetter?.ApplySetting(_oldSetting);
-        }
-
+        
         private static ISystemProxySetter SolveSetter()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -72,8 +114,16 @@ namespace Fluxzy.Core
             {
                 return new MacOsProxySetter();
             }
+            
+            throw new NotImplementedException(); 
+        }
 
-            return null;
+        private static void ProxyUnregisterOnAppdomainExit()
+        {
+            AppDomain.CurrentDomain.ProcessExit += delegate(object sender, EventArgs args)
+            {
+                UnRegister();
+            };
         }
     }
 

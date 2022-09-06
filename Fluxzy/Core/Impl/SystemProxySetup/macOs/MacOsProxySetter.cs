@@ -4,12 +4,12 @@ namespace Fluxzy.Core.SystemProxySetup.macOs
 {
     internal class MacOsProxySetter : ISystemProxySetter
     {
-        public void ApplySetting(ProxySetting value)
+        public void ApplySetting(SystemProxySetting value)
         {
             throw new NotImplementedException();
         }
 
-        public ProxySetting ReadSetting()
+        public SystemProxySetting ReadSetting()
         {
             throw new NotImplementedException();
         }
