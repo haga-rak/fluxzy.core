@@ -11,7 +11,7 @@ namespace Fluxzy.Core.SystemProxySetup.Win32
         private const int InternetOptionSettingsChanged = 39;
         private const int InternetOptionRefresh = 37;
 
-        internal static ProxySetting GetSetting()
+        internal static SystemProxySetting GetSetting()
         {
             using (var registry =
                 Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
@@ -30,11 +30,14 @@ namespace Fluxzy.Core.SystemProxySetup.Win32
                 var proxyServerName = proxyServerTab.Length != 2 ? null : proxyServerTab[0];
                 var proxyPort = proxyServerTab.Length != 2 ? -1 : int.Parse(proxyServerTab[1]);
                 
-                return new ProxySetting(proxyServerName, proxyPort, proxyEnabled, proxyOverrideList);
+                return new SystemProxySetting(proxyServerName, proxyPort,  proxyOverrideList)
+                {
+                    Enabled = proxyEnabled 
+                };
             }
         }
 
-        internal static void SetProxySetting(ProxySetting proxySetting)
+        internal static void SetProxySetting(SystemProxySetting systemProxySetting)
         {
             using var registry =
                 Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
@@ -43,20 +46,20 @@ namespace Fluxzy.Core.SystemProxySetup.Win32
             if (registry == null)
                 throw new InvalidOperationException("Unable to access system registry"); ;
 
-            registry.SetValue("ProxyEnable", proxySetting.Enabled ? 1 : 0);
+            registry.SetValue("ProxyEnable", systemProxySetting.Enabled ? 1 : 0);
 
-            if (proxySetting.BoundHost == null)
+            if (systemProxySetting.BoundHost == null)
             {
                 // Remove proxy setting 
                 registry.DeleteValue("ProxyServer");
             }
             else
             {
-                var actualServerLine = $"{proxySetting.BoundHost}:{proxySetting.ListenPort}";
+                var actualServerLine = $"{systemProxySetting.BoundHost}:{systemProxySetting.ListenPort}";
                 registry.SetValue("ProxyServer", actualServerLine);
             }
 
-            var proxyOverrideLine = string.Join(";", proxySetting.ByPassHosts);
+            var proxyOverrideLine = string.Join(";", systemProxySetting.ByPassHosts);
             registry.SetValue("ProxyOverride", proxyOverrideLine);
 
             InternetSetOption(IntPtr.Zero, InternetOptionSettingsChanged, IntPtr.Zero, 0);

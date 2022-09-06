@@ -4,12 +4,12 @@ namespace Fluxzy.Core.SystemProxySetup.Linux
 {
     internal class LinuxProxySetter : ISystemProxySetter
     {
-        public void ApplySetting(ProxySetting value)
+        public void ApplySetting(SystemProxySetting value)
         {
             throw new PlatformNotSupportedException();
         }
 
-        public ProxySetting ReadSetting()
+        public SystemProxySetting ReadSetting()
         {
             throw new PlatformNotSupportedException();
         }

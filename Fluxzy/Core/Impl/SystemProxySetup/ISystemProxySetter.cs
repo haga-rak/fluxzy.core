@@ -2,8 +2,8 @@
 {
     internal interface ISystemProxySetter
     {
-        void ApplySetting(ProxySetting value);
+        void ApplySetting(SystemProxySetting value);
 
-        ProxySetting ReadSetting();
+        SystemProxySetting ReadSetting();
     }
 }

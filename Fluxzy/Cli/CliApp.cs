@@ -305,12 +305,16 @@ namespace Fluxzy.Cli
 
                 proxyStartUpSetting.SetAutoInstallCertificate(!skiptCertInstallOption.HasValue());
                 proxyStartUpSetting.SetSkipGlobalSslDecryption(skipSslDecryptionOption.HasValue());
-                proxyStartUpSetting.SetAsSystemProxy(systemProxyOption.HasValue());
                 proxyStartUpSetting.SetDisableCertificateCache(noCertCacheOption.HasValue());
                 
 
                 try
                 {
+                    if (systemProxyOption.HasValue())
+                    {
+                        SystemProxyRegistration.Register(proxyStartUpSetting);
+                    }
+
                     var sessionIdentifier = 
                         await StartBlockingProxy(proxyStartUpSetting, _certificateProviderFactory);
 

@@ -19,8 +19,6 @@ namespace Fluxzy
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
         private CancellationTokenSource _proxyHaltTokenSource = new();
 
-        private SystemProxyRegistration _proxyRegister;
-
         private bool _disposed;
         private Task _loopTask;
         private bool _started;
@@ -150,40 +148,12 @@ namespace Fluxzy
                 throw new InvalidOperationException("Proxy was already started");
 
             _started = true;
-
-            if (StartupSetting.RegisterAsSystemProxy)
-            {
-                SetAsSystemProxy();
-            }
-
+            
             _downStreamConnectionProvider.Init(_proxyHaltTokenSource.Token);
 
             _loopTask = Task.Run(MainLoop);
         }
-
-        public bool SystemProxyOn => _proxyRegister != null; 
-
-        public void SetAsSystemProxy()
-        {
-            if (_proxyRegister != null)
-                return; 
-
-            var defaultPort = StartupSetting.BoundPoints.OrderByDescending(d => d.Default)
-                .Select(t => t.Port).First();
-
-            _proxyRegister = new SystemProxyRegistration(StartupSetting.GetDefaultOutput(),
-                "127.0.0.1", defaultPort, StartupSetting.ByPassHost.ToArray());
-        }
-
-        public void UnsetAsSystemProxy()
-        {
-            if (_proxyRegister == null)
-                return;  
-
-            _proxyRegister?.Dispose();
-            _proxyRegister = null;
-        }
-
+        
         public void Dispose()
         {
             InternalDispose();
@@ -209,9 +179,6 @@ namespace Fluxzy
 
             Writer?.Dispose();
             Writer = null;
-
-            _proxyRegister?.Dispose();
-            _proxyRegister = null;
 
             _downStreamConnectionProvider?.Dispose(); // Do not handle new connection to proxy 
             _downStreamConnectionProvider = null;

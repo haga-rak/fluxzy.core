@@ -2,12 +2,12 @@
 {
     internal class WindowsSystemProxySetter : ISystemProxySetter
     {
-        public void ApplySetting(ProxySetting value)
+        public void ApplySetting(SystemProxySetting value)
         {
             WindowsProxyHelper.SetProxySetting(value);
         }
 
-        public ProxySetting ReadSetting()
+        public SystemProxySetting ReadSetting()
         {
             return WindowsProxyHelper.GetSetting();
         }
