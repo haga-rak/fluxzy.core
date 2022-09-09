@@ -246,7 +246,6 @@ namespace Fluxzy.Tests
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetAsSystemProxy(false)
                 .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()
@@ -299,7 +298,6 @@ namespace Fluxzy.Tests
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetAsSystemProxy(false)
                 .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()
@@ -350,7 +348,6 @@ namespace Fluxzy.Tests
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetAsSystemProxy(false)
                 .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()
@@ -406,7 +403,6 @@ namespace Fluxzy.Tests
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetAsSystemProxy(false)
                 .SetSkipGlobalSslDecryption(true)
                 .SetBoundAddress(bindHost, bindPort);
 
@@ -462,7 +458,6 @@ namespace Fluxzy.Tests
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetAsSystemProxy(false)
                 .SetBoundAddress(bindHost, bindPort);
 
             var messageHandler = new HttpClientHandler()

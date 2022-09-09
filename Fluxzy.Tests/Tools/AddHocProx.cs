@@ -30,7 +30,6 @@ namespace Fluxzy.Tests.Tools
 
             _startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetAsSystemProxy(false)
                 .SetBoundAddress(BindHost, BindPort);
 
             _proxy = new Proxy(_startupSetting,
