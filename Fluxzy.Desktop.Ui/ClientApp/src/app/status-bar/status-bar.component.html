@@ -30,9 +30,9 @@
         </span>
         &nbsp;|&nbsp;
         <span>
-            <a *ngIf="uiState.proxyState.isListening" (click)="proxyOff()"
+            <a *ngIf="uiState.systemProxyState.on" (click)="proxyOff()"
              href="javascript:;" class="text-green" title="Capture is on. Clic to toggle off"><i class="bi bi-play-circle-fill"></i></a>
-            <a *ngIf="!uiState.proxyState.isListening" (click)="proxyOn()"
+            <a *ngIf="!uiState.systemProxyState.on" (click)="proxyOn()"
              href="javascript:;" class="text-secondary" title="Capture is off. Clic to toggle on"><i class="bi bi-stop-circle-fill"></i></a>
         </span>
         <strong *ngIf="uiState.proxyState.boundConnections.length > 0">
