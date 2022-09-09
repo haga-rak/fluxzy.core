@@ -4,8 +4,10 @@ namespace Fluxzy.Desktop.Services.Models
 {
     public class ProxyState
     {
-        public bool IsListening { get; set; }
+        public List<ProxyEndPoint> BoundConnections { get; set; } = new(); 
 
-        public List<ProxyEndPoint> BoundConnections { get; set; }
+        public bool OnError { get; set; }
+
+        public string?  Message { get; set; }
     }
 }

@@ -15,13 +15,14 @@ export interface UiState
 	id: string;
 	fileState: FileState;
 	proxyState: ProxyState;
+	systemProxyState: any;
 	settingsHolder: FluxzySettingsHolder;
 }
 export interface ProxyState
 {
-	isSystemProxyOn: boolean;
-	isListening: boolean;
 	boundConnections: ProxyEndPoint[];
+	onError: boolean;
+	message?: string;
 }
 export interface ProxyEndPoint
 {
@@ -61,7 +62,6 @@ export interface FluxzySetting
 	verbose: boolean;
 	connectionPerHost: number;
 	anticipatedConnectionPerHost: number;
-	registerAsSystemProxy: boolean;
 	throttleKBytePerSecond: number;
 	serverProtocols: number;
 	throttleIntervalCheck: any;

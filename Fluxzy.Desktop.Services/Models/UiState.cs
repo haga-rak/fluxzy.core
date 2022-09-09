@@ -4,7 +4,7 @@ namespace Fluxzy.Desktop.Services.Models
 {
     public class UiState
     {
-        public UiState(FileState fileState, ProxyState proxyState, FluxzySettingsHolder settingsHolder) 
+        public UiState(FileState fileState, ProxyState proxyState, FluxzySettingsHolder settingsHolder, SystemProxyState systemProxyState) 
         {
             FileState = fileState;
             ProxyState = proxyState;
@@ -15,8 +15,12 @@ namespace Fluxzy.Desktop.Services.Models
 
         public FileState FileState { get;  }
 
-        public ProxyState ProxyState { get;  }
+        public ProxyState ProxyState { get; }
+
+        public SystemProxyState SystemProxyState { get; }
 
         public FluxzySettingsHolder SettingsHolder { get;  }
+
+        
     }
 }

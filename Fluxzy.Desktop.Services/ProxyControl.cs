@@ -7,49 +7,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Fluxzy.Desktop.Services
 {
-
-    public class SystemProxyState
-    {
-        public bool On { get; set;  }
-
-        public string Address { get; set; } 
-
-        public int Port { get; set; }
-    }
-
-    public class SystemProxyStateControl : ObservableProvider<SystemProxyState>
-    {
-        private readonly IObservable<FluxzySettingsHolder> _fluxzySettingHolderObservable;
-        private FluxzySetting _fluxzySetting;
-
-        public SystemProxyStateControl(IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable)
-        {
-            _fluxzySettingHolderObservable = fluxzySettingHolderObservable;
-            var current = SystemProxyRegistration.GetSystemProxySetting();
-            Subject = new BehaviorSubject<SystemProxyState>(new SystemProxyState()
-            {
-                Address = current.BoundHost,
-                Port = current.ListenPort,
-                On = current.Enabled
-            });
-
-            fluxzySettingHolderObservable.Do(t => this._fluxzySetting = t.StartupSetting); 
-        }
-
-        public override BehaviorSubject<SystemProxyState> Subject { get; }
-
-        public void On()
-        {
-
-        }
-
-        public void Off()
-        {
-
-        }
-
-    }
-
     public class ProxyControl : ObservableProvider<ProxyState>
     {
         private readonly IHubContext<GlobalHub> _hub;
@@ -62,7 +19,11 @@ namespace Fluxzy.Desktop.Services
             IHubContext<GlobalHub> hub)
         {
             _hub = hub;
-            _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState());
+            _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState()
+            {
+                OnError = true, 
+                Message = "Not started yet" 
+            });
             
             fluxzySettingHolderObservable
                 .CombineLatest(
@@ -104,36 +65,48 @@ namespace Fluxzy.Desktop.Services
                 await _proxy.DisposeAsync();
                 _proxy = null; 
             }
-            
-            _proxy = new Proxy(fluxzySetting,
-                        new CertificateProvider(fluxzySetting,
+
+            try
+            {
+                _proxy = new Proxy(fluxzySetting,
+                    new CertificateProvider(fluxzySetting,
                         new InMemoryCertificateCache()));
 
-            _proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
+                _proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
+                {
+                    currentContentOperationManager.AddOrUpdate(args.ExchangeInfo);
+
+                    _hub.Clients.All.SendAsync(
+                        "exchangeUpdate", args.ExchangeInfo);
+                };
+
+                _proxy.Writer.ConnectionUpdated += delegate(object? sender, ConnectionUpdateEventArgs args)
+                {
+                    _hub.Clients.All.SendAsync(
+                        "connectionUpdate", args.Connection);
+                };
+
+                _proxy.Run();
+            }
+            catch (Exception ex)
             {
-                currentContentOperationManager.AddOrUpdate(args.ExchangeInfo);
+                if (_proxy != null)
+                    await _proxy.DisposeAsync();
 
-                _hub.Clients.All.SendAsync(
-                    "exchangeUpdate", args.ExchangeInfo);
-            };
-
-            _proxy.Writer.ConnectionUpdated += delegate(object? sender, ConnectionUpdateEventArgs args)
-            {
-                _hub.Clients.All.SendAsync(
-                    "connectionUpdate", args.Connection);
-            };
-
-            _proxy.Run();
+                return new ProxyState()
+                {
+                    OnError = true,
+                    Message = ex.Message
+                }; 
+            }
 
             return GetProxyState();
         }
-        
 
         private ProxyState GetProxyState()
         {
             return new ProxyState()
             {
-                IsListening = _proxy != null,
                 BoundConnections = _proxy?.StartupSetting.BoundPoints
                     .Select(b => new ProxyEndPoint(b.Address, b.Port))
                     .ToList() ?? new List<ProxyEndPoint>()

@@ -23,23 +23,23 @@ namespace Fluxzy.Core
             _systemProxySetter = SolveSetter();
         }
 
-        public static void Register(FluxzySetting fluxzySetting)
+        public static SystemProxySetting ? Register(FluxzySetting fluxzySetting)
         {
             var boundPoints = fluxzySetting.BoundPoints;
 
             if (!boundPoints.Any())
             {
-                return; 
+                return null; 
             }
 
             var firstBoundPoint = boundPoints.OrderByDescending(t => 
                             t.Address.Equals("127.0.0.1") || t.Address.Equals("localhost")).First();
 
-            Register(firstBoundPoint.Address, firstBoundPoint.Port, fluxzySetting.ByPassHost.ToArray()); 
+            return Register(firstBoundPoint.Address, firstBoundPoint.Port, fluxzySetting.ByPassHost.ToArray()); 
         }
 
 
-        public static void Register(string hostName, int port, params string[] byPassHosts)
+        public static SystemProxySetting Register(string hostName, int port, params string[] byPassHosts)
         {
             var existingSetting = GetSystemProxySetting();
 
@@ -50,8 +50,8 @@ namespace Fluxzy.Core
 
             if (!_registerDone)
             {
+                _registerDone = true;
                 ProxyUnregisterOnAppdomainExit();
-                _registerDone = true; 
             }
 
             var connectableHostName = GetConnectableHostname(hostName);
@@ -61,9 +61,11 @@ namespace Fluxzy.Core
                     .ToArray());
 
             _systemProxySetter.ApplySetting(_currentSetting);
+
+            return _currentSetting; 
         }
 
-        internal static SystemProxySetting GetSystemProxySetting()
+        public static SystemProxySetting GetSystemProxySetting()
         {
             var existingSetting = _systemProxySetter.ReadSetting();
             return existingSetting;
