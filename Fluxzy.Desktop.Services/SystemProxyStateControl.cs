@@ -17,7 +17,7 @@ namespace Fluxzy.Desktop.Services
             fluxzySettingHolderObservable.Do(t => this._fluxzySetting = t.StartupSetting).Subscribe(); 
         }
 
-        public override BehaviorSubject<SystemProxyState> Subject { get; }
+        protected override BehaviorSubject<SystemProxyState> Subject { get; }
 
         public void On()
         {

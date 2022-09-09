@@ -112,9 +112,9 @@ namespace Fluxzy.Desktop.Services
                     .ToList() ?? new List<ProxyEndPoint>()
             }; 
         }
-        
 
-        public override BehaviorSubject<ProxyState> Subject { get; }
+
+        protected override BehaviorSubject<ProxyState> Subject { get; }
     
     }
 }

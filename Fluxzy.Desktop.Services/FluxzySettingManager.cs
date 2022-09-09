@@ -26,8 +26,8 @@ namespace Fluxzy.Desktop.Services
             _internalSubject = new BehaviorSubject<FluxzySettingsHolder>(ReadFromFile());
             Subject = _internalSubject;
         }
-        
-        public override BehaviorSubject<FluxzySettingsHolder> Subject { get; }
+
+        protected override BehaviorSubject<FluxzySettingsHolder> Subject { get; }
 
         public void Update(FluxzySettingsHolder settingsHolder)
         {

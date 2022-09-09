@@ -15,16 +15,16 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<SystemProxyStateControl>();
 
             collection.AddSingleton<IObservable<SystemProxyState>>
-                (s => s.GetRequiredService<SystemProxyStateControl>().Subject);
+                (s => s.GetRequiredService<SystemProxyStateControl>().Observable);
 
             collection.AddSingleton<IObservable<FileState>>
-                (s => s.GetRequiredService<FileManager>().Subject);
+                (s => s.GetRequiredService<FileManager>().Observable);
 
             collection.AddSingleton<IObservable<FluxzySettingsHolder>>
-                (s => s.GetRequiredService<FluxzySettingManager>().Subject);
+                (s => s.GetRequiredService<FluxzySettingManager>().Observable);
 
             collection.AddSingleton<IObservable<ProxyState>>
-                (s => s.GetRequiredService<ProxyControl>().Subject);
+                (s => s.GetRequiredService<ProxyControl>().Observable);
 
             collection.AddSingleton<IObservable<FileContentOperationManager>>
                 (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));

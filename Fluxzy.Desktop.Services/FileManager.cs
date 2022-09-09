@@ -26,8 +26,10 @@ namespace Fluxzy.Desktop.Services
             Subject = new BehaviorSubject<FileState>(CreateNewFileState(_tempDirectory));
         }
         
-        public sealed override BehaviorSubject<FileState> Subject { get; }
-        
+        protected sealed override BehaviorSubject<FileState> Subject { get; }
+
+        public override IObservable<FileState> Observable => Subject.AsObservable().DistinctUntilChanged();
+
         private static (Guid,string) GenerateNewDirectory(string tempDirectory)
         {
             var id = Guid.NewGuid(); 
@@ -76,7 +78,8 @@ namespace Fluxzy.Desktop.Services
 
         public void SetUnsaved(bool state)
         {
-            Subject.OnNext(Subject.Value.SetUnsaved(state)); 
+            if (Subject.Value.Unsaved != state)
+                Subject.OnNext(Subject.Value.SetUnsaved(state)); 
         }
 
         public async Task Save(TrunkState trunkState)

@@ -7,8 +7,8 @@ namespace Fluxzy.Desktop.Services
 {
     public abstract class ObservableProvider<T>
     {
-        public abstract BehaviorSubject<T> Subject { get; }
+        protected abstract BehaviorSubject<T> Subject { get; }
 
-        public IObservable<T> Observable => Subject.AsObservable();
+        public virtual IObservable<T> Observable => Subject.AsObservable();
     }
 }

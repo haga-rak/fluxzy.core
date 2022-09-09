@@ -128,7 +128,6 @@ namespace Fluxzy.Desktop.Services
             }
         }
 
-
         public void Clear()
         {
             lock (_subject)
