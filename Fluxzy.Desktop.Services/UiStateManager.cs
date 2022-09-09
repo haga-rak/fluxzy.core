@@ -19,12 +19,15 @@ namespace Fluxzy.Desktop.Services
             IObservable<FileState> fileState,
             IObservable<ProxyState> proxyState,
             IObservable<FluxzySettingsHolder> settingHolder,
+            IObservable<SystemProxyState> systemProxySate,
+
             IHubContext<GlobalHub> hub)
         {
             _state = fileState.CombineLatest(
                 proxyState,
                 settingHolder,
-                (f, p, s) => new UiState(fileState: f, proxyState: p, settingsHolder: s));
+                systemProxySate,
+                (f, p, s,sp) => new UiState(fileState: f, proxyState: p, settingsHolder: s, systemProxyState: sp));
 
             Observable = _stateObservable
                 .AsObservable()

@@ -9,24 +9,24 @@ namespace Fluxzy.Desktop.Ui.Controllers
     [ApiController]
     public class ProxyController : ControllerBase
     {
-        private readonly ProxyControl _proxyControl;
+        private readonly SystemProxyStateControl _systemProxyStateControl;
 
-        public ProxyController(ProxyControl proxyControl)
+        public ProxyController(SystemProxyStateControl systemProxyStateControl)
         {
-            _proxyControl = proxyControl;
+            _systemProxyStateControl = systemProxyStateControl;
         }
 
         [HttpPost("on")]
-        public async Task<ActionResult<bool>> On()
+        public ActionResult<bool> On()
         {
-            await _proxyControl.SetAsSystemProxy();
-            return true; 
+            _systemProxyStateControl.On();
+            return true;
         }
 
         [HttpPost("off")]
-        public async Task<ActionResult<bool>> Off()
+        public ActionResult<bool> Off()
         {
-            await _proxyControl.UnsetAsSystemProxy();
+            _systemProxyStateControl.Off();
             return true; 
         }
     }

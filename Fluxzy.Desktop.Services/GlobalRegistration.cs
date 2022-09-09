@@ -12,6 +12,10 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();
             collection.AddSingleton<UiStateManager>();
+            collection.AddSingleton<SystemProxyStateControl>();
+
+            collection.AddSingleton<IObservable<SystemProxyState>>
+                (s => s.GetRequiredService<SystemProxyStateControl>().Subject);
 
             collection.AddSingleton<IObservable<FileState>>
                 (s => s.GetRequiredService<FileManager>().Subject);

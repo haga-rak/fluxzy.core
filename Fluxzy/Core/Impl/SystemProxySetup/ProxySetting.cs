@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Fluxzy.Core.SystemProxySetup
 {
-    internal class SystemProxySetting : IEquatable<SystemProxySetting>
+    public class SystemProxySetting : IEquatable<SystemProxySetting>
     {
         public SystemProxySetting(string boundHost, int listenPort, params string [] byPassHosts)
         {
