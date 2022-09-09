@@ -9,6 +9,7 @@ namespace Fluxzy.Desktop.Services.Models
             FileState = fileState;
             ProxyState = proxyState;
             SettingsHolder = settingsHolder;
+            SystemProxyState = systemProxyState;
         }
 
         public Guid Id { get; } = Guid.NewGuid();
