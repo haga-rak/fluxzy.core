@@ -45,6 +45,7 @@ export class UiStateService {
 
         this.apiService.registerEvent('uiUpdate', (state: UiState) => {
             this.uiState$.next(state);
+            console.log(state); 
         });
 
         combineLatest([

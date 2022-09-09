@@ -117,7 +117,7 @@ export class MenuService {
             let captureMenu = FindMenu(menus, (menu) => menu.id === 'capture') ;
 
             captureMenu.enabled = !(uiState.proxyState?.onError  ??  true); 
-            captureMenu.checked = captureMenu.enabled  && (uiState.systemProxyState?.isListening ?? false); 
+            captureMenu.checked = captureMenu.enabled  && (uiState.systemProxyState?.on ?? false); 
         }
 
         // Delete status
