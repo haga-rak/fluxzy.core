@@ -353,9 +353,11 @@ namespace Fluxzy.Cli
             var waitForExitStart = ConsoleHelper.WaitForExit();
 
             var statPrinter = new StatPrinter(Console.CursorTop, startupSetting.BoundPointsDescription);
-            
-            var proxy = new Proxy(startupSetting, certificateProviderFactory(startupSetting), 
-                capturePcap ? new CapturedTcpConnectionProvider() : ITcpConnectionProvider.Default);
+
+            using var tcpConnectionProvider =
+                capturePcap ? new CapturedTcpConnectionProvider() : ITcpConnectionProvider.Default;
+
+            var proxy = new Proxy(startupSetting, certificateProviderFactory(startupSetting), tcpConnectionProvider);
 
             proxy.Run();
 

@@ -1,9 +1,11 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Data;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Fluxzy.Misc;
 
 namespace Fluxzy.Core
 {
@@ -15,27 +17,35 @@ namespace Fluxzy.Core
         {
             _client = new TcpClient();
         }
-
-        public void Dispose()
+        
+        public async Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
         {
-            _client?.Dispose();
-        }
+            await _client.ConnectAsync(address, port);
 
-        public Task ConnectAsync(string remoteHost, int port)
-        {
-            return _client.ConnectAsync(remoteHost, port);
-        }
-
-        public Task ConnectAsync(IPAddress address, int port)
-        {
-            return _client.ConnectAsync(address, port);
+            return (IPEndPoint) _client.Client.LocalEndPoint; 
         }
 
         public Stream GetStream()
         {
-            return _client.GetStream();
+            var resultStream = 
+                new  DisposeEventNotifierStream(_client.GetStream());
+
+            resultStream.OnStreamDisposed += ResultStreamOnOnStreamDisposed;
+
+            return resultStream;
         }
 
-        public IPEndPoint LocalEndPoint => (IPEndPoint) _client.Client.LocalEndPoint;
+        private async Task ResultStreamOnOnStreamDisposed(object sender, StreamDisposeEventArgs args)
+        {
+            var stream = (DisposeEventNotifierStream)sender;
+            stream.OnStreamDisposed -= ResultStreamOnOnStreamDisposed;
+
+            await DisposeAsync(); 
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            _client?.Dispose();
+        }
     }
 }

@@ -7,14 +7,10 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Core
 {
-    public interface ITcpConnection : IDisposable
+    public interface ITcpConnection : IAsyncDisposable
     {
-        Task ConnectAsync(string remoteHost, int port);
-
-        Task ConnectAsync(IPAddress address, int port);
+        Task<IPEndPoint> ConnectAsync(IPAddress address, int port);
 
         Stream GetStream();
-
-        IPEndPoint LocalEndPoint { get;  }
     }
 }

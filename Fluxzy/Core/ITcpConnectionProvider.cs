@@ -1,8 +1,10 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System;
+
 namespace Fluxzy.Core
 {
-    public interface ITcpConnectionProvider
+    public interface ITcpConnectionProvider : IDisposable
     {
         public static ITcpConnectionProvider Default { get; } = new DefaultTcpConnectionProvider();
 
@@ -14,6 +16,11 @@ namespace Fluxzy.Core
         public ITcpConnection Create(string dumpFileName)
         {
             return new DefaultTcpConnection();
+        }
+
+        public void Dispose()
+        {
+
         }
     }
 }
