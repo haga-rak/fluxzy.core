@@ -94,8 +94,6 @@ namespace Fluxzy.Core
             }
         }
 
-
-
         public async Task<TcpClient> GetNextPendingConnection()
         {
             if (!_listeners.Any())

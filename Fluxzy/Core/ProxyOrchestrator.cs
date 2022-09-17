@@ -21,13 +21,12 @@ namespace Fluxzy.Core
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
             ExchangeBuilder exchangeBuilder,
-            PoolBuilder poolBuilder,
-            RealtimeArchiveWriter archiveWriter)
+            PoolBuilder poolBuilder)
         {
             _proxyRuntimeSetting = proxyRuntimeSetting;
             _exchangeBuilder = exchangeBuilder;
             _poolBuilder = poolBuilder;
-            _archiveWriter = archiveWriter;
+            _archiveWriter = proxyRuntimeSetting.ArchiveWriter;
         }
 
         public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)

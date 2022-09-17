@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Fluxzy.Clients;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,13 +10,16 @@ namespace Fluxzy
     {
         private readonly string _baseDirectory;
         private readonly string _contentDirectory;
+        private readonly string _captureDirectory;
 
         public DirectoryArchiveWriter(string baseDirectory)
         {
             _baseDirectory = baseDirectory;
             _contentDirectory  = Path.Combine(baseDirectory, "contents");
+            _captureDirectory  = Path.Combine(baseDirectory, "captures");
 
             Directory.CreateDirectory(_contentDirectory);
+            Directory.CreateDirectory(_captureDirectory);
         }
 
         public override async Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
@@ -42,6 +46,11 @@ namespace Fluxzy
         {
             var path = Path.Combine(_contentDirectory, $"res-{exchangeId}.data");
             return File.Create(path);
+        }
+
+        public override string GetDumpfilePath(int connectionId)
+        {
+            return Path.Combine(_captureDirectory, $"{connectionId}.pcap");
         }
     }
 }

@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Ui", "Fluxzy
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fluxzy.sandbox.models", "SubModules\Sandbox\fluxzy.sandbox.models\fluxzy.sandbox.models.csproj", "{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap", "Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj", "{337A4942-2F9B-44D6-B6CC-327007B62B03}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{337A4942-2F9B-44D6-B6CC-327007B62B03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{337A4942-2F9B-44D6-B6CC-327007B62B03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{337A4942-2F9B-44D6-B6CC-327007B62B03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{337A4942-2F9B-44D6-B6CC-327007B62B03}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

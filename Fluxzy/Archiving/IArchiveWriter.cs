@@ -14,6 +14,8 @@ namespace Fluxzy
         Stream CreateRequestBodyStream(int exchangeId);
 
         Stream CreateResponseBodyStream(int exchangeId);
+
+        string GetDumpfilePath(int connectionId); 
     }
 
     public class ZipArchiveHelper

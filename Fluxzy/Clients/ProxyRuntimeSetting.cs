@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+using Fluxzy.Core;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Clients
@@ -21,16 +22,23 @@ namespace Fluxzy.Clients
 
         public ProxyRuntimeSetting(
             FluxzySetting startupSetting, 
-            ProxyExecutionContext executionContext)
+            ProxyExecutionContext executionContext,
+            ITcpConnectionProvider tcpConnectionProvider,
+            RealtimeArchiveWriter archiveWriter)
         {
-            ExecutionContext = executionContext;
             _startupSetting = startupSetting;
+            ExecutionContext = executionContext;
+            TcpConnectionProvider = tcpConnectionProvider;
+            ArchiveWriter = archiveWriter;
             ProxyTlsProtocols = startupSetting.ServerProtocols;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
         }
 
         public ProxyExecutionContext ExecutionContext { get; }
-        
+
+        public ITcpConnectionProvider TcpConnectionProvider { get; } = ITcpConnectionProvider.Default;
+        public RealtimeArchiveWriter ArchiveWriter { get; }
+
         /// <summary>
         /// Protocols supported by the current proxy 
         /// </summary>
