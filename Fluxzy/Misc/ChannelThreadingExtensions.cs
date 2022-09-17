@@ -5,7 +5,7 @@ using System.Threading.Channels;
 
 namespace Fluxzy.Misc
 {
-    internal static class ChannelThreadingExtensions
+    public static class ChannelThreadingExtensions
     {
         public static bool TryReadAll<T>(this ChannelReader<T> channel, ref List<T> refList)
         {

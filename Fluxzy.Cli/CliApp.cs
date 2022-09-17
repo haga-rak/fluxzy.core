@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Fluxzy.Interop.Pcap;
 using Fluxzy.Saz;
 using Microsoft.Extensions.CommandLineUtils;
 
@@ -159,6 +160,11 @@ namespace Fluxzy.Cli
             var systemProxyOption = target.Option(
                 "-sp",
                 "Register fluxzy as system proxy when started",
+                CommandOptionType.NoValue);
+
+            var rawCaptureOption = target.Option(
+                "-c",
+                "Capture raw packets",
                 CommandOptionType.NoValue);
 
             var skipSslDecryptionOption = target.Option(
@@ -316,7 +322,7 @@ namespace Fluxzy.Cli
                     }
 
                     var sessionIdentifier = 
-                        await StartBlockingProxy(proxyStartUpSetting, _certificateProviderFactory);
+                        await StartBlockingProxy(proxyStartUpSetting, _certificateProviderFactory, rawCaptureOption.HasValue());
 
                     if (!string.IsNullOrWhiteSpace(outputFileName))
                     {
@@ -342,13 +348,14 @@ namespace Fluxzy.Cli
 
         private async Task<string> StartBlockingProxy(FluxzySetting startupSetting,
             Func<FluxzySetting, 
-            ICertificateProvider> certificateProviderFactory)
+            ICertificateProvider> certificateProviderFactory, bool capturePcap)
         {
             var waitForExitStart = ConsoleHelper.WaitForExit();
 
             var statPrinter = new StatPrinter(Console.CursorTop, startupSetting.BoundPointsDescription);
             
-            var proxy = new Proxy(startupSetting, certificateProviderFactory(startupSetting));
+            var proxy = new Proxy(startupSetting, certificateProviderFactory(startupSetting), 
+                capturePcap ? new CapturedTcpConnectionProvider() : ITcpConnectionProvider.Default);
 
             proxy.Run();
 

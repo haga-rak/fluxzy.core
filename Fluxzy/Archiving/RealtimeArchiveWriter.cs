@@ -37,7 +37,6 @@ namespace Fluxzy
             }
         }
 
-
         public abstract Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
 
         public abstract Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
@@ -45,6 +44,11 @@ namespace Fluxzy
         public abstract Stream CreateRequestBodyStream(int exchangeId);
 
         public abstract Stream CreateResponseBodyStream(int exchangeId);
+
+        public virtual string GetDumpfilePath(int connectionId)
+        {
+            return string.Empty; 
+        }
 
         protected virtual void Dispose(bool disposing)
         {

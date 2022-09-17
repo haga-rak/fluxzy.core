@@ -47,7 +47,7 @@ namespace Fluxzy.Misc
                 Memory<char> textBufferChars = _lengthHolderChar;
                 Memory<byte> singleByte = _singleByte; 
                 
-                int textCount = 0;
+                var textCount = 0;
 
                 var chunkSizeNotDetected = true; 
 

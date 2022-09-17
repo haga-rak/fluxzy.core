@@ -16,6 +16,7 @@ namespace Fluxzy
 {
     public class Proxy : IDisposable, IAsyncDisposable
     {
+        private readonly ITcpConnectionProvider _tcpConnectionProvider;
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
         private CancellationTokenSource _proxyHaltTokenSource = new();
 
@@ -29,26 +30,35 @@ namespace Fluxzy
 
         private  int _currentConcurrentCount = 0;
         private readonly FromIndexIdProvider _idProvider;
+        private readonly string _workingDirectory;
 
         public Proxy(
             FluxzySetting startupSetting,
-            ICertificateProvider certificateProvider
+            ICertificateProvider certificateProvider, 
+            ITcpConnectionProvider tcpConnectionProvider = null
             )
         {
+            _tcpConnectionProvider = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
             _idProvider = new FromIndexIdProvider(StartupSetting.ExchangeStartIndex);
             
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
-            
+
+           
+
             var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
             {
+                _workingDirectory = Path.Combine(StartupSetting.ArchivingPolicy.Directory, SessionIdentifier);
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
+                Writer = new DirectoryArchiveWriter(_workingDirectory);
+            }
 
-                Writer = new DirectoryArchiveWriter(
-                    Path.Combine(StartupSetting.ArchivingPolicy.Directory, SessionIdentifier));
+            if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
+            {
+                _tcpConnectionProvider = ITcpConnectionProvider.Default;
             }
             
             var http1Parser = new Http11Parser(StartupSetting.MaxHeaderLength);
@@ -62,8 +72,10 @@ namespace Fluxzy
                 StartupSetting = startupSetting
             };
 
-            _proxyOrchestrator = new ProxyOrchestrator(new ProxyRuntimeSetting(startupSetting, ExecutionContext),
-                new ExchangeBuilder(secureConnectionManager, http1Parser, _idProvider), poolBuilder, Writer);
+            var runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, _tcpConnectionProvider, Writer);
+
+            _proxyOrchestrator = new ProxyOrchestrator(runTimeSetting,
+                new ExchangeBuilder(secureConnectionManager, http1Parser, _idProvider), poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction && 
                                                           t.Filter.Children.OfType<AnyFilter>().Any() 

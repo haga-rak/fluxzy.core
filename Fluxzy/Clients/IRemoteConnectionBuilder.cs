@@ -49,29 +49,29 @@ namespace Fluxzy.Clients
             ProxyRuntimeSetting setting, 
             CancellationToken token)
         {
-            var tcpClient = new TcpClient();
             
             var connection = new Connection(authority)
             {
-                TcpConnectionOpening = _timeProvider.Instant()
+                TcpConnectionOpening = _timeProvider.Instant(),
+                // tcpClient.LingerState.
+                DnsSolveStart = _timeProvider.Instant()
             };
-            
-
-           // tcpClient.LingerState.
-
-            connection.DnsSolveStart = _timeProvider.Instant();
 
             var ipAddress = context.RemoteHostIp ?? 
                             await _dnsSolver.SolveDns(authority.HostName);
 
             connection.RemoteAddress = ipAddress;
-
             connection.DnsSolveEnd = _timeProvider.Instant();
+
+            var tcpClient = setting.TcpConnectionProvider
+                .Create(setting.ArchiveWriter != null ?
+                    setting.ArchiveWriter?.GetDumpfilePath(connection.Id)
+                    : string.Empty);
 
             await tcpClient.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
                 authority.Port).ConfigureAwait(false);
 
-            var localEndpoint = (IPEndPoint) tcpClient.Client.LocalEndPoint;
+            var localEndpoint = tcpClient.LocalEndPoint;
 
             connection.TcpConnectionOpened = _timeProvider.Instant();
             connection.LocalPort = localEndpoint.Port;

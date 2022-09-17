@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
   </ItemGroup>
 
