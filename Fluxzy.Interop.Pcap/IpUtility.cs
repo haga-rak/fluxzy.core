@@ -9,9 +9,8 @@ namespace Fluxzy.Interop.Pcap
     {
         private static IPAddress?  _result = null; 
 
-        public static IPAddress GetNetworkAddress()
+        public static IPAddress GetDefaultRouteV4Address()
         {
-
             if (_result != null)
                 return _result;
 
@@ -29,12 +28,11 @@ namespace Fluxzy.Interop.Pcap
             catch (SocketException)
             {
                 return IPAddress.Loopback;
-
             }
         }
         public static IPEndPoint GetFreeEndpoint()
         {
-            var boundIp = IpUtility.GetNetworkAddress();
+            var boundIp = IpUtility.GetDefaultRouteV4Address();
             var tcpListener = new TcpListener(boundIp, 0);
 
             tcpListener.Start();

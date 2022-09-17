@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc
 {
+    public delegate Task DisposeFunc(object sender, StreamDisposeEventArgs args);
+
     public class DisposeEventNotifierStream : Stream
     {
-        public event EventHandler<StreamDisposeEventArgs>?  OnStreamDisposed;
+        public event DisposeFunc? OnStreamDisposed;
 
         private readonly Stream _innerStream;
 
@@ -85,7 +87,8 @@ namespace Fluxzy.Misc
         public override async ValueTask DisposeAsync()
         {
             await _innerStream.DisposeAsync();
-            OnStreamDisposed?.Invoke(this, new StreamDisposeEventArgs());
+            if (OnStreamDisposed != null)
+                await OnStreamDisposed(this, new StreamDisposeEventArgs());
         }
     }
 }

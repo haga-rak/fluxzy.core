@@ -68,10 +68,8 @@ namespace Fluxzy.Clients
                     setting.ArchiveWriter?.GetDumpfilePath(connection.Id)
                     : string.Empty);
 
-            await tcpClient.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
-                authority.Port).ConfigureAwait(false);
-
-            var localEndpoint = tcpClient.LocalEndPoint;
+            var localEndpoint = await tcpClient.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
+                                                                        authority.Port).ConfigureAwait(false);
 
             connection.TcpConnectionOpened = _timeProvider.Instant();
             connection.LocalPort = localEndpoint.Port;
