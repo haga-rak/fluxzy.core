@@ -31,8 +31,7 @@ export interface ProxyEndPoint
 }
 export interface ProxyBindPoint
 {
-	address: string;
-	port: number;
+	endPoint: any;
 	default: boolean;
 }
 export interface ArchivingPolicy

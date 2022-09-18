@@ -23,8 +23,7 @@ namespace Fluxzy.Core
         public DownStreamConnectionProvider(IEnumerable<ProxyBindPoint> boundPoints)
         {
             _listeners = boundPoints.Select(b => 
-                new TcpListener(string.IsNullOrWhiteSpace(b.Address)
-                    ? IPAddress.Any : IPAddress.Parse(b.Address) , b.Port)).ToList();
+                new TcpListener(b.EndPoint)).ToList();
 
             _token = _tokenSource.Token; 
         }

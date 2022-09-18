@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Net;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Fluxzy
@@ -12,8 +14,10 @@ namespace Fluxzy
             Converters =
             {
                 new ReadonlyMemoryCharConverter(), 
-                new JsonStringEnumConverter()
+                new JsonStringEnumConverter(),
+                new IPAddressConverter()
             }
         };
     }
+
 }

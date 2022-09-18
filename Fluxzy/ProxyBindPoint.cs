@@ -1,58 +1,47 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using System.Net;
 
 namespace Fluxzy
 {
     public class ProxyBindPoint : IEquatable<ProxyBindPoint>
     {
+        public ProxyBindPoint(IPEndPoint endPoint, bool @default)
+        {
+            EndPoint = endPoint;
+            Default = @default;
+        }
+
+        /// <summary>
+        ///     Combination of an IP address and port number
+        /// </summary>
+        public IPEndPoint EndPoint { get; }
+
+        /// <summary>
+        ///     Whether this setting is the default bound address port. When true,
+        ///     this setting will be choosed as system proxy
+        /// </summary>
+        public bool Default { get; set; }
+
         public bool Equals(ProxyBindPoint other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Address == other.Address && Port == other.Port && Default == other.Default;
+            return Equals(EndPoint, other.EndPoint) && Default == other.Default;
         }
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((ProxyBindPoint)obj);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Address, Port, Default);
+            return HashCode.Combine(EndPoint, Default);
         }
-
-        public ProxyBindPoint(string address, int port)
-        {
-            Address = address;
-            Port = port;
-        }
-
-        public ProxyBindPoint(string address, int port, bool @default)
-        {
-            Address = address;
-            Port = port;
-            Default = @default;
-        }
-
-        /// <summary>
-        /// The address on with the proxy will listen to 
-        /// </summary>
-        public string Address { get;  }
-
-        /// <summary>
-        /// Port number 
-        /// </summary>
-        public int Port { get;  }
-
-        /// <summary>
-        /// Whether this setting is the default bound address port. When true,
-        /// this setting will be choosed as system proxy
-        /// </summary>
-        public bool Default { get; set; }
     }
 }

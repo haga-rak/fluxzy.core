@@ -1,5 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
+using System.Net;
 using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
@@ -113,6 +114,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(DateTime), new RtSimpleTypeName("Date"))
                 .Substitute(typeof(Guid), new RtSimpleTypeName("string"))
                 .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
+                .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
                 .WithPublicProperties();

@@ -9,6 +9,13 @@ namespace Fluxzy.Interop.Pcap.Cli
     {
         static async Task Main(string[] args)
         {
+            var loopBack = IPAddress.Loopback;
+            var none = IPAddress.None;
+            var any = IPAddress.Any;
+
+            var mapToV4 = any.MapToIPv4();
+
+
             var _total = 0L;
             var totalLength = 20 * 1024 * 1024;
             var url = $"https://sandbox.smartizy.com/content-produce/{totalLength}/{totalLength}";

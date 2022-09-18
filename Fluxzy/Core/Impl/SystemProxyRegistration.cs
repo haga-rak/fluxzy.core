@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Fluxzy.Core.SystemProxySetup;
 using Fluxzy.Core.SystemProxySetup.Linux;
@@ -23,7 +25,7 @@ namespace Fluxzy.Core
             _systemProxySetter = SolveSetter();
         }
 
-        public static SystemProxySetting ? Register(FluxzySetting fluxzySetting)
+        public static SystemProxySetting? Register(FluxzySetting fluxzySetting)
         {
             var boundPoints = fluxzySetting.BoundPoints;
 
@@ -32,14 +34,15 @@ namespace Fluxzy.Core
                 return null; 
             }
 
-            var firstBoundPoint = boundPoints.OrderByDescending(t => 
-                            t.Address.Equals("127.0.0.1") || t.Address.Equals("localhost")).First();
+            var firstBoundPoint = boundPoints
+                .OrderByDescending(t => t.EndPoint.Address.AddressFamily == AddressFamily.InterNetwork)
+                .First();
 
-            return Register(firstBoundPoint.Address, firstBoundPoint.Port, fluxzySetting.ByPassHost.ToArray()); 
+            return Register(firstBoundPoint.EndPoint, fluxzySetting.ByPassHost.ToArray()); 
         }
 
 
-        public static SystemProxySetting Register(string hostName, int port, params string[] byPassHosts)
+        public static SystemProxySetting Register(IPEndPoint endPoint, params string[] byPassHosts)
         {
             var existingSetting = GetSystemProxySetting();
 
@@ -54,10 +57,12 @@ namespace Fluxzy.Core
                 ProxyUnregisterOnAppdomainExit();
             }
 
-            var connectableHostName = GetConnectableHostname(hostName);
+            var connectableHostName = GetConnectableIpAddr(endPoint.Address);
 
-            _currentSetting = new SystemProxySetting(connectableHostName,
-                port, byPassHosts.Concat(new[] { "127.0.0.1" })
+            _currentSetting = new SystemProxySetting(
+                connectableHostName.ToString(),
+                endPoint.Port, 
+                byPassHosts.Concat(new[] { "127.0.0.1" })
                     .ToArray());
 
             _systemProxySetter.ApplySetting(_currentSetting);
@@ -89,15 +94,20 @@ namespace Fluxzy.Core
             }
         }
 
-        private static string GetConnectableHostname(string hostName)
+        private static IPAddress GetConnectableIpAddr(IPAddress address)
         {
-            if (string.IsNullOrWhiteSpace(hostName))
-                return "127.0.0.1";
+            if (address == null)
+                return IPAddress.Loopback;
 
-            if (hostName == "0.0.0.0")
-                return "127.0.0.1";
+            if (address.Equals(IPAddress.Any)) {
+                return IPAddress.Loopback; 
+            }
 
-            return hostName;
+            if (address.Equals(IPAddress.IPv6Any)) {
+                return IPAddress.IPv6Loopback; 
+            }
+            
+            return address;
         }
         
         private static ISystemProxySetter SolveSetter()
