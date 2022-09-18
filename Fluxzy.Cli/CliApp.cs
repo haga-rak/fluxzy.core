@@ -30,7 +30,6 @@ namespace Fluxzy.Cli
 
             _tempDirectory = Path.Combine(Environment.ExpandEnvironmentVariables("%TEMP%"),
                 "fxzy", _instanceIdentifier);
-
         }
 
         public int Start(string[] args)
@@ -233,14 +232,12 @@ namespace Fluxzy.Cli
                     proxyStartUpSetting.AddBoundAddress("127.0.0.1", 44344);
                 }
 
-                string outputDirectory =  null; 
-
 
                 if (outputDirectoryOption.HasValue())
                 {
                     proxyStartUpSetting.SetArchivingPolicy(
                         ArchivingPolicy.CreateFromDirectory(
-                            outputDirectory = outputDirectoryOption.Value())); 
+                            outputDirectoryOption.Value())); 
                 }
 
                 if (outputFileOption.HasValue())
