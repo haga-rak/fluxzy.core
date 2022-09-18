@@ -50,7 +50,7 @@ namespace Fluxzy.Clients.H2
 
         public int SettingsMaxConcurrentStreams { get; set; } = 100;
 
-        public int MaxHeaderLine { get; set; } = 16384;
+        public int MaxHeaderLine { get; set; } = 1024 * 16;
     }
 
 }

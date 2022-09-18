@@ -9,15 +9,15 @@ namespace Fluxzy.Misc
     {
         public static bool TryReadAll<T>(this ChannelReader<T> channel, ref List<T> refList)
         {
-            bool any = false; 
+            var any = false;
 
             while (channel.TryRead(out var item))
             {
                 refList.Add(item);
-                any = true; 
+                any = true;
             }
 
-            return any; 
+            return any;
         }
     }
 }

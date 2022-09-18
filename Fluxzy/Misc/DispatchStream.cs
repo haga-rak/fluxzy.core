@@ -8,17 +8,17 @@ using System.Threading.Tasks;
 namespace Fluxzy.Misc
 {
     /// <summary>
-    /// Read stream and duplicate read bytes to listener streams
+    ///     Read stream and dispatch read bytes to listener streams
     /// </summary>
     public class DispatchStream : Stream
     {
         private readonly Stream _baseStream;
         private readonly bool _closeOnDone;
         private List<Stream> _destinations;
-        private bool _started = false;
+        private bool _started;
 
         /// <summary>
-        /// Constructor
+        ///     Constructor
         /// </summary>
         /// <param name="baseStream">Read stream</param>
         /// <param name="closeOnDone">When readStream reach EOF, close listener streams</param>
@@ -32,12 +32,21 @@ namespace Fluxzy.Misc
             _destinations = listenerStreams.ToList();
         }
 
+        public override bool CanRead => _baseStream.CanRead;
+        public override bool CanSeek => _baseStream.CanSeek;
+        public override bool CanWrite => _baseStream.CanWrite;
+        public override long Length => _baseStream.Length;
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
         public override void Flush()
         {
             foreach (var destination in _destinations)
-            {
                 destination.Flush();
-            }
         }
 
         public void AddListenerStream(Stream stream)
@@ -57,24 +66,21 @@ namespace Fluxzy.Misc
             if (read == 0 && _closeOnDone)
             {
                 foreach (var dest in _destinations)
-                {
                     dest.Dispose();
-                }
 
-                _destinations = null; 
+                _destinations = null;
             }
             else
             {
                 foreach (var destination in _destinations)
-                {
                     destination.Write(buffer, offset, read);
-                }
             }
 
             return read;
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
+            CancellationToken cancellationToken)
         {
             _started = true;
 
@@ -97,7 +103,6 @@ namespace Fluxzy.Misc
             }
             else
             {
-
                 await Task.WhenAll(
                     _destinations.Select(t => t.WriteAsync(buffer.Slice(0, read), cancellationToken).AsTask()));
             }
@@ -120,29 +125,16 @@ namespace Fluxzy.Misc
             throw new NotSupportedException();
         }
 
-        public override bool CanRead => _baseStream.CanRead;
-        public override bool CanSeek => _baseStream.CanSeek;
-        public override bool CanWrite => _baseStream.CanWrite;
-        public override long Length => _baseStream.Length;
-
-        public override long Position
-        {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
-        }
-
         public override async ValueTask DisposeAsync()
         {
-             // Console.WriteLine($"Dispatched stream realeased async {_closeOnDone}");
+            // Console.WriteLine($"Dispatched stream realeased async {_closeOnDone}");
 
             if (_destinations != null && _closeOnDone)
             {
                 foreach (var dest in _destinations)
-                {
                     await dest.DisposeAsync();
-                }
 
-                _destinations = null; 
+                _destinations = null;
             }
 
             await base.DisposeAsync();
@@ -155,9 +147,7 @@ namespace Fluxzy.Misc
             if (_destinations != null && _closeOnDone)
             {
                 foreach (var dest in _destinations)
-                {
                     dest.Dispose();
-                }
 
                 _destinations = null;
             }

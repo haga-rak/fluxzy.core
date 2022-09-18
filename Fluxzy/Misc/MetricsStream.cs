@@ -8,39 +8,54 @@ using System.Threading.Tasks;
 namespace Fluxzy.Misc
 {
     /// <summary>
-    /// Provides a stream that expose read events
+    ///     Provides a stream that expose read events
     /// </summary>
     public class MetricsStream : Stream
     {
-        private readonly Stream _innerStream;
-        private readonly Action _firstBytesReaden;
         private readonly Action<long> _endRead;
+        private readonly Action _firstBytesReaden;
         private readonly Action<Exception> _onReadError;
         private readonly CancellationToken _parentToken;
 
-        public long TotalRead { get; private set; }
-
-        public MetricsStream(Stream innerStream, 
-            Action firstBytesReaden, 
-            Action<long> endRead, 
-            Action<Exception> onReadError, 
+        public MetricsStream(Stream innerStream,
+            Action firstBytesReaden,
+            Action<long> endRead,
+            Action<Exception> onReadError,
             CancellationToken parentToken)
         {
-            _innerStream = innerStream;
+            InnerStream = innerStream;
             _firstBytesReaden = firstBytesReaden;
             _endRead = endRead;
             _onReadError = onReadError;
             _parentToken = parentToken;
         }
 
+        public long TotalRead { get; private set; }
+
+        public override bool CanRead => InnerStream.CanRead;
+
+        public override bool CanSeek => InnerStream.CanSeek;
+
+        public override bool CanWrite => InnerStream.CanWrite;
+
+        public override long Length => InnerStream.Length;
+
+        public override long Position
+        {
+            get => InnerStream.Position;
+            set => InnerStream.Position = value;
+        }
+
+        public Stream InnerStream { get; }
+
         public override void Flush()
         {
-            _innerStream.Flush();
+            InnerStream.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var read = _innerStream.Read(buffer, offset, count);
+            var read = InnerStream.Read(buffer, offset, count);
 
             if (TotalRead == 0 && _firstBytesReaden != null)
                 _firstBytesReaden();
@@ -55,12 +70,12 @@ namespace Fluxzy.Misc
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return _innerStream.Seek(offset, origin);
+            return InnerStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            _innerStream.SetLength(value);
+            InnerStream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -68,27 +83,11 @@ namespace Fluxzy.Misc
             throw new NotImplementedException($"{nameof(MetricsStream)} is readonly.");
         }
 
-        public override bool CanRead => _innerStream.CanRead;
-
-        public override bool CanSeek => _innerStream.CanSeek;
-
-        public override bool CanWrite => _innerStream.CanWrite;
-
-        public override long Length => _innerStream.Length;
-
-        public override long Position
-        {
-            get => _innerStream.Position;
-            set => _innerStream.Position = value;
-        }
-
-        public Stream InnerStream => _innerStream;
-
         public override int Read(Span<byte> buffer)
         {
             try
             {
-                var res = _innerStream.Read(buffer);
+                var res = InnerStream.Read(buffer);
                 TotalRead += res;
 
                 return res;
@@ -99,26 +98,25 @@ namespace Fluxzy.Misc
                     _onReadError(ex);
 
                 throw;
-
             }
-
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
+            CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
             try
             {
                 using var combinedTokenSource =
-                    CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken); 
+                    CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
 
-                var read = await _innerStream.ReadAsync(buffer, combinedTokenSource.Token)
-                    .ConfigureAwait(false);
+                var read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
+                                            .ConfigureAwait(false);
 
                 if (TotalRead == 0 && _firstBytesReaden != null)
                     _firstBytesReaden();
@@ -135,8 +133,7 @@ namespace Fluxzy.Misc
                 if (_onReadError != null)
                     _onReadError(ex);
 
-                throw; 
-
+                throw;
             }
         }
     }

@@ -252,17 +252,6 @@ namespace Fluxzy.Cli
                     }
                 }
                 
-
-                if (throttleIntervalOption.HasValue())
-                {
-                    if (!int.TryParse(throttleIntervalOption.Value(), out var intervalMillis))
-                    {
-                        throw new Exception($"intervalMillis must be a number");
-                    }
-
-                    proxyStartUpSetting.SetThrottleIntervalCheck(TimeSpan.FromMilliseconds(intervalMillis));
-                }
-
                 if (secureProtocolsOption.HasValue() && secureProtocolsOption.Values.Any())
                 {
                     SslProtocols sslProtocols = SslProtocols.None;
