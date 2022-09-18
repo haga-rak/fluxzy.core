@@ -10,7 +10,6 @@ namespace Fluxzy
         [JsonConstructor]
         internal ArchivingPolicy()
         {
-
         }
 
         public ArchivingPolicyType Type { get; internal set; }
@@ -22,12 +21,13 @@ namespace Fluxzy
         public static ArchivingPolicy CreateFromDirectory(DirectoryInfo directoryInfo)
         {
             directoryInfo.Create();
-            return new ArchivingPolicy()
+            return new ArchivingPolicy
             {
                 Directory = directoryInfo.FullName,
                 Type = ArchivingPolicyType.Directory
             };
         }
+
         public static ArchivingPolicy CreateFromDirectory(string path)
         {
             var directoryInfo = new DirectoryInfo(path);

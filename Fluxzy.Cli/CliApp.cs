@@ -251,17 +251,7 @@ namespace Fluxzy.Cli
                         proxyStartUpSetting.SetArchivingPolicy(ArchivingPolicy.CreateFromDirectory(_tempDirectory));
                     }
                 }
-
-                if (throttleOption.HasValue())
-                {
-                    if (!int.TryParse(throttleOption.Value(), out var throttleKb))
-                    {
-                        throw new Exception($"throttleKb must be a number");
-                    }
-
-                    proxyStartUpSetting.SetThrottleKoPerSecond(throttleKb);
-
-                }
+                
 
                 if (throttleIntervalOption.HasValue())
                 {

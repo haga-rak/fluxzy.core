@@ -7,12 +7,13 @@ namespace Fluxzy.Cli
     {
         public static Task WaitForExit()
         {
-            TaskCompletionSource<object> source = new TaskCompletionSource<object>();
+            var source = new TaskCompletionSource<object>();
 
             Console.CancelKeyPress += (sender, args) =>
             {
                 args.Cancel = true;
-                source.SetResult(null); ;
+                source.SetResult(null);
+                ;
             };
 
             AppDomain.CurrentDomain.ProcessExit += (o, args) =>
