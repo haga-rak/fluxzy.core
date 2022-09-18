@@ -232,7 +232,6 @@ namespace Fluxzy.Cli
                     proxyStartUpSetting.AddBoundAddress("127.0.0.1", 44344);
                 }
 
-
                 if (outputDirectoryOption.HasValue())
                 {
                     proxyStartUpSetting.SetArchivingPolicy(
@@ -252,7 +251,6 @@ namespace Fluxzy.Cli
                         proxyStartUpSetting.SetArchivingPolicy(ArchivingPolicy.CreateFromDirectory(_tempDirectory));
                     }
                 }
-
 
                 if (throttleOption.HasValue())
                 {
@@ -309,7 +307,6 @@ namespace Fluxzy.Cli
                 proxyStartUpSetting.SetAutoInstallCertificate(!skiptCertInstallOption.HasValue());
                 proxyStartUpSetting.SetSkipGlobalSslDecryption(skipSslDecryptionOption.HasValue());
                 proxyStartUpSetting.SetDisableCertificateCache(noCertCacheOption.HasValue());
-                
 
                 try
                 {

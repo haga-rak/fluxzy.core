@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System;
 using System.CommandLine;
 
 namespace Fluxzy.Cli
@@ -8,8 +9,12 @@ namespace Fluxzy.Cli
     {
         public static void Run(string [] args)
         {
-            RootCommand command = new RootCommand("Advanced HTTP capture tool");
-            command.Add(StartCommandBuilder.Build());
+            var command = new RootCommand("Advanced HTTP capture tool");
+            var instanceIdentifier = Guid.NewGuid().ToString();
+
+            var fluxzyStartCommand = new FluxzyStartCommand(instanceIdentifier);
+
+            command.Add(fluxzyStartCommand.Build());
 
             command.Invoke(args);
         }
