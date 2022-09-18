@@ -7,7 +7,7 @@ namespace Fluxzy
 {
     internal interface IArchiveWriter : IDisposable
     {
-        Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken); 
+        Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
 
         Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
 
@@ -15,14 +15,6 @@ namespace Fluxzy
 
         Stream CreateResponseBodyStream(int exchangeId);
 
-        string GetDumpfilePath(int connectionId); 
-    }
-
-    public class ZipArchiveHelper
-    {
-        public static Task Compress(string directoryInitial, Stream stream)
-        {
-            return Task.CompletedTask; 
-        }
+        string GetDumpfilePath(int connectionId);
     }
 }

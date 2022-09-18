@@ -5,8 +5,6 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
-using Fluxzy.Clients.H2.Encoder;
-using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy
 {
@@ -44,50 +42,6 @@ namespace Fluxzy
         {
             return $"{Scheme}://{Authority}{Path}";
         }
-    }
-
-    public class ResponseHeaderInfo
-    {
-        [JsonConstructor]
-        public ResponseHeaderInfo()
-        {
-
-        }
-
-        public ResponseHeaderInfo(ResponseHeader originalHeader)
-        {
-            StatusCode = originalHeader.StatusCode;
-            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s)); 
-        }
-
-        public int StatusCode { get; set;  } 
-
-        public IEnumerable<HeaderFieldInfo> Headers { get; set; }
-
-    }
-
-    public class HeaderFieldInfo
-    {
-        [JsonConstructor]
-        public HeaderFieldInfo()
-        {
-
-        }
-
-        public HeaderFieldInfo(HeaderField original)
-        {
-            Name = original.Name;
-            Value = original.Value;
-            Forwarded = !Http11Constants.IsNonForwardableHeader(original.Name); 
-        }
-
-        public ReadOnlyMemory<char> Name { get; set; } 
-
-        public ReadOnlyMemory<char> Value { get; set; } 
-        
-        public bool Forwarded { get; set; }
-
-        public static implicit operator HeaderFieldInfo(HeaderField d) => new HeaderFieldInfo(d);
     }
 
     public class SslInfo
