@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
@@ -154,7 +155,20 @@ namespace Fluxzy
 
             return this;
         }
-        
+        public FluxzySetting ClearBoundAddresses()
+        {
+            BoundPoints.Clear();
+
+            return this; 
+        }
+
+        public FluxzySetting AddBoundAddress(IPEndPoint endpoint, bool? @default = null)
+        {
+            var isDefault = @default ?? BoundPoints.All(e => !e.Default);
+            BoundPoints.Add(new ProxyBindPoint(endpoint.Address.ToString(), endpoint.Port, isDefault));
+
+            return this; 
+        }
 
         public FluxzySetting AddBoundAddress(string boundAddress, int port, bool ? @default = null)
         {

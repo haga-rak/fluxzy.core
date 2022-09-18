@@ -44,7 +44,6 @@ namespace Fluxzy
             
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
-
            
 
             var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);

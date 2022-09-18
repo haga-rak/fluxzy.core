@@ -19,16 +19,19 @@ namespace Fluxzy
 
         public static ArchivingPolicy None { get; } = new();
 
-        public static ArchivingPolicy CreateFromDirectory(string path)
+        public static ArchivingPolicy CreateFromDirectory(DirectoryInfo directoryInfo)
         {
-            var directoryInfo = new DirectoryInfo(path);
-
             directoryInfo.Create();
             return new ArchivingPolicy()
             {
                 Directory = directoryInfo.FullName,
                 Type = ArchivingPolicyType.Directory
             };
+        }
+        public static ArchivingPolicy CreateFromDirectory(string path)
+        {
+            var directoryInfo = new DirectoryInfo(path);
+            return CreateFromDirectory(directoryInfo);
         }
     }
 
