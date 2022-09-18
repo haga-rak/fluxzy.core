@@ -12,11 +12,10 @@ namespace Fluxzy
         public bool ShouldApplyTo(string fileName)
         {
             return
-                fileName.EndsWith(".fxyz", StringComparison.CurrentCultureIgnoreCase) ||
                 fileName.EndsWith(".fxzy", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".fzy", StringComparison.CurrentCultureIgnoreCase) ||
                 fileName.EndsWith(".fluxzy", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".fxzy.zip", StringComparison.CurrentCultureIgnoreCase) ; 
+                fileName.EndsWith(".fxzy.zip", StringComparison.CurrentCultureIgnoreCase) ||
+                fileName.EndsWith(".fluxzy.zip", StringComparison.CurrentCultureIgnoreCase) ; 
         }
 
         public async Task Unpack(Stream inputStream, string directoryOutput)
@@ -32,7 +31,9 @@ namespace Fluxzy
                     if (fileInfo.Length == 0)
                         return false;
 
-                    if (fileInfo.Name.EndsWith(".data") || fileInfo.Name.EndsWith(".json"))
+                    if (fileInfo.Name.EndsWith(".data") 
+                        || fileInfo.Name.EndsWith(".json") 
+                        || fileInfo.Name.EndsWith(".pcap"))
                     {
                         return true; 
                     }

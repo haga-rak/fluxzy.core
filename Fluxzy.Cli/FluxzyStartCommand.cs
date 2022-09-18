@@ -59,11 +59,7 @@ namespace Fluxzy.Cli
             command.AddOption(CreateNoCertCacheOption());
             command.AddOption(CreateCertificateFileOption());
             command.AddOption(CreateCertificatePasswordOption());
-
-            var caCertificateBinder = new CaCertificateBinder(
-                command.Options.Get<FileInfo>("cert-file"),
-                command.Options.Get<string>("cert-password")
-            );
+            
             
             command.SetHandler(Run);
 
@@ -358,35 +354,5 @@ namespace Fluxzy.Cli
             await packager.Pack(dInfo.FullName, outStream);
         }
     }
-
-    public class CertificateItem
-    {
-        public CertificateItem(FileInfo file, string password)
-        {
-            File = file;
-            Password = password;
-        }
-
-        public FileInfo File { get;  } 
-
-        public string Password { get;  }
-    }
-
-    public class CaCertificateBinder : BinderBase<CertificateItem>
-    {
-        private readonly Option<FileInfo> _fileInfoOption;
-        private readonly Option<string> _passwordOption;
-
-        public CaCertificateBinder(Option<FileInfo> fileInfoOption, Option<string> passwordOption)
-        {
-            _fileInfoOption = fileInfoOption;
-            _passwordOption = passwordOption;
-        }
-
-        protected override CertificateItem GetBoundValue(BindingContext bindingContext)
-        {
-            return new(bindingContext.ParseResult.GetValueForOption(_fileInfoOption),
-                bindingContext.ParseResult.GetValueForOption(_passwordOption));
-        }
-    }
+    
 }
