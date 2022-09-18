@@ -108,7 +108,7 @@ namespace Fluxzy.Desktop.Services
             return new ProxyState()
             {
                 BoundConnections = _proxy?.StartupSetting.BoundPoints
-                    .Select(b => new ProxyEndPoint(b.Address, b.Port))
+                    .Select(b => new ProxyEndPoint(b.EndPoint.Address.ToString(), b.EndPoint.Port))
                     .ToList() ?? new List<ProxyEndPoint>()
             }; 
         }

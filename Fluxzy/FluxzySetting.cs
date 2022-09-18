@@ -36,7 +36,7 @@ namespace Fluxzy
             {
                 return string.Join(", ", BoundPoints
                     .OrderByDescending(d => d.Default)
-                    .Select(s => $"[{s.Address}:{s.Port}]"));
+                    .Select(s => $"[{s.EndPoint}]"));
             }
         }
 
@@ -165,33 +165,28 @@ namespace Fluxzy
         public FluxzySetting AddBoundAddress(IPEndPoint endpoint, bool? @default = null)
         {
             var isDefault = @default ?? BoundPoints.All(e => !e.Default);
-            BoundPoints.Add(new ProxyBindPoint(endpoint.Address.ToString(), endpoint.Port, isDefault));
+            BoundPoints.Add(new ProxyBindPoint(endpoint, isDefault));
 
             return this; 
         }
 
         public FluxzySetting AddBoundAddress(string boundAddress, int port, bool ? @default = null)
         {
-            if (!IPAddress.TryParse(boundAddress, out _))
-            {
+            if (!IPAddress.TryParse(boundAddress, out var address)) 
                 throw new ArgumentException($"{boundAddress} is not a valid IP address");
-            }
 
             if (port < 1 || port >= ushort.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
             }
-            
-            var isDefault = @default ?? BoundPoints.All(e => !e.Default);
-            BoundPoints.Add(new ProxyBindPoint(boundAddress, port, isDefault)); 
-            
-            return this; 
+
+            return AddBoundAddress(new IPEndPoint(address, port), @default); 
         }
         
 
         public FluxzySetting SetBoundAddress(string boundAddress, int port)
         {
-            if (!IPAddress.TryParse(boundAddress, out _))
+            if (!IPAddress.TryParse(boundAddress, out var address))
             {
                 throw new ArgumentException($"{boundAddress} is not a valid IP address");
             }
@@ -202,7 +197,7 @@ namespace Fluxzy
             }
 
             BoundPoints.Clear();
-            BoundPoints.Add(new ProxyBindPoint(boundAddress, port, true)); 
+            BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(address, port), true)); 
             
             return this; 
         }
@@ -325,8 +320,7 @@ namespace Fluxzy
             {
                 ConnectionPerHost =  8, 
                 AnticipatedConnectionPerHost = 3
-            }
-                .SetBoundAddress("127.0.0.1", 44344);
+            }.SetBoundAddress("127.0.0.1", 44344);
         }
 
         internal IConsoleOutput GetDefaultOutput()
