@@ -7,7 +7,7 @@ namespace Fluxzy.Interop.Pcap.Cli
 {
     internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var loopBack = IPAddress.Loopback;
             var none = IPAddress.None;
@@ -24,23 +24,21 @@ namespace Fluxzy.Interop.Pcap.Cli
             var stopWatch = new Stopwatch();
 
             using (var captureContext = new CaptureContext())
-            await using (var tcpClient = new CapturableTcpConnection(captureContext, "gogo2.pcap"))
-            {
+            await using (var tcpClient = new CapturableTcpConnection(captureContext, "gogo2.pcap")) {
                 var remoteIp = (await Dns.GetHostAddressesAsync(host)).First();
 
                 await tcpClient.ConnectAsync(remoteIp, 443);
 
                 stopWatch.Start();
 
-                await using (var sslStream = new SslStream(tcpClient.GetStream(), false))
-                {
+                await using (var sslStream = new SslStream(tcpClient.GetStream(), false)) {
                     await sslStream.AuthenticateAsClientAsync(host);
 
                     var httpRequest =
                         $"GET {url} HTTP/1.1\r\n" +
                         $"Host: {host}\r\n" +
-                        $"Connection: close\r\n" +
-                        $"\r\n";
+                        "Connection: close\r\n" +
+                        "\r\n";
 
                     sslStream.Write(Encoding.UTF8.GetBytes(httpRequest));
 
@@ -48,36 +46,33 @@ namespace Fluxzy.Interop.Pcap.Cli
 
                     _total = await sslStream.Drain();
 
-                  //  await Task.Delay(1000);
+                    //  await Task.Delay(1000);
                 }
 
                 stopWatch.Stop();
             }
 
-                
+
             Console.WriteLine($"Terminé en {stopWatch.ElapsedMilliseconds} ms");
-            Console.ReadLine(); 
+            Console.ReadLine();
             GC.Collect();
             Console.WriteLine("GC done");
-            Console.ReadLine(); 
+            Console.ReadLine();
         }
     }
 
     public static class StreamDrainer
     {
-        public static async Task<long> Drain(this Stream stream )
+        public static async Task<long> Drain(this Stream stream)
         {
-            byte[] buffer = new byte[32 * 1024];
+            var buffer = new byte[32 * 1024];
 
             int read;
-            long total = 0; 
+            long total = 0;
 
-            while((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-            {
-                total += read; 
-            }
+            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0) total += read;
 
-            return total; 
+            return total;
         }
     }
 }
