@@ -15,15 +15,10 @@ namespace Fluxzy
                 fileName.EndsWith(".fxzy", StringComparison.CurrentCultureIgnoreCase) ||
                 fileName.EndsWith(".fluxzy", StringComparison.CurrentCultureIgnoreCase) ||
                 fileName.EndsWith(".fxzy.zip", StringComparison.CurrentCultureIgnoreCase) ||
-                fileName.EndsWith(".fluxzy.zip", StringComparison.CurrentCultureIgnoreCase) ; 
+                fileName.EndsWith(".fluxzy.zip", StringComparison.CurrentCultureIgnoreCase);
         }
 
-        public async Task Unpack(Stream inputStream, string directoryOutput)
-        {
-            await ZipHelper.Decompress(inputStream, new DirectoryInfo(directoryOutput)); 
-        }
-
-        public async Task Pack(string directory, Stream outputStream) 
+        public async Task Pack(string directory, Stream outputStream)
         {
             await ZipHelper.Compress(new DirectoryInfo(directory),
                 outputStream, fileInfo =>
@@ -31,22 +26,20 @@ namespace Fluxzy
                     if (fileInfo.Length == 0)
                         return false;
 
-                    if (fileInfo.Name.EndsWith(".data") 
-                        || fileInfo.Name.EndsWith(".json") 
+                    if (fileInfo.Name.EndsWith(".data")
+                        || fileInfo.Name.EndsWith(".json")
                         || fileInfo.Name.EndsWith(".pcap"))
-                    {
-                        return true; 
-                    }
+                        return true;
 
-                    return true; 
-                }); 
+                    return true;
+                });
         }
-        
-        public async Task Pack(string directory, Stream outputStream, 
+
+        public async Task Pack(string directory, Stream outputStream,
             IEnumerable<ExchangeInfo> exchangeInfos,
             IEnumerable<ConnectionInfo> connectionInfos)
         {
-            var fileInfos = new List<FileInfo>(); 
+            var fileInfos = new List<FileInfo>();
 
             foreach (var exchangeInfo in exchangeInfos)
             {
@@ -56,12 +49,14 @@ namespace Fluxzy
             }
 
             foreach (var connectionInfo in connectionInfos)
-            {
                 fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetConnectionPath(directory, connectionInfo)));
 
-            }
-
             await ZipHelper.CompressWithFileInfos(new DirectoryInfo(directory), outputStream, fileInfos);
+        }
+
+        public async Task Unpack(Stream inputStream, string directoryOutput)
+        {
+            await ZipHelper.Decompress(inputStream, new DirectoryInfo(directoryOutput));
         }
     }
 }

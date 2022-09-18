@@ -1,4 +1,3 @@
-using Fluxzy.Clients;
 using System.IO;
 
 namespace Fluxzy
@@ -9,8 +8,8 @@ namespace Fluxzy
 
         internal static string GetExchangePath(string baseDirectory, ExchangeInfo exchangeInfo)
         {
-            var baseNumber = (exchangeInfo.Id / MaxItemPerDirectory) * 100; 
-            var directoryHint = $"{baseNumber}-{(baseNumber + MaxItemPerDirectory)}";
+            var baseNumber = exchangeInfo.Id / MaxItemPerDirectory * 100;
+            var directoryHint = $"{baseNumber}-{baseNumber + MaxItemPerDirectory}";
 
             var preDir = Path.Combine(baseDirectory, "exchanges", directoryHint);
 
@@ -18,6 +17,7 @@ namespace Fluxzy
 
             return Path.Combine(preDir, $"ex-{exchangeInfo.Id}.json");
         }
+
         internal static string GetContentRequestPath(string baseDirectory, ExchangeInfo exchangeInfo)
         {
             return Path.Combine(baseDirectory, "contents", $"req-{exchangeInfo.Id}.data");
@@ -30,8 +30,8 @@ namespace Fluxzy
 
         internal static string GetConnectionPath(string baseDirectory, ConnectionInfo connectionInfo)
         {
-            var baseNumber = (connectionInfo.Id / MaxItemPerDirectory) * 100; 
-            var directoryHint = $"{(baseNumber)}-{(baseNumber + MaxItemPerDirectory)}";
+            var baseNumber = connectionInfo.Id / MaxItemPerDirectory * 100;
+            var directoryHint = $"{baseNumber}-{baseNumber + MaxItemPerDirectory}";
 
             var preDir = Path.Combine(baseDirectory, "connections", directoryHint);
 

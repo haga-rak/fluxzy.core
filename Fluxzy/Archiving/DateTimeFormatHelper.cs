@@ -6,11 +6,7 @@ namespace Fluxzy
     {
         public static string FormatWithLocalKind(this DateTime date)
         {
-            if (date == DateTime.MinValue)
-                return null;
-
-            var printable = DateTime.SpecifyKind(date, DateTimeKind.Local);
-            return printable.ToString("o");
+            return date == DateTime.MinValue ? null : DateTime.SpecifyKind(date, DateTimeKind.Local).ToString("o");
         }
     }
 }

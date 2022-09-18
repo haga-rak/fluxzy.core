@@ -1,23 +1,20 @@
-﻿using System;
-using System.Net;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Fluxzy
 {
     public class GlobalArchiveOption
     {
-        public static JsonSerializerOptions JsonSerializerOptions { get; } =  new()
+        public static JsonSerializerOptions JsonSerializerOptions { get; } = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
             Converters =
             {
-                new ReadonlyMemoryCharConverter(), 
+                new ReadonlyMemoryCharConverter(),
                 new JsonStringEnumConverter(),
-                new IPAddressConverter()
+                new IpAddressConverter()
             }
         };
     }
-
 }

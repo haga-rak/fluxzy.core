@@ -9,7 +9,6 @@ namespace Fluxzy
         [JsonConstructor]
         public ConnectionInfo()
         {
-
         }
 
         public ConnectionInfo(Connection original)
@@ -26,7 +25,7 @@ namespace Fluxzy
             LocalAddress = original.LocalAddress;
             RemoteAddress = original.RemoteAddress.ToString();
             Authority = new AuthorityInfo(original.Authority);
-            SslInfo = original.SslInfo; 
+            SslInfo = original.SslInfo;
         }
 
         public int Id { get; set; }
@@ -54,27 +53,5 @@ namespace Fluxzy
         public string LocalAddress { get; set; }
 
         public string RemoteAddress { get; set; }
-    }
-
-    public class AuthorityInfo
-    {
-        [JsonConstructor]
-        public AuthorityInfo()
-        {
-
-        }
-
-        public AuthorityInfo(Authority original)
-        {
-            HostName = original.HostName;
-            Port = original.Port;
-            Secure = original.Secure;
-        }
-
-        public string HostName { get; set; }
-
-        public int Port { get; set; }
-
-        public bool Secure { get; set; }
     }
 }

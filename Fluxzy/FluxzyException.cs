@@ -2,12 +2,13 @@
 
 using System;
 
-namespace Fluxzy;
-
-public class FluxzyException : Exception
+namespace Fluxzy
 {
-    public FluxzyException(string message, Exception innerException = null)
-        : base(message, innerException)
+    public class FluxzyException : Exception
     {
+        public FluxzyException(string message, Exception innerException = null)
+            : base(message, innerException)
+        {
+        }
     }
 }
