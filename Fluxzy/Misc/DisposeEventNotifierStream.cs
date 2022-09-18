@@ -84,6 +84,12 @@ namespace Fluxzy.Misc
             await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            Console.WriteLine("bad override called");
+            base.Dispose(disposing);
+        }
+
         public override async ValueTask DisposeAsync()
         {
             await _innerStream.DisposeAsync();

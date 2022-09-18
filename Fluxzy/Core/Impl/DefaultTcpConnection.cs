@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System;
 using System.Data;
 using System.IO;
 using System.Net;
@@ -37,7 +38,7 @@ namespace Fluxzy.Core
 
         private async Task ResultStreamOnOnStreamDisposed(object sender, StreamDisposeEventArgs args)
         {
-            var stream = (DisposeEventNotifierStream)sender;
+            var stream = (DisposeEventNotifierStream) sender;
             stream.OnStreamDisposed -= ResultStreamOnOnStreamDisposed;
 
             await DisposeAsync(); 
@@ -45,6 +46,7 @@ namespace Fluxzy.Core
 
         public async ValueTask DisposeAsync()
         {
+            Console.WriteLine("Client disposed");
             _client?.Dispose();
         }
     }
