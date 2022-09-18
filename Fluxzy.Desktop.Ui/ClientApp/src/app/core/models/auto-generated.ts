@@ -60,10 +60,7 @@ export interface FluxzySetting
 	boundPointsDescription: string;
 	verbose: boolean;
 	connectionPerHost: number;
-	anticipatedConnectionPerHost: number;
-	throttleKBytePerSecond: number;
 	serverProtocols: number;
-	throttleIntervalCheck: any;
 	caCertificate: any;
 	certificateCacheDirectory: string;
 	autoInstallCertificate: boolean;

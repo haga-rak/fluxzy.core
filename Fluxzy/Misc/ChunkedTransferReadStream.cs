@@ -11,11 +11,11 @@ namespace Fluxzy.Misc
 {
     public class ChunkedTransferReadStream : Stream
     {
-        private readonly Stream _innerStream;
         private readonly bool _closeOnDone;
+        private readonly Stream _innerStream;
+        private readonly byte[] _lengthHolderBytes = new byte[64];
 
         private readonly char[] _lengthHolderChar = new char[64];
-        private readonly byte[] _lengthHolderBytes = new byte[64];
         private readonly byte[] _singleByte = new byte[1];
 
         private long _nextChunkSize;
@@ -26,18 +26,33 @@ namespace Fluxzy.Misc
             _closeOnDone = closeOnDone;
         }
 
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new InvalidOperationException();
+
+        public override long Position
+        {
+            get => throw new InvalidOperationException();
+            set => throw new InvalidOperationException();
+        }
+
         public override void Flush()
         {
             throw new NotSupportedException();
         }
 
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
+            CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
         }
 
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
             // Read the length of the next block 
 
@@ -45,44 +60,40 @@ namespace Fluxzy.Misc
             {
                 Memory<byte> textBufferBytes = _lengthHolderBytes;
                 Memory<char> textBufferChars = _lengthHolderChar;
-                Memory<byte> singleByte = _singleByte; 
-                
+                Memory<byte> singleByte = _singleByte;
+
                 var textCount = 0;
 
-                var chunkSizeNotDetected = true; 
+                var chunkSizeNotDetected = true;
 
                 while (
-                    (await _innerStream.ReadAsync(singleByte, cancellationToken)) > 0 
+                    await _innerStream.ReadAsync(singleByte, cancellationToken) > 0
                     && (chunkSizeNotDetected = singleByte.Span[0] != 0XD))
                 {
                     if (textCount > 40)
-                        throw new IOException($"Error while reading chunked stream : Chunk size is larger than 40."); 
+                        throw new IOException("Error while reading chunked stream : Chunk size is larger than 40.");
 
                     textBufferBytes.Span[textCount++] = singleByte.Span[0];
                 }
-                
+
                 if (textCount == 0 && !chunkSizeNotDetected)
                 {
                     // Natural End of stream . Read the last double cr lf 
-                    await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken); 
-                    return 0; 
+                    await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
+                    return 0;
                 }
 
                 if (textCount == 0 || chunkSizeNotDetected)
-                {
                     throw new IOException(
-                        $"Error while reading chunked stream : EOF was reached on chunked stream before reading a valid length block.");
-                }
+                        "Error while reading chunked stream : EOF was reached on chunked stream before reading a valid length block.");
 
                 Encoding.ASCII.GetChars(textBufferBytes.Span.Slice(0, textCount), textBufferChars.Span);
 
                 if (!long.TryParse(textBufferChars.Slice(0, textCount).Span,
                         NumberStyles.HexNumber, CultureInfo.InvariantCulture,
                         out var chunkSize) || chunkSize < 0)
-                {
                     throw new IOException(
                         $"Error while reading chunked stream : Received chunk size is invalid : {textBufferChars.Slice(0, textCount).ToString()}.");
-                }
 
                 if (chunkSize == 0)
                 {
@@ -94,31 +105,29 @@ namespace Fluxzy.Misc
 
                 // Skip the next CRLF 
                 if (!await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken))
-                    throw new EndOfStreamException($"Unexpected EOF");
+                    throw new EndOfStreamException("Unexpected EOF");
 
                 _nextChunkSize = chunkSize;
             }
 
-            var nextBlockToRead = (int) Math.Min(_nextChunkSize, buffer.Length);
+            var nextBlockToRead = (int)Math.Min(_nextChunkSize, buffer.Length);
 
             var read = await _innerStream.ReadAsync(buffer.Slice(0, nextBlockToRead), cancellationToken);
 
             if (read <= 0)
-            {
                 throw new EndOfStreamException(
                     $"Error while reading chunked stream : EOF was reached before receiving {_nextChunkSize} bytes of chunked data.");
-            }
 
             _nextChunkSize -= read;
 
             if (_nextChunkSize == 0)
                 await _innerStream.ReadExactAsync(new Memory<byte>(_lengthHolderBytes, 0, 2), cancellationToken);
-            
+
 
             return read;
         }
-        
-        public override int Read(byte [] buffer, int offset, int count)
+
+        public override int Read(byte[] buffer, int offset, int count)
         {
             throw new NotSupportedException();
         }
@@ -137,15 +146,5 @@ namespace Fluxzy.Misc
         {
             throw new NotSupportedException();
         }
-
-        public override bool CanRead => true; 
-
-        public override bool CanSeek => false;
-
-        public override bool CanWrite => false;
-
-        public override long Length => throw new InvalidOperationException(); 
-
-        public override long Position { get => throw new InvalidOperationException(); set => throw new InvalidOperationException();  }
     }
 }

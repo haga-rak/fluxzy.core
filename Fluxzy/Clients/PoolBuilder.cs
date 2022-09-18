@@ -14,7 +14,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 namespace Fluxzy.Clients
 {
     /// <summary>
-    /// Main entry of remote connection
+    ///     Main entry of remote connection
     /// </summary>
     internal class PoolBuilder : IDisposable
     {
@@ -24,21 +24,23 @@ namespace Fluxzy.Clients
             SslApplicationProtocol.Http2
         };
 
-        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
-        private readonly ITimingProvider _timingProvider;
-        private readonly Http11Parser _http11Parser;
         private readonly RealtimeArchiveWriter _archiveWriter;
 
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
             new Dictionary<Authority, IHttpConnectionPool>();
 
+        private readonly Http11Parser _http11Parser;
+
         private readonly ConcurrentDictionary<Authority, SemaphoreSlim> _lock = new();
-        private readonly CancellationTokenSource _poolCheckHaltSource = new(); 
+        private readonly CancellationTokenSource _poolCheckHaltSource = new();
+
+        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
+        private readonly ITimingProvider _timingProvider;
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
-            Http11Parser http11Parser, 
+            Http11Parser http11Parser,
             RealtimeArchiveWriter archiveWriter)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
@@ -46,7 +48,12 @@ namespace Fluxzy.Clients
             _http11Parser = http11Parser;
             _archiveWriter = archiveWriter;
 
-            CheckPoolStatus(_poolCheckHaltSource.Token); 
+            CheckPoolStatus(_poolCheckHaltSource.Token);
+        }
+
+        public void Dispose()
+        {
+            _poolCheckHaltSource.Cancel();
         }
 
         private async void CheckPoolStatus(CancellationToken token)
@@ -56,13 +63,15 @@ namespace Fluxzy.Clients
                 while (!token.IsCancellationRequested)
                 {
                     // TODO put delay into config files or settings
-                    
+
                     await Task.Delay(5000, token);
 
                     List<IHttpConnectionPool> activePools;
 
                     lock (_connectionPools)
+                    {
                         activePools = _connectionPools.Values.ToList();
+                    }
 
                     await Task.WhenAll(activePools.Select(s => s.CheckAlive()));
                 }
@@ -74,7 +83,6 @@ namespace Fluxzy.Clients
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="exchange"></param>
         /// <param name="proxyRuntimeSetting"></param>
@@ -83,21 +91,19 @@ namespace Fluxzy.Clients
         /// <exception cref="NotImplementedException"></exception>
         public async ValueTask<IHttpConnectionPool>
             GetPool(
-            Exchange exchange,
-            ProxyRuntimeSetting proxyRuntimeSetting,
-            CancellationToken cancellationToken = default)
+                Exchange exchange,
+                ProxyRuntimeSetting proxyRuntimeSetting,
+                CancellationToken cancellationToken = default)
         {
             // At this point, we'll trying the suitable pool for exchange
 
             if (exchange.Context.PreMadeResponse != null)
-            {
                 return new MockedConnectionPool(_http11Parser, exchange.Authority,
-                    exchange.Context.PreMadeResponse); 
-            }
+                    exchange.Context.PreMadeResponse);
 
             IHttpConnectionPool result = null;
 
-            var semaphore = _lock.GetOrAdd(exchange.Authority, (auth) => new SemaphoreSlim(1));
+            var semaphore = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
 
             try
             {
@@ -106,6 +112,7 @@ namespace Fluxzy.Clients
                 // Looking for existing HttpPool
 
                 lock (_connectionPools)
+                {
                     while (_connectionPools.TryGetValue(exchange.Authority, out var pool))
                     {
                         if (pool.Complete)
@@ -116,6 +123,7 @@ namespace Fluxzy.Clients
 
                         return pool;
                     }
+                }
 
                 //  pool 
                 if (exchange.Context.BlindMode
@@ -137,46 +145,53 @@ namespace Fluxzy.Clients
                     exchange.HttpVersion = "HTTP/1.1";
 
                     lock (_connectionPools)
+                    {
                         return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
+                    }
                 }
 
                 // HTTPS test 1.1/2
 
                 var openingResult =
                     await _remoteConnectionBuilder.OpenConnectionToRemote(
-                        exchange.Authority,  exchange.Context,
+                        exchange.Authority, exchange.Context,
                         AllProtocols, proxyRuntimeSetting, cancellationToken);
 
-                exchange.Connection = openingResult.Connection; 
+                exchange.Connection = openingResult.Connection;
 
                 if (openingResult.Type == RemoteConnectionResultType.Http11)
                 {
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _http11Parser, _archiveWriter);
-                    
+
                     exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";
-                    
-                    if (_archiveWriter != null)
-                        await _archiveWriter.Update(openingResult.Connection, cancellationToken); 
-
-                    lock (_connectionPools)
-                        return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
-                }
-
-                if (openingResult.Type == RemoteConnectionResultType.Http2)
-                {
-                    var h2ConnectionPool = new H2ConnectionPool(
-                        openingResult.Connection.ReadStream,  // Read and write stream are the same after the sslhandshake
-                        new H2StreamSetting(),
-                        exchange.Authority, exchange.Connection, OnConnectionFaulted);
-
-                    exchange.HttpVersion = exchange.Connection.HttpVersion =  "HTTP/2";
 
                     if (_archiveWriter != null)
                         await _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
                     lock (_connectionPools)
+                    {
+                        return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
+                    }
+                }
+
+                if (openingResult.Type == RemoteConnectionResultType.Http2)
+                {
+                    var h2ConnectionPool = new H2ConnectionPool(
+                        openingResult.Connection
+                                     .ReadStream, // Read and write stream are the same after the sslhandshake
+                        new H2StreamSetting(),
+                        exchange.Authority, exchange.Connection, OnConnectionFaulted);
+
+                    exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/2";
+
+                    if (_archiveWriter != null)
+                        await _archiveWriter.Update(openingResult.Connection, cancellationToken);
+
+                    lock (_connectionPools)
+                    {
                         return result = _connectionPools[exchange.Authority] = h2ConnectionPool;
+                    }
                 }
 
                 throw new NotSupportedException($"Unhandled protocol type {openingResult.Type}");
@@ -193,9 +208,7 @@ namespace Fluxzy.Clients
                 finally
                 {
                     semaphore.Release();
-
                 }
-
             }
             //return null; 
         }
@@ -210,7 +223,7 @@ namespace Fluxzy.Clients
             {
                 OnConnectionFaulted(result);
 
-                throw; 
+                throw;
             }
         }
 
@@ -223,17 +236,11 @@ namespace Fluxzy.Clients
 
             try
             {
-
             }
             catch
             {
                 h2ConnectionPool.Dispose();
             }
-        }
-
-        public void Dispose()
-        {
-            _poolCheckHaltSource.Cancel();
         }
     }
 }

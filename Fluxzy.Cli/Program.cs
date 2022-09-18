@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Fluxzy.Core;
 
 namespace Fluxzy.Cli
@@ -8,7 +9,7 @@ namespace Fluxzy.Cli
         static int Main(string[] args)
         {
             // Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
-            // Environment.SetEnvironmentVariable("InsertEchoesMetricsOnResponseHeader", "true");
+            Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
 
             // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
             // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
