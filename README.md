@@ -1,4 +1,4 @@
-![example workflow](https://github.com/github/docs/actions/workflows/dotnet.yml/badge.svg)
+![Build status](https://github.com/haga-rak/fluxzy/actions/workflows/dotnet.yml/badge.svg)
 
 # fluxzy 
 fluxzy is an HTTP analyzer and debugger engine with powerful and flexible alteration system. 
