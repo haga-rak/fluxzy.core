@@ -15,6 +15,7 @@ namespace Fluxzy.Interop.Pcap
         private bool _halted;
         private readonly PhysicalAddress _physicalLocalAddress;
         private readonly PacketQueue _packetQueue = new();
+        private bool _disposed;
 
         public CaptureContext(IPAddress?  localAddress = null)
         {
@@ -75,8 +76,16 @@ namespace Fluxzy.Interop.Pcap
 
         public void Dispose()
         {
+            if (_disposed) {
+                return;
+            }
+
+            _disposed = true; 
+
             Stop(); 
+
             _captureDevice.Dispose();
+            _packetQueue.Dispose();
         }
     }
     

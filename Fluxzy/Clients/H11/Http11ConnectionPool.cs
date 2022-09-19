@@ -173,8 +173,6 @@ namespace Fluxzy.Clients.H11
                 _semaphoreSlim.Release(); 
                 ITimingProvider.Default.Instant();
             }
-
-
         }
 
         public async ValueTask DisposeAsync()

@@ -15,7 +15,8 @@ namespace Fluxzy.Interop.Pcap
         private readonly Channel<RawCapture> _captureChannel = Channel.CreateUnbounded<RawCapture>();
         private int _totalPackedReceived;
         private volatile bool _subscribed;
-        private ConnectionQueueWriter? _writer = null; 
+        private ConnectionQueueWriter? _writer = null;
+        private bool _disposed; 
 
         public long Key { get; }
 
@@ -45,15 +46,21 @@ namespace Fluxzy.Interop.Pcap
         
         public void Dispose()
         {
-            var res = _captureChannel.Writer.TryComplete();
-            Console.WriteLine($"complete called : {res}");
+            if (_disposed)
+                return;
+
+            _disposed = true;
+
+       
+
+           var res = _captureChannel.Writer.TryComplete();
         }
     }
 
     /// <summary>
     /// Connection mode singleton 
     /// </summary>
-    public class PacketQueue
+    public class PacketQueue : IDisposable
     {
         private readonly HashSet<Authority> _allowedAuthorityKeys = new();
         private readonly ConcurrentDictionary<long, ConnectionQueue> _captureChannels = new(); 
@@ -109,6 +116,13 @@ namespace Fluxzy.Interop.Pcap
             {
                 //  TODO : remove because no one registered to this queue yet 
                 _captureChannels.TryRemove(connectionKey, out _);
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (var queue in _captureChannels.Values) {
+                queue.Dispose();
             }
         }
     }

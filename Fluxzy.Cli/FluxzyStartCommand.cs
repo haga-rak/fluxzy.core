@@ -99,7 +99,7 @@ namespace Fluxzy.Cli
             if (certFile != null) {
                 try {
                     var cert = Certificate.LoadFromPkcs12(
-                        await File.ReadAllBytesAsync(certFile.FullName), certPassword ?? string.Empty);
+                        await File.ReadAllBytesAsync(certFile.FullName, cancellationToken), certPassword ?? string.Empty);
 
                     proxyStartUpSetting.SetCaCertificate(cert);
                 }
