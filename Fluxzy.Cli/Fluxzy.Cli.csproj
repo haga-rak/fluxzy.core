@@ -26,6 +26,10 @@
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Cli\" />
+  </ItemGroup>
+
   <ProjectExtensions><VisualStudio><UserProperties properties_4launchsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

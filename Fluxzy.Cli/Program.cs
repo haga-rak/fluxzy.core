@@ -16,11 +16,6 @@ namespace Fluxzy.Cli
             // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
 
             return await FluxzyCommand.Run(args);
-
-            return new CliApp(s => new CertificateProvider(s, new FileSystemCertificateCache(s))).Start(args);
-            
         }
-
-        
     }
 }
