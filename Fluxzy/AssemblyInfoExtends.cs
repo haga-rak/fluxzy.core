@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Fluxzy.Desktop.Ui")]
 [assembly: InternalsVisibleTo("Fluxzy.Encoding.Tests")]
 [assembly: InternalsVisibleTo("Fluxzy.Tests")]
+[assembly: InternalsVisibleTo("fxzy")]
 
 // ReSharper disable once CheckNamespace
 namespace System.Runtime.CompilerServices

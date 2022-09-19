@@ -1,11 +1,14 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System;
 using System.CommandLine;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Fluxzy.Cli
 {
+
     public class FluxzyCertificateCommandBuilder
     {
         public Command Build()
@@ -13,12 +16,11 @@ namespace Fluxzy.Cli
             var command = new Command("cert");
 
             command.AddAlias("certificate");
+            
+            command.AddCommand(BuildExportCommand());
+            command.AddCommand(BuildCheckCommand());
 
-            var exportCommand = BuildExportCommand();
-
-            command.AddCommand(exportCommand);
-
-            return command; 
+            return command;
         }
 
         private static Command BuildExportCommand()
@@ -26,7 +28,7 @@ namespace Fluxzy.Cli
             var exportCommand = new Command("export", "Export the default embedded certificate used by fluxzy");
 
             var argumentFileInfo = new Argument<FileInfo>(
-                name: "output-file",
+                "output-file",
                 description: "The output file",
                 parse: a => new FileInfo(a.Tokens.First().Value))
             {
@@ -35,7 +37,7 @@ namespace Fluxzy.Cli
 
             exportCommand.AddArgument(argumentFileInfo);
 
-            exportCommand.SetHandler(async (fileInfo) =>
+            exportCommand.SetHandler(async fileInfo =>
             {
                 await using var stream = fileInfo.Create();
                 CertificateUtility.DumpDefaultCertificate(stream);
@@ -50,21 +52,31 @@ namespace Fluxzy.Cli
                                                      "trusted");
 
             var argumentFileInfo = new Argument<FileInfo>(
-                name: "cert-file",
-                description: "Check if",
+                "cert-file",
+                description: "A X509 certificate file",
                 parse: a => new FileInfo(a.Tokens.First().Value))
             {
                 Arity = ArgumentArity.ZeroOrOne
             };
 
+            argumentFileInfo.SetDefaultValue("Embedded certificate");
+
             exportCommand.AddArgument(argumentFileInfo);
 
-            exportCommand.SetHandler(async (fileInfo) =>
+            exportCommand.SetHandler(async fileInfo =>
             {
-                await using var stream = fileInfo.Create();
-                CertificateUtility.DumpDefaultCertificate(stream);
-            }, argumentFileInfo);
+                var certificate = FluxzySecurity.DefaultCertificate;
 
+                if (fileInfo != null)
+                    certificate = new(await File.ReadAllBytesAsync(fileInfo.FullName));
+
+                if (CertificateUtility.IsCertificateInstalled(certificate.SerialNumber))
+                    Console.WriteLine($"Certificate {certificate.SubjectName.Name} is trusted");
+                else
+                    Console.Error.WriteLine($"Certificate {certificate.SubjectName.Name} is not trusted");
+
+            }, argumentFileInfo);
+            
             return exportCommand;
         }
     }
