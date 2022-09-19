@@ -23,7 +23,6 @@ namespace Fluxzy.Interop.Pcap
             _captureContext = captureContext;
             _outTraceFileName = outTraceFileName;
             _innerTcpClient = new TcpClient();
-            // Determine remotePort 
         }
         
         public async Task<IPEndPoint> ConnectAsync(IPAddress remoteAddress, int remotePort)
@@ -39,7 +38,7 @@ namespace Fluxzy.Interop.Pcap
             _subscription = _captureContext.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port);
 
             _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());
-
+            
             _stream.OnStreamDisposed += async (_, _) =>
             {
                 // TODO when stream disposed 
