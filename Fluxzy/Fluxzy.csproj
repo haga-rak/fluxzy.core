@@ -24,8 +24,11 @@
 
   <ItemGroup>
     <Compile Remove="Archiving\Har\**" />
+    <Compile Remove="System\**" />
     <EmbeddedResource Remove="Archiving\Har\**" />
+    <EmbeddedResource Remove="System\**" />
     <None Remove="Archiving\Har\**" />
+    <None Remove="System\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -70,10 +73,6 @@
       <LastGenOutput>FileStore.Designer.cs</LastGenOutput>
       <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="System\" />
   </ItemGroup>
 
 </Project>

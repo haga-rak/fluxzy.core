@@ -240,33 +240,54 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Test_GetThrough_H1()
         {
+            var timeoutSeconds = 500;
+            var requestReceived = new TaskCompletionSource<Exchange>();
             var bindHost = "127.0.0.1";
             var bindPort = PortProvider.Next();
-            var timeoutSeconds = 500; 
-
             var startupSetting = FluxzySetting
-                .CreateDefault()
-                .SetBoundAddress(bindHost, bindPort);
+                                 .CreateDefault()
+                                 .SetBoundAddress(bindHost, bindPort);
 
-            var messageHandler = new HttpClientHandler()
-            {
+            var (httpClient, proxy) = CreateTestContext(bindHost, bindPort, timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
+
+            try {
+
+                var response = await httpClient.GetAsync("https://sandbox.smartizy.com/protocol",
+                    cancellationTokenSource.Token);
+
+                var responseString = await response.Content.ReadAsStringAsync(
+                    cancellationTokenSource.Token);
+
+                Assert.StartsWith("HTTP", responseString);
+
+                await requestReceived.Task;
+            }
+            finally {
+                httpClient.Dispose();
+                await proxy.DisposeAsync();
+            }
+        }
+
+        private static (HttpClient, Proxy p) CreateTestContext(string bindHost, int bindPort, int timeoutSeconds,
+            TaskCompletionSource<Exchange> requestReceived, FluxzySetting startupSetting,
+            out CancellationTokenSource cancellationTokenSource)
+        {
+            var messageHandler = new HttpClientHandler() {
                 Proxy = new WebProxy($"http://{bindHost}:{bindPort}")
             };
 
-            var httpClient = new HttpClient(messageHandler); 
+            var httpClient = new HttpClient(messageHandler);
 
-            var requestReceived = new TaskCompletionSource<Exchange>();
-            var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
+            cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
 
             cancellationTokenSource.Token.Register(() =>
             {
-                if (!requestReceived.Task.IsCompleted)
-                {
+                if (!requestReceived.Task.IsCompleted) {
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
                 }
             });
 
-            using var proxy = new Proxy(startupSetting,
+            var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
             proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
@@ -276,17 +297,7 @@ namespace Fluxzy.Tests
             };
 
             proxy.Run();
-
-            var response = await httpClient.GetAsync("https://sandbox.smartizy.com/protocol",
-                cancellationTokenSource.Token);
-
-            var responseString = await response.Content.ReadAsStringAsync(
-                cancellationTokenSource.Token); 
-
-            Assert.StartsWith("HTTP", responseString);
-
-            await requestReceived.Task;
-            
+            return (httpClient, proxy);
         }
 
         [Fact]
@@ -389,9 +400,7 @@ namespace Fluxzy.Tests
             Assert.Equal("HTTP/2", responseString);
 
             await requestReceived.Task;
-            
         }
-        
         
 
         [Fact]
@@ -500,8 +509,38 @@ namespace Fluxzy.Tests
             await requestReceived.Task;
             
         }
-        
 
-        
+        [Fact]
+        public async Task Test_Url_Exceeding_Max_Line()
+        {
+            var timeoutSeconds = 500;
+            var requestReceived = new TaskCompletionSource<Exchange>();
+            var bindHost = "127.0.0.1";
+            var bindPort = PortProvider.Next();
+            var startupSetting = FluxzySetting
+                                 .CreateDefault()
+                                 .SetBoundAddress(bindHost, bindPort);
+
+            var (httpClient, proxy) = CreateTestContext(bindHost, bindPort, timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
+
+            try {
+                var longSuffix = new string('a', 17 * 1024);
+                var response = await httpClient.GetAsync("https://sandbox.smartizy.com:5001/protocol?query=" + longSuffix,
+                    cancellationTokenSource.Token);
+
+               await response.Content.ReadAsStringAsync(
+                    cancellationTokenSource.Token);
+
+                Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+
+                await requestReceived.Task;
+            }
+            finally
+            {
+                httpClient.Dispose();
+                await proxy.DisposeAsync();
+            }
+        }
+
     }
 }
