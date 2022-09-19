@@ -3,13 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Binding;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
@@ -17,8 +15,7 @@ using Fluxzy.Saz;
 
 namespace Fluxzy.Cli
 {
-
-
+    
     public class FluxzyStartCommand
     {
         private readonly string _instanceIdentifier;
@@ -124,10 +121,6 @@ namespace Fluxzy.Cli
             string sessionIdentifier = null; 
 
             try {
-                if (registerAsSystemProxy) {
-                    var setting = SystemProxyRegistration.Register(proxyStartUpSetting);
-                    invocationContext.Console.Out.WriteLine($"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
-                }
 
                 using var tcpConnectionProvider =
                     includeTcpDump ? new CapturedTcpConnectionProvider()
@@ -135,8 +128,14 @@ namespace Fluxzy.Cli
 
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider)) {
                     proxy.Run();
-                    invocationContext.Console.Out.WriteLine($"Proxy started. Ctrl+C to exit.");
 
+                    if (registerAsSystemProxy)
+                    {
+                        var setting = SystemProxyRegistration.Register(proxyStartUpSetting);
+                        invocationContext.Console.Out.WriteLine($"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
+                    }
+
+                    invocationContext.Console.Out.WriteLine($"Proxy started. Ctrl+C to exit.");
                     try {
 
                         await Task.Delay(-1, cancellationToken);
