@@ -45,7 +45,7 @@ namespace Fluxzy.Interop.Pcap
 
         private void Start()
         {
-            _captureDevice.Open(DeviceModes.MaxResponsiveness | DeviceModes.NoCaptureLocal);
+            _captureDevice.Open();
             _captureDevice.Filter = $"tcp";
             _captureDevice.OnPacketArrival += OnCaptureDeviceOnOnPacketArrival;
             _captureDevice.StartCapture();
