@@ -1,3 +1,5 @@
+![example workflow](https://github.com/github/docs/actions/workflows/dotnet.yml/badge.svg)
+
 # fluxzy 
 fluxzy is an HTTP analyzer and debugger engine with powerful and flexible alteration system. 
 fluxzy is designed to deliver high end diagnosis and accurate performance measures. fluxzy targets .NET Standard 2.1, that means that it runs on any platform supporting this later. 
