@@ -2,23 +2,46 @@
 
 using System;
 using System.CommandLine;
+using System.CommandLine.Builder;
+using System.CommandLine.Invocation;
+using System.CommandLine.IO;
+using System.CommandLine.Parsing;
+using System.Threading.Tasks;
 
 namespace Fluxzy.Cli
 {
     public class FluxzyCommand
     {
-        public static void Run(string [] args)
+        public static async Task<int> Run(string [] args)
         {
-            var command = new RootCommand("Advanced HTTP capture tool");
+            var rootCommand = new RootCommand("Advanced HTTP capture tool");
             var instanceIdentifier = Guid.NewGuid().ToString();
 
             var startCommandBuilder = new FluxzyStartCommandBuilder(instanceIdentifier);
             var certificateCommandBuilder = new FluxzyCertificateCommandBuilder(); 
 
-            command.Add(startCommandBuilder.Build());
-            command.Add(certificateCommandBuilder.Build());
+            rootCommand.Add(startCommandBuilder.Build());
+            rootCommand.Add(certificateCommandBuilder.Build());
 
-            command.Invoke(args);
+            var final = new CommandLineBuilder(rootCommand)
+                    .UseExceptionHandler((e, context) =>
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red; 
+                        context.Console.Error.WriteLine(e.Message);
+                        Console.ResetColor();
+                        context.ExitCode = 1;
+                    }, 1)
+                    .Build();
+            
+            try
+            {
+                return await final.InvokeAsync(args);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return 1;
+            }
         }
     }
 }

@@ -3,7 +3,8 @@
     "Fluxzy.Cli": {
       "commandName": "Project",
       //"commandLineArgs": "start -l 127.0.0.1:45232 -d \"d:\\vsrun\" -sp -c"
-      "commandLineArgs": "start -sp -c -o coco.fxzy"
+      // "commandLineArgs": "start -sp -c -o coco.fxzy"
+      "commandLineArgs": "cert check sdf"
     }
   }
 }
