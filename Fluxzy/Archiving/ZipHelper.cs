@@ -77,10 +77,15 @@ namespace Fluxzy
 
                 var newEntry = new ZipEntry(entryName)
                 {
-                    DateTime = fileInfo.LastWriteTime
+                    DateTime = fileInfo.LastWriteTime,
+                    
                 };
 
-                zipStream.PutNextEntry(newEntry);
+                if (fileInfo.Name.EndsWith("pcap")) {
+                    newEntry.CompressionMethod = CompressionMethod.Stored;
+                }
+
+                    zipStream.PutNextEntry(newEntry);
                 await fsInput.CopyToAsync(zipStream);
                 zipStream.CloseEntry();
             }
