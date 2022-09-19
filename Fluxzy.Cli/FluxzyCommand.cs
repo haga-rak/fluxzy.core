@@ -24,7 +24,16 @@ namespace Fluxzy.Cli
             rootCommand.Add(certificateCommandBuilder.Build());
 
             var final = new CommandLineBuilder(rootCommand)
-                    .UseExceptionHandler((e, context) =>
+                        .UseVersionOption()
+                        .UseHelp()
+                        .UseEnvironmentVariableDirective()
+                        .UseParseDirective()
+                        .UseSuggestDirective()
+                        .RegisterWithDotnetSuggest()
+                        .UseTypoCorrections()
+                        .UseParseErrorReporting()
+                        .CancelOnProcessTermination()
+                        .UseExceptionHandler((e, context) =>
                     {
                         Console.ForegroundColor = ConsoleColor.Red; 
                         context.Console.Error.WriteLine(e.Message);
