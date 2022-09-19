@@ -78,15 +78,9 @@ namespace Fluxzy.Interop.Pcap
             if (_disposed)
                 return;
 
-
             _disposed = true;
-
-            Console.WriteLine("Disposing queue");
-
+            
             await End();
-
-
-            Console.WriteLine("Disposing queue end");
         }
     }
 }
