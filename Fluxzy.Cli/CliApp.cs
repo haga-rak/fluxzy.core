@@ -117,19 +117,16 @@ namespace Fluxzy.Cli
 
             var argument = target.Argument("fileName", "Dump the default public certificate used by fluxzy to file");
 
-            target.OnExecute(async () =>
+            target.OnExecute(() =>
             {
-                if (string.IsNullOrWhiteSpace(argument.Value))
-                {
+                if (string.IsNullOrWhiteSpace(argument.Value)) {
                     throw new Exception($"You must specify an output fileName");
                 }
 
-                using (var stream = File.Create(argument.Value))
-                {
-                    await CertificateUtility.DumpDefaultCertificate(stream).ConfigureAwait(false);
-                }
+                using var stream = File.Create(argument.Value);
+                CertificateUtility.DumpDefaultCertificate(stream);
 
-                return 0;
+                return Task.FromResult(0);
             });
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Core.Utils;
 
@@ -19,29 +20,28 @@ namespace Fluxzy
         }
 
         /// <summary>
-        /// Write the default certificate on P12 fORMAT to stream.
+        /// Write the default CA Certificate without private key
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static async Task DumpDefaultCertificate(Stream stream)
+        public static void DumpDefaultCertificate(Stream stream)
         {
-            await stream.WriteAsyncNS2(FluxzySecurity.DefaultCertificate.Export(X509ContentType.Cert)).ConfigureAwait(false);
+            FluxzySecurity.DefaultCertificate.ExportToPem(stream);
         }
         
         /// <summary>
-        /// Check whether a certificat is installed as root certificate
+        /// Check whether a certificate is installed as root certificate
         /// </summary>
         /// <param name="certificateSerialNumber"></param>
         /// <returns></returns>
         public static bool IsCertificateInstalled(string certificateSerialNumber)
         {
-            using (X509Store store = new X509Store(StoreName.Root))
-            {
-                store.Open(OpenFlags.ReadOnly);
+            using var store = new X509Store(StoreName.Root);
+
+            store.Open(OpenFlags.ReadOnly);
                 
-                var certificates = store.Certificates.Find(X509FindType.FindBySerialNumber, certificateSerialNumber, false);
-                return certificates.Count > 0;
-            }
+            var certificates = store.Certificates.Find(X509FindType.FindBySerialNumber, certificateSerialNumber, false);
+            return certificates.Count > 0;
         }
 
         public static bool IsDefaultCertificateInstalled()
@@ -73,14 +73,11 @@ namespace Fluxzy
 
         public static void InstallCertificate(X509Certificate2 certificate)
         {
-            using (var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert)))
-            {
-                using (X509Store store = new X509Store(StoreName.Root))
-                {
-                    store.Open(OpenFlags.ReadWrite);
-                    store.Add(newCertificate);
-                }
-            }
+            using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
+            using X509Store store = new X509Store(StoreName.Root);
+
+            store.Open(OpenFlags.ReadWrite);
+            store.Add(newCertificate);
         }
 
         public static void InstallDefaultCertificate()
@@ -96,6 +93,19 @@ namespace Fluxzy
             {
                 InstallCertificate(certificate);
             }
+        }
+    }
+
+    public static class CertificateExtension
+    {
+        public static void ExportToPem(this X509Certificate cert, Stream stream)
+        {
+            using var streamWriter = new StreamWriter(stream, Encoding.ASCII, 1024 * 8, true);
+
+            streamWriter.NewLine = "\r\n"; 
+            streamWriter.WriteLine("-----BEGIN CERTIFICATE-----");
+            streamWriter.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert), Base64FormattingOptions.InsertLineBreaks));
+            streamWriter.WriteLine("-----END CERTIFICATE-----");
         }
     }
 }
