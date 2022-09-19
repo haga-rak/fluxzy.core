@@ -13,7 +13,7 @@ namespace Fluxzy.Cli
     {
         public Command Build()
         {
-            var command = new Command("cert");
+            var command = new Command("cert", "Manage root certificates used by the fluxzy");
 
             command.AddAlias("certificate");
             
@@ -96,7 +96,10 @@ namespace Fluxzy.Cli
                 if (CertificateUtility.IsCertificateInstalled(certificate.SerialNumber))
                     Console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 else
+                {
                     Console.Error.WriteLine($"NOT trusted {certificate.SubjectName.Name}");
+                }
+                
 
             }, argumentFileInfo);
             
