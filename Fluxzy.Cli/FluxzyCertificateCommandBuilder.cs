@@ -19,6 +19,7 @@ namespace Fluxzy.Cli
             
             command.AddCommand(BuildExportCommand());
             command.AddCommand(BuildCheckCommand());
+            command.AddCommand(BuildInstallCommand());
 
             return command;
         }
@@ -41,6 +42,28 @@ namespace Fluxzy.Cli
             {
                 await using var stream = fileInfo.Create();
                 CertificateUtility.DumpDefaultCertificate(stream);
+            }, argumentFileInfo);
+
+            return exportCommand;
+        }
+        private static Command BuildInstallCommand()
+        {
+            var exportCommand = new Command("install", "Trust a certificate as ROOT (need elevation)");
+
+            var argumentFileInfo = new Argument<FileInfo>(
+                "cert-file",
+                description: "A X509 certificate file",
+                parse: a => new FileInfo(a.Tokens.First().Value))
+            {
+                Arity = ArgumentArity.ExactlyOne
+            };
+
+            exportCommand.AddArgument(argumentFileInfo);
+
+            exportCommand.SetHandler(async fileInfo =>
+            {
+                var certificate =  new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
+                CertificateUtility.InstallCertificate(certificate);
             }, argumentFileInfo);
 
             return exportCommand;
@@ -71,9 +94,9 @@ namespace Fluxzy.Cli
                     certificate = new(await File.ReadAllBytesAsync(fileInfo.FullName));
 
                 if (CertificateUtility.IsCertificateInstalled(certificate.SerialNumber))
-                    Console.WriteLine($"Certificate {certificate.SubjectName.Name} is trusted");
+                    Console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 else
-                    Console.Error.WriteLine($"Certificate {certificate.SubjectName.Name} is not trusted");
+                    Console.Error.WriteLine($"NOT trusted {certificate.SubjectName.Name}");
 
             }, argumentFileInfo);
             
