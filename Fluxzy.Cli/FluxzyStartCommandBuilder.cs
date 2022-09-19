@@ -15,8 +15,7 @@ using Fluxzy.Saz;
 
 namespace Fluxzy.Cli
 {
-    
-    public class FluxzyStartCommand
+    public class FluxzyStartCommandBuilder
     {
         private readonly string _instanceIdentifier;
 
@@ -36,7 +35,7 @@ namespace Fluxzy.Cli
             }
         }
 
-        public FluxzyStartCommand(string instanceIdentifier)
+        public FluxzyStartCommandBuilder(string instanceIdentifier)
         {
             _instanceIdentifier = instanceIdentifier;
         }
