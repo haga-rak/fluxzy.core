@@ -8,7 +8,7 @@
     <Version>0.2.001</Version>
     <Company>smartizy.com</Company>
     <Authors>Haga Rakotoharivelo</Authors>
-    <Description>fluxzy. HTTP engine for analyzing and altering HTTP requests</Description>
+    <Description>HTTP analyzer and debugger engine, designed to deliver high end diagnosis and accurate performance measures.</Description>
     <Copyright />
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <LangVersion>default</LangVersion>
@@ -23,24 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Archiving\Har\**" />
-    <Compile Remove="System\**" />
-    <EmbeddedResource Remove="Archiving\Har\**" />
-    <EmbeddedResource Remove="System\**" />
-    <None Remove="Archiving\Har\**" />
-    <None Remove="System\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Messages\Hpm.cs" />
-    <Compile Remove="Messages\Hpm.Public.cs" />
-    <Compile Remove="Messages\Hrm.cs" />
-    <Compile Remove="Messages\Hrm.Public.cs" />
-    <Compile Remove="Messages\HrmMethod.cs" />
-    <Compile Remove="Messages\HrmVersion.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!--<PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />-->
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
@@ -50,15 +32,6 @@
     <PackageReference Include="System.Text.Json" Version="6.0.2" />
     <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
   </ItemGroup>
-
-  <!--<ItemGroup>
-    <Reference Include="Microsoft.Extensions.Configuration">
-      <HintPath>C:\Users\JuH\.nuget\packages\microsoft.extensions.configuration\2.2.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
-      <HintPath>C:\Users\Administrateur\.nuget\packages\microsoft.extensions.configuration.abstractions\2.2.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-    </Reference>
-  </ItemGroup>-->
 
   <ItemGroup>
     <Compile Update="FileStore.Designer.cs">
