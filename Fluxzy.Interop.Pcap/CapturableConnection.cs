@@ -4,8 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using Fluxzy.Core;
 using Fluxzy.Misc;
-using PacketDotNet;
-using SharpPcap;
 
 namespace Fluxzy.Interop.Pcap
 {

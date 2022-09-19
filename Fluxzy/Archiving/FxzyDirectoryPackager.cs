@@ -23,8 +23,9 @@ namespace Fluxzy
             await ZipHelper.Compress(new DirectoryInfo(directory),
                 outputStream, fileInfo =>
                 {
-                    if (fileInfo.Length == 0)
+                    if (fileInfo.Length == 0) {
                         return false;
+                    }
 
                     if (fileInfo.Name.EndsWith(".data")
                         || fileInfo.Name.EndsWith(".json")
