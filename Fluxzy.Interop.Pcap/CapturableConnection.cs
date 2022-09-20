@@ -75,7 +75,7 @@ namespace Fluxzy.Interop.Pcap
 
                 _captureContext.Unsubscribe(disposable);
 
-                // Ferme le fichier correspondant s
+                // 
                 await disposable.DisposeAsync();
             }
         }

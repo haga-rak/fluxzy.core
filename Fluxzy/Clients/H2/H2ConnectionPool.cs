@@ -342,7 +342,7 @@ namespace Fluxzy.Clients.H2
                         foreach (var element
                                  in tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate))
                         {
-                            _lastActivity = ITimingProvider.Default.Instant();
+                            // _lastActivity = ITimingProvider.Default.Instant();
 
                             new WindowUpdateFrame(element.WindowUpdateSize, element.StreamIdentifier)
                                 .Write(windowSizeBuffer);
@@ -355,7 +355,7 @@ namespace Fluxzy.Clients.H2
                             await _baseStream.WriteAsync(windowSizeBuffer, token).ConfigureAwait(false);
                             await _baseStream.FlushAsync(token);
 
-                            _lastActivity = ITimingProvider.Default.Instant();
+                            // _lastActivity = ITimingProvider.Default.Instant();
                         }
 
                         // TODO improve the priority rule 
@@ -378,7 +378,7 @@ namespace Fluxzy.Clients.H2
 
                                 await _baseStream.FlushAsync(token);
 
-                                _lastActivity = ITimingProvider.Default.Instant();
+                                // _lastActivity = ITimingProvider.Default.Instant();
 
                                 writeTask.OnComplete(null);
                             }
