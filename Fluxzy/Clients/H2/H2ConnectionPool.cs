@@ -452,7 +452,6 @@ namespace Fluxzy.Clients.H2
                     if (frame.IsEmpty)
                         break;
 
-
                     _logger.TraceDeep(0, () => "3");
 
                     _lastActivity = ITimingProvider.Default.Instant();

@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,18 +34,34 @@ namespace Fluxzy.Clients.H2
         public static async Task WriteSetting(Stream innerStream, PeerSetting setting, H2Logger logger, 
             CancellationToken token)
         {
-            byte [] settingBuffer = new byte[80];
+            byte [] settingBuffer = ArrayPool<byte>.Shared.Rent(80);
 
-            var written = WriteSetting(settingBuffer, setting, logger);
-            await innerStream.WriteAsync(settingBuffer, 0, written, token);
+            try
+            {
+                var written = WriteSetting(settingBuffer, setting, logger);
+                await innerStream.WriteAsync(settingBuffer, 0, written, token);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(settingBuffer);
+            }
+
         }
 
         public static async Task WriteAckSetting(Stream innerStream)
         {
-            byte[] settingBuffer = new byte[16]; 
-            int written = new SettingFrame(true).Write(settingBuffer);
+            byte[] settingBuffer = ArrayPool<byte>.Shared.Rent(80);
 
-            await innerStream.WriteAsync(settingBuffer, 0, written);
+            try
+            {
+                int written = new SettingFrame(true).Write(settingBuffer);
+                await innerStream.WriteAsync(settingBuffer, 0, written);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(settingBuffer);
+            }
+            
 
         }
     }

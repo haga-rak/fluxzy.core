@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Clients.H2
 {
-    internal readonly struct WriteTask 
+    internal readonly struct WriteTask
     {
-        private readonly TaskCompletionSource<object> _taskCompletionSource;
-
         public WriteTask(H2FrameType frameType,
             int streamIdentifier,
             int priority,
@@ -22,35 +20,34 @@ namespace Fluxzy.Clients.H2
             StreamDependency = streamDependency;
             FrameType = frameType;
             WindowUpdateSize = value;
-            _taskCompletionSource = new TaskCompletionSource<object>();
-            
+            CompletionSource = new TaskCompletionSource<object>();
         }
 
-        public ReadOnlyMemory<byte>  BufferBytes { get;  }
-        
+        public ReadOnlyMemory<byte> BufferBytes { get; }
+
         public void OnComplete(Exception ex)
         {
             if (ex != null)
             {
-                _taskCompletionSource.SetException(ex);
-                return; 
+                CompletionSource.SetException(ex);
+                return;
             }
 
-            _taskCompletionSource.SetResult(null);
+            CompletionSource.SetResult(null);
         }
 
-        public Task DoneTask => _taskCompletionSource.Task;
+        public Task DoneTask => CompletionSource.Task;
 
-        public int StreamIdentifier { get;  }
+        public int StreamIdentifier { get; }
 
-        public int Priority { get;  }
+        public int Priority { get; }
 
-        public int StreamDependency { get;  }
+        public int StreamDependency { get; }
 
         public H2FrameType FrameType { get; }
 
         public int WindowUpdateSize { get; }
 
-        public TaskCompletionSource<object> CompletionSource => _taskCompletionSource;
+        public TaskCompletionSource<object> CompletionSource { get; }
     }
 }

@@ -124,7 +124,7 @@ namespace Fluxzy.Clients.H11
                     _logger.Trace(exchange.Id, () => $"[Process] return");
 
                     var res = exchange.Complete
-                        .ContinueWith(completeTask =>
+                        .ContinueWith(async completeTask =>
                         {
                             if (exchange.Metrics.ResponseBodyEnd == default)
                             {
@@ -137,7 +137,7 @@ namespace Fluxzy.Clients.H11
 
                                 foreach (var exception in completeTask.Exception.InnerExceptions)
                                 {
-                                    exchange.Errors.Add(new Error("Error while reading resp", exception));
+                                    exchange.Errors.Add(new Error("Error while reading response", exception));
                                 }
                             }
                             else if (completeTask.IsCompletedSuccessfully && !completeTask.Result)
@@ -155,10 +155,10 @@ namespace Fluxzy.Clients.H11
                                 // should close connection 
                             }
 
-                            exchange.Connection.ReadStream.Dispose();
+                            await exchange.Connection.ReadStream.DisposeAsync();
 
                             if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
-                                exchange.Connection.WriteStream.Dispose();
+                                await exchange.Connection.WriteStream.DisposeAsync();
 
                         }, cancellationToken);
                 }

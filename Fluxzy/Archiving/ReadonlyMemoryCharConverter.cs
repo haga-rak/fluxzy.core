@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -20,11 +21,22 @@ namespace Fluxzy
         {
             var byteCount = Encoding.UTF8.GetByteCount(value.Span);
 
-            var bufferedData = byteCount < 4096 ? stackalloc byte[byteCount] : new byte[byteCount];
+            byte[] allocated = null;
 
-            Encoding.UTF8.GetBytes(value.Span, bufferedData);
+            try
+            {
+                var bufferedData = byteCount < 4096
+                    ? stackalloc byte[byteCount]
+                    : allocated = ArrayPool<byte>.Shared.Rent(byteCount);
 
-            writer.WriteStringValue(bufferedData);
+                Encoding.UTF8.GetBytes(value.Span, bufferedData);
+                writer.WriteStringValue(bufferedData);
+            }
+            finally
+            {
+                if (allocated != null)
+                    ArrayPool<byte>.Shared.Return(allocated);
+            }
         }
     }
 }
