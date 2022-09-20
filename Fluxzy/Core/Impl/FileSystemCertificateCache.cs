@@ -17,7 +17,7 @@ namespace Fluxzy.Core
 
         private string GetCertificateFileName(string baseSerialNumber, string rootDomain)
         {
-            return Path.Combine(_baseDirectory, baseSerialNumber, rootDomain + ".crt"); 
+            return Path.Combine(_baseDirectory, baseSerialNumber, rootDomain + ".pfx"); 
         }
 
         public byte[] Load(

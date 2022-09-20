@@ -45,7 +45,6 @@ namespace Fluxzy.Core
 
         public async ValueTask DisposeAsync()
         {
-            Console.WriteLine("Client disposed");
             _client?.Dispose();
         }
     }

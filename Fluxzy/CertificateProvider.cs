@@ -81,7 +81,7 @@ namespace Fluxzy
                 _rsaKeyEngine,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
-
+            
             watch.Stop();
 
             certificateRequest.CertificateExtensions.Add(
@@ -123,16 +123,14 @@ namespace Fluxzy
 
             if (offSetEnd > offsetLimit) offSetEnd = offsetLimit;
 
-            using (var cert = certificateRequest.Create(_baseCertificate,
-                       new DateTimeOffset(_baseCertificate.NotBefore.AddSeconds(1)),
-                       offSetEnd,
-                       BitConverter.GetBytes(randomGenerator.NextDouble())))
-            {
-                using (var privateKeyCertificate = cert.CopyWithPrivateKey(_rsaKeyEngine))
-                {
-                    return privateKeyCertificate.Export(X509ContentType.Pkcs12);
-                }
-            }
+            using var cert = certificateRequest.Create(_baseCertificate,
+                new DateTimeOffset(_baseCertificate.NotBefore.AddSeconds(1)),
+                offSetEnd,
+                BitConverter.GetBytes(randomGenerator.NextDouble()));
+
+            using var privateKeyCertificate = cert.CopyWithPrivateKey(_rsaKeyEngine);
+
+            return privateKeyCertificate.Export(X509ContentType.Pkcs12);
         }
     }
 }
