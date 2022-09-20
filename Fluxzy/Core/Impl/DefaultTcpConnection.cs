@@ -46,6 +46,7 @@ namespace Fluxzy.Core
         public async ValueTask DisposeAsync()
         {
             _client?.Dispose();
+            await Task.CompletedTask;
         }
     }
 }

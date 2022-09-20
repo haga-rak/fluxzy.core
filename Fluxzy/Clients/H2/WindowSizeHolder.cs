@@ -61,8 +61,7 @@ namespace Fluxzy.Clients.H2
                 }
             }
         }
-
-        private int _waitCount = 0; 
+        
 
         public async ValueTask<int> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
         {
