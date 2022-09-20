@@ -25,6 +25,7 @@ namespace Fluxzy.Clients
 
         public async ValueTask DisposeAsync()
         {
+            await Task.CompletedTask;
         }
 
         public void Dispose()

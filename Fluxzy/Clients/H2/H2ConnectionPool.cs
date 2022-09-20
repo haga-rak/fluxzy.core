@@ -434,8 +434,6 @@ namespace Fluxzy.Clients.H2
             byte [] readBuffer = new byte[_setting.Remote.MaxFrameSize];
             Exception outException = null;
 
-            int receivedDataCount = 0; 
-
             try
             {
                 while (EvaluateCond() && !token.IsCancellationRequested)

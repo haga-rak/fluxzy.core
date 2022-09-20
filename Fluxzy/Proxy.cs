@@ -186,6 +186,9 @@ namespace Fluxzy
 
         private void InternalDispose()
         {
+            if (_halted)
+                return; 
+
             _halted = true;
 
             Writer?.Dispose();

@@ -15,8 +15,6 @@ namespace Fluxzy.Clients
 {
     public class Exchange : IExchange
     {
-        private static int _exchangeCounter = 0;
-
         private readonly TaskCompletionSource<bool> _exchangeCompletionSource = new();
 
         private Exchange(

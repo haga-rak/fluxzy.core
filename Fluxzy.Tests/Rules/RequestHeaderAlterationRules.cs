@@ -159,7 +159,6 @@ namespace Fluxzy.Tests.Rules
         [InlineData(TestConstants.Http2Host)]
         public async Task DeleteRequestHeaderWithFilterHostOnly(string host)
         {
-            var headerValue = "anyrandomtexTyoo!!";
             var headerName = "X-Haga-Unit-Test";
 
             using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);

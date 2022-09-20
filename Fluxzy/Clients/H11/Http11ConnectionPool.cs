@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Security;
 using System.Threading;
@@ -177,6 +176,7 @@ namespace Fluxzy.Clients.H11
 
         public async ValueTask DisposeAsync()
         {
+            await Task.CompletedTask;
         }
 
         public void Dispose()
@@ -188,14 +188,10 @@ namespace Fluxzy.Clients.H11
 
     public class Http11ProcessingState
     {
-        private readonly Stream _stream;
-        private readonly ITimingProvider _timingProvider;
-
         public Http11ProcessingState(Connection connection, ITimingProvider timingProvider)
         {
             Connection = connection;
-            _timingProvider = timingProvider;
-            LastUsed = _timingProvider.Instant();
+            LastUsed = timingProvider.Instant();
         }
 
         public Connection Connection { get; }
