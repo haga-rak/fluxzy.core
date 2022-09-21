@@ -7,7 +7,8 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Misc;
+using Fluxzy.Archiving.Writers;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.H11
 {

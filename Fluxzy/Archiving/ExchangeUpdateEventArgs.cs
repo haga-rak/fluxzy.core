@@ -1,4 +1,5 @@
 ﻿using System;
+using Fluxzy.Archiving.Writers;
 using Fluxzy.Clients;
 
 namespace Fluxzy
@@ -6,6 +7,7 @@ namespace Fluxzy
     public class ExchangeUpdateEventArgs : EventArgs
     {
         public ExchangeInfo ExchangeInfo { get; }
+
         public Exchange Original { get; }
 
         public UpdateType UpdateType { get; }

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Misc;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.H2
 {

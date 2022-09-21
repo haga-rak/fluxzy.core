@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     internal class CombinedReadonlyStream : Stream
     {
@@ -13,8 +13,8 @@ namespace Fluxzy.Misc
         private IEnumerator<Stream> _iterator;
         private Stream _current;
 
-        public CombinedReadonlyStream(bool closeStreams, params Stream [] args)
-        : this (args, closeStreams)
+        public CombinedReadonlyStream(bool closeStreams, params Stream[] args)
+        : this(args, closeStreams)
         {
         }
 
@@ -101,7 +101,7 @@ namespace Fluxzy.Misc
         public override long Position
         {
             get => _position;
-            set { if (value != this._position) throw new NotSupportedException(); }
+            set { if (value != _position) throw new NotSupportedException(); }
         }
 
         public override int Read(byte[] buffer, int offset, int count)

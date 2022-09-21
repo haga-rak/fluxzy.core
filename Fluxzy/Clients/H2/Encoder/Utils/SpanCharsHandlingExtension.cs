@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fluxzy.Clients.H2.Encoder.HPack;
 
 namespace Fluxzy.Clients.H2.Encoder.Utils

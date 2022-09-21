@@ -6,14 +6,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     public class ChunkedTransferWriteStream : Stream
     {
         private readonly Stream _innerStream;
         private readonly byte[] _chunkLengthBuffer = new byte[64];
-        private static readonly byte [] ChunkTerminator = { (byte)'0', (byte)'\r', (byte)'\n', (byte)'\r', (byte)'\n' };
-        private static readonly byte [] LineTerminator = {  (byte)'\r', (byte)'\n' };
+        private static readonly byte[] ChunkTerminator = { (byte)'0', (byte)'\r', (byte)'\n', (byte)'\r', (byte)'\n' };
+        private static readonly byte[] LineTerminator = { (byte)'\r', (byte)'\n' };
 
         private bool _eof;
 
@@ -51,7 +51,7 @@ namespace Fluxzy.Misc
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken); 
+            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken);
         }
 
         public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())

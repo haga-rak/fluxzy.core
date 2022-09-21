@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     /// <summary>
     /// Read an inner stream up to max length
@@ -33,7 +33,7 @@ namespace Fluxzy.Misc
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var minCount = (int) Math.Min(count, MaxLength - TotalRead);
+            var minCount = (int)Math.Min(count, MaxLength - TotalRead);
 
             if (minCount == 0)
                 return 0;
@@ -44,7 +44,7 @@ namespace Fluxzy.Misc
 
             return read;
         }
-        
+
         public override long Seek(long offset, SeekOrigin origin)
         {
             return _innerStream.Seek(offset, origin);
@@ -85,7 +85,7 @@ namespace Fluxzy.Misc
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
-                .ConfigureAwait(false); 
+                .ConfigureAwait(false);
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())

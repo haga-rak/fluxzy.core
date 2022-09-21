@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     /// <summary>
     /// Used to dump a stream to file. 
@@ -14,7 +14,7 @@ namespace Fluxzy.Misc
         private readonly FileStream _fileStreamIn;
         private readonly FileStream _fileStreamOut;
 
-        public DebugFileStream(string pathPrefix, Stream innerStream, bool ? readOnly = null)
+        public DebugFileStream(string pathPrefix, Stream innerStream, bool? readOnly = null)
         {
             _innerStream = innerStream;
 

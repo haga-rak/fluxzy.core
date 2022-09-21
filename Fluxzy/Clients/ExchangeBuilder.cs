@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
-using Fluxzy.Misc;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
-using CombinedReadonlyStream = Fluxzy.Misc.CombinedReadonlyStream;
+using CombinedReadonlyStream = Fluxzy.Misc.Streams.CombinedReadonlyStream;
 
 namespace Fluxzy.Clients
 {

@@ -1,15 +1,16 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Misc;
+using Fluxzy.Archiving.Writers;
+using Fluxzy.Misc.Streams;
 
-namespace Fluxzy
+namespace Fluxzy.Writers
 {
     public class EventOnlyArchiveWriter : RealtimeArchiveWriter
     {
         public override Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask; 
+            return Task.CompletedTask;
         }
 
         public override Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
@@ -19,7 +20,7 @@ namespace Fluxzy
 
         public override Stream CreateRequestBodyStream(int exchangeId)
         {
-            return new MockedWriteStream(); 
+            return new MockedWriteStream();
         }
 
         public override Stream CreateResponseBodyStream(int exchangeId)

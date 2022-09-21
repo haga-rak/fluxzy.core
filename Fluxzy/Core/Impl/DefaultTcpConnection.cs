@@ -5,7 +5,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Fluxzy.Misc;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {

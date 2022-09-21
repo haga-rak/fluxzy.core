@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     /// <summary>
     /// Aims to build an I/O stream from a read and a write stream
@@ -21,7 +21,7 @@ namespace Fluxzy.Misc
 
         public override void Flush()
         {
-            _readStream.Flush(); 
+            _readStream.Flush();
             _writeStream.Flush();
         }
 
@@ -64,10 +64,10 @@ namespace Fluxzy.Misc
             _writeStream.Write(buffer, offset, count);
         }
 
-        public override Task WriteAsync(byte [] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested || !_writeStream.CanWrite)
-                return Task.CompletedTask; 
+                return Task.CompletedTask;
 
             return _writeStream.WriteAsync(buffer, offset, count, cancellationToken);
         }
@@ -75,7 +75,7 @@ namespace Fluxzy.Misc
         public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
         {
             if (cancellationToken.IsCancellationRequested || !_writeStream.CanWrite)
-                return; 
+                return;
 
             await _writeStream.WriteAsync(buffer, cancellationToken);
         }
@@ -96,7 +96,7 @@ namespace Fluxzy.Misc
 
             try
             {
-                _readStream.Dispose(); 
+                _readStream.Dispose();
             }
             catch
             {
@@ -104,7 +104,7 @@ namespace Fluxzy.Misc
             }
             try
             {
-                _writeStream.Dispose(); 
+                _writeStream.Dispose();
             }
             catch
             {
