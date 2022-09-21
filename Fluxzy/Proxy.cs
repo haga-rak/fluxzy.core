@@ -32,7 +32,6 @@ namespace Fluxzy
 
         private  int _currentConcurrentCount = 0;
         private readonly FromIndexIdProvider _idProvider;
-        private readonly string _workingDirectory;
 
         public Proxy(
             FluxzySetting startupSetting,
@@ -47,14 +46,13 @@ namespace Fluxzy
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
            
-
             var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
             {
-                _workingDirectory = Path.Combine(StartupSetting.ArchivingPolicy.Directory, SessionIdentifier);
+                 var workingDirectory = Path.Combine(StartupSetting.ArchivingPolicy.Directory, SessionIdentifier);
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
-                Writer = new DirectoryArchiveWriter(_workingDirectory);
+                Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory);
             }
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
