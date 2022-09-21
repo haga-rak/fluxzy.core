@@ -10,9 +10,10 @@ namespace Fluxzy
     public class ResponseHeaderInfo
     {
         [JsonConstructor]
-        public ResponseHeaderInfo()
+        public ResponseHeaderInfo(int statusCode, IEnumerable<HeaderFieldInfo> headers)
         {
-
+            StatusCode = statusCode;
+            Headers = headers;
         }
 
         public ResponseHeaderInfo(ResponseHeader originalHeader)
@@ -21,9 +22,9 @@ namespace Fluxzy
             Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s)); 
         }
 
-        public int StatusCode { get; set;  } 
+        public int StatusCode { get;  } 
 
-        public IEnumerable<HeaderFieldInfo> Headers { get; set; }
+        public IEnumerable<HeaderFieldInfo> Headers { get; }
 
     }
 }

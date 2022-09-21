@@ -9,17 +9,19 @@ namespace Fluxzy
 {
     public class HeaderFieldInfo
     {
-        [JsonConstructor]
-        public HeaderFieldInfo()
-        {
-
-        }
-
         public HeaderFieldInfo(HeaderField original)
         {
             Name = original.Name;
             Value = original.Value;
             Forwarded = !Http11Constants.IsNonForwardableHeader(original.Name); 
+        }
+
+        [JsonConstructor]
+        public HeaderFieldInfo(ReadOnlyMemory<char> name, ReadOnlyMemory<char> value, bool forwarded)
+        {
+            Name = name;
+            Value = value;
+            Forwarded = forwarded;
         }
 
         public ReadOnlyMemory<char> Name { get; set; } 
@@ -28,6 +30,7 @@ namespace Fluxzy
         
         public bool Forwarded { get; set; }
 
-        public static implicit operator HeaderFieldInfo(HeaderField d) => new HeaderFieldInfo(d);
+
+        public static implicit operator HeaderFieldInfo(HeaderField d) => new(d);
     }
 }

@@ -8,11 +8,6 @@ namespace Fluxzy
     public class ExchangeInfo : IExchange
     {
         [JsonConstructor]
-        public ExchangeInfo()
-        {
-
-        }
-
         public ExchangeInfo(Exchange exchange)
         {
             Id = exchange.Id;
@@ -25,17 +20,29 @@ namespace Fluxzy
             Pending = !exchange.Complete.IsCompleted; 
         }
 
-        public int Id { get; set; }
+        public ExchangeInfo(int id, int connectionId, string httpVersion, RequestHeaderInfo requestHeader, ResponseHeaderInfo responseHeader, ExchangeMetrics metrics, string egressIp, bool pending)
+        {
+            Id = id;
+            ConnectionId = connectionId;
+            HttpVersion = httpVersion;
+            RequestHeader = requestHeader;
+            ResponseHeader = responseHeader;
+            Metrics = metrics;
+            EgressIp = egressIp;
+            Pending = pending;
+        }
 
-        public int ConnectionId { get; set; }
+        public int Id { get;  }
 
-        public string HttpVersion { get; set; }
+        public int ConnectionId { get; }
 
-        public RequestHeaderInfo RequestHeader { get; set; }
+        public string HttpVersion { get; }
+
+        public RequestHeaderInfo RequestHeader { get; }
         
-        public ResponseHeaderInfo ResponseHeader { get; set; }
+        public ResponseHeaderInfo ResponseHeader { get; }
         
-        public ExchangeMetrics Metrics { get; set; }
+        public ExchangeMetrics Metrics { get; }
 
         public string FullUrl => RequestHeader.GetFullUrl();
 
@@ -61,9 +68,9 @@ namespace Fluxzy
 
         public int StatusCode => ResponseHeader?.StatusCode ?? 0;
 
-        public string EgressIp { get; set; }
+        public string EgressIp { get; }
 
-        public bool Pending { get; set; }
+        public bool Pending { get; }
     }
 
     public class BodyContent
