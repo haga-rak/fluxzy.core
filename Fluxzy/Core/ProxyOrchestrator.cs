@@ -4,9 +4,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Archiving.Writers;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
-using Fluxzy.Misc;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core

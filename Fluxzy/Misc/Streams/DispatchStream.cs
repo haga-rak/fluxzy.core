@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     /// <summary>
     ///     Read stream and dispatch read bytes to listener streams

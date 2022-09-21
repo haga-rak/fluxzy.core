@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     public static class StreamExtensions
     {
@@ -13,27 +13,27 @@ namespace Fluxzy.Misc
             Stream destination,
             int bufferSize, Action<int> onContentCopied, CancellationToken cancellationToken)
         {
-            return await CopyDetailed(source, destination, new byte[bufferSize], onContentCopied,
+            return await source.CopyDetailed(destination, new byte[bufferSize], onContentCopied,
                 cancellationToken);
         }
 
         public static async ValueTask<int> Drain(this Stream stream, int bufferSize = 16 * 1024)
         {
             var buffer = new byte[bufferSize];
-            int read; 
-            var total = 0; 
+            int read;
+            var total = 0;
 
             while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
-                total += read; 
+                total += read;
             }
 
-            return total; 
+            return total;
         }
-        
+
         public static async ValueTask<long> CopyDetailed(this Stream source,
             Stream destination,
-            byte [] buffer, Action<int> onContentCopied, CancellationToken cancellationToken)
+            byte[] buffer, Action<int> onContentCopied, CancellationToken cancellationToken)
         {
             long totalCopied = 0;
             int read;
@@ -56,7 +56,7 @@ namespace Fluxzy.Misc
         {
             int readen = 0;
             int currentIndex = 0;
-            int remain = buffer.Length; 
+            int remain = buffer.Length;
 
             while (readen < buffer.Length)
             {
@@ -66,14 +66,14 @@ namespace Fluxzy.Misc
                 var currentRead = await origin.ReadAsync(buffer.Slice(currentIndex, remain), cancellationToken).ConfigureAwait(false);
 
                 if (currentRead <= 0)
-                    return false; 
+                    return false;
 
-                currentIndex += currentRead; 
-                remain -= currentRead; 
-                readen += (currentRead); 
+                currentIndex += currentRead;
+                remain -= currentRead;
+                readen += currentRead;
             }
 
-            return true; 
+            return true;
         }
     }
 }

@@ -3,7 +3,7 @@
 using System.Net;
 using System.Net.Sockets;
 using Fluxzy.Core;
-using Fluxzy.Misc;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Interop.Pcap
 {

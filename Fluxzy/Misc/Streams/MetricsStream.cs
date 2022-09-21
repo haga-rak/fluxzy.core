@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     /// <summary>
     ///     Provides a stream that expose read events

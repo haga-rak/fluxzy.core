@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
-using Fluxzy.Misc;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients
 {

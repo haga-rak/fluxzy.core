@@ -5,7 +5,7 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Misc;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
