@@ -13,12 +13,6 @@ namespace Fluxzy
     /// </summary>
     public class RequestHeaderInfo
     {
-        [JsonConstructor]
-        public RequestHeaderInfo()
-        {
-
-        }
-
         public RequestHeaderInfo(RequestHeader originalHeader)
         {
             Method = originalHeader.Method;
@@ -28,15 +22,25 @@ namespace Fluxzy
             Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s)); 
         }
 
-        public ReadOnlyMemory<char> Method { get; set; }
+        [JsonConstructor]
+        public RequestHeaderInfo(ReadOnlyMemory<char> method, ReadOnlyMemory<char> scheme, ReadOnlyMemory<char> path, ReadOnlyMemory<char> authority, IEnumerable<HeaderFieldInfo> headers)
+        {
+            Method = method;
+            Scheme = scheme;
+            Path = path;
+            Authority = authority;
+            Headers = headers;
+        }
 
-        public ReadOnlyMemory<char> Scheme { get; set; }
+        public ReadOnlyMemory<char> Method { get; }
 
-        public ReadOnlyMemory<char> Path { get; set; }
+        public ReadOnlyMemory<char> Scheme { get; }
 
-        public ReadOnlyMemory<char> Authority { get; set; }
+        public ReadOnlyMemory<char> Path { get; }
 
-        public IEnumerable<HeaderFieldInfo> Headers { get; set; }
+        public ReadOnlyMemory<char> Authority { get; }
+
+        public IEnumerable<HeaderFieldInfo> Headers { get; }
 
         public string GetFullUrl()
         {

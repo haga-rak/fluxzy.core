@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Fluxzy.Utils
 {
@@ -12,12 +10,11 @@ namespace Fluxzy.Utils
             // check into the response Content-Type header first 
 
             var contentTypeHeader = exchange
-                .GetResponseHeaders()
-                ?.Where(r => r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
-                .LastOrDefault();
+                                    .GetResponseHeaders()
+                                    ?.Where(r => r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
+                                    .LastOrDefault();
 
-            if (contentTypeHeader != null)
-            {
+            if (contentTypeHeader != null) {
                 var target = contentTypeHeader.Value.Span;
 
                 var result = SolveSimplifiedContentType(target);
@@ -31,23 +28,20 @@ namespace Fluxzy.Utils
             // check into request Accept  header
 
             var acceptHeader = exchange
-                .GetResponseHeaders()
-                ?.Where(r => r.Name.Span.Equals("accept", StringComparison.OrdinalIgnoreCase))
-                .LastOrDefault();
+                               .GetResponseHeaders()
+                               ?.Where(r => r.Name.Span.Equals("accept", StringComparison.OrdinalIgnoreCase))
+                               .LastOrDefault();
 
-            if (acceptHeader != null)
-            {
-                var firstAcceptValue = acceptHeader.Value.ToString().Split(new[] { ",", ";" },
-                        StringSplitOptions.RemoveEmptyEntries)
-                    .FirstOrDefault();
+            if (acceptHeader != null) {
+                var firstAcceptValue = acceptHeader.Value.ToString().Split(new[] {",", ";"},
+                                                       StringSplitOptions.RemoveEmptyEntries)
+                                                   .FirstOrDefault();
 
                 if (firstAcceptValue != null)
-                {
                     return SolveSimplifiedContentType(firstAcceptValue);
-                }
             }
 
-            return null; 
+            return null;
         }
 
         private static string SolveSimplifiedContentType(ReadOnlySpan<char> headerValue)

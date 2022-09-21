@@ -47,6 +47,7 @@ namespace Fluxzy
         public virtual async Task Update(Exchange exchange, UpdateType updateType, CancellationToken cancellationToken)
         {
             var exchangeInfo = new ExchangeInfo(exchange);
+
             await Update(exchangeInfo, cancellationToken);
 
             // fire event 

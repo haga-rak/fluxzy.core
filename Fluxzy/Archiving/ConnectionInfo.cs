@@ -6,11 +6,6 @@ namespace Fluxzy
 {
     public class ConnectionInfo
     {
-        [JsonConstructor]
-        public ConnectionInfo()
-        {
-        }
-
         public ConnectionInfo(Connection original)
         {
             Id = original.Id;
@@ -28,30 +23,48 @@ namespace Fluxzy
             SslInfo = original.SslInfo;
         }
 
-        public int Id { get; set; }
+        [JsonConstructor]
+        public ConnectionInfo(int id, AuthorityInfo authority, SslInfo sslInfo, int requestProcessed, DateTime dnsSolveStart, DateTime dnsSolveEnd, DateTime tcpConnectionOpening, DateTime tcpConnectionOpened, DateTime sslNegotiationStart, DateTime sslNegotiationEnd, int localPort, string localAddress, string remoteAddress)
+        {
+            Id = id;
+            Authority = authority;
+            SslInfo = sslInfo;
+            RequestProcessed = requestProcessed;
+            DnsSolveStart = dnsSolveStart;
+            DnsSolveEnd = dnsSolveEnd;
+            TcpConnectionOpening = tcpConnectionOpening;
+            TcpConnectionOpened = tcpConnectionOpened;
+            SslNegotiationStart = sslNegotiationStart;
+            SslNegotiationEnd = sslNegotiationEnd;
+            LocalPort = localPort;
+            LocalAddress = localAddress;
+            RemoteAddress = remoteAddress;
+        }
 
-        public AuthorityInfo Authority { get; set; }
+        public int Id { get; }
 
-        public SslInfo SslInfo { get; set; }
+        public AuthorityInfo Authority { get; }
 
-        public int RequestProcessed { get; set; }
+        public SslInfo SslInfo { get; }
 
-        public DateTime DnsSolveStart { get; set; }
+        public int RequestProcessed { get; }
 
-        public DateTime DnsSolveEnd { get; set; }
+        public DateTime DnsSolveStart { get; }
 
-        public DateTime TcpConnectionOpening { get; set; }
+        public DateTime DnsSolveEnd { get; }
 
-        public DateTime TcpConnectionOpened { get; set; }
+        public DateTime TcpConnectionOpening { get; }
 
-        public DateTime SslNegotiationStart { get; set; }
+        public DateTime TcpConnectionOpened { get; }
 
-        public DateTime SslNegotiationEnd { get; set; }
+        public DateTime SslNegotiationStart { get; }
 
-        public int LocalPort { get; set; }
+        public DateTime SslNegotiationEnd { get; }
 
-        public string LocalAddress { get; set; }
+        public int LocalPort { get; }
 
-        public string RemoteAddress { get; set; }
+        public string LocalAddress { get; }
+
+        public string RemoteAddress { get; }
     }
 }
