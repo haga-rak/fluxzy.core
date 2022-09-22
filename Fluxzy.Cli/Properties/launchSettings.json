@@ -5,7 +5,7 @@
       //"commandLineArgs": "start -l 127.0.0.1:45232 -d \"d:\\vsrun\" -sp -c"
       //"commandLineArgs": "start -sp -o f.fxzy -c"
       // "commandLineArgs": "cert check sdf"
-      "commandLineArgs": "fxzy dpack aaaa aa.fxzy"
+      "commandLineArgs": "start -sp -l 127.0.0.1/0"
     }
   }
 }

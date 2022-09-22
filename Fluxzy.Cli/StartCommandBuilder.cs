@@ -96,8 +96,6 @@ namespace Fluxzy.Cli
                 proxyStartUpSetting.AddBoundAddress(item); 
             }
 
-            invocationContext.BindingContext.Console
-                .WriteLine($"Listen on {string.Join(", ", listenInterfaces)}");
 
             var archivingPolicy = dumpDirectory == null
                 ? ArchivingPolicy.None
@@ -137,6 +135,10 @@ namespace Fluxzy.Cli
 
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider)) {
                     var endPoints = proxy.Run();
+
+
+                    invocationContext.BindingContext.Console
+                                     .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
 
                     if (registerAsSystemProxy)
                     {
