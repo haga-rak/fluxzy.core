@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 
-namespace Fluxzy.Archiving.Writers
+namespace Fluxzy.Writers
 {
     public abstract class RealtimeArchiveWriter : IArchiveWriter
     {

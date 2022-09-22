@@ -4,9 +4,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Archiving.Writers;
 using Fluxzy.Clients;
 using Fluxzy.Core;
+using Fluxzy.Writers;
 
 namespace Fluxzy.Tests.Tools
 {

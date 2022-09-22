@@ -4,10 +4,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder.Utils;
-using Fluxzy.Clients.Mock;
 using Fluxzy.Misc.Streams;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Clients.Mock
 {
     public class MockedConnectionPool : IHttpConnectionPool
     {
