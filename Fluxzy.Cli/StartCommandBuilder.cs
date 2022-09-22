@@ -8,6 +8,7 @@ using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
@@ -40,7 +41,7 @@ namespace Fluxzy.Cli
             _instanceIdentifier = instanceIdentifier;
         }
 
-        public Command Build()
+        public Command Build(CancellationToken cancellationToken)
         {
             var command = new Command("start", "Start a capturing session");
 
@@ -57,12 +58,12 @@ namespace Fluxzy.Cli
             command.AddOption(CreateCertificatePasswordOption());
             
             
-            command.SetHandler(Run);
+            command.SetHandler(context => Run(context, cancellationToken));
 
             return command;
         }
 
-        private async Task Run(InvocationContext invocationContext)
+        public async Task Run(InvocationContext invocationContext, CancellationToken processToken)
         {
             var proxyStartUpSetting = FluxzySetting.CreateDefault();
 
@@ -76,8 +77,19 @@ namespace Fluxzy.Cli
             var noCertCache = invocationContext.Value<bool>("no-cert-cache"); 
             var certFile = invocationContext.Value<FileInfo>("cert-file");
             var certPassword = invocationContext.Value<string>("cert-password");
-            var cancellationToken = invocationContext.GetCancellationToken();
+            var invokeCancellationToken = invocationContext.GetCancellationToken();
 
+
+            using var linkedTokenSource =
+                processToken == default
+                    ? CancellationTokenSource.CreateLinkedTokenSource(
+                        invokeCancellationToken)
+                    : CancellationTokenSource.CreateLinkedTokenSource(
+                        processToken, invokeCancellationToken);
+
+            var cancellationToken = linkedTokenSource.Token;
+;
+            
             proxyStartUpSetting.ClearBoundAddresses(); 
 
             foreach (var item in listenInterfaces) {
@@ -124,22 +136,21 @@ namespace Fluxzy.Cli
                         : ITcpConnectionProvider.Default;
 
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider)) {
-                    proxy.Run();
+                    var endPoints = proxy.Run();
 
                     if (registerAsSystemProxy)
                     {
-                        var setting = SystemProxyRegistration.Register(proxyStartUpSetting);
+                        var setting = SystemProxyRegistration.Register(endPoints, proxyStartUpSetting);
                         invocationContext.Console.Out.WriteLine($"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
                     }
 
                     invocationContext.Console.Out.WriteLine($"Proxy started. Ctrl+C to exit.");
+
                     try {
 
                         await Task.Delay(-1, cancellationToken);
                     }
                     catch (OperationCanceledException) {
-
-                        // Ctrl + C probably
                     }
                 }
 

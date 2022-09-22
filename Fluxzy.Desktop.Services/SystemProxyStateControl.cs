@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Net;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
@@ -8,13 +9,16 @@ namespace Fluxzy.Desktop.Services
     public class SystemProxyStateControl : ObservableProvider<SystemProxyState>
     {
         private FluxzySetting?  _fluxzySetting;
+        private ProxyState?  _proxyState;
 
-        public SystemProxyStateControl(IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable)
+        public SystemProxyStateControl(IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
+            IObservable<ProxyState> proxyStateObservableProvider)
         {
             var current = SystemProxyRegistration.GetSystemProxySetting();
             Subject = new BehaviorSubject<SystemProxyState>(new SystemProxyState(current.BoundHost, current.ListenPort, current.Enabled));
 
-            fluxzySettingHolderObservable.Do(t => this._fluxzySetting = t.StartupSetting).Subscribe(); 
+            fluxzySettingHolderObservable.Do(t => this._fluxzySetting = t.StartupSetting).Subscribe();
+            proxyStateObservableProvider.Do(t => this._proxyState = t).Subscribe(); 
         }
 
         protected override BehaviorSubject<SystemProxyState> Subject { get; }
@@ -24,7 +28,13 @@ namespace Fluxzy.Desktop.Services
             if (_fluxzySetting == null)
                 return;
 
-            var newSetting = SystemProxyRegistration.Register(_fluxzySetting);
+            if (_proxyState == null 
+                || _proxyState.OnError 
+                || !_proxyState.BoundConnections.Any())
+                return; 
+
+            var newSetting = SystemProxyRegistration.Register(_proxyState.BoundConnections.Select(
+                p => new IPEndPoint(IPAddress.Parse(p.Address), p.Port)), _fluxzySetting);
 
             if (newSetting != null)
                 Subject.OnNext(new SystemProxyState(newSetting.BoundHost, newSetting.ListenPort, true));

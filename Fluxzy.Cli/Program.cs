@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 
@@ -15,7 +16,9 @@ namespace Fluxzy.Cli
             // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
             // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
 
-            return await FluxzyCommand.Run(args);
+            var exitCode =  await FluxzyStartup.Run(args, CancellationToken.None);
+
+            return exitCode; 
         }
     }
 }

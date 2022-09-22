@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,10 +86,10 @@ namespace Fluxzy
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
             }
 
-            startupSetting.GetDefaultOutput()
-                .WriteLine($@"Listening on {startupSetting.BoundPointsDescription}");
         }
-        
+
+        public IReadOnlyCollection<IPEndPoint> ListenAddresses => _downStreamConnectionProvider.ListenEndpoints;
+
         public FluxzySetting StartupSetting { get; }
 
         public ProxyExecutionContext ExecutionContext { get; }
@@ -150,7 +152,7 @@ namespace Fluxzy
         /// <summary>
         ///  Start proxy
         /// </summary>
-        public void Run()
+        public IReadOnlyCollection<IPEndPoint> Run()
         {
             if (_disposed)
                 throw new InvalidOperationException("This proxy was already disposed");
@@ -160,9 +162,15 @@ namespace Fluxzy
 
             _started = true;
             
-            _downStreamConnectionProvider.Init(_proxyHaltTokenSource.Token);
+            var endPoints = _downStreamConnectionProvider.Init(_proxyHaltTokenSource.Token);
 
             _loopTask = Task.Run(MainLoop);
+
+            StartupSetting.GetDefaultOutput()
+                          .WriteLine($@"Listening on {string.Join(", ",
+                              endPoints.Select(e => e.ToString()))}");
+
+            return endPoints; 
         }
         
         public void Dispose()
