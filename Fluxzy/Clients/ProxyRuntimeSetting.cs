@@ -4,9 +4,9 @@ using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using Fluxzy.Archiving.Writers;
 using Fluxzy.Core;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Writers;
 
 namespace Fluxzy.Clients
 {

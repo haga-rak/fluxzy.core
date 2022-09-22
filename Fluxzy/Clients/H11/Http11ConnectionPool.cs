@@ -6,8 +6,8 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Archiving.Writers;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Writers;
 
 namespace Fluxzy.Clients.H11
 {

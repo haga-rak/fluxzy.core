@@ -99,6 +99,7 @@ export interface TrunkState
 	exchanges: ExchangeContainer[];
 	connections: ConnectionContainer[];
 	maxExchangeId: number;
+	maxConnectionId: number;
 	exchangesIndexer: { [key:number]: number };
 	connectionsIndexer: { [key:number]: number };
 }

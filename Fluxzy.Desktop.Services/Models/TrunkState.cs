@@ -25,6 +25,7 @@ namespace Fluxzy.Desktop.Services.Models
             {
                 var connection = Connections[index];
                 ConnectionsIndexer[connection.Id] = index;
+                MaxConnectionId = connection.Id;
             }
         }
 
@@ -35,6 +36,8 @@ namespace Fluxzy.Desktop.Services.Models
 
 
         public int MaxExchangeId { get;  }
+
+        public int MaxConnectionId { get;  }
 
         /// <summary>
         /// Map a exchange Id to its position (index) on Exchanges list

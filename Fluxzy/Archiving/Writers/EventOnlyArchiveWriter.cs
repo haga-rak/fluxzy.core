@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Archiving.Writers;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Writers

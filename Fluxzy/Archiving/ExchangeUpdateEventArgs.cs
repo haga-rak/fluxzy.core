@@ -1,6 +1,6 @@
 ﻿using System;
-using Fluxzy.Archiving.Writers;
 using Fluxzy.Clients;
+using Fluxzy.Writers;
 
 namespace Fluxzy
 {
