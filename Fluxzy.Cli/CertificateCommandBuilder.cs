@@ -8,7 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Fluxzy.Cli
 {
-    public class FluxzyCertificateCommandBuilder
+    public class CertificateCommandBuilder
     {
         public Command Build()
         {
