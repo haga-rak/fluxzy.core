@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -23,12 +24,8 @@ namespace Fluxzy.Tests.Rules
         {
             var bodyString = "This will be the default body you received"; 
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
+            using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -37,7 +34,12 @@ namespace Fluxzy.Tests.Rules
                     new HostFilter("sandbox.smartizy.com")
                     ));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 

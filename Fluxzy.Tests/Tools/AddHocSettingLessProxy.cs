@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -13,7 +14,6 @@ namespace Fluxzy.Tests.Tools;
 
 public class AddHocConfigurableProxy : IDisposable
 {
-    private readonly int _portNumber;
     private readonly int _expectedRequestCount;
     private readonly FluxzySetting _startupSetting;
     private readonly Proxy _proxy;
@@ -23,13 +23,11 @@ public class AddHocConfigurableProxy : IDisposable
 
     private int _requestCount = 0; 
 
-    public AddHocConfigurableProxy(int portNumber, int expectedRequestCount = 1, int timeoutSeconds = 5)
+    public AddHocConfigurableProxy(int expectedRequestCount = 1, int timeoutSeconds = 5)
     {
-        _portNumber = portNumber;
         _expectedRequestCount = expectedRequestCount;
 
         BindHost = "127.0.0.1";
-        BindPort = portNumber;
 
         _startupSetting = FluxzySetting
             .CreateDefault()
@@ -56,9 +54,9 @@ public class AddHocConfigurableProxy : IDisposable
 
     }
 
-    public void Run()
+    public IReadOnlyCollection<IPEndPoint> Run()
     {
-        _proxy.Run();
+        return _proxy.Run();
     }
 
     private void ProxyOnBeforeResponse(object? sender, ExchangeUpdateEventArgs exchangeUpdateEventArgs)
