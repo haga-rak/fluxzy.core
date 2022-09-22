@@ -16,11 +16,13 @@ namespace Fluxzy.Cli
             var rootCommand = new RootCommand("Advanced HTTP capture tool");
             var instanceIdentifier = Guid.NewGuid().ToString();
 
-            var startCommandBuilder = new FluxzyStartCommandBuilder(instanceIdentifier);
-            var certificateCommandBuilder = new FluxzyCertificateCommandBuilder(); 
+            var startCommandBuilder = new StartCommandBuilder(instanceIdentifier);
+            var certificateCommandBuilder = new CertificateCommandBuilder(); 
+            var packCommandBuilder = new PackCommandBuilder(); 
 
             rootCommand.Add(startCommandBuilder.Build());
             rootCommand.Add(certificateCommandBuilder.Build());
+            rootCommand.Add(packCommandBuilder.Build());
 
             var final = new CommandLineBuilder(rootCommand)
                         .UseVersionOption()

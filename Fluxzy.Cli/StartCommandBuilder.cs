@@ -15,7 +15,7 @@ using Fluxzy.Saz;
 
 namespace Fluxzy.Cli
 {
-    public class FluxzyStartCommandBuilder
+    public class StartCommandBuilder
     {
         private readonly string _instanceIdentifier;
 
@@ -35,7 +35,7 @@ namespace Fluxzy.Cli
             }
         }
 
-        public FluxzyStartCommandBuilder(string instanceIdentifier)
+        public StartCommandBuilder(string instanceIdentifier)
         {
             _instanceIdentifier = instanceIdentifier;
         }
@@ -117,8 +117,6 @@ namespace Fluxzy.Cli
             var certificateProvider = new CertificateProvider(proxyStartUpSetting,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
 
-            string sessionIdentifier = null; 
-
             try {
 
                 using var tcpConnectionProvider =
@@ -143,8 +141,6 @@ namespace Fluxzy.Cli
 
                         // Ctrl + C probably
                     }
-
-                    sessionIdentifier = proxy.SessionIdentifier;
                 }
 
                 Console.WriteLine("Proxy ended, gracefully");
@@ -161,8 +157,8 @@ namespace Fluxzy.Cli
             {
                 invocationContext.Console.WriteLine($"Packing output to {outFileInfo.Name} ...");
 
-                await PackDirectoryToFile(new DirectoryInfo(Path.Combine(proxyStartUpSetting.ArchivingPolicy.Directory,
-                        sessionIdentifier)),
+                await PackDirectoryToFile(
+                    new DirectoryInfo(proxyStartUpSetting.ArchivingPolicy.Directory),
                     outFileInfo.FullName);
 
                 invocationContext.Console.WriteLine("Packing output done.");

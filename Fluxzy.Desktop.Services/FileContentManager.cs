@@ -47,7 +47,7 @@ namespace Fluxzy.Desktop.Services
                     exchange = JsonSerializer.Deserialize<ExchangeInfo>(fileInfo.OpenRead(),
                         GlobalArchiveOption.JsonSerializerOptions);
                 }
-                catch
+                catch (IOException)
                 {
                     // We ignore read errors (engine is probably writing to file )
                     continue;

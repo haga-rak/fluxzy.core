@@ -10,6 +10,7 @@ using System.Xml;
 
 namespace Fluxzy.Saz
 {
+    [PackagerInformation("saz", "saz archive format", ".saz")]
     public class SazPackager : IDirectoryPackager
     {
         public bool ShouldApplyTo(string fileName)

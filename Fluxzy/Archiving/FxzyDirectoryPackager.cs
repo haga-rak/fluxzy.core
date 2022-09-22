@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Fluxzy
 {
+    [PackagerInformation("fluxzy", "The fluxzy archive format", ".fxzy", ".fzy", ".fluxzy")]
     public class FxzyDirectoryPackager : IDirectoryPackager
     {
         public bool ShouldApplyTo(string fileName)
