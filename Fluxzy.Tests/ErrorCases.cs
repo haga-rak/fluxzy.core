@@ -15,7 +15,7 @@ namespace Fluxzy.Tests
         [InlineData(TestConstants.Http2Host)]
         public async Task Connection_Close_Before_Response(string host)
         {
-            using var proxy = new AddHocProxy(PortProvider.Next());
+            using var proxy = new AddHocProxy();
 
             using var clientHandler = new HttpClientHandler
             {
@@ -48,7 +48,7 @@ namespace Fluxzy.Tests
         [InlineData(TestConstants.Http2Host)]
         public async Task LargeHeaderFieldValue(string host)
         {
-            using var proxy = new AddHocProxy(PortProvider.Next());
+            using var proxy = new AddHocProxy();
 
             using var clientHandler = new HttpClientHandler
             {
@@ -74,7 +74,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Connection_RefusedTcplevel()
         {
-            using var proxy = new AddHocProxy(PortProvider.Next() - 1 );
+            using var proxy = new AddHocProxy();
 
             using var clientHandler = new HttpClientHandler
             {

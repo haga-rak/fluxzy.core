@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Net;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Hubs;
@@ -66,6 +67,8 @@ namespace Fluxzy.Desktop.Services
                 _proxy = null; 
             }
 
+            IEnumerable<IPEndPoint> endPoints = Array.Empty<IPEndPoint>();
+
             try
             {
                 _proxy = new Proxy(fluxzySetting,
@@ -86,7 +89,7 @@ namespace Fluxzy.Desktop.Services
                         "connectionUpdate", args.Connection);
                 };
 
-                _proxy.Run();
+                endPoints = _proxy.Run();
             }
             catch (Exception ex)
             {
@@ -100,19 +103,18 @@ namespace Fluxzy.Desktop.Services
                 }; 
             }
 
-            return GetProxyState();
+            return GetProxyState(endPoints);
         }
 
-        private ProxyState GetProxyState()
+        private ProxyState GetProxyState(IEnumerable<IPEndPoint> endPoints)
         {
             return new ProxyState()
             {
-                BoundConnections = _proxy?.StartupSetting.BoundPoints
-                    .Select(b => new ProxyEndPoint(b.EndPoint.Address.ToString(), b.EndPoint.Port))
-                    .ToList() ?? new List<ProxyEndPoint>()
+                BoundConnections = endPoints
+                                   .Select(b => new ProxyEndPoint(b.Address.ToString(), b.Port))
+                                   .ToList() ?? new List<ProxyEndPoint>()
             }; 
         }
-
 
         protected override BehaviorSubject<ProxyState> Subject { get; }
     

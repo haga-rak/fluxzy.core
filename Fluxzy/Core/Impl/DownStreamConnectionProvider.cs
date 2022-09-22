@@ -16,22 +16,20 @@ namespace Fluxzy.Core
         private readonly Channel<TcpClient> _pendingClientConnections =
             Channel.CreateBounded<TcpClient>(new BoundedChannelOptions(4));
 
-        private CancellationTokenSource _tokenSource = new();
-
         private CancellationToken _token;
+
+        private readonly CancellationTokenSource _tokenSource = new();
 
         public DownStreamConnectionProvider(IEnumerable<ProxyBindPoint> boundPoints)
         {
-            _listeners = boundPoints.Select(b => 
-                new TcpListener(b.EndPoint)).ToList();
+            _listeners = boundPoints.Select(b => new TcpListener(b.EndPoint)).ToList();
 
-            _token = _tokenSource.Token; 
+            _token = _tokenSource.Token;
         }
 
         public void Dispose()
         {
             foreach (var listener in _listeners)
-            {
                 try
                 {
                     listener.Stop();
@@ -40,34 +38,63 @@ namespace Fluxzy.Core
                 {
                     // Ignore errors
                 }
-            }
 
             _tokenSource.Cancel();
         }
 
-        public void Init(CancellationToken token)
+        public async Task<TcpClient> GetNextPendingConnection()
+        {
+            if (!_listeners.Any())
+                return null;
+
+            try
+            {
+                var nextConnection = await
+                    _pendingClientConnections.Reader.ReadAsync(_token);
+
+                return nextConnection;
+            }
+            catch (Exception)
+            {
+                // Listener Stop was probably called 
+                return null;
+            }
+        }
+
+        public IReadOnlyCollection<IPEndPoint>? ListenEndpoints { get; private set; } = Array.Empty<IPEndPoint>();
+
+        public IReadOnlyCollection<IPEndPoint> Init(CancellationToken token)
         {
             _token = token;
+
+            var boundEndPoints = new List<IPEndPoint>();
+
             foreach (var listener in _listeners)
             {
-
                 try
                 {
-                    listener.Start(Int32.MaxValue);
+                    listener.Start(int.MaxValue);
+
+                    boundEndPoints.Add((IPEndPoint)listener.LocalEndpoint);
 
                     var listenerCopy = listener;
 
                     Task.Run(async () => await HandleAcceptConnection(listenerCopy));
-
                 }
                 catch (SocketException sex)
                 {
-                    throw new Exception($"Impossible port : " +
+                    throw new Exception("Impossible port : " +
                                         $"{((IPEndPoint)listener.LocalEndpoint).Address} - " +
-                                        $"{((IPEndPoint) listener.LocalEndpoint).Port}  - \r\n" 
-                        + sex.ToString(), sex) ;
+                                        $"{((IPEndPoint)listener.LocalEndpoint).Port}  - \r\n"
+                                        + sex, sex);
                 }
             }
+
+            if (!boundEndPoints.Any())
+                throw new InvalidOperationException("No listen endpoints was provided");
+
+            ListenEndpoints = boundEndPoints;
+            return ListenEndpoints;
         }
 
         private async Task HandleAcceptConnection(TcpListener listener)
@@ -84,32 +111,12 @@ namespace Fluxzy.Core
                     tcpClient.SendBufferSize = 32 * 1024;
                     tcpClient.SendTimeout = 200;
 
-                    await _pendingClientConnections.Writer.WriteAsync(tcpClient, _token); 
+                    await _pendingClientConnections.Writer.WriteAsync(tcpClient, _token);
                 }
             }
             catch (Exception)
             {
-
-            }
-        }
-
-        public async Task<TcpClient> GetNextPendingConnection()
-        {
-            if (!_listeners.Any())
-                return null;
-
-            try
-            {
-
-                var nextConnection = await
-                    _pendingClientConnections.Reader.ReadAsync(_token);
-
-                return nextConnection;
-            }
-            catch (Exception)
-            {
-                // Listener Stop was probably called 
-                return null;
+                // Connection closed 
             }
         }
     }

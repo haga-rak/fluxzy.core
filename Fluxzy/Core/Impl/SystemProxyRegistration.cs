@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Fluxzy.Core.SystemProxySetup;
 using Fluxzy.Core.SystemProxySetup.Linux;
@@ -25,20 +25,10 @@ namespace Fluxzy.Core
             _systemProxySetter = SolveSetter();
         }
 
-        public static SystemProxySetting? Register(FluxzySetting fluxzySetting)
+        public static SystemProxySetting? Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
         {
-            var boundPoints = fluxzySetting.BoundPoints;
-
-            if (!boundPoints.Any())
-            {
-                return null; 
-            }
-
-            var firstBoundPoint = boundPoints
-                .OrderByDescending(t => t.EndPoint.Address.AddressFamily == AddressFamily.InterNetwork)
-                .First();
-
-            return Register(firstBoundPoint.EndPoint, fluxzySetting.ByPassHost.ToArray()); 
+            return Register(endPoints.OrderByDescending(t => Equals(t.Address, IPAddress.Loopback)
+             || t.Address.Equals(IPAddress.IPv6Loopback)).First(), fluxzySetting.ByPassHost.ToArray()); 
         }
 
 

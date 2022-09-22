@@ -15,7 +15,7 @@ namespace Fluxzy.Tests
         [InlineData(TestConstants.Http2Host)]
         public async Task Get_Gfe_Nvidia_Com(string host)
         {
-            using var proxy = new AddHocProxy(PortProvider.Next(), 1, 10);
+            using var proxy = new AddHocProxy(1, 10);
 
             using var clientHandler = new HttpClientHandler
             {

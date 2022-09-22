@@ -162,7 +162,7 @@ namespace Fluxzy
             if (!IPAddress.TryParse(boundAddress, out var address))
                 throw new ArgumentException($"{boundAddress} is not a valid IP address");
 
-            if (port < 1 || port >= ushort.MaxValue)
+            if (port < 0 || port >= ushort.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
 
             return AddBoundAddress(new IPEndPoint(address, port), @default);
@@ -174,7 +174,7 @@ namespace Fluxzy
             if (!IPAddress.TryParse(boundAddress, out var address))
                 throw new ArgumentException($"{boundAddress} is not a valid IP address");
 
-            if (port < 1 || port >= ushort.MaxValue)
+            if (port < 0 || port >= ushort.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
 
             BoundPoints.Clear();
