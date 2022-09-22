@@ -20,7 +20,19 @@ namespace Fluxzy.Cli
     {
         private readonly string _instanceIdentifier;
 
+
+        public readonly List<IDirectoryPackager> _packagers = new()
+        {
+            new FxzyDirectoryPackager(),
+            new SazPackager()
+        };
+
         private DirectoryInfo _tempDumpDirectory;
+
+        public StartCommandBuilder(string instanceIdentifier)
+        {
+            _instanceIdentifier = instanceIdentifier;
+        }
 
         private DirectoryInfo TempDumpDirectory
         {
@@ -32,13 +44,8 @@ namespace Fluxzy.Cli
                 var path = Path.Combine(Environment.ExpandEnvironmentVariables("%TEMP%"),
                     "fxzy", _instanceIdentifier);
 
-                return _tempDumpDirectory = new DirectoryInfo(path); 
+                return _tempDumpDirectory = new DirectoryInfo(path);
             }
-        }
-
-        public StartCommandBuilder(string instanceIdentifier)
-        {
-            _instanceIdentifier = instanceIdentifier;
         }
 
         public Command Build(CancellationToken cancellationToken)
@@ -56,8 +63,8 @@ namespace Fluxzy.Cli
             command.AddOption(CreateNoCertCacheOption());
             command.AddOption(CreateCertificateFileOption());
             command.AddOption(CreateCertificatePasswordOption());
-            
-            
+
+
             command.SetHandler(context => Run(context, cancellationToken));
 
             return command;
@@ -71,10 +78,10 @@ namespace Fluxzy.Cli
             var outFileInfo = invocationContext.Value<FileInfo>("output-file");
             var dumpDirectory = invocationContext.Value<DirectoryInfo>("dump-folder");
             var registerAsSystemProxy = invocationContext.Value<bool>("system-proxy");
-            var includeTcpDump = invocationContext.Value<bool>("include-dump"); 
-            var skipDecryption = invocationContext.Value<bool>("skip-ssl-decryption"); 
-            var installCert = invocationContext.Value<bool>("install-cert"); 
-            var noCertCache = invocationContext.Value<bool>("no-cert-cache"); 
+            var includeTcpDump = invocationContext.Value<bool>("include-dump");
+            var skipDecryption = invocationContext.Value<bool>("skip-ssl-decryption");
+            var installCert = invocationContext.Value<bool>("install-cert");
+            var noCertCache = invocationContext.Value<bool>("no-cert-cache");
             var certFile = invocationContext.Value<FileInfo>("cert-file");
             var certPassword = invocationContext.Value<string>("cert-password");
             var invokeCancellationToken = invocationContext.GetCancellationToken();
@@ -88,36 +95,36 @@ namespace Fluxzy.Cli
                         processToken, invokeCancellationToken);
 
             var cancellationToken = linkedTokenSource.Token;
-;
-            
-            proxyStartUpSetting.ClearBoundAddresses(); 
+            ;
 
-            foreach (var item in listenInterfaces) {
-                proxyStartUpSetting.AddBoundAddress(item); 
-            }
+            proxyStartUpSetting.ClearBoundAddresses();
+
+            foreach (var item in listenInterfaces)
+                proxyStartUpSetting.AddBoundAddress(item);
 
 
             var archivingPolicy = dumpDirectory == null
                 ? ArchivingPolicy.None
                 : ArchivingPolicy.CreateFromDirectory(dumpDirectory);
 
-            if (outFileInfo != null && archivingPolicy.Type == ArchivingPolicyType.None) {
+            if (outFileInfo != null && archivingPolicy.Type == ArchivingPolicyType.None)
                 archivingPolicy = ArchivingPolicy.CreateFromDirectory(TempDumpDirectory);
-            }
 
-            if (certFile != null) {
-                try {
+            if (certFile != null)
+                try
+                {
                     var cert = Certificate.LoadFromPkcs12(
-                        await File.ReadAllBytesAsync(certFile.FullName, cancellationToken), certPassword ?? string.Empty);
+                        await File.ReadAllBytesAsync(certFile.FullName, cancellationToken),
+                        certPassword ?? string.Empty);
 
                     proxyStartUpSetting.SetCaCertificate(cert);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     invocationContext.BindingContext.Console.WriteLine($"Error while reading cert-file : {ex.Message}");
                     invocationContext.ExitCode = 1;
-                    return; 
+                    return;
                 }
-            }
 
             proxyStartUpSetting.SetArchivingPolicy(archivingPolicy);
             proxyStartUpSetting.SetAutoInstallCertificate(installCert);
@@ -127,44 +134,45 @@ namespace Fluxzy.Cli
             var certificateProvider = new CertificateProvider(proxyStartUpSetting,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
 
-            try {
+            using var tcpConnectionProvider =
+                includeTcpDump
+                    ? new CapturedTcpConnectionProvider()
+                    : ITcpConnectionProvider.Default;
 
-                using var tcpConnectionProvider =
-                    includeTcpDump ? new CapturedTcpConnectionProvider()
-                        : ITcpConnectionProvider.Default;
+            await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider))
+            {
+                var endPoints = proxy.Run();
 
-                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider)) {
-                    var endPoints = proxy.Run();
+                invocationContext.BindingContext.Console
+                                 .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
 
-
-                    invocationContext.BindingContext.Console
-                                     .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
-
-                    if (registerAsSystemProxy)
-                    {
-                        var setting = SystemProxyRegistration.Register(endPoints, proxyStartUpSetting);
-                        invocationContext.Console.Out.WriteLine($"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
-                    }
-
-                    invocationContext.Console.Out.WriteLine($"Proxy started. Ctrl+C to exit.");
-
-                    try {
-
-                        await Task.Delay(-1, cancellationToken);
-                    }
-                    catch (OperationCanceledException) {
-                    }
-                }
-
-                Console.WriteLine("Proxy ended, gracefully");
-            }
-            finally {
                 if (registerAsSystemProxy)
                 {
-                    SystemProxyRegistration.UnRegister();
-                    invocationContext.Console.Out.WriteLine($"Unregistered system proxy");
+                    var setting = SystemProxyRegistration.Register(endPoints, proxyStartUpSetting);
+                    invocationContext.Console.Out.WriteLine(
+                        $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
+                }
+
+                invocationContext.Console.Out.WriteLine("Proxy started. Ctrl+C to exit.");
+
+                try
+                {
+                    await Task.Delay(-1, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                finally
+                {
+                    if (registerAsSystemProxy)
+                    {
+                        SystemProxyRegistration.UnRegister();
+                        invocationContext.Console.Out.WriteLine("Unregistered system proxy");
+                    }
                 }
             }
+
+            Console.WriteLine("Proxy ended, gracefully");
 
             if (outFileInfo != null)
             {
@@ -187,32 +195,36 @@ namespace Fluxzy.Cli
                 "Default value is \"127.0.0.1/44344\" which will listen to localhost on port 44344. " +
                 "0.0.0.0 to listen on all interface with default port." +
                 " Accept multiple values.",
-                
                 isDefault: true,
                 parseArgument: result =>
                 {
                     var listResult = new List<IPEndPoint>();
 
-                    foreach (var token in result.Tokens) {
-
+                    foreach (var token in result.Tokens)
+                    {
                         var tab = token.Value.Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries);
 
-                        if (tab.Length == 1) {
-                            if (!IPAddress.TryParse(tab.First(), out var ipAddress)) {
+                        if (tab.Length == 1)
+                        {
+                            if (!IPAddress.TryParse(tab.First(), out var ipAddress))
+                            {
                                 result.ErrorMessage = $"Invalid ip address {tab.First()}";
                                 return null;
                             }
 
                             listResult.Add(new IPEndPoint(ipAddress, 44344));
                         }
-                        else {
-                            if (!IPAddress.TryParse(tab.First(), out var ipAddress)) {
+                        else
+                        {
+                            if (!IPAddress.TryParse(tab.First(), out var ipAddress))
+                            {
                                 result.ErrorMessage = $"Invalid ip address {tab.First()}";
                                 return null;
                             }
 
                             var portString = string.Join("", tab.Skip(1));
-                            if (!int.TryParse(portString, out var port)) {
+                            if (!int.TryParse(portString, out var port))
+                            {
                                 result.ErrorMessage = $"Invalid port {portString}";
                                 return null;
                             }
@@ -226,7 +238,7 @@ namespace Fluxzy.Cli
             );
 
             listenInterfaceOption.AddAlias("-l");
-            listenInterfaceOption.SetDefaultValue(new List<IPEndPoint>() { new(IPAddress.Loopback, 44344) });
+            listenInterfaceOption.SetDefaultValue(new List<IPEndPoint> { new(IPAddress.Loopback, 44344) });
             listenInterfaceOption.Arity = ArgumentArity.OneOrMore;
 
             return listenInterfaceOption;
@@ -236,7 +248,8 @@ namespace Fluxzy.Cli
         {
             var option = new Option<FileInfo?>(
                 "--output-file",
-                description :"Output the captured traffic to file", parseArgument: result =>  new FileInfo(result.Tokens.First().Value));
+                description: "Output the captured traffic to file",
+                parseArgument: result => new FileInfo(result.Tokens.First().Value));
 
             option.AddAlias("-o");
             option.Arity = ArgumentArity.ExactlyOne;
@@ -249,7 +262,7 @@ namespace Fluxzy.Cli
         {
             var option = new Option<DirectoryInfo>(
                 "--dump-folder",
-                description: "Output the captured traffic to folder");
+                "Output the captured traffic to folder");
 
             option.AddAlias("-d");
 
@@ -300,7 +313,7 @@ namespace Fluxzy.Cli
             var option = new Option<bool>(
                 "--install-cert",
                 "Install root CA in current cert store (require higher privilege)");
-            
+
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
@@ -312,7 +325,7 @@ namespace Fluxzy.Cli
             var option = new Option<bool>(
                 "--no-cert-cache",
                 "Don't cache generated certificate on file system");
-            
+
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
@@ -324,42 +337,33 @@ namespace Fluxzy.Cli
             var option = new Option<FileInfo>(
                 "--cert-file",
                 "Substitute the default CA certificate with a compatible PKCS#12 (p12, pfx) root CA certificate for SSL decryption");
-            
+
             option.Arity = ArgumentArity.ExactlyOne;
 
             return option;
         }
+
         private static Option CreateCertificatePasswordOption()
         {
             var option = new Option<string>(
                 "--cert-password",
                 "Set the password corresponding to the certfile");
-            
+
             option.Arity = ArgumentArity.ExactlyOne;
 
             return option;
         }
-
-
-        public readonly List<IDirectoryPackager> _packagers = new()
-        {
-            new FxzyDirectoryPackager(),
-            new SazPackager(),
-        };
 
         public async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)
         {
             var packager = _packagers.FirstOrDefault(p => p.ShouldApplyTo(outFileName));
 
             if (packager == null)
-            {
                 throw new ArgumentException(
-                    $"Could not infer file format from output extension. Currently supported extension are : fxzy, har and saz");
-            }
+                    "Could not infer file format from output extension. Currently supported extension are : fxzy, har and saz");
 
             await using var outStream = File.Create(outFileName);
             await packager.Pack(dInfo.FullName, outStream);
         }
     }
-    
 }
