@@ -17,6 +17,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Cli\**" />
+    <EmbeddedResource Remove="Cli\**" />
+    <None Remove="Cli\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
@@ -24,10 +30,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Cli\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties properties_4launchsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>

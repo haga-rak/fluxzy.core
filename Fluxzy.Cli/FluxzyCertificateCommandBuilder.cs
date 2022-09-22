@@ -8,7 +8,6 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Fluxzy.Cli
 {
-
     public class FluxzyCertificateCommandBuilder
     {
         public Command Build()
@@ -16,7 +15,7 @@ namespace Fluxzy.Cli
             var command = new Command("cert", "Manage root certificates used by the fluxzy");
 
             command.AddAlias("certificate");
-            
+
             command.AddCommand(BuildExportCommand());
             command.AddCommand(BuildCheckCommand());
             command.AddCommand(BuildInstallCommand());
@@ -31,8 +30,7 @@ namespace Fluxzy.Cli
             var argumentFileInfo = new Argument<FileInfo>(
                 "output-file",
                 description: "The output file",
-                parse: a => new FileInfo(a.Tokens.First().Value))
-            {
+                parse: a => new FileInfo(a.Tokens.First().Value)) {
                 Arity = ArgumentArity.ExactlyOne
             };
 
@@ -46,6 +44,7 @@ namespace Fluxzy.Cli
 
             return exportCommand;
         }
+
         private static Command BuildInstallCommand()
         {
             var exportCommand = new Command("install", "Trust a certificate as ROOT (need elevation)");
@@ -53,8 +52,7 @@ namespace Fluxzy.Cli
             var argumentFileInfo = new Argument<FileInfo>(
                 "cert-file",
                 description: "A X509 certificate file",
-                parse: a => new FileInfo(a.Tokens.First().Value))
-            {
+                parse: a => new FileInfo(a.Tokens.First().Value)) {
                 Arity = ArgumentArity.ExactlyOne
             };
 
@@ -62,7 +60,7 @@ namespace Fluxzy.Cli
 
             exportCommand.SetHandler(async fileInfo =>
             {
-                var certificate =  new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
+                var certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
                 CertificateUtility.InstallCertificate(certificate);
             }, argumentFileInfo);
 
@@ -77,8 +75,7 @@ namespace Fluxzy.Cli
             var argumentFileInfo = new Argument<FileInfo>(
                 "cert-file",
                 description: "A X509 certificate file",
-                parse: a => new FileInfo(a.Tokens.First().Value))
-            {
+                parse: a => new FileInfo(a.Tokens.First().Value)) {
                 Arity = ArgumentArity.ZeroOrOne
             };
 
@@ -91,18 +88,15 @@ namespace Fluxzy.Cli
                 var certificate = FluxzySecurity.DefaultCertificate;
 
                 if (fileInfo != null)
-                    certificate = new(await File.ReadAllBytesAsync(fileInfo.FullName));
+                    certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
 
                 if (CertificateUtility.IsCertificateInstalled(certificate.SerialNumber))
+                    // ReSharper disable once LocalizableElement
                     Console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 else
-                {
                     Console.Error.WriteLine($"NOT trusted {certificate.SubjectName.Name}");
-                }
-                
-
             }, argumentFileInfo);
-            
+
             return exportCommand;
         }
     }
