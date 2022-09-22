@@ -153,7 +153,7 @@ namespace Fluxzy.Cli
                         $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
                 }
 
-                invocationContext.Console.Out.WriteLine("Proxy started. Ctrl+C to exit.");
+                invocationContext.Console.Out.WriteLine("Ready to process connections, Ctrl+C to exit.");
 
                 try
                 {
@@ -167,7 +167,7 @@ namespace Fluxzy.Cli
                     if (registerAsSystemProxy)
                     {
                         SystemProxyRegistration.UnRegister();
-                        invocationContext.Console.Out.WriteLine("Unregistered system proxy");
+                        invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
                     }
                 }
             }

@@ -22,20 +22,20 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "anyrandomtexTyoo!!";
             var headerName = "X-Haga-Unit-Test";
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
-
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new AddRequestHeaderAction(
                         headerName, headerValue),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 
@@ -67,20 +67,20 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "X-Haga-Unit-Test-value!!";
             var headerNewValue = "updated to ABCDef";
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
-
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new UpdateRequestHeaderAction(
                         headerName, headerNewValue),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 
@@ -115,20 +115,20 @@ namespace Fluxzy.Tests.Rules
             var headerNewValue = "{{previous}} Ab";
             var headerValueAltered = "Cd Ab"; 
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
-
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new UpdateRequestHeaderAction(
                         headerName, headerNewValue),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 
@@ -161,19 +161,19 @@ namespace Fluxzy.Tests.Rules
         {
             var headerName = "X-Haga-Unit-Test";
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
-
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new DeleteRequestHeaderAction(headerName),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 
@@ -202,19 +202,20 @@ namespace Fluxzy.Tests.Rules
         [InlineData(TestConstants.Http2Host)]
         public async Task ChangeMethodFilterHostOnly(string host)
         {
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new ChangeRequestMethodAction("PATCH"),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 

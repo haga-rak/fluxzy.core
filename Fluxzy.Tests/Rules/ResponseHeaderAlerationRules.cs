@@ -24,20 +24,20 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "value!!!";
             var headerName = "X-pRepend-Header";
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
-
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new AddResponseHeaderAction(
                         headerName, headerValue),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 
@@ -67,12 +67,8 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "fluxzy-proxy";
             var headerName = "Server";
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -80,7 +76,12 @@ namespace Fluxzy.Tests.Rules
                         headerName, headerValue),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 
@@ -108,20 +109,20 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "{{previous}}fluxzy-proxy";
             var headerName = "Server";
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
-
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new UpdateResponseHeaderAction(
                         headerName, headerValue),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 
@@ -149,20 +150,20 @@ namespace Fluxzy.Tests.Rules
         {
             var headerName = "server";
 
-            using var proxy = new AddHocConfigurableProxy(PortProvider.Next(), 1, 10);
-
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
-
+            using var proxy = new AddHocConfigurableProxy(1, 10);
+            
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new DeleteResponseHeaderAction(
                         headerName),
                     new HostFilter("sandbox.smartizy.com")));
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}"),
+            };
 
             using var httpClient = new HttpClient(clientHandler);
 
