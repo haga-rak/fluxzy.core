@@ -7,7 +7,6 @@ namespace Fluxzy
 {
     public class ExchangeInfo : IExchange
     {
-        [JsonConstructor]
         public ExchangeInfo(Exchange exchange)
         {
             Id = exchange.Id;
@@ -20,6 +19,7 @@ namespace Fluxzy
             Pending = !exchange.Complete.IsCompleted; 
         }
 
+        [JsonConstructor]
         public ExchangeInfo(int id, int connectionId, string httpVersion, RequestHeaderInfo requestHeader, ResponseHeaderInfo responseHeader, ExchangeMetrics metrics, string egressIp, bool pending)
         {
             Id = id;
