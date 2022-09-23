@@ -18,23 +18,21 @@ namespace Fluxzy.Core
             _certificateProvider = certificateProvider;
         }
 
-        private bool StartWithKeyWord(char[] buffer)
+        private bool StartWithKeyWord(ReadOnlySpan<byte> buffer)
         {
-            ReadOnlySpan<char> c = buffer.AsSpan();
-            return c.Equals("GET ", StringComparison.OrdinalIgnoreCase);
+            Span<char> bufferChar = stackalloc char[4];
+            Encoding.ASCII.GetChars(buffer, bufferChar);
+            return ((ReadOnlySpan<char>) bufferChar).Equals("GET ", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<SecureConnectionUpdateResult> AuthenticateAsServer(Stream stream, string host, CancellationToken token)
         {
             var buffer = new byte[4];
-            var bufferChar = new char[4];
             var originalStream = stream;
             
             await stream.ReadExactAsync(buffer, token);
-
-            Encoding.ASCII.GetChars(buffer, bufferChar);
-
-            if (StartWithKeyWord(bufferChar))
+            
+            if (StartWithKeyWord(buffer))
             {
                 // Probably Web socket request 
                 // This is websocket demand 

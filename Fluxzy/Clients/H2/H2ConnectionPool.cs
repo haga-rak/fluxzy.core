@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -431,7 +432,8 @@ namespace Fluxzy.Clients.H2
         /// <returns></returns>
         private async Task InternalReadLoop(CancellationToken token)
         {
-            byte [] readBuffer = new byte[_setting.Remote.MaxFrameSize];
+            byte[] readBuffer = ArrayPool<byte>.Shared.Rent(_setting.Remote.MaxFrameSize);
+            
             Exception outException = null;
 
             try
@@ -624,6 +626,7 @@ namespace Fluxzy.Clients.H2
             }
             finally
             {
+                ArrayPool<byte>.Shared.Return(readBuffer);
                 OnLoopEnd(outException, false);
             }
         }

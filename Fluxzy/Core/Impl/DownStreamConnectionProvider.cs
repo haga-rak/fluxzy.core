@@ -79,7 +79,9 @@ namespace Fluxzy.Core
 
                     var listenerCopy = listener;
 
-                    Task.Run(async () => await HandleAcceptConnection(listenerCopy));
+                    HandleAcceptConnection(listenerCopy);
+
+                 //   Task.Run(async () => await HandleAcceptConnection(listenerCopy));
                 }
                 catch (SocketException sex)
                 {
@@ -97,7 +99,7 @@ namespace Fluxzy.Core
             return ListenEndpoints;
         }
 
-        private async Task HandleAcceptConnection(TcpListener listener)
+        private async void HandleAcceptConnection(TcpListener listener)
         {
             try
             {

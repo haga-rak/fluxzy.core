@@ -37,9 +37,9 @@ namespace Fluxzy.Tests
 
 
             using var response = await httpClient.SendAsync(requestMessage);
-             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            Assert.True(response.IsSuccessStatusCode);
+            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            
+            Assert.True(response.IsSuccessStatusCode, response.ToString());
 
             AssertHelpers.ControlHeaders(contentText, requestMessage, length); 
         }
