@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -11,7 +12,6 @@ namespace Fluxzy.Misc.Streams
     public class ChunkedTransferWriteStream : Stream
     {
         private readonly Stream _innerStream;
-        private readonly byte[] _chunkLengthBuffer = new byte[64];
         private static readonly byte[] ChunkTerminator = { (byte)'0', (byte)'\r', (byte)'\n', (byte)'\r', (byte)'\n' };
         private static readonly byte[] LineTerminator = { (byte)'\r', (byte)'\n' };
 
@@ -43,10 +43,20 @@ namespace Fluxzy.Misc.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            int cs = Encoding.ASCII.GetBytes($"{count:X}\r\n", _chunkLengthBuffer);
-            _innerStream.Write(_chunkLengthBuffer, 0, cs);
-            _innerStream.Write(buffer, offset, count);
-            _innerStream.Write(LineTerminator);
+            var poolBuffer = ArrayPool<byte>.Shared.Rent(64);
+
+            try
+            {
+                int cs = Encoding.ASCII.GetBytes($"{count:X}\r\n", poolBuffer);
+                _innerStream.Write(poolBuffer, 0, cs);
+                _innerStream.Write(buffer, offset, count);
+                _innerStream.Write(LineTerminator);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(poolBuffer);
+            }
+
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -56,10 +66,20 @@ namespace Fluxzy.Misc.Streams
 
         public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
         {
-            int cs = Encoding.ASCII.GetBytes($"{buffer.Length:X}\r\n", _chunkLengthBuffer);
-            await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(_chunkLengthBuffer, 0, cs), cancellationToken);
-            await _innerStream.WriteAsync(buffer, cancellationToken);
-            await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(LineTerminator), cancellationToken);
+            var poolBuffer = ArrayPool<byte>.Shared.Rent(64);
+
+            try
+            {
+                int cs = Encoding.ASCII.GetBytes($"{buffer.Length:X}\r\n", poolBuffer);
+                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(poolBuffer, 0, cs), cancellationToken);
+                await _innerStream.WriteAsync(buffer, cancellationToken);
+                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(LineTerminator), cancellationToken);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(poolBuffer);
+            }
+
         }
 
         public override async ValueTask DisposeAsync()

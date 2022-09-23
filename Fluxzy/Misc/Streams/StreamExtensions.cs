@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,8 +14,16 @@ namespace Fluxzy.Misc.Streams
             Stream destination,
             int bufferSize, Action<int> onContentCopied, CancellationToken cancellationToken)
         {
-            return await source.CopyDetailed(destination, new byte[bufferSize], onContentCopied,
-                cancellationToken);
+            var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+
+            try
+            {
+                return await source.CopyDetailed(destination, buffer, onContentCopied, cancellationToken);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
 
         public static async ValueTask<int> Drain(this Stream stream, int bufferSize = 16 * 1024)
