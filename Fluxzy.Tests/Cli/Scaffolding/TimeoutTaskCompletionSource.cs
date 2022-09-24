@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Tests.Cli
+namespace Fluxzy.Tests.Cli.Scaffolding
 {
     internal class TimeoutTaskCompletionSource<T> : IDisposable
     {

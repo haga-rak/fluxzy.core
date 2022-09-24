@@ -4,7 +4,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 
-namespace Fluxzy.Tests.Cli
+namespace Fluxzy.Tests.Cli.Scaffolding
 {
     public class ProxiedHttpClient : IDisposable
     {
@@ -18,7 +18,7 @@ namespace Fluxzy.Tests.Cli
                 Proxy = new WebProxy($"http://{remoteHost}:{port}")
             };
 
-            _client = new HttpClient(_clientHandler); 
+            _client = new HttpClient(_clientHandler);
         }
 
         public HttpClient Client => _client;
