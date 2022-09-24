@@ -1,5 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Tests.Cli.Scaffolding;
@@ -9,15 +10,32 @@ using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
-    public class SimpleCaptureTests
+    public class CliStartOptionOverviewTests
     {
+        public static IEnumerable<object[]> GetSingleRequestParameters
+        {
+            get
+            {
+                var allHosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host };
+                var decryptionStatus = new[] { false, true };
+
+                foreach (var host in allHosts)
+                foreach (var decryptStat in decryptionStatus)
+                    yield return new object[] { host, decryptStat };
+            }
+        }
+
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
-        public async Task Run_Single_Request_And_Halt_Fluxzy(string host)
+        [MemberData(nameof(GetSingleRequestParameters))]
+        public async Task Run_Single_Request_And_Halt_Fluxzy(string host, bool noDecryption)
         {
             // Arrange 
-            FluxzyCommandLineHost commandLineHost = new("start -l 127.0.0.1/0");
+            var commandLine = "start -l 127.0.0.1/0";
+
+            if (noDecryption)
+                commandLine += " -ss";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
             await using var fluxzyInstance = await commandLineHost.Run();
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
