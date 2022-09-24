@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Tests.Cli
+namespace Fluxzy.Tests.Cli.Scaffolding
 {
     public class ProxyInstance : IAsyncDisposable
     {
@@ -14,8 +14,8 @@ namespace Fluxzy.Tests.Cli
         private readonly CancellationTokenSource _tokenSource;
 
         public ProxyInstance(Task proxyTask,
-            OutputWriterNotifier standardOutput, 
-            OutputWriterNotifier standardError, 
+            OutputWriterNotifier standardOutput,
+            OutputWriterNotifier standardError,
             int listenPort, CancellationTokenSource tokenSource)
         {
             ListenPort = listenPort;

@@ -9,11 +9,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Tests.Cli
+namespace Fluxzy.Tests.Cli.Scaffolding
 {
     public class OutputWriterNotifier : TextWriter
     {
-        private readonly Dictionary<string, TimeoutTaskCompletionSource<string>> _runningWait = new ();
+        private readonly Dictionary<string, TimeoutTaskCompletionSource<string>> _runningWait = new();
 
         public override Encoding Encoding => Encoding.UTF8;
 
@@ -24,8 +24,8 @@ namespace Fluxzy.Tests.Cli
                 if (!_runningWait.TryGetValue(regexPattern, out var completionSource))
                 {
                     _runningWait[regexPattern] = completionSource = new TimeoutTaskCompletionSource<string>(timeoutSeconds);
-                    
-                    
+
+
 
                 }
 
@@ -52,7 +52,7 @@ namespace Fluxzy.Tests.Cli
                         if (matchResult.Success && matchResult.Groups.Count > 1)
                         {
                             cancellableTaskSource.CompletionSource.TrySetResult(matchResult.Groups[1].Value);
-                            break; 
+                            break;
                         }
                     }
                 }

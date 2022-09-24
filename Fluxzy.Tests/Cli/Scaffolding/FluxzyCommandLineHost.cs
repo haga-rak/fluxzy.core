@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Cli;
 
-namespace Fluxzy.Tests.Cli
+namespace Fluxzy.Tests.Cli.Scaffolding
 {
     public class FluxzyCommandLineHost
     {
@@ -16,15 +16,15 @@ namespace Fluxzy.Tests.Cli
         private readonly OutputWriterNotifier _standardError;
 
         public FluxzyCommandLineHost(string commandLine)
-            : this(commandLine.Split(new[] {" "}, StringSplitOptions.RemoveEmptyEntries))
-            
+            : this(commandLine.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries))
+
         {
         }
 
-        public FluxzyCommandLineHost(string [] commandLineArgs)
+        public FluxzyCommandLineHost(string[] commandLineArgs)
         {
             _commandLineArgs = commandLineArgs;
-            _cancellationTokenSource = new CancellationTokenSource(); 
+            _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
             _standardOutput = new OutputWriterNotifier();
@@ -36,12 +36,12 @@ namespace Fluxzy.Tests.Cli
 
         public async Task<ProxyInstance> Run()
         {
-            var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$"); 
+            var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$");
             var runningProxyTask = FluxzyStartup.Run(_commandLineArgs, _cancellationToken);
 
-            var port = int.Parse(await waitForPortTask); 
+            var port = int.Parse(await waitForPortTask);
 
-            return new ProxyInstance(runningProxyTask, _standardOutput, _standardError, port, _cancellationTokenSource); 
+            return new ProxyInstance(runningProxyTask, _standardOutput, _standardError, port, _cancellationTokenSource);
         }
     }
 }
