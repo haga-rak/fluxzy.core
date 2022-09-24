@@ -85,7 +85,7 @@ namespace Fluxzy.Cli
             var certFile = invocationContext.Value<FileInfo>("cert-file");
             var certPassword = invocationContext.Value<string>("cert-password");
             var invokeCancellationToken = invocationContext.GetCancellationToken();
-
+            
 
             using var linkedTokenSource =
                 processToken == default
@@ -172,7 +172,7 @@ namespace Fluxzy.Cli
                 }
             }
 
-            Console.WriteLine("Proxy ended, gracefully");
+            invocationContext.Console.Out.WriteLine("Proxy ended, gracefully");
 
             if (outFileInfo != null)
             {

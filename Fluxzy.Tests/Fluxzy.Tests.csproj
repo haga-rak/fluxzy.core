@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Fluxzy.Cli\Fluxzy.Cli.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
     <ProjectReference Include="..\SubModules\Sandbox\fluxzy.sandbox.models\fluxzy.sandbox.models.csproj" />
