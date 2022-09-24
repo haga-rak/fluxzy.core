@@ -2,6 +2,7 @@
 
 using System;
 using System.CommandLine;
+using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -83,7 +84,7 @@ namespace Fluxzy.Cli
 
             exportCommand.AddArgument(argumentFileInfo);
 
-            exportCommand.SetHandler(async fileInfo =>
+            exportCommand.SetHandler(async (fileInfo, console) =>
             {
                 var certificate = FluxzySecurity.DefaultCertificate;
 
@@ -92,10 +93,11 @@ namespace Fluxzy.Cli
 
                 if (CertificateUtility.IsCertificateInstalled(certificate.SerialNumber))
                     // ReSharper disable once LocalizableElement
-                    Console.WriteLine($"Trusted {certificate.SubjectName.Name}");
+                    console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 else
-                    Console.Error.WriteLine($"NOT trusted {certificate.SubjectName.Name}");
-            }, argumentFileInfo);
+                    console.Error.WriteLine($"NOT trusted {certificate.SubjectName.Name}");
+
+            }, argumentFileInfo, new ConsoleBinder());
 
             return exportCommand;
         }

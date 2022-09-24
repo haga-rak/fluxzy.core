@@ -103,7 +103,6 @@ namespace Fluxzy.Tests
             await using var hashedStream = new HashedStream(randomStream);
 
             requestMessage.Content = new StreamContent(hashedStream);
-
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
 
             using var response = await httpClient.SendAsync(requestMessage);
