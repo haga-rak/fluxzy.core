@@ -3,64 +3,15 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Threading.Channels;
 using PacketDotNet;
 using SharpPcap;
 
 namespace Fluxzy.Interop.Pcap
 {
-    internal class ConnectionQueue : IDisposable
-    {
-        private static readonly int LimitPacketNoSubscribe = 10; 
-        private readonly Channel<RawCapture> _captureChannel = Channel.CreateUnbounded<RawCapture>();
-        private int _totalPackedReceived;
-        private volatile bool _subscribed;
-        private ConnectionQueueWriter? _writer = null;
-        private bool _disposed; 
-
-        public long Key { get; }
-
-        public ConnectionQueue(long key)
-        {
-            Key = key;
-        }
-
-        public IConnectionSubscription Subscribe(string outFileName)
-        {
-            if (_writer != null)
-                throw new InvalidOperationException($"Already subscribed");
-
-            _subscribed = true;
-
-            return _writer = new ConnectionQueueWriter(Key, _captureChannel.Reader, outFileName);
-        }
-
-        public bool Post(RawCapture rawCapture)
-        {
-            Interlocked.Increment(ref _totalPackedReceived);
-
-            if (!_subscribed && _totalPackedReceived > LimitPacketNoSubscribe)
-                return false; // No subscriber on packet we leave
-            return _captureChannel.Writer.TryWrite(rawCapture); 
-        }
-        
-        public void Dispose()
-        {
-            if (_disposed)
-                return;
-
-            _disposed = true;
-
-       
-
-           var res = _captureChannel.Writer.TryComplete();
-        }
-    }
-
     /// <summary>
     /// Connection mode singleton 
     /// </summary>
-    public class PacketQueue : IDisposable
+    public class PacketQueue : IAsyncDisposable
     {
         private readonly HashSet<Authority> _allowedAuthorityKeys = new();
         private readonly ConcurrentDictionary<long, ConnectionQueue> _captureChannels = new(); 
@@ -78,11 +29,11 @@ namespace Fluxzy.Interop.Pcap
             return queue.Subscribe(outFileName);
         }
 
-        public void Unsubscribe(IConnectionSubscription subscription)
+        public async Task Unsubscribe(IConnectionSubscription subscription)
         {
             if (_captureChannels.TryRemove(subscription.Key, out var queue))
             {
-                queue.Dispose();
+                await queue.DisposeAsync();
             }
         }
 
@@ -118,12 +69,10 @@ namespace Fluxzy.Interop.Pcap
                 _captureChannels.TryRemove(connectionKey, out _);
             }
         }
-
-        public void Dispose()
+        
+        public async ValueTask DisposeAsync()
         {
-            foreach (var queue in _captureChannels.Values) {
-                queue.Dispose();
-            }
+            await Task.WhenAll(_captureChannels.Values.Select(v => v.DisposeAsync().AsTask()));
         }
     }
 }

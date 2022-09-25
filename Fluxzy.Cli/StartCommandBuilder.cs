@@ -133,7 +133,7 @@ namespace Fluxzy.Cli
             var certificateProvider = new CertificateProvider(proxyStartUpSetting,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
 
-            using (var tcpConnectionProvider =
+            await using (var tcpConnectionProvider =
                    includeTcpDump
                        ? new CapturedTcpConnectionProvider()
                        : ITcpConnectionProvider.Default)

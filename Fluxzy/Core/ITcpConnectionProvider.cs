@@ -1,10 +1,11 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using System.Threading.Tasks;
 
 namespace Fluxzy.Core
 {
-    public interface ITcpConnectionProvider : IDisposable
+    public interface ITcpConnectionProvider : IAsyncDisposable
     {
         public static ITcpConnectionProvider Default { get; } = new DefaultTcpConnectionProvider();
 
@@ -17,10 +18,9 @@ namespace Fluxzy.Core
         {
             return new DefaultTcpConnection();
         }
-
-        public void Dispose()
+        
+        public async ValueTask DisposeAsync()
         {
-
         }
     }
 }

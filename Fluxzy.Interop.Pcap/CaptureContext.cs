@@ -8,7 +8,7 @@ using SharpPcap.LibPcap;
 
 namespace Fluxzy.Interop.Pcap
 {
-    public class CaptureContext : IDisposable
+    public class CaptureContext : IAsyncDisposable
     {
         private readonly PcapDevice _captureDevice;
 
@@ -73,19 +73,21 @@ namespace Fluxzy.Interop.Pcap
             
             _packetQueue.Enqueue(rawPacket, ethernetPacket, _physicalLocalAddress);
         }
+        
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            if (_disposed) {
+            if (_disposed)
+            {
                 return;
             }
 
-            _disposed = true; 
+            _disposed = true;
 
-            Stop(); 
+            Stop();
 
             _captureDevice.Dispose();
-            _packetQueue.Dispose();
+            await _packetQueue.DisposeAsync();
         }
     }
     

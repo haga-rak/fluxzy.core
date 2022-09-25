@@ -20,7 +20,11 @@ namespace Fluxzy.Interop.Pcap
 
         public void Dispose()
         {
-            _captureContext.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _captureContext.DisposeAsync();
         }
     }
 }
