@@ -243,12 +243,11 @@ namespace Fluxzy.Tests
             var timeoutSeconds = 500;
             var requestReceived = new TaskCompletionSource<Exchange>();
             var bindHost = "127.0.0.1";
-            var bindPort = PortProvider.Next();
             var startupSetting = FluxzySetting
                                  .CreateDefault()
-                                 .SetBoundAddress(bindHost, bindPort);
+                                 .SetBoundAddress(bindHost, 0);
 
-            var (httpClient, proxy) = CreateTestContext(bindHost, bindPort, timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
+            var (httpClient, proxy) = CreateTestContext(bindHost,  timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
 
             try {
 
@@ -268,15 +267,10 @@ namespace Fluxzy.Tests
             }
         }
 
-        private static (HttpClient, Proxy p) CreateTestContext(string bindHost, int bindPort, int timeoutSeconds,
+        private static (HttpClient, Proxy p) CreateTestContext(string bindHost, int timeoutSeconds,
             TaskCompletionSource<Exchange> requestReceived, FluxzySetting startupSetting,
             out CancellationTokenSource cancellationTokenSource)
         {
-            var messageHandler = new HttpClientHandler() {
-                Proxy = new WebProxy($"http://{bindHost}:{bindPort}")
-            };
-
-            var httpClient = new HttpClient(messageHandler);
 
             cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
 
@@ -296,7 +290,15 @@ namespace Fluxzy.Tests
                     requestReceived.TrySetResult(args.Original);
             };
 
-            proxy.Run();
+           var endPoint =  proxy.Run().First();
+
+            var messageHandler = new HttpClientHandler()
+            {
+                Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
+            };
+
+            var httpClient = new HttpClient(messageHandler);
+
             return (httpClient, proxy);
         }
 
@@ -304,19 +306,12 @@ namespace Fluxzy.Tests
         public async Task Test_GetThrough_H1_Plain()
         {
             var bindHost = "127.0.0.1";
-            var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetBoundAddress(bindHost, bindPort);
+                .SetBoundAddress(bindHost, 0);
 
-            var messageHandler = new HttpClientHandler()
-            {
-                Proxy = new WebProxy($"http://{bindHost}:{bindPort}")
-            };
-
-            var httpClient = new HttpClient(messageHandler); 
 
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -338,7 +333,14 @@ namespace Fluxzy.Tests
                     requestReceived.TrySetResult(args.Original);
             };
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            var messageHandler = new HttpClientHandler()
+            {
+                Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
+            };
+
+            var httpClient = new HttpClient(messageHandler);
 
             var response = await httpClient.GetAsync("http://info.cern.ch/",
                 cancellationTokenSource.Token);
@@ -354,19 +356,11 @@ namespace Fluxzy.Tests
         public async Task Test_GetThrough_H2()
         {
             var bindHost = "127.0.0.1";
-            var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetBoundAddress(bindHost, bindPort);
-
-            var messageHandler = new HttpClientHandler()
-            {
-                Proxy = new WebProxy($"http://{bindHost}:{bindPort}")
-            };
-
-            var httpClient = new HttpClient(messageHandler); 
+                .SetBoundAddress(bindHost, 0);
 
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -389,7 +383,15 @@ namespace Fluxzy.Tests
                     requestReceived.TrySetResult(args.Original);
             };
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+
+            var messageHandler = new HttpClientHandler()
+            {
+                Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
+            };
+
+            var httpClient = new HttpClient(messageHandler);
 
             var response = await httpClient.GetAsync("https://sandbox.smartizy.com:5001/protocol",
                 cancellationTokenSource.Token);
@@ -407,20 +409,13 @@ namespace Fluxzy.Tests
         public async Task Test_GetThrough_Blind_Tunnel()
         {
             var bindHost = "127.0.0.1";
-            var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
                 .SetSkipGlobalSslDecryption(true)
-                .SetBoundAddress(bindHost, bindPort);
+                .SetBoundAddress(bindHost, 0);
 
-            var messageHandler = new HttpClientHandler()
-            {
-                Proxy = new WebProxy($"http://{bindHost}:{bindPort}")
-            };
-
-            var httpClient = new HttpClient(messageHandler); 
 
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -442,7 +437,14 @@ namespace Fluxzy.Tests
                     requestReceived.TrySetResult(args.Original);
             };
 
-            proxy.Run();
+            var endPoint = proxy.Run().First();
+
+            var messageHandler = new HttpClientHandler()
+            {
+                Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
+            };
+
+            var httpClient = new HttpClient(messageHandler);
 
             var response = await httpClient.GetAsync("https://sandbox.smartizy.com:5001/protocol",
                 cancellationTokenSource.Token);
@@ -462,19 +464,12 @@ namespace Fluxzy.Tests
         public async Task Test_GetThrough_Post()
         {
             var bindHost = "127.0.0.1";
-            var bindPort = PortProvider.Next();
             var timeoutSeconds = 500; 
 
             var startupSetting = FluxzySetting
                 .CreateDefault()
-                .SetBoundAddress(bindHost, bindPort);
+                .SetBoundAddress(bindHost, 0);
 
-            var messageHandler = new HttpClientHandler()
-            {
-                Proxy = new WebProxy($"http://{bindHost}:{bindPort}")
-            };
-
-            var httpClient = new HttpClient(messageHandler); 
 
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -495,7 +490,15 @@ namespace Fluxzy.Tests
                 if (args.UpdateType == UpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
             };
-            proxy.Run();
+
+            var endPoint = proxy.Run().First();
+
+            var messageHandler = new HttpClientHandler()
+            {
+                Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
+            };
+
+            var httpClient = new HttpClient(messageHandler);
 
             var response = await httpClient.PostAsync("https://sandbox.smartizy.com/content-control/sha256", 
                 new StringContent("random posted string", Encoding.UTF8),
@@ -516,12 +519,11 @@ namespace Fluxzy.Tests
             var timeoutSeconds = 500;
             var requestReceived = new TaskCompletionSource<Exchange>();
             var bindHost = "127.0.0.1";
-            var bindPort = PortProvider.Next();
             var startupSetting = FluxzySetting
                                  .CreateDefault()
-                                 .SetBoundAddress(bindHost, bindPort);
+                                 .SetBoundAddress(bindHost, 0);
 
-            var (httpClient, proxy) = CreateTestContext(bindHost, bindPort, timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
+            var (httpClient, proxy) = CreateTestContext(bindHost,  timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
 
             try {
                 var longSuffix = new string('a', 17 * 1024);
