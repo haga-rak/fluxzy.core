@@ -68,6 +68,7 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
+            
         }
 
 
@@ -119,6 +120,7 @@ namespace Fluxzy.Tests.Cli
                 var exchange = exchanges.First();
                 var connection = connections.First(); 
 
+                Assert.Equal(0, await commandLineHost.ExitCode);
                 Assert.Single(exchanges);
                 Assert.Single(connections);
 

@@ -14,6 +14,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         private readonly CancellationToken _cancellationToken;
         private readonly OutputWriterNotifier _standardOutput;
         private readonly OutputWriterNotifier _standardError;
+        private Task<int> _runningProxyTask;
 
         public FluxzyCommandLineHost(string commandLine)
             : this(commandLine.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries))
@@ -37,11 +38,13 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         public async Task<ProxyInstance> Run()
         {
             var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$");
-            var runningProxyTask = FluxzyStartup.Run(_commandLineArgs, _cancellationToken);
+            _runningProxyTask = FluxzyStartup.Run(_commandLineArgs, _cancellationToken);
 
             var port = int.Parse(await waitForPortTask);
 
-            return new ProxyInstance(runningProxyTask, _standardOutput, _standardError, port, _cancellationTokenSource);
+            return new ProxyInstance(_runningProxyTask, _standardOutput, _standardError, port, _cancellationTokenSource);
         }
+
+        public Task<int> ExitCode => _runningProxyTask;
     }
 }
