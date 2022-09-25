@@ -85,7 +85,6 @@ namespace Fluxzy.Cli
             var certFile = invocationContext.Value<FileInfo>("cert-file");
             var certPassword = invocationContext.Value<string>("cert-password");
             var invokeCancellationToken = invocationContext.GetCancellationToken();
-            
 
             using var linkedTokenSource =
                 processToken == default
@@ -134,42 +133,44 @@ namespace Fluxzy.Cli
             var certificateProvider = new CertificateProvider(proxyStartUpSetting,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
 
-            using var tcpConnectionProvider =
-                includeTcpDump
-                    ? new CapturedTcpConnectionProvider()
-                    : ITcpConnectionProvider.Default;
-
-            await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider))
+            using (var tcpConnectionProvider =
+                   includeTcpDump
+                       ? new CapturedTcpConnectionProvider()
+                       : ITcpConnectionProvider.Default)
             {
-                var endPoints = proxy.Run();
-
-                invocationContext.BindingContext.Console
-                                 .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
-
-                if (registerAsSystemProxy)
+                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider))
                 {
-                    var setting = SystemProxyRegistration.Register(endPoints, proxyStartUpSetting);
-                    invocationContext.Console.Out.WriteLine(
-                        $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
-                }
+                    var endPoints = proxy.Run();
 
-                invocationContext.Console.Out.WriteLine("Ready to process connections, Ctrl+C to exit.");
+                    invocationContext.BindingContext.Console
+                                     .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
 
-                try
-                {
-                    await Task.Delay(-1, cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                finally
-                {
                     if (registerAsSystemProxy)
                     {
-                        SystemProxyRegistration.UnRegister();
-                        invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
+                        var setting = SystemProxyRegistration.Register(endPoints, proxyStartUpSetting);
+                        invocationContext.Console.Out.WriteLine(
+                            $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
+                    }
+
+                    invocationContext.Console.Out.WriteLine("Ready to process connections, Ctrl+C to exit.");
+
+                    try
+                    {
+                        await Task.Delay(-1, cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                    finally
+                    {
+                        if (registerAsSystemProxy)
+                        {
+                            SystemProxyRegistration.UnRegister();
+                            invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
+                        }
                     }
                 }
+
             }
 
             invocationContext.Console.Out.WriteLine("Proxy ended, gracefully");
