@@ -1,5 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -81,6 +82,8 @@ namespace Fluxzy.Tests
             };
 
             using var httpClient = new HttpClient(clientHandler);
+
+            httpClient.Timeout = TimeSpan.FromSeconds(8);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://sandbox.smartizy.com:4988/");
