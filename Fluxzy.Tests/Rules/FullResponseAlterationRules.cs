@@ -6,11 +6,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Rules;
-using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Tests.Tools;
-using Fluxzy.Tests.Utils;
 using Xunit;
 
 namespace Fluxzy.Tests.Rules

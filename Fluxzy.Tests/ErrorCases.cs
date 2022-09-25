@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Tests.Tools;
-using Fluxzy.Tests.Utils;
 using Xunit;
 
 namespace Fluxzy.Tests

@@ -34,11 +34,14 @@ namespace Fluxzy.Tests.Cli
             get
             {
                 var protocols = new[] { "http11", "http2" };
-                var withPcapStatus = new[] { false, true }; 
+                var withPcapStatus = new[] { false, true };
+                var directoryParams = new[] { false, true };
+
 
                 foreach (var protocol in protocols)
                 foreach (var withPcap in withPcapStatus)
-                    yield return new object[] { protocol, withPcap };
+                foreach (var directoryParam in directoryParams)
+                    yield return new object[] { protocol, withPcap, directoryParam };
             }
         }
 
@@ -76,12 +79,16 @@ namespace Fluxzy.Tests.Cli
 
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
-        public async Task Run_Cli_Output_Directory(string protocol, bool withPcap)
+        public async Task Run_Cli_Output(string protocol, bool withPcap, bool outputDirectory)
         {
             // Arrange 
 
             var directoryName = $"output/{protocol}";
-            var commandLine = $"start -l 127.0.0.1/0 -d {directoryName}";
+            var fileName = $"output/{protocol}.fxzy";
+
+            var commandLine = $"start -l 127.0.0.1/0";
+
+            commandLine += outputDirectory ? $" -d {directoryName}" : $" -o {fileName}";
 
             if (withPcap)
             {
@@ -115,11 +122,11 @@ namespace Fluxzy.Tests.Cli
                     await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
                 }
 
-                // Assert directory content
-
-                var fullPath = new DirectoryInfo(directoryName).FullName;
-
-                var archiveReader = new DirectoryArchiveReader(directoryName);
+                // Assert outputDirectory content
+                
+                using IArchiveReader archiveReader = outputDirectory ?
+                    new DirectoryArchiveReader(directoryName) :
+                    new FluxzyArchiveReader(fileName);
 
                 var exchanges = archiveReader.ReadAllExchanges().ToList();
                 var connections = archiveReader.ReadAllConnections().ToList();
@@ -147,7 +154,11 @@ namespace Fluxzy.Tests.Cli
             }
             finally
             {
-                Directory.Delete(directoryName, true);
+                if (Directory.Exists(directoryName))
+                    Directory.Delete(directoryName, true);
+
+                if (File.Exists(fileName))
+                    File.Delete(fileName);
             }
 
         }

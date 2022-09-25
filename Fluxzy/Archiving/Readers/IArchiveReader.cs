@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
 namespace Fluxzy.Readers
 {
-    public interface IArchiveReader
+    public interface IArchiveReader : IDisposable
     {
         IEnumerable<ExchangeInfo> ReadAllExchanges();
         

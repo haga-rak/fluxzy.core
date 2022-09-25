@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -94,6 +93,10 @@ namespace Fluxzy.Readers
                 return null;
 
             return File.Open(requestContentPath, FileMode.Open);
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
