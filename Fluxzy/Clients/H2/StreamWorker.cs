@@ -9,30 +9,31 @@ using Fluxzy.Clients.H2.Frames;
 
 namespace Fluxzy.Clients.H2
 {
-    internal sealed class StreamWorker: IDisposable
+    internal sealed class StreamWorker : IDisposable
     {
-        private readonly StreamPool _parent;
         private readonly Exchange _exchange;
-        private readonly CancellationTokenSource _resetTokenSource;
+
+        private readonly SemaphoreSlim _headerReceivedSemaphore = new(0, 1);
 
         private readonly H2Logger _logger;
 
-        private bool _noBodyStream;
-        
-        private bool _disposed;
-        
         private readonly Pipe _pipeResponseBody;
+        private readonly CancellationTokenSource _resetTokenSource;
 
-        private int _totalBodyReceived;
+        private bool _disposed;
         private bool _firstBodyFragment = true;
 
 
         private Memory<byte> _headerBuffer;
 
+        private bool _noBodyStream;
+
+        private int _totalBodyReceived;
+
         private int _totalHeaderReceived;
 
-        private readonly SemaphoreSlim _headerReceivedSemaphore = new(0, 1);
-        
+        private int totalSendOnStream;
+
 
         public StreamWorker(
             int streamIdentifier,
@@ -40,16 +41,16 @@ namespace Fluxzy.Clients.H2
             Exchange exchange, CancellationTokenSource resetTokenSource)
         {
             StreamIdentifier = streamIdentifier;
-            _parent = parent;
+            Parent = parent;
             _exchange = exchange;
             _resetTokenSource = resetTokenSource;
 
             RemoteWindowSize = new WindowSizeHolder(parent.Context.Logger,
-                parent.Context.Setting.OverallWindowSize, 
+                parent.Context.Setting.OverallWindowSize,
                 streamIdentifier);
-            
+
             _logger = parent.Context.Logger;
-            
+
             _pipeResponseBody = new Pipe(new PipeOptions(MemoryPool<byte>.Shared));
         }
 
@@ -63,22 +64,38 @@ namespace Fluxzy.Clients.H2
 
         public WindowSizeHolder RemoteWindowSize { get; }
 
-        public StreamPool Parent => _parent;
+        public StreamPool Parent { get; }
+
+        public void Dispose()
+        {
+            _disposed = true;
+
+            _logger.Trace(StreamIdentifier, ".... disposing");
+
+            RemoteWindowSize?.Dispose();
+
+            _headerReceivedSemaphore.Release();
+            _headerReceivedSemaphore.Dispose();
+
+            _logger.Trace(StreamIdentifier, ".... disposed");
+        }
 
         private async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
         {
             if (requestedBodyLength == 0)
                 return 0;
-            
-            var streamWindow = await RemoteWindowSize.BookWindowSize(requestedBodyLength, cancellationToken).ConfigureAwait(false);
+
+            var streamWindow = await RemoteWindowSize.BookWindowSize(requestedBodyLength, cancellationToken)
+                                                     .ConfigureAwait(false);
 
             if (streamWindow == 0)
                 return 0;
 
-            var overallWindow = await Parent.Context.OverallWindowSizeHolder.BookWindowSize(streamWindow, cancellationToken)
-                .ConfigureAwait(false);
+            var overallWindow = await Parent.Context.OverallWindowSizeHolder
+                                            .BookWindowSize(streamWindow, cancellationToken)
+                                            .ConfigureAwait(false);
 
-            return overallWindow; 
+            return overallWindow;
         }
 
         public void NotifyStreamWindowUpdate(int windowSizeUpdateValue)
@@ -107,44 +124,40 @@ namespace Fluxzy.Clients.H2
         public void ResetRequest(H2ErrorCode errorCode)
         {
             if (!_resetTokenSource.IsCancellationRequested)
-            {
                 _resetTokenSource.Cancel();
-            }
 
             _pipeResponseBody.Writer.Complete();
 
             if (errorCode != H2ErrorCode.NoError)
             {
-                string value = _exchange.Request.Header.GetHttp11Header().ToString();
+                var value = _exchange.Request.Header.GetHttp11Header().ToString();
 
                 if (_exchange.Response.Header != null)
-                {
                     value += _exchange.Response.Header.GetHttp11Header().ToString();
-                }
 
                 _logger.Trace(StreamIdentifier, $"Receive RST : {errorCode} from server.\r\n{value}");
             }
 
             _exchange.ExchangeCompletionSource
-                .TrySetException(new ExchangeException($"Receive RST : {errorCode} from server"));
+                     .TrySetException(new ExchangeException($"Receive RST : {errorCode} from server"));
 
-            _parent.NotifyDispose(this);
+            Parent.NotifyDispose(this);
         }
 
         public void SetPriority(PriorityFrame priorityFrame)
         {
             StreamDependency = priorityFrame.StreamDependency;
             StreamPriority = priorityFrame.Weight;
-            Exclusive = priorityFrame.Exclusive; 
+            Exclusive = priorityFrame.Exclusive;
         }
-        
-        public Task EnqueueRequestHeader(Exchange exchange, byte [] buffer, CancellationToken token)
+
+        public Task EnqueueRequestHeader(Exchange exchange, byte[] buffer, CancellationToken token)
         {
             var endStream = exchange.Request.Header.ContentLength == 0 ||
                             exchange.Request.Body == null ||
-                            exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0;
-            
-            var readyToBeSent = _parent.Context.HeaderEncoder.Encode(
+                            (exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0);
+
+            var readyToBeSent = Parent.Context.HeaderEncoder.Encode(
                 new HeaderEncodingJob(exchange.Request.Header.GetHttp11Header(), StreamIdentifier, StreamDependency),
                 buffer, endStream);
 
@@ -153,10 +166,10 @@ namespace Fluxzy.Clients.H2
             var writeHeaderTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority,
                 StreamDependency, readyToBeSent);
 
-            _parent.Context.UpStreamChannel(ref writeHeaderTask);
+            Parent.Context.UpStreamChannel(ref writeHeaderTask);
 
             return writeHeaderTask.DoneTask
-                .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, token);
+                                  .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, token);
         }
 
         public async ValueTask ProcessRequestBody(Exchange exchange, byte[] buffer, CancellationToken token)
@@ -166,29 +179,26 @@ namespace Fluxzy.Clients.H2
             var bodyLength = exchange.Request.Header.ContentLength;
             var localBuffer = new Memory<byte>(buffer);
 
-            if (requestBodyStream != null 
+            if (requestBodyStream != null
                 && (!requestBodyStream.CanSeek || requestBodyStream.Length > 0))
-            {
-
                 while (true)
                 {
-                    var bookedSize = _parent.Context.Setting.Local.MaxFrameSize - 9;
+                    var bookedSize = Parent.Context.Setting.Local.MaxFrameSize - 9;
 
                     if (_disposed)
                         throw new TaskCanceledException("Stream cancellation request");
 
                     // We check wait for available Window Size from remote
-                    
                     bookedSize = await BookWindowSize(bookedSize, token)
                         .ConfigureAwait(false);
-                    
+
                     if (bookedSize == 0)
                         throw new TaskCanceledException("Stream cancellation request");
 
                     var dataFramePayloadLength = await requestBodyStream
-                        .ReadAsync(localBuffer.Slice(9, bookedSize),
-                            token)
-                        .ConfigureAwait(false);
+                                                       .ReadAsync(localBuffer.Slice(9, bookedSize),
+                                                           token)
+                                                       .ConfigureAwait(false);
 
                     if (dataFramePayloadLength < bookedSize)
                     {
@@ -199,10 +209,8 @@ namespace Fluxzy.Clients.H2
 
                     var endStream = dataFramePayloadLength == 0;
 
-                    if (bodyLength >= 0 && (totalSent + dataFramePayloadLength) >= bodyLength)
-                    {
+                    if (bodyLength >= 0 && totalSent + dataFramePayloadLength >= bodyLength)
                         endStream = true;
-                    }
 
                     new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, dataFramePayloadLength,
                         StreamIdentifier).WriteHeaderOnly(localBuffer.Span, dataFramePayloadLength);
@@ -211,7 +219,7 @@ namespace Fluxzy.Clients.H2
                         StreamPriority, StreamDependency,
                         localBuffer.Slice(0, 9 + dataFramePayloadLength));
 
-                    _parent.Context.UpStreamChannel(ref writeTaskBody);
+                    Parent.Context.UpStreamChannel(ref writeTaskBody);
 
                     totalSent += dataFramePayloadLength;
                     _exchange.Metrics.TotalSent += dataFramePayloadLength;
@@ -221,13 +229,10 @@ namespace Fluxzy.Clients.H2
                         NotifyStreamWindowUpdate(dataFramePayloadLength);
 
                     if (dataFramePayloadLength == 0 || endStream)
-                    {
                         return;
-                    }
 
                     await writeTaskBody.DoneTask.ConfigureAwait(false);
                 }
-            }
         }
 
         internal void ReceiveHeaderFragmentFromConnection(
@@ -239,12 +244,10 @@ namespace Fluxzy.Clients.H2
                 _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
 
             if (endStream)
-            {
-                _noBodyStream = true; 
-            }
+                _noBodyStream = true;
             ReceiveHeaderFragmentFromConnection(data, endHeader);
         }
-        
+
         internal void ReceiveHeaderFragmentFromConnection(int bodyLength, bool endHeader, ReadOnlyMemory<byte> data)
         {
             _exchange.Metrics.TotalReceived += bodyLength;
@@ -255,20 +258,18 @@ namespace Fluxzy.Clients.H2
             bool lastHeaderFragment)
         {
             if (_headerBuffer.IsEmpty)
-            {
-                _headerBuffer = new byte[_parent.Context.Setting.MaxHeaderSize]; 
-            }
+                _headerBuffer = new byte[Parent.Context.Setting.MaxHeaderSize];
 
             buffer.CopyTo(_headerBuffer.Slice(_totalHeaderReceived));
-            _totalHeaderReceived += buffer.Length; 
+            _totalHeaderReceived += buffer.Length;
 
             if (lastHeaderFragment)
             {
                 _exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
-                var charHeader = DecodeAndAllocate( _headerBuffer.Slice(0, _totalHeaderReceived).Span);
+                var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
 
-                _exchange.Response.Header = new ResponseHeader(charHeader, true, _parent.Context.Parser);
+                _exchange.Response.Header = new ResponseHeader(charHeader, true, Parent.Context.Parser);
 
                 _logger.TraceResponse(this, _exchange);
 
@@ -290,9 +291,9 @@ namespace Fluxzy.Clients.H2
 
         private Memory<char> DecodeAndAllocate(ReadOnlySpan<byte> onWire)
         {
-            Span<char> tempBuffer = stackalloc char[_parent.Context.Setting.MaxHeaderSize];
+            Span<char> tempBuffer = stackalloc char[Parent.Context.Setting.MaxHeaderSize];
 
-            var decoded = _parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
+            var decoded = Parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
             Memory<char> charBuffer = new char[decoded.Length + 256];
 
             decoded.CopyTo(charBuffer.Span);
@@ -320,8 +321,8 @@ namespace Fluxzy.Clients.H2
             }
             catch (Exception)
             {
-                _parent.NotifyDispose(this);
-                throw; 
+                Parent.NotifyDispose(this);
+                throw;
             }
 
             _exchange.Response.Body = _pipeResponseBody.Reader.AsStream();
@@ -333,11 +334,12 @@ namespace Fluxzy.Clients.H2
 
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
 
-                _parent.NotifyDispose(this);
+                Parent.NotifyDispose(this);
             }
         }
 
-        public async Task ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream, CancellationToken token)
+        public async Task ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream,
+            CancellationToken token)
         {
             if (_noBodyStream)
                 throw new InvalidOperationException("Receiving response body was not expected. " +
@@ -353,8 +355,7 @@ namespace Fluxzy.Clients.H2
                 _firstBodyFragment = false;
 
                 _logger.Trace(_exchange, StreamIdentifier,
-                    () => $"First body block received");
-                
+                    () => "First body block received");
             }
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 2");
@@ -363,16 +364,16 @@ namespace Fluxzy.Clients.H2
             if (endStream)
             {
                 _logger.Trace(_exchange, StreamIdentifier,
-                    () => $"Total body received : " + _totalBodyReceived);
+                    () => "Total body received : " + _totalBodyReceived);
 
                 _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
             }
-            
+
             _exchange.Metrics.TotalReceived += buffer.Length;
 
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 3");
-            
+
             var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 4");
@@ -382,13 +383,11 @@ namespace Fluxzy.Clients.H2
             if (shouldEnd)
             {
                 if (_exchange.Metrics.ResponseBodyEnd == default)
-                {
                     _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
-                }
 
 
                 _logger.Trace(_exchange, StreamIdentifier,
-                    () => $"End");
+                    () => "End");
 
                 if (!flushResult.IsCanceled)
                     await _pipeResponseBody.Writer.CompleteAsync();
@@ -396,35 +395,31 @@ namespace Fluxzy.Clients.H2
                 _logger.TraceDeep(StreamIdentifier, () => "a - 5");
 
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
-                
+
                 // Give a chance for semaphores to released before disposed
 
                 await Task.Yield();
 
                 _logger.TraceDeep(StreamIdentifier, () => "a - 6");
 
-                _parent.NotifyDispose(this);
+                Parent.NotifyDispose(this);
             }
         }
-
-        private int totalSendOnStream = 0 ; 
 
         internal void OnDataConsumedByCaller(int dataSize)
         {
             var windowUpdateValue = Parent.ShouldWindowUpdate(dataSize);
 
             if (windowUpdateValue > 0)
-            {
                 //SendWindowUpdate(windowUpdateValue, StreamIdentifier);
                 SendWindowUpdate(windowUpdateValue, 0);
-            }
 
             totalSendOnStream += dataSize;
 
             if (totalSendOnStream > 1024 * 16)
             {
                 SendWindowUpdate(totalSendOnStream, StreamIdentifier);
-                totalSendOnStream = 0; 
+                totalSendOnStream = 0;
             }
         }
 
@@ -432,30 +427,15 @@ namespace Fluxzy.Clients.H2
         {
             var writeTask = new WriteTask(
                 H2FrameType.WindowUpdate,
-                streamIdentifier, StreamPriority, 
+                streamIdentifier, StreamPriority,
                 StreamDependency, Memory<byte>.Empty, windowSizeUpdateValue);
 
-            _parent.Context.UpStreamChannel(ref writeTask);
+            Parent.Context.UpStreamChannel(ref writeTask);
         }
 
         public override string ToString()
         {
-            return $"Stream Id : {StreamIdentifier}"; 
-        }
-
-        public void Dispose()
-        {
-            _disposed = true;
-
-            _logger.Trace(StreamIdentifier, ".... disposing");
-
-            RemoteWindowSize?.Dispose();
-
-            _headerReceivedSemaphore.Release();
-            _headerReceivedSemaphore.Dispose();
-
-            _logger.Trace(StreamIdentifier, ".... disposed");
-
+            return $"Stream Id : {StreamIdentifier}";
         }
     }
 }

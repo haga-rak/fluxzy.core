@@ -10,59 +10,52 @@ namespace Fluxzy.Clients.Mock
     {
 
         [JsonConstructor]
-        public BodyContent()
+        public BodyContent(BodyContentLoadingType loadingType, string mimeType)
         {
-
+            LoadingType = loadingType;
+            MimeType = mimeType;
         }
 
-        public static BodyContent CreateFromFile(string fileName, string mimeType = null)
+        public static BodyContent CreateFromFile(string fileName, string? mimeType = null)
         {
-            var result = new BodyContent()
+            var result = new BodyContent(BodyContentLoadingType.FromFile, mimeType ?? "application/octet-stream")
             {
-                LoadingType = BodyContentLoadingType.FromFile,
-                FileName = fileName,
-                MimeType = mimeType ?? "application/octet-stream"
+                FileName = fileName
             }; 
 
             return result;
         }
 
-        public static BodyContent CreateFromArray(byte [] data, string mimeType = null)
+        public static BodyContent CreateFromArray(byte [] data, string? mimeType = null)
         {
-            var result = new BodyContent()
+            var result = new BodyContent(BodyContentLoadingType.FromImmediateArray, mimeType ?? "application/octet-stream")
             {
-                LoadingType = BodyContentLoadingType.FromImmediateArray,
                 Content = data, 
-                MimeType = mimeType ?? "application/octet-stream"
             }; 
 
             return result;
         }
 
         public static BodyContent CreateFromString(
-            string contentString, string mimeType = null)
+            string contentString, string? mimeType = null)
         {
-            var result = new BodyContent()
+            var result = new BodyContent(BodyContentLoadingType.FromImmediateArray, mimeType ?? "text/plain; charset=utf-8")
             {
-                LoadingType = BodyContentLoadingType.FromImmediateArray,
                 Content = System.Text.Encoding.UTF8.GetBytes(contentString), 
-                MimeType = mimeType ?? "text/plain; charset=utf-8" 
             }; 
 
             return result;
         }
+        
+        public BodyContentLoadingType LoadingType { get; set; }
+        
+        public string MimeType { get; }
 
         [JsonInclude]
-        public BodyContentLoadingType LoadingType { get; private set; }
+        public string? FileName { get; private set; }
 
         [JsonInclude]
-        public string MimeType { get; set; }
-
-        [JsonInclude]
-        public string FileName { get; private set; }
-
-        [JsonInclude]
-        public byte [] Content { get; private set; }
+        public byte []? Content { get; private set; }
 
         public long GetLength()
         {
@@ -70,7 +63,7 @@ namespace Fluxzy.Clients.Mock
             switch (LoadingType)
             {
                 case BodyContentLoadingType.FromImmediateArray:
-                    return Content.Length; 
+                    return Content!.Length; 
                 case BodyContentLoadingType.FromFile:
                     return new FileInfo(FileName).Length; 
                 default:
@@ -83,9 +76,9 @@ namespace Fluxzy.Clients.Mock
             switch (LoadingType)
             {
                 case BodyContentLoadingType.FromImmediateArray:
-                    return new MemoryStream(Content); 
+                    return new MemoryStream(Content!); 
                 case BodyContentLoadingType.FromFile:
-                    return File.OpenRead(FileName); 
+                    return File.OpenRead(FileName!); 
                 default:
                     throw new ArgumentOutOfRangeException();
             }

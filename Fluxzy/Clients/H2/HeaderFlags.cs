@@ -11,6 +11,5 @@ namespace Fluxzy.Clients.H2
         EndHeaders = 0x4,
         Padded = 0x8,
         Priority = 0x20
-
     }
 }

@@ -41,7 +41,7 @@ namespace Fluxzy.Clients
 
         public IPAddress RemoteAddress { get; set; }
 
-        public SslInfo SslInfo { get; set; }
+        public SslInfo?  SslInfo { get; set; }
 
         public DateTime DnsSolveStart { get; set; }
 

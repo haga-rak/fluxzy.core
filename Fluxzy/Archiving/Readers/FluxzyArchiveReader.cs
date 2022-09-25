@@ -79,7 +79,7 @@ namespace Fluxzy.Readers
                 GlobalArchiveOption.JsonSerializerOptions);
         }
 
-        public Stream GetRawCaptureStream(int connectionId)
+        public Stream? GetRawCaptureStream(int connectionId)
         {
             var path = Path.Combine("captures", $"{connectionId}.pcap").Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);

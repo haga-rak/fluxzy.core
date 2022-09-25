@@ -19,15 +19,6 @@ namespace Fluxzy.Clients.H2
 
             logger.OutgoingSetting(ref pushDisabled);
 
-            if (incrementUpdate != 0 )
-            {
-                var windowUpdateFrame = new WindowUpdateFrame(incrementUpdate, 0);
-
-                //written += windowUpdateFrame.Write(buffer.Span.Slice(written));
-
-                //logger.OutgoingWindowUpdate(incrementUpdate, 0);
-            }
-
             return written;
         }
 
