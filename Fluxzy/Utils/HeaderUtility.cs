@@ -5,7 +5,7 @@ namespace Fluxzy.Utils
 {
     public static class HeaderUtility
     {
-        public static string GetSimplifiedContentType(IExchange exchange)
+        public static string? GetSimplifiedContentType(IExchange exchange)
         {
             // check into the response Content-Type header first 
 
@@ -44,7 +44,7 @@ namespace Fluxzy.Utils
             return null;
         }
 
-        private static string SolveSimplifiedContentType(ReadOnlySpan<char> headerValue)
+        private static string? SolveSimplifiedContentType(ReadOnlySpan<char> headerValue)
         {
             if (headerValue.Contains("json", StringComparison.OrdinalIgnoreCase))
                 return "json";
