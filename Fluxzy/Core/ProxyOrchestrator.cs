@@ -41,7 +41,7 @@ namespace Fluxzy.Core
                 if (!token.IsCancellationRequested)
                 {
                     // READ initial state of connection, 
-                    ExchangeBuildingResult localConnection = null;
+                    ExchangeBuildingResult? localConnection = null;
 
                     try
                     {

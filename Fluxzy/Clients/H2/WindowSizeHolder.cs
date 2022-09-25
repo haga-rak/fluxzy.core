@@ -46,7 +46,7 @@ namespace Fluxzy.Clients.H2
 
             lock (_windowSizeAWaiters)
             {
-                var list = new List<TaskCompletionSource<object>>(); 
+                var list = new List<TaskCompletionSource<object?>>(); 
                 while (_windowSizeAWaiters.TryDequeue(out var item))
                 {
                     list.Add(item);

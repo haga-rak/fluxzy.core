@@ -33,8 +33,8 @@ namespace Fluxzy.Clients.H2
 
         private readonly StreamPool _streamPool;
 
-        private Task _innerReadTask;
-        private Task _innerWriteRun;
+        private Task? _innerReadTask;
+        private Task? _innerWriteRun;
 
         private readonly TaskCompletionSource<bool> _waitForSettingReception = new(); 
 

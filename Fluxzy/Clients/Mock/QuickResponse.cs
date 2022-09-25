@@ -13,9 +13,9 @@ namespace Fluxzy.Clients.Mock
             BodyContent = bodyContent;
         }
 
-        public int StatusCode { get; set; }
+        public int StatusCode { get; }
 
-        public BodyContent BodyContent { get; set; }
+        public BodyContent BodyContent { get; }
         
         public override string GetFlatH11Header(Authority authority)
         {

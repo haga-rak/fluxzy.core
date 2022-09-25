@@ -26,7 +26,7 @@ namespace Fluxzy.Clients
             SslApplicationProtocol.Http2
         };
 
-        private readonly RealtimeArchiveWriter _archiveWriter;
+        private readonly RealtimeArchiveWriter? _archiveWriter;
 
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
             new Dictionary<Authority, IHttpConnectionPool>();
@@ -103,7 +103,7 @@ namespace Fluxzy.Clients
                 return new MockedConnectionPool(_http11Parser, exchange.Authority,
                     exchange.Context.PreMadeResponse);
 
-            IHttpConnectionPool result = null;
+            IHttpConnectionPool? result = null;
 
             var semaphore = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
 
@@ -180,8 +180,7 @@ namespace Fluxzy.Clients
                 if (openingResult.Type == RemoteConnectionResultType.Http2)
                 {
                     var h2ConnectionPool = new H2ConnectionPool(
-                        openingResult.Connection
-                                     .ReadStream, // Read and write stream are the same after the sslhandshake
+                        openingResult.Connection.ReadStream!, // Read and write stream are the same after the sslhandshake
                         new H2StreamSetting(),
                         exchange.Authority, exchange.Connection, OnConnectionFaulted);
 

@@ -20,6 +20,6 @@ namespace Fluxzy
 
         int StatusCode { get; }
 
-        string EgressIp { get;  }
+        string? EgressIp { get;  }
     }
 }

@@ -18,14 +18,13 @@ namespace Fluxzy.Clients
             Authority = authority;
             Id = Interlocked.Increment(ref _connectionIdCounter);
         }
-
-        public Stream WriteStream { get; set; }
-
-        public Stream ReadStream { get; set; }
-
-        public string HttpVersion { get; set; }
-
         public int Id { get; set; }
+
+        public Stream? WriteStream { get; set; }
+
+        public Stream? ReadStream { get; set; }
+
+        public string? HttpVersion { get; set; }
 
         public int RequestProcessed
         {
@@ -39,7 +38,7 @@ namespace Fluxzy.Clients
 
         public Authority Authority { get; set; }
 
-        public IPAddress RemoteAddress { get; set; }
+        public IPAddress? RemoteAddress { get; set; }
 
         public SslInfo?  SslInfo { get; set; }
 
@@ -57,6 +56,6 @@ namespace Fluxzy.Clients
 
         public int LocalPort { get; set; }
 
-        public string LocalAddress { get; set; }
+        public string? LocalAddress { get; set; }
     }
 }
