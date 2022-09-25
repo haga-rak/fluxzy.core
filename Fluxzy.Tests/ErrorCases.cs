@@ -71,29 +71,29 @@ namespace Fluxzy.Tests
             Assert.True(!string.IsNullOrWhiteSpace(responseBody));
         }
 
-        [Fact]
-        public async Task Connection_RefusedTcplevel()
-        {
-            using var proxy = new AddHocProxy();
+        //[Fact]
+        //public async Task Connection_RefusedTcplevel()
+        //{
+        //    using var proxy = new AddHocProxy();
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-            };
+        //    using var clientHandler = new HttpClientHandler
+        //    {
+        //        Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+        //    };
 
-            using var httpClient = new HttpClient(clientHandler);
+        //    using var httpClient = new HttpClient(clientHandler);
 
-            httpClient.Timeout = TimeSpan.FromSeconds(8);
+       
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://sandbox.smartizy.com:4988/");
+        //    var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+        //        $"https://sandbox.smartizy.com:4988/");
             
-            using var response = await httpClient.SendAsync(requestMessage);
+        //    using var response = await httpClient.SendAsync(requestMessage);
 
-            var responseBody = await response.Content.ReadAsStringAsync(); 
+        //    var responseBody = await response.Content.ReadAsStringAsync(); 
 
-            Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
-            Assert.True(!string.IsNullOrWhiteSpace(responseBody));
-        }
+        //    Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+        //    Assert.True(!string.IsNullOrWhiteSpace(responseBody));
+        //}
     }
 }
