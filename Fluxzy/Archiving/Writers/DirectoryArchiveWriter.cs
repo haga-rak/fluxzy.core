@@ -24,6 +24,9 @@ namespace Fluxzy.Writers
         public override async Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
             var exchangePath = DirectoryArchiveHelper.GetExchangePath(_baseDirectory, exchangeInfo);
+
+            DirectoryArchiveHelper.CreateDirectory(exchangePath); 
+
             await using var fileStream = File.Create(exchangePath);
             await JsonSerializer.SerializeAsync(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions,
                 cancellationToken);
@@ -32,6 +35,9 @@ namespace Fluxzy.Writers
         public override async Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
         {
             var connectionPath = DirectoryArchiveHelper.GetConnectionPath(_baseDirectory, connectionInfo);
+
+            DirectoryArchiveHelper.CreateDirectory(connectionPath);
+
             await using var fileStream = File.Create(connectionPath);
             await JsonSerializer.SerializeAsync(fileStream, connectionInfo, GlobalArchiveOption.JsonSerializerOptions,
                 cancellationToken);
