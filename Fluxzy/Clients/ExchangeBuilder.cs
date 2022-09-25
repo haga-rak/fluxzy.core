@@ -94,7 +94,7 @@ namespace Fluxzy.Clients
             _idProvider = idProvider;
         }
 
-        public async Task<ExchangeBuildingResult> InitClientConnection(
+        public async Task<ExchangeBuildingResult?> InitClientConnection(
             Stream stream,
             byte [] buffer,
             ProxyRuntimeSetting runtimeSetting,

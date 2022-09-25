@@ -20,7 +20,7 @@ namespace Fluxzy
         }
 
         [JsonConstructor]
-        public SslInfo(SslProtocols sslProtocol, string remoteCertificateIssuer, string remoteCertificateSubject, string localCertificateSubject, string localCertificateIssuer, string negotiatedApplicationProtocol, string keyExchangeAlgorithm, HashAlgorithmType hashAlgorithm, CipherAlgorithmType cipherAlgorithm)
+        public SslInfo(SslProtocols sslProtocol, string? remoteCertificateIssuer, string? remoteCertificateSubject, string? localCertificateSubject, string? localCertificateIssuer, string negotiatedApplicationProtocol, string keyExchangeAlgorithm, HashAlgorithmType hashAlgorithm, CipherAlgorithmType cipherAlgorithm)
         {
             SslProtocol = sslProtocol;
             RemoteCertificateIssuer = remoteCertificateIssuer;
@@ -35,13 +35,13 @@ namespace Fluxzy
 
         public SslProtocols SslProtocol { get;  }
 
-        public string RemoteCertificateIssuer { get;  }
+        public string? RemoteCertificateIssuer { get;  }
 
-        public string RemoteCertificateSubject { get; }
+        public string? RemoteCertificateSubject { get; }
 
-        public string LocalCertificateSubject { get;  }
+        public string? LocalCertificateSubject { get;  }
 
-        public string LocalCertificateIssuer { get;  }
+        public string? LocalCertificateIssuer { get;  }
 
         public string NegotiatedApplicationProtocol { get;  }
 

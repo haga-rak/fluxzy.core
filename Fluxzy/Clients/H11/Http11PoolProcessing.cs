@@ -65,7 +65,7 @@ namespace Fluxzy.Clients.H11
 
             // Waiting for header block 
 
-            var headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream, headerBuffer,
+            var headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, headerBuffer,
                     () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
                     () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
                     true,
