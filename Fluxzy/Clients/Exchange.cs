@@ -199,9 +199,9 @@ namespace Fluxzy.Clients
             return Request.Header.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
-        public IEnumerable<HeaderFieldInfo> GetResponseHeaders()
+        public IEnumerable<HeaderFieldInfo>? GetResponseHeaders()
         {
-            return Response.Header.Headers.Select(t => (HeaderFieldInfo)t);
+            return Response.Header?.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
         public bool ShouldClose()

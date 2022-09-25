@@ -83,8 +83,8 @@ namespace Fluxzy.Clients
                 return;
 
             var firstLine = full? 
-                exchange.Response.Header.GetHttp11Header().ToString() : 
-                exchange.Response.Header.GetHttp11Header().ToString().Split("\r\n").First();
+                exchange.Response.Header?.GetHttp11Header().ToString() : 
+                exchange.Response.Header?.GetHttp11Header().ToString().Split("\r\n").First();
 
             Trace(exchange.Id,  $"Response : " + firstLine);
         }

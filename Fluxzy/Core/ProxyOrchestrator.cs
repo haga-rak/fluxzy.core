@@ -59,7 +59,7 @@ namespace Fluxzy.Core
                     if (localConnection == null)
                         return;
 
-                    Exchange exchange =
+                    Exchange? exchange =
                         localConnection.ProvisionalExchange;
 
                     var endPoint = (IPEndPoint) client.Client.RemoteEndPoint;
@@ -318,7 +318,7 @@ namespace Fluxzy.Core
                             if (exchange != null && !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
                             {
                                 // Update the state of the exchange 
-                                await _archiveWriter.Update(exchange,
+                                await _archiveWriter!.Update(exchange,
                                     UpdateType.AfterResponse,
                                     CancellationToken.None
                                 );
