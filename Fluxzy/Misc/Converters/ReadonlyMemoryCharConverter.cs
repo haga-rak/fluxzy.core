@@ -21,7 +21,7 @@ namespace Fluxzy.Misc.Converters
         {
             var byteCount = Encoding.UTF8.GetByteCount(value.Span);
 
-            byte[] allocated = null;
+            byte[]? allocated = null;
 
             try
             {

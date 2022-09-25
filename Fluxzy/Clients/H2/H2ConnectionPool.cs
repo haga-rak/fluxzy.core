@@ -33,14 +33,14 @@ namespace Fluxzy.Clients.H2
 
         private readonly StreamPool _streamPool;
 
-        private Task _innerReadTask;
-        private Task _innerWriteRun;
+        private Task? _innerReadTask;
+        private Task? _innerWriteRun;
 
         private readonly TaskCompletionSource<bool> _waitForSettingReception = new(); 
 
         private Channel<WriteTask> _writerChannel;
 
-        private SemaphoreSlim _writeSemaphore = new(1);
+        private SemaphoreSlim? _writeSemaphore = new(1);
         private readonly SemaphoreSlim _streamCreationLock = new(1);
 
         // Window size of the remote 
@@ -768,8 +768,11 @@ namespace Fluxzy.Clients.H2
             _writeSemaphore?.Dispose();
             _writeSemaphore = null;
 
-            await _innerReadTask.ConfigureAwait(false);
-            await _innerWriteRun.ConfigureAwait(false);
+            if (_innerReadTask != null)
+                await _innerReadTask.ConfigureAwait(false);
+
+            if (_innerWriteRun != null)
+                await _innerWriteRun.ConfigureAwait(false);
 
             if (_baseStream != null)
             {

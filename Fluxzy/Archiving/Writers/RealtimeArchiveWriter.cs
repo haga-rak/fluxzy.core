@@ -30,8 +30,8 @@ namespace Fluxzy.Writers
             ConnectionUpdated = null;
         }
 
-        public event EventHandler<ExchangeUpdateEventArgs> ExchangeUpdated;
-        public event EventHandler<ConnectionUpdateEventArgs> ConnectionUpdated;
+        public event EventHandler<ExchangeUpdateEventArgs>? ExchangeUpdated;
+        public event EventHandler<ConnectionUpdateEventArgs>? ConnectionUpdated;
 
         public virtual async Task Update(Connection connection, CancellationToken cancellationToken)
         {

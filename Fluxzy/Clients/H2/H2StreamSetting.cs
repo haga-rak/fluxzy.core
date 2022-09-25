@@ -6,12 +6,12 @@ namespace Fluxzy.Clients.H2
 {
     public class H2StreamSetting
     {
-        public PeerSetting Local { get; set; } = new PeerSetting()
+        public PeerSetting Local { get; set; } = new()
         {
             WindowSize = 1024 * 1024 * 16// 512Ko
         };
 
-        public PeerSetting Remote { get; set; } = new PeerSetting();
+        public PeerSetting Remote { get; set; } = new();
 
         public int SettingsHeaderTableSize { get; set; } = 4096;
 

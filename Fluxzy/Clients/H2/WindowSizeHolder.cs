@@ -8,12 +8,10 @@ namespace Fluxzy.Clients.H2
     internal class WindowSizeHolder : IDisposable
     {
         private readonly H2Logger _logger;
-        private int _windowSize;
-        private readonly int _streamIdentifier;
 
         // private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-        private Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new(); 
+        private readonly Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new(); 
 
         public WindowSizeHolder(
             H2Logger logger, 
@@ -21,13 +19,13 @@ namespace Fluxzy.Clients.H2
             int streamIdentifier)
         {
             _logger = logger;
-            _windowSize = windowSize;
-            _streamIdentifier = streamIdentifier;
+            WindowSize = windowSize;
+            StreamIdentifier = streamIdentifier;
         }
         
-        public int WindowSize => _windowSize;
+        public int WindowSize { get; private set; }
 
-        public int StreamIdentifier => _streamIdentifier;
+        public int StreamIdentifier { get; }
 
         public void UpdateWindowSize(int windowSizeIncrement)
         {
@@ -35,12 +33,12 @@ namespace Fluxzy.Clients.H2
 
             lock (this)
             {
-                if ((_windowSize + ((long) windowSizeIncrement)) > int.MaxValue)
+                if ((WindowSize + ((long) windowSizeIncrement)) > int.MaxValue)
                 {
-                    _windowSize = int.MaxValue; 
+                    WindowSize = int.MaxValue; 
                 }
                 else
-                    _windowSize += windowSizeIncrement; 
+                    WindowSize += windowSizeIncrement; 
             }
 
             // This is not behaving as expected
@@ -48,7 +46,7 @@ namespace Fluxzy.Clients.H2
 
             lock (_windowSizeAWaiters)
             {
-                var list = new List<TaskCompletionSource<object>>(); 
+                var list = new List<TaskCompletionSource<object?>>(); 
                 while (_windowSizeAWaiters.TryDequeue(out var item))
                 {
                     list.Add(item);
@@ -70,11 +68,11 @@ namespace Fluxzy.Clients.H2
             
             lock (this)
             {
-                var maxAvailable = Math.Min(requestedLength, _windowSize);
+                var maxAvailable = Math.Min(requestedLength, WindowSize);
 
                 if (maxAvailable > 0)
                 {
-                    _windowSize -= maxAvailable;
+                    WindowSize -= maxAvailable;
 
                     _logger.Trace(this, -maxAvailable);
 
@@ -82,22 +80,15 @@ namespace Fluxzy.Clients.H2
                 }
             }
 
-            try
-            {
-                var onJobReady = new TaskCompletionSource<object>();
+            var onJobReady = new TaskCompletionSource<object>();
 
-                // sleep until window updated 
+            // sleep until window updated 
 
-                lock (_windowSizeAWaiters)
-                    _windowSizeAWaiters.Enqueue(onJobReady);
+            lock (_windowSizeAWaiters)
+                _windowSizeAWaiters.Enqueue(onJobReady);
 
-                await onJobReady.Task; 
-                return await BookWindowSize(requestedLength, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-               // _semaphore.Release();
-            }
+            await onJobReady.Task; 
+            return await BookWindowSize(requestedLength, cancellationToken).ConfigureAwait(false);
         }
 
         public void Dispose()

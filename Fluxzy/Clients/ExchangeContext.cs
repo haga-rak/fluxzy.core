@@ -19,7 +19,7 @@ namespace Fluxzy.Clients
         /// <summary>
         /// Host IP that shall be used instead of a classic DNS resolution 
         /// </summary>
-        public IPAddress RemoteHostIp { get; set; }
+        public IPAddress? RemoteHostIp { get; set; }
 
         /// <summary>
         /// Port of substitution 
@@ -29,7 +29,7 @@ namespace Fluxzy.Clients
         /// <summary>
         /// Client certificate for this exchange 
         /// </summary>
-        public X509Certificate2Collection ClientCertificates { get; set; }
+        public X509Certificate2Collection? ClientCertificates { get; set; }
 
         /// <summary>
         /// true if fluxzy should not decrypt this exchange
@@ -37,7 +37,7 @@ namespace Fluxzy.Clients
         public bool BlindMode { get; set; }
 
 
-        public PreMadeResponse PreMadeResponse { get; set; }
+        public PreMadeResponse? PreMadeResponse { get; set; }
 
     }
 

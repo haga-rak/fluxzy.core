@@ -15,7 +15,7 @@ namespace Fluxzy.Core
         /// <returns></returns>
         IReadOnlyCollection<IPEndPoint> Init(CancellationToken token); 
 
-        Task<TcpClient> GetNextPendingConnection();
+        Task<TcpClient?> GetNextPendingConnection();
 
         IReadOnlyCollection<IPEndPoint> ListenEndpoints { get;  }
 

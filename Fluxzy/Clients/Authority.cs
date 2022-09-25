@@ -17,11 +17,6 @@ namespace Fluxzy.Clients
         }
 
         /// <summary>
-        /// Check if struct is empty
-        /// </summary>
-        public bool Empty => HostName == null && Port == 0;  
-
-        /// <summary>
         /// Hostname
         /// </summary>
         public string HostName { get;  }
