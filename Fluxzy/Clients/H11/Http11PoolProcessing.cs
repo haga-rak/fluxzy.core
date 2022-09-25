@@ -35,7 +35,7 @@ namespace Fluxzy.Clients.H11
 
             Memory<byte> headerBuffer = bufferRaw;
 
-            exchange.Connection.AddNewRequestProcessed();
+            exchange.Connection!.AddNewRequestProcessed();
             
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
             

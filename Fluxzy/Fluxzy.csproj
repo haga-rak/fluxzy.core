@@ -11,6 +11,7 @@
     <Description>HTTP analyzer and debugger engine, designed to deliver high end diagnosis and accurate performance measures.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <LangVersion>default</LangVersion>
+	  <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -14,7 +14,7 @@ namespace Fluxzy
 
         public ArchivingPolicyType Type { get; internal set; }
 
-        public string Directory { get; internal set; }
+        public string? Directory { get; internal set; }
 
         public static ArchivingPolicy None { get; } = new();
 

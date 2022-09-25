@@ -9,16 +9,16 @@ namespace Fluxzy.Readers
     {
         IEnumerable<ExchangeInfo> ReadAllExchanges();
         
-        ExchangeInfo ReadExchange(int exchangeId);
+        ExchangeInfo? ReadExchange(int exchangeId);
 
         IEnumerable<ConnectionInfo> ReadAllConnections();
 
-        ConnectionInfo ReadConnection(int connectionId);
+        ConnectionInfo? ReadConnection(int connectionId);
 
-        Stream GetRawCaptureStream(int connectionId);
+        Stream? GetRawCaptureStream(int connectionId);
 
-        Stream GetRequestBody(int exchangeId);
+        Stream? GetRequestBody(int exchangeId);
 
-        Stream GetResponseBody(int exchangeId); 
+        Stream? GetResponseBody(int exchangeId); 
     }
 }

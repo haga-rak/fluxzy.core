@@ -38,7 +38,7 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                 }
                 else
                 {
-                    Node currentNode = null;
+                    Node ? currentNode = null;
 
                     foreach (var value in bytes)
                     {

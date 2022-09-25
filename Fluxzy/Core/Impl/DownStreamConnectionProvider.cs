@@ -42,7 +42,7 @@ namespace Fluxzy.Core
             _tokenSource.Cancel();
         }
 
-        public async Task<TcpClient> GetNextPendingConnection()
+        public async Task<TcpClient?> GetNextPendingConnection()
         {
             if (!_listeners.Any())
                 return null;

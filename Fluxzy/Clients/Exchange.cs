@@ -130,7 +130,7 @@ namespace Fluxzy.Clients
         /// Connection used by this exchange. The connection object is the connection open between
         /// the proxy and the remote server 
         /// </summary>
-        public Connection Connection { get; set; }
+        public Connection? Connection { get; set; }
         
         /// <summary>
         /// Contains a list of errors 
@@ -149,9 +149,9 @@ namespace Fluxzy.Clients
         public string Path => Request.Header.Path.ToString();
 
 
-        public int StatusCode => Response.Header.StatusCode;
+        public int StatusCode => Response.Header?.StatusCode ?? 0;
 
-        public string EgressIp => Connection?.RemoteAddress.ToString();
+        public string? EgressIp => Connection?.RemoteAddress?.ToString();
 
         public ExchangeContext Context { get;  }
 
@@ -199,9 +199,9 @@ namespace Fluxzy.Clients
             return Request.Header.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
-        public IEnumerable<HeaderFieldInfo> GetResponseHeaders()
+        public IEnumerable<HeaderFieldInfo>? GetResponseHeaders()
         {
-            return Response.Header.Headers.Select(t => (HeaderFieldInfo)t);
+            return Response.Header?.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
         public bool ShouldClose()
@@ -221,7 +221,7 @@ namespace Fluxzy.Clients
 
         public RequestHeader Header { get; }
 
-        public Stream Body { get; set; }
+        public Stream? Body { get; set; }
 
         public override string ToString()
         {
@@ -232,9 +232,9 @@ namespace Fluxzy.Clients
 
     public class Response
     {
-        public ResponseHeader Header { get; set; }
+        public ResponseHeader? Header { get; set; }
 
-        public Stream Body { get; set;  }
+        public Stream? Body { get; set;  }
     }
 
     public class Error
