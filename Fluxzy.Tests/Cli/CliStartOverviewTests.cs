@@ -151,14 +151,16 @@ namespace Fluxzy.Tests.Cli
                     Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).Drain(disposeStream: true) > 0);
                 }
 
-            }
-            finally
-            {
+
                 if (Directory.Exists(directoryName))
                     Directory.Delete(directoryName, true);
 
                 if (File.Exists(fileName))
                     File.Delete(fileName);
+
+            }
+            finally
+            {
             }
 
         }
