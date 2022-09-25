@@ -11,12 +11,10 @@ namespace Fluxzy.Readers
     {
         private readonly string _baseDirectory;
         private readonly string _captureDirectory;
-        private readonly string _contentDirectory;
 
         public DirectoryArchiveReader(string baseDirectory)
         {
             _baseDirectory = baseDirectory;
-            _contentDirectory = Path.Combine(baseDirectory, "contents");
             _captureDirectory = Path.Combine(baseDirectory, "captures");
         }
 
@@ -76,7 +74,7 @@ namespace Fluxzy.Readers
             return File.Open(capturePath, FileMode.Open);
         }
 
-        public Stream GetRequestBody(int exchangeId)
+        public Stream? GetRequestBody(int exchangeId)
         {
             var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(_baseDirectory, exchangeId);
 
@@ -85,7 +83,7 @@ namespace Fluxzy.Readers
 
             return File.Open(requestBodyPath, FileMode.Open);
         }
-        public Stream GetResponseBody(int exchangeId)
+        public Stream? GetResponseBody(int exchangeId)
         {
             var requestContentPath = DirectoryArchiveHelper.GetContentResponsePath(_baseDirectory, exchangeId);
 

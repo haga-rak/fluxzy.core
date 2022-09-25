@@ -10,7 +10,7 @@ namespace Fluxzy
 {
     public class Certificate
     {
-        private X509Certificate2 _cachedCertificate = null;
+        private X509Certificate2? _cachedCertificate = null;
 
         [JsonInclude]
         public CertificateRetrieveMode RetrieveMode { get; private set; } = CertificateRetrieveMode.FluxzyDefault;
@@ -19,19 +19,19 @@ namespace Fluxzy
         /// The certificate thumb print when location type is FromUserStoreByThumbPrint
         /// </summary>
         [JsonInclude]
-        public string ThumbPrint { get; private set; }
+        public string? ThumbPrint { get; private set; }
 
         /// <summary>
         /// The certificate file when location type is FromPkcs12
         /// </summary>
         [JsonInclude]
-        public byte [] Pkcs12File { get; private set; }
+        public byte []? Pkcs12File { get; private set; }
 
         /// <summary>
         /// The certificate password when location typ is FromPkcs12. Null with no password was set. 
         /// </summary>
         [JsonInclude]
-        public string Pkcs12Password { get; private set; }
+        public string? Pkcs12Password { get; private set; }
         
 
         public static Certificate LoadFromUserStoreByThumbprint(string thumbPrint)

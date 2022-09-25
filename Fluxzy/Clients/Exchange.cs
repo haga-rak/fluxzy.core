@@ -221,7 +221,7 @@ namespace Fluxzy.Clients
 
         public RequestHeader Header { get; }
 
-        public Stream Body { get; set; }
+        public Stream? Body { get; set; }
 
         public override string ToString()
         {

@@ -9,7 +9,7 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
         private readonly int _baseByte;
         private readonly int _column;
 
-        private readonly List<Symbol> _listOfRawSymbols = new List<Symbol>();
+        private readonly List<Symbol> _listOfRawSymbols = new();
 
         internal Node(int baseByte, int column)
         {
@@ -21,8 +21,15 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
         internal Node(Symbol value)
         {
             Value = value;
-            HasValue = true; 
+            HasValue = true;
+            ChildNodes = Array.Empty<Node?>();
         }
+
+        public Node?[] ChildNodes { get; }
+
+        public bool HasValue { get; set; }
+
+        public Symbol? Value { get; set; }
 
         internal void AppendSymbol(Symbol symbol)
         {
@@ -35,10 +42,10 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
             {
                 HasValue = true;
                 Value = _listOfRawSymbols.First();
-                return; 
+                return;
             }
 
-            Span<byte> dataBuffer = stackalloc byte[256]; 
+            Span<byte> dataBuffer = stackalloc byte[256];
 
             foreach (var symbol in _listOfRawSymbols)
             {
@@ -51,58 +58,49 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                     var sb = symbol.GetByteVariation(_column, dataBuffer);
 
                     foreach (var @byte in sb)
-                    {
                         ChildNodes[@byte] = node;
-                    }
                 }
                 else
                 {
-                    var byteAtColun = symbol.GetByte(_column);
-                    var cNode = ChildNodes[byteAtColun]; 
+                    var byteAtColumn = symbol.GetByte(_column);
+                    var cNode = ChildNodes[byteAtColumn];
 
-                    ChildNodes[byteAtColun] = cNode ?? new Node(byteAtColun, _column + 1);
-                    ChildNodes[byteAtColun].AppendSymbol(symbol);
+                    ChildNodes[byteAtColumn] = cNode ?? new Node(byteAtColumn, _column + 1);
+                    ChildNodes[byteAtColumn]!.AppendSymbol(symbol);
                 }
             }
 
             if (ChildNodes != null)
                 foreach (var childNode in ChildNodes)
-                {
                     if (childNode != null)
                         childNode.Seal();
-                }
         }
 
-        public Node[] ChildNodes { get; } 
-        
-        public bool HasValue { get; set; }
-
-        public Symbol Value { get; set; }
-        
         public override string ToString()
         {
             if (HasValue)
                 return $"Value node : {Value}  (col : {_column})";
 
-            return $"{Convert.ToString(_baseByte, 2).PadLeft(8, '0')} (col : {_column}), ChildNodes : {ChildNodes.Length} ";
+            return
+                $"{Convert.ToString(_baseByte, 2).PadLeft(8, '0')} (col : {_column}), ChildNodes : {ChildNodes.Length} ";
         }
 
-        public bool Match(ReadOnlySpan<byte> @data, out Symbol value)
+        public bool Match(ReadOnlySpan<byte> data, out Symbol? value)
         {
-            var cData = ChildNodes[@data[0]];
+            var cData = ChildNodes[data[0]];
 
-           if (cData != null)
+            if (cData != null)
             {
                 if (cData.HasValue)
                 {
-                    value = cData.Value;
-                    return true;  
+                    value = cData.Value!;
+                    return true;
                 }
 
-                return cData.Match(data.Slice(1), out value); 
+                return cData.Match(data.Slice(1), out value);
             }
 
-            value = default; 
+            value = default;
             return false;
         }
     }

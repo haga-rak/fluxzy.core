@@ -16,7 +16,7 @@ namespace Fluxzy
 
         IEnumerable<HeaderFieldInfo> GetRequestHeaders();
 
-        IEnumerable<HeaderFieldInfo> GetResponseHeaders();
+        IEnumerable<HeaderFieldInfo>? GetResponseHeaders();
 
         int StatusCode { get; }
 

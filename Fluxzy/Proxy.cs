@@ -66,11 +66,7 @@ namespace Fluxzy
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default, http1Parser,
                 Writer);
 
-            ExecutionContext = new ProxyExecutionContext()
-            {
-                SessionId = SessionIdentifier,
-                StartupSetting = startupSetting
-            };
+            ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
 
             var runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, _tcpConnectionProvider, Writer);
 
@@ -218,9 +214,15 @@ namespace Fluxzy
 
     public class ProxyExecutionContext
     {
-        public string SessionId { get; set; }
+        public ProxyExecutionContext(string sessionId, FluxzySetting startupSetting)
+        {
+            SessionId = sessionId;
+            StartupSetting = startupSetting;
+        }
 
-        public FluxzySetting StartupSetting { get; set; } 
+        public string SessionId { get; }
+
+        public FluxzySetting StartupSetting { get; } 
     }
 
 

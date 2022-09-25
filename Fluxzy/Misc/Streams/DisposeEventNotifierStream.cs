@@ -11,7 +11,7 @@ namespace Fluxzy.Misc.Streams
 
     public class DisposeEventNotifierStream : Stream
     {
-        public event DisposeFunc OnStreamDisposed;
+        public event DisposeFunc? OnStreamDisposed;
 
         private readonly Stream _innerStream;
 

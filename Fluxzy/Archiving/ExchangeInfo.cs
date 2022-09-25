@@ -20,7 +20,7 @@ namespace Fluxzy
         }
 
         [JsonConstructor]
-        public ExchangeInfo(int id, int connectionId, string httpVersion, RequestHeaderInfo requestHeader, ResponseHeaderInfo responseHeader, ExchangeMetrics metrics, string egressIp, bool pending)
+        public ExchangeInfo(int id, int connectionId, string httpVersion, RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader, ExchangeMetrics metrics, string egressIp, bool pending)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -40,7 +40,7 @@ namespace Fluxzy
 
         public RequestHeaderInfo RequestHeader { get; }
         
-        public ResponseHeaderInfo ResponseHeader { get; }
+        public ResponseHeaderInfo?  ResponseHeader { get; }
         
         public ExchangeMetrics Metrics { get; }
 
@@ -58,10 +58,10 @@ namespace Fluxzy
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
-            return RequestHeader?.Headers;
+            return RequestHeader.Headers;
         }
 
-        public IEnumerable<HeaderFieldInfo> GetResponseHeaders()
+        public IEnumerable<HeaderFieldInfo>? GetResponseHeaders()
         {
             return ResponseHeader?.Headers;
         }
