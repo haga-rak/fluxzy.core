@@ -14,7 +14,7 @@ namespace Fluxzy.Clients
     /// </summary>
     internal class H2Logger
     {
-        public static List<string> AuthorizedHosts { get; }
+        public static List<string>? AuthorizedHosts { get; }
 
         static H2Logger()
         {

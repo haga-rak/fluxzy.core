@@ -17,9 +17,9 @@ namespace Fluxzy.Clients
 {
     public interface ILink 
     {
-        Stream ReadStream { get; }
+        Stream? ReadStream { get; }
 
-        Stream WriteStream { get; }
+        Stream? WriteStream { get; }
     }
 
     public interface ILocalLink : ILink

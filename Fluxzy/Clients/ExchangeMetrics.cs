@@ -36,6 +36,6 @@ namespace Fluxzy.Clients
 
         public int LocalPort { get; set; }
 
-        public string LocalAddress { get; set; }
+        public string? LocalAddress { get; set; }
     }
 }
