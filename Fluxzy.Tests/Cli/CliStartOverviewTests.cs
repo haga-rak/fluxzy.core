@@ -34,9 +34,11 @@ namespace Fluxzy.Tests.Cli
             get
             {
                 var protocols = new[] { "http11", "http2" };
+                var withPcapStatus = new[] { false, true }; 
 
                 foreach (var protocol in protocols)
-                    yield return new object[] { protocol };
+                foreach (var withPcap in withPcapStatus)
+                    yield return new object[] { protocol, withPcap };
             }
         }
 
@@ -74,12 +76,17 @@ namespace Fluxzy.Tests.Cli
 
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
-        public async Task Run_Cli_Output_Directory(string protocol)
+        public async Task Run_Cli_Output_Directory(string protocol, bool withPcap)
         {
             // Arrange 
 
             var directoryName = $"output/{protocol}";
             var commandLine = $"start -l 127.0.0.1/0 -d {directoryName}";
+
+            if (withPcap)
+            {
+                commandLine += " -c"; 
+            }
 
             try
             {
@@ -131,7 +138,11 @@ namespace Fluxzy.Tests.Cli
                
                 Assert.Contains(exchange.RequestHeader.Headers,
                     t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
-                
+
+                if (withPcap)
+                {
+                    Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).Drain(disposeStream: true) > 0);
+                }
 
             }
             finally
