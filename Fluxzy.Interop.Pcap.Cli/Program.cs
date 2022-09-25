@@ -23,7 +23,7 @@ namespace Fluxzy.Interop.Pcap.Cli
 
             var stopWatch = new Stopwatch();
 
-            using (var captureContext = new CaptureContext())
+            await using (var captureContext = new CaptureContext())
             await using (var tcpClient = new CapturableTcpConnection(captureContext, "gogo2.pcap")) {
                 var remoteIp = (await Dns.GetHostAddressesAsync(host)).First();
 
