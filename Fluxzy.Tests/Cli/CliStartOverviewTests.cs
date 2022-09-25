@@ -84,7 +84,7 @@ namespace Fluxzy.Tests.Cli
             // Arrange 
 
             var directoryName = $"{Guid.NewGuid()}/{protocol}-{withPcap}-{outputDirectory}";
-            var fileName = $"Guid.NewGuid()/{protocol}-{withPcap}-{outputDirectory}.fxzy";
+            var fileName = $"{Guid.NewGuid()}/{protocol}-{withPcap}-{outputDirectory}.fxzy";
 
             var commandLine = $"start -l 127.0.0.1/0";
 
