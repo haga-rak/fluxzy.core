@@ -55,17 +55,27 @@ namespace Fluxzy.Tests
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
                 .Select(async client =>
                 {
+
                     // Interlocked.Increment(ref count);
                     var host = hosts[random.Next(0, hosts.Length)]; 
 
                     var response = await client.GetAsync($"{host}/headers-random-repeat");
                     var text = await response.Content.ReadAsStringAsync();
+                    Header2[] items;
 
-                    var items = JsonSerializer.Deserialize<Header2[]>(text
-                        , new JsonSerializerOptions()
-                        {
-                            PropertyNameCaseInsensitive = true
-                        })!;
+                    try
+                    {
+
+                        items = JsonSerializer.Deserialize<Header2[]>(text
+                            , new JsonSerializerOptions()
+                            {
+                                PropertyNameCaseInsensitive = true
+                            })!;
+                    }
+                    catch (JsonException jex)
+                    {
+                        throw new Exception("Text :" + text, jex);
+                    }
 
                     var mustBeTrue =
                         items.All(i => response.Headers.Any(
