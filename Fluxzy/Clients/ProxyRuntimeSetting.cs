@@ -25,7 +25,7 @@ namespace Fluxzy.Clients
             FluxzySetting startupSetting, 
             ProxyExecutionContext executionContext,
             ITcpConnectionProvider tcpConnectionProvider,
-            RealtimeArchiveWriter archiveWriter)
+            RealtimeArchiveWriter? archiveWriter)
         {
             _startupSetting = startupSetting;
             ExecutionContext = executionContext;
@@ -38,7 +38,7 @@ namespace Fluxzy.Clients
         public ProxyExecutionContext ExecutionContext { get; }
 
         public ITcpConnectionProvider TcpConnectionProvider { get; } = ITcpConnectionProvider.Default;
-        public RealtimeArchiveWriter ArchiveWriter { get; }
+        public RealtimeArchiveWriter? ArchiveWriter { get; }
 
         /// <summary>
         /// Protocols supported by the current proxy 

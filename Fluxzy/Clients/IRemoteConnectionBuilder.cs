@@ -66,7 +66,7 @@ namespace Fluxzy.Clients
 
             var tcpClient = setting.TcpConnectionProvider
                 .Create(setting.ArchiveWriter != null ?
-                    setting.ArchiveWriter?.GetDumpfilePath(connection.Id)
+                    setting.ArchiveWriter?.GetDumpfilePath(connection.Id)!
                     : string.Empty);
 
             var localEndpoint = await tcpClient.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
