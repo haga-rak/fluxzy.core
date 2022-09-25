@@ -1,5 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -82,6 +83,7 @@ namespace Fluxzy.Tests.Cli
             try
             {
                 var commandLineHost = new FluxzyCommandLineHost(commandLine);
+                var requestBodyLength = 23632;
                 var bodyLength = 0L; 
 
                 await using (var fluxzyInstance = await commandLineHost.Run())
@@ -90,7 +92,7 @@ namespace Fluxzy.Tests.Cli
 
                     var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.GetHost(protocol)}/global-health-check");
 
-                    await using var randomStream = new RandomDataStream(48, 23632, true);
+                    await using var randomStream = new RandomDataStream(48, requestBodyLength, true);
                     await using var hashedStream = new HashedStream(randomStream);
 
                     requestMessage.Content = new StreamContent(hashedStream);
@@ -122,10 +124,12 @@ namespace Fluxzy.Tests.Cli
 
                 Assert.Equal(200, exchange.StatusCode);
                 Assert.Equal(connection.Id, exchange.ConnectionId);
-                Assert.Equal(23632, await archiveReader.GetRequestBody(exchange.Id).Drain(disposeStream: true));
+                Assert.Equal(requestBodyLength, await archiveReader.GetRequestBody(exchange.Id).Drain(disposeStream: true));
                 Assert.Equal(bodyLength, await archiveReader.GetResponseBody(exchange.Id).Drain(disposeStream: true));
-
-                // Verify directory 
+               
+                Assert.Contains(exchange.RequestHeader.Headers,
+                    t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
+                
 
             }
             finally
