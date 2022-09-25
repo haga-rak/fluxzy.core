@@ -10,24 +10,24 @@ using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
-    public class CliStartOptionOverviewTests
+    public class CliStartOverviewTests
     {
         public static IEnumerable<object[]> GetSingleRequestParameters
         {
             get
             {
-                var allHosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host };
+                var protocols = new[] { "http11", "http2" };
                 var decryptionStatus = new[] { false, true };
 
-                foreach (var host in allHosts)
+                foreach (var protocol in protocols)
                 foreach (var decryptStat in decryptionStatus)
-                    yield return new object[] { host, decryptStat };
+                    yield return new object[] { protocol, decryptStat };
             }
         }
 
         [Theory]
         [MemberData(nameof(GetSingleRequestParameters))]
-        public async Task Run_Single_Request_And_Halt_Fluxzy(string host, bool noDecryption)
+        public async Task Run_Single_Request_And_Halt_Fluxzy(string protocol, bool noDecryption)
         {
             // Arrange 
             var commandLine = "start -l 127.0.0.1/0";
@@ -40,7 +40,7 @@ namespace Fluxzy.Tests.Cli
             await using var fluxzyInstance = await commandLineHost.Run();
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{host}/global-health-check");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.GetHost(protocol)}/global-health-check");
 
             await using var randomStream = new RandomDataStream(48, 23632, true);
             await using var hashedStream = new HashedStream(randomStream);
