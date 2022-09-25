@@ -179,6 +179,8 @@ namespace Fluxzy.Cli
             {
                 invocationContext.Console.WriteLine($"Packing output to {outFileInfo.Name} ...");
 
+                outFileInfo.Directory?.Create();
+
                 await PackDirectoryToFile(
                     new DirectoryInfo(proxyStartUpSetting.ArchivingPolicy.Directory),
                     outFileInfo.FullName);
