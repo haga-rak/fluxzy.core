@@ -26,7 +26,7 @@ namespace Fluxzy.Misc.Streams
             }
         }
 
-        public static async ValueTask<int> Drain(this Stream stream, int bufferSize = 16 * 1024)
+        public static async ValueTask<int> Drain(this Stream stream, int bufferSize = 16 * 1024, bool disposeStream = false)
         {
             var buffer = new byte[bufferSize];
             int read;
@@ -35,6 +35,11 @@ namespace Fluxzy.Misc.Streams
             while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
                 total += read;
+            }
+
+            if (disposeStream)
+            {
+                await stream.DisposeAsync(); 
             }
 
             return total;

@@ -6,38 +6,62 @@ namespace Fluxzy
     {
         private static readonly int MaxItemPerDirectory = 100;
 
-        internal static string GetExchangePath(string baseDirectory, ExchangeInfo exchangeInfo)
+        internal static void CreateDirectory(string fullPath)
         {
-            var baseNumber = exchangeInfo.Id / MaxItemPerDirectory * 100;
+            var fullDir = new FileInfo(fullPath).Directory;
+
+            if (fullDir != null)
+                Directory.CreateDirectory(fullDir.FullName); 
+        }
+
+        internal static string GetExchangePath(string baseDirectory, int exchangeId)
+        {
+            var baseNumber = exchangeId / MaxItemPerDirectory * 100;
             var directoryHint = $"{baseNumber}-{baseNumber + MaxItemPerDirectory}";
 
             var preDir = Path.Combine(baseDirectory, "exchanges", directoryHint);
+            
+            return Path.Combine(preDir, $"ex-{exchangeId}.json");
+        }
 
-            Directory.CreateDirectory(preDir);
+        internal static string GetExchangePath(string baseDirectory, ExchangeInfo exchangeInfo)
+        {
+            return GetExchangePath(baseDirectory, exchangeInfo.Id); 
+        }
 
-            return Path.Combine(preDir, $"ex-{exchangeInfo.Id}.json");
+        internal static string GetContentRequestPath(string baseDirectory, int exchangeId)
+        {
+            return Path.Combine(baseDirectory, "contents", $"req-{exchangeId}.data");
         }
 
         internal static string GetContentRequestPath(string baseDirectory, ExchangeInfo exchangeInfo)
         {
-            return Path.Combine(baseDirectory, "contents", $"req-{exchangeInfo.Id}.data");
+            return GetContentRequestPath(baseDirectory, exchangeInfo.Id); 
         }
 
         internal static string GetContentResponsePath(string baseDirectory, ExchangeInfo exchangeInfo)
         {
-            return Path.Combine(baseDirectory, "contents", $"res-{exchangeInfo.Id}.data");
+            return GetContentResponsePath(baseDirectory, exchangeInfo.Id); 
+        }
+
+        internal static string GetContentResponsePath(string baseDirectory, int exchangeId)
+        {
+            return Path.Combine(baseDirectory, "contents", $"res-{exchangeId}.data");
+        }
+
+        internal static string GetConnectionPath(string baseDirectory, int connectionId)
+        {
+            var baseNumber = connectionId / MaxItemPerDirectory * 100;
+            var directoryHint = $"{baseNumber}-{baseNumber + MaxItemPerDirectory}";
+
+            var preDir = Path.Combine(baseDirectory, "connections", directoryHint);
+            
+            return Path.Combine(preDir, $"con-{connectionId}.json");
         }
 
         internal static string GetConnectionPath(string baseDirectory, ConnectionInfo connectionInfo)
         {
-            var baseNumber = connectionInfo.Id / MaxItemPerDirectory * 100;
-            var directoryHint = $"{baseNumber}-{baseNumber + MaxItemPerDirectory}";
-
-            var preDir = Path.Combine(baseDirectory, "connections", directoryHint);
-
-            Directory.CreateDirectory(preDir);
-
-            return Path.Combine(preDir, $"con-{connectionInfo.Id}.json");
+            return GetConnectionPath(baseDirectory, connectionInfo.Id); 
         }
     }
 }
