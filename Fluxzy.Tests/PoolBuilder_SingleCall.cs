@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
@@ -11,7 +12,7 @@ namespace Fluxzy.Tests
         public async Task Get_H2()
         {
             using var handler = new FluxzyDefaultHandler();
-            using var httpClient = new HttpClient(handler);
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -27,7 +28,7 @@ namespace Fluxzy.Tests
         public async Task Get_H1()
         {
             using var handler = new FluxzyDefaultHandler();
-            using var httpClient = new HttpClient(handler);
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -50,7 +51,7 @@ namespace Fluxzy.Tests
             };
 
             using var handler = new FluxzyDefaultHandler();
-            using var httpClient = new HttpClient(handler);
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             for (int i = 0; i < 100; i ++ )
             {
