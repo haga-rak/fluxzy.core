@@ -50,7 +50,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://httpbin.org/get"
+                "https://registry.2befficient.io:40300/get"
             );
             
             var response = await httpClient.SendAsync(requestMessage);
@@ -68,7 +68,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://httpbin.org/ip"
+                "https://registry.2befficient.io:40300/ip"
             );
             
             var response = await httpClient.SendAsync(requestMessage);
@@ -86,7 +86,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://httpbin.org/status/204"
+                "https://registry.2befficient.io:40300/status/204"
             );
             
             var response = await httpClient.SendAsync(requestMessage);
@@ -146,7 +146,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://httpbin.org/get"
+                "https://registry.2befficient.io:40300/get"
             );
 
             requestMessage.Headers.Add("x-favorite-header", "1");
@@ -168,7 +168,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
-                "https://httpbin.org/post"
+                "https://registry.2befficient.io:40300/post"
             );
 
             var bufferString = new string('a', (16 * 1024) - 9);
@@ -194,7 +194,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
-                "https://httpbin.org/post"
+                "https://registry.2befficient.io:40300/post"
             );
             
             var bufferString = new string('a', (16 * 1024) + 10);
@@ -221,7 +221,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
-                "https://httpbin.org/post"
+                "https://registry.2befficient.io:40300/post"
             );
             
             using var randomStream = new RandomDataStream(9, 1024 * 124);
@@ -248,7 +248,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://httpbin.org/get"
+                "https://registry.2befficient.io:40300/get"
             );
 
             requestMessage.Headers.Add("Connection", "Keep-alive" );
@@ -267,7 +267,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://httpbin.org/get"
+                "https://registry.2befficient.io:40300/get"
             );
 
             requestMessage.Headers.Add("x-Header-a", "ads");
@@ -288,7 +288,7 @@ namespace Fluxzy.Tests
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://httpbin.org/get"
+                "https://registry.2befficient.io:40300/get"
             );
 
             CancellationTokenSource source = new CancellationTokenSource();
