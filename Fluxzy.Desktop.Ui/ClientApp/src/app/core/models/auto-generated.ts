@@ -37,7 +37,7 @@ export interface ProxyBindPoint
 export interface ArchivingPolicy
 {
 	type: number;
-	directory: string;
+	directory?: string;
 	none: ArchivingPolicy;
 }
 export interface FileState
@@ -113,7 +113,7 @@ export interface ExchangeInfo
 	connectionId: number;
 	httpVersion: string;
 	requestHeader: RequestHeaderInfo;
-	responseHeader: ResponseHeaderInfo;
+	responseHeader?: ResponseHeaderInfo;
 	metrics: ExchangeMetrics;
 	fullUrl: string;
 	knownAuthority: string;
@@ -155,7 +155,7 @@ export interface ExchangeMetrics
 	totalSent: number;
 	totalReceived: number;
 	localPort: number;
-	localAddress: string;
+	localAddress?: string;
 }
 export interface HeaderFieldInfo
 {
@@ -188,10 +188,10 @@ export interface AuthorityInfo
 export interface SslInfo
 {
 	sslProtocol: number;
-	remoteCertificateIssuer: string;
-	remoteCertificateSubject: string;
-	localCertificateSubject: string;
-	localCertificateIssuer: string;
+	remoteCertificateIssuer?: string;
+	remoteCertificateSubject?: string;
+	localCertificateSubject?: string;
+	localCertificateIssuer?: string;
 	negotiatedApplicationProtocol: string;
 	keyExchangeAlgorithm: string;
 	hashAlgorithm: number;

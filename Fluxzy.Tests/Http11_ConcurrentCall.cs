@@ -18,7 +18,7 @@ namespace Fluxzy.Tests
         {
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
-                "https://httpbin.org/post"
+                "https://registry.2befficient.io:40300/post"
             );
 
             requestMessage.Headers.Add("x-buffer-size", length.ToString());
