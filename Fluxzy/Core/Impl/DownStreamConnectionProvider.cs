@@ -14,7 +14,7 @@ namespace Fluxzy.Core
         private readonly List<TcpListener> _listeners;
 
         private readonly Channel<TcpClient> _pendingClientConnections =
-            Channel.CreateBounded<TcpClient>(new BoundedChannelOptions(4));
+            Channel.CreateUnbounded<TcpClient>(); 
 
         private CancellationToken _token;
 
