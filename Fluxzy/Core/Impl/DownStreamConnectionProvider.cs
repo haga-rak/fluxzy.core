@@ -27,21 +27,6 @@ namespace Fluxzy.Core
             _token = _tokenSource.Token;
         }
 
-        public void Dispose()
-        {
-            foreach (var listener in _listeners)
-                try
-                {
-                    listener.Stop();
-                }
-                catch (Exception)
-                {
-                    // Ignore errors
-                }
-
-            _tokenSource.Cancel();
-        }
-
         public async Task<TcpClient?> GetNextPendingConnection()
         {
             if (!_listeners.Any())
@@ -73,7 +58,7 @@ namespace Fluxzy.Core
             {
                 try
                 {
-                    listener.Start(int.MaxValue);
+                    listener.Start(100);
 
                     boundEndPoints.Add((IPEndPoint)listener.LocalEndpoint);
 
@@ -121,5 +106,21 @@ namespace Fluxzy.Core
                 // Connection closed 
             }
         }
+
+        public void Dispose()
+        {
+            foreach (var listener in _listeners)
+                try
+                {
+                    listener.Stop();
+                }
+                catch (Exception)
+                {
+                    // Ignore errors
+                }
+
+            _tokenSource.Cancel();
+        }
+
     }
 }

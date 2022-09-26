@@ -34,7 +34,7 @@ namespace Fluxzy.Tests
 
             using var httpClient = new HttpClient(clientHandler, false);
 
-            await Task.WhenAll(Enumerable.Repeat(httpClient, 25)
+            await Task.WhenAll(Enumerable.Repeat(httpClient, 10)
                 .Select(Receiving_Multiple_Repeating_Header_Value_Call));
 
             await proxy.WaitUntilDone();
