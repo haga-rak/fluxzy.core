@@ -58,15 +58,15 @@ namespace Fluxzy.Core
             {
                 try
                 {
-                    listener.Start(100);
+                    listener.Start(int.MaxValue);
 
                     boundEndPoints.Add((IPEndPoint)listener.LocalEndpoint);
 
                     var listenerCopy = listener;
 
-                    HandleAcceptConnection(listenerCopy);
+                  //  HandleAcceptConnection(listenerCopy);
 
-                 //   Task.Run(async () => await HandleAcceptConnection(listenerCopy));
+                    Task.Run(() => HandleAcceptConnection(listenerCopy));
                 }
                 catch (SocketException sex)
                 {
@@ -84,13 +84,13 @@ namespace Fluxzy.Core
             return ListenEndpoints;
         }
 
-        private async void HandleAcceptConnection(TcpListener listener)
+        private void HandleAcceptConnection(TcpListener listener)
         {
             try
             {
                 while (true)
                 {
-                    var tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                    var tcpClient = listener.AcceptTcpClient();
 
                     tcpClient.NoDelay = true; // NO Delay for local connection
                     // tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
@@ -98,7 +98,7 @@ namespace Fluxzy.Core
                     tcpClient.SendBufferSize = 32 * 1024;
                     tcpClient.SendTimeout = 200;
 
-                    await _pendingClientConnections.Writer.WriteAsync(tcpClient, _token);
+                    _pendingClientConnections.Writer.TryWrite(tcpClient);
                 }
             }
             catch (Exception)
