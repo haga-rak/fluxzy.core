@@ -25,4 +25,4 @@ jobs:
     - name: Build
       run: dotnet build Fluxzy --no-restore
     - name: Test
-      run: dotnet test Fluxzy.Tests
+      run: dotnet test Fluxzy.Tests -e EnableDumpStackTraceOn502=true
