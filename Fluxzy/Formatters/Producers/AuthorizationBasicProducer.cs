@@ -21,7 +21,7 @@ namespace Fluxzy.Formatters.Producers
 
             var targetHeader =
                 headers.FirstOrDefault(h =>
-                    Equals("Authorization", StringComparison.OrdinalIgnoreCase)
+                    h.Name.Span.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
                     && h.Value.Span.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase));
 
             if (targetHeader == null)
@@ -45,10 +45,6 @@ namespace Fluxzy.Formatters.Producers
                 errorMessage = "Basic value was not a valid base64 encoded string";
                 return new AuthorizationBasicResult(ResultTitle, base64Value, null); 
             }
-          
-
-
-
         }
     }
 
