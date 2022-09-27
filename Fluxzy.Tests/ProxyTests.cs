@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -44,7 +45,7 @@ namespace Fluxzy.Tests
 
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call(HttpClient httpClient)
         {
-            int repeatCount = 100;
+            int repeatCount = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 100 : 50;
             var hosts = new[]
             {
                 TestConstants.Http2Host, 
