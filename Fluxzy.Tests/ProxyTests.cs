@@ -45,7 +45,7 @@ namespace Fluxzy.Tests
 
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call(HttpClient httpClient)
         {
-            int repeatCount = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 100 : 50;
+            int repeatCount = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 100 : 10;
             var hosts = new[]
             {
                 TestConstants.Http2Host, 
