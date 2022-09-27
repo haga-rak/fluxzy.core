@@ -94,9 +94,9 @@ namespace Fluxzy.Core
 
                     tcpClient.NoDelay = true; // NO Delay for local connection
                     // tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
-                    tcpClient.ReceiveBufferSize = 1024 * 64;
-                    tcpClient.SendBufferSize = 32 * 1024;
-                    tcpClient.SendTimeout = 200;
+                    //tcpClient.ReceiveBufferSize = 1024 * 64;
+                    //tcpClient.SendBufferSize = 32 * 1024;
+                    //tcpClient.SendTimeout = 200;
 
                     _pendingClientConnections.Writer.TryWrite(tcpClient);
                 }

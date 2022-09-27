@@ -11,7 +11,8 @@ namespace Fluxzy.Clients.H2
 
         // private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-        private readonly Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new(); 
+        private readonly Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new();
+        private volatile int _windowSize;
 
         public WindowSizeHolder(
             H2Logger logger, 
@@ -22,8 +23,12 @@ namespace Fluxzy.Clients.H2
             WindowSize = windowSize;
             StreamIdentifier = streamIdentifier;
         }
-        
-        public int WindowSize { get; private set; }
+
+        public int WindowSize
+        {
+            get => _windowSize;
+            private set => _windowSize = value;
+        }
 
         public int StreamIdentifier { get; }
 

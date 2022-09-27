@@ -90,15 +90,17 @@ namespace Fluxzy.Clients
 
             Stream resultStream = sslStream; 
 
-            SslClientAuthenticationOptions authenticationOptions = new SslClientAuthenticationOptions()
+            var authenticationOptions = new SslClientAuthenticationOptions()
             {
-                ClientCertificates = context.ClientCertificates, 
                 TargetHost = authority.HostName , 
                 EnabledSslProtocols = setting.ProxyTlsProtocols,
                 ApplicationProtocols = httpProtocols
             };
-            
-            await sslStream.AuthenticateAsClientAsync(authenticationOptions, token).ConfigureAwait(false);
+
+            if (context.ClientCertificates != null && context.ClientCertificates.Count > 0)
+                authenticationOptions.ClientCertificates = context.ClientCertificates; 
+
+            await sslStream.AuthenticateAsClientAsync(authenticationOptions, token);
 
             connection.SslInfo = new SslInfo(sslStream); 
 
