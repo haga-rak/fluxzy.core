@@ -15,7 +15,7 @@ namespace Fluxzy.Core
 
         public DefaultTcpConnection()
         {
-            _client = new TcpClient();
+            _client = new TcpClient()
         }
         
         public async Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
