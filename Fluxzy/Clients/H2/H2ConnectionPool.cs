@@ -27,9 +27,9 @@ namespace Fluxzy.Clients.H2
         
         private readonly H2StreamSetting _setting;
         private readonly Connection _connection;
-        private readonly Action<H2ConnectionPool> _onConnectionFaulted;
+        private readonly Action<H2ConnectionPool>?  _onConnectionFaulted;
 
-        private bool _complete;
+        private volatile bool _complete;
 
         private readonly StreamPool _streamPool;
 
@@ -38,7 +38,7 @@ namespace Fluxzy.Clients.H2
 
         private readonly TaskCompletionSource<bool> _waitForSettingReception = new(); 
 
-        private Channel<WriteTask> _writerChannel;
+        private Channel<WriteTask>? _writerChannel;
 
         private SemaphoreSlim? _writeSemaphore = new(1);
         private readonly SemaphoreSlim _streamCreationLock = new(1);
@@ -283,7 +283,7 @@ namespace Fluxzy.Clients.H2
 
         }
         
-        private void OnLoopEnd(Exception ex, bool releaseChannelItems)
+        private void OnLoopEnd(Exception? ex, bool releaseChannelItems)
         {
             if (_complete)
                 return; 

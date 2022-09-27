@@ -13,7 +13,7 @@ namespace Fluxzy.Cli
             // Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
             Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
 
-            // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
+            //  Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
             // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
 
             var exitCode =  await FluxzyStartup.Run(args, CancellationToken.None);

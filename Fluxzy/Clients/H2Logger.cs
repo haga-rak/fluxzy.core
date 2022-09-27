@@ -16,8 +16,18 @@ namespace Fluxzy.Clients
     {
         public static List<string>? AuthorizedHosts { get; }
 
+
+        private readonly static string _directory;
+        private static readonly string loggerPath = Environment.ExpandEnvironmentVariables(Environment.GetEnvironmentVariable("TracingDirectory")
+            ?? "%appdata%/echoes-debug");
+
         static H2Logger()
         {
+            _directory = new DirectoryInfo(Path.Combine(loggerPath, "h2")).FullName;
+            _directory = Path.Combine(_directory, DebugContext.ReferenceString);
+
+            Directory.CreateDirectory(_directory);
+
             var hosts = Environment.GetEnvironmentVariable("EnableH2TracingFilterHosts");
 
             if (!string.IsNullOrWhiteSpace(hosts))
@@ -38,8 +48,9 @@ namespace Fluxzy.Clients
         public int ConnectionId { get; }
 
         private readonly bool _active;
-        private readonly string _directory;
-        
+
+
+
         public H2Logger(Authority authority, int connectionId, bool? active = null)
         {
             Authority = authority;
@@ -49,10 +60,7 @@ namespace Fluxzy.Clients
                 "true", StringComparison.OrdinalIgnoreCase);
 
             _active = active.Value;
-
-            var loggerPath = Environment.ExpandEnvironmentVariables(Environment.GetEnvironmentVariable("TracingDirectory")
-                                                                    ?? "%appdata%/echoes-debug");
-
+            
             if (_active && AuthorizedHosts != null)
             {
                 // Check for domain restriction 
@@ -60,10 +68,6 @@ namespace Fluxzy.Clients
                     c, StringComparison.OrdinalIgnoreCase)); 
             }
 
-            _directory = new DirectoryInfo(Path.Combine(loggerPath, "h2")).FullName;
-            _directory = Path.Combine(_directory, DebugContext.ReferenceString);
-
-            Directory.CreateDirectory(_directory);
         }
         
         private void WriteLn(

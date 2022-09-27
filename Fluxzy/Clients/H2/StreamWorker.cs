@@ -317,6 +317,7 @@ namespace Fluxzy.Clients.H2
             }
             catch (OperationCanceledException)
             {
+                _logger.Trace(StreamIdentifier, "Received no header, cancelled by caller");
                 throw new IOException("Received no header, cancelled by caller");
             }
             catch (Exception)
