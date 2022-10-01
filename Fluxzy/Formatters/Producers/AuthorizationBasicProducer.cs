@@ -12,7 +12,7 @@ namespace Fluxzy.Formatters.Producers
     {
         public string ResultTitle => "Basic auth";
 
-        public AuthorizationBasicResult? Build(ExchangeInfo exchangeInfo, FormattingProducerParam producerSetting,
+        public AuthorizationBasicResult? Build(ExchangeInfo exchangeInfo, ProducerSettings producerSetting,
             IArchiveReader archiveReader)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();

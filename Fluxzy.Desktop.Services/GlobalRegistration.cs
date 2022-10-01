@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Screeners;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Fluxzy.Desktop.Services
@@ -34,6 +35,12 @@ namespace Fluxzy.Desktop.Services
                     .Select(t => t.Observable).Switch());
 
             collection.AddTransient<FxzyDirectoryPackager>();
+        }
+
+        public static void AddFluxzyProducers(this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<ProducerFactory>(); 
+
         }
     }
 }

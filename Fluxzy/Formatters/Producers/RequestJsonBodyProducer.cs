@@ -16,7 +16,7 @@ namespace Fluxzy.Formatters.Producers
     {
         public string ResultTitle => "JSON";
 
-        public RequestJsonResult? Build(ExchangeInfo exchangeInfo, FormattingProducerParam producerSetting,
+        public RequestJsonResult? Build(ExchangeInfo exchangeInfo, ProducerSettings producerSetting,
             IArchiveReader archiveReader)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
@@ -74,7 +74,6 @@ namespace Fluxzy.Formatters.Producers
             }
         }
     }
-
 
     public class RequestJsonResult : FormattingResult
     {

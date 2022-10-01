@@ -4,6 +4,8 @@ using System.Net;
 using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
+using Fluxzy.Formatters.Producers;
+using Fluxzy.Screeners;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
 using Reinforced.Typings.Fluent;
@@ -13,16 +15,9 @@ using ConfigurationBuilder = Reinforced.Typings.Fluent.ConfigurationBuilder;
 
 namespace Fluxzy.Desktop.Ui
 {
+    // ReSharper disable once IdentifierTypo - Loaded by refletions
     public static class ReinforcedTypingsConfiguration
     {
-        private static void ConfigureViewModels(ConfigurationBuilder builder)
-        {
-            builder.ExportAsInterface<FileOpeningViewModel>()
-                .ApplyGenericProperties();
-
-            builder.ExportAsInterface<FileSaveViewModel>()
-                .ApplyGenericProperties();
-        }
 
         public static void Configure(ConfigurationBuilder builder)
         {
@@ -31,7 +26,8 @@ namespace Fluxzy.Desktop.Ui
                 .UseModules());
 
 
-            ConfigureViewModels(builder); 
+            ConfigureViewModels(builder);
+            ConfigureProducers(builder); 
 
             // UI objects
 
@@ -103,6 +99,38 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<SslInfo>()
                 .ApplyGenericProperties();
+        }
+
+        private static void ConfigureViewModels(ConfigurationBuilder builder)
+        {
+            builder.ExportAsInterface<FileOpeningViewModel>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FileSaveViewModel>()
+                   .ApplyGenericProperties();
+        }
+        private static void ConfigureProducers(ConfigurationBuilder builder)
+        {
+            builder.ExportAsInterface<FormattingResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<AuthorizationBasicResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<AuthorizationBearerResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<AuthorizationResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<QueryStringResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RequestCookieResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RequestJsonResult>()
+                   .ApplyGenericProperties();
         }
     }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using Fluxzy.Readers;
 
@@ -10,11 +9,11 @@ namespace Fluxzy.Screeners
     {
         string ResultTitle { get; }
 
-        T? Build(ExchangeInfo exchangeInfo, FormattingProducerParam producerSetting, IArchiveReader archiveReader); 
+        T? Build(ExchangeInfo exchangeInfo, ProducerSettings producerSetting, IArchiveReader archiveReader); 
     }
 
 
-    public class FormattingProducerParam
+    public class ProducerSettings
     {
         public int MaxFormattableJsonLength { get; set; } = 1024 * 32;
 
