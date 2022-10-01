@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Observable, take, map, tap } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, TrunkState, UiState } from '../core/models/auto-generated';
+import { ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, FormattingResult, TrunkState, UiState } from '../core/models/auto-generated';
 
 @Injectable({
   providedIn: 'root'
@@ -56,8 +56,6 @@ export class ApiService {
             
             ); 
     }
-    
-
 
     public fileOpen(fileName : string) : Observable<UiState> {
         return this.httpClient.post<UiState>(`api/file/open`, { fileName })
@@ -95,6 +93,14 @@ export class ApiService {
 
     public proxyOff() : Observable<UiState> {
         return this.httpClient.post<UiState>(`api/proxy/off`, null)
+            .pipe(
+                take(1)
+            );
+    }
+
+    public getRequestFormattingResults(exchangeId : number) : Observable<FormattingResult[]> {
+        
+        return this.httpClient.get<FormattingResult[]>(`api/producers/request/${exchangeId}`)
             .pipe(
                 take(1)
             );

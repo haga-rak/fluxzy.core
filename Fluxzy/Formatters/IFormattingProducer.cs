@@ -11,13 +11,5 @@ namespace Fluxzy.Screeners
 
         T? Build(ExchangeInfo exchangeInfo, ProducerSettings producerSetting, IArchiveReader archiveReader); 
     }
-
-
-    public class ProducerSettings
-    {
-        public int MaxFormattableJsonLength { get; set; } = 1024 * 32;
-
-        public int MaxFormattableXmlLength { get; set; } = 1024 * 32;
-    }
 }
 

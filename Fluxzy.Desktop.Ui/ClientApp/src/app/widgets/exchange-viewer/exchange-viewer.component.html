@@ -1,70 +1,77 @@
+<div style="width: 100%" class="exchange-viewer-main">
+    <div class="exchange-viewer-main-content">
 
-            <div style="width: 100%" class="exchange-viewer-main">
-                <div class="exchange-viewer-main-content">
-
-                    <div class="exchange-viewer-header">
-                        <div style="margin-bottom: 8px">
-                            <span>
-                                <strong>POST</strong>&nbsp; <a href="javascript:;" [title]="exchange.path">{{autoMaxLength(exchange.path, 64)}}</a>
-                            </span>
-                            <span class="float-end">
-                                    <span>api.smartizy.com</span> 
-                            </span>
-                        </div>
-                        <div class="btn-group"  role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
-                            
-                            <button type="button"  href="javascript:;" class="btn btn-dark" 
-                            [ngClass]="{'active' : isRequestTabSelected('requestHeader')}" (click)="setSelectedRequest('requestHeader')">
-                            headers</button>
-
-                            <button type="button"  href="javascript:;" class="btn btn-dark" 
-                            [ngClass]="{'active' : isRequestTabSelected('requestBody')}" (click)="setSelectedRequest('requestBody')"
-                            >body (1236b)</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">set-cookies</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">authentication</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">json viewer</button>
-                        </div>
-                    </div>
-    
-                    <div class="shady-box exchange-content-box" style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px;">
-                            <app-header-viewer *ngIf="currentRequestTabView === 'requestHeader'" [exchange]="exchange"></app-header-viewer>
-                    </div>
-
-
-                    <div style="margin-top : 10px"  class="exchange-viewer-header">
-    
-    
-                        <div style="margin-bottom: 8px">
-                            <span>
-                                <strong>201</strong>&nbsp; <a href="javascript:;">Content Created</a>
-                            </span>
-                            <span class="float-end">
-                                    <span class="badge badge-warning bg-secondary">HTTP/1.1</span> <span>TLS1.2</span>
-                            </span>
-                        </div>
-                        <div class="btn-group"  role="group">
-                            
-                            <button type="button"  href="javascript:;" class="btn btn-dark active" aria-current="page">headers</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark" >body (436b)</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">cookies</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">authentication</button>
-                            <button type="button"  href="javascript:;" class="btn btn-dark">multipart-form</button>
-                        </div>
-                    </div>
-        
-                    <div class="shady-box exchange-content-box" style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px;;">
-                            
-                    </div>
-
-                </div>
-                <div class="exchange-viewer-main-status">
-                    <span class="float-end">
-                        <a href="javascript:;" class="btn btn-secondary">Mark</a>&nbsp;
-                        <a href="javascript:;" class="btn btn-secondary">Comment</a>&nbsp;
-                        <a href="javascript:;" class="btn btn-secondary">Download tcpdump</a>
-                    </span>
-                </div>
-
-
+        <div class="exchange-viewer-header">
+            <div style="margin-bottom: 8px">
+                <span>
+                    <strong>POST</strong>&nbsp; <a href="javascript:;"
+                        [title]="exchange.path">{{autoMaxLength(exchange.path, 64)}}</a>
+                </span>
+                <span class="float-end">
+                    <span>api.smartizy.com</span>
+                </span>
             </div>
+            <div class="btn-group" role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
 
+                <button type="button" href="javascript:;" class="btn btn-dark"
+                    [ngClass]="{'active' : isRequestTabSelected('requestHeader')}"
+                    (click)="setSelectedRequest('requestHeader')">
+                    headers</button>
+
+                <button  *ngIf="!requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark" >Loading ...</button>
+                
+                <ng-container *ngIf="requestFormattingResults">
+
+                    
+                    <button *ngFor="let formattingResult of requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark"
+                    [ngClass]="{'active' : isRequestTabSelected(formattingResult.title)}"
+                    (click)="setSelectedRequest(formattingResult.title)">{{formattingResult.title}}</button>
+                </ng-container>
+            </div>
+        </div>
+
+        <div class="shady-box exchange-content-box"
+            style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px;">
+            <app-header-viewer *ngIf="currentRequestTabView === 'requestHeader'" [exchange]="exchange">
+            </app-header-viewer>
+        </div>
+
+
+        <div style="margin-top : 10px" class="exchange-viewer-header">
+
+
+            <div style="margin-bottom: 8px">
+                <span>
+                    <strong>201</strong>&nbsp; <a href="javascript:;">Content Created</a>
+                </span>
+                <span class="float-end">
+                    <span class="badge badge-warning bg-secondary">HTTP/1.1</span> <span>TLS1.2</span>
+                </span>
+            </div>
+            <div class="btn-group" role="group">
+
+                <button type="button" href="javascript:;" class="btn btn-dark active"
+                    aria-current="page">headers</button>
+                <button type="button" href="javascript:;" class="btn btn-dark">body (436b)</button>
+                <button type="button" href="javascript:;" class="btn btn-dark">cookies</button>
+                <button type="button" href="javascript:;" class="btn btn-dark">authentication</button>
+                <button type="button" href="javascript:;" class="btn btn-dark">multipart-form</button>
+            </div>
+        </div>
+
+        <div class="shady-box exchange-content-box"
+            style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px;;">
+
+        </div>
+
+    </div>
+    <div class="exchange-viewer-main-status">
+        <span class="float-end">
+            <a href="javascript:;" class="btn btn-secondary">Mark</a>&nbsp;
+            <a href="javascript:;" class="btn btn-secondary">Comment</a>&nbsp;
+            <a href="javascript:;" class="btn btn-secondary">Download tcpdump</a>
+        </span>
+    </div>
+
+
+</div>

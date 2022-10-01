@@ -24,6 +24,8 @@ namespace Fluxzy.Desktop.Services
             _subject = new(ReadDirectory(fileState));
             Observable = _subject.AsObservable();
         }
+
+
         
         private static TrunkState ReadDirectory(FileState current)
         {

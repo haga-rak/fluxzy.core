@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Readers;
 using Fluxzy.Screeners;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,7 +8,7 @@ namespace Fluxzy.Desktop.Services
 {
     public static class GlobalRegistration
     {
-        public static void AddFluxzyDesktopServices(this IServiceCollection collection)
+        public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
             collection.AddSingleton<FileManager>();
             collection.AddSingleton<ProxyControl>();
@@ -35,11 +36,19 @@ namespace Fluxzy.Desktop.Services
                     .Select(t => t.Observable).Switch());
 
             collection.AddTransient<FxzyDirectoryPackager>();
+
+            collection.AddTransient<ProducerSettings>(); // TODO move to hard settings 
+
+            collection.AddFluxzyProducers();
+
+            return collection; 
         }
 
-        public static void AddFluxzyProducers(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddFluxzyProducers(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<ProducerFactory>(); 
+            serviceCollection.AddSingleton<ProducerFactory>();
+
+            return serviceCollection;
 
         }
     }
