@@ -7,7 +7,7 @@
         <thead>
             <tr>
                 <th style="width:20px">&nbsp;</th>
-                <th style="width:150px">Host</th>
+                <th style="width:120px">Host</th>
                 <th  style="width:50px">Method</th>
                 <th>Path</th>
                 <th  style="width:45px">Status</th>
@@ -22,17 +22,17 @@
                   
                     
                 </td>
-                <td>
-                    <div style="  white-space: nowrap; max-width:180px; overflow : hidden; text-overflow: ellipsis;">
-                        <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i>
+                <td [title]="exchangeContainer.exchangeInfo.knownAuthority">
+                    <div style="direction:rtl; text-align: left;  white-space: nowrap; max-width:150px; overflow : hidden; text-overflow: ellipsis;">
                         {{ exchangeContainer.exchangeInfo.knownAuthority }}
+                        <!-- <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i> -->
                     </div></td>
                 <td class="">{{ exchangeContainer.exchangeInfo.method }}&nbsp;&nbsp;</td>
                 <td  [title]="exchangeContainer.exchangeInfo.path"  style="overflow: hidden; max-width: 0; white-space: nowrap; text-overflow: ellipsis;">
                     {{ exchangeContainer.exchangeInfo.path }}
                 </td>
                 <!-- <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td> -->
-                <td>{{ exchangeContainer.id }}</td>
+                <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td>
                 <td [title]="exchangeContainer.exchangeInfo.contentType">
                     <span  style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; ">
                         {{ exchangeContainer.exchangeInfo.contentType }}
