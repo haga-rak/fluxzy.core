@@ -58,12 +58,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
 
         this.$requestFormattingResults.subscribe();
 
-        this.$exchange.next(this.exchange);
 
-        this.$currentRequestTabView
-            .asObservable()
-            .pipe(tap((t) => (this.currentRequestTabView = t)))
-            .subscribe();
 
         combineLatest([
             this.$requestFormattingResults,
@@ -82,11 +77,22 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                     } else {
                         if (selectedTab !== 'requestHeader') {
                             this.$currentRequestTabView.next('requestHeader');
+                        } else {
+                            this.requestFormattingResult = null;
                         }
                     }
                 })
             )
             .subscribe();
+            
+        
+        this.$currentRequestTabView
+            .asObservable()
+            .pipe(tap((t) => (this.currentRequestTabView = t)))
+            .subscribe();
+
+            
+        this.$exchange.next(this.exchange);
     }
 
     ngOnChanges(changes: SimpleChanges): void {

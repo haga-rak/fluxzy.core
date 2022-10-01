@@ -1,1 +1,29 @@
-<p>header-viewer works!</p>
+<div style="height:100%">
+
+
+    <perfect-scrollbar #perfectScroll2 style="max-height: calc(100vh - 120px);">
+
+        <table class="summary-table">
+            <tr>
+                <th>Method</th>
+                <td>{{ exchange.method }}</td>
+            </tr>
+            <tr>
+                <th>Path</th>
+                <td>{{ exchange.path }}</td>
+            </tr>
+            <tr>
+                <th>Http version</th>
+                <td>{{ exchange.httpVersion }}</td>
+            </tr>
+            <tr *ngFor="let header of exchange.requestHeader.headers" >
+                <ng-container *ngIf="!header.name.startsWith(':')">
+    
+                    <th>{{ header.name }}</th>
+                    <td>{{ header.value }}</td>
+                </ng-container>
+            </tr>
+        </table>
+    
+    </perfect-scrollbar>
+</div>
