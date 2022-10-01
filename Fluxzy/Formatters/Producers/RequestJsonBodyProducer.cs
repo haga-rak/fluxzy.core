@@ -41,11 +41,13 @@ namespace Fluxzy.Formatters.Producers
                 // Request body JSON exceed the maximum authorized 
                 return null;
 
-            var buffer = ArrayPool<byte>.Shared.Rent((int) requestBodyStream.Length);
+            var rawBuffer = ArrayPool<byte>.Shared.Rent((int) requestBodyStream.Length);
 
             try
             {
-                requestBodyStream.SeekableStreamToBytes(buffer);
+                var length = requestBodyStream.SeekableStreamToBytes(rawBuffer);
+
+                var buffer = new Memory<byte>(rawBuffer, 0, length);
 
                 using var document = JsonDocument.Parse(buffer);
 
@@ -60,7 +62,7 @@ namespace Fluxzy.Formatters.Producers
                 }
 
                 var formattedValue = Encoding.UTF8.GetString(outStream.GetBuffer(), 0, (int)outStream.Length);
-                var rawValue = Encoding.UTF8.GetString(buffer);
+                var rawValue = Encoding.UTF8.GetString(buffer.Span);
 
                 return new RequestJsonResult(ResultTitle, rawValue, formattedValue);
             }
@@ -70,7 +72,7 @@ namespace Fluxzy.Formatters.Producers
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(buffer);
+                ArrayPool<byte>.Shared.Return(rawBuffer);
             }
         }
     }
