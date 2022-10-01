@@ -7,12 +7,12 @@ using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers
 {
-    public class AuthorizationBearerProducer : IFormattingProducer<AuthorizationBearerFormattingResult>
+    public class AuthorizationBearerProducer : IFormattingProducer<AuthorizationBearerResult>
     {
         public string ResultTitle => " \"Bearer token\"";
 
-        public AuthorizationBearerFormattingResult? Build(ExchangeInfo exchangeInfo,
-            FormattingProducerParam producerSetting, IArchiveReader archiveReader)
+        public AuthorizationBearerResult? Build(ExchangeInfo exchangeInfo,
+            ProducerSettings producerSetting, IArchiveReader archiveReader)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
 
@@ -29,16 +29,16 @@ namespace Fluxzy.Formatters.Producers
 
             var token = targetHeader.Value.Span.Slice("Bearer ".Length).ToString();
 
-            return new AuthorizationBearerFormattingResult(
+            return new AuthorizationBearerResult(
                ResultTitle, token);
         }
     }
 
-    public class AuthorizationBearerFormattingResult : FormattingResult
+    public class AuthorizationBearerResult : FormattingResult
     {
         public string Token { get; }
 
-        public AuthorizationBearerFormattingResult(string title, string token)
+        public AuthorizationBearerResult(string title, string token)
             : base(title)
         {
             Token = token;

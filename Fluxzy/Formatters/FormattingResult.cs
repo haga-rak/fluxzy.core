@@ -12,6 +12,7 @@ namespace Fluxzy.Screeners
         public string Title {  get; }
 
         public string ? ErrorMessage { get; set; }
-        
+
+        public string Type => GetType().Name;
     }
 }
