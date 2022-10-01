@@ -28,13 +28,8 @@
                         {{ exchangeContainer.exchangeInfo.knownAuthority }}
                     </div></td>
                 <td class="">{{ exchangeContainer.exchangeInfo.method }}&nbsp;&nbsp;</td>
-                <td  [title]="exchangeContainer.exchangeInfo.path">
-                    <div style="margin-right: 10px; position: relative; overflow: hidden">
-                        &nbsp;
-                        <div class="limited-length">
-                            {{ exchangeContainer.exchangeInfo.path }}
-                        </div>
-                    </div>
+                <td  [title]="exchangeContainer.exchangeInfo.path"  style="overflow: hidden; max-width: 0; white-space: nowrap; text-overflow: ellipsis;">
+                    {{ exchangeContainer.exchangeInfo.path }}
                 </td>
                 <!-- <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td> -->
                 <td>{{ exchangeContainer.id }}</td>
