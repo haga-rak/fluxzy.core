@@ -10,6 +10,38 @@ export interface FileSaveViewModel
 {
 	fileName: string;
 }
+export interface FormattingResult
+{
+	title: string;
+	errorMessage?: string;
+	type: string;
+}
+export interface AuthorizationBasicResult extends FormattingResult
+{
+	clientId: string;
+	clientSecret?: string;
+}
+export interface AuthorizationBearerResult extends FormattingResult
+{
+	token: string;
+}
+export interface AuthorizationResult extends FormattingResult
+{
+	value: string;
+}
+export interface QueryStringResult extends FormattingResult
+{
+	items: any[];
+}
+export interface RequestCookieResult extends FormattingResult
+{
+	cookies: any[];
+}
+export interface RequestJsonResult extends FormattingResult
+{
+	rawBody: string;
+	formattedBody: string;
+}
 export interface UiState
 {
 	id: string;

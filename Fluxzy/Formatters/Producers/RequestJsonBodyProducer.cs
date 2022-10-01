@@ -32,7 +32,7 @@ namespace Fluxzy.Formatters.Producers
             if (!jsonContentTypeSpecified)
                 return null; 
 
-            var requestBodyStream = archiveReader.GetRequestBody(exchangeInfo.Id);
+            using var requestBodyStream = archiveReader.GetRequestBody(exchangeInfo.Id);
 
             if (requestBodyStream is not { CanSeek: true })
                 return null;
