@@ -16,6 +16,7 @@ namespace Fluxzy.Screeners
             new QueryStringProducer(),
             new RequestCookieProducer(),
             new RequestJsonBodyProducer(),
+            new RawRequestHeaderProducer(),
         };
 
         public IEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId, IArchiveReader archiveReader,

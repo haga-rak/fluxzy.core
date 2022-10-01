@@ -1,57 +1,121 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import {
+    Component,
+    Input,
+    OnChanges,
+    OnInit,
+    SimpleChanges,
+} from '@angular/core';
 import { stringify } from 'querystring';
-import { BehaviorSubject, catchError, concat, concatAll, distinctUntilChanged, filter, map,of,Subject,switchMap,tap } from 'rxjs';
-import { ExchangeInfo, FormattingResult } from '../../core/models/auto-generated';
+import {
+    BehaviorSubject,
+    catchError,
+    combineLatest,
+    concat,
+    concatAll,
+    distinctUntilChanged,
+    filter,
+    map,
+    Observable,
+    of,
+    Subject,
+    switchMap,
+    tap,
+} from 'rxjs';
+import {
+    ExchangeInfo,
+    FormattingResult,
+} from '../../core/models/auto-generated';
 import { ApiService } from '../../services/api.service';
 
 @Component({
     selector: 'app-exchange-viewer',
     templateUrl: './exchange-viewer.component.html',
-    styleUrls: ['./exchange-viewer.component.scss']
+    styleUrls: ['./exchange-viewer.component.scss'],
 })
 export class ExchangeViewerComponent implements OnInit, OnChanges {
-    public  currentRequestTabView : string= 'requestHeader' ; 
-    public requestFormattingResults : FormattingResult[] | null = null;  
+    public currentRequestTabView: string;
 
-    private  $exchange : Subject<ExchangeInfo>  = new Subject<ExchangeInfo>(); 
-    
-    @Input("exchange") public exchange : ExchangeInfo ; 
-    
-    constructor(private apiService : ApiService) { }
+    public requestFormattingResults: FormattingResult[] | null = null;
+    public requestFormattingResult: FormattingResult | null = null;
+
+    private $exchange: Subject<ExchangeInfo> = new Subject<ExchangeInfo>();
+    private $requestFormattingResults: Observable<FormattingResult[]>;
+    private $currentRequestTabView: BehaviorSubject<string> =
+        new BehaviorSubject<string>('requestHeader');
+
+    @Input('exchange') public exchange: ExchangeInfo;
+
+    constructor(private apiService: ApiService) {}
 
     ngOnInit(): void {
-        let result = this.$exchange.asObservable()
-        .pipe(
+        this.$requestFormattingResults = this.$exchange.asObservable().pipe(
             distinctUntilChanged(),
-            filter(t => t.id > 0),
-            tap(t => this.requestFormattingResults = null ),
-            switchMap(t => this.apiService.getRequestFormattingResults(t.id)),
-            tap(t => this.requestFormattingResults = t),
-            catchError(_ => of('bad request'))
-        ).subscribe() ;
+            filter((t) => t.id > 0),
+            tap((t) => (this.requestFormattingResults = null)),
+            switchMap((t) => this.apiService.getRequestFormattingResults(t.id)),
+            tap((t) => (this.requestFormattingResults = t))
+        );
 
-        this.$exchange.next(this.exchange) ; 
+        this.$requestFormattingResults.subscribe();
+
+        this.$exchange.next(this.exchange);
+
+        this.$currentRequestTabView
+            .asObservable()
+            .pipe(tap((t) => (this.currentRequestTabView = t)))
+            .subscribe();
+
+        combineLatest([
+            this.$requestFormattingResults,
+            this.$currentRequestTabView,
+        ])
+            .pipe(
+                tap((tab) => {
+                    const formatingResults = tab[0];
+                    const selectedTab = tab[1];
+                    const formatingResult = formatingResults.filter(
+                        (t) => t.type === selectedTab
+                    );
+
+                    if (formatingResult.length) {
+                        this.requestFormattingResult = formatingResult[0];
+                    } else {
+                        if (selectedTab !== 'requestHeader') {
+                            this.$currentRequestTabView.next('requestHeader');
+                        }
+                    }
+                })
+            )
+            .subscribe();
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        this.$exchange.next(this.exchange) ; 
+        this.$exchange.next(this.exchange);
     }
-    
 
-    public autoMaxLength(str : string, maxLength : number = 144) : string {
+    public autoMaxLength(str: string, maxLength: number = 144): string {
         if (str.length > maxLength) {
-            let result = str.substring(0, maxLength -3) + "..." ; 
-            return result; 
+            let result = str.substring(0, maxLength - 3) + '...';
+            return result;
         }
-        return str; 
+        return str;
     }
 
-    public isRequestTabSelected(name : string)  : boolean {
-        return name === this.currentRequestTabView ; 
+    public isRequestTabSelected(name: string): boolean {
+        return name === this.currentRequestTabView;
     }
 
-    public setSelectedRequest(tabName : string) {
-        this.currentRequestTabView = tabName; 
+    public setSelectedRequestTab(
+        tabName: string,
+        formatingResult: FormattingResult
+    ) {
+        console.log(tabName);
+
+        this.$currentRequestTabView.next(tabName);
+        // this.requestFormattingResult = formatingResult;
     }
-    
+
+    public ofType(name: string): boolean {
+        return this.requestFormattingResult?.type === name;
+    }
 }

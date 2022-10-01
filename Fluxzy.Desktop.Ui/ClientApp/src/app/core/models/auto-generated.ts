@@ -42,6 +42,10 @@ export interface RequestJsonResult extends FormattingResult
 	rawBody: string;
 	formattedBody: string;
 }
+export interface RawRequestHeaderResult extends FormattingResult
+{
+	rawHeader: string;
+}
 export interface UiState
 {
 	id: string;
