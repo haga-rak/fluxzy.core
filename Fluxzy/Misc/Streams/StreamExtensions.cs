@@ -91,16 +91,18 @@ namespace Fluxzy.Misc.Streams
         }
 
 
-        public static void SeekableStreamToBytes(this Stream origin, byte[] buffer)
+        public static int SeekableStreamToBytes(this Stream origin, byte[] buffer)
         {
             var index = 0;
             int read;
 
             while (index < buffer.Length && (read = origin.Read(buffer, index, buffer.Length - index)) > 0)
             {
-                index += read; 
+                index += read;
             }
-            
+
+            return index;
+
         }
     }
 }
