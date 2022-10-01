@@ -4,7 +4,7 @@
         <div class="exchange-viewer-header">
             <div style="margin-bottom: 8px">
                 <span>
-                    <strong>POST</strong>&nbsp; <a href="javascript:;"
+                    <strong>{{exchange.method}}</strong>&nbsp; <a href="javascript:;"
                         [title]="exchange.path">{{autoMaxLength(exchange.path, 64)}}</a>
                 </span>
                 <span class="float-end">
@@ -15,7 +15,7 @@
 
                 <button type="button" href="javascript:;" class="btn btn-dark"
                     [ngClass]="{'active' : isRequestTabSelected('requestHeader')}"
-                    (click)="setSelectedRequest('requestHeader')">
+                    (click)="setSelectedRequestTab('requestHeader', null)">
                     headers</button>
 
                 <button  *ngIf="!requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark" >Loading ...</button>
@@ -24,16 +24,22 @@
 
                     
                     <button *ngFor="let formattingResult of requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark"
-                    [ngClass]="{'active' : isRequestTabSelected(formattingResult.title)}"
-                    (click)="setSelectedRequest(formattingResult.title)">{{formattingResult.title}}</button>
+                    [ngClass]="{'active' : isRequestTabSelected(formattingResult.type)}"
+                    (click)="setSelectedRequestTab(formattingResult.type, formattingResult)">{{formattingResult.title}}</button>
                 </ng-container>
             </div>
         </div>
 
         <div class="shady-box exchange-content-box"
-            style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px;">
+            style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; padding: 12px">
+
             <app-header-viewer *ngIf="currentRequestTabView === 'requestHeader'" [exchange]="exchange">
             </app-header-viewer>
+
+            <app-raw-request-header-result *ngIf="ofType('RawRequestHeaderResult')" [formatter]="requestFormattingResult">
+            </app-raw-request-header-result>
+
+
         </div>
 
 

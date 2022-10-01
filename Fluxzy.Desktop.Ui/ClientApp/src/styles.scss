@@ -55,3 +55,10 @@ html, body {
 .text-green {
     color : $green; 
 }
+
+.viewer-textarea {
+    color: var(--bs-gray-100);
+    background:  var(--bs-gray-700);
+    font-family: monospace !important;
+    font-size: 12px;
+}
