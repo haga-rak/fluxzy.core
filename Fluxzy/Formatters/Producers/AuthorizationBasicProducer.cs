@@ -28,7 +28,6 @@ namespace Fluxzy.Formatters.Producers
                 return null;
 
             var base64Value = targetHeader.Value.Span.Slice("Basic ".Length).Trim().ToString();
-            var errorMessage = (string?) null; 
 
             try
             {
@@ -42,8 +41,11 @@ namespace Fluxzy.Formatters.Producers
             }
             catch (FormatException)
             {
-                errorMessage = "Basic value was not a valid base64 encoded string";
-                return new AuthorizationBasicResult(ResultTitle, base64Value, null); 
+                var errorMessage = "Basic value was not a valid base64 encoded string";
+                return new AuthorizationBasicResult(ResultTitle, base64Value, null)
+                {
+                    ErrorMessage = errorMessage
+                }; 
             }
         }
     }
