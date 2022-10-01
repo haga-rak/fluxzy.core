@@ -11,7 +11,8 @@ namespace Fluxzy.Formatters.Producers
     {
         public string ResultTitle => " \"Bearer token\"";
 
-        public AuthorizationBearerFormattingResult? Build(ExchangeInfo exchangeInfo, IArchiveReader archiveReader)
+        public AuthorizationBearerFormattingResult? Build(ExchangeInfo exchangeInfo,
+            FormattingProducerParam producerSetting, IArchiveReader archiveReader)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
 

@@ -9,11 +9,14 @@ using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers
 {
+
+
     public class RequestCookieProducer : IFormattingProducer<RequestCookieResult>
     {
         public string ResultTitle => "Cookies";
 
-        public RequestCookieResult? Build(ExchangeInfo exchangeInfo, IArchiveReader archiveReader)
+        public RequestCookieResult? Build(ExchangeInfo exchangeInfo, FormattingProducerParam producerSetting,
+            IArchiveReader archiveReader)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
 
@@ -60,7 +63,6 @@ namespace Fluxzy.Formatters.Producers
 
         public List<RequestCookie> Cookies { get; }
     }
-
 
     public class RequestCookie
     {
