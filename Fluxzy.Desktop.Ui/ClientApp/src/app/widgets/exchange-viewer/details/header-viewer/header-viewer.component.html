@@ -11,10 +11,13 @@
             <tr>
                 <th>Path</th>
                 <td>
-                    <a title="Copy to clipboard" href="javascript:;"> <i class="bi bi-clipboard"></i></a>
                     <span [title]="exchange.path ">
                         {{ exchange.path }}
-                    </span>
+                    </span><br/>
+                    <small>                        
+                        <a title="Copy to clipboard" href="javascript:;"> Copy full url</a> | 
+                        <a title="Copy to clipboard" href="javascript:;"> Copy path only</a>
+                    </small>
                      
                 </td>
             </tr>

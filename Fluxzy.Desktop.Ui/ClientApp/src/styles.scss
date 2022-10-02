@@ -78,6 +78,7 @@ html, body {
 
 .summary-table th{
     width : 120px; 
+    vertical-align: top;
 }
 
 .summary-table td {
@@ -85,6 +86,7 @@ html, body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    vertical-align: top;
 }
 
 .as-split-area {
