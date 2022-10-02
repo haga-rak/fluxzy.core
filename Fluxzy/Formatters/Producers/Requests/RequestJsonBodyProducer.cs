@@ -17,7 +17,7 @@ namespace Fluxzy.Formatters.Producers.Requests
     {
         public string ResultTitle => "JSON";
 
-        public RequestJsonResult? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context)
+        public RequestJsonResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
 

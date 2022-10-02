@@ -55,6 +55,18 @@ export const InstallSystemEvents = (win : BrowserWindow) : void => {
         event.returnValue = !result ? null : result;
     });
     
+    ipcMain.on('request-custom-file-saving', function (event, arg) {
+        // 
+        var result = dialog.showSaveDialogSync(win, {
+            title: "Fluxzy - Save",
+            buttonLabel: "Save",
+            defaultPath : arg,        
+            properties: ["showOverwriteConfirmation"]
+        });
+
+        event.returnValue = !result ? null : result;
+    });
+    
 
     ipcMain.on('show-confirm-dialog', function (event, arg) {
         // 

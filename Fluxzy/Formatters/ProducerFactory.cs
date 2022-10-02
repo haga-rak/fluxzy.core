@@ -1,16 +1,18 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
-using Fluxzy.Formatters.Producers;
+using System.Threading.Tasks;
 using Fluxzy.Formatters.Producers.Requests;
-using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters
 {
     public class ProducerFactory
     {
-        private readonly List<IFormattingProducer<FormattingResult>> _requestProducers = new()
+        private readonly IArchiveReaderProvider _archiveReaderProvider;
+        private readonly ProducerSettings _producerSettings;
+
+        private static readonly List<IFormattingProducer<FormattingResult>> RequestProducers = new()
         {
             new RequestJsonBodyProducer(),
             new AuthorizationBasicProducer(),
@@ -23,25 +25,47 @@ namespace Fluxzy.Formatters
             new RawRequestHeaderProducer(),
         };
 
-        public IEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId, IArchiveReader archiveReader,
-            ProducerSettings settings)
+        public ProducerFactory(IArchiveReaderProvider archiveReaderProvider, ProducerSettings producerSettings)
         {
+            _archiveReaderProvider = archiveReaderProvider;
+            _producerSettings = producerSettings;
+        }
+
+        public async Task<ProducerContext?> GetProducerContext(int exchangeId)
+        {
+            var archiveReader = await _archiveReaderProvider.Get();
+
+            if (archiveReader == null)
+                return null;  
+
             var exchangeInfo = archiveReader.ReadExchange(exchangeId);
 
             if (exchangeInfo == null)
             {
-                yield break;
+                return null;
             }
 
-            using var formattingProducerContext = new FormattingProducerContext(exchangeInfo, archiveReader, settings);
+            return new ProducerContext(exchangeInfo, archiveReader, _producerSettings);
+        }
+        
 
-            foreach (var producer in _requestProducers)
+        public async IAsyncEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId)
+        {
+            using var formattingProducerContext = await GetProducerContext(exchangeId);
+
+            if (formattingProducerContext == null)
+                yield break;
+            
+
+            foreach (var producer in RequestProducers)
             {
-                var result = producer.Build(exchangeInfo, formattingProducerContext);
+                var result = producer.Build(formattingProducerContext.Exchange, formattingProducerContext);
 
                 if (result != null)
                     yield return result;
             }
         }
     }
+
+    
 }

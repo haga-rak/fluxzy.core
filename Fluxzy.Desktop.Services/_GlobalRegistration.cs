@@ -1,7 +1,7 @@
 ﻿using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
-using Fluxzy.Readers;
+using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Screeners;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,6 +36,9 @@ namespace Fluxzy.Desktop.Services
                 (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
                     .Select(t => t.Observable).Switch());
 
+
+            collection.AddScoped<IArchiveReaderProvider, ArchiveReaderProvider>();
+
             collection.AddTransient<FxzyDirectoryPackager>();
 
             collection.AddTransient<ProducerSettings>(); // TODO move to hard settings 
@@ -47,7 +50,10 @@ namespace Fluxzy.Desktop.Services
 
         public static IServiceCollection AddFluxzyProducers(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<ProducerFactory>();
+            serviceCollection.AddScoped<ProducerFactory>();
+
+
+            serviceCollection.AddScoped<SaveRequestBodyProducerAction>();
 
             return serviceCollection;
 

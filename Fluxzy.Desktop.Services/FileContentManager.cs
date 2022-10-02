@@ -12,6 +12,7 @@ namespace Fluxzy.Desktop.Services
         void Delete(FileContentDelete deleteOp);
     }
 
+
     public class FileContentOperationManager : IFileContentOperationManager
     {
         public FileState State { get; }

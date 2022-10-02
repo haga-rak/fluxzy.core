@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using Fluxzy.Formatters;
-using Fluxzy.Readers;
 
 namespace Fluxzy.Screeners
 {
@@ -10,7 +9,7 @@ namespace Fluxzy.Screeners
     {
         string ResultTitle { get; }
 
-        T? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context); 
+        T? Build(ExchangeInfo exchangeInfo, ProducerContext context); 
     }
 }
 

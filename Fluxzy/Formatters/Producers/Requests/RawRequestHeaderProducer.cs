@@ -16,7 +16,7 @@ namespace Fluxzy.Formatters.Producers.Requests
     {
         public string ResultTitle => "Raw header (H11 style)";
 
-        public RawRequestHeaderResult? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context)
+        public RawRequestHeaderResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
             var requestHeaders = exchangeInfo.GetRequestHeaders().ToList();
             var stringBuilder = new StringBuilder();

@@ -10,15 +10,16 @@ using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters
 {
-    public class FormattingProducerContext : IDisposable
+    public class ProducerContext : IDisposable
     {
         private byte[]?  _internalBuffer; 
 
-        public FormattingProducerContext(
+        public ProducerContext(
             ExchangeInfo exchange, 
             IArchiveReader archiveReader,
             ProducerSettings settings)
         {
+            Exchange = exchange;
             ArchiveReader = archiveReader;
             Settings = settings;
             
@@ -41,13 +42,13 @@ namespace Fluxzy.Formatters
             }
         }
 
+        public ExchangeInfo Exchange { get; }
+
         public IArchiveReader ArchiveReader { get; }
 
         public ProducerSettings Settings { get; }
 
-
-        public long RequestBodyLength { get; } = 0; 
-
+        public long RequestBodyLength { get; } = 0;
 
         public ReadOnlyMemory<byte> RequestBody { get;  }
 

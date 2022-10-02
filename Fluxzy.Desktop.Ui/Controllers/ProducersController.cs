@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Screeners;
 using Microsoft.AspNetCore.Mvc;
 using System.Reactive.Linq;
@@ -14,15 +13,11 @@ namespace Fluxzy.Desktop.Ui.Controllers
     public class ProducersController : ControllerBase
     {
         private readonly ProducerFactory _producerFactory;
-        private readonly IObservable<FileState> _fileStateObservable;
-        private readonly ProducerSettings _producerSettings;
 
-        public ProducersController(ProducerFactory producerFactory, IObservable<FileState> fileStateObservable,
-            ProducerSettings producerSettings)
+        public ProducersController(
+            ProducerFactory producerFactory)
         {
             _producerFactory = producerFactory;
-            _fileStateObservable = fileStateObservable;
-            _producerSettings = producerSettings;
         }
 
         // GET: api/<UiController>
@@ -34,15 +29,19 @@ namespace Fluxzy.Desktop.Ui.Controllers
         /// <param name="exchangeId"></param>
         /// <returns></returns>
         [HttpGet("request/{exchangeId}")]
-        public async Task<object> Get(int exchangeId)
+        public async Task<List<object>> Get(int exchangeId)
         {
-            var fileState = await _fileStateObservable.FirstAsync();
-            var archiver = new DirectoryArchiveReader(fileState.WorkingDirectory);
+            // TODO : this action lacks elegance. chore refactor.
 
-            var result = _producerFactory.GetRequestFormattedResults(
-                exchangeId, archiver, _producerSettings).ToList();
+            var results = new List<object>();
 
-            return (object) result.OfType<object>(); 
+            await foreach (var item in _producerFactory.GetRequestFormattedResults(
+                               exchangeId))
+            {
+                results.Add(item);
+            }
+
+            return results;
         }
     }
 }

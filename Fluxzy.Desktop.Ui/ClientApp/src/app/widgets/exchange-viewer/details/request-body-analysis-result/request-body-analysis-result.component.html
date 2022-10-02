@@ -1,15 +1,16 @@
 
-    <table class="summary-table">
+    <p *ngIf="!model.bodyLength ">
+        This request does not have body
+    </p>
+
+    <table class="summary-table" *ngIf="model.bodyLength">
         <tr>
-            <th>Body size</th>
+            <th>Body bodyLength</th>
             <td>
-                {{ model.bodyLength }}
-            </td>
-        </tr>
-        <tr *ngIf="model.bodyLength > 0">
-            <th>Body size</th>
-            <td>
-                <a href="javascript:;" class="btn btn-sm" [title]="'Download ' + model.preferredFileName ">Save to a file</a>
+                {{ model.bodyLength }} bytes &nbsp;
+                <a href="javascript:;" (click)="saveToFile()" class="btn btn-primary btn-sm" [title]="'Download ' + model.preferredFileName ">
+                    <i class="bi bi-cloud-download-fill"></i>
+                    Save to a file</a>
             </td>
         </tr>
     </table>

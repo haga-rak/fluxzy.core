@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Desktop.Ui.ViewModels
+﻿using Fluxzy.Formatters.Producers.ProducerActions;
+
+namespace Fluxzy.Desktop.Ui.ViewModels
 {
     public class FileOpeningViewModel
     {
@@ -7,7 +9,7 @@
             FileName = fileName;
         }
 
-        public string FileName { get; set; }
+        public string FileName { get;  }
     }
 
     public class FileSaveViewModel
@@ -17,6 +19,6 @@
             FileName = fileName;
         }
 
-        public string FileName { get; set; }
+        public string FileName { get;  }
     }
 }
