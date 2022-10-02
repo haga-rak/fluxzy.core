@@ -39,7 +39,7 @@ export interface RequestCookieResult extends FormattingResult
 }
 export interface RequestJsonResult extends FormattingResult
 {
-	rawBody: string;
+	rawBody?: string;
 	formattedBody: string;
 }
 export interface RawRequestHeaderResult extends FormattingResult

@@ -52,7 +52,7 @@ namespace Fluxzy.Formatters.Producers
 
                 var formattedValue = Encoding.UTF8.GetString(outStream.GetBuffer(), 0, (int)outStream.Length);
 
-                var rawValue = Encoding.UTF8.GetString(requestBodyBytes.Span);
+                var rawValue = context.RequestBodyText;
 
                 return new RequestJsonResult(ResultTitle, rawValue, formattedValue);
             }
@@ -65,13 +65,13 @@ namespace Fluxzy.Formatters.Producers
 
     public class RequestJsonResult : FormattingResult
     {
-        public RequestJsonResult(string title, string rawBody, string formattedBody) : base(title)
+        public RequestJsonResult(string title, string?  rawBody, string formattedBody) : base(title)
         {
             RawBody = rawBody;
             FormattedBody = formattedBody;
         }
 
-        public string RawBody { get; }
+        public string? RawBody { get; }
 
         public string FormattedBody { get; }
 
