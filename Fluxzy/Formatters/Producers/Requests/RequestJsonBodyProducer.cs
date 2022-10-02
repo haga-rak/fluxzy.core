@@ -10,7 +10,7 @@ using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
-namespace Fluxzy.Formatters.Producers
+namespace Fluxzy.Formatters.Producers.Requests
 {
 
     public class RequestJsonBodyProducer : IFormattingProducer<RequestJsonResult>
@@ -30,15 +30,15 @@ namespace Fluxzy.Formatters.Producers
             try
             {
                 var requestBodyBytes = context.RequestBody!;
-                
+
                 using var document = JsonDocument.Parse(requestBodyBytes);
 
                 var outStream = new MemoryStream();
 
                 using (var jsonWriter = new Utf8JsonWriter(outStream, new JsonWriterOptions()
-                       {
-                           Indented = true
-                       }))
+                {
+                    Indented = true
+                }))
                 {
                     document.WriteTo(jsonWriter);
                 }
@@ -58,7 +58,7 @@ namespace Fluxzy.Formatters.Producers
 
     public class RequestJsonResult : FormattingResult
     {
-        public RequestJsonResult(string title, string?  rawBody, string formattedBody) : base(title)
+        public RequestJsonResult(string title, string? rawBody, string formattedBody) : base(title)
         {
             RawBody = rawBody;
             FormattedBody = formattedBody;

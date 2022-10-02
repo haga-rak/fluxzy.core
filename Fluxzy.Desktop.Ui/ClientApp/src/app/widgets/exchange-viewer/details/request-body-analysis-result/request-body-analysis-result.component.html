@@ -1,0 +1,16 @@
+
+    <table class="summary-table">
+        <tr>
+            <th>Body size</th>
+            <td>
+                {{ model.bodyLength }}
+            </td>
+        </tr>
+        <tr *ngIf="model.bodyLength > 0">
+            <th>Body size</th>
+            <td>
+                <a href="javascript:;" class="btn btn-sm" [title]="'Download ' + model.preferredFileName ">Save to a file</a>
+            </td>
+        </tr>
+    </table>
+

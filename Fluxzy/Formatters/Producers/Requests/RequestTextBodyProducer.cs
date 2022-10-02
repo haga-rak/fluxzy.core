@@ -2,7 +2,7 @@
 
 using Fluxzy.Screeners;
 
-namespace Fluxzy.Formatters.Producers
+namespace Fluxzy.Formatters.Producers.Requests
 {
     public class RequestTextBodyProducer : IFormattingProducer<RequestTextBodyResult>
     {
@@ -12,10 +12,10 @@ namespace Fluxzy.Formatters.Producers
         {
             if (context.RequestBodyText == null)
             {
-                return null; 
+                return null;
             }
 
-            return new RequestTextBodyResult(ResultTitle, context.RequestBodyText); 
+            return new RequestTextBodyResult(ResultTitle, context.RequestBodyText);
         }
     }
 

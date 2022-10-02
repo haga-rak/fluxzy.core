@@ -6,7 +6,7 @@ using Fluxzy.Readers;
 using Fluxzy.Screeners;
 using System.Linq;
 
-namespace Fluxzy.Formatters.Producers
+namespace Fluxzy.Formatters.Producers.Requests
 {
 
     public class AuthorizationProducer : IFormattingProducer<AuthorizationResult>
@@ -39,6 +39,6 @@ namespace Fluxzy.Formatters.Producers
             Value = value;
         }
 
-        public string Value { get;  }
+        public string Value { get; }
     }
 }

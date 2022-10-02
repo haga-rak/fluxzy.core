@@ -4,7 +4,7 @@ using System.Net;
 using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
-using Fluxzy.Formatters.Producers;
+using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Screeners;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
@@ -136,6 +136,9 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<RequestTextBodyResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RequestBodyAnalysisResult>()
                    .ApplyGenericProperties();
         }
     }

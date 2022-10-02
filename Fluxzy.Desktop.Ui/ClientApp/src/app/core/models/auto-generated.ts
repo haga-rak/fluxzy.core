@@ -50,6 +50,11 @@ export interface RequestTextBodyResult extends FormattingResult
 {
 	text: string;
 }
+export interface RequestBodyAnalysisResult extends FormattingResult
+{
+	bodyLength: number;
+	preferredFileName: string;
+}
 export interface UiState
 {
 	id: string;

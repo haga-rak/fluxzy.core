@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Fluxzy.Formatters.Producers;
+using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
@@ -9,13 +10,14 @@ namespace Fluxzy.Formatters
 {
     public class ProducerFactory
     {
-        private List<IFormattingProducer<FormattingResult>> _requestProducers = new()
+        private readonly List<IFormattingProducer<FormattingResult>> _requestProducers = new()
         {
             new RequestJsonBodyProducer(),
             new AuthorizationBasicProducer(),
             new AuthorizationBearerProducer(),
             new QueryStringProducer(),
             new RequestCookieProducer(),
+            new RequestBodyAnalysis(),
             new RequestTextBodyProducer(),
             new AuthorizationProducer(),
             new RawRequestHeaderProducer(),

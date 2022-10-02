@@ -7,7 +7,7 @@ using System.Web;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
-namespace Fluxzy.Formatters.Producers
+namespace Fluxzy.Formatters.Producers.Requests
 {
 
 
@@ -26,7 +26,7 @@ namespace Fluxzy.Formatters.Producers
                 headers.Where(h =>
                     h.Name.Span.Equals("Cookie", StringComparison.OrdinalIgnoreCase));
 
-            var requestCookies = new List<RequestCookie>(); 
+            var requestCookies = new List<RequestCookie>();
 
             foreach (var headerValue in targetHeaders)
             {
@@ -44,11 +44,11 @@ namespace Fluxzy.Formatters.Producers
                     var cookieName = HttpUtility.UrlDecode(cookieNameValueTab[0]);
                     var cookieValue = HttpUtility.UrlDecode(string.Join("=", cookieNameValueTab.Skip(1)));
 
-                    requestCookies.Add(new RequestCookie(cookieName, cookieValue)); 
+                    requestCookies.Add(new RequestCookie(cookieName, cookieValue));
                 }
             }
 
-            return requestCookies.Any() ? new RequestCookieResult(ResultTitle, requestCookies) : null; 
+            return requestCookies.Any() ? new RequestCookieResult(ResultTitle, requestCookies) : null;
 
         }
     }

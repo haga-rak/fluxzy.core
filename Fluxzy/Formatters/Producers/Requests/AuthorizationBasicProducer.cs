@@ -6,7 +6,7 @@ using Fluxzy.Screeners;
 using System.Linq;
 using System.Text;
 
-namespace Fluxzy.Formatters.Producers
+namespace Fluxzy.Formatters.Producers.Requests
 {
     public class AuthorizationBasicProducer : IFormattingProducer<AuthorizationBasicResult>
     {
@@ -32,11 +32,11 @@ namespace Fluxzy.Formatters.Producers
             try
             {
                 var tab = Encoding.UTF8.GetString(Convert.FromBase64String(base64Value))
-                                  .Split(new[] { ":"}, StringSplitOptions.RemoveEmptyEntries);
+                                  .Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 
                 var clientId = tab.First();
 
-                return new AuthorizationBasicResult(ResultTitle, clientId, string.Join(":", tab.Skip(1))); 
+                return new AuthorizationBasicResult(ResultTitle, clientId, string.Join(":", tab.Skip(1)));
 
             }
             catch (FormatException)
@@ -45,7 +45,7 @@ namespace Fluxzy.Formatters.Producers
                 return new AuthorizationBasicResult(ResultTitle, base64Value, null)
                 {
                     ErrorMessage = errorMessage
-                }; 
+                };
             }
         }
     }
