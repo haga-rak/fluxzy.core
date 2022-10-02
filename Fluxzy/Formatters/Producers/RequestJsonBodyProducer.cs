@@ -12,6 +12,7 @@ using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers
 {
+
     public class RequestJsonBodyProducer : IFormattingProducer<RequestJsonResult>
     {
         public string ResultTitle => "JSON";
@@ -23,21 +24,13 @@ namespace Fluxzy.Formatters.Producers
             if (headers == null)
                 return null;
 
-            var jsonContentTypeSpecified =
-                headers.Any(h =>
-                    h.Name.Span.Equals("Content-type", StringComparison.OrdinalIgnoreCase)
-                    && h.Value.Span.Contains("json", StringComparison.OrdinalIgnoreCase));
-
-            if (!jsonContentTypeSpecified)
-                return null;
-
             if (context.RequestBody.IsEmpty)
                 return null;
 
             try
             {
                 var requestBodyBytes = context.RequestBody!;
-
+                
                 using var document = JsonDocument.Parse(requestBodyBytes);
 
                 var outStream = new MemoryStream();

@@ -17,6 +17,7 @@ namespace Fluxzy.Formatters
             new QueryStringProducer(),
             new RequestCookieProducer(),
             new RequestJsonBodyProducer(),
+            new RequestTextBodyProducer(),
             new RawRequestHeaderProducer(),
         };
 
