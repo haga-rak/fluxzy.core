@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ExchangeInfo } from '../../../../core/models/auto-generated';
+import { SystemCallService } from '../../../../core/services/system-call.service';
 
 @Component({
     selector: 'app-header-viewer',
@@ -10,7 +11,11 @@ export class HeaderViewerComponent implements OnInit {
 
   @Input("exchange") public exchange : ExchangeInfo ; 
 
-    constructor() {}
+    constructor(private systemCallService: SystemCallService) {}
 
     ngOnInit(): void {}
+
+    public setClipboard(text : string) : void {
+      this.systemCallService.setClipBoard(text); 
+    }
 }
