@@ -8,7 +8,7 @@ namespace Fluxzy.Formatters.Producers.Requests
     {
         public string ResultTitle => "Text content";
 
-        public RequestTextBodyResult? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context)
+        public RequestTextBodyResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
             if (context.RequestBodyText == null)
             {

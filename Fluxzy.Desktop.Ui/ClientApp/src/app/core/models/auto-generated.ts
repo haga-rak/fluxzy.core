@@ -10,6 +10,11 @@ export interface FileSaveViewModel
 {
 	fileName: string;
 }
+export interface ProducerActionViewModel
+{
+	actionType: number;
+	args: any[];
+}
 export interface FormattingResult
 {
 	title: string;
@@ -54,6 +59,7 @@ export interface RequestBodyAnalysisResult extends FormattingResult
 {
 	bodyLength: number;
 	preferredFileName: string;
+	contentType?: string;
 }
 export interface UiState
 {

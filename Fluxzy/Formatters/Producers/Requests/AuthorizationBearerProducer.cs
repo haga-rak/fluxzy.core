@@ -12,7 +12,7 @@ namespace Fluxzy.Formatters.Producers.Requests
         public string ResultTitle => " \"Bearer token\"";
 
         public AuthorizationBearerResult? Build(ExchangeInfo exchangeInfo,
-            FormattingProducerContext context)
+            ProducerContext context)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
 

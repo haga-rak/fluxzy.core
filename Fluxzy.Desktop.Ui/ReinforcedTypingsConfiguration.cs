@@ -111,6 +111,9 @@ namespace Fluxzy.Desktop.Ui
         }
         private static void ConfigureProducers(ConfigurationBuilder builder)
         {
+            builder.ExportAsInterface<ProducerActionViewModel>()
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<FormattingResult>()
                    .ApplyGenericProperties();
 

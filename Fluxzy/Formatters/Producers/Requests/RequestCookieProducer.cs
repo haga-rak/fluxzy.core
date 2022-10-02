@@ -15,7 +15,7 @@ namespace Fluxzy.Formatters.Producers.Requests
     {
         public string ResultTitle => "Cookies";
 
-        public RequestCookieResult? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context)
+        public RequestCookieResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
 

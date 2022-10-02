@@ -105,4 +105,12 @@ export class ApiService {
                 take(1)
             );
     }
+    
+    public getRequestFormattingResults(exchangeId : number) : Observable<FormattingResult[]> {
+        
+        return this.httpClient.get<FormattingResult[]>(`api/producers/request/${exchangeId}`)
+            .pipe(
+                take(1)
+            );
+    }
 }
