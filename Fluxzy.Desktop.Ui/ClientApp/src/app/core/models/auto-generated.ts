@@ -46,6 +46,10 @@ export interface RawRequestHeaderResult extends FormattingResult
 {
 	rawHeader: string;
 }
+export interface RequestTextBodyProducer
+{
+	resultTitle: string;
+}
 export interface UiState
 {
 	id: string;

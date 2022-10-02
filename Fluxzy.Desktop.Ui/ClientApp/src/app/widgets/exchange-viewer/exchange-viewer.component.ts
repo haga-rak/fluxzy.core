@@ -43,6 +43,8 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
     private $currentRequestTabView: BehaviorSubject<string> =
         new BehaviorSubject<string>('requestHeader');
 
+    public requestOtherText : string = ''; 
+
     @Input('exchange') public exchange: ExchangeInfo;
 
     constructor(private apiService: ApiService) {}
@@ -113,11 +115,20 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
 
     public setSelectedRequestTab(
         tabName: string,
-        formatingResult: FormattingResult
+        formatingResult: FormattingResult,
+        fromOther : boolean
     ) {
         console.log(tabName);
 
         this.$currentRequestTabView.next(tabName);
+
+        if(fromOther) {
+            this.requestOtherText = formatingResult.title; 
+        }
+        else{
+            this.requestOtherText = '';
+        }
+
         // this.requestFormattingResult = formatingResult;
     }
 

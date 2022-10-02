@@ -134,6 +134,9 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<RawRequestHeaderResult>()
                    .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RequestTextBodyProducer>()
+                   .ApplyGenericProperties();
         }
     }
 

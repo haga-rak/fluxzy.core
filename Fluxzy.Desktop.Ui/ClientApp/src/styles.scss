@@ -60,7 +60,9 @@ html, body {
     color: var(--bs-gray-100);
     background:  var(--bs-gray-700);
     font-family: monospace !important;
-    font-size: 12px;
+    font-size: 11px;
+    padding : 8px;
+    overflow-x: hidden;
 }
 
 .as-split-gutter { height: initial !important; }
@@ -83,4 +85,8 @@ html, body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.as-split-area {
+    overflow: hidden !important;
 }

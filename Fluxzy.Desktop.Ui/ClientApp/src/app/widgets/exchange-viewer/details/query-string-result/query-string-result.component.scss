@@ -1,14 +1,6 @@
-.summary-table {
-    width : 100%; 
-}
-
-.summary-table th{
-    width : 120px; 
-}
-
-.summary-table td {
-    max-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+:host {
+    height: 100%;
+    display: flex; 
+    flex-direction: column ;
+    width: 100%;
+ }

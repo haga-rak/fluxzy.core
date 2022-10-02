@@ -10,12 +10,16 @@
     flex-direction: column;
 }
 
-.exchange-content-box {
-    flex-grow: 4; 
+.exchange-view-block {
+    display:flex;
+    flex-direction: column; 
+    height: 100%;
 }
 
-.exchange-view-block {
-    display:flex; flex-direction: column; height: 100%;
+.exchange-content-box {
+    // flex-grow: 4; 
+    display : flex; 
+    flex-direction: column;
 }
 
 .exchange-viewer-main-status {
@@ -25,3 +29,7 @@
     align-self: flex-end
 }
 
+.btn-viewer-menu {
+    white-space: nowrap;
+    overflow: ellipsis;
+}

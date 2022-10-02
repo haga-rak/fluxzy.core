@@ -1,5 +1,4 @@
 import { AfterViewInit, ChangeDetectorRef, Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { MouseInputEvent } from 'electron';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 import { tap } from 'rxjs';
 import { ExchangeBrowsingState, ExchangeContainer, ExchangeInfo, ExchangeState, TrunkState } from '../../core/models/auto-generated';
