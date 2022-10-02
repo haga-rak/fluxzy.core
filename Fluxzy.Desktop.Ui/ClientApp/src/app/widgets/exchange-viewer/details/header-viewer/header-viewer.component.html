@@ -15,8 +15,8 @@
                         {{ exchange.path }}
                     </span><br/>
                     <small>                        
-                        <a title="Copy to clipboard" href="javascript:;"> Copy full url</a> | 
-                        <a title="Copy to clipboard" href="javascript:;"> Copy path only</a>
+                        <a title="Copy to clipboard" href="javascript:;" (click)="setClipboard(exchange.fullUrl)"> Copy full url</a> | 
+                        <a title="Copy to clipboard" href="javascript:;" (click)="setClipboard(exchange.path)"> Copy path only</a>
                     </small>
                      
                 </td>
