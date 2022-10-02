@@ -2,6 +2,8 @@
 
 using System;
 using System.Buffers;
+using System.Text;
+using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
@@ -29,7 +31,12 @@ namespace Fluxzy.Formatters
                 _internalBuffer = ArrayPool<byte>.Shared.Rent((int) requestBodyStream.Length);
                 int length = requestBodyStream.SeekableStreamToBytes(_internalBuffer);
 
-                RequestBody = new ReadOnlyMemory<byte>(_internalBuffer, 0, length); 
+                RequestBody = new ReadOnlyMemory<byte>(_internalBuffer, 0, length);
+
+                if (ArrayTextUtilities.IsText(RequestBody.Span))
+                {
+                    RequestBodyText = Encoding.UTF8.GetString(RequestBody.Span);
+                }
             }
         }
 
@@ -38,6 +45,12 @@ namespace Fluxzy.Formatters
         public ProducerSettings Settings { get; }
 
         public ReadOnlyMemory<byte> RequestBody { get;  }
+
+        /// <summary>
+        /// If first 1024 utf8 chars are printable char, this property will contains
+        /// the decoded UTF8 text
+        /// </summary>
+        public string ? RequestBodyText { get;  }
 
         public void Dispose()
         {

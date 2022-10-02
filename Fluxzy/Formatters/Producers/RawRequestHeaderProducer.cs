@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
@@ -29,11 +30,15 @@ namespace Fluxzy.Formatters.Producers
                 var spanRes = parser.Write(requestHeaders, charBuffer);
 
                 stringBuilder.Append(spanRes); 
-
             }
             finally
             {
                 ArrayPool<char>.Shared.Return(charBuffer);
+            }
+
+            if (context.RequestBodyText != null)
+            {
+                stringBuilder.Append(context.RequestBodyText); 
             }
 
             return new RawRequestHeaderResult(ResultTitle, stringBuilder.ToString());
