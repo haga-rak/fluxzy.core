@@ -27,6 +27,8 @@ import { ExchangeTableViewComponent } from './widgets/exchange-table-view/exchan
 import { PerfectScrollbarConfigInterface, PerfectScrollbarModule, PERFECT_SCROLLBAR_CONFIG } from 'ngx-perfect-scrollbar';
 import { HeaderViewerComponent } from './widgets/exchange-viewer/details/header-viewer/header-viewer.component';
 import { RawRequestHeaderResultComponent } from './widgets/exchange-viewer/details/raw-request-header-result/raw-request-header-result.component';
+import { AngularSplitModule } from 'angular-split';
+import { QueryStringResultComponent } from './widgets/exchange-viewer/details/query-string-result/query-string-result.component';
 
 
 // AoT requires an exported function for factories
@@ -37,12 +39,13 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   };
 
 @NgModule({
-    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent],
+    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent, QueryStringResultComponent],
     imports: [
         BrowserModule,
         FormsModule,
         HttpClientModule,
         CoreModule,
+        AngularSplitModule,
         BsDropdownModule.forRoot(),
         TabsModule.forRoot(),
         TooltipModule.forRoot(),

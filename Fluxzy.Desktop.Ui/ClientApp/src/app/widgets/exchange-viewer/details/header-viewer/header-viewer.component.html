@@ -1,29 +1,42 @@
-<div style="height:100%">
 
 
-    <perfect-scrollbar #perfectScroll2 style="max-height: calc(100vh - 120px);">
 
-        <table class="summary-table">
-            <tr>
-                <th>Method</th>
-                <td>{{ exchange.method }}</td>
-            </tr>
-            <tr>
-                <th>Path</th>
-                <td>{{ exchange.path }}</td>
-            </tr>
-            <tr>
-                <th>Http version</th>
-                <td>{{ exchange.httpVersion }}</td>
-            </tr>
-            <tr *ngFor="let header of exchange.requestHeader.headers" >
-                <ng-container *ngIf="!header.name.startsWith(':')">
-    
-                    <th>{{ header.name }}</th>
-                    <td>{{ header.value }}</td>
-                </ng-container>
-            </tr>
-        </table>
-    
-    </perfect-scrollbar>
-</div>
+<perfect-scrollbar #perfectScroll2 style="height: 100%;">
+
+    <table class="summary-table" style="margin-bottom: 20px">
+        <tr>
+            <th>Method</th>
+            <td>{{ exchange.method }}</td>
+        </tr>
+        <tr>
+            <th>Path</th>
+            <td>
+                <a title="Copy to clipboard" href="javascript:;"> <i class="bi bi-clipboard"></i></a>
+                <span [title]="exchange.path ">
+                    {{ exchange.path }}
+                </span>
+                 
+            </td>
+        </tr>
+        <tr>
+            <th>Authority</th>
+            <td>{{ exchange.knownAuthority }}</td>
+        </tr>
+        <tr>
+            <th>Http version</th>
+            <td>{{ exchange.httpVersion }}</td>
+        </tr>
+    </table>
+
+
+    <table class="summary-table">
+        <tr *ngFor="let header of exchange.requestHeader.headers" >
+            <ng-container *ngIf="!header.name.startsWith(':') && header.forwarded">
+
+                <th>{{ header.name }}</th>
+                <td>{{ header.value }}</td>
+            </ng-container>
+        </tr>
+    </table>
+
+</perfect-scrollbar>
