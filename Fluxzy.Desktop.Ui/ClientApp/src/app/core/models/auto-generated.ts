@@ -10,11 +10,6 @@ export interface FileSaveViewModel
 {
 	fileName: string;
 }
-export interface ProducerActionViewModel
-{
-	actionType: number;
-	args: any[];
-}
 export interface FormattingResult
 {
 	title: string;
