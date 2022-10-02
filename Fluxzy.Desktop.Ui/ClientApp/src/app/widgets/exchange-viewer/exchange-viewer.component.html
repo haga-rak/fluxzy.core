@@ -1,75 +1,91 @@
 <div style="width: 100%" class="exchange-viewer-main">
     <div class="exchange-viewer-main-content">
 
-        <div class="exchange-viewer-header">
-            <div style="margin-bottom: 8px">
-                <span>
-                    <strong>{{exchange.method}}</strong>&nbsp; <a href="javascript:;"
-                        [title]="exchange.path">{{autoMaxLength(exchange.path, 64)}}</a>
-                </span>
-                <span class="float-end">
-                    <span>api.smartizy.com</span>
-                </span>
-            </div>
-            <div class="btn-group" role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
+        <div style="margin-bottom: 8px;border-bottom: 1px solid var(--bs-gray-400); padding-bottom:6px" >
+            <a class="btn btn-primary" href="javascript:;">Content</a>&nbsp;
+            <a class="btn btn-secondary" href="javascript:;">Connectivity</a>&nbsp;  
+            <a class="btn btn-secondary" href="javascript:;">Performance</a>
+        </div>
+        <as-split direction="vertical"  unit="percent" style="height:100%">
+            <as-split-area [size]="50">
 
-                <button type="button" href="javascript:;" class="btn btn-dark"
-                    [ngClass]="{'active' : isRequestTabSelected('requestHeader')}"
-                    (click)="setSelectedRequestTab('requestHeader', null)">
-                    headers</button>
+                <div class="exchange-view-block">
 
-                <button  *ngIf="!requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark" >Loading ...</button>
-                
-                <ng-container *ngIf="requestFormattingResults">
+                    <div class="exchange-viewer-header">
+                        <div class="btn-group" role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
+            
+                            <button type="button" href="javascript:;" class="btn btn-dark"
+                                [ngClass]="{'active' : isRequestTabSelected('requestHeader')}"
+                                (click)="setSelectedRequestTab('requestHeader', null)">
+                                request summary</button>
+            
+                            <button  *ngIf="!requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark" >Loading ...</button>
+                            
+                            <ng-container *ngIf="requestFormattingResults">
+            
+                                
+                                <button *ngFor="let formattingResult of requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark"
+                                [ngClass]="{'active' : isRequestTabSelected(formattingResult.type)}"
+                                (click)="setSelectedRequestTab(formattingResult.type, formattingResult)">{{formattingResult.title}}</button>
+                            </ng-container>
+                        </div>
+                    </div>
+            
+                    <div class="shady-box exchange-content-box"
+                        style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; padding: 12px; flex-grow : 4">
+                            
+            
+                        <app-header-viewer *ngIf="currentRequestTabView === 'requestHeader'" [exchange]="exchange">
+                        </app-header-viewer>
+            
+                        <app-raw-request-header-result *ngIf="ofType('RawRequestHeaderResult')" [formatter]="requestFormattingResult">
+                        </app-raw-request-header-result>
+            
+                        <app-query-string-result *ngIf="ofType('QueryStringResult')" [formatter]="requestFormattingResult">
+                        </app-query-string-result>
+            
+            
+                    </div>
+                </div>
 
+
+            </as-split-area>
+            <as-split-area [size]="50">
+
+                <div  class="exchange-view-block">
                     
-                    <button *ngFor="let formattingResult of requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark"
-                    [ngClass]="{'active' : isRequestTabSelected(formattingResult.type)}"
-                    (click)="setSelectedRequestTab(formattingResult.type, formattingResult)">{{formattingResult.title}}</button>
-                </ng-container>
-            </div>
-        </div>
-
-        <div class="shady-box exchange-content-box"
-            style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; padding: 12px">
-                
-
-            <app-header-viewer *ngIf="currentRequestTabView === 'requestHeader'" [exchange]="exchange">
-            </app-header-viewer>
-
-            <app-raw-request-header-result *ngIf="ofType('RawRequestHeaderResult')" [formatter]="requestFormattingResult">
-            </app-raw-request-header-result>
+                <div style="margin-top : 10px" class="exchange-viewer-header">
 
 
-        </div>
+                    <div style="margin-bottom: 8px">
+                        <span>
+                            <strong>{{ exchange.statusCode }} </strong>&nbsp; <a href="javascript:;">Content Created</a>
+                        </span>
+                        <span class="float-end">
+                            <span class="badge badge-warning bg-secondary">HTTP/1.1</span> <span>TLS1.2</span>
+                        </span>
+                    </div>
+                    <div class="btn-group" role="group">
+        
+                        <button type="button" href="javascript:;" class="btn btn-dark active"
+                            aria-current="page">headers</button>
+                        <button type="button" href="javascript:;" class="btn btn-dark">body (436b)</button>
+                        <button type="button" href="javascript:;" class="btn btn-dark">cookies</button>
+                        <button type="button" href="javascript:;" class="btn btn-dark">authentication</button>
+                        <button type="button" href="javascript:;" class="btn btn-dark">multipart-form</button>
+                    </div>
+                </div>
+        
+                <div class="shady-box exchange-content-box"
+                    style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; flex-grow : 4;">
+        
+                </div>
+                </div>
+
+            </as-split-area>
+          </as-split>
 
 
-        <div style="margin-top : 10px" class="exchange-viewer-header">
-
-
-            <div style="margin-bottom: 8px">
-                <span>
-                    <strong>201</strong>&nbsp; <a href="javascript:;">Content Created</a>
-                </span>
-                <span class="float-end">
-                    <span class="badge badge-warning bg-secondary">HTTP/1.1</span> <span>TLS1.2</span>
-                </span>
-            </div>
-            <div class="btn-group" role="group">
-
-                <button type="button" href="javascript:;" class="btn btn-dark active"
-                    aria-current="page">headers</button>
-                <button type="button" href="javascript:;" class="btn btn-dark">body (436b)</button>
-                <button type="button" href="javascript:;" class="btn btn-dark">cookies</button>
-                <button type="button" href="javascript:;" class="btn btn-dark">authentication</button>
-                <button type="button" href="javascript:;" class="btn btn-dark">multipart-form</button>
-            </div>
-        </div>
-
-        <div class="shady-box exchange-content-box"
-            style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px;;">
-
-        </div>
 
     </div>
     <div class="exchange-viewer-main-status">

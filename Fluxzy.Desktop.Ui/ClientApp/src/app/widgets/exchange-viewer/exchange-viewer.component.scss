@@ -14,6 +14,10 @@
     flex-grow: 4; 
 }
 
+.exchange-view-block {
+    display:flex; flex-direction: column; height: 100%;
+}
+
 .exchange-viewer-main-status {
     margin-top: 10px;
     height: 30px; 
