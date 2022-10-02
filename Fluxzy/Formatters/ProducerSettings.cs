@@ -9,5 +9,7 @@ namespace Fluxzy.Screeners
         public int MaxFormattableJsonLength { get; set; } = 1024 * 32;
 
         public int MaxFormattableXmlLength { get; set; } = 1024 * 32;
+
+        public int MaxHeaderLength { get; set; } = 1024 * 48; 
     }
 }

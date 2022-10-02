@@ -20,7 +20,7 @@ namespace Fluxzy.Formatters
             ArchiveReader = archiveReader;
             Settings = settings;
             
-            var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
+            using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
 
             if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length <
                 Settings.MaxFormattableJsonLength)
@@ -34,6 +34,7 @@ namespace Fluxzy.Formatters
         }
 
         public IArchiveReader ArchiveReader { get; }
+
         public ProducerSettings Settings { get; }
 
         public ReadOnlyMemory<byte> RequestBody { get;  }

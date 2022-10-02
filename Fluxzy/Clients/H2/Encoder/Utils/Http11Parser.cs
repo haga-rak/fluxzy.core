@@ -110,7 +110,96 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             return buffer.Slice(0, length);
         }
 
+        /// <summary>
+        /// TODO bechn introduce base interface vs unboxing cost
+        /// </summary>
+        /// <param name="entries"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public Span<char> Write(
+            ICollection<HeaderFieldInfo> entries, 
+            Span<char> buffer)
+        {
+            Span<char> cookieBuffer = stackalloc char[_maxHeaderLine];
+            var length = InternalWrite(entries, buffer, cookieBuffer);
+            return buffer.Slice(0, length);
+        }
+
         private static int InternalWrite(in ICollection<HeaderField> entries, in Span<char> buffer, in Span<char> cookieBuffer)
+        {
+            var mapping = entries
+                .Where(t => Http11Constants.ControlHeaders.Contains(t.Name))
+                .ToDictionary
+                    (t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
+
+            int totalWritten = 0;
+            var offsetBuffer = buffer;
+
+            if (!mapping.TryGetValue(Http11Constants.MethodVerb , out var method))
+            {
+                if (!mapping.TryGetValue(Http11Constants.StatusVerb, out var statusHeader))
+                {
+                    throw new HPackCodecException("Invalid HTTP header. Could not find :method or :status");
+                }
+
+                // Response header 
+
+                offsetBuffer = offsetBuffer.Concat("HTTP/1.1 ", ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(statusHeader.Value.Span, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(" ", ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(Http11Constants.GetStatusLine(statusHeader.Value).Span, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+            }
+            else
+            {
+                // Request Header
+
+                if (!mapping.TryGetValue(Http11Constants.PathVerb, out var path))
+                    throw new HPackCodecException("Could not find path verb");
+
+                if (!mapping.TryGetValue(Http11Constants.AuthorityVerb, out var authority))
+                    throw new HPackCodecException("Could not find authority verb");
+                
+                offsetBuffer = offsetBuffer.Concat(method.Value.Span, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(' ', ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(path.Value.Span, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(" HTTP/1.1\r\n", ref totalWritten);
+
+                offsetBuffer = offsetBuffer.Concat("Host: ", ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(authority.Value.Span, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+            }
+
+            foreach (var entry in entries)
+            {
+                if (Http11Constants.AvoidAutoParseHttp11Headers.Contains(entry.Name))
+                    continue; // PSEUDO headers
+
+                offsetBuffer = offsetBuffer.Concat(entry.Name.Span, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(": ", ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(entry.Value.Span, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+            }
+
+            var cookieValue = SpanCharsHelper.Join(
+                entries.Where(c =>
+                    c.Name.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)
+                ).Select(s => s.Value), "; ".AsSpan(), cookieBuffer);
+
+            if (!cookieValue.IsEmpty)
+            {
+                offsetBuffer = offsetBuffer.Concat(Http11Constants.CookieVerb.Span, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(": ", ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat(cookieValue, ref totalWritten);
+                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+            }
+
+            offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+            
+            return totalWritten;
+        }
+
+        private static int InternalWrite(in ICollection<HeaderFieldInfo> entries, in Span<char> buffer, in Span<char> cookieBuffer)
         {
             var mapping = entries
                 .Where(t => Http11Constants.ControlHeaders.Contains(t.Name))

@@ -1,6 +1,11 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
@@ -12,15 +17,23 @@ namespace Fluxzy.Formatters.Producers
 
         public RawRequestHeaderResult? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context)
         {
-            var requestHeaders = exchangeInfo.GetRequestHeaders();
+            var requestHeaders = exchangeInfo.GetRequestHeaders().ToList();
             var stringBuilder = new StringBuilder();
 
-            foreach (var requestHeader in requestHeaders)
+            Http11Parser parser = new Http11Parser(32 * 1024);
+
+            var charBuffer = ArrayPool<char>.Shared.Rent(context.Settings.MaxHeaderLength);
+
+            try
             {
-                stringBuilder.Append(requestHeader.Name.Span);
-                stringBuilder.Append(": ");
-                stringBuilder.Append(requestHeader.Value.Span);
-                stringBuilder.AppendLine(); 
+                var spanRes = parser.Write(requestHeaders, charBuffer);
+
+                stringBuilder.Append(spanRes); 
+
+            }
+            finally
+            {
+                ArrayPool<char>.Shared.Return(charBuffer);
             }
 
             return new RawRequestHeaderResult(ResultTitle, stringBuilder.ToString());
