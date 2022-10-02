@@ -1,7 +1,18 @@
-import { BrowserWindow, dialog, ipcMain } from "electron";
+import { BrowserWindow, dialog, ipcMain,clipboard } from "electron";
 
 
 export const InstallSystemEvents = (win : BrowserWindow) : void => {
+
+    ipcMain.on('copy-to-cliboard', (event, arg) => {
+        // 
+        if (arg) {
+            clipboard.writeText(arg) ; 
+        }
+
+        event.returnValue = true ; 
+    }) ; 
+
+
     ipcMain.on('request-file-opening', (event, arg) => {
         // 
         var result = dialog.showOpenDialogSync(win, {
