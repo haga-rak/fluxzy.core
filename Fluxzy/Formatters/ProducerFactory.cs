@@ -3,8 +3,9 @@
 using System.Collections.Generic;
 using Fluxzy.Formatters.Producers;
 using Fluxzy.Readers;
+using Fluxzy.Screeners;
 
-namespace Fluxzy.Screeners
+namespace Fluxzy.Formatters
 {
     public class ProducerFactory
     {
@@ -29,12 +30,14 @@ namespace Fluxzy.Screeners
                 yield break;
             }
 
+            using var formattingProducerContext = new FormattingProducerContext(exchangeInfo, archiveReader, settings);
+
             foreach (var producer in _requestProducers)
             {
-                var result = producer.Build(exchangeInfo, settings, archiveReader);
+                var result = producer.Build(exchangeInfo, formattingProducerContext);
 
                 if (result != null)
-                    yield return result; 
+                    yield return result;
             }
         }
     }

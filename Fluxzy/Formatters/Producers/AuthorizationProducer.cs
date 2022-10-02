@@ -13,8 +13,7 @@ namespace Fluxzy.Formatters.Producers
     {
         public string ResultTitle => "Authorization Header";
 
-        public AuthorizationResult? Build(ExchangeInfo exchangeInfo, ProducerSettings producerSetting,
-            IArchiveReader archiveReader)
+        public AuthorizationResult? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
 

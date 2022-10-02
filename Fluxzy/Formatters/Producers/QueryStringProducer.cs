@@ -15,8 +15,7 @@ namespace Fluxzy.Formatters.Producers
     {
         public string ResultTitle => "Query string";
 
-        public QueryStringResult? Build(ExchangeInfo exchangeInfo, ProducerSettings producerSetting,
-            IArchiveReader archiveReader)
+        public QueryStringResult? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context)
         {
             var url = exchangeInfo.FullUrl;
 

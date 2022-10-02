@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Formatters;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
 using Microsoft.Extensions.DependencyInjection;
