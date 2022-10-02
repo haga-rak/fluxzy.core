@@ -72,7 +72,7 @@
                         <app-request-text-body-result *ngIf="ofType('RequestTextBodyResult')" [formatter]="requestFormattingResult">
                         </app-request-text-body-result>
             
-                        <app-request-body-analysis-result *ngIf="ofType('RequestBodyAnalysisResult')" [formatter]="requestFormattingResult">
+                        <app-request-body-analysis-result *ngIf="ofType('RequestBodyAnalysisResult')" [formatter]="requestFormattingResult" [exchange]="exchange">
                         </app-request-body-analysis-result>
             
                     </perfect-scrollbar>

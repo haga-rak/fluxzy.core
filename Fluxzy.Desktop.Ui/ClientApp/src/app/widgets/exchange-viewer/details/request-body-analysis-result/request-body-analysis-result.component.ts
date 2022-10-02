@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { RequestBodyAnalysisResult } from '../../../../core/models/auto-generated';
+import { filter, switchMap, tap } from 'rxjs';
+import { ExchangeInfo, RequestBodyAnalysisResult } from '../../../../core/models/auto-generated';
 import { SystemCallService } from '../../../../core/services/system-call.service';
 import { ApiService } from '../../../../services/api.service';
 
@@ -10,6 +11,7 @@ import { ApiService } from '../../../../services/api.service';
 })
 export class RequestBodyAnalysisResultComponent implements OnInit {
     @Input('formatter') public model: RequestBodyAnalysisResult;
+    @Input('exchange') public exchange: ExchangeInfo;
 
     constructor(private systemCallService : SystemCallService, private apiService : ApiService) {}
 
@@ -18,9 +20,8 @@ export class RequestBodyAnalysisResultComponent implements OnInit {
     public saveToFile() : void {
       this.systemCallService.requestFileOpen(this.model.preferredFileName)
         .pipe(
-          tap(fileName => )
-        )
-
-
+          filter(t => !!t),
+          switchMap(fileName => this.apiService.exchangeSaveRequestBody(this.exchange.id, fileName) ),
+        ).subscribe() ;
     }
 }

@@ -15,7 +15,7 @@ using ConfigurationBuilder = Reinforced.Typings.Fluent.ConfigurationBuilder;
 
 namespace Fluxzy.Desktop.Ui
 {
-    // ReSharper disable once IdentifierTypo - Loaded by refletions
+    // ReSharper disable once IdentifierTypo - Loaded by reflections
     public static class ReinforcedTypingsConfiguration
     {
 
