@@ -10,7 +10,7 @@ using Fluxzy.Misc;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
-namespace Fluxzy.Formatters.Producers
+namespace Fluxzy.Formatters.Producers.Requests
 {
     public class RawRequestHeaderProducer : IFormattingProducer<RawRequestHeaderResult>
     {
@@ -29,7 +29,7 @@ namespace Fluxzy.Formatters.Producers
             {
                 var spanRes = parser.Write(requestHeaders, charBuffer);
 
-                stringBuilder.Append(spanRes); 
+                stringBuilder.Append(spanRes);
             }
             finally
             {
@@ -38,7 +38,7 @@ namespace Fluxzy.Formatters.Producers
 
             if (context.RequestBodyText != null)
             {
-                stringBuilder.Append(context.RequestBodyText); 
+                stringBuilder.Append(context.RequestBodyText);
             }
 
             return new RawRequestHeaderResult(ResultTitle, stringBuilder.ToString());

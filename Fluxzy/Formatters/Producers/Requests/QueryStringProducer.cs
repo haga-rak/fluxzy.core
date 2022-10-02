@@ -8,7 +8,7 @@ using Fluxzy.Clients;
 using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
-namespace Fluxzy.Formatters.Producers
+namespace Fluxzy.Formatters.Producers.Requests
 {
 
     public class QueryStringProducer : IFormattingProducer<QueryStringResult>
@@ -24,7 +24,7 @@ namespace Fluxzy.Formatters.Producers
 
             var res = HttpUtility.ParseQueryString(uri.Query);
 
-            var items = res.AllKeys.SelectMany(k => res.GetValues((string)k)?.Select(v => new QueryStringItem(k, v)))
+            var items = res.AllKeys.SelectMany(k => res.GetValues(k)?.Select(v => new QueryStringItem(k, v)))
                            .Where(t => t != null)
                            .ToList();
 
