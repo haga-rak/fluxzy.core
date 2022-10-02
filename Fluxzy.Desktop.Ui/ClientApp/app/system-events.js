@@ -48,6 +48,16 @@ var InstallSystemEvents = function (win) {
         });
         event.returnValue = !result ? null : result;
     });
+    electron_1.ipcMain.on('request-custom-file-saving', function (event, arg) {
+        // 
+        var result = electron_1.dialog.showSaveDialogSync(win, {
+            title: "Fluxzy - Save",
+            buttonLabel: "Save",
+            defaultPath: arg,
+            properties: ["showOverwriteConfirmation"]
+        });
+        event.returnValue = !result ? null : result;
+    });
     electron_1.ipcMain.on('show-confirm-dialog', function (event, arg) {
         // 
         var options = {
