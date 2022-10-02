@@ -9,7 +9,15 @@ import { RequestJsonResult } from '../../../../core/models/auto-generated';
 export class RequestJsonResultComponent implements OnInit {
     @Input('formatter') public model: RequestJsonResult;
 
+    public content : string ; 
+    public alreadyFormatted : boolean; 
+
+
     constructor() {}
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+      this.content = this.model.formattedBody ; 
+      this.alreadyFormatted = this.model.formattedBody === this.model.rawBody; 
+
+    }
 }

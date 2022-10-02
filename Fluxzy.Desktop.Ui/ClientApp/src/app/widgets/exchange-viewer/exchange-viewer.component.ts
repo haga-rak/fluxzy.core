@@ -59,9 +59,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         );
 
         this.$requestFormattingResults.subscribe();
-
-
-
+        
         combineLatest([
             this.$requestFormattingResults,
             this.$currentRequestTabView,

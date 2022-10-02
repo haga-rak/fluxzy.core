@@ -1,13 +1,15 @@
-
-
-
-    <div style="margin-bottom: 6px">
-        <span>This JSON has been formatted to provide better readability. Clic <a href="javascript:;">here</a> to view raw</span>.
-    </div>
-    
-
+<div style="margin-bottom: 6px"  *ngIf="!alreadyFormatted">
+  
+    <span *ngIf="content === model.formattedBody ">
         
-    <pre class="viewer-textarea" style="width: 100%;" readonly>{{ model.formattedBody }}</pre>
+            This JSON has been formatted to provide better readability.
+        Click <a href="javascript:;" (click)="content = model.rawBody">here</a> to view original content.
+    </span>
+    <span *ngIf="content !== model.formattedBody ">
 
+        Click <a href="javascript:;" (click)="content = model.formattedBody">here</a> to view formatted body.
+    </span>
 
+</div>
 
+<pre class="viewer-textarea" style="width: 100%;" readonly>{{ content }}</pre>
