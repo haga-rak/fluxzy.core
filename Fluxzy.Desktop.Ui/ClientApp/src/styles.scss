@@ -68,4 +68,19 @@ html, body {
 .as-split-gutter-icon {
     background-color:var(--bs-gray-500);
     
-  }
+ }
+
+.summary-table {
+    width : 100%; 
+}
+
+.summary-table th{
+    width : 120px; 
+}
+
+.summary-table td {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

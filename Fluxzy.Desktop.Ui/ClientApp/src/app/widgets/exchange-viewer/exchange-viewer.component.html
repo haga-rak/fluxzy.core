@@ -1,7 +1,7 @@
 <div style="width: 100%" class="exchange-viewer-main">
     <div class="exchange-viewer-main-content">
 
-        <div style="margin-bottom: 8px;border-bottom: 1px solid var(--bs-gray-400); padding-bottom:6px" >
+        <div style="margin-bottom: 8px;border-bottom: 2px solid var(--bs-primary); padding-bottom:6px" class="" >
             <a class="btn btn-primary" href="javascript:;">Content</a>&nbsp;
             <a class="btn btn-secondary" href="javascript:;">Connectivity</a>&nbsp;  
             <a class="btn btn-secondary" href="javascript:;">Performance</a>
@@ -43,6 +43,12 @@
             
                         <app-query-string-result *ngIf="ofType('QueryStringResult')" [formatter]="requestFormattingResult">
                         </app-query-string-result>
+            
+                        <app-request-cookie-result *ngIf="ofType('RequestCookieResult')" [formatter]="requestFormattingResult">
+                        </app-request-cookie-result>
+            
+                        <app-request-json-result *ngIf="ofType('RequestJsonResult')" [formatter]="requestFormattingResult">
+                        </app-request-json-result>
             
             
                     </div>
