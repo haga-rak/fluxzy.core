@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { RequestJsonResult } from '../../../../core/models/auto-generated';
+import { SystemCallService } from '../../../../core/services/system-call.service';
 
 @Component({
     selector: 'app-request-json-result',
@@ -13,11 +14,15 @@ export class RequestJsonResultComponent implements OnInit {
     public alreadyFormatted : boolean; 
 
 
-    constructor() {}
+    constructor(private systemCallService: SystemCallService) {}
 
     ngOnInit(): void {
       this.content = this.model.formattedBody ; 
       this.alreadyFormatted = this.model.formattedBody === this.model.rawBody; 
 
+    }
+
+    public setClipboard(text : string) : void {
+      this.systemCallService.setClipBoard(text); 
     }
 }

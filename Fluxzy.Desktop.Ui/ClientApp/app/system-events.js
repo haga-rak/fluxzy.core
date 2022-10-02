@@ -3,6 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InstallSystemEvents = void 0;
 var electron_1 = require("electron");
 var InstallSystemEvents = function (win) {
+    electron_1.ipcMain.on('copy-to-cliboard', function (event, arg) {
+        // 
+        if (arg) {
+            electron_1.clipboard.writeText(arg);
+        }
+        event.returnValue = true;
+    });
     electron_1.ipcMain.on('request-file-opening', function (event, arg) {
         // 
         var result = electron_1.dialog.showOpenDialogSync(win, {
