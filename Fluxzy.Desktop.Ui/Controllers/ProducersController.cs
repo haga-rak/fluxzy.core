@@ -4,6 +4,7 @@ using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Screeners;
 using Microsoft.AspNetCore.Mvc;
 using System.Reactive.Linq;
+using Fluxzy.Formatters;
 using Fluxzy.Readers;
 
 namespace Fluxzy.Desktop.Ui.Controllers

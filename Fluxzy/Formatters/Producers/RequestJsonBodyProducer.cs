@@ -16,8 +16,7 @@ namespace Fluxzy.Formatters.Producers
     {
         public string ResultTitle => "JSON";
 
-        public RequestJsonResult? Build(ExchangeInfo exchangeInfo, ProducerSettings producerSetting,
-            IArchiveReader archiveReader)
+        public RequestJsonResult? Build(ExchangeInfo exchangeInfo, FormattingProducerContext context)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
 
@@ -30,26 +29,16 @@ namespace Fluxzy.Formatters.Producers
                     && h.Value.Span.Contains("json", StringComparison.OrdinalIgnoreCase));
 
             if (!jsonContentTypeSpecified)
-                return null; 
-
-            using var requestBodyStream = archiveReader.GetRequestBody(exchangeInfo.Id);
-
-            if (requestBodyStream is not { CanSeek: true })
                 return null;
 
-            if (requestBodyStream.Length > producerSetting.MaxFormattableJsonLength)
-                // Request body JSON exceed the maximum authorized 
+            if (context.RequestBody.IsEmpty)
                 return null;
-
-            var rawBuffer = ArrayPool<byte>.Shared.Rent((int) requestBodyStream.Length);
 
             try
             {
-                var length = requestBodyStream.SeekableStreamToBytes(rawBuffer);
+                var requestBodyBytes = context.RequestBody!;
 
-                var buffer = new Memory<byte>(rawBuffer, 0, length);
-
-                using var document = JsonDocument.Parse(buffer);
+                using var document = JsonDocument.Parse(requestBodyBytes);
 
                 var outStream = new MemoryStream();
 
@@ -62,17 +51,14 @@ namespace Fluxzy.Formatters.Producers
                 }
 
                 var formattedValue = Encoding.UTF8.GetString(outStream.GetBuffer(), 0, (int)outStream.Length);
-                var rawValue = Encoding.UTF8.GetString(buffer.Span);
+
+                var rawValue = Encoding.UTF8.GetString(requestBodyBytes.Span);
 
                 return new RequestJsonResult(ResultTitle, rawValue, formattedValue);
             }
             catch (FormatException)
             {
                 return null;
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(rawBuffer);
             }
         }
     }
