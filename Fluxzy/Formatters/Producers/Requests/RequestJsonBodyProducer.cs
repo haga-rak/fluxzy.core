@@ -52,8 +52,9 @@ namespace Fluxzy.Formatters.Producers.Requests
             catch (Exception ex)
             {
                 if (ex is FormatException || ex is JsonException)
+                    return null;
 
-                return null;
+                throw;
             }
         }
     }
