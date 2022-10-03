@@ -37,13 +37,13 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
 
     public requestFormattingResults: FormattingResult[] | null = null;
     public requestFormattingResult: FormattingResult | null = null;
+    public requestOtherText : string = '';
 
     private $exchange: Subject<ExchangeInfo> = new Subject<ExchangeInfo>();
     private $requestFormattingResults: Observable<FormattingResult[]>;
     private $currentRequestTabView: BehaviorSubject<string> =
         new BehaviorSubject<string>('requestHeader');
 
-    public requestOtherText : string = '';
 
     @Input('exchange') public exchange: ExchangeInfo;
 
