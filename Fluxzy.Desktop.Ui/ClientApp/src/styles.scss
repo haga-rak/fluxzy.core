@@ -79,6 +79,8 @@ html, body {
 .summary-table th{
     width : 120px; 
     vertical-align: top;
+    font-weight: 400;
+    color: var(--bs-gray-300);
 }
 
 .summary-table td {

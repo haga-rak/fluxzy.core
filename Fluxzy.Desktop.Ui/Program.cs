@@ -1,10 +1,15 @@
 using Fluxzy;
+using Fluxzy.Clients;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Hubs;
+
+Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
+Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
 
 builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 {

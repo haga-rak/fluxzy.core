@@ -5,6 +5,13 @@
 
     <table class="summary-table" *ngIf="model.bodyLength">
         <tr>
+            <th>Content type</th>
+            <td>
+                <span *ngIf=" model.contentType">{{ model.contentType }} </span>
+                <i *ngIf="!model.contentType">Not specified </i>
+            </td>
+        </tr>
+        <tr>
             <th>Body bodyLength</th>
             <td>
                 {{ model.bodyLength }} bytes &nbsp;
