@@ -75,6 +75,9 @@
                         <app-request-body-analysis-result *ngIf="ofType('RequestBodyAnalysisResult')" [formatter]="requestFormattingResult" [exchange]="exchange">
                         </app-request-body-analysis-result>
             
+                        <app-form-url-encoded-result *ngIf="ofType('FormUrlEncodedResult')" [formatter]="requestFormattingResult" [exchange]="exchange">
+                        </app-form-url-encoded-result>
+            
                     </perfect-scrollbar>
             
                     <!-- </div> -->

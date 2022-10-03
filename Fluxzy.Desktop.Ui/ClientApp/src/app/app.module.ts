@@ -33,6 +33,7 @@ import { RequestCookieResultComponent } from './widgets/exchange-viewer/details/
 import { RequestJsonResultComponent } from './widgets/exchange-viewer/details/request-json-result/request-json-result.component';
 import { RequestTextBodyResultComponent } from './widgets/exchange-viewer/details/request-text-body-result/request-text-body-result.component';
 import { RequestBodyAnalysisResultComponent } from './widgets/exchange-viewer/details/request-body-analysis-result/request-body-analysis-result.component';
+import { FormUrlEncodedResultComponent } from './widgets/exchange-viewer/details/form-url-encoded-result/form-url-encoded-result.component';
 
 
 // AoT requires an exported function for factories
@@ -43,7 +44,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   };
 
 @NgModule({
-    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent, QueryStringResultComponent, RequestCookieResultComponent, RequestJsonResultComponent, RequestTextBodyResultComponent, RequestBodyAnalysisResultComponent],
+    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent, QueryStringResultComponent, RequestCookieResultComponent, RequestJsonResultComponent, RequestTextBodyResultComponent, RequestBodyAnalysisResultComponent, FormUrlEncodedResultComponent],
     imports: [
         BrowserModule,
         FormsModule,

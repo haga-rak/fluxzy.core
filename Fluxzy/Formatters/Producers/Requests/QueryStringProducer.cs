@@ -4,13 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using Fluxzy.Clients;
-using Fluxzy.Readers;
 using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
-
     public class QueryStringProducer : IFormattingProducer<QueryStringResult>
     {
         public string ResultTitle => "Query string";
