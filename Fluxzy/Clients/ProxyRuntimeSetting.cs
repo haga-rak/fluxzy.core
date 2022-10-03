@@ -25,12 +25,14 @@ namespace Fluxzy.Clients
             FluxzySetting startupSetting, 
             ProxyExecutionContext executionContext,
             ITcpConnectionProvider tcpConnectionProvider,
-            RealtimeArchiveWriter? archiveWriter)
+            RealtimeArchiveWriter? archiveWriter,
+            IIdProvider idProvider)
         {
             _startupSetting = startupSetting;
             ExecutionContext = executionContext;
             TcpConnectionProvider = tcpConnectionProvider;
             ArchiveWriter = archiveWriter;
+            IdProvider = idProvider;
             ProxyTlsProtocols = startupSetting.ServerProtocols;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
         }
@@ -57,7 +59,10 @@ namespace Fluxzy.Clients
         public int ConcurrentConnection { get; set; } = 8;
 
         public int TimeOutSecondsUnusedConnection { get; set; } = 4;
-        
+
+
+        public IIdProvider IdProvider { get; set; } = new FromIndexIdProvider(0, 0);
+
         public async Task EnforceRules(ExchangeContext context, FilterScope filterScope, 
              Connection connection = null, Exchange exchange = null)
         {

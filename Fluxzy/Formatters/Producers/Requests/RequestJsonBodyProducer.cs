@@ -49,8 +49,10 @@ namespace Fluxzy.Formatters.Producers.Requests
 
                 return new RequestJsonResult(ResultTitle, rawValue, formattedValue);
             }
-            catch (FormatException)
+            catch (Exception ex)
             {
+                if (ex is FormatException || ex is JsonException)
+
                 return null;
             }
         }

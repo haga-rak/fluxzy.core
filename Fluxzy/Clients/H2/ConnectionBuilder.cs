@@ -46,7 +46,7 @@ namespace Fluxzy.Clients.H2
             var authority = new Authority(hostName, port, true);
 
             var connectionPool = new H2ConnectionPool(sslStream, setting ?? new H2StreamSetting(),
-                authority, new Connection(authority), _ => {});
+                authority, new Connection(authority, IIdProvider.FromZero), _ => {});
 
             await connectionPool.Init();
 
