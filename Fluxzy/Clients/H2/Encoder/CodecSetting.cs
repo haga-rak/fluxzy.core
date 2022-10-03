@@ -35,7 +35,7 @@ namespace Fluxzy.Clients.H2.Encoder
         /// Header name in this list will be registered to the dynamic table when encoding. 
         /// </summary>
         public HashSet<ReadOnlyMemory<char>>
-            EncodedHeaders { get; private set; } =
+            EncodedHeaders { get; } =
             new HashSet<ReadOnlyMemory<char>>(SavedHeadersStrings.Select(s => s.AsMemory()),
                 new SpanCharactersIgnoreCaseComparer()); 
         

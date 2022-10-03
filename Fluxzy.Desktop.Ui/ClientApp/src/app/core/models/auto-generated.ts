@@ -213,7 +213,7 @@ export interface ConnectionInfo
 {
 	id: number;
 	authority: AuthorityInfo;
-	sslInfo: SslInfo;
+	sslInfo?: SslInfo;
 	requestProcessed: number;
 	dnsSolveStart: Date;
 	dnsSolveEnd: Date;
@@ -222,8 +222,8 @@ export interface ConnectionInfo
 	sslNegotiationStart: Date;
 	sslNegotiationEnd: Date;
 	localPort: number;
-	localAddress: string;
-	remoteAddress: string;
+	localAddress?: string;
+	remoteAddress?: string;
 }
 export interface AuthorityInfo
 {

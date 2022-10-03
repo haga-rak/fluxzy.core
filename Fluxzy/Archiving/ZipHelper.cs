@@ -81,11 +81,11 @@ namespace Fluxzy
                     
                 };
 
-                if (fileInfo.Name.EndsWith("pcap")) {
+                if (fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase)) {
                     newEntry.CompressionMethod = CompressionMethod.Stored;
                 }
 
-                    zipStream.PutNextEntry(newEntry);
+                zipStream.PutNextEntry(newEntry);
                 await fsInput.CopyToAsync(zipStream);
                 zipStream.CloseEntry();
             }

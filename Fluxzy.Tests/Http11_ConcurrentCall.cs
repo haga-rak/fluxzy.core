@@ -14,13 +14,13 @@ namespace Fluxzy.Tests
     {
         public async Task CallSimple(
             HttpClient httpClient, 
-            int bufferSize, int length, NameValueCollection? nvCol = null)
+            int anotherBufferSize, int length, NameValueCollection? nvCol = null)
         {
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
                 "https://registry.2befficient.io:40300/post"
             );
-
+  
             requestMessage.Headers.Add("x-buffer-size", length.ToString());
 
             if (nvCol != null)
@@ -35,12 +35,10 @@ namespace Fluxzy.Tests
 
             requestMessage.Content = new StreamContent(randomStream);
 
-
             using var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             
             Assert.True(response.IsSuccessStatusCode, response.ToString());
-
             AssertHelpers.ControlHeaders(contentText, requestMessage, length); 
         }
 

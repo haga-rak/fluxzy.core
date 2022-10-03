@@ -18,7 +18,7 @@ namespace Fluxzy
             RequestProcessed = original.RequestProcessed;
             LocalPort = original.LocalPort;
             LocalAddress = original.LocalAddress;
-            RemoteAddress = original.RemoteAddress.ToString();
+            RemoteAddress = original.RemoteAddress?.ToString();
             Authority = new AuthorityInfo(original.Authority);
             SslInfo = original.SslInfo;
         }
@@ -45,7 +45,7 @@ namespace Fluxzy
 
         public AuthorityInfo Authority { get; }
 
-        public SslInfo SslInfo { get; }
+        public SslInfo? SslInfo { get; }
 
         public int RequestProcessed { get; }
 
@@ -63,8 +63,8 @@ namespace Fluxzy
 
         public int LocalPort { get; }
 
-        public string LocalAddress { get; }
+        public string? LocalAddress { get; }
 
-        public string RemoteAddress { get; }
+        public string?  RemoteAddress { get; }
     }
 }
