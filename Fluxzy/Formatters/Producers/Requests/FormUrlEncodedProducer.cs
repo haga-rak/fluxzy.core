@@ -30,7 +30,7 @@ namespace Fluxzy.Formatters.Producers.Requests
             var items = res.AllKeys.SelectMany(k => res.GetValues(k)?.Select(v => new FormUrlEncodedItem(k, v)))
                            .Where(t => t != null).ToList();
 
-            if (items.Any())
+            if (!items.Any())
                 return null; 
 
 
