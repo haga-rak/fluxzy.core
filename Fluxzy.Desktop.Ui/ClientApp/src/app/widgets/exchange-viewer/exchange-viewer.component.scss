@@ -1,32 +1,33 @@
+
 .exchange-viewer-main {
-    display : flex; 
+    display : flex;
     flex-direction: column;
     height : 100%;
 }
 
 .exchange-viewer-main-content {
-    flex-grow: 4; 
-    display : flex; 
+    flex-grow: 4;
+    display : flex;
     flex-direction: column;
 }
 
 .exchange-view-block {
     display:flex;
-    flex-direction: column; 
+    flex-direction: column;
     height: 100%;
 }
 
 .exchange-content-box {
-    // flex-grow: 4; 
-    display : flex; 
+    // flex-grow: 4;
+    display : flex;
     flex-direction: column;
 }
 
 .exchange-viewer-main-status {
     margin-top: 10px;
-    height: 30px; 
-    width: 100%; 
-    align-self: flex-end
+    height: 30px;
+    width: 100%;
+    //align-self: flex-end
 }
 
 .btn-viewer-menu {
