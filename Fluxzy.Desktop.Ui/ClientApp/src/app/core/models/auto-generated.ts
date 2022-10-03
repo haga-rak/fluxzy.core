@@ -56,6 +56,15 @@ export interface RequestBodyAnalysisResult extends FormattingResult
 	preferredFileName: string;
 	contentType?: string;
 }
+export interface FormUrlEncodedResult extends FormattingResult
+{
+	items: FormUrlEncodedItem[];
+}
+export interface FormUrlEncodedItem
+{
+	key: string;
+	value: string;
+}
 export interface UiState
 {
 	id: string;

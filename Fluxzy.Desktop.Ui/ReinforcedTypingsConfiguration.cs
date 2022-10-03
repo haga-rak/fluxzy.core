@@ -18,7 +18,6 @@ namespace Fluxzy.Desktop.Ui
     // ReSharper disable once IdentifierTypo - Loaded by reflections
     public static class ReinforcedTypingsConfiguration
     {
-
         public static void Configure(ConfigurationBuilder builder)
         {
             builder.Global(config => config.CamelCaseForProperties()
@@ -74,7 +73,6 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
             // Core objects 
-
 
             builder.ExportAsInterface<ExchangeInfo>()
                 .ApplyGenericProperties();
@@ -139,6 +137,12 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<RequestBodyAnalysisResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FormUrlEncodedResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FormUrlEncodedItem>()
                    .ApplyGenericProperties();
         }
     }

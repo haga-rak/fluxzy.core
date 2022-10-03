@@ -12,6 +12,9 @@ namespace Fluxzy.Formatters.Producers.Requests
 
         public RequestBodyAnalysisResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
+            if (context.RequestBodyLength == 0)
+                return null;
+
             var preferredFileName = $"request-{exchangeInfo.Id}.data";
 
             var contentType = exchangeInfo.GetRequestHeaders()

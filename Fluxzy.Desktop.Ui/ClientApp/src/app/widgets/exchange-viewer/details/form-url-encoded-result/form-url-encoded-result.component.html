@@ -1,0 +1,8 @@
+<table class="summary-table">
+    <tr *ngFor="let queryString of model.items" >
+        <th>{{ queryString.key }}</th>
+        <td>
+            <input type="text" class="form-control" readonly [value]="queryString.value" style="height: 20px !important" />
+        </td>
+    </tr>
+</table>
