@@ -1,0 +1,76 @@
+<div class="exchange-view-block">
+
+    <div class="exchange-viewer-header">
+        <div class="btn-group" role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
+
+            <button type="button" href="javascript:;" class="btn btn-dark  btn-viewer-menu"
+                    [ngClass]="{'active' : isRequestTabSelected('requestHeader')}"
+                    (click)="setSelectedRequestTab('requestHeader', null)">
+                request summary
+            </button>
+
+            <button *ngIf="!requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark">Loading
+                ...
+            </button>
+
+            <ng-container *ngIf="requestFormattingResults">
+                <button *ngFor="let formattingResult of requestFormattingResults | slice:0:3 "
+                        type="button" href="javascript:;"
+                        class="btn btn-dark  btn-viewer-menu"
+                        [ngClass]="{'active' : isRequestTabSelected(formattingResult.type)}"
+                        (click)="setSelectedRequestTab(formattingResult.type, formattingResult)">{{formattingResult.title}}</button>
+            </ng-container>
+            <ng-container *ngIf="requestFormattingResults && requestFormattingResults.length > 3">
+
+                <div class="btn-group" role="group" dropdown>
+                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                            aria-expanded="false" dropdownToggle>
+                        <span *ngIf="requestOtherText">{{requestOtherText}}</span>
+                        <span *ngIf="!requestOtherText">Other</span>
+                    </button>
+                    <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
+                        <li role="menuitem" *ngFor="let formattingResult of requestFormattingResults | slice:3"
+                            [ngClass]="{'active' : isRequestTabSelected(formattingResult.type)}">
+                            <a class="dropdown-item" href="javascript:;"
+                               (click)="setSelectedRequestTab(formattingResult.type, formattingResult, true)">{{formattingResult.title}}</a>
+                        </li>
+                    </ul>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <perfect-scrollbar [usePSClass]="true" class="exchange-content-box shady-box"
+                       style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; padding: 12px; flex-grow : 4; display : flex; ">
+
+
+        <app-header-viewer *ngIf="currentRequestTabView === 'requestHeader'" [exchange]="exchange">
+        </app-header-viewer>
+
+        <app-raw-request-header-result *ngIf="ofType('RawRequestHeaderResult')" [formatter]="requestFormattingResult">
+        </app-raw-request-header-result>
+
+        <app-query-string-result *ngIf="ofType('QueryStringResult')" [formatter]="requestFormattingResult">
+        </app-query-string-result>
+
+        <app-request-cookie-result *ngIf="ofType('RequestCookieResult')" [formatter]="requestFormattingResult">
+        </app-request-cookie-result>
+
+        <app-request-json-result *ngIf="ofType('RequestJsonResult')" [formatter]="requestFormattingResult">
+        </app-request-json-result>
+
+        <app-request-text-body-result *ngIf="ofType('RequestTextBodyResult')" [formatter]="requestFormattingResult">
+        </app-request-text-body-result>
+
+        <app-request-body-analysis-result *ngIf="ofType('RequestBodyAnalysisResult')"
+                                          [formatter]="requestFormattingResult" [exchange]="exchange">
+        </app-request-body-analysis-result>
+
+        <app-form-url-encoded-result *ngIf="ofType('FormUrlEncodedResult')" [formatter]="requestFormattingResult"
+                                     [exchange]="exchange">
+        </app-form-url-encoded-result>
+
+    </perfect-scrollbar>
+
+    <!-- </div> -->
+</div>
