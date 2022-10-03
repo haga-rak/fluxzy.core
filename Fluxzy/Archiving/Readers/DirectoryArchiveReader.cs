@@ -71,7 +71,7 @@ namespace Fluxzy.Readers
             if (!File.Exists(capturePath))
                 return null;
 
-            return File.Open(capturePath, FileMode.Open);
+            return File.Open(capturePath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         public Stream? GetRequestBody(int exchangeId)
@@ -81,7 +81,7 @@ namespace Fluxzy.Readers
             if (!File.Exists(requestBodyPath))
                 return null;
 
-            return File.Open(requestBodyPath, FileMode.Open);
+            return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
         public Stream? GetResponseBody(int exchangeId)
         {
@@ -90,7 +90,7 @@ namespace Fluxzy.Readers
             if (!File.Exists(requestContentPath))
                 return null;
 
-            return File.Open(requestContentPath, FileMode.Open);
+            return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         public void Dispose()

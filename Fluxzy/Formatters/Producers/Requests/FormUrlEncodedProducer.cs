@@ -28,7 +28,11 @@ namespace Fluxzy.Formatters.Producers.Requests
             var res = HttpUtility.ParseQueryString(context.RequestBodyText);
 
             var items = res.AllKeys.SelectMany(k => res.GetValues(k)?.Select(v => new FormUrlEncodedItem(k, v)))
-                           .Where(t => t != null);
+                           .Where(t => t != null).ToList();
+
+            if (items.Any())
+                return null; 
+
 
             return new FormUrlEncodedResult(ResultTitle, items); 
         }
