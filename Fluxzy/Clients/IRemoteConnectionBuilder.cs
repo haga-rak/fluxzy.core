@@ -51,7 +51,7 @@ namespace Fluxzy.Clients
             CancellationToken token)
         {
             
-            var connection = new Connection(authority)
+            var connection = new Connection(authority, setting.IdProvider)
             {
                 TcpConnectionOpening = _timeProvider.Instant(),
                 // tcpClient.LingerState.

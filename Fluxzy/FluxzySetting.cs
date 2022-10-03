@@ -37,9 +37,7 @@ namespace Fluxzy
                                          .Select(s => $"[{s.EndPoint}]"));
             }
         }
-
-        internal int ExchangeStartIndex { get; set; } = 0;
-
+        
         /// <summary>
         ///     Verbose mode
         /// </summary>

@@ -29,7 +29,7 @@ namespace Fluxzy.Clients
             Http11Parser parser, 
             string httpVersion, DateTime receivedFromProxy)
         {
-            Id = idProvider.NextId();
+            Id = idProvider.NextExchangeId();
 
             Context = context;
             Authority = authority;
@@ -67,7 +67,7 @@ namespace Fluxzy.Clients
             string httpVersion, 
             DateTime receivedFromProxy)
         {
-            Id = idProvider.NextId();
+            Id = idProvider.NextExchangeId();
             Context = context;
             Authority = authority;
             HttpVersion = httpVersion;
@@ -84,7 +84,7 @@ namespace Fluxzy.Clients
             ReadOnlyMemory<char> requestHeaderPlain, 
             Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
         {
-            Id = idProvider.NextId(); 
+            Id = idProvider.NextExchangeId(); 
             Context = new ExchangeContext(authority);
             Authority = authority;
             HttpVersion = httpVersion;

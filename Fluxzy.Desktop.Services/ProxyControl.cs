@@ -29,7 +29,7 @@ namespace Fluxzy.Desktop.Services
             fluxzySettingHolderObservable
                 .CombineLatest(
                     contentObservable
-                        .DistinctUntilChanged(t => t.State.Identifier) // this will avoid unecessary refresh when 
+                        .DistinctUntilChanged(t => t.State.Identifier) // this will avoid unecessary refresh  
                     ) 
                 .Select(stateAndSetting =>
                     System.Reactive.Linq.Observable.Create<ProxyState>(
@@ -38,14 +38,15 @@ namespace Fluxzy.Desktop.Services
                             var setting = stateAndSetting.First.StartupSetting;
 
                             var trunkState = await stateAndSetting.Second.Observable.FirstAsync();
-
-                            setting.ExchangeStartIndex = trunkState.MaxExchangeId;
+                            
                             setting.ArchivingPolicy = 
                                 ArchivingPolicy.CreateFromDirectory(
                                     stateAndSetting.Second.State.WorkingDirectory    
                                     );
 
-                            var proxyState = await ReloadProxy(setting, stateAndSetting.Second);
+                            var proxyState = await ReloadProxy(
+                                setting, stateAndSetting.Second, 
+                                trunkState.MaxConnectionId, trunkState.MaxExchangeId);
 
                             observer.OnNext(proxyState);
                             observer.OnCompleted();
@@ -59,7 +60,7 @@ namespace Fluxzy.Desktop.Services
         
         private async Task<ProxyState> ReloadProxy(
             FluxzySetting fluxzySetting, 
-            FileContentOperationManager currentContentOperationManager)
+            FileContentOperationManager currentContentOperationManager, int maxConnectionId, int maxExchangeId)
         {
             if (_proxy != null)
             {
@@ -74,6 +75,9 @@ namespace Fluxzy.Desktop.Services
                 _proxy = new Proxy(fluxzySetting,
                     new CertificateProvider(fluxzySetting,
                         new InMemoryCertificateCache()));
+
+                _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
+                _proxy.IdProvider.SetNextExchangeId(maxExchangeId);
 
                 _proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
                 {

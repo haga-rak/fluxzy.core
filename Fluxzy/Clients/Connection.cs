@@ -10,13 +10,12 @@ namespace Fluxzy.Clients
     /// </summary>
     public class Connection : IRemoteLink
     {
-        private static int _connectionIdCounter = 0;
         private int _requestProcessed;
 
-        public Connection(Authority authority)
+        public Connection(Authority authority, IIdProvider idProvider)
         {
             Authority = authority;
-            Id = Interlocked.Increment(ref _connectionIdCounter);
+            Id = idProvider.NextExchangeId();
         }
         public int Id { get; set; }
 

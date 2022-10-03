@@ -32,7 +32,7 @@ namespace Fluxzy
         public RealtimeArchiveWriter Writer { get; private set; } = new EventOnlyArchiveWriter();
 
         private  int _currentConcurrentCount = 0;
-        private readonly FromIndexIdProvider _idProvider;
+
 
         public Proxy(
             FluxzySetting startupSetting,
@@ -42,7 +42,7 @@ namespace Fluxzy
         {
             _tcpConnectionProvider = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
-            _idProvider = new FromIndexIdProvider(StartupSetting.ExchangeStartIndex);
+            IdProvider = new FromIndexIdProvider(0, 0); 
             
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
@@ -51,7 +51,6 @@ namespace Fluxzy
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
             {
-                 var workingDirectory = Path.Combine(StartupSetting.ArchivingPolicy.Directory, SessionIdentifier);
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
                 Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory);
             }
@@ -68,10 +67,10 @@ namespace Fluxzy
 
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
 
-            var runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, _tcpConnectionProvider, Writer);
+            var runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, _tcpConnectionProvider, Writer, IdProvider);
 
             _proxyOrchestrator = new ProxyOrchestrator(runTimeSetting,
-                new ExchangeBuilder(secureConnectionManager, http1Parser, _idProvider), poolBuilder);
+                new ExchangeBuilder(secureConnectionManager, http1Parser, IdProvider), poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction && 
                                                           t.Filter.Children.OfType<AnyFilter>().Any() 
@@ -84,6 +83,8 @@ namespace Fluxzy
         }
 
         public IReadOnlyCollection<IPEndPoint> ListenAddresses => _downStreamConnectionProvider.ListenEndpoints;
+
+        internal FromIndexIdProvider IdProvider { get; }
 
         public FluxzySetting StartupSetting { get; }
 

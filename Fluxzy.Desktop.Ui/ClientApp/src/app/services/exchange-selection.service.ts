@@ -29,19 +29,19 @@ export class ExchangeSelectionService {
             ]).pipe(
                     map(t => {
                         const rawSelection = t[0] ;
-                        const trunkState = t[1] 
+                        const trunkState = t[1] ;
 
-                        const selectedIds = ExchangeSelectedIds(rawSelection); 
+                        const selectedIds = ExchangeSelectedIds(rawSelection);
 
-                        for (let selectedId of selectedIds) {
+                        for (const selectedId of selectedIds) {
                             if (!trunkState.exchangesIndexer[selectedId] && trunkState.exchangesIndexer[selectedId] !== 0) {
-                                rawSelection.map[selectedId] = false; 
+                                rawSelection.map[selectedId] = false;
                             }
                         }
 
-                        return rawSelection ; 
+                        return rawSelection ;
                     })
-            ); 
+            );
 
         this.currentSelectedIds$ = this.currentSelection$.pipe(
             map((t) => ExchangeSelectedIds(t))
@@ -53,43 +53,43 @@ export class ExchangeSelectionService {
         this.currentSelection$.pipe(tap((t) => (this.currentSelection = t))).subscribe();
 
         this.selected$ = combineLatest([
-            
-            this.exchangeContentService.getTrunkState(), 
+
+            this.exchangeContentService.getTrunkState(),
             this.currentSelection$
         ])
             .pipe(
                 map(t =>  {
-                    const trunkState = t[0] ; 
-                    const selection = t[1]; 
+                    const trunkState = t[0] ;
+                    const selection = t[1];
 
                     if (!selection.lastSelectedExchangeId)
-                        return null ; 
+                        return null ;
 
-                    const selectedIndex = trunkState.exchangesIndexer[selection.lastSelectedExchangeId] ; 
+                    const selectedIndex = trunkState.exchangesIndexer[selection.lastSelectedExchangeId] ;
 
                     if (!selectedIndex && selectedIndex !== 0 )
-                        return null; 
-                    
-                    const chosen = trunkState.exchanges[selectedIndex] ; 
-                    return chosen.exchangeInfo ; 
+                        return null;
+
+                    const chosen = trunkState.exchanges[selectedIndex] ;
+                    return chosen.exchangeInfo ;
                 })
             )
     }
 
     public setSelection(...exchangeIds: number[]): void {
         if (exchangeIds.length > 0) {
-            let exchangeSelection: ExchangeSelection = {
+            const exchangeSelection: ExchangeSelection = {
                 lastSelectedExchangeId: exchangeIds[0],
                 map: {},
             };
 
-            for (let exchangeId of exchangeIds) {
+            for (const exchangeId of exchangeIds) {
                 exchangeSelection.map[exchangeId] = true;
             }
 
             this.currentRawSelection$.next(exchangeSelection);
         } else {
-            let exchangeSelection: ExchangeSelection = {
+            const exchangeSelection: ExchangeSelection = {
                 map: {},
             };
 
@@ -99,7 +99,7 @@ export class ExchangeSelectionService {
 
     public addOrRemoveSelection(...exchangeIds: number[]): void {
         const nextResult = { ...this.currentSelection };
-        for (let exchangeId of exchangeIds) {
+        for (const exchangeId of exchangeIds) {
             nextResult.map[exchangeId] = !nextResult.map[exchangeId];
 
             if (nextResult.map[exchangeId])
@@ -109,7 +109,7 @@ export class ExchangeSelectionService {
     }
 
     public getSelected() : Observable<ExchangeInfo> {
-        return this.selected$ ; 
+        return this.selected$ ;
     }
 
     public getCurrenSelectionCount(): Observable<number> {
@@ -118,7 +118,7 @@ export class ExchangeSelectionService {
 
     public getCurrentSelection(): Observable<ExchangeSelection> {
 
-        return this.currentRawSelection$ ; 
+        return this.currentRawSelection$ ;
     }
 
     public getCurrentSelectedIds(): Observable<number[]> {
@@ -133,13 +133,13 @@ export interface ExchangeSelection {
 
 
 export const ExchangeSelectedIds = (selection : ExchangeSelection) : number[] => {
-    const res : number [] = []; 
+    const res : number [] = [];
 
     for (var key in selection.map) {
         if (selection.map.hasOwnProperty(key) && selection.map[key]) {
-            res.push(parseInt(key)) ; 
+            res.push(parseInt(key)) ;
         }
     }
 
-    return res; 
+    return res;
 }
