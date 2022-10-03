@@ -28,7 +28,7 @@ import {
 import { ApiService } from '../../services/api.service';
 
 @Component({
-    selector: 'app-exchange-viewer',
+    selector: 'div[echange-viewer]',
     templateUrl: './exchange-viewer.component.html',
     styleUrls: ['./exchange-viewer.component.scss'],
 })
@@ -43,7 +43,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
     private $currentRequestTabView: BehaviorSubject<string> =
         new BehaviorSubject<string>('requestHeader');
 
-    public requestOtherText : string = ''; 
+    public requestOtherText : string = '';
 
     @Input('exchange') public exchange: ExchangeInfo;
 
@@ -59,7 +59,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         );
 
         this.$requestFormattingResults.subscribe();
-        
+
         combineLatest([
             this.$requestFormattingResults,
             this.$currentRequestTabView,
@@ -84,14 +84,14 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                 })
             )
             .subscribe();
-            
-        
+
+
         this.$currentRequestTabView
             .asObservable()
             .pipe(tap((t) => (this.currentRequestTabView = t)))
             .subscribe();
 
-            
+
         this.$exchange.next(this.exchange);
     }
 
@@ -114,14 +114,14 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
     public setSelectedRequestTab(
         tabName: string,
         formatingResult: FormattingResult,
-        fromOther : boolean
+        fromOther : boolean = false
     ) {
         console.log(tabName);
 
         this.$currentRequestTabView.next(tabName);
 
         if(fromOther) {
-            this.requestOtherText = formatingResult.title; 
+            this.requestOtherText = formatingResult.title;
         }
         else{
             this.requestOtherText = '';

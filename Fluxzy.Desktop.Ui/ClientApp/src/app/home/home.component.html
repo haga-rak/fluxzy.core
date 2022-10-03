@@ -7,7 +7,7 @@
             <div class="block-left-parent" #objectPane>
                 <div class="title-box">
                     <div class="title-box-inside">
-                        
+
                         <a href="javascript:;" class="btn btn-outline-light" style="font-size: 18px">
                             <i class="bi bi-play-circle-fill"></i>
                         </a>
@@ -22,15 +22,15 @@
                 </div>
                 <div class="block-left">
                     <div class="right-vert-bar">
-                        
+
                         <app-toggle [materialIcon]="'http'" [label]="'Objects'">
-                            
-                        </app-toggle>    
+
+                        </app-toggle>
                         <app-toggle [materialIcon]="'dvr'" [label]="'Hosts'">
-                            
-                        </app-toggle>    
+
+                        </app-toggle>
                     </div>
-                    
+
                     <div class="filter-pane shady-box" style="padding: 8px">
                         <app-exchange-table-view style="height:100vh"></app-exchange-table-view>
                     </div>
@@ -40,9 +40,9 @@
         </as-split-area>
         <as-split-area [size]="50">
 
-            <div class="block-right" #righblock>
+            <div class="block-right">
                 <div class="middle-content">
-                        <app-exchange-viewer *ngIf="selectedExchange" [exchange]="selectedExchange" style="width:100%"></app-exchange-viewer>        
+                        <app-exchange-viewer-header *ngIf="selectedExchange" [exchange]="selectedExchange" style="width:100%"></app-exchange-viewer-header>
                         <div *ngIf="!selectedExchange"  style="width:100%; height: 100%">Nothing selected</div>
                 </div>
             </div>
