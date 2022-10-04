@@ -19,6 +19,7 @@ namespace Fluxzy.Tests.Rules
         [Theory]
         [InlineData("-a/", new int[] { 6 })]
         [InlineData("-a/", new int[] { 6, 1024 * 1024 * 9 + 1, 12247})]
+        [InlineData("---------------------s4fs6d4fs3df13sf3sdf/", new int[] { 8192, 12247})]
         public async Task TestMultiPartReader(string boundary, int[] preferedLength)
         {
             var exampleHeader =
@@ -27,39 +28,48 @@ namespace Fluxzy.Tests.Rules
 
             var fileName = "out.txt";
 
-            var hashes = MultiPartTestCaseBuilder.Write(fileName, boundary, exampleHeader, preferedLength).ToList();
-            var fullPath = new FileInfo(fileName).FullName;
-
-            List<RawMultipartItem> items;
-
-            using (var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            try
             {
-                items = await MultipartReader.ReadItems(readStream, boundary);
+                var hashes = MultiPartTestCaseBuilder.Write(fileName, boundary, exampleHeader, preferedLength).ToList();
+                var fullPath = new FileInfo(fileName).FullName;
+
+                List<RawMultipartItem> items;
+
+                using (var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    items = await MultipartReader.ReadItems(readStream, boundary);
+                }
+
+                for (var index = 0; index < preferedLength.Length; index++)
+                {
+                    var length = preferedLength[index];
+                    var res = items[index];
+                    var expected = index + exampleHeader;
+
+                    Assert.Equal(expected, res.RawHeader);
+                    Assert.Equal(length, res.Length);
+
+                    using var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+                    using HashedStream stream = new HashedStream(readStream.GetSlicedStream(
+                        res.OffSet, res.Length), true);
+
+                    int drainCount = await stream.Drain();
+
+                    Assert.Equal(res.Length, drainCount);
+
+                    var expectedHash = hashes[index];
+                    var resultHash = Convert.ToBase64String(stream.Compute() ?? Array.Empty<byte>());
+
+                    Assert.Equal(expectedHash, resultHash);
+                }
+            }
+            finally
+            {
+                if (File.Exists(fileName))
+                    File.Delete(fileName);
             }
 
-            for (var index = 0; index < preferedLength.Length; index++)
-            {
-                var length = preferedLength[index];
-                var res = items[index];
-                var expected = index + exampleHeader;
-
-                Assert.Equal(expected, res.RawHeader);
-                Assert.Equal(length, res.Length);
-
-                using var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read) ;
-                
-                using HashedStream stream = new HashedStream(readStream.GetSlicedStream(
-                    res.OffSet, res.Length), true);
-
-                int drainCount = await stream.Drain();
-
-                Assert.Equal(res.Length, drainCount);
-
-                var expectedHash = hashes[index];
-                var resultHash = Convert.ToBase64String(stream.Compute() ?? Array.Empty<byte>());
-
-                Assert.Equal(expectedHash, resultHash);
-            }
         }
     }
 
