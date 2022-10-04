@@ -55,11 +55,15 @@ namespace Fluxzy.Tests.Utils
             {
                 _cryptoStream.FlushFinalBlock();
                 var array = _memoryStream.ToArray();
-                Hash = MockedBinaryUtilities.GetStringSha256Hash(array);
 
-               
+                var rawHash = _crypto.Hash ?? Array.Empty<byte>();
 
-                HashBae = Convert.ToBase64String(_crypto.Hash ?? Array.Empty<byte>());
+                var hash =
+                    Convert.ToHexString(rawHash).Replace("-", string.Empty);
+
+                Hash = hash;
+
+                HashBae = Convert.ToBase64String(rawHash);
             }
 
             return currentRead;
