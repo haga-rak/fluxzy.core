@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Observable, take, map, tap } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, FormattingResult, TrunkState, UiState } from '../core/models/auto-generated';
+import { ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, FormattingResult, MultipartItem, SaveFileMultipartActionModel, TrunkState, UiState } from '../core/models/auto-generated';
 
 @Injectable({
   providedIn: 'root'
@@ -109,5 +109,14 @@ export class ApiService {
         return this.httpClient.post<FormattingResult[]>(`api/exchange/${exchangeId}/save-request-body`, {
             fileName : fileName
         }).pipe(take(1));
+    }
+    public exchangeSaveMultipartContent(exchangeId: number, fileName: string, model : MultipartItem) : Observable<FormattingResult[]> {
+        let payload : SaveFileMultipartActionModel = {
+            filePath : fileName,
+            offset : model.offset, 
+            length : model.length
+        };
+
+        return this.httpClient.post<FormattingResult[]>(`api/exchange/${exchangeId}/save-multipart-Content`, payload).pipe(take(1));
     }
 }

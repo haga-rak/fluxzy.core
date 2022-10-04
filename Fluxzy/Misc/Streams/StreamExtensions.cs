@@ -63,6 +63,14 @@ namespace Fluxzy.Misc.Streams
             return total;
         }
 
+        public static byte[] ToArrayGreedy(this Stream stream)
+        {
+            var memoryStream = new MemoryStream(); 
+            stream.CopyTo(memoryStream);
+
+            return memoryStream.ToArray();
+        }
+
         public static async ValueTask<long> CopyDetailed(this Stream source,
             Stream destination,
             byte[] buffer, Action<int> onContentCopied, CancellationToken cancellationToken)

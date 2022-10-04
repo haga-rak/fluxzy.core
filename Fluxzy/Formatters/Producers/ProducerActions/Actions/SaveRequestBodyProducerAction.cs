@@ -1,9 +1,11 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Fluxzy.Formatters.Producers.Requests;
 
 namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
 {
+    
     public class SaveRequestBodyProducerAction
     {
         private readonly ProducerFactory _producerFactory;
@@ -22,14 +24,15 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
             if (context is null)
                 return false; 
 
-            var fileInfo = new FileInfo(filePath);
-
-            fileInfo.Directory?.Create();
 
             await using var stream = context.ArchiveReader.GetRequestBody(exchangeId);
 
             if (stream is null)
                 return false;
+
+            var fileInfo = new FileInfo(filePath);
+
+            fileInfo.Directory?.Create();
 
             await using var outStream = fileInfo.Create();
 

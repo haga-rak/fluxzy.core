@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Screeners;
 
@@ -44,6 +45,18 @@ namespace Fluxzy.Formatters.Producers.Requests
             if (!list.Any())
                 return null;
 
+            foreach (var item in list)
+            {
+                if (item.Length < context.Settings.MaxMultipartContentStringLength)
+                {
+                    var array = stream.GetSlicedStream(item.Offset, item.Length)
+                                      .ToArrayGreedy();
+
+                    ArrayTextUtilities.IsText(array);
+                    item.StringValue = Encoding.UTF8.GetString(array); 
+                }
+            }
+
             return new MultipartFormContentResult(ResultTitle, list);
         }
     }
@@ -63,6 +76,7 @@ namespace Fluxzy.Formatters.Producers.Requests
         public MultipartItem(string? name, string?  fileName, string? contentType, string? contentDisposition, long offset, long length)
         {
             Name = name;
+            FileName = fileName;
             ContentType = contentType;
             ContentDisposition = contentDisposition;
             Offset = offset;
@@ -70,6 +84,7 @@ namespace Fluxzy.Formatters.Producers.Requests
         }
 
         public string? Name { get;  }
+        public string? FileName { get; }
 
         public string ? ContentType { get;  }
 
@@ -80,6 +95,8 @@ namespace Fluxzy.Formatters.Producers.Requests
         public long Length { get;  }
 
         public string?  RawHeader { get; set; }
+
+        public string? StringValue { get; set; }
     }
 
     public class RawMultipartItem

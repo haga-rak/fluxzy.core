@@ -28,5 +28,14 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return await action.Do(exchangeId, body.FileName);
         }
 
+        [HttpPost("{exchangeId}/save-multipart-Content")]
+        public async Task<ActionResult<bool>> SaveMultipartContent(
+            int exchangeId,
+            [FromBody] SaveFileMultipartActionModel body,
+            [FromServices] SaveFileMultipartAction action)
+        {
+            return await action.Do(exchangeId, body);
+        }
+
     }
 }

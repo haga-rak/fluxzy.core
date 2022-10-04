@@ -4,6 +4,7 @@ using System.Net;
 using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
+using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Screeners;
 using Reinforced.Typings.Ast.TypeNames;
@@ -23,7 +24,6 @@ namespace Fluxzy.Desktop.Ui
             builder.Global(config => config.CamelCaseForProperties()
                 .AutoOptionalProperties()
                 .UseModules());
-
 
             ConfigureViewModels(builder);
             ConfigureProducers(builder); 
@@ -149,6 +149,9 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<MultipartItem>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<SaveFileMultipartActionModel>()
                    .ApplyGenericProperties();
         }
     }
