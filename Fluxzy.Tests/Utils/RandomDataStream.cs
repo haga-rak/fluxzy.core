@@ -54,11 +54,18 @@ namespace Fluxzy.Tests.Utils
             if (_actualReaden == _length)
             {
                 _cryptoStream.FlushFinalBlock();
-                Hash = MockedBinaryUtilities.GetStringSha256Hash(_memoryStream.ToArray());
+                var array = _memoryStream.ToArray();
+                Hash = MockedBinaryUtilities.GetStringSha256Hash(array);
+
+               
+
+                HashBae = Convert.ToBase64String(_crypto.Hash ?? Array.Empty<byte>());
             }
 
             return currentRead;
         }
+
+        public string? HashBae { get; private set; }
 
         public override long Seek(long offset, SeekOrigin origin)
         {

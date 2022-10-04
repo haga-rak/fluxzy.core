@@ -14,11 +14,12 @@ namespace Fluxzy.Tests.Tools
     internal class HashedStream : Stream
     {
         private readonly Stream _innerStream;
-        private readonly HashAlgorithm _transform = SHA256.Create();
+        private readonly HashAlgorithm _transform;
         private readonly MemoryStream _outStream = new(new byte[64]);
 
-        public HashedStream(Stream innerStream)
+        public HashedStream(Stream innerStream, bool useSha1 = false)
         {
+            _transform = !useSha1 ? SHA256.Create() : SHA1.Create();
             _innerStream = innerStream;
         }
 
