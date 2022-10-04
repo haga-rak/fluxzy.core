@@ -4,13 +4,51 @@
         Loading data
     </div>
 
-    <div *ngIf="connection">
+    <div *ngIf="connection" style="width:100%">
         <table class="connectivity-table">
             <tr>
                 <th style="width:50%">Local</th>
                 <th style="width:50%">Remote</th>
             </tr>
+            <tr>
+                <th style="width:50%">-/-</th>
+                <th style="width:50%">{{connection.authority.hostName}}</th>
+            </tr>
+            <tr>
+                <th style="width:50%">{{connection.localAddress}}</th>
+                <th style="width:50%">{{connection.remoteAddress}}</th>
+            </tr>
+            <tr>
+                <th style="width:50%">{{connection.localPort}}</th>
+                <th style="width:50%">{{connection.authority.port}}</th>
+            </tr>
+            <tr>
+                <th style="width:50%">-/-</th>
+                <th style="width:50%">{{connection.sslInfo.remoteCertificateSubject}}</th>
+            </tr>
         </table>
+        <br/>
+        <p class="text-center">SSL/TLS</p>
+        <br/>
+        <table class="connectivity-table">
+            <tr>
+                <th style="width:50%">Yes</th>
+                <th style="width:50%">Yes</th>
+            </tr>
+            <tr>
+                <th style="width:50%">-/-</th>
+                <th style="width:50%">{{connection.authority.hostName}}</th>
+            </tr>
+            <tr>
+                <th style="width:50%">{{connection.localAddress}}</th>
+                <th style="width:50%">{{connection.remoteAddress}}</th>
+            </tr>
+            <tr>
+                <th style="width:50%">{{connection.localPort}}</th>
+                <th style="width:50%">{{connection.authority.port}}</th>
+            </tr>
+        </table>
+
     </div>
     
 </div>
