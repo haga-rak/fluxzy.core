@@ -50,15 +50,14 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
     constructor(private apiService: ApiService) {}
 
     ngOnInit(): void {
+        console.log('init');
         this.$requestFormattingResults = this.$exchange.asObservable().pipe(
-            distinctUntilChanged(),
             filter((t) => t.id > 0),
+            distinctUntilChanged((t,v) => t.id === v.id),
             tap((t) => (this.requestFormattingResults = null)),
             switchMap((t) => this.apiService.getRequestFormattingResults(t.id)),
             tap((t) => (this.requestFormattingResults = t))
         );
-
-        this.$requestFormattingResults.subscribe();
 
         combineLatest([
             this.$requestFormattingResults,
