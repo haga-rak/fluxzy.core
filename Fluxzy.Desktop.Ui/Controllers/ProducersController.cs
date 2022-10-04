@@ -1,10 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Fluxzy.Screeners;
 using Microsoft.AspNetCore.Mvc;
-using System.Reactive.Linq;
 using Fluxzy.Formatters;
-using Fluxzy.Readers;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
