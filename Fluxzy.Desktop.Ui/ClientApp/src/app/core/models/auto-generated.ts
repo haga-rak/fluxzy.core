@@ -72,11 +72,19 @@ export interface MultipartFormContentResult extends FormattingResult
 export interface MultipartItem
 {
 	name?: string;
+	fileName?: string;
 	contentType?: string;
 	contentDisposition?: string;
 	offset: number;
 	length: number;
 	rawHeader?: string;
+	stringValue?: string;
+}
+export interface SaveFileMultipartActionModel
+{
+	filePath: string;
+	offset: number;
+	length: number;
 }
 export interface UiState
 {

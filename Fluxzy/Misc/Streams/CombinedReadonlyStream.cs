@@ -11,7 +11,7 @@ namespace Fluxzy.Misc.Streams
         private long _position;
         private readonly bool _closeStreams;
         private IEnumerator<Stream> _iterator;
-        private Stream _current;
+        private Stream? _current;
 
         public CombinedReadonlyStream(bool closeStreams, params Stream[] args)
         : this(args, closeStreams)

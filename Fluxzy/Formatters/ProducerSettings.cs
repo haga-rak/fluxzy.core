@@ -10,6 +10,7 @@ namespace Fluxzy.Screeners
 
         public int MaxFormattableXmlLength { get; set; } = 1024 * 32;
 
-        public int MaxHeaderLength { get; set; } = 1024 * 48; 
+        public int MaxHeaderLength { get; set; } = 1024 * 48;
+        public int MaxMultipartContentStringLength { get; set; } = 1024;
     }
 }

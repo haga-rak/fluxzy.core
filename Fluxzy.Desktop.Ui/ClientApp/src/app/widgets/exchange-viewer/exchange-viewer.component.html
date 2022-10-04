@@ -77,6 +77,10 @@
                                                  [formatter]="requestFormattingResult" [exchange]="exchange">
                     </app-form-url-encoded-result>
 
+                    <app-multipart-form-content-result *ngIf="ofType('MultipartFormContentResult')"
+                                                 [formatter]="requestFormattingResult" [exchange]="exchange">
+                    </app-multipart-form-content-result>
+
                 </perfect-scrollbar>
 
                 <!-- </div> -->
