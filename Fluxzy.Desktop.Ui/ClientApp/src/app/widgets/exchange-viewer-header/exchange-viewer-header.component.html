@@ -1,20 +1,24 @@
+<div class="exchange-viewer-main-content" style="height : calc(100% - 32px)">
 
-
-    <div class="exchange-viewer-main-content" style="height : calc(100% - 32px)">
-
-        <div style="margin-bottom: 8px;border-bottom: 2px solid var(--bs-primary); padding-bottom:6px" class="" >
-            <a class="btn btn-primary" href="javascript:;">Content</a>&nbsp;
-            <a class="btn btn-secondary" href="javascript:;">Connectivity</a>&nbsp;
-            <a class="btn btn-secondary" href="javascript:;">Performance</a>
-        </div>
-
-        <div echange-viewer [exchange]="exchange" style="height : calc(100% - 52px)"></div>
-
+    <div style="margin-bottom: 8px;border-bottom: 2px solid var(--bs-primary); padding-bottom:6px" class="">
+        <ng-container *ngFor="let tab of tabs">
+            <a class="btn" [class]="{'btn-primary' : tab === currentTab,'btn-secondary' : tab !== currentTab  }"
+                (click)="currentTab = tab"
+                href="javascript:;">
+                {{tab}}
+            </a>&nbsp;
+        </ng-container>
     </div>
-    <div class="exchange-viewer-main-status">
-        <span class="float-end">
-            <a href="javascript:;" class="btn btn-secondary">Mark</a>&nbsp;
-            <a href="javascript:;" class="btn btn-secondary">Comment</a>&nbsp;
-            <a href="javascript:;" class="btn btn-secondary">Download connection dump</a>
-        </span>
-    </div>
+
+    <div *ngIf="currentTab === 'Content'" echange-viewer [exchange]="exchange" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="currentTab === 'Connectivity'" echange-connectivity [exchange]="exchange"  style="height : calc(100% - 52px)"></div>
+    <div *ngIf="currentTab === 'Performance'" style="height : calc(100% - 52px)"></div>
+
+</div>
+<div class="exchange-viewer-main-status">
+    <span class="float-end">
+        <a href="javascript:;" class="btn btn-secondary">Mark</a>&nbsp;
+        <a href="javascript:;" class="btn btn-secondary">Comment</a>&nbsp;
+        <a href="javascript:;" class="btn btn-secondary">Download connection dump</a>
+    </span>
+</div>
