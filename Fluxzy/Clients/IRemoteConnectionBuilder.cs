@@ -117,7 +117,6 @@ namespace Fluxzy.Clients
                 : RemoteConnectionResultType.Http11;
 
             connection.ReadStream = connection.WriteStream = resultStream;
-            
 
             return new RemoteConnectionResult(protoType, connection);
         }
