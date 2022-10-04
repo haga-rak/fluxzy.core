@@ -7,6 +7,9 @@ import {ExchangeInfo} from '../../core/models/auto-generated';
     styleUrls: ['./exchange-viewer-header.component.scss']
 })
 export class ExchangeViewerHeaderComponent implements OnInit {
+    public tabs : string [] = ['Content', 'Connectivity', 'Performance'] ;
+    public currentTab : string = 'Content'; 
+
     @Input() public exchange: ExchangeInfo;
 
     constructor() {

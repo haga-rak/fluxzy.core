@@ -1,0 +1,12 @@
+.connectivity-table{
+    width:100%
+}
+
+.connectivity-table td, .connectivity-table th{
+    vertical-align: top;
+    padding: 10px; 
+}
+
+.connectivity-table th:nth-child(odd) {
+    text-align: right;
+}
