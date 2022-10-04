@@ -25,8 +25,7 @@ namespace Fluxzy.Desktop.Services
             _subject = new(ReadDirectory(fileState));
             Observable = _subject.AsObservable();
         }
-
-
+        
         
         private static TrunkState ReadDirectory(FileState current)
         {
@@ -90,6 +89,30 @@ namespace Fluxzy.Desktop.Services
         }
 
         public IObservable<TrunkState> Observable { get; }
+
+        public void AddOrUpdate(ConnectionInfo connectionInfo)
+        {
+            lock (_subject) // TODO: think of do we really need a lock 
+            {
+                var current = _subject.Value;
+
+                var connectionListFinal = current.Connections;
+
+                var newContainer = new ConnectionContainer(connectionInfo);
+
+                connectionListFinal = !current.ConnectionsIndexer.TryGetValue(connectionInfo.Id, out var connectionIndex) ?
+                    // Add 
+                    connectionListFinal.Add(newContainer) 
+                    :
+                    // Update 
+                    connectionListFinal.SetItem(connectionIndex , newContainer);
+
+                current = new TrunkState(current.Exchanges, connectionListFinal);
+
+                _subject.OnNext(current);
+                State.Owner.SetUnsaved(true);
+            }
+        }
 
         public void AddOrUpdate(ExchangeInfo exchangeInfo)
         {

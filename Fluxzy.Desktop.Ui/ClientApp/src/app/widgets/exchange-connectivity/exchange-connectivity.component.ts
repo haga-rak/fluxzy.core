@@ -1,21 +1,42 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { ExchangeInfo } from '../../core/models/auto-generated';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Subject, tap } from 'rxjs';
+import { ConnectionInfo, ExchangeInfo } from '../../core/models/auto-generated';
+import { ApiService } from '../../services/api.service';
 
 @Component({
     selector: 'div[echange-connectivity]',
     templateUrl: './exchange-connectivity.component.html',
     styleUrls: ['./exchange-connectivity.component.scss'],
 })
-export class ExchangeConnectivityComponent implements OnInit {
-  
-    private $exchange: Subject<ExchangeInfo> = new Subject<ExchangeInfo>();
+export class ExchangeConnectivityComponent implements OnInit, OnChanges {
 
-    @Input() public exchange: ExchangeInfo;
+    public connection : ConnectionInfo | null = null ; 
 
-    constructor() {}
+    @Input() public exchange: ExchangeInfo | null;
+    @Input() public connectionId : number ; 
+
+    constructor(private apiService : ApiService) {}
 
     ngOnInit(): void {
+      this.refresh() ; 
       console.log(this.exchange);
+    }
+    
+    ngOnChanges(changes: SimpleChanges): void {
+      this.refresh() ; 
+    }
+
+    private refresh() : void {
+      this.connection = null ; 
+
+      this.apiService.connectionGet(this.connectionId)
+        .pipe(
+          tap(
+            t => this.connection = t
+          ),
+          tap(
+            t => console.log(t)
+          )
+        ).subscribe() ; 
     }
 }

@@ -89,6 +89,8 @@ namespace Fluxzy.Desktop.Services
 
                 _proxy.Writer.ConnectionUpdated += delegate(object? sender, ConnectionUpdateEventArgs args)
                 {
+                    currentContentOperationManager.AddOrUpdate(args.Connection);
+
                     _hub.Clients.All.SendAsync(
                         "connectionUpdate", args.Connection);
                 };
