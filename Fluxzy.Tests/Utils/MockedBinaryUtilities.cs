@@ -29,6 +29,19 @@ namespace Fluxzy.Tests.Utils
             
             return Convert.ToHexString(destination).Replace("-", String.Empty);
         }
+        public static string GetStringSha1HashBase64(Memory<byte> data)
+        {
+            using var sha = SHA1.Create();
+
+            Span<byte> destination = stackalloc byte[20];
+
+            if (!sha.TryComputeHash(data.Span, destination, out _))
+            {
+                throw new InvalidOperationException("destination provided to small"); 
+            }
+            
+            return Convert.ToBase64String(destination);
+        }
 
         public static string GetStringSha256Hash(byte [] data)
         {

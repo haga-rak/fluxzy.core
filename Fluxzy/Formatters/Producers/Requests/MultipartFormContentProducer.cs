@@ -49,9 +49,15 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public class RawMultipartItem
     {
-        public RawMultipartItem(string rawHeader, long offSet, long length)
+        public RawMultipartItem(string rawHeader, string boundary, long offSet, long length)
         {
-            RawHeader = rawHeader;
+            boundary = "--" + boundary;
+
+            RawHeader = rawHeader
+                .Replace("\r\n\r\n", "\r\n")
+                .Replace(boundary, "")
+                .TrimStart('\r', '\n');
+
             OffSet = offSet;
             Length = length;
         }
@@ -66,6 +72,13 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public static class MultipartReader
     {
+        public static Stream GetSlicedStream(this Stream seekableStream, long offsetBegin, long length)
+        {
+            seekableStream.Seek(offsetBegin, SeekOrigin.Begin);
+
+            return new ContentBoundStream(seekableStream, length);
+        }
+
         public static async Task<List<RawMultipartItem>> ReadItems(Stream stream, string boundary, int readBodyBufferSize = 1024 *8)
         {
             if (!stream.CanSeek)
@@ -114,7 +127,7 @@ namespace Fluxzy.Formatters.Producers.Requests
                     if (bodyLength < 0)
                         throw new InvalidOperationException("Unexpected EOF");
 
-                    result.Add(new RawMultipartItem(rawHeader,
+                    result.Add(new RawMultipartItem(rawHeader, boundary,
                         offSetBeforeReadingBody,
                         bodyLength));
 
@@ -130,7 +143,6 @@ namespace Fluxzy.Formatters.Producers.Requests
 
             return result; 
         }
-
 
         private static async Task<long> ReadBodyAsync(Stream stream, ReadOnlyMemory<byte> endBoundary, int readBufferSize = 1024 *8)
         {

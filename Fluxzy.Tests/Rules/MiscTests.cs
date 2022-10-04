@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Formatters.Producers.Requests;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Tests.Tools;
 using Fluxzy.Tests.Utils;
 using Xunit;
@@ -17,7 +18,7 @@ namespace Fluxzy.Tests.Rules
     {
         [Theory]
         [InlineData("-a/", new int[] { 6 })]
-        [InlineData("-a/", new int[] { 6, 24 })]
+        [InlineData("-a/", new int[] { 6, 1024 * 1024 * 9 + 1, 12247})]
         public async Task TestMultiPartReader(string boundary, int[] preferedLength)
         {
             var exampleHeader =
@@ -29,11 +30,36 @@ namespace Fluxzy.Tests.Rules
             var hashes = MultiPartTestCaseBuilder.Write(fileName, boundary, exampleHeader, preferedLength).ToList();
             var fullPath = new FileInfo(fileName).FullName;
 
-            using var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            List<RawMultipartItem> items;
 
-            var items = await MultipartReader.ReadItems(readStream, boundary);
+            using (var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                items = await MultipartReader.ReadItems(readStream, boundary);
+            }
 
+            for (var index = 0; index < preferedLength.Length; index++)
+            {
+                var length = preferedLength[index];
+                var res = items[index];
+                var expected = index + exampleHeader;
 
+                Assert.Equal(expected, res.RawHeader);
+                Assert.Equal(length, res.Length);
+
+                using var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read) ;
+                
+                using HashedStream stream = new HashedStream(readStream.GetSlicedStream(
+                    res.OffSet, res.Length), true);
+
+                int drainCount = await stream.Drain();
+
+                Assert.Equal(res.Length, drainCount);
+
+                var expectedHash = hashes[index];
+                var resultHash = Convert.ToBase64String(stream.Compute() ?? Array.Empty<byte>());
+
+                Assert.Equal(expectedHash, resultHash);
+            }
         }
     }
 
@@ -49,7 +75,7 @@ namespace Fluxzy.Tests.Rules
 
             output.Write(Encoding.UTF8.GetBytes("\r\n"));
 
-            return inputContent.Hash ?? string.Empty;
+            return inputContent.HashBae ?? string.Empty;
         }
 
         public static IEnumerable<string> Write(string fileName, string boundary, string exampleHeader,   int [] preferedLengths)
