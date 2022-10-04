@@ -15,6 +15,7 @@ namespace Fluxzy.Formatters
         private static readonly List<IFormattingProducer<FormattingResult>> RequestProducers = new()
         {
             new RequestJsonBodyProducer(),
+            new MultipartFormContentProducer(),
             new FormUrlEncodedProducer(),
             new QueryStringProducer(),
             new RequestBodyAnalysis(),

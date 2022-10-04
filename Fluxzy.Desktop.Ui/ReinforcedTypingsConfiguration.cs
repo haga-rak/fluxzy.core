@@ -144,6 +144,12 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<FormUrlEncodedItem>()
                    .ApplyGenericProperties();
+
+            builder.ExportAsInterface<MultipartFormContentResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<MultipartItem>()
+                   .ApplyGenericProperties();
         }
     }
 

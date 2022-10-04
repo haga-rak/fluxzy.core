@@ -26,7 +26,25 @@ namespace Fluxzy.Misc.Streams
             }
         }
 
-        public static async ValueTask<int> Drain(this Stream stream, int bufferSize = 16 * 1024, bool disposeStream = false)
+        public static int Drain(this Stream stream, int bufferSize = 16 * 1024, bool disposeStream = false)
+        {
+            var buffer = new byte[bufferSize];
+            int read;
+            var total = 0;
+
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                total += read;
+            }
+
+            if (disposeStream)
+            {
+                stream.Dispose(); 
+            }
+
+            return total;
+        }
+        public static async ValueTask<int> DrainAsync(this Stream stream, int bufferSize = 16 * 1024, bool disposeStream = false)
         {
             var buffer = new byte[bufferSize];
             int read;
@@ -64,6 +82,26 @@ namespace Fluxzy.Misc.Streams
             }
 
             return totalCopied;
+        }
+
+        public static int ReadAtLeast(this Stream origin,
+            Memory<byte> buffer, int atLeastLength,
+            CancellationToken cancellationToken = default)
+        {
+            int read = 0;
+            int totalRead = 0;
+            
+            while ((read = origin.Read(buffer.Span)) > 0)
+            {
+                buffer = buffer.Slice(read);
+
+                totalRead += read;
+
+                if (totalRead >= atLeastLength)
+                    return totalRead; 
+            }
+
+            return -1; 
         }
 
         public static async ValueTask<int> ReadAtLeastAsync(this Stream origin,
