@@ -54,7 +54,7 @@ namespace Fluxzy.Clients.Mock
             exchange.Metrics.TotalSent = 0;
 
             if (exchange.Request.Body != null)
-                await exchange.Request.Body.Drain();  // We empty request body stream 
+                await exchange.Request.Body.DrainAsync();  // We empty request body stream 
 
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
             

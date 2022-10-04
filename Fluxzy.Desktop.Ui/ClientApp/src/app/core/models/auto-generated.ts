@@ -65,6 +65,19 @@ export interface FormUrlEncodedItem
 	key: string;
 	value: string;
 }
+export interface MultipartFormContentResult extends FormattingResult
+{
+	items: MultipartItem[];
+}
+export interface MultipartItem
+{
+	name?: string;
+	contentType?: string;
+	contentDisposition?: string;
+	offset: number;
+	length: number;
+	rawHeader?: string;
+}
 export interface UiState
 {
 	id: string;

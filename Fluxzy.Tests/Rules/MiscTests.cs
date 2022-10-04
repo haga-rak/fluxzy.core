@@ -20,7 +20,7 @@ namespace Fluxzy.Tests.Rules
         [InlineData("-a/", new int[] { 6 })]
         [InlineData("-a/", new int[] { 6, 1024 * 1024 * 9 + 1, 12247})]
         [InlineData("---------------------s4fs6d4fs3df13sf3sdf/", new int[] { 8192, 12247})]
-        public async Task TestMultiPartReader(string boundary, int[] preferedLength)
+        public void TestMultiPartReader(string boundary, int[] preferedLength)
         {
             var exampleHeader =
                 "Content-Disposition: form-data; name=\"strict-transport-security\"\r\n" +
@@ -37,7 +37,7 @@ namespace Fluxzy.Tests.Rules
 
                 using (var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    items = await MultipartReader.ReadItems(readStream, boundary);
+                    items = MultipartReader.ReadItems(readStream, boundary);
                 }
 
                 for (var index = 0; index < preferedLength.Length; index++)
@@ -54,7 +54,7 @@ namespace Fluxzy.Tests.Rules
                     using HashedStream stream = new HashedStream(readStream.GetSlicedStream(
                         res.OffSet, res.Length), true);
 
-                    int drainCount = await stream.Drain();
+                    int drainCount = stream.Drain();
 
                     Assert.Equal(res.Length, drainCount);
 

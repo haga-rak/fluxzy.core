@@ -1,13 +1,11 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
-using System.Buffers;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipelines;
+using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Screeners;
 
@@ -19,24 +17,59 @@ namespace Fluxzy.Formatters.Producers.Requests
 
         public MultipartFormContentResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
-            throw new NotImplementedException();
+            var multipartHeader =
+                exchangeInfo.GetRequestHeaders().FirstOrDefault(h =>
+                    h.Name.Span.Equals("Content-type", StringComparison.OrdinalIgnoreCase)
+                    && h.Value.Span.Contains("multipart", StringComparison.OrdinalIgnoreCase)
+                    && h.Value.Span.Contains("boundary=", StringComparison.OrdinalIgnoreCase));
+
+            if (multipartHeader == null)
+                return null;
+
+            var boundaryIndex = multipartHeader.Value.Span.IndexOf("boundary=", StringComparison.OrdinalIgnoreCase);
+            var boundary = multipartHeader.Value.Span.Slice(boundaryIndex + "boundary=".Length).ToString();
+
+            using var stream = context.ArchiveReader.GetRequestBody(exchangeInfo.Id);
+
+            if (stream == null)
+                return null;
+
+            var rawItems = MultipartReader.ReadItems(stream, boundary);
+
+            var list = rawItems
+                       .Select(s => s.BuildMultiPartItems())
+                       .Where(t => t != null)
+                       .Select(t => t!).ToList();
+
+            if (!list.Any())
+                return null;
+
+            return new MultipartFormContentResult(ResultTitle, list);
         }
     }
 
     public class MultipartFormContentResult : FormattingResult
     {
-        public MultipartFormContentResult(string title) : base(title)
+        public MultipartFormContentResult(string title, List<MultipartItem> items) : base(title)
         {
+            Items = items;
         }
+
+        public List<MultipartItem> Items { get;  }
     }
 
     public class MultipartItem
     {
-        public string RawHeader { get; set; }
+        public MultipartItem(string? name, string?  fileName, string? contentType, string? contentDisposition, long offset, long length)
+        {
+            Name = name;
+            ContentType = contentType;
+            ContentDisposition = contentDisposition;
+            Offset = offset;
+            Length = length;
+        }
 
-        
-
-        public string Name { get;  }
+        public string? Name { get;  }
 
         public string ? ContentType { get;  }
 
@@ -45,6 +78,8 @@ namespace Fluxzy.Formatters.Producers.Requests
         public long Offset { get;  }
 
         public long Length { get;  }
+
+        public string?  RawHeader { get; set; }
     }
 
     public class RawMultipartItem
@@ -67,6 +102,59 @@ namespace Fluxzy.Formatters.Producers.Requests
         public long OffSet { get;  }
 
         public long Length { get;  }
+
+
+        public MultipartItem?  BuildMultiPartItems()
+        {
+            var allLines = RawHeader.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            var contentType =
+                string.Join(":",
+                    allLines.FirstOrDefault(r =>
+                                r.StartsWith("Content-type", StringComparison.OrdinalIgnoreCase))
+                            ?.Split(':')
+                            .Skip(1) ?? Array.Empty<string>()).Trim();
+
+            contentType = string.IsNullOrWhiteSpace(contentType) ? contentType : null; 
+
+            var contentDispositionLine = allLines.FirstOrDefault(r =>
+                r.StartsWith("Content-disposition", StringComparison.OrdinalIgnoreCase));
+
+            var foundProperties = new Dictionary<string, string>();
+
+            if (contentDispositionLine != null)
+            {
+                var result = Regex.Matches(contentDispositionLine,
+                    @"([a-zA-Z]+)=""([^""]+)""");
+
+                foreach (Match matchResult in result)
+                {
+                    if (matchResult.Success && matchResult.Groups.Count > 2)
+                    {
+                        foundProperties[matchResult.Groups[1].Value]
+                            = matchResult.Groups[2].Value;
+                    }
+                }
+            }
+
+            foundProperties.TryGetValue("name", out var name);
+
+            if (!foundProperties.TryGetValue("filename", out var fileName))
+            {
+                foundProperties.TryGetValue("file", out fileName);
+            }
+
+            if (string.IsNullOrWhiteSpace(name)
+                && string.IsNullOrWhiteSpace(fileName))
+            {
+                return null; 
+            }
+
+            return new MultipartItem(name, fileName, contentType, "form-data", OffSet, Length)
+            {
+                RawHeader = RawHeader
+            };
+        }
     }
 
 
@@ -79,7 +167,7 @@ namespace Fluxzy.Formatters.Producers.Requests
             return new ContentBoundStream(seekableStream, length);
         }
 
-        public static async Task<List<RawMultipartItem>> ReadItems(Stream stream, string boundary, int readBodyBufferSize = 1024 *8)
+        public static List<RawMultipartItem> ReadItems(Stream stream, string boundary, int readBodyBufferSize = 1024 *8)
         {
             if (!stream.CanSeek)
                 throw new ArgumentException("Stream must be seekable", nameof(stream));
@@ -96,7 +184,7 @@ namespace Fluxzy.Formatters.Producers.Requests
 
             while (true)
             {
-                int read = await stream.ReadAsync(tempBuffer, 0, tempBuffer.Length);
+                int read = stream.Read(tempBuffer, 0, tempBuffer.Length);
 
                 if (read == 0)
                     break;  // EOF 
@@ -122,7 +210,7 @@ namespace Fluxzy.Formatters.Producers.Requests
                     stream.Seek(offSetBeforeReadingBody, SeekOrigin.Begin);
                     
                     // read body 
-                    var bodyLength = await ReadBodyAsync(stream, endBoundaryBytes, readBodyBufferSize);
+                    var bodyLength = ReadBody(stream, endBoundaryBytes, readBodyBufferSize);
                     
                     if (bodyLength < 0)
                         throw new InvalidOperationException("Unexpected EOF");
@@ -144,7 +232,7 @@ namespace Fluxzy.Formatters.Producers.Requests
             return result; 
         }
 
-        private static async Task<long> ReadBodyAsync(Stream stream, ReadOnlyMemory<byte> endBoundary, int readBufferSize = 1024 *8)
+        private static long ReadBody(Stream stream, ReadOnlyMemory<byte> endBoundary, int readBufferSize = 1024 *8)
         {
             var rawReadBuffer = new byte[readBufferSize];
             byte[] previousRawBuffer = new byte[rawReadBuffer.Length];
@@ -156,7 +244,7 @@ namespace Fluxzy.Formatters.Producers.Requests
             long discarded = 0; 
 
 
-            while ((read = await stream.ReadAtLeastAsync(rawReadBuffer, endBoundary.Length)) > 0)
+            while ((read = stream.ReadAtLeast(rawReadBuffer, endBoundary.Length)) > 0)
             {
                 totalRead += read;
 

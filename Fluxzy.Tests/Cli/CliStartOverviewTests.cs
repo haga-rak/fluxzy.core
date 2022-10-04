@@ -141,15 +141,15 @@ namespace Fluxzy.Tests.Cli
 
                     Assert.Equal(200, exchange.StatusCode);
                     Assert.Equal(connection.Id, exchange.ConnectionId);
-                    Assert.Equal(requestBodyLength, await archiveReader.GetRequestBody(exchange.Id).Drain(disposeStream: true));
-                    Assert.Equal(bodyLength, await archiveReader.GetResponseBody(exchange.Id).Drain(disposeStream: true));
+                    Assert.Equal(requestBodyLength, await archiveReader.GetRequestBody(exchange.Id).DrainAsync(disposeStream: true));
+                    Assert.Equal(bodyLength, await archiveReader.GetResponseBody(exchange.Id).DrainAsync(disposeStream: true));
 
                     Assert.Contains(exchange.RequestHeader.Headers,
                         t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
 
                     if (withPcap)
                     {
-                        Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).Drain(disposeStream: true) > 0);
+                        Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).DrainAsync(disposeStream: true) > 0);
                     }
                 }
 

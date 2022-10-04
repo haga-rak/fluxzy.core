@@ -147,7 +147,7 @@ namespace Fluxzy.Tests
 
             var stream = await response.Content.ReadAsStreamAsync();
 
-            var length = await stream.Drain(); 
+            var length = await stream.DrainAsync(); 
 
             Assert.Equal(bodySize, length);
 
