@@ -66,6 +66,26 @@ namespace Fluxzy.Misc.Streams
             return totalCopied;
         }
 
+        public static async ValueTask<int> ReadAtLeastAsync(this Stream origin,
+            Memory<byte> buffer, int atLeastLength,
+            CancellationToken cancellationToken = default)
+        {
+            int read = 0;
+            int totalRead = 0;
+
+            while ((read = await origin.ReadAsync(buffer, cancellationToken)) > 0)
+            {
+                buffer = buffer.Slice(read);
+
+                totalRead += read;
+
+                if (totalRead >= atLeastLength)
+                    return totalRead; 
+            }
+
+            return -1; 
+        }
+
         public static async ValueTask<bool> ReadExactAsync(this Stream origin, Memory<byte> buffer, CancellationToken cancellationToken)
         {
             int readen = 0;
