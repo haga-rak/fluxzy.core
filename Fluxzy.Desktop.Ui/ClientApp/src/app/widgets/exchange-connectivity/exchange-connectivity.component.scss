@@ -2,11 +2,17 @@
     width:100%
 }
 
+.connectivity-table th{
+    font-weight : normal; 
+    color: var(--bs-gray-300);
+}
 .connectivity-table td, .connectivity-table th{
-    vertical-align: top;
-    padding: 0px 10px 0px 10px;; 
+    text-align: left;
+    padding: 2px;
+    padding-left: 12px;
 }
 
-.connectivity-table th:nth-child(odd) {
-    text-align: right;
+.form-connectivity {
+    font-family: monospace;
+    font-size:11px;
 }

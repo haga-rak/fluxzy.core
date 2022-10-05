@@ -1,12 +1,12 @@
 
 <div class="" style="width: 100%; height: 100%">
 
-    <as-split direction="horizontal"  unit="percent"  style="height:100%">
-        <as-split-area [size]="50" >
+    <as-split direction="horizontal"  unit="percent"  style="height:100%;">
+        <as-split-area [size]="50" style="height: 100%;" >
 
-            <div class="block-left-parent" #objectPane>
+            <div class="block-left-parent" #objectPane style="">
                 <div class="title-box">
-                    <div class="title-box-inside">
+                    <!-- <div class="title-box-inside">
 
                         <a href="javascript:;" class="btn btn-outline-light" style="font-size: 18px">
                             <i class="bi bi-play-circle-fill"></i>
@@ -15,13 +15,13 @@
                         <a href="javascript:;" class="btn btn-outline-danger" style="font-size: 18px">
                             <i class="bi bi-record-circle-fill"></i>
                         </a>
-                    </div>
+                    </div> -->
                     <div class="filter-header">
                         <app-filter-header-view></app-filter-header-view>
                     </div>
                 </div>
-                <div class="block-left">
-                    <div class="right-vert-bar">
+                <div class="block-left" >
+                    <!-- <div class="right-vert-bar">
 
                         <app-toggle [materialIcon]="'http'" [label]="'Objects'">
 
@@ -29,9 +29,9 @@
                         <app-toggle [materialIcon]="'dvr'" [label]="'Hosts'">
 
                         </app-toggle>
-                    </div>
+                    </div> -->
 
-                    <div class="filter-pane shady-box" style="padding: 8px">
+                    <div class="filter-pane shady-box" style="padding: 8px; margin-left: 5px;">
                         <app-exchange-table-view style="height:100vh"></app-exchange-table-view>
                     </div>
                 </div>

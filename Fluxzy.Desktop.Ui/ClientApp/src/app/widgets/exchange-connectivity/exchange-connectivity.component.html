@@ -5,49 +5,99 @@
     </div>
 
     <div *ngIf="connection" style="width:100%">
-        <table class="connectivity-table">
+
+        <table style="width:  100%" class="connectivity-table">
             <tr>
-                <th style="width:50%">Local</th>
-                <th style="width:50%">Remote</th>
+                <th style="min-width: 120px;visibility: hidden;"></th>
+                <th style="width: 50%">Local</th>
+                <th style="width: 50%">Remote</th>
             </tr>
             <tr>
-                <th style="width:50%">-/-</th>
-                <th style="width:50%">{{connection.authority.hostName}}</th>
+                <th>Hostname</th>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="'-/-'"  /> 
+                </td>
+                <td> <input type="text" class="form-control form-connectivity" readonly [value]="connection.authority.hostName"  /> </td>
             </tr>
             <tr>
-                <th style="width:50%">{{connection.localAddress}}</th>
-                <th style="width:50%">{{connection.remoteAddress}}</th>
+                <th>IP</th>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.localAddress"  /> 
+                </td>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.remoteAddress"  /> 
+                   
+                </td>
             </tr>
             <tr>
-                <th style="width:50%">{{connection.localPort}}</th>
-                <th style="width:50%">{{connection.authority.port}}</th>
+                <th>Port</th>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.localPort"  /> 
+                    
+                </td>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.authority.port"  /> 
+                    
+
+                </td>
             </tr>
             <tr>
-                <th style="width:50%">-/-</th>
-                <th style="width:50%">{{connection.sslInfo.remoteCertificateSubject}}</th>
+                <th>Certificate</th>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="'-/-'"  /> 
+                    
+                </td>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.remoteCertificateSubject"  /> 
+                   
+                </td>
+            </tr>
+            <tr>
+                <th>Issuer</th>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="'-/-'"  /> 
+                    
+                </td>
+                <td>
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.remoteCertificateIssuer"  /> 
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    &nbsp;
+                    
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <th>SSL protocol</th>
+                <td colspan="2" class="text-center">
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.sslProtocol"  /> 
+                </td>
+            </tr>
+            <tr>
+                <th>Cipher</th>
+                <td colspan="2" class="text-center">
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.cipherAlgorithm"  /> 
+                </td>
+            </tr>
+            <tr>
+                <th>Hash</th>
+                <td colspan="2" class="text-center">
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.hashAlgorithm"  /> 
+                </td>
+            </tr>
+            <tr>
+                <th>Alpn</th>
+                <td colspan="2" class="text-center">
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.negotiatedApplicationProtocol"  /> 
+                </td>
             </tr>
         </table>
-        <br/>
-        <p class="text-center">SSL/TLS</p>
-        <br/>
-        <table class="connectivity-table">
-            <tr>
-                <th style="width:50%">Yes</th>
-                <th style="width:50%">Yes</th>
-            </tr>
-            <tr>
-                <th style="width:50%">-/-</th>
-                <th style="width:50%">{{connection.authority.hostName}}</th>
-            </tr>
-            <tr>
-                <th style="width:50%">{{connection.localAddress}}</th>
-                <th style="width:50%">{{connection.remoteAddress}}</th>
-            </tr>
-            <tr>
-                <th style="width:50%">{{connection.localPort}}</th>
-                <th style="width:50%">{{connection.authority.port}}</th>
-            </tr>
-        </table>
+
 
     </div>
     
