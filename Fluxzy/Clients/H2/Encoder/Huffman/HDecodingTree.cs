@@ -24,8 +24,6 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                 // Get first byte 
 
                 var bytes = symbol.GetByteVariation(0, buffer);
-                
-                Debug.Assert(bytes.Length > 0);
 
                 if (bytes.Length == 1)
                 {

@@ -15,19 +15,4 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
         }
     }
-
-
-    public class FluxzyException : Exception
-    {
-        public FluxzyException(string message)
-            : base(message)
-        {
-
-        }
-        public FluxzyException(string message, Exception exception)
-            : base(message, exception)
-        {
-
-        }
-    }
 }

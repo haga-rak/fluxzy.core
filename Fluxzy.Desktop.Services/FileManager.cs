@@ -30,7 +30,7 @@ namespace Fluxzy.Desktop.Services
 
         public override IObservable<FileState> Observable => Subject.AsObservable().DistinctUntilChanged();
 
-        private static (Guid,string) GenerateNewDirectory(string tempDirectory)
+        private static (Guid, string) GenerateNewDirectory(string tempDirectory)
         {
             var id = Guid.NewGuid(); 
 

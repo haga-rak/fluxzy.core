@@ -20,7 +20,7 @@ namespace Fluxzy
 
         /// <summary>
         ///     Whether this setting is the default bound address port. When true,
-        ///     this setting will be choosed as system proxy
+        ///     this setting will be choose as system proxy
         /// </summary>
         public bool Default { get; set; }
 

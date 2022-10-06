@@ -40,9 +40,7 @@ namespace Fluxzy.Tests
 
             await proxy.WaitUntilDone();
         }
-
-        //private static int count = 0; 
-
+        
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call(HttpClient httpClient)
         {
             int repeatCount = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 100 : 10;
@@ -123,7 +121,6 @@ namespace Fluxzy.Tests
             await proxy.WaitUntilDone(); 
         }
 
-
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
@@ -173,8 +170,7 @@ namespace Fluxzy.Tests
 
             using var response = await httpClient.SendAsync(requestMessage);
 
-            var responesString = await response.Content.ReadAsStringAsync();
-            
+            await response.Content.ReadAsStringAsync();
 
             await proxy.WaitUntilDone(); 
         }
