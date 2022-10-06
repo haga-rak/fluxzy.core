@@ -92,6 +92,33 @@ namespace Fluxzy.Misc.Streams
             return totalCopied;
         }
 
+        public static byte[]? ReadMaxLengthOrNull(this Stream stream, int maximum)
+        {
+            var buffer = ArrayPool<byte>.Shared.Rent(1024 * 16);
+
+            try
+            {
+                int read;
+                var totalRead = 0; 
+                var memoryStream = new MemoryStream(); 
+
+                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    memoryStream.Write(buffer, 0, read);
+                    totalRead += read;
+
+                    if (totalRead > maximum)
+                        return null; 
+                }
+
+                return memoryStream.ToArray();
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
         public static int ReadAtLeast(this Stream origin,
             Memory<byte> buffer, int atLeastLength,
             CancellationToken cancellationToken = default)

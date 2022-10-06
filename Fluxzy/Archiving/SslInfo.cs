@@ -1,5 +1,6 @@
 ﻿using System.Net.Security;
 using System.Security.Authentication;
+using System.Security.Authentication.ExtendedProtection;
 using System.Text.Json.Serialization;
 
 namespace Fluxzy

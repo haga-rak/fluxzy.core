@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
 
@@ -9,6 +10,7 @@ namespace Fluxzy
         public ConnectionInfo(Connection original)
         {
             Id = original.Id;
+            HttpVersion = original.HttpVersion;
             DnsSolveStart = original.DnsSolveStart;
             DnsSolveEnd = original.DnsSolveEnd;
             TcpConnectionOpening = original.TcpConnectionOpening;
@@ -24,7 +26,7 @@ namespace Fluxzy
         }
 
         [JsonConstructor]
-        public ConnectionInfo(int id, AuthorityInfo authority, SslInfo sslInfo, int requestProcessed, DateTime dnsSolveStart, DateTime dnsSolveEnd, DateTime tcpConnectionOpening, DateTime tcpConnectionOpened, DateTime sslNegotiationStart, DateTime sslNegotiationEnd, int localPort, string localAddress, string remoteAddress)
+        public ConnectionInfo(int id, AuthorityInfo authority, SslInfo sslInfo, int requestProcessed, DateTime dnsSolveStart, DateTime dnsSolveEnd, DateTime tcpConnectionOpening, DateTime tcpConnectionOpened, DateTime sslNegotiationStart, DateTime sslNegotiationEnd, int localPort, string localAddress, string remoteAddress, string? httpVersion)
         {
             Id = id;
             Authority = authority;
@@ -39,9 +41,12 @@ namespace Fluxzy
             LocalPort = localPort;
             LocalAddress = localAddress;
             RemoteAddress = remoteAddress;
+            HttpVersion = httpVersion;
         }
 
         public int Id { get; }
+
+        public string? HttpVersion { get; }
 
         public AuthorityInfo Authority { get; }
 
