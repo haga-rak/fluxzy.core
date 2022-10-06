@@ -22,9 +22,6 @@ namespace Fluxzy.Tests.Cli.Scaffolding
                 if (!_runningWait.TryGetValue(regexPattern, out var completionSource))
                 {
                     _runningWait[regexPattern] = completionSource = new TimeoutTaskCompletionSource<string>(timeoutSeconds);
-
-
-
                 }
 
                 return completionSource.CompletionSource.Task;

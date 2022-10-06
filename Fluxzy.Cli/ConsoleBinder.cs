@@ -11,6 +11,5 @@ namespace Fluxzy.Cli
         {
             return bindingContext.Console;
         }
-        
     }
 }

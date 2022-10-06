@@ -195,7 +195,7 @@ export interface ExchangeInfo
 	knownAuthority: string;
 	method: string;
 	path: string;
-	contentType: string;
+	contentType?: string;
 	done: boolean;
 	statusCode: number;
 	egressIp: string;

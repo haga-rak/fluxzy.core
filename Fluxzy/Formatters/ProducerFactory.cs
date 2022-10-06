@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Formatters.Producers.Requests;
+using Fluxzy.Formatters.Producers.Responses;
 using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters
@@ -25,6 +26,11 @@ namespace Fluxzy.Formatters
             new RequestTextBodyProducer(),
             new AuthorizationProducer(),
             new RawRequestHeaderProducer(),
+        };
+
+        private static readonly List<IFormattingProducer<FormattingResult>> ResponseProducers = new()
+        {
+            new ResponseBodySummaryProducer(),
         };
 
         public ProducerFactory(IArchiveReaderProvider archiveReaderProvider, ProducerSettings producerSettings)
