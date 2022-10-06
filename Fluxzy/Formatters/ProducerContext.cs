@@ -2,14 +2,11 @@
 
 using System;
 using System.Buffers;
-using System.IO;
-using System.IO.Compression;
 using System.Text;
 using Fluxzy.Extensions;
 using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
-using ICSharpCode.SharpZipLib.Lzw;
 
 namespace Fluxzy.Formatters
 {
@@ -48,17 +45,17 @@ namespace Fluxzy.Formatters
 
             if (responseBodyStream != null)
             {
-                ResponseContentLength = responseBodyStream.Length;
+                ResponseBodyLength = responseBodyStream.Length;
 
                 ResponseBodyContent = CompressionHelper.ReadContent(exchange, responseBodyStream, settings.MaximumRenderableBodyLength,
                     out var compressionInfo);
+                
+                var responseEncoding = exchange.GetResponseEncoding(); 
 
-                if (ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024))
+                if (ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024, responseEncoding))
                 {
-
-
-
-                    ResponseBodyText = Encoding.UTF8.GetString(RequestBody.Span);
+                    responseEncoding = (responseEncoding ?? Encoding.UTF8); 
+                    ResponseBodyText = responseEncoding.GetString(RequestBody.Span);
                 }
 
                 CompressionInfo = compressionInfo;
@@ -82,15 +79,13 @@ namespace Fluxzy.Formatters
         /// the decoded UTF8 text
         /// </summary>
         public string ? RequestBodyText { get;  }
-
-        public long? ResponseContentLength { get; }
-
+        
         public CompressionInfo? CompressionInfo { get; }
 
         public string? ResponseBodyText { get; }
 
 
-        public long ResponseBodyLength { get; } = 0;
+        public long? ResponseBodyLength { get; } = 0;
 
         public void Dispose()
         {
@@ -100,61 +95,5 @@ namespace Fluxzy.Formatters
                 _internalBuffer = null; 
             }
         }
-    }
-
-    public static class CompressionHelper
-    {
-        public static byte []?  ReadContent(
-            ExchangeInfo exchangeInfo, 
-            Stream responseBodyInStream, int maximumLength, out CompressionInfo compressionInfo)
-        {
-            // Check for chunked body 
-            var workStream = responseBodyInStream;
-
-            if (exchangeInfo.IsChunkedTransferEncoded())
-            {
-                workStream = new ChunkedTransferReadStream(workStream, false); 
-            }
-
-            var compressionType = exchangeInfo.GetCompressionType();
-
-            switch (compressionType)
-            {
-                case CompressionType.None:
-                    break;
-                case CompressionType.Gzip:
-                    workStream = new GZipStream(workStream, CompressionMode.Decompress, true);
-                    break;
-                case CompressionType.Deflate:
-                    workStream = new DeflateStream(workStream, CompressionMode.Decompress, true);
-                    break;
-                case CompressionType.Compress:
-                    workStream = new LzwInputStream(workStream);
-                    break;
-                case CompressionType.Brotli:
-                    workStream = new BrotliStream(workStream, CompressionMode.Decompress, true);
-                    break;
-            }
-
-            compressionInfo = new CompressionInfo()
-            {
-                CompressionName = compressionType.ToString()
-            };
-
-            try
-            {
-
-                return workStream.ReadMaxLengthOrNull(maximumLength);
-            }
-            finally
-            {
-                workStream.Dispose();
-            }
-        }
-    }
-
-    public class CompressionInfo
-    {
-        public string ? CompressionName { get; set; }
     }
 }
