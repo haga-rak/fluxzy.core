@@ -52,7 +52,7 @@ namespace Fluxzy
 
         public string Path => RequestHeader.Path.ToString();
 
-        public string ContentType => HeaderUtility.GetSimplifiedContentType(this);
+        public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
 
         public bool Done => ResponseHeader?.StatusCode > 0; 
 

@@ -1,10 +1,55 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Fluxzy.Extensions
 {
     public static class ExchangeExtensions
     {
+        public static string? GetResponseHeaderValue(this ExchangeInfo exchangeInfo, string headerName)
+        {
+            if (exchangeInfo.ResponseHeader?.Headers == null)
+                return null;
+
+            var contentTypeHeader = exchangeInfo.ResponseHeader.Headers.LastOrDefault(h =>
+                h.Name.Span.Equals(headerName, StringComparison.OrdinalIgnoreCase));
+
+            return contentTypeHeader?.Value.ToString();
+        }
+
+
+        public static Encoding? GetResponseEncoding(this ExchangeInfo exchangeInfo)
+        {
+            if (exchangeInfo.ResponseHeader?.Headers == null)
+                return null;
+
+            var contentTypeHeader = exchangeInfo.ResponseHeader.Headers.LastOrDefault(h =>
+                h.Name.Span.Equals("Content-Type", StringComparison.OrdinalIgnoreCase));
+
+            if (contentTypeHeader == null)
+                return null;
+
+            var valueString = contentTypeHeader.Value.ToString();
+            var matchResult = Regex.Match(valueString, @"charset=([a-zA-Z\-0-9]+)");
+
+            if (matchResult.Success)
+            {
+                try
+                {
+                    return Encoding.GetEncoding(matchResult.Groups[1].Value);
+                }
+                catch (ArgumentException)
+                {
+
+                }
+            }
+
+            return null; 
+
+        }
+
+
         public static bool IsChunkedTransferEncoded(this ExchangeInfo exchangeInfo)
         {
             if (exchangeInfo.ResponseHeader?.Headers == null)

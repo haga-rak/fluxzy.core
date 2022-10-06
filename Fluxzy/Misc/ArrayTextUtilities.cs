@@ -13,16 +13,17 @@ namespace Fluxzy.Misc
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="maxCheckLength"></param>
+        /// <param name="encoding"></param>
         /// <returns></returns>
-        public static bool IsText(ReadOnlySpan<byte> buffer, int maxCheckLength = 1024)
+        public static bool IsText(ReadOnlySpan<byte> buffer, int maxCheckLength = 1024, Encoding?  encoding = null)
         {
             var checkLength = Math.Min(buffer.Length, maxCheckLength);
             var checkedBuffer = buffer.Slice(0, checkLength);
-            var charCount = Encoding.UTF8.GetCharCount(checkedBuffer);
+            var charCount = (encoding ?? Encoding.UTF8).GetCharCount(checkedBuffer);
 
             Span<char> charBuffer = stackalloc char[charCount];
 
-            var charResultCount = Encoding.UTF8.GetChars(checkedBuffer, charBuffer);
+            var charResultCount = (encoding ?? Encoding.UTF8).GetChars(checkedBuffer, charBuffer);
 
             charBuffer = charBuffer.Slice(0, charResultCount);
 
