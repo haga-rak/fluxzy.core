@@ -242,6 +242,7 @@ export interface HeaderFieldInfo
 export interface ConnectionInfo
 {
 	id: number;
+	httpVersion?: string;
 	authority: AuthorityInfo;
 	sslInfo?: SslInfo;
 	requestProcessed: number;

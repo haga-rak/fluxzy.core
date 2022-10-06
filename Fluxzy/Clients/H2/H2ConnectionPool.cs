@@ -173,7 +173,7 @@ namespace Fluxzy.Clients.H2
                     return true;
             }
 
-            // We do not throw anything here, some server like 
+            // We do not throw anything here, some server  
             // sends an identifier equals to 8 that match none of the value of rfc 7540
 
             // ---> old : throw new InvalidOperationException("Unknown setting type");
@@ -216,7 +216,7 @@ namespace Fluxzy.Clients.H2
 
         public async Task Init()
         {
-            CancellationToken token = _connectionCancellationTokenSource.Token; 
+            var token = _connectionCancellationTokenSource.Token; 
 
             await _baseStream.WriteAsync(Preface, token).ConfigureAwait(false);
 

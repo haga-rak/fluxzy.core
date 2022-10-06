@@ -2,12 +2,9 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Security;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients

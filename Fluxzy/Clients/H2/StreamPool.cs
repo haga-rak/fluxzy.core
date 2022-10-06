@@ -44,7 +44,7 @@ namespace Fluxzy.Clients.H2
             _maxConcurrentStreamBarrier.Dispose();
         }
 
-        public bool TryGetExistingActiveStream(int streamIdentifier, out StreamWorker result)
+        public bool TryGetExistingActiveStream(int streamIdentifier, out StreamWorker? result)
         {
             return _runningStreams.TryGetValue(streamIdentifier, out result);
         }

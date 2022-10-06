@@ -17,6 +17,7 @@ namespace Fluxzy.Clients
             Authority = authority;
             Id = idProvider.NextExchangeId();
         }
+
         public int Id { get; set; }
 
         public Stream? WriteStream { get; set; }
