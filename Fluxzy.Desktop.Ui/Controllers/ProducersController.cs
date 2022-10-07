@@ -26,13 +26,37 @@ namespace Fluxzy.Desktop.Ui.Controllers
         /// <param name="exchangeId"></param>
         /// <returns></returns>
         [HttpGet("request/{exchangeId}")]
-        public async Task<List<object>> Get(int exchangeId)
+        public async Task<List<object>> GetRequest(int exchangeId)
         {
             // TODO : this action lacks elegance. chore refactor.
 
             var results = new List<object>();
 
             await foreach (var item in _producerFactory.GetRequestFormattedResults(
+                               exchangeId))
+            {
+                results.Add(item);
+            }
+
+            return results;
+        }
+
+        // GET: api/<UiController>
+        // Note : object result because System.Text.Json does not handle serializing derived 
+        // class from global settings
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="exchangeId"></param>
+        /// <returns></returns>
+        [HttpGet("response/{exchangeId}")]
+        public async Task<List<object>> GetResponse(int exchangeId)
+        {
+            // TODO : this action lacks elegance. chore refactor.
+
+            var results = new List<object>();
+
+            await foreach (var item in _producerFactory.GetResponseFormattedResults(
                                exchangeId))
             {
                 results.Add(item);

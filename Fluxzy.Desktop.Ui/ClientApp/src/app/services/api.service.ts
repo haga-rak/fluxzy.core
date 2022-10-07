@@ -105,6 +105,13 @@ export class ApiService {
             );
     }
 
+    public getResponseFormattingResults(exchangeId : number) : Observable<FormattingResult[]> {
+        return this.httpClient.get<FormattingResult[]>(`api/producers/response/${exchangeId}`)
+            .pipe(
+                take(1)
+            );
+    }
+
     public exchangeSaveRequestBody(exchangeId: number, fileName : string) : Observable<FormattingResult[]> {
         return this.httpClient.post<FormattingResult[]>(`api/exchange/${exchangeId}/save-request-body`, {
             fileName : fileName
