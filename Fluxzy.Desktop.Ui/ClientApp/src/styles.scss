@@ -16,6 +16,8 @@
 @import "../node_modules/@fortawesome/fontawesome-free/";  
 @import '../node_modules/material-icons/';
 
+@import '~highlight.js/styles/qtcreator-dark.css';
+
 /* You can add global styles to this file, and also import other style files */
 html, body {
   margin: 0;
@@ -60,7 +62,7 @@ html, body {
     color: var(--bs-gray-100);
     background:  var(--bs-gray-700);
     font-family: monospace !important;
-    font-size: 11px;
+    font-size: 12px;
     padding : 8px;
     overflow-x: hidden;
 }
@@ -112,4 +114,8 @@ pre {
     white-space: -pre-wrap;      /* Opera 4-6 */
     white-space: -o-pre-wrap;    /* Opera 7 */
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+pre > code {
+    font-family: monospace !important;
 }
