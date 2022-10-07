@@ -90,6 +90,7 @@ export interface FormatterContainerViewModel
 {
 	requests: FormattingResult[];
 	responses: FormattingResult[];
+	contextInfo: ExchangeContextInfo;
 }
 export interface ResponseBodySummaryResult extends FormattingResult
 {
@@ -98,6 +99,15 @@ export interface ResponseBodySummaryResult extends FormattingResult
 	contentType?: string;
 	bodyText?: string;
 	preferredFileName: string;
+}
+export interface ResponseTextContentResult extends FormattingResult
+{
+}
+export interface ExchangeContextInfo
+{
+	responseBodyText?: string;
+	responseBodyLength?: number;
+	isTextContent: boolean;
 }
 export interface UiState
 {

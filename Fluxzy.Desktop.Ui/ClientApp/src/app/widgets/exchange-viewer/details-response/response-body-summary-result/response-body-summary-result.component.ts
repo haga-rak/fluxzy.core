@@ -12,7 +12,6 @@ import { ApiService } from '../../../../services/api.service';
 export class ResponseBodySummaryResultComponent implements OnInit {
   
     @Input() public exchange : ExchangeInfo ; 
-
     @Input('formatter') public model: ResponseBodySummaryResult;
 
     constructor(private apiService : ApiService, private systemCallService : SystemCallService) {}

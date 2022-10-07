@@ -40,6 +40,7 @@ import { ExchangeConnectivityComponent } from './widgets/exchange-connectivity/e
 import { ResponseSummaryComponent } from './widgets/exchange-viewer/details-response/response-summary/response-summary.component';
 import { ArraySortPipe } from './directives/array-sort.pipe';
 import { ResponseBodySummaryResultComponent } from './widgets/exchange-viewer/details-response/response-body-summary-result/response-body-summary-result.component';
+import { ResponseTextContentResultComponent } from './widgets/exchange-viewer/details-response/response-text-content-result/response-text-content-result.component';
 
 
 // AoT requires an exported function for factories
@@ -50,7 +51,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   };
 
 @NgModule({
-    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent, QueryStringResultComponent, RequestCookieResultComponent, RequestJsonResultComponent, RequestTextBodyResultComponent, RequestBodyAnalysisResultComponent, FormUrlEncodedResultComponent, ExchangeViewerHeaderComponent, MultipartFormContentResultComponent, ExchangeConnectivityComponent, ResponseSummaryComponent, ArraySortPipe, ResponseBodySummaryResultComponent],
+    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent, QueryStringResultComponent, RequestCookieResultComponent, RequestJsonResultComponent, RequestTextBodyResultComponent, RequestBodyAnalysisResultComponent, FormUrlEncodedResultComponent, ExchangeViewerHeaderComponent, MultipartFormContentResultComponent, ExchangeConnectivityComponent, ResponseSummaryComponent, ArraySortPipe, ResponseBodySummaryResultComponent, ResponseTextContentResultComponent],
     imports: [
         BrowserModule,
         FormsModule,
