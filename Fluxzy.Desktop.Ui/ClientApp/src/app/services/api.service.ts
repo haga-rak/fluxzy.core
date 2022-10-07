@@ -119,8 +119,14 @@ export class ApiService {
             );
     }
 
-    public exchangeSaveRequestBody(exchangeId: number, fileName : string) : Observable<FormattingResult[]> {
-        return this.httpClient.post<FormattingResult[]>(`api/exchange/${exchangeId}/save-request-body`, {
+    public exchangeSaveRequestBody(exchangeId: number, fileName : string) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/save-request-body`, {
+            fileName : fileName
+        }).pipe(take(1));
+    }
+    
+    public exchangeSaveResponseBody(exchangeId: number, fileName : string, decode : boolean) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/save-response-body?decode=${decode}`, {
             fileName : fileName
         }).pipe(take(1));
     }

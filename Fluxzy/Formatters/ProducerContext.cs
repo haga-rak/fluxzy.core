@@ -52,8 +52,9 @@ namespace Fluxzy.Formatters
                 
                 var responseEncoding = exchange.GetResponseEncoding(); 
 
-                if (ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024, responseEncoding))
-                {
+                if (ResponseBodyContent != null && ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024, responseEncoding)) {
+                    
+                    RequestBody = ResponseBodyContent;
                     responseEncoding = (responseEncoding ?? Encoding.UTF8); 
                     ResponseBodyText = responseEncoding.GetString(RequestBody.Span);
                 }

@@ -37,5 +37,14 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return await action.Do(exchangeId, body);
         }
 
+
+        [HttpPost("{exchangeId}/save-response-body")]
+        public async Task<ActionResult<bool>> SaveResponseBody(
+            [FromServices] SaveResponseBodyAction action,
+            int exchangeId, [FromBody] SaveFileViewModel body,
+            [FromQuery(Name = "decode")] bool decode = true)
+        {
+            return await action.Do(exchangeId,decode, body.FileName);
+        }
     }
 }

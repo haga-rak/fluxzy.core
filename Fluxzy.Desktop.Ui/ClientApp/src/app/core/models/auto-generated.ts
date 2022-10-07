@@ -97,6 +97,7 @@ export interface ResponseBodySummaryResult extends FormattingResult
 	compression: string;
 	contentType?: string;
 	bodyText?: string;
+	preferredFileName: string;
 }
 export interface UiState
 {
