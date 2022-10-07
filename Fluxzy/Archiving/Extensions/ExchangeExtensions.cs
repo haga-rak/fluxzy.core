@@ -18,7 +18,6 @@ namespace Fluxzy.Extensions
             return contentTypeHeader?.Value.ToString();
         }
 
-
         public static Encoding? GetResponseEncoding(this ExchangeInfo exchangeInfo)
         {
             if (exchangeInfo.ResponseHeader?.Headers == null)
@@ -46,9 +45,7 @@ namespace Fluxzy.Extensions
             }
 
             return null; 
-
         }
-
 
         public static bool IsChunkedTransferEncoded(this ExchangeInfo exchangeInfo)
         {
@@ -84,8 +81,6 @@ namespace Fluxzy.Extensions
 
             return CompressionType.None;
         }
-
-
     }
 
     public enum CompressionType

@@ -34,15 +34,27 @@ import { ApiService } from '../../services/api.service';
 })
 export class ExchangeViewerComponent implements OnInit, OnChanges {
     public currentRequestTabView: string;
+    public currentResponseTabView: string;
 
     public requestFormattingResults: FormattingResult[] | null = null;
     public requestFormattingResult: FormattingResult | null = null;
+
+    public responseFormattingResults: FormattingResult[] | null = null;
+    public responseFormattingResult: FormattingResult | null = null;
+
     public requestOtherText : string = '';
+    public responseOtherText : string = '';
 
     private $exchange: Subject<ExchangeInfo> = new Subject<ExchangeInfo>();
+
     private $requestFormattingResults: Observable<FormattingResult[]>;
+    private $responseFormattingResults: Observable<FormattingResult[]>;
+
     private $currentRequestTabView: BehaviorSubject<string> =
         new BehaviorSubject<string>('requestHeader');
+
+    private $currentResponseTabView: BehaviorSubject<string> =
+        new BehaviorSubject<string>('responseHeader');
 
 
     @Input('exchange') public exchange: ExchangeInfo;
@@ -51,12 +63,21 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
 
     ngOnInit(): void {
         console.log('init');
+
         this.$requestFormattingResults = this.$exchange.asObservable().pipe(
             filter((t) => t.id > 0),
             distinctUntilChanged((t,v) => t.id === v.id),
             tap((t) => (this.requestFormattingResults = null)),
             switchMap((t) => this.apiService.getRequestFormattingResults(t.id)),
             tap((t) => (this.requestFormattingResults = t))
+        );
+        
+        this.$responseFormattingResults = this.$exchange.asObservable().pipe(
+            filter((t) => t.id > 0),
+            distinctUntilChanged((t,v) => t.id === v.id),
+            tap((t) => (this.responseFormattingResults = null)),
+            switchMap((t) => this.apiService.getResponseFormattingResults(t.id)),
+            tap((t) => (this.responseFormattingResults = t))
         );
 
         combineLatest([
@@ -84,10 +105,40 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
             )
             .subscribe();
 
+        combineLatest([
+            this.$responseFormattingResults,
+            this.$currentResponseTabView,
+        ])
+            .pipe(
+                tap((tab) => {
+                    const formatingResults = tab[0];
+                    const selectedTab = tab[1];
+                    const formatingResult = formatingResults.filter(
+                        (t) => t.type === selectedTab
+                    );
+
+                    if (formatingResult.length) {
+                        this.responseFormattingResult = formatingResult[0];
+                    } else {
+                        if (selectedTab !== 'responseHeader') {
+                            this.$currentResponseTabView.next('responseHeader');
+                        } else {
+                            this.responseFormattingResult = null;
+                        }
+                    }
+                })
+            )
+            .subscribe();
+
 
         this.$currentRequestTabView
             .asObservable()
             .pipe(tap((t) => (this.currentRequestTabView = t)))
+            .subscribe();
+
+        this.$currentResponseTabView
+            .asObservable()
+            .pipe(tap((t) => (this.currentResponseTabView = t)))
             .subscribe();
 
 
@@ -110,6 +161,10 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         return name === this.currentRequestTabView;
     }
 
+    public isResponseTabSelected(name: string): boolean {
+        return name === this.currentResponseTabView;
+    }
+
     public setSelectedRequestTab(
         tabName: string,
         formatingResult: FormattingResult,
@@ -125,11 +180,31 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         else{
             this.requestOtherText = '';
         }
-
-        // this.requestFormattingResult = formatingResult;
     }
 
-    public ofType(name: string): boolean {
+    public setSelectedResponseTab(
+        tabName: string,
+        formatingResult: FormattingResult,
+        fromOther : boolean = false
+    ) {
+        console.log(tabName);
+
+        this.$currentResponseTabView.next(tabName);
+
+        if(fromOther) {
+            this.responseOtherText = formatingResult.title;
+        }
+        else{
+            this.responseOtherText = '';
+        }
+
+    }
+
+    public ofTypeRequest(name: string): boolean {
+        return this.requestFormattingResult?.type === name;
+    }
+
+    public ofTypeReponse(name: string): boolean {
         return this.requestFormattingResult?.type === name;
     }
 }
