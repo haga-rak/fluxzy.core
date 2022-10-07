@@ -55,7 +55,7 @@ namespace Fluxzy.Extensions
             if (exchangeInfo.ResponseHeader?.Headers == null)
                 return false;
 
-            return exchangeInfo.ResponseHeader.Headers.Any(h =>
+            return exchangeInfo.ResponseHeader.Headers.Any(h => !h.Forwarded &&
                 h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)
                 && h.Value.Span.Equals("chunked", StringComparison.OrdinalIgnoreCase)
             ); 
@@ -66,7 +66,7 @@ namespace Fluxzy.Extensions
             if (exchangeInfo.ResponseHeader?.Headers == null)
                 throw new InvalidOperationException($"This exchange does not have response body");
 
-            var encodingHeaders = exchangeInfo.ResponseHeader.Headers.Where(h =>
+            var encodingHeaders = exchangeInfo.ResponseHeader.Headers.Where(h => !h.Forwarded &&
                 h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)
                 || h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)).ToList();
 

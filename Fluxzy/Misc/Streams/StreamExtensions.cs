@@ -184,6 +184,28 @@ namespace Fluxzy.Misc.Streams
         }
 
 
+        public static bool ReadExact(this Stream origin, Span<byte> buffer)
+        {
+            int readen = 0;
+            int currentIndex = 0;
+            int remain = buffer.Length;
+
+            while (readen < buffer.Length)
+            {
+                var currentRead = origin.Read(buffer.Slice(currentIndex, remain));
+
+                if (currentRead <= 0)
+                    return false;
+
+                currentIndex += currentRead;
+                remain -= currentRead;
+                readen += currentRead;
+            }
+
+            return true;
+        }
+
+
         public static int SeekableStreamToBytes(this Stream origin, byte[] buffer)
         {
             var index = 0;
