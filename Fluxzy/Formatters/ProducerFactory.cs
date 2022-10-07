@@ -31,6 +31,7 @@ namespace Fluxzy.Formatters
         private static readonly List<IFormattingProducer<FormattingResult>> ResponseProducers = new()
         {
             new ResponseBodySummaryProducer(),
+            new ResponseBodyJsonProducer(),
             new ResponseTextContentProducer(),
         };
 

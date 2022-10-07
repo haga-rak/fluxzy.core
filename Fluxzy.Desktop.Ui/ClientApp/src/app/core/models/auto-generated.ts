@@ -10,6 +10,12 @@ export interface FileSaveViewModel
 {
 	fileName: string;
 }
+export interface ExchangeContextInfo
+{
+	responseBodyText?: string;
+	responseBodyLength?: number;
+	isTextContent: boolean;
+}
 export interface FormattingResult
 {
 	title: string;
@@ -103,11 +109,9 @@ export interface ResponseBodySummaryResult extends FormattingResult
 export interface ResponseTextContentResult extends FormattingResult
 {
 }
-export interface ExchangeContextInfo
+export interface ResponseJsonResult extends FormattingResult
 {
-	responseBodyText?: string;
-	responseBodyLength?: number;
-	isTextContent: boolean;
+	formattedContent: string;
 }
 export interface UiState
 {
