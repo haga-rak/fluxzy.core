@@ -111,6 +111,9 @@ namespace Fluxzy.Desktop.Ui
         }
         private static void ConfigureProducers(ConfigurationBuilder builder)
         {
+            builder.ExportAsInterface<ExchangeContextInfo>()
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<FormattingResult>()
                    .ApplyGenericProperties();
 
@@ -165,7 +168,7 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<ResponseTextContentResult>()
                    .ApplyGenericProperties();
 
-            builder.ExportAsInterface<ExchangeContextInfo>()
+            builder.ExportAsInterface<ResponseJsonResult>()
                    .ApplyGenericProperties();
         }
     }

@@ -155,6 +155,10 @@
                                                  [formatter]="responseFormattingResult" [exchange]="exchange" [context]="context">
                     </app-response-text-content-result>
 
+                    <app-response-json-result *ngIf="ofTypeResponse('ResponseJsonResult')"
+                                                 [formatter]="responseFormattingResult" [exchange]="exchange" [context]="context">
+                    </app-response-json-result>
+
                 </perfect-scrollbar>
             </div>
 

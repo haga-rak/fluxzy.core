@@ -1,5 +1,4 @@
-﻿using System;
-using Fluxzy.Screeners;
+﻿using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers.Responses
 {

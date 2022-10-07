@@ -1,0 +1,12 @@
+<div style="margin-bottom: 6px" >
+    <span  *ngIf="!alreadyFormatted">
+        <span>
+            This JSON has been formatted to provide better readability.
+        </span>
+    </span>
+    <span class="float-end">
+        <a href="javascript:;" (click)="setClipboard(model.formattedContent)">Copy to clipboard</a>
+    </span>
+</div>
+
+<pre class="viewer-textarea" style="width: 100%;" readonly>{{ model.formattedContent }}</pre>
