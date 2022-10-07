@@ -1,0 +1,27 @@
+
+<div style="height: 100%; ">
+
+<!--     
+
+    <table class="summary-table" style="margin-bottom: 20px;">
+        <tr>
+            <th>Status code</th>
+            <td>
+                {{ exchange.statusCode }}
+            </td>
+        </tr>
+    </table>
+ -->
+
+    <table class="summary-table" *ngIf="exchange.responseHeader">
+        <tr *ngFor="let header of exchange.responseHeader.headers | sort:'name'" >
+            <ng-container *ngIf="!header.name.startsWith(':') && header.forwarded">
+
+                <th>{{ header.name }}</th>
+                <td>{{ header.value }}</td>
+            </ng-container>
+        </tr>
+    </table>
+    
+    
+</div>

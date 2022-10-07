@@ -25,18 +25,21 @@ import { VerticalSeparatorDirective } from './directives/vertical-separator.dire
 import { FilterHeaderViewComponent } from './widgets/filter-header-view/filter-header-view.component';
 import { ExchangeTableViewComponent } from './widgets/exchange-table-view/exchange-table-view.component';
 import { PerfectScrollbarConfigInterface, PerfectScrollbarModule, PERFECT_SCROLLBAR_CONFIG } from 'ngx-perfect-scrollbar';
-import { HeaderViewerComponent } from './widgets/exchange-viewer/details/header-viewer/header-viewer.component';
-import { RawRequestHeaderResultComponent } from './widgets/exchange-viewer/details/raw-request-header-result/raw-request-header-result.component';
+import { HeaderViewerComponent } from './widgets/exchange-viewer/details-request/header-viewer/header-viewer.component';
+import { RawRequestHeaderResultComponent } from './widgets/exchange-viewer/details-request/raw-request-header-result/raw-request-header-result.component';
 import { AngularSplitModule } from 'angular-split';
-import { QueryStringResultComponent } from './widgets/exchange-viewer/details/query-string-result/query-string-result.component';
-import { RequestCookieResultComponent } from './widgets/exchange-viewer/details/request-cookie-result/request-cookie-result.component';
-import { RequestJsonResultComponent } from './widgets/exchange-viewer/details/request-json-result/request-json-result.component';
-import { RequestTextBodyResultComponent } from './widgets/exchange-viewer/details/request-text-body-result/request-text-body-result.component';
-import { RequestBodyAnalysisResultComponent } from './widgets/exchange-viewer/details/request-body-analysis-result/request-body-analysis-result.component';
-import { FormUrlEncodedResultComponent } from './widgets/exchange-viewer/details/form-url-encoded-result/form-url-encoded-result.component';
+import { QueryStringResultComponent } from './widgets/exchange-viewer/details-request/query-string-result/query-string-result.component';
+import { RequestCookieResultComponent } from './widgets/exchange-viewer/details-request/request-cookie-result/request-cookie-result.component';
+import { RequestJsonResultComponent } from './widgets/exchange-viewer/details-request/request-json-result/request-json-result.component';
+import { RequestTextBodyResultComponent } from './widgets/exchange-viewer/details-request/request-text-body-result/request-text-body-result.component';
+import { RequestBodyAnalysisResultComponent } from './widgets/exchange-viewer/details-request/request-body-analysis-result/request-body-analysis-result.component';
+import { FormUrlEncodedResultComponent } from './widgets/exchange-viewer/details-request/form-url-encoded-result/form-url-encoded-result.component';
 import { ExchangeViewerHeaderComponent } from './widgets/exchange-viewer-header/exchange-viewer-header.component';
-import { MultipartFormContentResultComponent } from './widgets/exchange-viewer/details/multipart-form-content-result/multipart-form-content-result.component';
+import { MultipartFormContentResultComponent } from './widgets/exchange-viewer/details-request/multipart-form-content-result/multipart-form-content-result.component';
 import { ExchangeConnectivityComponent } from './widgets/exchange-connectivity/exchange-connectivity.component';
+import { ResponseSummaryComponent } from './widgets/exchange-viewer/details-response/response-summary/response-summary.component';
+import { ArraySortPipe } from './directives/array-sort.pipe';
+import { ResponseBodySummaryResultComponent } from './widgets/exchange-viewer/details-response/response-body-summary-result/response-body-summary-result.component';
 
 
 // AoT requires an exported function for factories
@@ -47,7 +50,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   };
 
 @NgModule({
-    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent, QueryStringResultComponent, RequestCookieResultComponent, RequestJsonResultComponent, RequestTextBodyResultComponent, RequestBodyAnalysisResultComponent, FormUrlEncodedResultComponent, ExchangeViewerHeaderComponent, MultipartFormContentResultComponent, ExchangeConnectivityComponent],
+    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent, QueryStringResultComponent, RequestCookieResultComponent, RequestJsonResultComponent, RequestTextBodyResultComponent, RequestBodyAnalysisResultComponent, FormUrlEncodedResultComponent, ExchangeViewerHeaderComponent, MultipartFormContentResultComponent, ExchangeConnectivityComponent, ResponseSummaryComponent, ArraySortPipe, ResponseBodySummaryResultComponent],
     imports: [
         BrowserModule,
         FormsModule,
@@ -75,9 +78,9 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
                 deps: [HttpClient]
             }
         }),
-        BrowserAnimationsModule, 
-       
-        
+        BrowserAnimationsModule,
+
+
     ],
     providers: [ {
         provide: PERFECT_SCROLLBAR_CONFIG,

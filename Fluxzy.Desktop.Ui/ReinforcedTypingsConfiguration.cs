@@ -6,6 +6,7 @@ using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Requests;
+using Fluxzy.Formatters.Producers.Responses;
 using Fluxzy.Screeners;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
@@ -152,6 +153,12 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<SaveFileMultipartActionModel>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FormatterContainerViewModel>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ResponseBodySummaryResult>()
                    .ApplyGenericProperties();
         }
     }

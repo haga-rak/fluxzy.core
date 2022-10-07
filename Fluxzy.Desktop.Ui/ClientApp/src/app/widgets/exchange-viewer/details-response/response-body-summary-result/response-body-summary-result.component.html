@@ -1,0 +1,23 @@
+<div style="height: 100%; ">
+    <table class="summary-table" style="margin-bottom: 20px;">
+        <tr>
+            <th>Content length</th>
+            <td>
+                {{ model.contentLength }} bytes
+            </td>
+        </tr>
+        <tr>
+            <th>Compression</th>
+            <td>
+                {{ model.compression }}
+            </td>
+        </tr>
+        <tr *ngIf="model.errorMessage ">
+            <th>Error message</th>
+            <td>
+                {{ model.errorMessage }}
+            </td>
+        </tr>
+    </table>
+
+</div>

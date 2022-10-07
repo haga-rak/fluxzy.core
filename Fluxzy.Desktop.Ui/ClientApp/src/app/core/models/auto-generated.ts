@@ -86,6 +86,18 @@ export interface SaveFileMultipartActionModel
 	offset: number;
 	length: number;
 }
+export interface FormatterContainerViewModel
+{
+	requests: FormattingResult[];
+	responses: FormattingResult[];
+}
+export interface ResponseBodySummaryResult extends FormattingResult
+{
+	contentLength: number;
+	compression: string;
+	contentType?: string;
+	bodyText?: string;
+}
 export interface UiState
 {
 	id: string;

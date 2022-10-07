@@ -63,9 +63,9 @@ namespace Fluxzy.Extensions
             if (exchangeInfo.ResponseHeader?.Headers == null)
                 throw new InvalidOperationException($"This exchange does not have response body");
 
-            var encodingHeaders = exchangeInfo.ResponseHeader.Headers.Where(h => !h.Forwarded &&
+            var encodingHeaders = exchangeInfo.ResponseHeader.Headers.Where(h => h.Forwarded &&
                 h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)
-                || h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)).ToList();
+                || h.Name.Span.Equals("Content-encoding", StringComparison.OrdinalIgnoreCase)).ToList();
 
             if (encodingHeaders.Any(h => h.Value.Span.Contains("gzip", StringComparison.OrdinalIgnoreCase)))
                 return CompressionType.Gzip; 
