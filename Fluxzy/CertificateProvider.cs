@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
@@ -68,7 +69,6 @@ namespace Fluxzy
 
             return string.Join(".", splittedArray.Reverse().Take(splittedArray.Length - 1).Reverse());
         }
-
         private byte[] BuildCertificateForRootDomain(string rootDomain)
         {
             var watch = new Stopwatch();
@@ -123,10 +123,13 @@ namespace Fluxzy
 
             if (offSetEnd > offsetLimit) offSetEnd = offsetLimit;
 
+            var buffer = new byte[16]; 
+            randomGenerator.NextBytes(buffer);
+
             using var cert = certificateRequest.Create(_baseCertificate,
                 new DateTimeOffset(_baseCertificate.NotBefore.AddSeconds(1)),
                 offSetEnd,
-                BitConverter.GetBytes(randomGenerator.NextDouble()));
+                buffer);
 
             using var privateKeyCertificate = cert.CopyWithPrivateKey(_rsaKeyEngine);
 
