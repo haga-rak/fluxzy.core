@@ -56,14 +56,8 @@ namespace Fluxzy.Formatters
             return new ProducerContext(exchangeInfo, archiveReader, _producerSettings);
         }
 
-        public async IAsyncEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId)
+        public IEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId, ProducerContext formattingProducerContext)
         {
-            using var formattingProducerContext = await GetProducerContext(exchangeId);
-
-            if (formattingProducerContext == null)
-                yield break;
-            
-
             foreach (var producer in RequestProducers)
             {
                 var result = producer.Build(formattingProducerContext.Exchange, formattingProducerContext);
@@ -73,14 +67,8 @@ namespace Fluxzy.Formatters
             }
         }
 
-        public async IAsyncEnumerable<FormattingResult> GetResponseFormattedResults(int exchangeId)
+        public  IEnumerable<FormattingResult> GetResponseFormattedResults(int exchangeId, ProducerContext formattingProducerContext)
         {
-            using var formattingProducerContext = await GetProducerContext(exchangeId);
-
-            if (formattingProducerContext == null)
-                yield break;
-            
-
             foreach (var producer in ResponseProducers)
             {
                 var result = producer.Build(formattingProducerContext.Exchange, formattingProducerContext);

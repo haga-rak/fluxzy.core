@@ -52,12 +52,9 @@ namespace Fluxzy.Desktop.Services
         public static IServiceCollection AddFluxzyProducers(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddScoped<ProducerFactory>();
-            
             serviceCollection.AddScoped<SaveRequestBodyProducerAction>();
-
             serviceCollection.AddScoped<SaveFileMultipartAction>();
-
-            serviceCollection.AddScoped<ResponseBodySummaryProducer>();
+            serviceCollection.AddScoped<SaveResponseBodyAction>();
 
             return serviceCollection;
 

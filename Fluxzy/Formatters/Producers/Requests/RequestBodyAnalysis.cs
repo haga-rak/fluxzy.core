@@ -15,7 +15,6 @@ namespace Fluxzy.Formatters.Producers.Requests
             if (context.RequestBodyLength == 0)
                 return null;
 
-            var preferredFileName = $"request-{exchangeInfo.Id}.data";
 
             var contentType = exchangeInfo.GetRequestHeaders()
                                           .Where(h => h.Name.Span.Equals("content-type",
@@ -23,6 +22,7 @@ namespace Fluxzy.Formatters.Producers.Requests
                                           .Select(s => s.Value.Length == 0 ? null : s.Value.ToString())
                                           .LastOrDefault();
 
+            var preferredFileName = $"request-{exchangeInfo.Id}.data";
             // Try to deduce filename from URL 
 
             if (Uri.TryCreate(exchangeInfo.FullUrl, UriKind.Absolute, out var uri) && 

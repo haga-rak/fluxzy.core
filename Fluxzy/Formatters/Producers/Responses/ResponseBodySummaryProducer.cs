@@ -2,6 +2,7 @@
 
 using Fluxzy.Extensions;
 using Fluxzy.Screeners;
+using System;
 
 namespace Fluxzy.Formatters.Producers.Responses
 {
@@ -16,21 +17,32 @@ namespace Fluxzy.Formatters.Producers.Responses
                 || context.CompressionInfo == null)
                 return null;
 
+
+            var preferredFileName = $"response-{exchangeInfo.Id}.data";
+            // Try to deduce filename from URL 
+
+            if (Uri.TryCreate(exchangeInfo.FullUrl, UriKind.Absolute, out var uri) &&
+                !string.IsNullOrWhiteSpace(uri.LocalPath))
+            {
+                preferredFileName = uri.LocalPath;
+            }
+
             return new ResponseBodySummaryResult(ResultTitle, context.ResponseBodyLength.Value,
                 context.CompressionInfo.CompressionName!, exchangeInfo.GetResponseHeaderValue("content-type"),
-                context.ResponseBodyText); 
+                context.ResponseBodyText, preferredFileName); 
         }
     }
 
     public class ResponseBodySummaryResult : FormattingResult
     {
         public ResponseBodySummaryResult(string title,
-            long contentLength, string compression, string? contentType, string? bodyText) : base(title)
+            long contentLength, string compression, string? contentType, string? bodyText, string preferredFileName) : base(title)
         {
             ContentLength = contentLength;
             Compression = compression;
             ContentType = contentType;
             BodyText = bodyText;
+            PreferredFileName = preferredFileName;
         }
 
         public long ContentLength { get;  }
@@ -40,5 +52,6 @@ namespace Fluxzy.Formatters.Producers.Responses
         public string? ContentType { get; }
 
         public string? BodyText { get;  }
+        public string PreferredFileName { get; }
     }
 }
