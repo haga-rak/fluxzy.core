@@ -93,17 +93,6 @@
 
                 <div style="margin-top : 10px" class="exchange-viewer-header">
 
-
-                    <!-- <div style="margin-bottom: 8px">
-                        <span>
-                            <strong>{{ exchange.statusCode }} </strong>&nbsp; <a href="javascript:;">Content Created</a>
-                        </span>
-                        <span class="float-end">
-                            <span class="badge badge-warning bg-secondary">HTTP/1.1</span> <span>TLS1.2</span>
-                        </span>
-                    </div> -->
-
-
                     
                     <div class="btn-group" role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
 
@@ -161,6 +150,10 @@
                     <app-response-body-summary-result *ngIf="ofTypeResponse('ResponseBodySummaryResult')"
                                                  [formatter]="responseFormattingResult" [exchange]="exchange">
                     </app-response-body-summary-result>
+
+                    <app-response-text-content-result *ngIf="ofTypeResponse('ResponseTextContentResult')"
+                                                 [formatter]="responseFormattingResult" [exchange]="exchange" [context]="context">
+                    </app-response-text-content-result>
 
                 </perfect-scrollbar>
             </div>

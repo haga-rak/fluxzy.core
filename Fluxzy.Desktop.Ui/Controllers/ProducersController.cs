@@ -29,16 +29,18 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpGet("formatters/{exchangeId}")]
         public async Task<ActionResult<FormatterContainerViewModelGeneric>> GetFormatters(int exchangeId)
         {
-            var context = await _producerFactory.GetProducerContext(exchangeId);
+            var producerContext = await _producerFactory.GetProducerContext(exchangeId);
 
-            if (context == null)
+            if (producerContext == null)
                 return NotFound();
 
-            var viewModel = new FormatterContainerViewModel(_producerFactory.GetRequestFormattedResults(
-                exchangeId, context).ToList(), _producerFactory.GetResponseFormattedResults(
-                exchangeId, context).ToList());
+            var exchangeContext = producerContext.GetContextInfo();
 
-            return new FormatterContainerViewModelGeneric(viewModel);
+            var viewModel = new FormatterContainerViewModel(_producerFactory.GetRequestFormattedResults(
+                exchangeId, producerContext).ToList(), _producerFactory.GetResponseFormattedResults(
+                exchangeId, producerContext).ToList(), exchangeContext);
+
+            return new FormatterContainerViewModelGeneric(viewModel, exchangeContext);
         }
     }
 }

@@ -9,7 +9,6 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
 {
     public class SaveResponseBodyAction
     {
-
         private readonly ProducerFactory _producerFactory;
 
         public SaveResponseBodyAction(ProducerFactory producerFactory)

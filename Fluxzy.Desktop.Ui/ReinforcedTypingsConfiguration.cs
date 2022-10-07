@@ -4,6 +4,7 @@ using System.Net;
 using Fluxzy.Clients;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
+using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Formatters.Producers.Responses;
@@ -159,6 +160,12 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<ResponseBodySummaryResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ResponseTextContentResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ExchangeContextInfo>()
                    .ApplyGenericProperties();
         }
     }

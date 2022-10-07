@@ -52,7 +52,7 @@ namespace Fluxzy.Formatters
                 
                 var responseEncoding = exchange.GetResponseEncoding(); 
 
-                if (ResponseBodyContent != null && ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024, responseEncoding)) {
+                if (ResponseBodyContent != null && (IsTextContent = ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024, responseEncoding))) {
                     
                     RequestBody = ResponseBodyContent;
                     responseEncoding = (responseEncoding ?? Encoding.UTF8); 
@@ -62,6 +62,8 @@ namespace Fluxzy.Formatters
                 CompressionInfo = compressionInfo;
             }
         }
+
+        public bool IsTextContent { get; set; }
 
         public ExchangeInfo Exchange { get; }
 
@@ -85,7 +87,6 @@ namespace Fluxzy.Formatters
 
         public string? ResponseBodyText { get; }
 
-
         public long? ResponseBodyLength { get; } = 0;
 
         public void Dispose()
@@ -96,5 +97,26 @@ namespace Fluxzy.Formatters
                 _internalBuffer = null; 
             }
         }
+
+        public ExchangeContextInfo GetContextInfo()
+        {
+            return new ExchangeContextInfo(ResponseBodyText, ResponseBodyLength, IsTextContent); 
+        }
+    }
+
+    public class ExchangeContextInfo
+    {
+        public ExchangeContextInfo(string? responseBodyText, long? responseBodyLength, bool isTextContent)
+        {
+            ResponseBodyText = responseBodyText;
+            ResponseBodyLength = responseBodyLength;
+            IsTextContent = isTextContent;
+        }
+
+        public string? ResponseBodyText { get; }
+
+        public long? ResponseBodyLength { get; } = 0;
+
+        public bool IsTextContent { get; set; }
     }
 }

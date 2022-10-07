@@ -10,7 +10,6 @@ import {
     BehaviorSubject,
     catchError,
     combineLatest,
-    concat,
     concatAll,
     distinctUntilChanged,
     filter,
@@ -22,6 +21,7 @@ import {
     tap,
 } from 'rxjs';
 import {
+    ExchangeContextInfo,
     ExchangeInfo,
     FormattingResult,
 } from '../../core/models/auto-generated';
@@ -37,6 +37,8 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
     
     public ExchangeStyle = ExchangeStyle ; 
     public StatusCodeVerb = StatusCodeVerb ; 
+
+    public context : ExchangeContextInfo | null = null ; 
 
     public currentRequestTabView: string;
     public currentResponseTabView: string;
@@ -138,10 +140,9 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
             }),
             switchMap((t) => this.apiService.getFormatters(t.id)),
             tap((t) => {
-                
+                this.context = t.contextInfo ; 
                 this.requestFormattingResults = t.requests;
                 this.responseFormattingResults = t.responses;
-
                 this.$requestFormattingResults.next(t.requests);
                 this.$responseFormattingResults.next(t.responses);
             })
