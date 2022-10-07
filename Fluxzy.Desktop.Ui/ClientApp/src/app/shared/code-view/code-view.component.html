@@ -1,0 +1,10 @@
+<!-- <pre  style="width:100%"><code [highlight]="content" [languages]="['json']"></code></pre> -->
+
+<div style="margin-bottom: 8px">
+    <span>{{title}}</span>
+    <span class="float-end">
+        <a href="javascript:;" (click)="setClipboard(content)">Copy to clipboard</a>
+    </span>
+</div>
+
+<pre class="viewer-textarea"  style="width:100%">{{content}}</pre>

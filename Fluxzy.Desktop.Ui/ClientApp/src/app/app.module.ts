@@ -8,7 +8,6 @@ import { CoreModule } from './core/core.module';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
-
 import { AppComponent } from './app.component';
 import { MenuComponent } from './menu/menu.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -24,7 +23,11 @@ import { ExchangeViewerComponent } from './widgets/exchange-viewer/exchange-view
 import { VerticalSeparatorDirective } from './directives/vertical-separator.directive';
 import { FilterHeaderViewComponent } from './widgets/filter-header-view/filter-header-view.component';
 import { ExchangeTableViewComponent } from './widgets/exchange-table-view/exchange-table-view.component';
-import { PerfectScrollbarConfigInterface, PerfectScrollbarModule, PERFECT_SCROLLBAR_CONFIG } from 'ngx-perfect-scrollbar';
+import {
+    PerfectScrollbarConfigInterface,
+    PerfectScrollbarModule,
+    PERFECT_SCROLLBAR_CONFIG,
+} from 'ngx-perfect-scrollbar';
 import { HeaderViewerComponent } from './widgets/exchange-viewer/details-request/header-viewer/header-viewer.component';
 import { RawRequestHeaderResultComponent } from './widgets/exchange-viewer/details-request/raw-request-header-result/raw-request-header-result.component';
 import { AngularSplitModule } from 'angular-split';
@@ -42,17 +45,47 @@ import { ArraySortPipe } from './directives/array-sort.pipe';
 import { ResponseBodySummaryResultComponent } from './widgets/exchange-viewer/details-response/response-body-summary-result/response-body-summary-result.component';
 import { ResponseTextContentResultComponent } from './widgets/exchange-viewer/details-response/response-text-content-result/response-text-content-result.component';
 import { ResponseJsonResultComponent } from './widgets/exchange-viewer/details-response/response-json-result/response-json-result.component';
-
+import { CodeViewComponent } from './shared/code-view/code-view.component';
+import { HighlightModule, HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 
 // AoT requires an exported function for factories
-const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new TranslateHttpLoader(http, './assets/i18n/', '.json');
+const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
+    new TranslateHttpLoader(http, './assets/i18n/', '.json');
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
-    suppressScrollX: true
-  };
+    suppressScrollX: true,
+};
 
 @NgModule({
-    declarations: [AppComponent, MenuComponent, ToggleComponent, HomeComponent, StatusBarComponent, FilterComponent, ExchangeViewerComponent, VerticalSeparatorDirective, FilterHeaderViewComponent, ExchangeTableViewComponent, HeaderViewerComponent, RawRequestHeaderResultComponent, QueryStringResultComponent, RequestCookieResultComponent, RequestJsonResultComponent, RequestTextBodyResultComponent, RequestBodyAnalysisResultComponent, FormUrlEncodedResultComponent, ExchangeViewerHeaderComponent, MultipartFormContentResultComponent, ExchangeConnectivityComponent, ResponseSummaryComponent, ArraySortPipe, ResponseBodySummaryResultComponent, ResponseTextContentResultComponent, ResponseJsonResultComponent],
+    declarations: [
+        AppComponent,
+        MenuComponent,
+        ToggleComponent,
+        HomeComponent,
+        StatusBarComponent,
+        FilterComponent,
+        ExchangeViewerComponent,
+        VerticalSeparatorDirective,
+        FilterHeaderViewComponent,
+        ExchangeTableViewComponent,
+        HeaderViewerComponent,
+        RawRequestHeaderResultComponent,
+        QueryStringResultComponent,
+        RequestCookieResultComponent,
+        RequestJsonResultComponent,
+        RequestTextBodyResultComponent,
+        RequestBodyAnalysisResultComponent,
+        FormUrlEncodedResultComponent,
+        ExchangeViewerHeaderComponent,
+        MultipartFormContentResultComponent,
+        ExchangeConnectivityComponent,
+        ResponseSummaryComponent,
+        ArraySortPipe,
+        ResponseBodySummaryResultComponent,
+        ResponseTextContentResultComponent,
+        ResponseJsonResultComponent,
+        CodeViewComponent,
+    ],
     imports: [
         BrowserModule,
         FormsModule,
@@ -63,31 +96,39 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         TabsModule.forRoot(),
         TooltipModule.forRoot(),
         PerfectScrollbarModule,
+        HighlightModule,
         RouterModule.forRoot([
             {
-              path: '',
-              redirectTo: 'home',
-              pathMatch: 'full'
+                path: '',
+                redirectTo: 'home',
+                pathMatch: 'full',
             },
             {
-              path: 'home',
-              component: HomeComponent
-            }]),
+                path: 'home',
+                component: HomeComponent,
+            },
+        ]),
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,
                 useFactory: httpLoaderFactory,
-                deps: [HttpClient]
-            }
+                deps: [HttpClient],
+            },
         }),
         BrowserAnimationsModule,
-
-
     ],
-    providers: [ {
-        provide: PERFECT_SCROLLBAR_CONFIG,
-        useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG
-    }],
-    bootstrap: [AppComponent]
+    providers: [
+        {
+            provide: PERFECT_SCROLLBAR_CONFIG,
+            useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG,
+        },
+        {
+            provide: HIGHLIGHT_OPTIONS,
+            useValue: {
+                fullLibraryLoader: () => import('highlight.js'),
+            },
+        },
+    ],
+    bootstrap: [AppComponent],
 })
 export class AppModule {}
