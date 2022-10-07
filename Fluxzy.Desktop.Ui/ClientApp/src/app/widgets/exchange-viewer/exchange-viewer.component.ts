@@ -25,6 +25,7 @@ import {
     ExchangeInfo,
     FormattingResult,
 } from '../../core/models/auto-generated';
+import { ExchangeStyle, StatusCodeVerb } from '../../core/models/exchange-extensions';
 import { ApiService } from '../../services/api.service';
 
 @Component({
@@ -33,6 +34,10 @@ import { ApiService } from '../../services/api.service';
     styleUrls: ['./exchange-viewer.component.scss'],
 })
 export class ExchangeViewerComponent implements OnInit, OnChanges {
+    
+    public ExchangeStyle = ExchangeStyle ; 
+    public StatusCodeVerb = StatusCodeVerb ; 
+
     public currentRequestTabView: string;
     public currentResponseTabView: string;
 
@@ -47,8 +52,8 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
 
     private $exchange: Subject<ExchangeInfo> = new Subject<ExchangeInfo>();
 
-    private $requestFormattingResults: Observable<FormattingResult[]>;
-    private $responseFormattingResults: Observable<FormattingResult[]>;
+    private $requestFormattingResults: Subject<FormattingResult[]> = new Subject<FormattingResult[]>();
+    private $responseFormattingResults: Subject<FormattingResult[]> = new Subject<FormattingResult[]>();
 
     private $currentRequestTabView: BehaviorSubject<string> =
         new BehaviorSubject<string>('requestHeader');
@@ -62,26 +67,9 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
     constructor(private apiService: ApiService) {}
 
     ngOnInit(): void {
-        console.log('init');
-
-        this.$requestFormattingResults = this.$exchange.asObservable().pipe(
-            filter((t) => t.id > 0),
-            distinctUntilChanged((t,v) => t.id === v.id),
-            tap((t) => (this.requestFormattingResults = null)),
-            switchMap((t) => this.apiService.getRequestFormattingResults(t.id)),
-            tap((t) => (this.requestFormattingResults = t))
-        );
-        
-        this.$responseFormattingResults = this.$exchange.asObservable().pipe(
-            filter((t) => t.id > 0),
-            distinctUntilChanged((t,v) => t.id === v.id),
-            tap((t) => (this.responseFormattingResults = null)),
-            switchMap((t) => this.apiService.getResponseFormattingResults(t.id)),
-            tap((t) => (this.responseFormattingResults = t))
-        );
 
         combineLatest([
-            this.$requestFormattingResults,
+            this.$requestFormattingResults.asObservable(),
             this.$currentRequestTabView,
         ])
             .pipe(
@@ -106,7 +94,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
             .subscribe();
 
         combineLatest([
-            this.$responseFormattingResults,
+            this.$responseFormattingResults.asObservable(),
             this.$currentResponseTabView,
         ])
             .pipe(
@@ -140,9 +128,27 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
             .asObservable()
             .pipe(tap((t) => (this.currentResponseTabView = t)))
             .subscribe();
+        
+        this.$exchange.asObservable().pipe(
+            filter((t) => t.id > 0),
+            distinctUntilChanged((t,v) => t.id === v.id),
+            tap((t) => {
+                this.requestFormattingResults = null;
+                this.responseFormattingResults = null;
+            }),
+            switchMap((t) => this.apiService.getFormatters(t.id)),
+            tap((t) => {
+                
+                this.requestFormattingResults = t.requests;
+                this.responseFormattingResults = t.responses;
 
-
+                this.$requestFormattingResults.next(t.requests);
+                this.$responseFormattingResults.next(t.responses);
+            })
+        ).subscribe();
+        
         this.$exchange.next(this.exchange);
+
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -204,7 +210,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         return this.requestFormattingResult?.type === name;
     }
 
-    public ofTypeReponse(name: string): boolean {
-        return this.requestFormattingResult?.type === name;
+    public ofTypeResponse(name: string): boolean {
+        return this.responseFormattingResult?.type === name;
     }
 }

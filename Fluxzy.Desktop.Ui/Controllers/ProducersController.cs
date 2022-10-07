@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Fluxzy.Formatters;
+using Fluxzy.Desktop.Ui.ViewModels;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
@@ -25,44 +26,20 @@ namespace Fluxzy.Desktop.Ui.Controllers
         /// </summary>
         /// <param name="exchangeId"></param>
         /// <returns></returns>
-        [HttpGet("request/{exchangeId}")]
-        public async Task<List<object>> GetRequest(int exchangeId)
+        [HttpGet("formatters/{exchangeId}")]
+        public async Task<FormatterContainerViewModelGeneric> GetFormatters(int exchangeId)
         {
-            // TODO : this action lacks elegance. chore refactor.
+            var requestFormatters = _producerFactory.GetRequestFormattedResults(
+                exchangeId).ToListAsync();
 
-            var results = new List<object>();
+            var responseFormatters = _producerFactory.GetResponseFormattedResults(
+                exchangeId).ToListAsync();
 
-            await foreach (var item in _producerFactory.GetRequestFormattedResults(
-                               exchangeId))
-            {
-                results.Add(item);
-            }
+            var res = await Task.WhenAll(requestFormatters, responseFormatters);
 
-            return results;
-        }
+            var viewModel = new FormatterContainerViewModel(res[0], res[1]);
 
-        // GET: api/<UiController>
-        // Note : object result because System.Text.Json does not handle serializing derived 
-        // class from global settings
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="exchangeId"></param>
-        /// <returns></returns>
-        [HttpGet("response/{exchangeId}")]
-        public async Task<List<object>> GetResponse(int exchangeId)
-        {
-            // TODO : this action lacks elegance. chore refactor.
-
-            var results = new List<object>();
-
-            await foreach (var item in _producerFactory.GetResponseFormattedResults(
-                               exchangeId))
-            {
-                results.Add(item);
-            }
-
-            return results;
+            return new FormatterContainerViewModelGeneric(viewModel);
         }
     }
 }

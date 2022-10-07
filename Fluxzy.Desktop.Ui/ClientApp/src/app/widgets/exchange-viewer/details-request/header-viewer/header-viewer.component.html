@@ -33,7 +33,7 @@
     
     
         <table class="summary-table">
-            <tr *ngFor="let header of exchange.requestHeader.headers" >
+            <tr *ngFor="let header of exchange.requestHeader.headers  | sort:'name'" >
                 <ng-container *ngIf="!header.name.startsWith(':') && header.forwarded">
     
                     <th>{{ header.name }}</th>

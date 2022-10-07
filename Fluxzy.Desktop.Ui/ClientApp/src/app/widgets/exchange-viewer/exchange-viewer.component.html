@@ -108,9 +108,13 @@
                     <div class="btn-group" role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
 
                         <button type="button" href="javascript:;" class="btn btn-dark  btn-viewer-menu"
-                                [ngClass]="{'active' : isResponseTabSelected('requestHeader')}"
-                                (click)="setSelectedResponseTab('requestHeader', null)">
-                            request summary
+                                [ngClass]="{'active' : isResponseTabSelected('responseHeader')}"
+                                (click)="setSelectedResponseTab('responseHeader', null)">
+
+                                <span [title]="exchange.statusCode" [ngClass]="ExchangeStyle(exchange).textClass"><i [ngClass]="ExchangeStyle(exchange).iconClass"></i></span>
+                            &nbsp; 
+                            <span *ngIf="exchange.statusCode">{{exchange.statusCode}} {{StatusCodeVerb[exchange.statusCode + '']}}</span>
+                            <span *ngIf="!exchange.statusCode">On erro</span>
                         </button>
 
                         <button *ngIf="!responseFormattingResults" type="button" href="javascript:;" class="btn btn-dark">
@@ -145,10 +149,20 @@
 
                 </div>
 
-                <div class="shady-box exchange-content-box"
-                     style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; flex-grow : 4;">
+                <perfect-scrollbar [usePSClass]="true" class="exchange-content-box shady-box view-box">
+                    <!-- <div class="exchange-content-box shady-box"
+                        style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; padding: 12px; flex-grow : 4"> -->
 
-                </div>
+
+                    <app-response-summary *ngIf="currentResponseTabView === 'responseHeader'" [exchange]="exchange">
+                    </app-response-summary>
+
+
+                    <app-response-body-summary-result *ngIf="ofTypeResponse('ResponseBodySummaryResult')"
+                                                 [formatter]="responseFormattingResult" [exchange]="exchange">
+                    </app-response-body-summary-result>
+
+                </perfect-scrollbar>
             </div>
 
         </as-split-area>
