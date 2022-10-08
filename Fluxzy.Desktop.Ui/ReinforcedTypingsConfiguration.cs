@@ -170,6 +170,12 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<ResponseJsonResult>()
                    .ApplyGenericProperties();
+
+            builder.ExportAsInterface<SetCookieResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<SetCookieItem>()
+                   .ApplyGenericProperties();
         }
     }
 

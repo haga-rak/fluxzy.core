@@ -113,6 +113,22 @@ export interface ResponseJsonResult extends FormattingResult
 {
 	formattedContent: string;
 }
+export interface SetCookieResult extends FormattingResult
+{
+	cookies: SetCookieItem[];
+}
+export interface SetCookieItem
+{
+	name: string;
+	value: string;
+	domain?: string;
+	path?: string;
+	sameSite?: string;
+	expired: Date;
+	maxAge?: number;
+	secure: boolean;
+	httpOnly: boolean;
+}
 export interface UiState
 {
 	id: string;
