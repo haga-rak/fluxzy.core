@@ -32,6 +32,7 @@ namespace Fluxzy.Formatters
         {
             new ResponseBodySummaryProducer(),
             new ResponseBodyJsonProducer(),
+            new SetCookieProducer(),
             new ResponseTextContentProducer(),
         };
 
