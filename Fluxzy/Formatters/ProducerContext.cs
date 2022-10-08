@@ -53,10 +53,10 @@ namespace Fluxzy.Formatters
                 var responseEncoding = exchange.GetResponseEncoding(); 
 
                 if (ResponseBodyContent != null && (IsTextContent = ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024, responseEncoding))) {
-                    
-                    RequestBody = ResponseBodyContent;
+
+                    ResponseBody = ResponseBodyContent;
                     responseEncoding = (responseEncoding ?? Encoding.UTF8); 
-                    ResponseBodyText = responseEncoding.GetString(RequestBody.Span);
+                    ResponseBodyText = responseEncoding.GetString(ResponseBody.Span);
                 }
 
                 CompressionInfo = compressionInfo;
@@ -74,6 +74,7 @@ namespace Fluxzy.Formatters
         public long RequestBodyLength { get; } = 0;
 
         public ReadOnlyMemory<byte> RequestBody { get;  }
+        public ReadOnlyMemory<byte> ResponseBody { get;  }
 
         public byte []? ResponseBodyContent { get; }
 
