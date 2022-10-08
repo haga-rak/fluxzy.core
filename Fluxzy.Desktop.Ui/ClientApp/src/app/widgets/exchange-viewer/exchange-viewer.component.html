@@ -167,6 +167,10 @@
                                                  [formatter]="responseFormattingResult" [exchange]="exchange" [context]="context">
                     </app-response-json-result>
 
+                    <app-set-cookie-result *ngIf="ofTypeResponse('SetCookieResult')"
+                                                 [formatter]="responseFormattingResult" [exchange]="exchange" [context]="context">
+                    </app-set-cookie-result>
+
                 </perfect-scrollbar>
             </div>
 
