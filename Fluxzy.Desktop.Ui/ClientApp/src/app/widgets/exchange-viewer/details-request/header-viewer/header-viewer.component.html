@@ -9,15 +9,33 @@
                 <td>{{ exchange.method }}</td>
             </tr>
             <tr>
+                <th>Full url</th>
+                <td>
+                    <span [title]="exchange.fullUrl ">
+                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(exchange.fullUrl)"> 
+                            <span class="material-icons" style="font-size:10px !important">content_copy</span>
+                        </a> {{ exchange.fullUrl }}
+                    </span>
+                    <br/>
+                     
+                </td>
+            </tr>
+            <tr>
                 <th>Path</th>
                 <td>
                     <span [title]="exchange.path ">
-                        {{ exchange.path }}
-                    </span><br/>
-                    <small>                        
-                        <a title="Copy to clipboard" href="javascript:;" (click)="setClipboard(exchange.fullUrl)"> Copy full url</a> | 
-                        <a title="Copy to clipboard" href="javascript:;" (click)="setClipboard(exchange.path)"> Copy path only</a>
-                    </small>
+                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(exchange.path)"> 
+                            <span class="material-icons" style="font-size:10px !important">content_copy</span>
+                        </a> {{ exchange.path }}
+                    </span>
+                    <br/>
+                    <!-- <small>                        
+                        <a title="Copy to clipboard" href="javascript:;" class="btn btn-sm btn-primary" (click)="setClipboard(exchange.fullUrl)"> 
+                            <span class="material-icons" style="font-size:10px !important">content_copy</span>
+                        </a> 
+                            &nbsp; 
+                        <a title="Copy to clipboard" href="javascript:;" class="btn btn-sm btn-primary"  (click)="setClipboard(exchange.path)"> Copy path only</a>
+                    </small> -->
                      
                 </td>
             </tr>
