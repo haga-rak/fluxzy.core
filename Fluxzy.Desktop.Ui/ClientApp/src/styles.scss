@@ -13,10 +13,8 @@
  
 
 @import "../node_modules/@fontsource/roboto/";  
-@import "../node_modules/@fortawesome/fontawesome-free/";  
 @import '../node_modules/material-icons/';
 
-@import '~highlight.js/styles/qtcreator-dark.css';
 
 /* You can add global styles to this file, and also import other style files */
 html, body {
@@ -118,4 +116,7 @@ pre {
 
 pre > code {
     font-family: monospace !important;
+}
+
+.material-icons {
 }

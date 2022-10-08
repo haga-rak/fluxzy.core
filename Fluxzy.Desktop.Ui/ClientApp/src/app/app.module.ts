@@ -46,7 +46,6 @@ import { ResponseBodySummaryResultComponent } from './widgets/exchange-viewer/de
 import { ResponseTextContentResultComponent } from './widgets/exchange-viewer/details-response/response-text-content-result/response-text-content-result.component';
 import { ResponseJsonResultComponent } from './widgets/exchange-viewer/details-response/response-json-result/response-json-result.component';
 import { CodeViewComponent } from './shared/code-view/code-view.component';
-import { HighlightModule, HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -55,7 +54,6 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     suppressScrollX: true,
 };
-
 @NgModule({
     declarations: [
         AppComponent,
@@ -96,7 +94,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         TabsModule.forRoot(),
         TooltipModule.forRoot(),
         PerfectScrollbarModule,
-        HighlightModule,
         RouterModule.forRoot([
             {
                 path: '',
@@ -121,12 +118,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         {
             provide: PERFECT_SCROLLBAR_CONFIG,
             useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG,
-        },
-        {
-            provide: HIGHLIGHT_OPTIONS,
-            useValue: {
-                fullLibraryLoader: () => import('highlight.js'),
-            },
         },
     ],
     bootstrap: [AppComponent],
