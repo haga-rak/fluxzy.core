@@ -80,6 +80,14 @@
                                                  [formatter]="requestFormattingResult" [exchange]="exchange">
                     </app-multipart-form-content-result>
 
+                    <app-authorization-result *ngIf="ofTypeRequest('AuthorizationResult')"
+                                                 [formatter]="requestFormattingResult" >
+                    </app-authorization-result>
+
+                    <app-authorization-bearer-result *ngIf="ofTypeRequest('AuthorizationBearerResult')"
+                                                 [formatter]="requestFormattingResult" >
+                    </app-authorization-bearer-result>
+
                 </perfect-scrollbar>
 
                 <!-- </div> -->

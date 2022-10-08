@@ -46,6 +46,8 @@ import { ResponseBodySummaryResultComponent } from './widgets/exchange-viewer/de
 import { ResponseTextContentResultComponent } from './widgets/exchange-viewer/details-response/response-text-content-result/response-text-content-result.component';
 import { ResponseJsonResultComponent } from './widgets/exchange-viewer/details-response/response-json-result/response-json-result.component';
 import { CodeViewComponent } from './shared/code-view/code-view.component';
+import { AuthorizationResultComponent } from './widgets/exchange-viewer/details-request/authorization-result/authorization-result.component';
+import { AuthorizationBearerResultComponent } from './widgets/exchange-viewer/details-request/authorization-bearer-result/authorization-bearer-result.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -83,6 +85,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ResponseTextContentResultComponent,
         ResponseJsonResultComponent,
         CodeViewComponent,
+        AuthorizationResultComponent,
+        AuthorizationBearerResultComponent,
     ],
     imports: [
         BrowserModule,
