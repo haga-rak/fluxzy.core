@@ -5,16 +5,18 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Writers
 {
-    internal interface IArchiveWriter : IDisposable
-    {
-        Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
+    //internal interface IArchiveWriter : IDisposable
+    //{
+    //    Task UpdateTags(Tag tag); 
 
-        Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
+    //    Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
 
-        Stream CreateRequestBodyStream(int exchangeId);
+    //    Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
 
-        Stream CreateResponseBodyStream(int exchangeId);
+    //    Stream CreateRequestBodyStream(int exchangeId);
 
-        string GetDumpfilePath(int connectionId);
-    }
+    //    Stream CreateResponseBodyStream(int exchangeId);
+
+    //    string GetDumpfilePath(int connectionId);
+    //}
 }

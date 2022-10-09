@@ -153,6 +153,10 @@ namespace Fluxzy.Clients
 
         public string? EgressIp => Connection?.RemoteAddress?.ToString();
 
+        public string? Comment { get; set; } = null; 
+
+        public HashSet<Tag>? Tags { get; set; } = null;
+
         public ExchangeContext Context { get;  }
 
         public HeaderField GetMetricsSummaryAsHeader()

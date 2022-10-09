@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
 using Fluxzy.Utils;
@@ -16,11 +17,15 @@ namespace Fluxzy
             ResponseHeader = exchange.Response?.Header == null ? default : new ResponseHeaderInfo(exchange.Response.Header);
             RequestHeader = new RequestHeaderInfo(exchange.Request.Header);
             EgressIp = exchange.EgressIp;
-            Pending = !exchange.Complete.IsCompleted; 
+            Pending = !exchange.Complete.IsCompleted;
+            Comment = exchange.Comment;
+            Tags = exchange.Tags; 
         }
 
         [JsonConstructor]
-        public ExchangeInfo(int id, int connectionId, string httpVersion, RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader, ExchangeMetrics metrics, string egressIp, bool pending)
+        public ExchangeInfo(int id, int connectionId, string httpVersion,
+            RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader, 
+            ExchangeMetrics metrics, string egressIp, bool pending, string ? comment, HashSet<Tag> ? tags)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -30,6 +35,8 @@ namespace Fluxzy
             Metrics = metrics;
             EgressIp = egressIp;
             Pending = pending;
+            Comment = comment;
+            Tags = tags;
         }
 
         public int Id { get;  }
@@ -68,7 +75,11 @@ namespace Fluxzy
 
         public int StatusCode => ResponseHeader?.StatusCode ?? 0;
 
-        public string EgressIp { get; }
+        public string? EgressIp { get; }
+
+        public string? Comment { get; }
+
+        public HashSet<Tag>? Tags { get; }
 
         public bool Pending { get; }
     }

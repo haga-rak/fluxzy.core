@@ -1,13 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 
 namespace Fluxzy.Writers
 {
-    public abstract class RealtimeArchiveWriter : IArchiveWriter
+    public abstract class RealtimeArchiveWriter
     {
+        public virtual void Init()
+        {
+
+        }
+
+        public abstract void UpdateTags(IEnumerable<Tag> tags);
+
         public abstract Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
 
         public abstract Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);

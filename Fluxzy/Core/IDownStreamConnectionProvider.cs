@@ -10,7 +10,7 @@ namespace Fluxzy.Core
     public interface IDownStreamConnectionProvider : IDisposable
     {
         /// <summary>
-        /// Initialize le provider
+        /// UpdateTags le provider
         /// </summary>
         /// <returns></returns>
         IReadOnlyCollection<IPEndPoint> Init(CancellationToken token); 
