@@ -64,6 +64,7 @@ namespace Fluxzy.Writers
     {
         BeforeRequestHeader,
         AfterResponseHeader,
-        AfterResponse
+        AfterResponse,
+        Complete,
     }
 }

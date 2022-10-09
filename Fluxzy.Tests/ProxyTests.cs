@@ -274,6 +274,37 @@ namespace Fluxzy.Tests
             }
         }
 
+        [Fact]
+        public async Task Exchange_State_Must_Be_Complete_When_Chunked()
+        {
+            var timeoutSeconds = 500;
+            var requestReceived = new TaskCompletionSource<Exchange>();
+            var bindHost = "127.0.0.1";
+            var startupSetting = FluxzySetting
+                                 .CreateDefault()
+                                 .SetBoundAddress(bindHost, 0);
+
+            var (httpClient, proxy) = CreateTestContext(bindHost,  timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
+
+            try {
+
+                var response = await httpClient.GetAsync("https://particuliers.societegenerale.fr/staticfiles/Resources/stylesheets/index_pri_20220921192127.min.css",
+                    cancellationTokenSource.Token);
+
+                var responseString = await response.Content.ReadAsStringAsync(
+                    cancellationTokenSource.Token);
+
+                //Assert.StartsWith("HTTP", responseString);
+
+                var exchange = await requestReceived.Task;
+                Assert.True(exchange.Complete.IsCompleted);
+            }
+            finally {
+                httpClient.Dispose();
+                await proxy.DisposeAsync();
+            }
+        }
+
         private static (HttpClient, Proxy p) CreateTestContext(string bindHost, int timeoutSeconds,
             TaskCompletionSource<Exchange> requestReceived, FluxzySetting startupSetting,
             out CancellationTokenSource cancellationTokenSource)
