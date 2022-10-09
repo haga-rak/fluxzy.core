@@ -2,17 +2,17 @@
 
     <div style="margin-bottom: 8px;border-bottom: 2px solid var(--bs-primary); padding-bottom:6px" class="">
         <ng-container *ngFor="let tab of tabs">
-            <a class="btn" [class]="{'btn-primary' : tab === currentTab,'btn-secondary' : tab !== currentTab  }"
-                (click)="currentTab = tab"
+            <a class="btn" [class]="{'btn-primary' : tab === context.currentTab,'btn-secondary' : tab !== context.currentTab  }"
+                (click)="context.currentTab = tab"
                 href="javascript:;">
                 {{tab}}
             </a>&nbsp;
         </ng-container>
     </div>
 
-    <div *ngIf="currentTab === 'Content'" echange-viewer [exchange]="exchange" style="height : calc(100% - 52px)"></div>
-    <div *ngIf="currentTab === 'Connectivity'" echange-connectivity [exchange]="exchange"  [connectionId]="exchange.connectionId" style="height : calc(100% - 52px)"></div>
-    <div *ngIf="currentTab === 'Performance'" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Content'" echange-viewer [exchange]="exchange" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Connectivity'" echange-connectivity [exchange]="exchange"  [connectionId]="exchange.connectionId" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Performance'" style="height : calc(100% - 52px)"></div>
 
 </div>
 <div class="exchange-viewer-main-status">
