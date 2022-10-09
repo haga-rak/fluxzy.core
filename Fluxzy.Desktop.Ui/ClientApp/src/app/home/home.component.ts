@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuItemConstructorOptions } from 'electron';
 import { filter, tap } from 'rxjs';
@@ -19,10 +19,9 @@ export class HomeComponent implements OnInit {
     public selectedExchange: ExchangeInfo;
 
     constructor(private router: Router, 
-        private uiService : UiStateService, 
-        private electronService : ElectronService, 
         private menuService : MenuService,
-        private exchangeSelectionService : ExchangeSelectionService) { }
+        private exchangeSelectionService : ExchangeSelectionService,
+        private cdr: ChangeDetectorRef) { }
     
     ngOnInit(): void {
 
@@ -30,7 +29,10 @@ export class HomeComponent implements OnInit {
 
         this.exchangeSelectionService.getSelected()
             .pipe(
-                    tap(t => this.selectedExchange = t)
+                    tap(t => this.selectedExchange = t),
+                    // tap(t => console.log('yoi')),
+                    // tap(t => console.log(this.selectedExchange )),
+                    tap(t => setTimeout(() => this.cdr.detectChanges(),2)), // TODO : check issue here
             ).subscribe()
     }; 
     

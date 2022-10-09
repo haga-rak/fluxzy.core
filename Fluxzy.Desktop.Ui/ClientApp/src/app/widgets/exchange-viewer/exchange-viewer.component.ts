@@ -1,4 +1,5 @@
 import {
+    ChangeDetectorRef,
     Component,
     Input,
     OnChanges,
@@ -66,7 +67,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
 
     @Input('exchange') public exchange: ExchangeInfo;
 
-    constructor(private apiService: ApiService) {}
+    constructor(private apiService: ApiService, private cdr: ChangeDetectorRef) {}
 
     ngOnInit(): void {
 
@@ -91,7 +92,8 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                             this.requestFormattingResult = null;
                         }
                     }
-                })
+                }),
+                tap(t => setTimeout(() => this.cdr.detectChanges(),0)), // TODO : check issue here
             )
             .subscribe();
 
@@ -116,19 +118,25 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                             this.responseFormattingResult = null;
                         }
                     }
-                })
+                }),
+                tap(t => setTimeout(() => this.cdr.detectChanges(),0)), // TODO : check issue here
             )
             .subscribe();
 
 
         this.$currentRequestTabView
             .asObservable()
-            .pipe(tap((t) => (this.currentRequestTabView = t)))
+            .pipe(
+                tap((t) => (this.currentRequestTabView = t))
+                )
             .subscribe();
 
         this.$currentResponseTabView
             .asObservable()
-            .pipe(tap((t) => (this.currentResponseTabView = t)))
+            .pipe(
+                tap((t) => (this.currentResponseTabView = t)),
+               // tap(t => setTimeout(() => this.cdr.detectChanges(),0)), // TODO : check issue here
+                )
             .subscribe();
         
         this.$exchange.asObservable().pipe(
@@ -145,7 +153,9 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                 this.responseFormattingResults = t.responses;
                 this.$requestFormattingResults.next(t.requests);
                 this.$responseFormattingResults.next(t.responses);
-            })
+            }),
+            
+            tap(t => setTimeout(() => this.cdr.detectChanges(),0)), // TODO : check issue here
         ).subscribe();
         
         this.$exchange.next(this.exchange);
