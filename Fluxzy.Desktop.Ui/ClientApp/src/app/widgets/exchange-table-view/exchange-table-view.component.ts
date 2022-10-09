@@ -110,6 +110,8 @@ export class ExchangeTableViewComponent implements OnInit {
         
     public setSelectionChange (event : MouseEvent, exchange : ExchangeInfo) : void {
 
+
+
         if (event.ctrlKey){
             // adding 
 

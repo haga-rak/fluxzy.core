@@ -18,7 +18,11 @@
             <ng-container *ngIf="!header.name.startsWith(':') && header.forwarded">
 
                 <th>{{ header.name }}</th>
-                <td>{{ header.value }}</td>
+                <td>
+                    
+                    <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(header.value)"> 
+                        <span class="material-icons" style="font-size:10px !important">content_copy</span></a>
+                    {{ header.value }}</td>
             </ng-container>
         </tr>
     </table>
