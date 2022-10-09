@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Observable, take, map, tap } from 'rxjs';
-import { ConnectionInfo, ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, FormatterContainerViewModel, FormattingResult, MultipartItem, SaveFileMultipartActionModel, TrunkState, UiState } from '../core/models/auto-generated';
+import { ConnectionInfo, ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, FluxzySettingsHolder, FormatterContainerViewModel, FormattingResult, MultipartItem, SaveFileMultipartActionModel, TrunkState, UiState } from '../core/models/auto-generated';
 
 @Injectable({
   providedIn: 'root'
@@ -143,5 +143,13 @@ export class ApiService {
 
     public connectionGet(connectionId: number) : Observable<ConnectionInfo> {
         return this.httpClient.get<ConnectionInfo>(`api/connection/${connectionId}`).pipe(take(1));
+    }
+
+    public settingGet() : Observable<FluxzySettingsHolder> {
+        return this.httpClient.get<FluxzySettingsHolder>(`api/setting`).pipe(take(1));
+    }
+    
+    public settingUpdate(model : FluxzySettingsHolder) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/setting`, model).pipe(take(1));
     }
 }
