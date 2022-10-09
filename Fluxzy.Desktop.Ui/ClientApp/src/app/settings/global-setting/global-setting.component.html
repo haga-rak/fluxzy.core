@@ -1,0 +1,58 @@
+
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Global settings</h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body" style="min-height: 400px">
+    <div *ngIf="!settingsHolder">
+        Loading settings ...
+    </div>
+    <div *ngIf="settingsHolder">
+
+        <div class="btn-group" role="group">
+            <button type="button" href="javascript:;" class="btn btn-dark active" aria-current="page">General</button>
+            <button type="button" href="javascript:;" class="btn btn-dark" title="">Source filters</button>
+            <button type="button" href="javascript:;" class="btn btn-dark">Root CA configuration</button>
+            <button type="button" href="javascript:;" class="btn btn-dark">DNS spoofing</button>
+            <button type="button" href="javascript:;" class="btn btn-dark">Client certificates</button>
+            <button type="button" href="javascript:;" class="btn btn-dark">Protocols</button>
+        </div>
+
+
+        <div style="margin-top:20px">
+            <h5>Proxy configuration</h5>
+
+            <div class="row">
+                <div class="col-md-2">
+
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                    <label class="form-check-label" for="flexRadioDefault1">
+                      Listen on localhost
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
+                    <label class="form-check-label" for="flexRadioDefault2">
+                      Listen on all interfaces
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault4">
+                    <label class="form-check-label" for="flexRadioDefault4">
+                      Listen on specific interface
+                    </label>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" (click)="bsModalRef.hide()">Close</button>
+  </div>

@@ -120,3 +120,21 @@ pre > code {
 
 .material-icons {
 }
+
+.modal-content {
+    background-color:var(--bs-gray-600);
+    box-shadow:  var(--bs-gray-500) 0px 13px 18px;
+}
+
+.modal-dialog {
+    min-width: 1000px !important;
+    width: 90% !important;
+}
+
+.modal-header {
+    border-bottom-color: var(--bs-gray-900) !important;
+}
+
+.modal-footer {
+    border-top-color: var(--bs-gray-900) !important;
+}

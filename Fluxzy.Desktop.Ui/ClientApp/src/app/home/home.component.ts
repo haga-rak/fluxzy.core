@@ -6,6 +6,7 @@ import { ExchangeInfo } from '../core/models/auto-generated';
 import { GlobalMenuItems } from '../core/models/menu-models';
 import { ElectronService } from '../core/services';
 import { MenuService } from '../core/services/menu-service.service';
+import { DialogService } from '../services/dialog.service';
 import { ExchangeSelectionService } from '../services/exchange-selection.service';
 import { UiStateService } from '../services/ui.service';
 
@@ -21,11 +22,13 @@ export class HomeComponent implements OnInit {
     constructor(private router: Router, 
         private menuService : MenuService,
         private exchangeSelectionService : ExchangeSelectionService,
+        private dialogService : DialogService,
         private cdr: ChangeDetectorRef) { }
     
     ngOnInit(): void {
 
         this.menuService.init(); 
+        this.dialogService.init();
 
         this.exchangeSelectionService.getSelected()
             .pipe(

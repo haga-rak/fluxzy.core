@@ -122,6 +122,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         submenu : [
             {
                 label : 'Proxy settings', 
+                id : 'global-settings'
             },
             {
                 label : 'Ui settings', 
