@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System;
 using System.Collections.Generic;
 
 namespace Fluxzy
@@ -21,5 +22,9 @@ namespace Fluxzy
         int StatusCode { get; }
 
         string? EgressIp { get;  }
+
+        string? Comment { get; }
+
+        HashSet<Tag>? Tags { get;  }
     }
 }

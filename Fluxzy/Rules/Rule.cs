@@ -22,11 +22,8 @@ namespace Fluxzy.Rules
             Filter = filter;
             Action = action;
 
-
             // TODO : validate filter and action scope coherency 
             // TODO : Example response header filter should not match with DoNotDecrypt action
-
-
         }
 
         public Rule(IAction action, params Filter [] filters)

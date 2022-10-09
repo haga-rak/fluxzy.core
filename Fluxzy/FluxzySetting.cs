@@ -56,7 +56,7 @@ namespace Fluxzy
         
 
         /// <summary>
-        ///     The CA certificate for the man on the middle
+        ///     The CA certificate 
         /// </summary>
         public Certificate CaCertificate { get; internal set; } = Certificate.UseDefault();
 
@@ -75,7 +75,6 @@ namespace Fluxzy
         ///     Check whether server certificate is valid. Default value is true
         /// </summary>
         public bool CheckCertificateRevocation { get; internal set; } = true;
-
 
         /// <summary>
         ///     Do not use certificate cache. Regen certificate whenever asked
@@ -101,6 +100,9 @@ namespace Fluxzy
         ///     Global alteration rules
         /// </summary>
         public List<Rule> AlterationRules { get; set; } = new();
+
+
+        public FluxzyFilterSetting FilterSetting { get; set; } = new(); 
 
         /// <summary>
         ///     Set hosts that bypass the proxy

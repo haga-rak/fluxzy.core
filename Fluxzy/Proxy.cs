@@ -33,7 +33,6 @@ namespace Fluxzy
 
         private  int _currentConcurrentCount = 0;
 
-
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider, 
@@ -53,6 +52,7 @@ namespace Fluxzy
             {
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
                 Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory);
+                
             }
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
@@ -79,7 +79,6 @@ namespace Fluxzy
             {
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
             }
-
         }
 
         public IReadOnlyCollection<IPEndPoint> ListenAddresses => _downStreamConnectionProvider.ListenEndpoints;
@@ -94,6 +93,7 @@ namespace Fluxzy
         
         private async Task MainLoop()
         {
+            Writer.Init();
 
             while (true)
             {
