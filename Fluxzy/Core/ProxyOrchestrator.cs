@@ -9,6 +9,7 @@ using Fluxzy.Clients.H2;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Fluxzy.Core
 {
@@ -96,6 +97,7 @@ namespace Fluxzy.Core
                                         UpdateType.BeforeRequestHeader,
                                         CancellationToken.None
                                     );
+
 
                                     if (exchange.Request.Body != null &&
                                         (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0))
@@ -203,9 +205,28 @@ namespace Fluxzy.Core
                                     if (exchange.Response.Body != null &&
                                         (!exchange.Response.Body.CanSeek || exchange.Response.Body.Length > 0))
                                     {
-                                        exchange.Response.Body = new DispatchStream(exchange.Response.Body,
+                                        var dispatchStream = new DispatchStream(exchange.Response.Body,
                                             true,
                                             _archiveWriter.CreateResponseBodyStream(exchange.Id));
+
+                                        var ext = exchange;
+
+                                        dispatchStream.OnDisposeDoneTask = async () =>
+                                        {
+                                            await _archiveWriter.Update(ext, 
+                                                UpdateType.AfterResponse, 
+                                                CancellationToken.None
+                                            );
+                                        };
+
+                                        exchange.Response.Body = dispatchStream;
+                                    }
+                                    else
+                                    {
+                                        await _archiveWriter.Update(exchange,
+                                            UpdateType.AfterResponse,
+                                            CancellationToken.None
+                                        );
                                     }
                                 }
 
@@ -315,13 +336,32 @@ namespace Fluxzy.Core
 
                         try
                         {
-                            if (exchange != null && !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
+                            if (_archiveWriter != null && exchange != null && !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
                             {
-                                // Update the state of the exchange 
-                                await _archiveWriter!.Update(exchange,
-                                    UpdateType.AfterResponse,
-                                    CancellationToken.None
-                                );
+                                //await _archiveWriter.Update(
+                                //    exchange,
+                                //    UpdateType.AfterResponse,
+                                //    CancellationToken.None
+                                //);
+
+                                //var ext = exchange;
+
+                                //// TODO
+                                //var _ = exchange.Complete.ContinueWith(async t =>
+                                //{
+                                //    try
+                                //    {
+                                //        await _archiveWriter.Update(
+                                //            ext,
+                                //            UpdateType.Complete,
+                                //            CancellationToken.None
+                                //        );
+                                //    }
+                                //    catch (Exception ex)
+                                //    {
+
+                                //    }
+                                //}, callerTokenSource.Token);
                             }
 
                             // Read the nex HTTP message 

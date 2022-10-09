@@ -14,7 +14,7 @@ namespace Fluxzy.Misc.Streams
     {
         private readonly Stream _baseStream;
         private readonly bool _closeOnDone;
-        private List<Stream> _destinations;
+        private List<Stream>? _destinations;
         private bool _started;
 
         /// <summary>
@@ -79,6 +79,8 @@ namespace Fluxzy.Misc.Streams
             return read;
         }
 
+        public Func<Task>? OnDisposeDoneTask { get; set; }
+
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
@@ -100,6 +102,11 @@ namespace Fluxzy.Misc.Streams
                     _destinations.Select(t => t.DisposeAsync().AsTask()));
 
                 _destinations = null;
+
+                if (OnDisposeDoneTask != null)
+                {
+                    await OnDisposeDoneTask();
+                }
             }
             else
             {

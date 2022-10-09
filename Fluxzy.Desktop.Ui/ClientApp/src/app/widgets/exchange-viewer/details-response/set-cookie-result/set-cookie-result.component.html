@@ -36,7 +36,7 @@
                 </td>
             </tr>
             <tr *ngIf="cookie.expired">
-                <th>Domain</th>
+                <th>Expired</th>
                 <td>
                     <input type="text" class="form-control" readonly [value]="cookie.expired | date : 'full'" style="height: 20px !important" />
                 </td>
