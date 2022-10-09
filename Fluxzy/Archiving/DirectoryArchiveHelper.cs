@@ -28,6 +28,10 @@ namespace Fluxzy
         {
             return GetExchangePath(baseDirectory, exchangeInfo.Id); 
         }
+        internal static string GetMetaPath(string baseDirectory)
+        {
+            return Path.Combine(baseDirectory, "meta.json"); 
+        }
 
         internal static string GetContentRequestPath(string baseDirectory, int exchangeId)
         {

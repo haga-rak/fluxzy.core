@@ -21,7 +21,7 @@ namespace Fluxzy.Writers
             _baseDirectory = baseDirectory;
             _contentDirectory = Path.Combine(baseDirectory, "contents");
             _captureDirectory = Path.Combine(baseDirectory, "captures");
-            _archiveMetaInformationPath = Path.Combine(baseDirectory, "meta.json"); 
+            _archiveMetaInformationPath = DirectoryArchiveHelper.GetMetaPath(baseDirectory); 
         }
 
         public override void Init()

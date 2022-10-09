@@ -189,6 +189,7 @@ export interface FluxzySetting
 	maxHeaderLength: number;
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: any[];
+	filterSetting: any;
 }
 export interface ExchangeState
 {
@@ -241,7 +242,9 @@ export interface ExchangeInfo
 	contentType?: string;
 	done: boolean;
 	statusCode: number;
-	egressIp: string;
+	egressIp?: string;
+	comment?: string;
+	tags?: any[];
 	pending: boolean;
 }
 export interface RequestHeaderInfo

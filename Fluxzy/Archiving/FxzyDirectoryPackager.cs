@@ -53,7 +53,10 @@ namespace Fluxzy
             foreach (var connectionInfo in connectionInfos)
                 fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetConnectionPath(directory, connectionInfo)));
 
+            fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetMetaPath(directory)));
+
             await ZipHelper.CompressWithFileInfos(new DirectoryInfo(directory), outputStream, fileInfos);
+
         }
 
         public async Task Unpack(Stream inputStream, string directoryOutput)
