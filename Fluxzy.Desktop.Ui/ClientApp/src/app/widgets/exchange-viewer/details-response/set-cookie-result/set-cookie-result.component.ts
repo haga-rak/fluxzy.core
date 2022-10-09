@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import {
     ExchangeInfo,
     ExchangeContextInfo,
@@ -21,7 +21,7 @@ export class SetCookieResultComponent implements OnInit {
 
     //public showDetailState : { [name : string ] : boolean   } = {};
 
-    constructor() {}
+    constructor(public cd: ChangeDetectorRef) {}
 
     ngOnInit(): void {}
 }

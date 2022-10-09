@@ -41,17 +41,23 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
 
     public context : ExchangeContextInfo | null = null ; 
 
-    public currentRequestTabView: string;
-    public currentResponseTabView: string;
-
-    public requestFormattingResults: FormattingResult[] | null = null;
-    public requestFormattingResult: FormattingResult | null = null;
-
-    public responseFormattingResults: FormattingResult[] | null = null;
-    public responseFormattingResult: FormattingResult | null = null;
-
-    public requestOtherText : string = '';
-    public responseOtherText : string = '';
+    public propertyContext : {
+        requestFormattingResults: FormattingResult[] | null,
+        requestFormattingResult: FormattingResult | null,
+        currentRequestTabView? : string, 
+        currentResponseTabView? : string,
+        responseFormattingResults: FormattingResult[] | null,
+        responseFormattingResult: FormattingResult | null,
+        requestOtherText : string,
+        responseOtherText : string,
+    } = {
+        requestFormattingResults : null,
+        requestFormattingResult : null,
+        responseFormattingResults : null,
+        responseFormattingResult : null,
+        requestOtherText : '',
+        responseOtherText : ''
+    };
 
     private $exchange: Subject<ExchangeInfo> = new Subject<ExchangeInfo>();
 
@@ -63,7 +69,6 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
 
     private $currentResponseTabView: BehaviorSubject<string> =
         new BehaviorSubject<string>('responseHeader');
-
 
     @Input('exchange') public exchange: ExchangeInfo;
 
@@ -84,12 +89,12 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                     );
 
                     if (formatingResult.length) {
-                        this.requestFormattingResult = formatingResult[0];
+                        this.propertyContext.requestFormattingResult = formatingResult[0];
                     } else {
                         if (selectedTab !== 'requestHeader') {
                             this.$currentRequestTabView.next('requestHeader');
                         } else {
-                            this.requestFormattingResult = null;
+                            this.propertyContext.requestFormattingResult = null;
                         }
                     }
                 }),
@@ -110,12 +115,12 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                     );
 
                     if (formatingResult.length) {
-                        this.responseFormattingResult = formatingResult[0];
+                        this.propertyContext.responseFormattingResult = formatingResult[0];
                     } else {
                         if (selectedTab !== 'responseHeader') {
                             this.$currentResponseTabView.next('responseHeader');
                         } else {
-                            this.responseFormattingResult = null;
+                            this.propertyContext.responseFormattingResult = null;
                         }
                     }
                 }),
@@ -127,14 +132,14 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         this.$currentRequestTabView
             .asObservable()
             .pipe(
-                tap((t) => (this.currentRequestTabView = t))
+                tap((t) => (this.propertyContext.currentRequestTabView = t))
                 )
             .subscribe();
 
         this.$currentResponseTabView
             .asObservable()
             .pipe(
-                tap((t) => (this.currentResponseTabView = t)),
+                tap((t) => (this.propertyContext.currentResponseTabView = t)),
                // tap(t => setTimeout(() => this.cdr.detectChanges(),0)), // TODO : check issue here
                 )
             .subscribe();
@@ -143,14 +148,14 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
             filter((t) => t.id > 0),
             distinctUntilChanged((t,v) => t.id === v.id),
             tap((t) => {
-                this.requestFormattingResults = null;
-                this.responseFormattingResults = null;
+                this.propertyContext.requestFormattingResults = null;
+                this.propertyContext.responseFormattingResults = null;
             }),
             switchMap((t) => this.apiService.getFormatters(t.id)),
             tap((t) => {
                 this.context = t.contextInfo ; 
-                this.requestFormattingResults = t.requests;
-                this.responseFormattingResults = t.responses;
+                this.propertyContext.requestFormattingResults = t.requests;
+                this.propertyContext.responseFormattingResults = t.responses;
                 this.$requestFormattingResults.next(t.requests);
                 this.$responseFormattingResults.next(t.responses);
             }),
@@ -175,11 +180,11 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
     }
 
     public isRequestTabSelected(name: string): boolean {
-        return name === this.currentRequestTabView;
+        return name === this.propertyContext.currentRequestTabView;
     }
 
     public isResponseTabSelected(name: string): boolean {
-        return name === this.currentResponseTabView;
+        return name === this.propertyContext.currentResponseTabView;
     }
 
     public setSelectedRequestTab(
@@ -192,10 +197,10 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         this.$currentRequestTabView.next(tabName);
 
         if(fromOther) {
-            this.requestOtherText = formatingResult.title;
+            this.propertyContext.requestOtherText = formatingResult.title;
         }
         else{
-            this.requestOtherText = '';
+            this.propertyContext.requestOtherText = '';
         }
     }
 
@@ -209,19 +214,19 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         this.$currentResponseTabView.next(tabName);
 
         if(fromOther) {
-            this.responseOtherText = formatingResult.title;
+            this.propertyContext.responseOtherText = formatingResult.title;
         }
         else{
-            this.responseOtherText = '';
+            this.propertyContext.responseOtherText = '';
         }
 
     }
 
     public ofTypeRequest(name: string): boolean {
-        return this.requestFormattingResult?.type === name;
+        return this.propertyContext.requestFormattingResult?.type === name;
     }
 
     public ofTypeResponse(name: string): boolean {
-        return this.responseFormattingResult?.type === name;
+        return this.propertyContext.responseFormattingResult?.type === name;
     }
 }

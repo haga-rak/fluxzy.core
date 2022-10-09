@@ -12,27 +12,27 @@
                             request summary
                         </button>
 
-                        <button *ngIf="!requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark">
+                        <button *ngIf="!propertyContext.requestFormattingResults" type="button" href="javascript:;" class="btn btn-dark">
                             Loading ...
                         </button>
 
-                        <ng-container *ngIf="requestFormattingResults">
-                            <button *ngFor="let formattingResult of requestFormattingResults | slice:0:3 "
+                        <ng-container *ngIf="propertyContext.requestFormattingResults">
+                            <button *ngFor="let formattingResult of propertyContext.requestFormattingResults | slice:0:3 "
                                     type="button" href="javascript:;"
                                     class="btn btn-dark  btn-viewer-menu"
                                     [ngClass]="{'active' : isRequestTabSelected(formattingResult.type)}"
                                     (click)="setSelectedRequestTab(formattingResult.type, formattingResult)">{{formattingResult.title}}</button>
                         </ng-container>
-                        <ng-container *ngIf="requestFormattingResults && requestFormattingResults.length > 3">
+                        <ng-container *ngIf="propertyContext.requestFormattingResults && propertyContext.requestFormattingResults.length > 3">
 
                             <div class="btn-group" role="group" dropdown>
                                 <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
                                         aria-expanded="false" dropdownToggle>
-                                    <span *ngIf="requestOtherText">{{requestOtherText}}</span>
-                                    <span *ngIf="!requestOtherText">Other</span>
+                                    <span *ngIf="propertyContext.requestOtherText">{{propertyContext.requestOtherText}}</span>
+                                    <span *ngIf="!propertyContext.requestOtherText">Other</span>
                                 </button>
                                 <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
-                                    <li role="menuitem" *ngFor="let formattingResult of requestFormattingResults | slice:3"
+                                    <li role="menuitem" *ngFor="let formattingResult of propertyContext.requestFormattingResults | slice:3"
                                         [ngClass]="{'active' : isRequestTabSelected(formattingResult.type)}">
                                         <a class="dropdown-item" href="javascript:;"
                                            (click)="setSelectedRequestTab(formattingResult.type, formattingResult, true)">{{formattingResult.title}}</a>
@@ -48,44 +48,44 @@
                         style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; padding: 12px; flex-grow : 4"> -->
 
 
-                    <app-header-viewer *ngIf="currentRequestTabView === 'requestHeader'" [exchange]="exchange">
+                    <app-header-viewer *ngIf="propertyContext.currentRequestTabView === 'requestHeader'" [exchange]="exchange">
                     </app-header-viewer>
 
                     <app-raw-request-header-result *ngIf="ofTypeRequest('RawRequestHeaderResult')"
-                                                   [formatter]="requestFormattingResult">
+                                                   [formatter]="propertyContext.requestFormattingResult">
                     </app-raw-request-header-result>
 
-                    <app-query-string-result *ngIf="ofTypeRequest('QueryStringResult')" [formatter]="requestFormattingResult">
+                    <app-query-string-result *ngIf="ofTypeRequest('QueryStringResult')" [formatter]="propertyContext.requestFormattingResult">
                     </app-query-string-result>
 
-                    <app-request-cookie-result *ngIf="ofTypeRequest('RequestCookieResult')" [formatter]="requestFormattingResult">
+                    <app-request-cookie-result *ngIf="ofTypeRequest('RequestCookieResult')" [formatter]="propertyContext.requestFormattingResult">
                     </app-request-cookie-result>
 
-                    <app-request-json-result *ngIf="ofTypeRequest('RequestJsonResult')" [formatter]="requestFormattingResult">
+                    <app-request-json-result *ngIf="ofTypeRequest('RequestJsonResult')" [formatter]="propertyContext.requestFormattingResult">
                     </app-request-json-result>
 
                     <app-request-text-body-result *ngIf="ofTypeRequest('RequestTextBodyResult')"
-                                                  [formatter]="requestFormattingResult">
+                                                  [formatter]="propertyContext.requestFormattingResult">
                     </app-request-text-body-result>
 
                     <app-request-body-analysis-result *ngIf="ofTypeRequest('RequestBodyAnalysisResult')"
-                                                      [formatter]="requestFormattingResult" [exchange]="exchange">
+                                                      [formatter]="propertyContext.requestFormattingResult" [exchange]="exchange">
                     </app-request-body-analysis-result>
 
                     <app-form-url-encoded-result *ngIf="ofTypeRequest('FormUrlEncodedResult')"
-                                                 [formatter]="requestFormattingResult">
+                                                 [formatter]="propertyContext.requestFormattingResult">
                     </app-form-url-encoded-result>
 
                     <app-multipart-form-content-result *ngIf="ofTypeRequest('MultipartFormContentResult')"
-                                                 [formatter]="requestFormattingResult" [exchange]="exchange">
+                                                 [formatter]="propertyContext.requestFormattingResult" [exchange]="exchange">
                     </app-multipart-form-content-result>
 
                     <app-authorization-result *ngIf="ofTypeRequest('AuthorizationResult')"
-                                                 [formatter]="requestFormattingResult" >
+                                                 [formatter]="propertyContext.requestFormattingResult" >
                     </app-authorization-result>
 
                     <app-authorization-bearer-result *ngIf="ofTypeRequest('AuthorizationBearerResult')"
-                                                 [formatter]="requestFormattingResult" >
+                                                 [formatter]="propertyContext.requestFormattingResult" >
                     </app-authorization-bearer-result>
 
                 </perfect-scrollbar>
@@ -114,27 +114,27 @@
                             <span *ngIf="!exchange.statusCode">On erro</span>
                         </button>
 
-                        <button *ngIf="!responseFormattingResults" type="button" href="javascript:;" class="btn btn-dark">
+                        <button *ngIf="!propertyContext.responseFormattingResults" type="button" href="javascript:;" class="btn btn-dark">
                             Loading ...
                         </button>
 
-                        <ng-container *ngIf="responseFormattingResults">
-                            <button *ngFor="let formattingResult of responseFormattingResults | slice:0:3 "
+                        <ng-container *ngIf="propertyContext.responseFormattingResults">
+                            <button *ngFor="let formattingResult of propertyContext.responseFormattingResults | slice:0:3 "
                                     type="button" href="javascript:;"
                                     class="btn btn-dark  btn-viewer-menu"
                                     [ngClass]="{'active' : isResponseTabSelected(formattingResult.type)}"
                                     (click)="setSelectedResponseTab(formattingResult.type, formattingResult)">{{formattingResult.title}}</button>
                         </ng-container>
-                        <ng-container *ngIf="responseFormattingResults && responseFormattingResults.length > 3">
+                        <ng-container *ngIf="propertyContext.responseFormattingResults && propertyContext.responseFormattingResults.length > 3">
 
                             <div class="btn-group" role="group" dropdown>
                                 <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
                                         aria-expanded="false" dropdownToggle>
-                                    <span *ngIf="responseOtherText">{{requestOtherText}}</span>
-                                    <span *ngIf="!responseOtherText">Other</span>
+                                    <span *ngIf="propertyContext.responseOtherText">{{propertyContext.requestOtherText}}</span>
+                                    <span *ngIf="!propertyContext.responseOtherText">Other</span>
                                 </button>
                                 <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
-                                    <li role="menuitem" *ngFor="let formattingResult of responseFormattingResults | slice:3"
+                                    <li role="menuitem" *ngFor="let formattingResult of propertyContext.responseFormattingResults | slice:3"
                                         [ngClass]="{'active' : isResponseTabSelected(formattingResult.type)}">
                                         <a class="dropdown-item" href="javascript:;"
                                            (click)="setSelectedResponseTab(formattingResult.type, formattingResult, true)">{{formattingResult.title}}</a>
@@ -151,24 +151,24 @@
                         style="background: var(--bs-gray-600); width : 100%; margin-top: 10px; border-radius: 8px; padding: 12px; flex-grow : 4"> -->
 
 
-                    <app-response-summary *ngIf="currentResponseTabView === 'responseHeader'" [exchange]="exchange">
+                    <app-response-summary *ngIf="propertyContext.currentResponseTabView === 'responseHeader'" [exchange]="exchange">
                     </app-response-summary>
 
 
                     <app-response-body-summary-result *ngIf="ofTypeResponse('ResponseBodySummaryResult')"
-                                                 [formatter]="responseFormattingResult" [exchange]="exchange">
+                                                 [formatter]="propertyContext.responseFormattingResult" [exchange]="exchange">
                     </app-response-body-summary-result>
 
                     <app-response-text-content-result *ngIf="ofTypeResponse('ResponseTextContentResult')"
-                                                 [formatter]="responseFormattingResult" [exchange]="exchange" [context]="context">
+                                                 [formatter]="propertyContext.responseFormattingResult" [exchange]="exchange" [context]="context">
                     </app-response-text-content-result>
 
                     <app-response-json-result *ngIf="ofTypeResponse('ResponseJsonResult')"
-                                                 [formatter]="responseFormattingResult" [exchange]="exchange" [context]="context">
+                                                 [formatter]="propertyContext.responseFormattingResult" [exchange]="exchange" [context]="context">
                     </app-response-json-result>
 
                     <app-set-cookie-result *ngIf="ofTypeResponse('SetCookieResult')"
-                                                 [formatter]="responseFormattingResult" [exchange]="exchange" [context]="context">
+                                                 [formatter]="propertyContext.responseFormattingResult" [exchange]="exchange" [context]="context">
                     </app-set-cookie-result>
 
                 </perfect-scrollbar>

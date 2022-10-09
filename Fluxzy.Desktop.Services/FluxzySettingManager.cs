@@ -13,7 +13,7 @@ namespace Fluxzy.Desktop.Services
 
         private readonly BehaviorSubject<FluxzySettingsHolder> _internalSubject;
 
-        public FluxzySettingManager(IConfiguration configuration)
+        public FluxzySettingManager(IConfiguration configuration)                             
         {
             _settingPath = configuration["UiSettings:CaptureTemp"]
                            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

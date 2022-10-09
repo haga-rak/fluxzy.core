@@ -15,13 +15,13 @@
             <th>&nbsp;</th>
             <td>
                 <small>
-                    <a href="javascript:;" *ngIf="!propertyContext.showDetailState[cookie.name]" (click)="propertyContext.showDetailState[cookie.name]=true">+ Show more</a>
-                    <a href="javascript:;" *ngIf="propertyContext.showDetailState[cookie.name]" (click)="propertyContext.showDetailState[cookie.name]=false">- Hide details</a>
+                    <a href="javascript:;" *ngIf="!propertyContext.showDetailState[cookie.name]" (click)="propertyContext.showDetailState[cookie.name]=true; cd.detectChanges()">+ Show more</a>
+                    <a href="javascript:;" *ngIf="propertyContext.showDetailState[cookie.name]" (click)="propertyContext.showDetailState[cookie.name]=false; cd.detectChanges()">- Hide details</a>
                 </small>
             </td>
         </tr>
 
-        <tbody *ngIf="propertyContext.showDetailState[cookie.name]">
+        <tbody [hidden]="!propertyContext.showDetailState[cookie.name]">
 
             <tr *ngIf="cookie.path">
                 <th>Path</th>
