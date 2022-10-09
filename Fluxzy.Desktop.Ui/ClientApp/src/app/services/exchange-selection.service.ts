@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, tap } from 'rxjs';
 import { ExchangeInfo } from '../core/models/auto-generated';
 import { ExchangeContentService } from './exchange-content.service';
 
@@ -22,7 +22,10 @@ export class ExchangeSelectionService {
     private currentSelection$: Observable<ExchangeSelection>;
 
     constructor(private exchangeContentService : ExchangeContentService) {
-        this.currentRawSelectionObservable$ =   this.currentRawSelection$.asObservable();
+        this.currentRawSelectionObservable$ =   this.currentRawSelection$.asObservable()
+            .pipe(
+                distinctUntilChanged()
+            );
         this.currentSelection$ = combineLatest([
             this.currentRawSelectionObservable$,
             this.exchangeContentService.getTrunkState()
@@ -31,7 +34,13 @@ export class ExchangeSelectionService {
                         const rawSelection = t[0] ;
                         const trunkState = t[1] ;
 
+                        
+                        // console.log('kselecion' + rawSelection.lastSelectedExchangeId);
+
                         const selectedIds = ExchangeSelectedIds(rawSelection);
+
+                        
+                       // console.log('zselecion' + selectedIds[0]);
 
                         for (const selectedId of selectedIds) {
                             if (!trunkState.exchangesIndexer[selectedId] && trunkState.exchangesIndexer[selectedId] !== 0) {
@@ -88,6 +97,7 @@ export class ExchangeSelectionService {
             }
 
             this.currentRawSelection$.next(exchangeSelection);
+            
         } else {
             const exchangeSelection: ExchangeSelection = {
                 map: {},

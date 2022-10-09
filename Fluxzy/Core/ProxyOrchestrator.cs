@@ -223,6 +223,8 @@ namespace Fluxzy.Core
                                     }
                                     else
                                     {
+                                        // No response body, we ensure the stream is done
+
                                         await _archiveWriter.Update(exchange,
                                             UpdateType.AfterResponse,
                                             CancellationToken.None

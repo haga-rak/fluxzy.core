@@ -42,8 +42,7 @@ namespace Fluxzy.Core
                     stream);
             }
 
-            stream = new CombinedReadonlyStream(false,
-                new MemoryStream(buffer), stream);
+            stream = new CombinedReadonlyStream(false, new MemoryStream(buffer), stream);
 
             var secureStream = new SslStream(new RecomposedStream(stream, originalStream), false);
 
