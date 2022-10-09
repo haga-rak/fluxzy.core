@@ -15,7 +15,11 @@ export class SetCookieResultComponent implements OnInit {
     @Input('formatter') public model: SetCookieResult;
     @Input() public context: ExchangeContextInfo;
 
-    public showDetailState : { [name : string ] : boolean   } = {};
+    public propertyContext  = {
+      showDetailState : {}
+    }
+
+    //public showDetailState : { [name : string ] : boolean   } = {};
 
     constructor() {}
 

@@ -10,6 +10,8 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     public tabs : string [] = ['Content', 'Connectivity', 'Performance'] ;
     public currentTab : string = 'Content'; 
 
+    public context : { currentTab : string } = { currentTab : 'Content'}
+
     @Input() public exchange: ExchangeInfo;
 
     constructor() {
