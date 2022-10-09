@@ -19,6 +19,7 @@ export class MenuService {
     private nextOpenFile$ = new Subject<string>() ; 
     private nextSaveFile$ = new Subject<string>() ; 
     private _currentMenu = GlobalMenuItems ; 
+    private _initied = false; 
 
     private callBacks : { [menuId : string] : () => void}  = {}
 
@@ -31,6 +32,11 @@ export class MenuService {
     }
 
     public init() : void {
+        if (this._initied)
+            return; 
+
+            this._initied = true; 
+
         if (this.electronService.isElectron){         
             this.electronService.ipcRenderer.sendSync('install-menu-bar', this._currentMenu) ; 
 

@@ -13,7 +13,7 @@ export class ExchangeSelectionService {
     private currentRawSelectionObservable$: Observable<ExchangeSelection>;
     private currentSelectedIds$: Observable<number[]>;
     private currenSelectionCount$: Observable<number>;
-    private selected$ : Observable<ExchangeInfo | null>;
+    private selected$ : BehaviorSubject<ExchangeInfo | null> = new BehaviorSubject<ExchangeInfo | null>(null);
 
 
     private currentSelection: ExchangeSelection = {
@@ -48,6 +48,7 @@ export class ExchangeSelectionService {
                             }
                         }
 
+                       // console.log(rawSelection);
                         return rawSelection ;
                     })
             );
@@ -61,7 +62,7 @@ export class ExchangeSelectionService {
 
         this.currentSelection$.pipe(tap((t) => (this.currentSelection = t))).subscribe();
 
-        this.selected$ = combineLatest([
+        combineLatest([
 
             this.exchangeContentService.getTrunkState(),
             this.currentSelection$
@@ -81,8 +82,9 @@ export class ExchangeSelectionService {
 
                     const chosen = trunkState.exchanges[selectedIndex] ;
                     return chosen.exchangeInfo ;
-                })
-            )
+                }),
+                tap(s => this.selected$.next(s))
+            ).subscribe();
     }
 
     public setSelection(...exchangeIds: number[]): void {
@@ -119,7 +121,7 @@ export class ExchangeSelectionService {
     }
 
     public getSelected() : Observable<ExchangeInfo> {
-        return this.selected$ ;
+        return this.selected$.asObservable() ;
     }
 
     public getCurrenSelectionCount(): Observable<number> {

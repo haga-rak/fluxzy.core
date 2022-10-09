@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {ExchangeInfo} from '../../core/models/auto-generated';
 
 @Component({
@@ -6,7 +6,7 @@ import {ExchangeInfo} from '../../core/models/auto-generated';
     templateUrl: './exchange-viewer-header.component.html',
     styleUrls: ['./exchange-viewer-header.component.scss']
 })
-export class ExchangeViewerHeaderComponent implements OnInit {
+export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     public tabs : string [] = ['Content', 'Connectivity', 'Performance'] ;
     public currentTab : string = 'Content'; 
 
@@ -16,6 +16,13 @@ export class ExchangeViewerHeaderComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        // console.log('header');
+        // console.log(this.exchange);
+    }
+    
+    ngOnChanges(changes: SimpleChanges): void {
+        // console.log('heade change');
+        // console.log(this.exchange);
     }
 
 }
