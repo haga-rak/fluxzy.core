@@ -8,7 +8,6 @@ using System.Text;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc;
 using Fluxzy.Readers;
-using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {

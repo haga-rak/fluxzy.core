@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {

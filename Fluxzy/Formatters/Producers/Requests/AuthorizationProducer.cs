@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Fluxzy.Readers;
-using Fluxzy.Screeners;
 using System.Linq;
 
 namespace Fluxzy.Formatters.Producers.Requests

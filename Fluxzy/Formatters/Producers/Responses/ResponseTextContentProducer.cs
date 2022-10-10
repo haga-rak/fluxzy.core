@@ -1,6 +1,4 @@
-﻿using Fluxzy.Screeners;
-
-namespace Fluxzy.Formatters.Producers.Responses
+﻿namespace Fluxzy.Formatters.Producers.Responses
 {
     public class ResponseTextContentProducer : IFormattingProducer<ResponseTextContentResult>
     {

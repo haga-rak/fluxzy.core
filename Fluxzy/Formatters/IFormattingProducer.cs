@@ -1,8 +1,4 @@
-﻿using System;
-using System.Text;
-using Fluxzy.Formatters;
-
-namespace Fluxzy.Screeners
+﻿namespace Fluxzy.Formatters
 {
     internal interface IFormattingProducer<out T>
         where T : FormattingResult

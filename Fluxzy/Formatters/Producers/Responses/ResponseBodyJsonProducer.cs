@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers.Responses
 {

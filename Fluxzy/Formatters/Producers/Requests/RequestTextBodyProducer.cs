@@ -1,7 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Fluxzy.Screeners;
-
 namespace Fluxzy.Formatters.Producers.Requests
 {
     public class RequestTextBodyProducer : IFormattingProducer<RequestTextBodyResult>

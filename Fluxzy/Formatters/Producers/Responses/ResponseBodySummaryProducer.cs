@@ -1,7 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using Fluxzy.Extensions;
-using Fluxzy.Screeners;
 using System;
 
 namespace Fluxzy.Formatters.Producers.Responses
