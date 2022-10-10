@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {

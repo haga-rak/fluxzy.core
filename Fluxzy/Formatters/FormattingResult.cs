@@ -1,6 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-namespace Fluxzy.Screeners
+namespace Fluxzy.Formatters
 {
     public abstract class FormattingResult
     {

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Fluxzy.Readers;
-using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {

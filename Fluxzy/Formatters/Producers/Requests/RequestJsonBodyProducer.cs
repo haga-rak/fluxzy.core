@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.Json;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
-using Fluxzy.Screeners;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {

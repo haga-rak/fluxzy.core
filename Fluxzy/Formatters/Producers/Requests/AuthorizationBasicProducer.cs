@@ -2,7 +2,6 @@
 
 using System;
 using Fluxzy.Readers;
-using Fluxzy.Screeners;
 using System.Linq;
 using System.Text;
 

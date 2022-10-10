@@ -3,7 +3,6 @@ using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Responses;
-using Fluxzy.Screeners;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Fluxzy.Desktop.Services
