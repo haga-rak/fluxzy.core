@@ -10,7 +10,7 @@ namespace Fluxzy.Rules
 {
     public class Rule
     {
-        public Rule(IAction action, FilterCollection filter)
+        public Rule(Action action, FilterCollection filter)
         {
             if (!filter.Children.Any())
             {
@@ -26,14 +26,14 @@ namespace Fluxzy.Rules
             // TODO : Example response header filter should not match with DoNotDecrypt action
         }
 
-        public Rule(IAction action, params Filter [] filters)
+        public Rule(Action action, params Filter [] filters)
             : this (action, new FilterCollection(filters))
         {
         }
 
         public FilterCollection Filter { get; set; }
 
-        public IAction Action { get; set; }
+        public Action Action { get; set; }
 
         public async Task Enforce(ExchangeContext context,
             Exchange exchange,

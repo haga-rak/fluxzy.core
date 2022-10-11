@@ -6,7 +6,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class DeleteResponseHeaderAction : IAction
+    public class DeleteResponseHeaderAction : Action
     {
         public DeleteResponseHeaderAction(string headerName)
         {
@@ -15,9 +15,9 @@ namespace Fluxzy.Rules.Actions
 
         public string HeaderName { get; set;  }
 
-        public FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
+        public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             exchange.Response.Header.AltDeleteHeader(HeaderName);
             return Task.CompletedTask;
