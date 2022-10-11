@@ -102,18 +102,15 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         ]
     },
     {
-        label : 'Selection',
+        label : 'Rule',
         submenu : [
             {
-                label : 'Manage filters', 
+                label : 'Manage rules', 
+                id : 'manage-rules'
             },
-        ]
-    },
-    {
-        label : 'Filter',
-        submenu : [
             {
                 label : 'Manage filters', 
+                id : 'manage-filter'
             },
         ]
     },

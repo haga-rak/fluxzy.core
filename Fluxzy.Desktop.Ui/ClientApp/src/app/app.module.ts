@@ -16,7 +16,6 @@ import { ToggleComponent } from './widgets/toggle/toggle.component';
 import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
-import { FilterComponent } from './filter/filter.component';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -51,7 +50,6 @@ import { AuthorizationResultComponent } from './widgets/exchange-viewer/details-
 import { AuthorizationBearerResultComponent } from './widgets/exchange-viewer/details-request/authorization-bearer-result/authorization-bearer-result.component';
 import { SetCookieResultComponent } from './widgets/exchange-viewer/details-response/set-cookie-result/set-cookie-result.component';
 import { GlobalSettingComponent } from './settings/global-setting/global-setting.component';
-import { DialogLauncherComponent } from './settings/dialog-launcher/dialog-launcher.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -69,7 +67,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ToggleComponent,
         HomeComponent,
         StatusBarComponent,
-        FilterComponent,
         ExchangeViewerComponent,
         VerticalSeparatorDirective,
         FilterHeaderViewComponent,
@@ -95,7 +92,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         AuthorizationBearerResultComponent,
         SetCookieResultComponent,
         GlobalSettingComponent,
-        DialogLauncherComponent,
         
     ],
     imports: [
@@ -136,5 +132,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         },
     ],
     bootstrap: [AppComponent],
+    entryComponents : [GlobalSettingComponent]
 })
 export class AppModule {}
