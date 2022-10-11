@@ -6,11 +6,11 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class SkipSslTunnelingAction : IAction
+    public class SkipSslTunnelingAction : Action
     {
-        public FilterScope ActionScope => FilterScope.OnAuthorityReceived;
+        public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             context.BlindMode = true; 
             return Task.CompletedTask;

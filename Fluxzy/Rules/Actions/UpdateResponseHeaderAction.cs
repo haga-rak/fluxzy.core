@@ -6,7 +6,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class UpdateResponseHeaderAction : IAction
+    public class UpdateResponseHeaderAction : Action
     {
         public UpdateResponseHeaderAction(string headerName, string headerValue)
         {
@@ -18,9 +18,9 @@ namespace Fluxzy.Rules.Actions
 
         public string HeaderValue { get; set;  }
 
-        public FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
+        public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             exchange.Response.Header.AltReplaceHeaders(
                 HeaderName, HeaderValue);

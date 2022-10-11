@@ -7,15 +7,15 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class SetDnsReplaceAction : IAction
+    public class SetDnsReplaceAction : Action
     {
         public IPAddress RemoteHostIp { get; set; }
 
         public int RemoteHostPort { get; set; }
 
-        public FilterScope ActionScope => FilterScope.OnAuthorityReceived;
+        public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             context.RemoteHostIp = RemoteHostIp;
             context.RemoteHostPort = RemoteHostPort;

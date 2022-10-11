@@ -6,7 +6,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class SetClientCertificateAction : IAction
+    public class SetClientCertificateAction : Action
     {
         public SetClientCertificateAction(Certificate clientCertificate)
         {
@@ -15,9 +15,9 @@ namespace Fluxzy.Rules.Actions
 
         public Certificate ClientCertificate { get; set; }
 
-        public FilterScope ActionScope => FilterScope.OnAuthorityReceived;
+        public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             context.ClientCertificates.Add(ClientCertificate.GetCertificate());
             return Task.CompletedTask;

@@ -6,13 +6,13 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
-    public class ReplaceRequestBodyAction : IAction
+    public class ReplaceRequestBodyAction : Action
     {
         public BodyContent Replacement { get; set; }
 
-        public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             throw new System.NotImplementedException();
         }

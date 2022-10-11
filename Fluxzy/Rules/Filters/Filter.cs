@@ -1,10 +1,11 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Misc.Converters;
 using System;
 
 namespace Fluxzy.Rules.Filters
 {
-    public abstract class Filter
+    public abstract class Filter : PolymorphicObject
     {
         public Guid Identifier { get; set; } = Guid.NewGuid();
 

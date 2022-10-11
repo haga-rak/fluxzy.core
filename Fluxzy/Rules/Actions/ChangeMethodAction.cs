@@ -7,7 +7,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class ChangeRequestMethodAction : IAction
+    public class ChangeRequestMethodAction : Action
     {
         public ChangeRequestMethodAction(string newMethod)
         {
@@ -16,9 +16,9 @@ namespace Fluxzy.Rules.Actions
 
         public string NewMethod { get; set; }
 
-        public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             exchange.Request.Header.Method = NewMethod.AsMemory();
             return Task.CompletedTask; 

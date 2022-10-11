@@ -7,7 +7,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class ChangeRequestPathAction : IAction
+    public class ChangeRequestPathAction : Action
     {
         public ChangeRequestPathAction(string newPath)
         {
@@ -16,9 +16,9 @@ namespace Fluxzy.Rules.Actions
 
         public string NewPath { get; set; }
 
-        public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             exchange.Request.Header.Path = NewPath.AsMemory();
             return Task.CompletedTask; 

@@ -6,7 +6,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class DeleteRequestHeaderAction : IAction
+    public class DeleteRequestHeaderAction : Action
     {
         public DeleteRequestHeaderAction(string headerName)
         {
@@ -15,9 +15,9 @@ namespace Fluxzy.Rules.Actions
 
         public string HeaderName { get; set;  }
 
-        public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             exchange.Request.Header.AltDeleteHeader(HeaderName);
             return Task.CompletedTask;

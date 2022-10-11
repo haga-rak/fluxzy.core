@@ -7,7 +7,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
-    public class FullResponseAction : IAction
+    public class FullResponseAction : Action
     {
         public FullResponseAction(PreMadeResponse preMadeResponse)
         {
@@ -16,9 +16,9 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         public PreMadeResponse PreMadeResponse { get; set; }
 
-        public FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient; 
+        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient; 
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             context.PreMadeResponse = PreMadeResponse;
             return Task.CompletedTask; 

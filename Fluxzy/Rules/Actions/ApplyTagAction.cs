@@ -8,13 +8,13 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class ApplyTagAction : IAction
+    public class ApplyTagAction : Action
     {
-        public FilterScope ActionScope => FilterScope.OnAuthorityReceived;
+        public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
         public Tag? Tag { get; set; }
 
-        public Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             if (Tag != null)
             {
