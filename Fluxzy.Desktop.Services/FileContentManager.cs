@@ -104,7 +104,7 @@ namespace Fluxzy.Desktop.Services
                     // Add 
                     connectionListFinal.Add(newContainer) 
                     :
-                    // Update 
+                    // AddOrUpdate 
                     connectionListFinal.SetItem(connectionIndex , newContainer);
 
                 current = new TrunkState(current.Exchanges, connectionListFinal);
@@ -128,7 +128,7 @@ namespace Fluxzy.Desktop.Services
                     // Add 
                     exchangeListFinal.Add(newContainer) 
                     :
-                    // Update 
+                    // AddOrUpdate 
                     exchangeListFinal.SetItem(exchangeIndex , newContainer);
 
                 current = new TrunkState(exchangeListFinal, current.Connections);
