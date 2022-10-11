@@ -19,9 +19,7 @@ namespace Fluxzy.Misc.Converters
                 _typeMapping = args.ToDictionary(t => t.Name, t => t);
                 return;
             }
-
-            // if no explicit type load from assembly 
-
+            
             var foundTypes = typeof(T).Assembly.GetTypes()
                                       .Where(derivedType => typeof(T).IsAssignableFrom(derivedType) 
                                                             && derivedType != typeof(T)

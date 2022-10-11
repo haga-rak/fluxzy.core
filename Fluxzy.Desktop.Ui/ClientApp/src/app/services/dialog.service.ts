@@ -3,6 +3,7 @@ import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { filter, tap } from 'rxjs';
 import { MenuService } from '../core/services/menu-service.service';
 import { GlobalSettingComponent } from '../settings/global-setting/global-setting.component';
+import { ManageFiltersComponent } from '../settings/manage-filters/manage-filters.component';
 
 @Injectable({
     providedIn: 'root',
@@ -44,6 +45,22 @@ export class DialogService {
             GlobalSettingComponent,
             config
         );
+        this.bsModalRef.content.closeBtnName = 'Close';
+    }
+
+    public openManageFilters(selectMode: boolean): void {
+        const config: ModalOptions = {
+            initialState: {
+                selectMode
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.bsModalRef = this.modalService.show(
+            ManageFiltersComponent,
+            config
+        );
+
         this.bsModalRef.content.closeBtnName = 'Close';
     }
 }

@@ -8,6 +8,8 @@ using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Formatters.Producers.Responses;
+using Fluxzy.Misc.Converters;
+using Fluxzy.Rules.Filters;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
 using Reinforced.Typings.Fluent;
@@ -26,8 +28,12 @@ namespace Fluxzy.Desktop.Ui
                 .AutoOptionalProperties()
                 .UseModules());
 
+            builder.ExportAsInterface<PolymorphicObject>()
+                   .ApplyGenericProperties();
+
             ConfigureViewModels(builder);
-            ConfigureProducers(builder); 
+            ConfigureProducers(builder);
+            ConfigureFilters(builder); 
 
             // UI objects
 
@@ -176,6 +182,17 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<SetCookieItem>()
                    .ApplyGenericProperties();
         }
+
+        private static void ConfigureFilters(ConfigurationBuilder builder)
+        {
+
+            var foundTypes = typeof(Filter).Assembly.GetTypes()
+                                      .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)
+                                                            && derivedType.IsClass).ToList();
+
+
+            builder.ExportAsInterfaces(foundTypes, a => a.ApplyGenericPropertiesGeneric());
+        }
     }
 
     internal static class ReinforceExtensions
@@ -192,6 +209,32 @@ namespace Fluxzy.Desktop.Ui
                 .WithPublicProperties();
 
             return result; 
+        }
+
+        public static InterfaceExportBuilder ApplyGenericPropertiesGeneric(this InterfaceExportBuilder builder)
+        {
+            var result =  builder
+                .Substitute(typeof(DateTime), new RtSimpleTypeName("Date"))
+                .Substitute(typeof(Guid), new RtSimpleTypeName("string"))
+                .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
+                .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
+                .DontIncludeToNamespace()
+                .AutoI(false)
+                .WithPublicProperties();
+
+            return result; 
+        }
+
+        public static InterfaceExportBuilder ExportAsInterface(this InterfaceExportBuilder builder, Type type )
+        {
+            var staticClassInfo = typeof(TypeConfigurationBuilderExtensions);
+            var methodInfo = staticClassInfo.GetMethod(nameof(ExportAsInterface), 
+                System.Reflection.BindingFlags.Static)!;
+
+            var genericMethod = methodInfo.MakeGenericMethod(type);
+            genericMethod.Invoke(null, null);
+            
+            return builder;
         }
     }
 }

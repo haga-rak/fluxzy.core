@@ -23,5 +23,7 @@ namespace Fluxzy.Rules.Filters
 
             return !Inverted ? internalApplyResult : !internalApplyResult;
         }
+
+        public bool Locked { get; set; }
     }
 }

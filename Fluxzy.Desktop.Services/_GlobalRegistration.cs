@@ -1,4 +1,6 @@
 ﻿using System.Reactive.Linq;
+using Fluxzy.Desktop.Services.Filters;
+using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
@@ -54,6 +56,16 @@ namespace Fluxzy.Desktop.Services
             serviceCollection.AddScoped<SaveRequestBodyProducerAction>();
             serviceCollection.AddScoped<SaveFileMultipartAction>();
             serviceCollection.AddScoped<SaveResponseBodyAction>();
+
+            return serviceCollection;
+
+        }
+
+        public static IServiceCollection AddViewFilters(this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddScoped<ViewFilterManagement>();
+            serviceCollection.AddSingleton<LocalFilterStorage>();
+            serviceCollection.AddSingleton<InSessionFileStorage>();
 
             return serviceCollection;
 

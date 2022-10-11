@@ -1,24 +1,35 @@
 ﻿using System.Text.Json;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
+using Fluxzy.Rules.Filters.ResponseFilters;
 
 namespace Fluxzy.Desktop.Services.Filters.Implementations
 {
     public class LocalFilterStorage : IFilterStorage
     {
-        private static readonly DirectoryInfo FilterDirectory;
+        private readonly DirectoryInfo _filterDirectory;
 
-        static LocalFilterStorage()
+        public LocalFilterStorage()
         {
             var basePath = Environment.ExpandEnvironmentVariables("%appdata%/fluxzy/filters");
             Directory.CreateDirectory(basePath);
-            FilterDirectory = new DirectoryInfo(basePath);
+            _filterDirectory = new DirectoryInfo(basePath);
+
+            if (!_filterDirectory.EnumerateFiles("*.filter.json").Any())
+            {
+                // Dump default filters, TODO : add more default filters 
+
+                InternalAdd(new AnyFilter() { Locked = true }); 
+                InternalAdd(new MethodFilter("POST") { Locked = true, }); 
+                InternalAdd(new ContentTypeJsonFilter() { Locked = true, }); 
+            }
         }
 
         public StoreLocation StoreLocation => StoreLocation.Computer;
 
         public IEnumerable<Filter> Get()
         {
-            foreach (var filterFile in FilterDirectory.EnumerateFiles("*.filter.json"))
+            foreach (var filterFile in _filterDirectory.EnumerateFiles("*.filter.json"))
             {
                 using var stream = filterFile.Open(FileMode.Open, FileAccess.Read);
 
@@ -29,9 +40,9 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
             }
         }
 
-        private static string GetFullPath(Guid filterId)
+        private string GetFullPath(Guid filterId)
         {
-            return Path.Combine(FilterDirectory.FullName, $"{filterId}.filter.json");
+            return Path.Combine(_filterDirectory.FullName, $"{filterId}.filter.json");
         }
 
         public bool Remove(Guid filterId)
@@ -59,6 +70,14 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
 
             filter = null;
             return false;
+        }
+
+        private void InternalAdd(Filter updatedContent)
+        {
+            var fullPath = GetFullPath(updatedContent.Identifier);
+
+            using var outStream = File.Create(fullPath);
+            JsonSerializer.Serialize(outStream, updatedContent, GlobalArchiveOption.JsonSerializerOptions);
         }
 
         public void AddOrUpdate(Guid filterId, Filter updatedContent)

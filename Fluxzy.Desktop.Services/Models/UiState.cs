@@ -1,5 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Rules.Filters;
+
 namespace Fluxzy.Desktop.Services.Models
 {
     public class UiState
@@ -22,6 +24,6 @@ namespace Fluxzy.Desktop.Services.Models
 
         public FluxzySettingsHolder SettingsHolder { get;  }
 
-        
+        public Filter ViewFilter { get; } = new AnyFilter(); 
     }
 }
