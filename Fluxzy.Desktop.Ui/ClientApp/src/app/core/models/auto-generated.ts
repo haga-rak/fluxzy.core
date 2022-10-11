@@ -131,7 +131,7 @@ export interface SetCookieItem
 }
 export interface StoredFilter
 {
-	storeLocation: number;
+	storeLocation: string;
 	filters: Filter[];
 }
 export interface AnyFilter extends Filter

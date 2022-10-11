@@ -11,7 +11,7 @@ import { ApiService } from '../../services/api.service';
 })
 export class ManageFiltersComponent implements OnInit {
     public selectMode = false; 
-    private filterHolders : FilterHolder[] = null; 
+    public filterHolders : FilterHolder[] = null; 
 
     constructor(public bsModalRef: BsModalRef, public options: ModalOptions, private apiService : ApiService) {
       this.selectMode = options.initialState.selectMode as boolean; 
@@ -28,7 +28,7 @@ export class ManageFiltersComponent implements OnInit {
 
 
 export interface FilterHolder {
-    storeLocation : number, 
+    storeLocation : string, 
     filter : Filter
 }
 
