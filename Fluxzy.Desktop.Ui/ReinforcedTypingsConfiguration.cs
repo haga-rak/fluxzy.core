@@ -205,6 +205,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(Guid), new RtSimpleTypeName("string"))
                 .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
                 .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
+                .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
                 .WithPublicProperties();
