@@ -1,0 +1,17 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">Manage filters</h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body" style="min-height: 400px">
+    <div>
+
+        <p>Manage settings dialog {{selectMode}}</p>
+
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" (click)="bsModalRef.hide()">Save</button>
+    <button class="btn btn-primary" (click)="bsModalRef.hide()">Cancel</button>
+  </div>

@@ -2,6 +2,10 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
+export interface PolymorphicObject
+{
+	typeKind: string;
+}
 export interface FileOpeningViewModel
 {
 	fileName: string;
@@ -129,6 +133,106 @@ export interface SetCookieItem
 	secure: boolean;
 	httpOnly: boolean;
 }
+export interface AnyFilter extends Filter
+{
+	filterScope: number;
+}
+export interface Filter extends PolymorphicObject
+{
+	filterScope: number;
+	identifier: string;
+	inverted: boolean;
+	friendlyName: string;
+	locked: boolean;
+}
+export interface FilterCollection extends Filter
+{
+	children: Filter[];
+	operation: number;
+	filterScope: number;
+}
+export interface HeaderFilter extends StringFilter
+{
+	headerName: string;
+	friendlyName: string;
+}
+export interface IpFilter extends StringFilter
+{
+	filterScope: number;
+}
+export interface NoFilter extends Filter
+{
+	filterScope: number;
+}
+export interface StringFilter extends Filter
+{
+	friendlyName: string;
+	operation: number;
+	caseSensitive: boolean;
+	pattern: string;
+}
+export interface ContentTypeJsonFilter extends ResponseHeaderFilter
+{
+	friendlyName: string;
+}
+export interface ContentTypeXmlFilter extends ResponseHeaderFilter
+{
+	friendlyName: string;
+}
+export interface ResponseHeaderFilter extends HeaderFilter
+{
+	filterScope: number;
+}
+export interface StatusCodeClientErrorFilter extends Filter
+{
+	filterScope: number;
+	friendlyName: string;
+}
+export interface StatusCodeFilter extends Filter
+{
+	statusCodes: number[];
+	filterScope: number;
+	friendlyName: string;
+}
+export interface StatusCodeRedirectionFilter extends Filter
+{
+	filterScope: number;
+	friendlyName: string;
+}
+export interface StatusCodeServerErrorFilter extends Filter
+{
+	filterScope: number;
+	friendlyName: string;
+}
+export interface StatusCodeSuccess extends Filter
+{
+	filterScope: number;
+	friendlyName: string;
+}
+export interface HostFilter extends StringFilter
+{
+	filterScope: number;
+	friendlyName: string;
+}
+export interface FullUrlFilter extends StringFilter
+{
+	filterScope: number;
+	friendlyName: string;
+}
+export interface MethodFilter extends StringFilter
+{
+	filterScope: number;
+	friendlyName: string;
+}
+export interface PathFilter extends StringFilter
+{
+	filterScope: number;
+	friendlyName: string;
+}
+export interface RequestHeaderFilter extends HeaderFilter
+{
+	filterScope: number;
+}
 export interface UiState
 {
 	id: string;
@@ -136,6 +240,7 @@ export interface UiState
 	proxyState: ProxyState;
 	systemProxyState: any;
 	settingsHolder: FluxzySettingsHolder;
+	viewFilter: Filter;
 }
 export interface ProxyState
 {
