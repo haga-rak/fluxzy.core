@@ -6,8 +6,12 @@
   </div>
   <div class="modal-body" style="min-height: 400px">
     <div>
-
-        <p>Manage settings dialog {{selectMode}}</p>
+        <p *ngIf="!filterHolders">
+            Loading filters
+        </p>
+        <div *ngIf="filterHolders">
+                {{filterHolders.length}} filters found 
+        </div>
 
     </div>
   </div>

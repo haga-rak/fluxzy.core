@@ -1,15 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class MethodFilter : StringFilter
     {
-        public MethodFilter(string pattern) : base(pattern)
+        public MethodFilter(string pattern) : base(pattern, StringSelectorOperation.Exact)
         {
-        }
 
-        public MethodFilter(string pattern, StringSelectorOperation operation) : base(pattern, operation)
-        {
         }
 
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
@@ -22,9 +20,13 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             CaseSensitive = false;
             return base.InternalApply(authority, exchange);
         }
+
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 
+
         public override string FriendlyName => $"Request method {base.FriendlyName}";
+
+
 
     }
 }

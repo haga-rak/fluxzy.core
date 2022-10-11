@@ -47,6 +47,8 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddFluxzyProducers();
 
+            collection.AddViewFilters();
+
             return collection; 
         }
 

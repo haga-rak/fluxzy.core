@@ -6,10 +6,6 @@ export interface PolymorphicObject
 {
 	typeKind: string;
 }
-export interface FileOpeningViewModel
-{
-	fileName: string;
-}
 export interface FileSaveViewModel
 {
 	fileName: string;
@@ -133,6 +129,11 @@ export interface SetCookieItem
 	secure: boolean;
 	httpOnly: boolean;
 }
+export interface StoredFilter
+{
+	storeLocation: number;
+	filters: Filter[];
+}
 export interface AnyFilter extends Filter
 {
 	filterScope: number;
@@ -167,9 +168,9 @@ export interface NoFilter extends Filter
 export interface StringFilter extends Filter
 {
 	friendlyName: string;
+	pattern: string;
 	operation: number;
 	caseSensitive: boolean;
-	pattern: string;
 }
 export interface ContentTypeJsonFilter extends ResponseHeaderFilter
 {

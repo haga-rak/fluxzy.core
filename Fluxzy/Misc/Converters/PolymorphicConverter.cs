@@ -35,11 +35,11 @@ namespace Fluxzy.Misc.Converters
         private Type GetFinalType(ref Utf8JsonReader reader)
         {
             using var doc = JsonDocument.ParseValue(ref reader);
-            var typeKind = doc.RootElement.GetProperty(nameof(PolymorphicObject.TypeKind)).GetString()!;
+            var typeKind = doc.RootElement.GetProperty("typeKind").GetString()!;
 
             if (!_typeMapping.TryGetValue(typeKind, out var type))
                 throw new JsonException($"Cannot parse {typeKind}");
-
+            
             return type;
         }
 
@@ -49,11 +49,15 @@ namespace Fluxzy.Misc.Converters
 
             var actualType = GetFinalType(ref typeCalculatorReader);
 
-            return (T?)JsonSerializer.Deserialize(ref reader, actualType, options);
+            
+
+            var res = (T?)JsonSerializer.Deserialize(ref reader, actualType, options);
+
+            return res; 
         }
 
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) =>
-            JsonSerializer.Serialize(writer, value, value.GetType());
+            JsonSerializer.Serialize(writer, value, value.GetType(), options);
     }
     
     public abstract class PolymorphicObject

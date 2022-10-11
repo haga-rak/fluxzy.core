@@ -32,10 +32,6 @@ namespace Fluxzy.Desktop.Services.Filters
         }
     }
 
-    public record ViewFilterUpdateModel(StoreLocation Location, Filter Filter);
-
-    public record ViewFilterDeleteModel(StoreLocation Location);
-
 
     public class StoredFilter
     {
