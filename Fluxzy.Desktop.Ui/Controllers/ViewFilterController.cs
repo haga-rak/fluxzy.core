@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/view-filter")]
     [ApiController]
     public class ViewFilterController : ControllerBase
     {

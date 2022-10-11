@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { BsModalRef, ModalOptions } from 'ngx-bootstrap/modal';
+import { tap, map } from 'rxjs';
+import { Filter, StoredFilter } from '../../core/models/auto-generated';
+import { ApiService } from '../../services/api.service';
 
 @Component({
     selector: 'app-manage-filters',
@@ -8,10 +11,40 @@ import { BsModalRef, ModalOptions } from 'ngx-bootstrap/modal';
 })
 export class ManageFiltersComponent implements OnInit {
     public selectMode = false; 
+    private filterHolders : FilterHolder[] = null; 
 
-    constructor(public bsModalRef: BsModalRef, public options: ModalOptions) {
+    constructor(public bsModalRef: BsModalRef, public options: ModalOptions, private apiService : ApiService) {
       this.selectMode = options.initialState.selectMode as boolean; 
     }
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+        this.apiService.viewFilterGet()
+          .pipe(
+            map(t => BuildFilterHolders(t)),
+            tap(t => this.filterHolders = t)
+          ).subscribe(); 
+    }
+}
+
+
+export interface FilterHolder {
+    storeLocation : number, 
+    filter : Filter
+}
+
+export const BuildFilterHolders = (storeFilters : StoredFilter [])  : FilterHolder[] => {
+  const res : FilterHolder[] = []; 
+
+  for (const storeFilter of storeFilters){
+    for (const filter of storeFilter.filters) {
+      res.push({
+        filter : filter, 
+        storeLocation : storeFilter.storeLocation
+      });
+    }
+
+  }
+
+
+  return res;
 }

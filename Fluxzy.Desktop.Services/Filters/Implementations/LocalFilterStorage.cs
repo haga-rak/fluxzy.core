@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Fluxzy.Misc.Converters;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
@@ -20,7 +23,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
                 // Dump default filters, TODO : add more default filters 
 
                 InternalAdd(new AnyFilter() { Locked = true }); 
-                InternalAdd(new MethodFilter("POST") { Locked = true, }); 
+                InternalAdd(new MethodFilter("POST") { Locked = true }); 
                 InternalAdd(new ContentTypeJsonFilter() { Locked = true, }); 
             }
         }
@@ -77,7 +80,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
             var fullPath = GetFullPath(updatedContent.Identifier);
 
             using var outStream = File.Create(fullPath);
-            JsonSerializer.Serialize(outStream, updatedContent, GlobalArchiveOption.JsonSerializerOptions);
+            JsonSerializer.Serialize(outStream, updatedContent, options : GlobalArchiveOption.JsonSerializerOptions);
         }
 
         public void AddOrUpdate(Guid filterId, Filter updatedContent)

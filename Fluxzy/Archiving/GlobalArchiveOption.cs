@@ -8,7 +8,7 @@ namespace Fluxzy
 {
     public class GlobalArchiveOption
     {
-        public static JsonSerializerOptions JsonSerializerOptions { get; } = new()
+        public static JsonSerializerOptions JsonSerializerOptions => new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,

@@ -2,6 +2,7 @@
 
 using System.Net;
 using Fluxzy.Clients;
+using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
 using Fluxzy.Formatters;
@@ -108,8 +109,6 @@ namespace Fluxzy.Desktop.Ui
 
         private static void ConfigureViewModels(ConfigurationBuilder builder)
         {
-            builder.ExportAsInterface<FileOpeningViewModel>()
-                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<FileSaveViewModel>()
                    .ApplyGenericProperties();
@@ -185,6 +184,8 @@ namespace Fluxzy.Desktop.Ui
 
         private static void ConfigureFilters(ConfigurationBuilder builder)
         {
+            builder.ExportAsInterface<StoredFilter>()
+                   .ApplyGenericProperties();
 
             var foundTypes = typeof(Filter).Assembly.GetTypes()
                                       .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)
@@ -218,6 +219,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(Guid), new RtSimpleTypeName("string"))
                 .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
                 .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
+                .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
                 .WithPublicProperties();

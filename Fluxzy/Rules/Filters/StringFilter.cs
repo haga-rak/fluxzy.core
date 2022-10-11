@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Fluxzy.Rules.Filters
@@ -12,7 +13,7 @@ namespace Fluxzy.Rules.Filters
     public abstract class StringFilter : Filter
     {
         protected StringFilter(string pattern)
-            : this (pattern, StringSelectorOperation.Exact)
+            : this (pattern, StringSelectorOperation.Contains)
         {
         }
 
@@ -63,11 +64,11 @@ namespace Fluxzy.Rules.Filters
         
         protected abstract IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange);
 
+        public string Pattern { get; set; }
+
         public StringSelectorOperation Operation { get; set; } = StringSelectorOperation.Exact;
 
         public bool CaseSensitive { get; set; }
-        
-        public string Pattern { get; set; }
         
         public override string FriendlyName => $"{Operation.GetDescription()} : `{Pattern}`";
     }
@@ -81,7 +82,7 @@ namespace Fluxzy.Rules.Filters
     public enum StringSelectorOperation
     {
         [Description("equals")]
-        Exact,
+        Exact = 1,
 
         [Description("contains")]
         Contains,

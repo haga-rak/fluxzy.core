@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Observable, take, map, tap } from 'rxjs';
-import { ConnectionInfo, ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, FluxzySettingsHolder, FormatterContainerViewModel, FormattingResult, MultipartItem, SaveFileMultipartActionModel, TrunkState, UiState } from '../core/models/auto-generated';
+import { ConnectionInfo, ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, FluxzySettingsHolder, FormatterContainerViewModel, FormattingResult, MultipartItem, SaveFileMultipartActionModel, StoredFilter, TrunkState, UiState } from '../core/models/auto-generated';
 
 @Injectable({
   providedIn: 'root'
@@ -97,20 +97,6 @@ export class ApiService {
                 take(1)
             );
     }
-
-    // public getRequestFormattingResults(exchangeId : number) : Observable<FormattingResult[]> {
-    //     return this.httpClient.get<FormattingResult[]>(`api/producers/request/${exchangeId}`)
-    //         .pipe(
-    //             take(1)
-    //         );
-    // }
-
-    // public getResponseFormattingResults(exchangeId : number) : Observable<FormattingResult[]> {
-    //     return this.httpClient.get<FormattingResult[]>(`api/producers/response/${exchangeId}`)
-    //         .pipe(
-    //             take(1)
-    //         );
-    // }
     
     public getFormatters(exchangeId : number) : Observable<FormatterContainerViewModel> {
         return this.httpClient.get<FormatterContainerViewModel>(`api/producers/formatters/${exchangeId}`)
@@ -151,5 +137,9 @@ export class ApiService {
     
     public settingUpdate(model : FluxzySettingsHolder) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/setting`, model).pipe(take(1));
+    }
+
+    public viewFilterGet() : Observable<StoredFilter[]> {
+        return this.httpClient.get<StoredFilter[]>(`api/view-filter/`).pipe(take(1));
     }
 }
