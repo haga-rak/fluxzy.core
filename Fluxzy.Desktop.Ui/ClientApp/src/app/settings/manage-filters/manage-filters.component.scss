@@ -1,12 +1,11 @@
 
-.table-box {
-    
-    background-color: var(--bs-gray-500);
-    padding: 8px;
-    border-radius:8px;
-}
 
 .filter-table th {
     color: var(--bs-gray-300);
     font-weight: normal;
 }
+
+.edit-form-table tr th:first-child {
+    width : 180px;
+    text-align: right;
+} 

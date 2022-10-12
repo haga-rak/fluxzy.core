@@ -152,3 +152,19 @@ pre > code {
 .modal-footer {
     border-top-color: var(--bs-gray-900) !important;
 }
+
+.filter-table th {
+    color: var(--bs-gray-300);
+    font-weight: normal;
+}
+
+
+.edit-form-table tr td:first-child {
+    width : 180px;
+    text-align: right;
+} 
+
+.edit-form-table td {
+    padding : 4px 8px 4px 8px; 
+    vertical-align: top !important;
+} 

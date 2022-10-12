@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { Filter, MethodFilter } from '../../../../core/models/auto-generated';
 
 @Component({
@@ -8,6 +9,7 @@ import { Filter, MethodFilter } from '../../../../core/models/auto-generated';
 })
 export class MethodFilterFormComponent implements OnInit {
     @Input() rawFilter : Filter ; 
+    @Input() validateRequest : Observable<boolean> ; 
 
     public filter : MethodFilter ; 
 
