@@ -1,18 +1,41 @@
 
 
-<div class="row">
-    <div class="offset-md-2 col-md-4">
-        Filter exchanges according to request method
-    </div>
-</div>
+<h5 style="margin-bottom : 24px">
+    Filter exchanges according to request method
+</h5>
 <div class="">
-
     <div class="row">
-        <div class="offset-md-2 col-md-4 text-end">
-            Method
-        </div>
-        <div class="col-md-4">
-            <input type="text" [(ngModel)]="filter.pattern" class="form-control"/>
+        <div class="offset-md-2 col-md-6">
+            <div class="" style="padding: 16px">
+                
+
+                <div class="row mb-3">
+                    <label for="floatingSelect" class="col-sm-3 col-form-label">HTTP Method</label>
+                    <div class="col-sm-9"> 
+
+                        <div class="form-floating">
+                            
+                            <input type="text" [(ngModel)]="filter.pattern" class="form-control" id="floatingSelect"/>
+                            <label for="floatingSelect">Choose a method</label>
+                          </div>
+                          
+                         <div class="p-1 text-danger" style="display:none">
+                            Looks good!
+                          </div>
+                    </div>
+                  </div>
+
+            <!-- <table style="width: 100%" class="edit-form-table">
+                <tr>
+                    <td> Method</td>
+                    <td>
+                        <input type="text" [(ngModel)]="filter.pattern" class="form-control"/>
+                        <span class="help-block">Invalid value of method</span>
+                    </td>
+                </tr>
+            </table> -->
+
+            </div>
         </div>
     </div>
 </div>
