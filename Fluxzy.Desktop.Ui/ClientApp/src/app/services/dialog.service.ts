@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { filter, tap } from 'rxjs';
+import { Filter } from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
+import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter-edit.component';
 import { GlobalSettingComponent } from '../settings/global-setting/global-setting.component';
 import { ManageFiltersComponent } from '../settings/manage-filters/manage-filters.component';
 
@@ -23,6 +25,14 @@ export class DialogService {
       .pipe(
           filter((t) => t.menuId === 'global-settings'),
           tap((t) => this.openGlobalSettings())
+      )
+      .subscribe();
+
+      this.menuService
+      .getApplicationMenuEvents()
+      .pipe(
+          filter((t) => t.menuId === 'manage-filters'),
+          tap((t) => this.openManageFilters(false))
       )
       .subscribe();
     }
@@ -62,5 +72,22 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
+    }
+
+    public openFilterEdit(filter : Filter) : void {
+        const config: ModalOptions = {
+            initialState: {
+                filter
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.bsModalRef = this.modalService.show(
+            FilterEditComponent,
+            config
+        );
+
+        this.bsModalRef.content.closeBtnName = 'Close';
+
     }
 }

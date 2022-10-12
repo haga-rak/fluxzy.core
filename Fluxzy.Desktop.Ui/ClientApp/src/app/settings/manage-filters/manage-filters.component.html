@@ -15,9 +15,9 @@
         </p>
         <div *ngIf="filterHolders">
             <div style="margin-bottom:18px">
-                &nbsp;
+                <button class="btn  btn-primary">+ Add new filter</button>
                 <span class="float-end" style="white-space: no-wrap">
-                    <select class="form-control" style="width: 250px">
+                    <select class="form-select" style="width: 250px">
                         <option selected>All</option>
                         <option>On computer</option>
                         <option>In session</option>
@@ -48,7 +48,7 @@
                             <span *ngIf="filterHolder.storeLocation === 'OnSession'">In session</span>
                         </td>
                         <td>
-                            <button class="btn btn-secondary btn-outline-primary">Edit</button> &nbsp;
+                            <button class="btn btn-secondary btn-outline-primary" (click)="openFilterEdit(filterHolder.filter)">Edit</button> &nbsp;
                             <button class="btn btn-secondary btn-outline-danger ">Delete</button>
                         </td>
                     </tr>

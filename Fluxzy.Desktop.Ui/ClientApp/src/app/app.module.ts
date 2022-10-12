@@ -51,6 +51,8 @@ import { AuthorizationBearerResultComponent } from './widgets/exchange-viewer/de
 import { SetCookieResultComponent } from './widgets/exchange-viewer/details-response/set-cookie-result/set-cookie-result.component';
 import { GlobalSettingComponent } from './settings/global-setting/global-setting.component';
 import { ManageFiltersComponent } from './settings/manage-filters/manage-filters.component';
+import { FilterEditComponent } from './settings/filter-forms/filter-edit/filter-edit.component';
+import { MethodFilterFormComponent } from './settings/filter-forms/child-forms/method-filter-form/method-filter-form.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -94,6 +96,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         SetCookieResultComponent,
         GlobalSettingComponent,
         ManageFiltersComponent,
+        FilterEditComponent,
+        MethodFilterFormComponent,
         
     ],
     imports: [
@@ -134,6 +138,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         },
     ],
     bootstrap: [AppComponent],
-    entryComponents : [GlobalSettingComponent, ManageFiltersComponent]
+    entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent]
 })
 export class AppModule {}
