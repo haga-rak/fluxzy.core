@@ -110,7 +110,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 label : 'Manage filters', 
-                id : 'manage-filter'
+                id : 'manage-filters'
             },
         ]
     },

@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { BsModalRef, ModalOptions } from 'ngx-bootstrap/modal';
 import { tap, map } from 'rxjs';
 import { Filter, StoredFilter } from '../../core/models/auto-generated';
 import { ApiService } from '../../services/api.service';
+import { DialogService } from '../../services/dialog.service';
 
 @Component({
     selector: 'app-manage-filters',
@@ -13,7 +14,9 @@ export class ManageFiltersComponent implements OnInit {
     public selectMode = false; 
     public filterHolders : FilterHolder[] = null; 
 
-    constructor(public bsModalRef: BsModalRef, public options: ModalOptions, private apiService : ApiService) {
+    constructor(public bsModalRef: BsModalRef, public options: ModalOptions, 
+      private apiService : ApiService, private cd : ChangeDetectorRef,
+      public dialogService : DialogService) {
       this.selectMode = options.initialState.selectMode as boolean; 
     }
 
@@ -21,8 +24,14 @@ export class ManageFiltersComponent implements OnInit {
         this.apiService.viewFilterGet()
           .pipe(
             map(t => BuildFilterHolders(t)),
-            tap(t => this.filterHolders = t)
+            tap(t => this.filterHolders = t),
+            tap(t => this.cd.detectChanges()),
+
           ).subscribe(); 
+    }
+
+    public openFilterEdit(filter : Filter) : void {
+      this.dialogService.openFilterEdit(filter); 
     }
 }
 

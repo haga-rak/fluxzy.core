@@ -1,0 +1,21 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        Edit filter
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body" style="min-height: 400px">
+    <div>
+        <p>Edition form goes here </p>
+
+        <app-method-filter-form [rawFilter]="filter" *ngIf="filter.typeKind === 'MethodFilter'"></app-method-filter-form>
+
+
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" (click)="bsModalRef.hide()">Save</button>
+    <button class="btn btn-primary" (click)="bsModalRef.hide()">Cancel</button>
+  </div>
