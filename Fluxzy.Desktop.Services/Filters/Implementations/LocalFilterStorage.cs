@@ -25,6 +25,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
                 InternalAdd(new AnyFilter() { Locked = true }); 
                 InternalAdd(new MethodFilter("POST") { Locked = true }); 
                 InternalAdd(new ContentTypeJsonFilter() { Locked = true, }); 
+                InternalAdd(new HostFilter("www.fluxzy.io") { Locked = false}); 
             }
         }
 

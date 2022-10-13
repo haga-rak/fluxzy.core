@@ -8,12 +8,23 @@
   </div>
   <div class="modal-body" style="min-height: 400px">
     <div>
-        <app-method-filter-form [rawFilter]="filter" *ngIf="filter.typeKind === 'MethodFilter'"></app-method-filter-form>
+
+        <p *ngIf="validationState !== null">
+            <span *ngIf="validationState" class="text-success">
+                Validation succeed
+            </span>
+            <span *ngIf="!validationState" class="text-danger">
+                Validation failed !!!
+            </span>
+        </p>
+
+        <app-method-filter-form [filter]="get(filter)" [validationSource]="validationSource" *ngIf="filter.typeKind === 'MethodFilter'"></app-method-filter-form>
+        <app-host-filter-form [filter]="get(filter)" [validationSource]="validationSource" *ngIf="filter.typeKind === 'HostFilter'"></app-host-filter-form>
 
 
     </div>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-primary" (click)="bsModalRef.hide()">Save</button>
+    <button class="btn btn-primary" (click)="save()">Save</button>
     <button class="btn btn-primary" (click)="bsModalRef.hide()">Cancel</button>
   </div>

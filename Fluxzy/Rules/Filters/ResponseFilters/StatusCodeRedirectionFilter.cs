@@ -9,7 +9,6 @@
         }
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
-
         public override string FriendlyName => $"Status code is redirection (3XX)";
     }
 }
