@@ -52,40 +52,40 @@
                     </app-header-viewer>
 
                     <app-raw-request-header-result *ngIf="ofTypeRequest('RawRequestHeaderResult')"
-                                                   [formatter]="propertyContext.requestFormattingResult">
+                                                   [formatter]="C(propertyContext.requestFormattingResult)">
                     </app-raw-request-header-result>
 
-                    <app-query-string-result *ngIf="ofTypeRequest('QueryStringResult')" [formatter]="propertyContext.requestFormattingResult">
+                    <app-query-string-result *ngIf="ofTypeRequest('QueryStringResult')" [formatter]="C(propertyContext.requestFormattingResult)">
                     </app-query-string-result>
 
-                    <app-request-cookie-result *ngIf="ofTypeRequest('RequestCookieResult')" [formatter]="propertyContext.requestFormattingResult">
+                    <app-request-cookie-result *ngIf="ofTypeRequest('RequestCookieResult')" [formatter]="C(propertyContext.requestFormattingResult)">
                     </app-request-cookie-result>
 
-                    <app-request-json-result *ngIf="ofTypeRequest('RequestJsonResult')" [formatter]="propertyContext.requestFormattingResult">
+                    <app-request-json-result *ngIf="ofTypeRequest('RequestJsonResult')" [formatter]="C(propertyContext.requestFormattingResult)">
                     </app-request-json-result>
 
                     <app-request-text-body-result *ngIf="ofTypeRequest('RequestTextBodyResult')"
-                                                  [formatter]="propertyContext.requestFormattingResult">
+                                                  [formatter]="C(propertyContext.requestFormattingResult)">
                     </app-request-text-body-result>
 
                     <app-request-body-analysis-result *ngIf="ofTypeRequest('RequestBodyAnalysisResult')"
-                                                      [formatter]="propertyContext.requestFormattingResult" [exchange]="exchange">
+                                                      [formatter]="C(propertyContext.requestFormattingResult)" [exchange]="exchange">
                     </app-request-body-analysis-result>
 
                     <app-form-url-encoded-result *ngIf="ofTypeRequest('FormUrlEncodedResult')"
-                                                 [formatter]="propertyContext.requestFormattingResult">
+                                                 [formatter]="C(propertyContext.requestFormattingResult)">
                     </app-form-url-encoded-result>
 
                     <app-multipart-form-content-result *ngIf="ofTypeRequest('MultipartFormContentResult')"
-                                                 [formatter]="propertyContext.requestFormattingResult" [exchange]="exchange">
+                                                 [formatter]="C(propertyContext.requestFormattingResult)" [exchange]="exchange">
                     </app-multipart-form-content-result>
 
                     <app-authorization-result *ngIf="ofTypeRequest('AuthorizationResult')"
-                                                 [formatter]="propertyContext.requestFormattingResult" >
+                                                 [formatter]="C(propertyContext.requestFormattingResult)" >
                     </app-authorization-result>
 
                     <app-authorization-bearer-result *ngIf="ofTypeRequest('AuthorizationBearerResult')"
-                                                 [formatter]="propertyContext.requestFormattingResult" >
+                                                 [formatter]="C(propertyContext.requestFormattingResult)" >
                     </app-authorization-bearer-result>
 
                 </perfect-scrollbar>
@@ -101,7 +101,7 @@
 
                 <div style="margin-top : 10px" class="exchange-viewer-header">
 
-                    
+
                     <div class="btn-group" role="group" style="box-shadow: var(--bs-gray-600) 0px 7px 29px 0px !important;">
 
                         <button type="button" href="javascript:;" class="btn btn-dark  btn-viewer-menu"
@@ -109,7 +109,7 @@
                                 (click)="setSelectedResponseTab('responseHeader', null)">
 
                                 <span [title]="exchange.statusCode" [ngClass]="ExchangeStyle(exchange).textClass"><i [ngClass]="ExchangeStyle(exchange).iconClass"></i></span>
-                            &nbsp; 
+                            &nbsp;
                             <span *ngIf="exchange.statusCode">{{exchange.statusCode}} {{StatusCodeVerb[exchange.statusCode + '']}}</span>
                             <span *ngIf="!exchange.statusCode">On erro</span>
                         </button>
@@ -156,19 +156,19 @@
 
 
                     <app-response-body-summary-result *ngIf="ofTypeResponse('ResponseBodySummaryResult')"
-                                                 [formatter]="propertyContext.responseFormattingResult" [exchange]="exchange">
+                                                 [formatter]="C(propertyContext.responseFormattingResult)" [exchange]="exchange">
                     </app-response-body-summary-result>
 
                     <app-response-text-content-result *ngIf="ofTypeResponse('ResponseTextContentResult')"
-                                                 [formatter]="propertyContext.responseFormattingResult" [exchange]="exchange" [context]="context">
+                                                 [formatter]="C(propertyContext.responseFormattingResult)" [exchange]="exchange" [context]="context">
                     </app-response-text-content-result>
 
                     <app-response-json-result *ngIf="ofTypeResponse('ResponseJsonResult')"
-                                                 [formatter]="propertyContext.responseFormattingResult" [exchange]="exchange" [context]="context">
+                                                 [formatter]="C(propertyContext.responseFormattingResult)" [exchange]="exchange" [context]="context">
                     </app-response-json-result>
 
                     <app-set-cookie-result *ngIf="ofTypeResponse('SetCookieResult')"
-                                                 [formatter]="propertyContext.responseFormattingResult" [exchange]="exchange" [context]="context">
+                                                 [formatter]="C(propertyContext.responseFormattingResult)" [exchange]="exchange" [context]="context">
                     </app-set-cookie-result>
 
                 </perfect-scrollbar>
