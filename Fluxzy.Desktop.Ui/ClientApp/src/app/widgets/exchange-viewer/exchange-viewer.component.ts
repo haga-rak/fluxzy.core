@@ -35,16 +35,16 @@ import { ApiService } from '../../services/api.service';
     styleUrls: ['./exchange-viewer.component.scss'],
 })
 export class ExchangeViewerComponent implements OnInit, OnChanges {
-    
-    public ExchangeStyle = ExchangeStyle ; 
-    public StatusCodeVerb = StatusCodeVerb ; 
 
-    public context : ExchangeContextInfo | null = null ; 
+    public ExchangeStyle = ExchangeStyle ;
+    public StatusCodeVerb = StatusCodeVerb ;
+
+    public context : ExchangeContextInfo | null = null ;
 
     public propertyContext : {
         requestFormattingResults: FormattingResult[] | null,
         requestFormattingResult: FormattingResult | null,
-        currentRequestTabView? : string, 
+        currentRequestTabView? : string,
         currentResponseTabView? : string,
         responseFormattingResults: FormattingResult[] | null,
         responseFormattingResult: FormattingResult | null,
@@ -58,6 +58,10 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
         requestOtherText : '',
         responseOtherText : ''
     };
+
+    public C<T>(item  : any) : T {
+        return item;
+    }
 
     private $exchange: Subject<ExchangeInfo> = new Subject<ExchangeInfo>();
 
@@ -143,7 +147,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                // tap(t => setTimeout(() => this.cdr.detectChanges(),0)), // TODO : check issue here
                 )
             .subscribe();
-        
+
         this.$exchange.asObservable().pipe(
             filter((t) => t.id > 0),
             distinctUntilChanged((t,v) => t.id === v.id),
@@ -153,16 +157,16 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
             }),
             switchMap((t) => this.apiService.getFormatters(t.id)),
             tap((t) => {
-                this.context = t.contextInfo ; 
+                this.context = t.contextInfo ;
                 this.propertyContext.requestFormattingResults = t.requests;
                 this.propertyContext.responseFormattingResults = t.responses;
                 this.$requestFormattingResults.next(t.requests);
                 this.$responseFormattingResults.next(t.responses);
             }),
-            
+
             tap(t => setTimeout(() => this.cdr.detectChanges(),0)), // TODO : check issue here
         ).subscribe();
-        
+
         this.$exchange.next(this.exchange);
 
     }
