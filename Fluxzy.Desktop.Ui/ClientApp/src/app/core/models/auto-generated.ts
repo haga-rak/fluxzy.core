@@ -210,12 +210,12 @@ export interface StatusCodeSuccess extends Filter
 	filterScope: number;
 	friendlyName: string;
 }
-export interface HostFilter extends StringFilter
+export interface FullUrlFilter extends StringFilter
 {
 	filterScope: number;
 	friendlyName: string;
 }
-export interface FullUrlFilter extends StringFilter
+export interface HostFilter extends StringFilter
 {
 	filterScope: number;
 	friendlyName: string;

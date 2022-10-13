@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -13,6 +14,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         {
         }
 
+        [JsonConstructor]
         public RequestHeaderFilter(string pattern, StringSelectorOperation operation, string headerName) : base(pattern, operation, headerName)
         {
         }

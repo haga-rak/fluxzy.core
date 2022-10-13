@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -11,6 +12,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         }
 
+        [JsonConstructor]
         public FullUrlFilter(string pattern, StringSelectorOperation operation) : base(pattern, operation)
         {
 

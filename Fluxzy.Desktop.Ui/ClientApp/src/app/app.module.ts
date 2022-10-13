@@ -53,6 +53,7 @@ import { GlobalSettingComponent } from './settings/global-setting/global-setting
 import { ManageFiltersComponent } from './settings/manage-filters/manage-filters.component';
 import { FilterEditComponent } from './settings/filter-forms/filter-edit/filter-edit.component';
 import { MethodFilterFormComponent } from './settings/filter-forms/child-forms/method-filter-form/method-filter-form.component';
+import { HostFilterFormComponent } from './settings/filter-forms/child-forms/host-filter-form/host-filter-form.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -98,6 +99,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ManageFiltersComponent,
         FilterEditComponent,
         MethodFilterFormComponent,
+        HostFilterFormComponent,
         
     ],
     imports: [
