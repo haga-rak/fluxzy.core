@@ -1,13 +1,18 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-namespace Fluxzy.Rules.Filters;
-
-public class NoFilter : Filter
+namespace Fluxzy.Rules.Filters
 {
-    protected override bool InternalApply(IAuthority authority, IExchange exchange)
+    public class NoFilter : Filter
     {
-        return false; 
-    }
+        protected override bool InternalApply(IAuthority authority, IExchange exchange)
+        {
+            return false; 
+        }
 
-    public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
+        public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
+
+        public override string GenericName => "Block all";
+
+        public override bool PreMadeFilter => true;
+    }
 }

@@ -10,5 +10,9 @@ namespace Fluxzy.Rules.Filters
         }
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
+
+        public override string GenericName => "Any";
+
+        public override bool PreMadeFilter => true;
     }
 }
