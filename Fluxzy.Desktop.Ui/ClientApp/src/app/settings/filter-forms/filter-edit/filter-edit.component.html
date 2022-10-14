@@ -18,10 +18,21 @@
             </span>
         </p>
 
-        <app-method-filter-form [filter]="get(filter)" [validationSource]="validationSource" *ngIf="filter.typeKind === 'MethodFilter'"></app-method-filter-form>
-        <app-host-filter-form [filter]="get(filter)" [validationSource]="validationSource" *ngIf="filter.typeKind === 'HostFilter'"></app-host-filter-form>
 
-        <p *ngIf="targets.length === 0">This filter has no editable setting.</p>
+        <div class="">
+            <div class="row">
+                <div class="offset-md-2 col-md-6">
+                    <div class="" style="padding: 16px">
+                        <app-method-filter-form [filter]="get(filter)" [validationSource]="validationSource" *ngIf="filter.typeKind === 'MethodFilter'"></app-method-filter-form>
+                        <app-host-filter-form [filter]="get(filter)" [validationSource]="validationSource" *ngIf="filter.typeKind === 'HostFilter'"></app-host-filter-form>
+
+                        <p *ngIf="targets.length === 0">This filter has no editable setting.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
 
     </div>
   </div>
