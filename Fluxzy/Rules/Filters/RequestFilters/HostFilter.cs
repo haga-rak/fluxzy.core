@@ -24,5 +24,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string FriendlyName => $"Authority {base.FriendlyName}";
 
+        public override string GenericName => "Filter host";
+
     }
 }

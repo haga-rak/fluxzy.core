@@ -26,5 +26,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public ResponseHeaderFilter(string pattern, StringSelectorOperation operation, string headerName) : base(pattern, operation, headerName)
         {
         }
+
+        public override string GenericName => "Filter by response header";
     }
 }

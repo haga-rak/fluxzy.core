@@ -10,5 +10,9 @@
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
         public override string FriendlyName => $"Client errors (status code is 5XX)";
+
+        public override string GenericName => "Status code 5XX only";
+
+        public override bool PreMadeFilter => true;
     }
 }

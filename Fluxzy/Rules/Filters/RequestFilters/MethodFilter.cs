@@ -26,6 +26,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string FriendlyName => $"Request method {base.FriendlyName}";
 
+        public override string GenericName => "Filter by HTTP method";
+
 
 
     }
