@@ -1,0 +1,29 @@
+﻿// Copyright © 2022 Haga Rakotoharivelo
+
+using System.Collections.Generic;
+
+namespace Fluxzy.Rules.Filters
+{
+    public class IpEgressFilter : StringFilter
+    {
+        public IpEgressFilter(string pattern) : base(pattern)
+        {
+
+        }
+
+        public IpEgressFilter(string pattern, StringSelectorOperation operation) : base(pattern, operation)
+        {
+
+        }
+
+        public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
+
+        public override string GenericName => "Filter by Egress IP Address";
+
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
+        {
+            yield return exchange.EgressIp;
+        }
+
+    }
+}
