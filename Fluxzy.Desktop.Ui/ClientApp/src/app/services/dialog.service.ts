@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
-import {filter, Observable, Subject, tap} from 'rxjs';
+import {filter, finalize, Observable, Subject, switchMap, take, tap} from 'rxjs';
 import { Filter } from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter-edit.component';
@@ -96,6 +96,27 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
+        return subject.asObservable();
+    }
+
+    public openFilterCreate() : Observable<Filter | null> {
+        const subject = new Subject<Filter | null>() ;
+
+        this.openFilterPreCreate()
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(t => this.openFilterEdit(t)),
+                tap(t=>  {
+                    subject.next(t);
+                    subject.complete();
+                }),
+                finalize(() => {
+                    if (!subject.closed)
+                        subject.complete();
+                })
+            ).subscribe();
+
         return subject.asObservable();
     }
 

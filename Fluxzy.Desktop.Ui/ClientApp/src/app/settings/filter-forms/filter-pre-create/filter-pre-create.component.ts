@@ -31,10 +31,11 @@ export class FilterPreCreateComponent implements OnInit {
             ).subscribe();
     }
 
-    public save() : void {
-        this.callBack(null);
-        this.bsModalRef.hide() ;
+    public select(filter : Filter) : void {
+        this.callBack(filter);
+        this.bsModalRef.hide();
     }
+
 
     public cancel() : void {
         this.callBack(null);

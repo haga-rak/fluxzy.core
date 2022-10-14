@@ -168,7 +168,7 @@ export interface HeaderFilter extends StringFilter
 	headerName: string;
 	friendlyName: string;
 }
-export interface IpFilter extends StringFilter
+export interface IpEgressFilter extends StringFilter
 {
 	filterScope: number;
 	genericName: string;
@@ -232,7 +232,7 @@ export interface StatusCodeServerErrorFilter extends Filter
 	genericName: string;
 	preMadeFilter: boolean;
 }
-export interface StatusCodeSuccess extends Filter
+export interface StatusCodeSuccessFilter extends Filter
 {
 	filterScope: number;
 	friendlyName: string;
