@@ -1,0 +1,22 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        Create a new filter
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 400px">
+    <p *ngIf="!filterTemplates">
+        Loading templates ....
+    </p>
+    <div *ngIf="filterTemplates">
+            <div *ngFor="let filterTemplate of filterTemplates">
+                <a href="javascript:;">{{filterTemplate.label}} ({{filterTemplate.group}})</a>
+            </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="save()">Save</button>
+    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+</div>

@@ -7,6 +7,7 @@ import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter
 import { GlobalSettingComponent } from '../settings/global-setting/global-setting.component';
 import { ManageFiltersComponent } from '../settings/manage-filters/manage-filters.component';
 import {ApiService} from "./api.service";
+import {FilterPreCreateComponent} from "../settings/filter-forms/filter-pre-create/filter-pre-create.component";
 
 @Injectable({
     providedIn: 'root',
@@ -91,6 +92,27 @@ export class DialogService {
 
         this.bsModalRef = this.modalService.show(
             FilterEditComponent,
+            config
+        );
+
+        this.bsModalRef.content.closeBtnName = 'Close';
+        return subject.asObservable();
+    }
+
+    public openFilterPreCreate(): Observable<Filter | null> {
+        const subject = new Subject<Filter | null>() ;
+
+        const callBack = (f : Filter | null) => {  subject.next(f); subject.complete()};
+
+        const config: ModalOptions = {
+            initialState: {
+                callBack
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.bsModalRef = this.modalService.show(
+            FilterPreCreateComponent,
             config
         );
 

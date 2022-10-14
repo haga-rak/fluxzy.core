@@ -9,7 +9,7 @@ import {
     FileContentDelete,
     FileSaveViewModel,
     FileState,
-    Filter,
+    Filter, FilterTemplate,
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult,
@@ -161,5 +161,9 @@ export class ApiService {
 
     public filterValidate(filter: Filter) : Observable<Filter> {
         return this.httpClient.post<Filter>(`api/filter/validate`, filter).pipe(take(1));
+    }
+
+    public filterGetTemplates() : Observable<FilterTemplate[]> {
+        return this.httpClient.get<FilterTemplate[]>(`api/filter/templates`).pipe(take(1));
     }
 }

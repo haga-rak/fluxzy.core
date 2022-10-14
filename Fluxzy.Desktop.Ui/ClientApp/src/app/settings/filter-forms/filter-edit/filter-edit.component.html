@@ -6,7 +6,7 @@
       <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
   </div>
-  <div class="modal-body" style="min-height: 50px">
+  <div class="modal-body" style="min-height: 400px">
     <div>
 
         <p *ngIf="validationState !== null">
@@ -38,5 +38,5 @@
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" (click)="save()">Save</button>
-    <button class="btn btn-primary" (click)="cancel()">Cancel</button>
+    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
   </div>
