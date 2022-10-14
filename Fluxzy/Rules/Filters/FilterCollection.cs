@@ -2,17 +2,24 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters
 {
     public class FilterCollection : Filter
     {
+        [JsonConstructor]
+        public FilterCollection()
+        {
+
+        }
+
         public FilterCollection(params Filter [] filters)
         {
             Children = filters?.ToList() ?? new();
         }
 
-        public List<Filter> Children { get; set; }
+        public List<Filter> Children { get; set; } = new();
 
         public SelectorCollectionOperation Operation { get; set; }
 
@@ -32,7 +39,7 @@ namespace Fluxzy.Rules.Filters
             return Operation == SelectorCollectionOperation.And; 
         }
 
-        public override FilterScope FilterScope => Children.Max(c => c.FilterScope);
+        public override FilterScope FilterScope => Children.Select(c => c.FilterScope).DefaultIfEmpty(FilterScope.OnAuthorityReceived).Max(c => c);
 
         public override string GenericName => "Filter collection";
     }

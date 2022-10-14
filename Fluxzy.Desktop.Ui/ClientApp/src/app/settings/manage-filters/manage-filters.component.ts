@@ -36,8 +36,16 @@ export class ManageFiltersComponent implements OnInit {
         this.cd.detectChanges();
     }
 
-    public openFilterPreCreate() : void {
-        this.dialogService.openFilterPreCreate();
+    public openFilterCreate() : void {
+        this.dialogService.openFilterCreate()
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                tap(t => this.filterHolders.push({
+                    filter : t,
+                    storeLocation : "OnSession"
+                }))
+            ).subscribe();
     }
 
     public openFilterEdit(filterData : Filter) : void {
