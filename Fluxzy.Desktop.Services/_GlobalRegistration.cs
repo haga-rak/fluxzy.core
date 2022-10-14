@@ -40,6 +40,7 @@ namespace Fluxzy.Desktop.Services
 
 
             collection.AddScoped<IArchiveReaderProvider, ArchiveReaderProvider>();
+            collection.AddScoped<FilterTemplateManager>();
 
             collection.AddTransient<FxzyDirectoryPackager>();
 

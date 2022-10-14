@@ -7,5 +7,9 @@
         public ContentTypeXmlFilter() : base("xml", StringSelectorOperation.Contains, "Content-Type")
         {
         }
+
+        public override string GenericName => "XML response only";
+
+        public override bool PreMadeFilter => true;
     }
 }

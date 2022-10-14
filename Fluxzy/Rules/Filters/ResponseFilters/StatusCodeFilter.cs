@@ -18,5 +18,10 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 
 
         public override string FriendlyName => $"Status code among {string.Join(", ", StatusCodes.Select(s => s.ToString()))}";
+
+
+        public override string GenericName => "Filter by status code";
+
+        public override bool PreMadeFilter => true;
     }
 }

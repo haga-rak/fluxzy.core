@@ -15,7 +15,11 @@ namespace Fluxzy.Rules.Filters
 
         public abstract FilterScope FilterScope { get; }
 
-        public virtual string FriendlyName { get; } = "Filter" ; 
+        public virtual string FriendlyName { get; } = "Filter" ;
+
+        public abstract string GenericName { get; }
+
+        public virtual bool PreMadeFilter { get; } = false;
         
         public virtual bool Apply(IAuthority authority, IExchange exchange)
         {

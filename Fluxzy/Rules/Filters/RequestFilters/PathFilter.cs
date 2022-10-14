@@ -22,5 +22,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string FriendlyName => $"Request path {base.FriendlyName}";
 
+
+        public override string GenericName => "Filter by url path";
+
     }
 }

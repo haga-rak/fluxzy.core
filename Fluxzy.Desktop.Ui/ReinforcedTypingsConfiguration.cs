@@ -184,8 +184,9 @@ namespace Fluxzy.Desktop.Ui
 
         private static void ConfigureFilters(ConfigurationBuilder builder)
         {
-            builder.ExportAsInterface<StoredFilter>()
-                   .ApplyGenericProperties();
+            builder.ExportAsInterface<FilterTemplate>().ApplyGenericProperties();
+
+            builder.ExportAsInterface<StoredFilter>().ApplyGenericProperties();
 
             var foundTypes = typeof(Filter).Assembly.GetTypes()
                                       .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)

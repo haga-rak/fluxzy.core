@@ -7,5 +7,9 @@
         public ContentTypeJsonFilter() : base("json", StringSelectorOperation.Contains, "Content-Type")
         {
         }
+
+        public override string GenericName => "JSON response only";
+
+        public override bool PreMadeFilter => true;
     }
 }

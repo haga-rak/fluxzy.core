@@ -27,5 +27,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string FriendlyName => $"Full url {base.FriendlyName}";
 
+        public override string GenericName => "Filter by full url";
     }
 }

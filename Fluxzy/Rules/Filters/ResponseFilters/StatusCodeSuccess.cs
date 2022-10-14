@@ -12,5 +12,9 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
         public override string FriendlyName => $"Success status code (2XX)";
+
+        public override string GenericName => "Status code success (2XX)";
+
+        public override bool PreMadeFilter => true;
     }
 }
