@@ -143,10 +143,14 @@ export interface StoredFilter
 export interface AnyFilter extends Filter
 {
 	filterScope: number;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface Filter extends PolymorphicObject
 {
 	filterScope: number;
+	genericName: string;
+	preMadeFilter: boolean;
 	identifier: string;
 	inverted: boolean;
 	friendlyName: string;
@@ -157,6 +161,7 @@ export interface FilterCollection extends Filter
 	children: Filter[];
 	operation: number;
 	filterScope: number;
+	genericName: string;
 }
 export interface HeaderFilter extends StringFilter
 {
@@ -166,10 +171,13 @@ export interface HeaderFilter extends StringFilter
 export interface IpFilter extends StringFilter
 {
 	filterScope: number;
+	genericName: string;
 }
 export interface NoFilter extends Filter
 {
 	filterScope: number;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface StringFilter extends Filter
 {
@@ -181,64 +189,84 @@ export interface StringFilter extends Filter
 export interface ContentTypeJsonFilter extends ResponseHeaderFilter
 {
 	friendlyName: string;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface ContentTypeXmlFilter extends ResponseHeaderFilter
 {
 	friendlyName: string;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface ResponseHeaderFilter extends HeaderFilter
 {
+	genericName: string;
 	filterScope: number;
 }
 export interface StatusCodeClientErrorFilter extends Filter
 {
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface StatusCodeFilter extends Filter
 {
 	statusCodes: number[];
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface StatusCodeRedirectionFilter extends Filter
 {
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface StatusCodeServerErrorFilter extends Filter
 {
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface StatusCodeSuccess extends Filter
 {
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
+	preMadeFilter: boolean;
 }
 export interface FullUrlFilter extends StringFilter
 {
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
 }
 export interface HostFilter extends StringFilter
 {
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
 }
 export interface MethodFilter extends StringFilter
 {
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
 }
 export interface PathFilter extends StringFilter
 {
 	filterScope: number;
 	friendlyName: string;
+	genericName: string;
 }
 export interface RequestHeaderFilter extends HeaderFilter
 {
 	filterScope: number;
+	genericName: string;
 }
 export interface UiState
 {

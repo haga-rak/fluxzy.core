@@ -55,6 +55,7 @@ import { FilterEditComponent } from './settings/filter-forms/filter-edit/filter-
 import { MethodFilterFormComponent } from './settings/filter-forms/child-forms/method-filter-form/method-filter-form.component';
 import { HostFilterFormComponent } from './settings/filter-forms/child-forms/host-filter-form/host-filter-form.component';
 import { FilterCollectionFormComponent } from './settings/filter-forms/child-forms/filter-collection-form/filter-collection-form.component';
+import { FilterPreCreateComponent } from './settings/filter-forms/filter-pre-create/filter-pre-create.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -102,6 +103,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         MethodFilterFormComponent,
         HostFilterFormComponent,
         FilterCollectionFormComponent,
+        FilterPreCreateComponent,
 
     ],
     imports: [
@@ -142,6 +144,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         },
     ],
     bootstrap: [AppComponent],
-    entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent]
+    entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent,FilterPreCreateComponent]
 })
 export class AppModule {}

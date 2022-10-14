@@ -36,6 +36,10 @@ export class ManageFiltersComponent implements OnInit {
         this.cd.detectChanges();
     }
 
+    public openFilterPreCreate() : void {
+        this.dialogService.openFilterPreCreate();
+    }
+
     public openFilterEdit(filterData : Filter) : void {
       this.dialogService.openFilterEdit(filterData)
           .pipe(
