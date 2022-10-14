@@ -1,27 +1,14 @@
+<div class="row mb-3">
+    <label for="floatingSelect" class="col-sm-3 col-form-label">Host</label>
+    <div class="col-sm-9">
 
-<h5 style="margin-bottom : 24px">
-    Filter exchanges according to host
-</h5>
-<div class="">
-    <div class="row">
-        <div class="offset-md-2 col-md-6">
-            <div class="" style="padding: 16px">
-                <div class="row mb-3">
-                    <label for="floatingSelect" class="col-sm-3 col-form-label">Host</label>
-                    <div class="col-sm-9"> 
+        <div class="form-floating">
+            <input type="text" [(ngModel)]="filter.pattern" class="form-control" id="floatingSelect"/>
+            <label for="floatingSelect">Hostname without port and scheme</label>
+        </div>
 
-                        <div class="form-floating">
-                            
-                            <input type="text" [(ngModel)]="filter.pattern" class="form-control" id="floatingSelect"/>
-                            <label for="floatingSelect">Hostname without port and scheme</label>
-                          </div>
-                          
-                         <div class="p-1 text-danger" style="display:none">
-                            Looks good!
-                          </div>
-                    </div>
-                  </div>
-            </div>
+        <div class="p-1 text-danger" style="display:none">
+            Looks good!
         </div>
     </div>
 </div>
