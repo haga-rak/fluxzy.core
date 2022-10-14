@@ -2,27 +2,43 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Observable, take, map, tap } from 'rxjs';
-import { ConnectionInfo, ExchangeBrowsingState, ExchangeState, FileContentDelete, FileSaveViewModel, FileState, FluxzySettingsHolder, FormatterContainerViewModel, FormattingResult, MultipartItem, SaveFileMultipartActionModel, StoredFilter, TrunkState, UiState } from '../core/models/auto-generated';
+import {
+    ConnectionInfo,
+    ExchangeBrowsingState,
+    ExchangeState,
+    FileContentDelete,
+    FileSaveViewModel,
+    FileState,
+    Filter,
+    FluxzySettingsHolder,
+    FormatterContainerViewModel,
+    FormattingResult,
+    MultipartItem,
+    SaveFileMultipartActionModel,
+    StoredFilter,
+    TrunkState,
+    UiState
+} from '../core/models/auto-generated';
 
 @Injectable({
   providedIn: 'root'
 })
-// This service is responsible of delivering http service towards the .NET web service 
+// This service is responsible of delivering http service towards the .NET web service
 export class ApiService {
-    private hubConnection: HubConnection ; 
+    private hubConnection: HubConnection ;
 
-    constructor(private httpClient: HttpClient) 
-    { 
+    constructor(private httpClient: HttpClient)
+    {
         this.hubConnection = new HubConnectionBuilder()
-                              .withUrl('/xs', 
-                                    { 
+                              .withUrl('/xs',
+                                    {
                                          // localhost from **AspNetCore3.1 service**
                                         //skipNegotiation: true,
                                         transport: HttpTransportType.LongPolling // TODO remove in production
-                                    }          
+                                    }
                                 )
                               .build();
-                               
+
         this.hubConnection
             .start()
             .then(() => console.log('signalR connected'))
@@ -38,23 +54,23 @@ export class ApiService {
     public trunkDelete(fileContentDelete : FileContentDelete ) : Observable<TrunkState> {
         return this.httpClient.post<TrunkState>(`api/file-content/delete`, fileContentDelete)
             .pipe(
-                take(1), 
-                ) ; 
+                take(1),
+                ) ;
     }
 
     public trunkClear() : Observable<TrunkState> {
         return this.httpClient.delete<TrunkState>(`api/file-content`)
             .pipe(
-                take(1), 
-                ) ; 
+                take(1),
+                ) ;
     }
 
     public readTrunkState(workingDirectory: string) : Observable<TrunkState> {
          return this.httpClient.post<TrunkState>(`api/file-content/read`, null)
         .pipe(
             take(1)
-            
-            ); 
+
+            );
     }
 
     public fileOpen(fileName : string) : Observable<UiState> {
@@ -97,7 +113,7 @@ export class ApiService {
                 take(1)
             );
     }
-    
+
     public getFormatters(exchangeId : number) : Observable<FormatterContainerViewModel> {
         return this.httpClient.get<FormatterContainerViewModel>(`api/producers/formatters/${exchangeId}`)
             .pipe(
@@ -110,7 +126,7 @@ export class ApiService {
             fileName : fileName
         }).pipe(take(1));
     }
-    
+
     public exchangeSaveResponseBody(exchangeId: number, fileName : string, decode : boolean) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/save-response-body?decode=${decode}`, {
             fileName : fileName
@@ -120,7 +136,7 @@ export class ApiService {
     public exchangeSaveMultipartContent(exchangeId: number, fileName: string, model : MultipartItem) : Observable<FormattingResult[]> {
         let payload : SaveFileMultipartActionModel = {
             filePath : fileName,
-            offset : model.offset, 
+            offset : model.offset,
             length : model.length
         };
 
@@ -134,12 +150,16 @@ export class ApiService {
     public settingGet() : Observable<FluxzySettingsHolder> {
         return this.httpClient.get<FluxzySettingsHolder>(`api/setting`).pipe(take(1));
     }
-    
+
     public settingUpdate(model : FluxzySettingsHolder) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/setting`, model).pipe(take(1));
     }
 
     public viewFilterGet() : Observable<StoredFilter[]> {
         return this.httpClient.get<StoredFilter[]>(`api/view-filter/`).pipe(take(1));
+    }
+
+    public filterValidate(filter: Filter) : Observable<Filter> {
+        return this.httpClient.post<Filter>(`api/filter/validate`, filter).pipe(take(1));
     }
 }

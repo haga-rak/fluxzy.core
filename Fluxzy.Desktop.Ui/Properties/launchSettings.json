@@ -2,7 +2,7 @@
   "profiles": {
     "Fluxzy.Desktop.Ui": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "applicationUrl": "http://localhost:5198",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",

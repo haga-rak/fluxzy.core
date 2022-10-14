@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
-import { filter, tap } from 'rxjs';
+import {filter, Observable, Subject, tap} from 'rxjs';
 import { Filter } from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter-edit.component';
 import { GlobalSettingComponent } from '../settings/global-setting/global-setting.component';
 import { ManageFiltersComponent } from '../settings/manage-filters/manage-filters.component';
+import {ApiService} from "./api.service";
 
 @Injectable({
     providedIn: 'root',
@@ -18,7 +19,7 @@ export class DialogService {
     ) {
     }
 
-    public init() : void {
+    public init(): void {
 
       this.menuService
       .getApplicationMenuEvents()
@@ -74,10 +75,16 @@ export class DialogService {
         this.bsModalRef.content.closeBtnName = 'Close';
     }
 
-    public openFilterEdit(filter : Filter) : void {
+    public openFilterEdit(filter: Filter): Observable<Filter | null> {
+        const copyFilter = JSON.parse(JSON.stringify(filter)) ;
+        const subject = new Subject<Filter | null>() ;
+
+        const callBack = (f : Filter | null) => {  subject.next(f); subject.complete()};
+
         const config: ModalOptions = {
             initialState: {
-                filter
+                filter : copyFilter,
+                callBack
             },
             ignoreBackdropClick : true
         };
@@ -88,6 +95,6 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
-
+        return subject.asObservable();
     }
 }

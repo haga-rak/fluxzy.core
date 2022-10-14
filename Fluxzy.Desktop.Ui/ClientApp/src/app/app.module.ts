@@ -58,11 +58,11 @@ import { HostFilterFormComponent } from './settings/filter-forms/child-forms/hos
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
     new TranslateHttpLoader(http, './assets/i18n/', '.json');
-     
+
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     suppressScrollX: true,
-    
+
 };
 @NgModule({
     declarations: [
@@ -100,7 +100,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         FilterEditComponent,
         MethodFilterFormComponent,
         HostFilterFormComponent,
-        
+
     ],
     imports: [
         BrowserModule,
