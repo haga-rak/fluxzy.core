@@ -2,7 +2,7 @@
     <h4 class="modal-title pull-left">
         <span *ngIf="selectMode">Select a filter</span>
         <span *ngIf="!selectMode">Manage filters</span>
-       
+
     </h4>
     <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
       <span aria-hidden="true" class="visually-hidden">&times;</span>
@@ -49,7 +49,7 @@
                         </td>
                         <td>
                             <button class="btn btn-secondary btn-outline-primary" (click)="openFilterEdit(filterHolder.filter)">Edit</button> &nbsp;
-                            <button class="btn btn-secondary btn-outline-danger ">Delete</button>
+                            <button class="btn btn-secondary btn-outline-danger" (click)="deleteFilter(filterHolder.filter)">Delete</button>
                         </td>
                     </tr>
                 </table>
@@ -60,5 +60,5 @@
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" (click)="bsModalRef.hide()">Save</button>
-    <button class="btn btn-primary" (click)="bsModalRef.hide()">Cancel</button>
+    <button class="btn btn-dark" (click)="bsModalRef.hide()">Cancel</button>
   </div>

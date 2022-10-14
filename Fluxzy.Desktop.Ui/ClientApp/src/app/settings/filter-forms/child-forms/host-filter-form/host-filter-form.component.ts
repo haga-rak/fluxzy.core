@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MethodFilter, HostFilter } from '../../../../core/models/auto-generated';
 import {
     IValidationSource,
-    ValidationTarget,
+    ValidationTargetComponent,
 } from '../../filter-edit/filter-edit.component';
 
 @Component({
@@ -10,20 +10,20 @@ import {
     templateUrl: './host-filter-form.component.html',
     styleUrls: ['./host-filter-form.component.scss'],
 })
-export class HostFilterFormComponent extends  ValidationTarget<HostFilter>
+export class HostFilterFormComponent extends ValidationTargetComponent<HostFilter>
     implements OnInit
 {
     constructor() {
-      super(); 
+      super();
     }
-    
+
     public filterInit(): void {
     }
 
 
     public validate(): string | null{
         if (!this.filter.pattern)
-          return 'Host cannot be empty'
+          {return 'Host cannot be empty';}
 
         return '';
     }

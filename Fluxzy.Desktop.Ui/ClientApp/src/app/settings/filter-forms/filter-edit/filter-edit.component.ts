@@ -22,7 +22,8 @@ export class FilterEditComponent implements OnInit, IValidationSource {
     public validationMessages: string[] = [];
     public validationSource: IValidationSource;
 
-    public targets: ValidationTarget<Filter>[] = [];
+    public targets: ValidationTargetComponent<Filter>[] = [];
+    public callBack :  (f : Filter | null) => void ;
 
     constructor(
         public bsModalRef: BsModalRef,
@@ -31,19 +32,26 @@ export class FilterEditComponent implements OnInit, IValidationSource {
         private cd: ChangeDetectorRef
     ) {
         this.filter = this.options.initialState.filter as Filter;
+        this.callBack = this.options.initialState.callBack as (f : Filter | null) => void ;
         this.validationSource = this;
+
         console.log('received filter');
         console.log(this.filter);
     }
 
     ngOnInit(): void {}
 
-    public register(target: ValidationTarget<Filter>): void {
+    public register(target: ValidationTargetComponent<Filter>): void {
         this.targets.push(target);
     }
 
     public get<T>(item: any): T {
         return item as T;
+    }
+
+    public cancel() : void {
+        this.callBack(null);
+        this.bsModalRef.hide();
     }
 
     public save(): void {
@@ -61,18 +69,24 @@ export class FilterEditComponent implements OnInit, IValidationSource {
 
         if (this.validationState === null) {
             this.validationState = true;
+
+            this.apiService.filterValidate(this.filter)
+                .pipe(
+                    tap(f => this.callBack(f))
+                ).subscribe();
+            this.bsModalRef.hide();
         }
     }
 }
 
 export interface IValidationSource {
-    register: (target: ValidationTarget<Filter>) => void;
+    register: (target: ValidationTargetComponent<Filter>) => void;
 }
 
 @Component({
     template: '',
 })
-export abstract class ValidationTarget<T extends Filter> implements OnInit {
+export abstract class ValidationTargetComponent<T extends Filter> implements OnInit {
     @Input() public validationSource: IValidationSource;
     @Input() public filter: T;
 

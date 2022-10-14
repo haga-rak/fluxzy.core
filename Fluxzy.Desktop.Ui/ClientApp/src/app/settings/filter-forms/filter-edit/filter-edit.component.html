@@ -2,11 +2,11 @@
     <h4 class="modal-title pull-left">
         Edit filter
     </h4>
-    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
       <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
   </div>
-  <div class="modal-body" style="min-height: 400px">
+  <div class="modal-body" style="min-height: 50px">
     <div>
 
         <p *ngIf="validationState !== null">
@@ -21,10 +21,11 @@
         <app-method-filter-form [filter]="get(filter)" [validationSource]="validationSource" *ngIf="filter.typeKind === 'MethodFilter'"></app-method-filter-form>
         <app-host-filter-form [filter]="get(filter)" [validationSource]="validationSource" *ngIf="filter.typeKind === 'HostFilter'"></app-host-filter-form>
 
+        <p *ngIf="targets.length === 0">This filter has no editable setting.</p>
 
     </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" (click)="save()">Save</button>
-    <button class="btn btn-primary" (click)="bsModalRef.hide()">Cancel</button>
+    <button class="btn btn-primary" (click)="cancel()">Cancel</button>
   </div>
