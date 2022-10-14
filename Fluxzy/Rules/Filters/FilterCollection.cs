@@ -32,6 +32,8 @@ namespace Fluxzy.Rules.Filters
             return Operation == SelectorCollectionOperation.And; 
         }
 
-        public override FilterScope FilterScope => Children.Max(c => c.FilterScope); 
+        public override FilterScope FilterScope => Children.Max(c => c.FilterScope);
+
+        public override string GenericName => "Filter collection";
     }
 }

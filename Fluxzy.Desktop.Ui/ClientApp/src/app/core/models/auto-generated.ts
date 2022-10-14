@@ -129,6 +129,12 @@ export interface SetCookieItem
 	secure: boolean;
 	httpOnly: boolean;
 }
+export interface FilterTemplate
+{
+	label: string;
+	group: string;
+	filter: Filter;
+}
 export interface StoredFilter
 {
 	storeLocation: string;
