@@ -13,7 +13,6 @@ import * as _ from 'lodash';
 })
 export class FilterCollectionFormComponent extends ValidationTargetComponent<FilterCollection> implements IValidationSource {
     public selectionOperatorValues = ["Or", "And"];
-    public validationSource : IValidationSource ;
 
     constructor(private dialogService : DialogService, private apiService : ApiService, private cd : ChangeDetectorRef) {
         super();

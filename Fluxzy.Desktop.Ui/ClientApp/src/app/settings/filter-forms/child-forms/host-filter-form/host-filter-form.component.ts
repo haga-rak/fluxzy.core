@@ -12,7 +12,6 @@ import {CheckRegexValidity, StringOperationTypes} from "../../../../core/models/
     styleUrls: ['./host-filter-form.component.scss'],
 })
 export class HostFilterFormComponent extends ValidationTargetComponent<HostFilter>
-    implements OnInit
 {
     public StringOperationTypes = StringOperationTypes;
     public validationState = {} ;
@@ -23,7 +22,6 @@ export class HostFilterFormComponent extends ValidationTargetComponent<HostFilte
 
     public filterInit(): void {
     }
-
 
     public validate(): string | null {
         let message = '';
@@ -37,8 +35,8 @@ export class HostFilterFormComponent extends ValidationTargetComponent<HostFilte
         }
 
         if (this.filter.operation === 'Regex' && !CheckRegexValidity(this.filter.pattern)) {
-            this.validationState['operation'] =  'Regex expression is invalid';
-            message = 'Regex expression is invalid';
+            this.validationState['operation'] =  'Provided regex is invalid';
+            message = this.validationState['operation'] ;
         }
 
         return message;
