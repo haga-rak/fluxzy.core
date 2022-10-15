@@ -4,7 +4,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
 {
     public class InSessionFileStorage : IFilterStorage
     {
-        private readonly Dictionary<Guid, Filter> _currentFilters = new();
+        private  Dictionary<Guid, Filter> _currentFilters = new();
 
         public StoreLocation StoreLocation => StoreLocation.OnSession;
 
@@ -26,6 +26,11 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
         public void AddOrUpdate(Guid filterId, Filter updatedContent)
         {
             _currentFilters[filterId] = updatedContent;
+        }
+
+        public void Patch(IEnumerable<Filter> filters)
+        {
+            _currentFilters = filters.ToDictionary(t => t.Identifier, t => t); 
         }
     }
 }

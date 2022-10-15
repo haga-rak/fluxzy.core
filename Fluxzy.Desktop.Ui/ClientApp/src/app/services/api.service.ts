@@ -19,6 +19,7 @@ import {
     TrunkState,
     UiState
 } from '../core/models/auto-generated';
+import {FilterHolder} from "../settings/manage-filters/manage-filters.component";
 
 @Injectable({
   providedIn: 'root'
@@ -157,6 +158,10 @@ export class ApiService {
 
     public viewFilterGet() : Observable<StoredFilter[]> {
         return this.httpClient.get<StoredFilter[]>(`api/view-filter/`).pipe(take(1));
+    }
+
+    public viewFilterPatch(filterHolders : FilterHolder []) : Observable<boolean> {
+        return this.httpClient.patch<boolean>(`api/view-filter/store`,filterHolders).pipe(take(1));
     }
 
     public filterValidate(filter: Filter) : Observable<Filter> {

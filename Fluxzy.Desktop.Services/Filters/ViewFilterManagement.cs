@@ -30,6 +30,26 @@ namespace Fluxzy.Desktop.Services.Filters
             var targetStore = _storages.First(s => s.StoreLocation == storeLocation);
             return targetStore.Remove(filterId); 
         }
+
+        public bool Patch(IEnumerable<LocatedFilter> filter)
+        {
+            var localFilters = filter.Where(f => f.StoreLocation == StoreLocation.Computer)
+                                     .Select(s => s.Filter).ToList();
+            var memoryfilters = filter.Where(f => f.StoreLocation == StoreLocation.OnSession)
+                                      .Select(s => s.Filter).ToList(); 
+
+            foreach (var storage in _storages.OfType<LocalFilterStorage>())
+            {
+                storage.Patch(localFilters);
+            }
+
+            foreach (var storage in _storages.OfType<InSessionFileStorage>())
+            {
+                storage.Patch(memoryfilters);
+            }
+
+            return true; 
+        }
     }
 
 
@@ -44,6 +64,21 @@ namespace Fluxzy.Desktop.Services.Filters
         public StoreLocation StoreLocation { get;  }
 
         public List<Filter> Filters { get;  }
+    }
+
+
+    public class LocatedFilter
+    {
+        public LocatedFilter(Filter filter, StoreLocation storeLocation)
+        {
+            Filter = filter;
+            StoreLocation = storeLocation;
+        }
+
+        public Filter Filter { get; }
+
+        public StoreLocation StoreLocation { get; }
+
     }
 
 }

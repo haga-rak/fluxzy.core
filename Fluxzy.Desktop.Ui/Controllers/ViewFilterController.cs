@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Fluxzy.Desktop.Ui.Controllers
 {
 
-
-
     [Route("api/view-filter")]
     [ApiController]
     public class ViewFilterController : ControllerBase
@@ -44,6 +42,13 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<bool> Delete(Guid filterId, StoreLocation storeLocation)
         {
             return _management.Delete(filterId, storeLocation); 
+        }
+
+
+        [HttpPatch("store")]
+        public ActionResult<bool> Patch(List<LocatedFilter> filters)
+        {
+            return _management.Patch(filters); 
         }
     }
 }
