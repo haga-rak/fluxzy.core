@@ -4,6 +4,7 @@ import {
     IValidationSource,
     ValidationTargetComponent,
 } from '../../filter-edit/filter-edit.component';
+import {StringOperationTypes} from "../../../../core/models/filter-constants";
 
 @Component({
     selector: 'app-host-filter-form',
@@ -13,6 +14,8 @@ import {
 export class HostFilterFormComponent extends ValidationTargetComponent<HostFilter>
     implements OnInit
 {
+    public StringOperationTypes = StringOperationTypes;
+
     constructor() {
       super();
     }

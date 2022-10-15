@@ -1,14 +1,22 @@
 <div class="row mb-3">
-    <label for="floatingSelect" class="col-sm-3 col-form-label">Host</label>
     <div class="col-sm-9">
 
         <div class="form-floating">
-            <input type="text" [(ngModel)]="filter.pattern" class="form-control" id="floatingSelect"/>
-            <label for="floatingSelect">Hostname without port and scheme</label>
+            <input type="text" [(ngModel)]="filter.pattern" class="form-control" />
+            <label >Hostname without port and scheme</label>
         </div>
-
         <div class="p-1 text-danger" style="display:none">
             Looks good!
+        </div>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-sm-9">
+        <div class="form-floating">
+            <select type="text" [(ngModel)]="filter.operation" class="form-select" >
+                <option *ngFor="let checkOperation of StringOperationTypes"> {{ checkOperation }}</option>
+            </select>
+            <label>Check operation</label>
         </div>
     </div>
 </div>

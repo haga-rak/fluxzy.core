@@ -9,7 +9,7 @@
       <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
   </div>
-  <div class="modal-body" style="min-height: 400px">
+  <div class="modal-body" style="min-height: 50px">
     <div>
 
         <p *ngIf="validationState !== null">
@@ -17,7 +17,7 @@
                 Validation succeed
             </span>
             <span *ngIf="!validationState" class="text-danger">
-                Validation failed !!!
+                Some inputs were not filled correctly.
             </span>
         </p>
 

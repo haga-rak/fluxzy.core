@@ -107,6 +107,15 @@ export class DialogService {
             .pipe(
                 take(1),
                 filter(t => !!t),
+                filter(t => {
+                    if (t.preMadeFilter) {
+                        // No edit for premade filter
+                        subject.next(t);
+                        subject.complete();
+                        return false;
+                    }
+                    return true;
+                }),
                 switchMap(t => this.openFilterEdit(t)),
                 tap(t=>  {
                     subject.next(t);
