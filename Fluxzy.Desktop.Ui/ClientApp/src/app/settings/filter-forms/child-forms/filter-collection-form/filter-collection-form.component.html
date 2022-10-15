@@ -3,7 +3,7 @@
         <div class="filter-collection-container shady-box">
             <div class="input-group mb-3">
                 <span class="input-group-text bg-dark">Filter collection grouping rule:</span>
-                <select class="form-select" aria-label="Default select example" [(ngModel)]="filter.operation"
+                <select class="form-select bg-primary" aria-label="Default select example" [(ngModel)]="filter.operation"
                         style="max-width : 60px;">
                     <option *ngFor="let operation of selectionOperatorValues">{{operation}}</option>
                 </select>

@@ -48,7 +48,7 @@
                             <span *ngIf="filterHolder.storeLocation === 'OnSession'">In session</span>
                         </td>
                         <td>
-                            <button class="btn btn-secondary btn-outline-primary" (click)="openFilterEdit(filterHolder.filter)">Edit</button> &nbsp;
+                            <button class="btn btn-secondary btn-outline-primary" [disabled]="filterHolder.filter.preMadeFilter"  (click)="openFilterEdit(filterHolder.filter)">Edit</button> &nbsp;
                             <button class="btn btn-secondary btn-outline-danger" (click)="deleteFilter(filterHolder.filter)">Delete</button>
                         </td>
                     </tr>

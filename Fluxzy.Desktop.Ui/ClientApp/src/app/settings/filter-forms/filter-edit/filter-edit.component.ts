@@ -37,12 +37,11 @@ export class FilterEditComponent implements OnInit, IValidationSource {
         this.callBack = this.options.initialState.callBack as (f : Filter | null) => void ;
         this.isEdit = this.options.initialState.isEdit as boolean;
         this.validationSource = this;
-
-        console.log('received filter');
-        console.log(this.filter);
     }
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+
+    }
 
     public register(target: ValidationTargetComponent<Filter>): void {
         this.targets.push(target);
