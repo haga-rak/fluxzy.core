@@ -8,3 +8,5 @@
                             *ngIf="filter.typeKind === 'FullUrlFilter'"></app-full-url-filter-form>
 <app-path-filter-form [filter]="get(filter)" [validationSource]="validationSource"
                             *ngIf="filter.typeKind === 'PathFilter'"></app-path-filter-form>
+<app-ip-egress-filter-form [filter]="get(filter)" [validationSource]="validationSource"
+                            *ngIf="filter.typeKind === 'IpEgressFilter'"></app-ip-egress-filter-form>
