@@ -207,6 +207,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
                 .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
                 .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
+                .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
                 .WithPublicProperties();
@@ -222,6 +223,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
                 .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
                 .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
+                .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
                 .WithPublicProperties();
