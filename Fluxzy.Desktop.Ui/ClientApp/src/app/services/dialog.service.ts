@@ -76,7 +76,7 @@ export class DialogService {
         this.bsModalRef.content.closeBtnName = 'Close';
     }
 
-    public openFilterEdit(filter: Filter): Observable<Filter | null> {
+    public openFilterEdit(filter: Filter, isEdit : boolean = true): Observable<Filter | null> {
         const copyFilter = JSON.parse(JSON.stringify(filter)) ;
         const subject = new Subject<Filter | null>() ;
 
@@ -85,7 +85,8 @@ export class DialogService {
         const config: ModalOptions = {
             initialState: {
                 filter : copyFilter,
-                callBack
+                callBack,
+                isEdit
             },
             ignoreBackdropClick : true
         };
@@ -127,7 +128,8 @@ export class DialogService {
 
         const config: ModalOptions = {
             initialState: {
-                callBack
+                callBack,
+                isEdit : false
             },
             ignoreBackdropClick : true
         };

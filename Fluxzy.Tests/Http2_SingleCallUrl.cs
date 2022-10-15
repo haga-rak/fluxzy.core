@@ -86,13 +86,13 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"
             );
 
             var response = await httpClient.SendAsync(requestMessage);
-            var responseData = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -103,7 +103,7 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://services.gfe.nvidia.com/GFE/v1.0/dao/x64"
             );
@@ -120,7 +120,7 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
                 "https://beacons.gcp.gvt2.com/domainreliability/upload"
             );

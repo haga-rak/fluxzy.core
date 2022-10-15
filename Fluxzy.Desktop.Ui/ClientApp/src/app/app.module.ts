@@ -57,6 +57,7 @@ import { HostFilterFormComponent } from './settings/filter-forms/child-forms/hos
 import { FilterCollectionFormComponent } from './settings/filter-forms/child-forms/filter-collection-form/filter-collection-form.component';
 import { FilterPreCreateComponent } from './settings/filter-forms/filter-pre-create/filter-pre-create.component';
 import {AccordionModule} from "ngx-bootstrap/accordion";
+import { FilterRenderComponent } from './settings/filter-forms/filter-edit/filter-render/filter-render.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -105,6 +106,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         HostFilterFormComponent,
         FilterCollectionFormComponent,
         FilterPreCreateComponent,
+        FilterRenderComponent,
 
     ],
     imports: [

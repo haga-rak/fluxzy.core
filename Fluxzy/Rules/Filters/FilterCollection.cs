@@ -41,6 +41,8 @@ namespace Fluxzy.Rules.Filters
 
         public override FilterScope FilterScope => Children.Select(c => c.FilterScope).DefaultIfEmpty(FilterScope.OnAuthorityReceived).Max(c => c);
 
+        public override string FriendlyName => $"Combination of {Children.Count} filter(s)";
+
         public override string GenericName => "Filter collection";
     }
 }

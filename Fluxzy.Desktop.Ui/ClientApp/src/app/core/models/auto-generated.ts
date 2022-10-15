@@ -161,6 +161,7 @@ export interface FilterCollection extends Filter
 	children: Filter[];
 	operation: number;
 	filterScope: number;
+	friendlyName: string;
 	genericName: string;
 }
 export interface HeaderFilter extends StringFilter

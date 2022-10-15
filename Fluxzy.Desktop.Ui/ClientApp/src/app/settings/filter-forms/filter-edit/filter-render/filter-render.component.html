@@ -1,0 +1,6 @@
+<app-method-filter-form [filter]="get(filter)" [validationSource]="validationSource"
+                        *ngIf="filter.typeKind === 'MethodFilter'"></app-method-filter-form>
+<app-host-filter-form [filter]="get(filter)" [validationSource]="validationSource"
+                      *ngIf="filter.typeKind === 'HostFilter'"></app-host-filter-form>
+<app-filter-collection-form [filter]="get(filter)" [validationSource]="validationSource"
+                            *ngIf="filter.typeKind === 'FilterCollection'"></app-filter-collection-form>
