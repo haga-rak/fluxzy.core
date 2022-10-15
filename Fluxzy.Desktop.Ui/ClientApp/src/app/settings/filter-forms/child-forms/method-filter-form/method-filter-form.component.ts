@@ -17,6 +17,8 @@ export class MethodFilterFormComponent extends  ValidationTargetComponent<Method
     }
 
     public filterInit(): void {
+        if (!this.filter.pattern)
+            this.filter.pattern = this.methods[0];
     }
 
     public validate(): string | null {

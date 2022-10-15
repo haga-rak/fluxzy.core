@@ -31,7 +31,7 @@
                     <tr>
                         <th style="width:32px">&nbsp;</th>
                         <th>Name</th>
-                        <th style="width:150px">Type</th>
+                        <th style="width:150px">Kind</th>
                         <th style="width:100px">Storage</th>
                         <th>Actions</th>
                     </tr>
@@ -42,7 +42,7 @@
                               </div>
                         </td>
                         <td>{{filterHolder.filter.friendlyName }}</td>
-                        <td>{{filterHolder.filter.typeKind }}</td>
+                        <td>{{filterHolder.filter.genericName }}</td>
                         <td>
                             <span *ngIf="filterHolder.storeLocation === 'Computer'">Computer</span>
                             <span *ngIf="filterHolder.storeLocation === 'OnSession'">In session</span>

@@ -25,6 +25,8 @@ export class FilterEditComponent implements OnInit, IValidationSource {
     public targets: ValidationTargetComponent<Filter>[] = [];
     public callBack :  (f : Filter | null) => void ;
 
+    public isEdit : boolean;
+
     constructor(
         public bsModalRef: BsModalRef,
         public options: ModalOptions,
@@ -33,6 +35,7 @@ export class FilterEditComponent implements OnInit, IValidationSource {
     ) {
         this.filter = this.options.initialState.filter as Filter;
         this.callBack = this.options.initialState.callBack as (f : Filter | null) => void ;
+        this.isEdit = this.options.initialState.isEdit as boolean;
         this.validationSource = this;
 
         console.log('received filter');
@@ -45,9 +48,6 @@ export class FilterEditComponent implements OnInit, IValidationSource {
         this.targets.push(target);
     }
 
-    public get<T>(item: any): T {
-        return item as T;
-    }
 
     public cancel() : void {
         this.callBack(null);

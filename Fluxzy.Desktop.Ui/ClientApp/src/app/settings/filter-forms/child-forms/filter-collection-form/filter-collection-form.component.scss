@@ -1,0 +1,24 @@
+.filter-collection-container {
+    background-color:  var(--bs-gray-700);
+    border-radius : 8px;
+    padding : 16px;
+}
+
+.badge-filter{
+    overflow: hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    width:150px;
+    min-width: 150px;
+    border-radius : 4px;
+    padding : 4px;
+}
+
+.bg-left-decorate {
+    border-left : 2px solid  var(--bs-primary);
+    padding-left: 8px;
+}
+
+.fitler-collection-table td {
+    padding : 4px;
+}

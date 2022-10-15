@@ -26,6 +26,15 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
                 InternalAdd(new MethodFilter("POST") { Locked = true }); 
                 InternalAdd(new ContentTypeJsonFilter() { Locked = true, }); 
                 InternalAdd(new HostFilter("www.fluxzy.io") { Locked = false}); 
+                InternalAdd(new FilterCollection()
+                {
+                    Children = new List<Filter>()
+                    {
+                        new HostFilter("msdn.com"),
+                        new MethodFilter("PATCH"),
+                        new FullUrlFilter("https://github.com/haga-rak/fluxzy/actions")
+                    }
+                });
             }
         }
 

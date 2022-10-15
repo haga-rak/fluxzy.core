@@ -1,18 +1,56 @@
+<div class="row">
+    <div>
+        <div class="filter-collection-container shady-box">
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-dark">Filter collection grouping rule:</span>
+                <select class="form-select" aria-label="Default select example" [(ngModel)]="filter.operation"
+                        style="max-width : 60px;">
+                    <option *ngFor="let operation of selectionOperatorValues">{{operation}}</option>
+                </select>
+            </div>
+            <div>
+                <div style="padding-left : 16px; margin-bottom: 10px;">
+                    <div class="bg-left-decorate">
 
-<div class="row mb-3">
+                        <table style="width: 100%" class="fitler-collection-table">
+                            <tr *ngFor="let childFilter of filter.children">
+                                <td>
+                                        <span class="text-info">
+                                            <a href="javascript:;" title="Edit" class="text-white"><i class="bi bi-pencil-square"></i></a>&nbsp;
+                                            <a href="javascript:;" title="Delete" class="text-danger"><i class="bi bi-trash-fill"></i></a>
+                                            {{ childFilter.genericName}} </span>
+                                        &nbsp;
+                                        <span *ngIf="childFilter.typeKind !== 'FilterCollection'">
+                                            <span class="badge-filter border-primary border-1">{{ childFilter.friendlyName }}</span>
+                                        </span>
+                                        <app-filter-render *ngIf="childFilter.typeKind === 'FilterCollection'"
+                                                           [filter]="childFilter"
+                                                           [validationSource]="validationSource"></app-filter-render>
 
-    <p>Here goes filter collection</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a href="javascript:;" class="btn btn-primary" (click)="addNewFilter()">+ Add new filter</a>
+            </div>
+        </div>
+        <!--        <p>Here goes filter collection</p>-->
+    </div>
 
-<!--    <label for="floatingSelect" class="col-sm-3 col-form-label">Host</label>-->
-<!--    <div class="col-sm-9">-->
 
-<!--        <div class="form-floating">-->
-<!--            <input type="text" [(ngModel)]="filter.pattern" class="form-control" id="floatingSelect"/>-->
-<!--            <label for="floatingSelect">Hostname without port and scheme</label>-->
-<!--        </div>-->
+    <!--    <label for="floatingSelect" class="col-sm-3 col-form-label">Host</label>-->
+    <!--    <div class="col-sm-9">-->
 
-<!--        <div class="p-1 text-danger" style="display:none">-->
-<!--            Looks good!-->
-<!--        </div>-->
-<!--    </div>-->
+    <!--        <div class="form-floating">-->
+    <!--            <input type="text" [(ngModel)]="filter.pattern" class="form-control" id="floatingSelect"/>-->
+    <!--            <label for="floatingSelect">Hostname without port and scheme</label>-->
+    <!--        </div>-->
+
+    <!--        <div class="p-1 text-danger" style="display:none">-->
+    <!--            Looks good!-->
+    <!--        </div>-->
+    <!--    </div>-->
 </div>
