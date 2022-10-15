@@ -4,6 +4,7 @@ import {Filter, FilterCollection, HostFilter} from "../../../../core/models/auto
 import {DialogService} from "../../../../services/dialog.service";
 import {ApiService} from "../../../../services/api.service";
 import {filter, take, tap} from "rxjs";
+import * as _ from 'lodash';
 
 @Component({
     selector: 'app-filter-collection-form',
@@ -27,6 +28,31 @@ export class FilterCollectionFormComponent extends ValidationTargetComponent<Fil
     validate(): string | null {
         return null;
     }
+
+    public edit(childFilter : Filter) : void {
+        this.dialogService.openFilterEdit(
+            childFilter, true
+        ).pipe(
+            take(1),
+            filter(t => !!t),
+            tap(t => {
+                const targetIndex = _.findIndex(this.filter.children, c => c.identifier === t.identifier);
+
+                if (targetIndex >= 0) {
+                    this.filter.children[targetIndex] = t ;
+                }
+            }),
+            tap(_ => this.cd.detectChanges())
+        ).subscribe()
+
+    }
+
+    public delete(childFilter : Filter) : void {
+        // TODO ask confirmation
+        _.remove(this.filter.children, c => c.identifier === childFilter.identifier);
+        this.cd.detectChanges();
+    }
+
 
     public addNewFilter() : void {
         this.dialogService.openFilterCreate()
