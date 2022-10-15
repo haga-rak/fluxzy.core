@@ -6,13 +6,12 @@ import {StringFilterFormComponent} from "../string-filter-form/string-filter-for
 @Component({
     selector: 'app-full-url-filter-form',
     templateUrl: '../string-filter-form/string-filter-form.component.html',
-    styleUrls: ['./full-url-filter-form.component.scss']
+    styleUrls: ['../string-filter-form/string-filter-form.component.scss']
 })
 export class FullUrlFilterFormComponent extends StringFilterFormComponent<FullUrlFilter> {
     constructor(cd : ChangeDetectorRef) {
         super(cd);
     }
-
 
     getFieldName(): string | null {
         return 'Full url';
