@@ -63,6 +63,11 @@ export class ManageFiltersComponent implements OnInit {
               tap(_ => this.cd.detectChanges())
           ).subscribe();
     }
+
+    public save() : void {
+        this.apiService.viewFilterPatch(this.filterHolders).subscribe() ;
+        this.bsModalRef.hide();
+    }
 }
 
 

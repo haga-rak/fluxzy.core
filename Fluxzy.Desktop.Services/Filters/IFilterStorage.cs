@@ -15,5 +15,7 @@ namespace Fluxzy.Desktop.Services.Filters
         bool TryGet(Guid filterId, out Filter? filter); 
         
         void AddOrUpdate(Guid filterId, Filter updatedContent);
+
+        void Patch(IEnumerable<Filter> filters);
     }
 }

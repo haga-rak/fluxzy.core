@@ -100,5 +100,19 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
             using var outStream = File.Create(fullPath);
             JsonSerializer.Serialize(outStream, updatedContent, GlobalArchiveOption.JsonSerializerOptions);
         }
+
+        public void Patch(IEnumerable<Filter> filters)
+        {
+            // var clear directory 
+            foreach (var fileInfo in _filterDirectory.EnumerateFiles("*.filter.json"))
+            {
+                fileInfo.Delete();
+            }
+
+            foreach (var filter in filters)
+            {
+                AddOrUpdate(filter.Identifier, filter);
+            }
+        }
     }
 }
