@@ -8,16 +8,20 @@ import {CheckRegexValidity, StringOperationTypes} from "../../../../core/models/
     templateUrl: './string-filter-form.component.html',
     styleUrls: ['./string-filter-form.component.scss']
 })
-export class StringFilterFormComponent<T extends StringFilter>  extends ValidationTargetComponent<T> {
+export abstract class StringFilterFormComponent<T extends StringFilter>  extends ValidationTargetComponent<T> {
 
     public StringOperationTypes = StringOperationTypes;
     public validationState = {} ;
+    public fieldMessage : string;
 
-    constructor(public fieldMessage : string, private cd : ChangeDetectorRef) {
+    protected constructor(private cd : ChangeDetectorRef) {
         super();
     }
 
+    public abstract getFieldName(): string | null;
+
     filterInit(): void {
+        this.fieldMessage = this.getFieldName();
     }
 
     public validate(): string | null {
