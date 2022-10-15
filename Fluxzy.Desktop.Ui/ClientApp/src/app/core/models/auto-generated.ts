@@ -184,7 +184,7 @@ export interface StringFilter extends Filter
 {
 	friendlyName: string;
 	pattern: string;
-	operation: number;
+	operation: string;
 	caseSensitive: boolean;
 }
 export interface ContentTypeJsonFilter extends ResponseHeaderFilter

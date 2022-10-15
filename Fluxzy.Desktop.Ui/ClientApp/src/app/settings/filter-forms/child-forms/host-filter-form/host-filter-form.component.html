@@ -5,8 +5,8 @@
             <input type="text" [(ngModel)]="filter.pattern" class="form-control" />
             <label >Hostname without port and scheme</label>
         </div>
-        <div class="p-1 text-danger" style="display:none">
-            Looks good!
+        <div class="p-1 text-danger" *ngIf="validationState['pattern']">
+            {{ validationState['pattern'] }}
         </div>
     </div>
 </div>
@@ -17,6 +17,9 @@
                 <option *ngFor="let checkOperation of StringOperationTypes"> {{ checkOperation }}</option>
             </select>
             <label>Check operation</label>
+        </div>
+        <div class="p-1 text-danger" *ngIf="validationState['operation']">
+            {{ validationState['operation'] }}
         </div>
     </div>
 </div>
