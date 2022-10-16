@@ -17,6 +17,7 @@
     <button *ngFor="let toolBarFilter of uiState.toolBarFilters" type="button" href="javascript:;"
             [ngClass]=" {'active' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier}"
             (click)="selectFilter(toolBarFilter.filter)"
+            [title]="toolBarFilter.description"
             class="btn btn-dark" aria-current="page">{{ toolBarFilter.shortName }}</button>
 
 
