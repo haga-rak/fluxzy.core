@@ -320,6 +320,7 @@ export interface ToolBarFilter
 {
 	shortName: string;
 	filter: Filter;
+	description?: string;
 }
 export interface FilteredExchangeState
 {

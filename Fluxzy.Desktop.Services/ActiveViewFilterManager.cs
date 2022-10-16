@@ -16,7 +16,6 @@ namespace Fluxzy.Desktop.Services
 
         public ViewFilter Current => Subject.Value;
 
-
     }
 
     public class ViewFilter

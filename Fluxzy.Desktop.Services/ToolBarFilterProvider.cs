@@ -12,8 +12,16 @@ namespace Fluxzy.Desktop.Services
         private readonly List<ToolBarFilter> _defaults = new()
         {
             new("all", AnyFilter.Default),
-            new("json", new ContentTypeJsonFilter()),
-            new("post", new MethodFilter("POST")),
+            new("json", new ContentTypeJsonFilter(), "Response that specify json content"),
+            new("post", new MethodFilter("POST"), "POST method only"),
+            new("err", new FilterCollection(
+                    new StatusCodeClientErrorFilter(),
+                    new StatusCodeServerErrorFilter()
+                )
+            {
+                Operation = SelectorCollectionOperation.Or
+            }, "Status code 4XX and 5XX"),
+
         };
 
         public IReadOnlyCollection<ToolBarFilter> GetDefault()
