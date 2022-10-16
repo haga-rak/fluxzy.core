@@ -7,7 +7,7 @@ namespace Fluxzy.Rules.Filters
 {
     public abstract class Filter : PolymorphicObject
     {
-        public Guid Identifier { get; set; } = Guid.NewGuid();
+        public virtual Guid Identifier { get; set; } = Guid.NewGuid();
 
         public bool Inverted { get; set; }
 

@@ -1,3 +1,5 @@
+// noinspection ES6UnusedImports
+
 import {
     ChangeDetectorRef,
     Component,
@@ -9,7 +11,6 @@ import {
 import { stringify } from 'querystring';
 import {
     BehaviorSubject,
-    catchError,
     combineLatest,
     concatAll,
     distinctUntilChanged,

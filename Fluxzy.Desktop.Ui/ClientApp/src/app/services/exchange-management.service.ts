@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject, tap, map, Observable, switchMap, distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe, filter } from 'rxjs';
-import { ExchangeBrowsingState, ExchangeInfo, ExchangeState, TrunkState } from '../core/models/auto-generated';
+import {
+    ExchangeBrowsingState,
+    ExchangeInfo,
+    ExchangeState,
+    FilteredExchangeState,
+    TrunkState
+} from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { ApiService } from './api.service';
 import { ExchangeContentService } from './exchange-content.service';
@@ -11,9 +17,7 @@ import { UiStateService } from './ui.service';
     providedIn: 'root'
 })
 export class ExchangeManagementService {
-
-    private trunkState : TrunkState | null; 
-
+    private trunkState : TrunkState | null;
 
     private exchangeBrowsingState$: BehaviorSubject<ExchangeBrowsingState> = new BehaviorSubject<ExchangeBrowsingState>(
         {
@@ -22,17 +26,18 @@ export class ExchangeManagementService {
             type : 0
         });
 
-    public exchangeState$: Observable<ExchangeState> ; 
+    public exchangeState$: Observable<ExchangeState> ;
 
     private currentSelection: ExchangeSelection;
 
     constructor(
         private apiService: ApiService,
-        private menuService : MenuService, 
+        private menuService : MenuService,
         private exchangeSelectionService : ExchangeSelectionService,
         private exchangeContentService: ExchangeContentService
-        
+
         ) {
+
 
         this.exchangeContentService.getTrunkState()
         .pipe(
@@ -40,10 +45,10 @@ export class ExchangeManagementService {
             ).subscribe();
 
         this.getBrowsingState().
-            pipe(tap(t => console.log(t))).subscribe(); 
+            pipe(tap(t => console.log(t))).subscribe();
 
         this.exchangeSelectionService.getCurrentSelection().pipe(
-            tap(s => this.currentSelection = s),).subscribe(); 
+            tap(s => this.currentSelection = s),).subscribe();
 
         this.menuService.getNextDeletedRequest()
             .pipe(
@@ -55,10 +60,10 @@ export class ExchangeManagementService {
 
 
         this.registerExchangeUpdate();
-    
-        this.registerExchangeStateChange();
-    }
 
+        this.registerExchangeStateChange();
+
+    }
 
     private registerExchangeStateChange() {
 
@@ -89,17 +94,17 @@ export class ExchangeManagementService {
                             startIndex = Math.max(0, endIndex - browsingState.count);
                     }
 
-                    // 
+                    //
 
                     result.totalCount = truncateState.exchanges.length;
                     result.endIndex = endIndex;
                     result.startIndex = startIndex;
-                    result.exchanges.length = 0 ; 
+                    result.exchanges.length = 0 ;
                     result.exchanges.push(... truncateState.exchanges.slice(startIndex, endIndex));
 
                     return result;
                 }
-                ));
+                ),);
     }
 
 
@@ -117,11 +122,11 @@ export class ExchangeManagementService {
                     id: exchangeInfo.id
                 };
 
-                trukstateCopy.exchanges.push(newContainer); // add new item 
+                trukstateCopy.exchanges.push(newContainer); // add new item
                 trukstateCopy.exchangesIndexer[newContainer.id] = trukstateCopy.exchanges.length -1; // setup indexer
             }
             else
-            // update the field 
+            // update the field
             trukstateCopy.exchanges[trukstateCopy.exchangesIndexer[exchangeInfo.id]].exchangeInfo = exchangeInfo;
 
 
@@ -142,8 +147,8 @@ export class ExchangeManagementService {
     }
 
     public exchangeDelete(exchangeIds : number []) : Observable<TrunkState> {
-        console.log('deleting') ; 
-        console.log(exchangeIds) ; 
+        console.log('deleting') ;
+        console.log(exchangeIds) ;
         return this.apiService.trunkDelete( {
             identifiers : exchangeIds
         })
@@ -152,26 +157,26 @@ export class ExchangeManagementService {
 
 
 export const NextBrowsingState = (current: ExchangeBrowsingState, maxCount: number): ExchangeBrowsingState => {
-    // Client probably reach end 
+    // Client probably reach end
 
     let result = {
         ...current
     };
 
-    let reachEnd =false; 
+    let reachEnd =false;
 
-    result.startIndex = (result.startIndex + current.count /4) ; 
+    result.startIndex = (result.startIndex + current.count /4) ;
 
     if (result.startIndex > (maxCount - current.count)) {
-        result.startIndex = maxCount - current.count;  
-        reachEnd = true; 
+        result.startIndex = maxCount - current.count;
+        reachEnd = true;
     }
 
     if (result.startIndex < 0) {
-        result.startIndex = 0 ; 
+        result.startIndex = 0 ;
     }
 
-    result.type = 1 ; 
+    result.type = 1 ;
 
 
     return result;
@@ -186,7 +191,7 @@ export const PreviousBrowsingState = (current: ExchangeBrowsingState, currentSta
     result.startIndex =  Math.max(0, result.startIndex- (current.count/4));
 
     if (result.type === 1)
-        result.type = 0 ; 
+        result.type = 0 ;
 
 
     return result;

@@ -12,14 +12,21 @@
     </div>
 </div>
 &nbsp;
-<div class="btn-group" role="group">
-    <button type="button" href="javascript:;" class="btn btn-dark active" aria-current="page">all</button>
-    <button type="button" href="javascript:;" class="btn btn-dark"
-        title="every exchange having response content-type equals to json">json</button>
-    <button type="button" href="javascript:;" class="btn btn-dark">(x)html</button>
-    <button type="button" href="javascript:;" class="btn btn-dark">post</button>
-    <button type="button" href="javascript:;" class="btn btn-dark"
-        title="dynamic datas are structure who can holds models. This includes (json, bson, proto-buf, xml) ">dyn</button>
+<div class="btn-group" role="group" *ngIf="uiState">
+
+    <button *ngFor="let toolBarFilter of uiState.toolBarFilters" type="button" href="javascript:;"
+            [ngClass]=" {'active' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier}"
+            (click)="selectFilter(toolBarFilter.filter)"
+            class="btn btn-dark" aria-current="page">{{ toolBarFilter.shortName }}</button>
+
+
+<!--    <button type="button" href="javascript:;" class="btn btn-dark active" aria-current="page">all</button>-->
+<!--    <button type="button" href="javascript:;" class="btn btn-dark"-->
+<!--        title="every exchange having response content-type equals to json">json</button>-->
+<!--    <button type="button" href="javascript:;" class="btn btn-dark">(x)html</button>-->
+<!--    <button type="button" href="javascript:;" class="btn btn-dark">post</button>-->
+<!--    <button type="button" href="javascript:;" class="btn btn-dark"-->
+<!--        title="dynamic datas are structure who can holds models. This includes (json, bson, proto-buf, xml) ">dyn</button>-->
 
     <div class="btn-group" role="group" dropdown>
         <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"

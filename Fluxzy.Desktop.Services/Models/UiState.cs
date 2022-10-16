@@ -1,17 +1,19 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Fluxzy.Rules.Filters;
-
 namespace Fluxzy.Desktop.Services.Models
 {
     public class UiState
     {
-        public UiState(FileState fileState, ProxyState proxyState, FluxzySettingsHolder settingsHolder, SystemProxyState systemProxyState) 
+        public UiState(FileState fileState, ProxyState proxyState,
+            FluxzySettingsHolder settingsHolder, SystemProxyState systemProxyState, 
+            ViewFilter viewFilter, List<ToolBarFilter> toolBarFilters) 
         {
             FileState = fileState;
             ProxyState = proxyState;
             SettingsHolder = settingsHolder;
             SystemProxyState = systemProxyState;
+            ViewFilter = viewFilter;
+            ToolBarFilters = toolBarFilters;
         }
 
         public Guid Id { get; } = Guid.NewGuid();
@@ -22,8 +24,11 @@ namespace Fluxzy.Desktop.Services.Models
 
         public SystemProxyState SystemProxyState { get; }
 
-        public FluxzySettingsHolder SettingsHolder { get;  }
+        public ViewFilter ViewFilter { get; }
 
-        public Filter ViewFilter { get; } = new AnyFilter(); 
+        public List<ToolBarFilter> ToolBarFilters { get; }
+
+        public FluxzySettingsHolder SettingsHolder { get;  }
+        
     }
 }

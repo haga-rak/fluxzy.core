@@ -1,5 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System;
+
 namespace Fluxzy.Rules.Filters
 {
     public class AnyFilter : Filter
@@ -14,5 +16,13 @@ namespace Fluxzy.Rules.Filters
         public override string GenericName => "Any";
 
         public override bool PreMadeFilter => true;
+
+        public static AnyFilter Default { get;  } = new()
+        {
+            Identifier = Guid.Parse("A62052B4-516D-492E-93B3-2888CDA4E92D"),
+            Locked = true
+        };
     }
+
+
 }

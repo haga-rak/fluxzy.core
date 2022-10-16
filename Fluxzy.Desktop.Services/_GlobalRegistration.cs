@@ -18,6 +18,9 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<FluxzySettingManager>();
             collection.AddSingleton<UiStateManager>();
             collection.AddSingleton<SystemProxyStateControl>();
+            collection.AddSingleton<ActiveViewFilterManager>();
+            collection.AddSingleton<FilteredExchangeManager>();
+            collection.AddSingleton<ToolBarFilterProvider>();
 
             collection.AddSingleton<IObservable<SystemProxyState>>
                 (s => s.GetRequiredService<SystemProxyStateControl>().Observable);
@@ -30,6 +33,12 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton<IObservable<ProxyState>>
                 (s => s.GetRequiredService<ProxyControl>().Observable);
+
+            collection.AddSingleton<IObservable<ViewFilter>>
+                (s => s.GetRequiredService<ActiveViewFilterManager>().Observable);
+
+            collection.AddSingleton<IObservable<FilteredExchangeState?>>
+                (s => s.GetRequiredService<FilteredExchangeManager>().Observable);
 
             collection.AddSingleton<IObservable<FileContentOperationManager>>
                 (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));

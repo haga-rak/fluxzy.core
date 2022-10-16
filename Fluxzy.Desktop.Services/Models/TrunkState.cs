@@ -48,10 +48,15 @@ namespace Fluxzy.Desktop.Services.Models
         /// same algorithm as ExchangesIndexer 
         /// </summary>
         public Dictionary<int, int> ConnectionsIndexer { get; } = new();
-
+        
         public static TrunkState Empty()
         {
             return new TrunkState(Array.Empty<ExchangeContainer>(), Array.Empty<ConnectionContainer>()); 
+        }
+
+        public TrunkState ApplyFilter(FilteredExchangeState state)
+        {
+            return new TrunkState(Exchanges.Where(e => state.Exchanges.Contains(e.Id)), Connections); 
         }
     }
 }

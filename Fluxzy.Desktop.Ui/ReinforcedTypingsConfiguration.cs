@@ -2,6 +2,7 @@
 
 using System.Net;
 using Fluxzy.Clients;
+using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
@@ -54,6 +55,15 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<FileState>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ViewFilter>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ToolBarFilter>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FilteredExchangeState>()
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<FluxzySettingsHolder>()
@@ -208,6 +218,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
                 .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
+                .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
                 .WithPublicProperties();
@@ -224,6 +235,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
                 .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
+                .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
                 .WithPublicProperties();
