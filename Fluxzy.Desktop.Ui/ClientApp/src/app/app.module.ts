@@ -63,6 +63,7 @@ import { StringFilterFormComponent } from './settings/filter-forms/child-forms/s
 import { PathFilterFormComponent } from './settings/filter-forms/child-forms/path-filter-form/path-filter-form.component';
 import { IpEgressFilterFormComponent } from './settings/filter-forms/child-forms/ip-egress-filter-form/ip-egress-filter-form.component';
 import { FuncFilterPipe } from './directives/func-filter.pipe';
+import { ContextMenuComponent } from './shared/context-menu/context-menu.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -116,6 +117,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         PathFilterFormComponent,
         IpEgressFilterFormComponent,
         FuncFilterPipe,
+        ContextMenuComponent,
 
 
     ],

@@ -13,6 +13,8 @@ import { ExchangeStyle } from '../../core/models/exchange-extensions';
 import { ExchangeContentService } from '../../services/exchange-content.service';
 import {   FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
 import { ExchangeSelection, ExchangeSelectionService } from '../../services/exchange-selection.service';
+import {ContextMenuService, Coordinate} from "../../services/context-menu.service";
+import {ContextMenuExchangeService} from "../../services/context-menu-exchange.service";
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -35,7 +37,9 @@ export class ExchangeTableViewComponent implements OnInit {
         private exchangeManagementService : ExchangeManagementService,
         private cdr: ChangeDetectorRef,
         private selectionService : ExchangeSelectionService,
-        private exchangeContentService : ExchangeContentService
+        private exchangeContentService : ExchangeContentService,
+        private contextMenuService : ContextMenuService,
+        private contextMenuExchangeService : ContextMenuExchangeService
         ) { }
 
     ngOnInit(): void {
@@ -113,6 +117,7 @@ export class ExchangeTableViewComponent implements OnInit {
     }
 
     public setSelectionChange (event : MouseEvent, exchange : ExchangeInfo) : void {
+        this.contextMenu(event, exchange) ;
         if (event.ctrlKey){
             // adding
 
@@ -139,6 +144,25 @@ export class ExchangeTableViewComponent implements OnInit {
 
         this.selectionService.setSelection(exchange.id);
 
+    }
+
+    public contextMenu(event :MouseEvent, exchange : ExchangeInfo) {
+        if (event.button !== 2)
+            return;
+
+        const coordinate : Coordinate = {
+            y : event.clientY,
+            x: event.clientX
+        }
+
+        const actions = this.contextMenuExchangeService.getActions(exchange);
+
+        this.contextMenuService.showPopup(
+            coordinate,
+            actions
+        )
+
+        console.log(event);
     }
 }
 

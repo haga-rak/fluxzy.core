@@ -2,6 +2,7 @@
 
 using Fluxzy.Clients.H2.Encoder.Utils;
 using System;
+using System.Buffers;
 using System.Text;
 
 namespace Fluxzy.Misc
@@ -21,19 +22,35 @@ namespace Fluxzy.Misc
             var checkedBuffer = buffer.Slice(0, checkLength);
             var charCount = (encoding ?? Encoding.UTF8).GetCharCount(checkedBuffer);
 
-            Span<char> charBuffer = stackalloc char[charCount];
+            var maxStackAllocSize = 1024 * 32;
 
-            var charResultCount = (encoding ?? Encoding.UTF8).GetChars(checkedBuffer, charBuffer);
+            char[]? heapCharBuffer = null; 
 
-            charBuffer = charBuffer.Slice(0, charResultCount);
+            Span<char> charBuffer = charCount < maxStackAllocSize ?  stackalloc char[charCount]
+                    : (heapCharBuffer = ArrayPool<char>.Shared.Rent(charCount));
 
-            for (int i = 0; i < charBuffer.Length; i++)
+            try
             {
-                if (char.IsControl(charBuffer[i]) && !char.IsWhiteSpace(charBuffer[i]))
-                    return false; 
-            }
 
-            return true;
+                var charResultCount = (encoding ?? Encoding.UTF8).GetChars(checkedBuffer, charBuffer);
+
+                charBuffer = charBuffer.Slice(0, charResultCount);
+
+                for (int i = 0; i < charBuffer.Length; i++)
+                {
+                    if (char.IsControl(charBuffer[i]) && !char.IsWhiteSpace(charBuffer[i]))
+                        return false;
+                }
+
+                return true;
+            }
+            finally
+            {
+                if (heapCharBuffer != null)
+                {
+                    ArrayPool<char>.Shared.Return(heapCharBuffer);
+                }
+            }
         }
     }
 }
