@@ -11,7 +11,7 @@ namespace Fluxzy.Desktop.Services
 {
     public class FilteredExchangeManager : ObservableProvider<FilteredExchangeState?>
     {
-        protected override BehaviorSubject<FilteredExchangeState?> Subject => new (null);
+        protected override BehaviorSubject<FilteredExchangeState?> Subject { get; } = new (null);
 
         public FilteredExchangeManager(
             IObservable<TrunkState> trunkStateObservable, IObservable<ViewFilter> viewFilterObservable, 
