@@ -1,0 +1,22 @@
+.context-menu {
+    z-index : 99999;
+    position: absolute;
+    background : var(--bs-gray-800);
+    border-radius: 4px;
+}
+.context-menu-action-divider {
+    width : 100%;
+    height : 1px;
+    background : var(--bs-gray-600);
+
+}
+
+.context-menu-action-clickable {
+    padding :4px 32px 4px 32px;
+    cursor: default;
+    min-width: 200px;
+}
+
+.context-menu-action-clickable:hover{
+    background-color: var(--bs-primary);
+}
