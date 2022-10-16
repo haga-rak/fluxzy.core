@@ -12,14 +12,17 @@ namespace Fluxzy.Desktop.Services
     {
         private readonly IHubContext<GlobalHub> _hub;
         private Proxy?  _proxy;
-        private readonly BehaviorSubject<ProxyState> _internalSubject; 
+        private readonly BehaviorSubject<ProxyState> _internalSubject;
+        private ViewFilter?  _viewFilter;
 
         public ProxyControl(
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<FileContentOperationManager> contentObservable,
+            IObservable<ViewFilter> viewFilter,
             IHubContext<GlobalHub> hub)
         {
             _hub = hub;
+
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState()
             {
                 OnError = true, 
@@ -56,6 +59,11 @@ namespace Fluxzy.Desktop.Services
                     _internalSubject.OnNext(proxyState)).Subscribe();
 
             Subject = _internalSubject;
+
+
+            viewFilter
+                .Do((v => _viewFilter = v))
+                .Subscribe();
         }
         
         private async Task<ProxyState> ReloadProxy(
@@ -83,8 +91,11 @@ namespace Fluxzy.Desktop.Services
                 {
                     currentContentOperationManager.AddOrUpdate(args.ExchangeInfo);
 
-                    _hub.Clients.All.SendAsync(
-                        "exchangeUpdate", args.ExchangeInfo);
+                    // Filter should be applied here 
+
+                    if (_viewFilter?.Filter == null || _viewFilter.Filter.Apply(null, args.ExchangeInfo))
+                            _hub.Clients.All.SendAsync(
+                                "exchangeUpdate", args.ExchangeInfo);
                 };
 
                 _proxy.Writer.ConnectionUpdated += delegate(object? sender, ConnectionUpdateEventArgs args)
