@@ -34,15 +34,22 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("delete")]
-        public async Task<ActionResult<TrunkState>> Delete(FileContentDelete deleteOp)
+        public async Task<ActionResult<TrunkState>> Delete(FileContentDelete deleteOp, [FromServices] IObservable<FilteredExchangeState?> filterExchangeStateObservable)
         {
             (await _fileContentOperationManager.FirstAsync()).Delete(deleteOp);
-            return await _trunkObservable.FirstAsync();
+
+            var trunkState = await _trunkObservable.FirstAsync();
+            var filteredExchangeState = await filterExchangeStateObservable.FirstAsync();
+
+            if (filteredExchangeState == null)
+                return trunkState;
+
+            return trunkState.ApplyFilter(filteredExchangeState);
 
         }
 
         [HttpDelete("")]
-        public async Task<ActionResult<TrunkState>> Clear()
+        public async Task<ActionResult<TrunkState>> Clear([FromServices] IObservable<FilteredExchangeState?> filterExchangeStateObservable)
         {
             (await _fileContentOperationManager.FirstAsync()).Clear();
             return await _trunkObservable.FirstAsync();
