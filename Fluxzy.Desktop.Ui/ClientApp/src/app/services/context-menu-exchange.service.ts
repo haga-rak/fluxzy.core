@@ -22,8 +22,12 @@ export class ContextMenuExchangeService {
         }
     }
 
+    private counter : number = 0 ;
+
     public getActions(exchange : ExchangeInfo) : ContextMenuAction[] {
         const result : ContextMenuAction[] = [] ;
+
+        this.counter ++ ;
 
         result.push(this.createAction("Delete exchange"));
         result.push(this.createSeparator());
@@ -33,6 +37,11 @@ export class ContextMenuExchangeService {
         result.push(this.createSeparator());
         result.push(this.createAction("Download request body"));
         result.push(this.createAction("Download response body"));
+
+        for (let i = 0 ; i < this.counter % 8 ; i++) {
+
+            result.push(this.createAction("Random menu " + i));
+        }
 
         return result;
     }

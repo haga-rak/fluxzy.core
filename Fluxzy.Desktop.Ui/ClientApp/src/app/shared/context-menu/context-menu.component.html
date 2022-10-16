@@ -1,4 +1,4 @@
-<div class="context-menu shady-box" *ngIf="contextMenuModel" [style.top]="getTop() +'px'" [style.left]="getLeft()+'px'">
+<div #contextMenuBlock [hidden]="menuHide"  class="context-menu shady-box" *ngIf="contextMenuModel" [style.top]="getTop() +'px'" [style.left]="getLeft()+'px'">
     <div class="context-menu-action" *ngFor="let contextMenuAction of contextMenuModel.contextMenuActions"
             [ngClass]="{'context-menu-action-clickable' : !contextMenuAction.isDivider,'context-menu-action-divider' : contextMenuAction.isDivider}"
             (mousedown)="triggered($event)">

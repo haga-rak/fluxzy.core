@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, HostListener, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild} from '@angular/core';
 import {ContextMenuAction, ContextMenuModel, ContextMenuService} from "../../services/context-menu.service";
 import {tap} from "rxjs";
 
@@ -9,6 +9,10 @@ import {tap} from "rxjs";
 })
 export class ContextMenuComponent implements OnInit {
     public contextMenuModel : ContextMenuModel ;
+    public menuHide = true;
+    private yCorrection = 0 ;
+
+    @ViewChild('contextMenuBlock') contextMenuBlock:ElementRef;
 
     constructor(private contextMenuService : ContextMenuService, private cd : ChangeDetectorRef) {
     }
@@ -16,22 +20,38 @@ export class ContextMenuComponent implements OnInit {
     ngOnInit(): void {
         this.contextMenuService.getContextMenuModel()
             .pipe(
-                tap(t => this.contextMenuModel = t)
+                tap(t => this.contextMenuModel = t),
+                tap(t => this.cd.detectChanges()),
+                tap(t => this.prepareMenu() ), // Compute the position
             ).subscribe();
+    }
+
+    private prepareMenu() : void {
+        const blockHeight : number = this.contextMenuBlock.nativeElement.offsetHeight;
+
+        let targetHeight = this.contextMenuModel.coordinate.y ;
+
+        if ((targetHeight + blockHeight+ 40) > window.innerHeight){
+            this.yCorrection = -blockHeight;
+        }
+        else{
+            this.yCorrection = 0 ;
+        }
+
+        this.menuHide = false;
+        this.cd.detectChanges();
     }
 
     public getTop() : number {
         if (!this.contextMenuModel) {
             return 0 ;
         }
-
-        return this.contextMenuModel.coordinate.y;
+        return this.contextMenuModel.coordinate.y + this.yCorrection;
     }
 
     public triggered(event: MouseEvent) : void {
         let data = event as any ;
         data.menuWasClicked = true;
-        console.log('catched');
     }
 
     @HostListener('document:mousedown', ['$event'])
