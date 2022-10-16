@@ -1,3 +1,5 @@
+// noinspection ES6UnusedImports
+
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuItemConstructorOptions } from 'electron';
@@ -19,15 +21,15 @@ export class HomeComponent implements OnInit {
 
     public selectedExchange: ExchangeInfo;
 
-    constructor(private router: Router, 
+    constructor(private router: Router,
         private menuService : MenuService,
         private exchangeSelectionService : ExchangeSelectionService,
         private dialogService : DialogService,
         private cdr: ChangeDetectorRef) { }
-    
+
     ngOnInit(): void {
 
-        this.menuService.init(); 
+        this.menuService.init();
         this.dialogService.init();
 
         this.exchangeSelectionService.getSelected()
@@ -37,6 +39,6 @@ export class HomeComponent implements OnInit {
                     // tap(t => console.log(this.selectedExchange )),
                     tap(t => setTimeout(() => this.cdr.detectChanges(),2)), // TODO : check issue here
             ).subscribe()
-    }; 
-    
+    };
+
 }

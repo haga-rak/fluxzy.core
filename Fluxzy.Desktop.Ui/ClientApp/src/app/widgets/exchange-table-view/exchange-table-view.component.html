@@ -1,7 +1,7 @@
 
 <perfect-scrollbar #perfectScroll style="height: calc(100vh - 112px);"
  (psYReachStart)="reachStart($event)" (psYReachEnd)="reachEnd($event)" (psScrollY)="scrollY($event)" [usePSClass]="true">
-    
+
 <div class="exchange-table-view-container" *ngIf="exchangeState && exchangeState.exchanges"  >
     <table style="width:100%" class="exchange-table-view noselect">
         <thead>
@@ -15,12 +15,11 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let exchangeContainer of exchangeState.exchanges;  trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchangeContainer.id] }" 
+            <tr *ngFor="let exchangeContainer of exchangeState.exchanges;   trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchangeContainer.id] }"
             (mouseup)="setSelectionChange($event, exchangeContainer.exchangeInfo)">
                 <td class="text-center">
                     <span [title]="exchangeContainer.exchangeInfo.statusCode" [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).textClass"><i [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).iconClass"></i></span>
-                  
-                    
+
                 </td>
                 <td [title]="exchangeContainer.exchangeInfo.knownAuthority">
                     <div style="direction:rtl; text-align: left;  white-space: nowrap; max-width:150px; overflow : hidden; text-overflow: ellipsis;">

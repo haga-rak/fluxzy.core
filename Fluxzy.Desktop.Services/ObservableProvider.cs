@@ -9,6 +9,6 @@ namespace Fluxzy.Desktop.Services
     {
         protected abstract BehaviorSubject<T> Subject { get; }
 
-        public virtual IObservable<T> Observable => Subject.AsObservable();
+        public virtual IObservable<T> Observable => Subject;
     }
 }

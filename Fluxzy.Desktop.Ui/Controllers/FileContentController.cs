@@ -22,9 +22,15 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("read")]
-        public async Task<ActionResult<TrunkState?>> ReadState()
+        public async Task<ActionResult<TrunkState?>> ReadState([FromServices] IObservable<FilteredExchangeState?> filterExchangeStateObservable)
         {
-            return await _trunkObservable.FirstAsync();
+            var trunkState =  await _trunkObservable.FirstAsync();
+            var filteredExchangeState = await filterExchangeStateObservable.FirstAsync();
+
+            if (filteredExchangeState == null)
+                return trunkState; 
+
+            return trunkState.ApplyFilter(filteredExchangeState); 
         }
 
         [HttpPost("delete")]

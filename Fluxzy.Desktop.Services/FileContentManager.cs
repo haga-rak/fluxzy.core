@@ -12,7 +12,6 @@ namespace Fluxzy.Desktop.Services
         void Delete(FileContentDelete deleteOp);
     }
 
-
     public class FileContentOperationManager : IFileContentOperationManager
     {
         public FileState State { get; }
@@ -25,7 +24,6 @@ namespace Fluxzy.Desktop.Services
             _subject = new(ReadDirectory(fileState));
             Observable = _subject.AsObservable();
         }
-        
         
         private static TrunkState ReadDirectory(FileState current)
         {
@@ -43,7 +41,7 @@ namespace Fluxzy.Desktop.Services
 
             foreach (var fileInfo in exchangeFileInfos)
             {
-                ExchangeInfo? exchange = null;
+                ExchangeInfo? exchange;
                 try
                 {
                     exchange = JsonSerializer.Deserialize<ExchangeInfo>(fileInfo.OpenRead(),

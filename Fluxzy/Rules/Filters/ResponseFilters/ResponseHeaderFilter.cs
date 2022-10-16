@@ -11,9 +11,9 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     {
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
         {
-            return exchange.GetResponseHeaders().Where(e =>
+            return exchange.GetResponseHeaders()?.Where(e =>
                     e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
-                .Select(s => s.Value.ToString());
+                .Select(s => s.Value.ToString()) ?? Array.Empty<string>();
         }
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;

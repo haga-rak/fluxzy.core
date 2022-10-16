@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
@@ -20,14 +19,16 @@ namespace Fluxzy.Desktop.Services
             IObservable<ProxyState> proxyState,
             IObservable<FluxzySettingsHolder> settingHolder,
             IObservable<SystemProxyState> systemProxySate,
-
-            IHubContext<GlobalHub> hub)
+            IObservable<ViewFilter> viewFilter, 
+            IHubContext<GlobalHub> hub,
+            ToolBarFilterProvider toolBarFilterProvider)
         {
             _state = fileState.CombineLatest(
                 proxyState,
                 settingHolder,
                 systemProxySate,
-                (f, p, s,sp) => new UiState(fileState: f, proxyState: p, settingsHolder: s, systemProxyState: sp));
+                viewFilter,
+                (f, p, s,sp, v) => new UiState(fileState: f, proxyState: p, settingsHolder: s, systemProxyState: sp, viewFilter : v, toolBarFilters: toolBarFilterProvider.GetDefault().ToList()));
 
             Observable = _stateObservable
                 .AsObservable()

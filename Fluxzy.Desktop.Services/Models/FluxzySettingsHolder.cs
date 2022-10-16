@@ -16,4 +16,6 @@ namespace Fluxzy.Desktop.Services.Models
 
         public FluxzySetting StartupSetting { get; set; } = new();
     }
+
+
 }

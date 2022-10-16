@@ -164,11 +164,16 @@ export class ApiService {
         return this.httpClient.patch<boolean>(`api/view-filter/store`,filterHolders).pipe(take(1));
     }
 
+
+    public filterGetTemplates() : Observable<FilterTemplate[]> {
+        return this.httpClient.get<FilterTemplate[]>(`api/filter/templates`).pipe(take(1));
+    }
+
     public filterValidate(filter: Filter) : Observable<Filter> {
         return this.httpClient.post<Filter>(`api/filter/validate`, filter).pipe(take(1));
     }
 
-    public filterGetTemplates() : Observable<FilterTemplate[]> {
-        return this.httpClient.get<FilterTemplate[]>(`api/filter/templates`).pipe(take(1));
+    public filterApplyToview(filter: Filter) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/filter/apply-to-view`, filter).pipe(take(1));
     }
 }

@@ -145,6 +145,7 @@ export interface AnyFilter extends Filter
 	filterScope: number;
 	genericName: string;
 	preMadeFilter: boolean;
+	default: AnyFilter;
 }
 export interface Filter extends PolymorphicObject
 {
@@ -275,8 +276,9 @@ export interface UiState
 	fileState: FileState;
 	proxyState: ProxyState;
 	systemProxyState: any;
+	viewFilter: ViewFilter;
+	toolBarFilters: ToolBarFilter[];
 	settingsHolder: FluxzySettingsHolder;
-	viewFilter: Filter;
 }
 export interface ProxyState
 {
@@ -309,6 +311,19 @@ export interface FileState
 	unsaved: boolean;
 	lastModification: Date;
 	contentOperation: any;
+}
+export interface ViewFilter
+{
+	filter: Filter;
+}
+export interface ToolBarFilter
+{
+	shortName: string;
+	filter: Filter;
+}
+export interface FilteredExchangeState
+{
+	exchanges: Set<number>;
 }
 export interface FluxzySettingsHolder
 {
