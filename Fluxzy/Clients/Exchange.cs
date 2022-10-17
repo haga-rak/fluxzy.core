@@ -142,7 +142,7 @@ namespace Fluxzy.Clients
 
         public string FullUrl => Request.Header.GetFullUrl();
 
-        public string KnownAuthority => Request.Header.Authority.ToString();
+        public string KnownAuthority => Authority.HostName;
 
         public string Method => Request.Header.Method.ToString();
 
