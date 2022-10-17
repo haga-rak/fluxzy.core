@@ -59,13 +59,13 @@ namespace Fluxzy.Utils
                 return "xml";
 
             if (headerValue.Contains("javascript", StringComparison.OrdinalIgnoreCase))
-                return "javascript";
+                return "js";
 
             if (headerValue.Contains("font", StringComparison.OrdinalIgnoreCase))
                 return "font";
 
             if (headerValue.Contains("image", StringComparison.OrdinalIgnoreCase))
-                return "image";
+                return "img";
 
             if (headerValue.Contains("audio", StringComparison.OrdinalIgnoreCase))
                 return "audio";

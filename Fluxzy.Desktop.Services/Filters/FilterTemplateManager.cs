@@ -18,6 +18,7 @@ namespace Fluxzy.Desktop.Services.Filters
 
                 new ContentTypeJsonFilter(),
                 new ContentTypeXmlFilter(),
+                new ImageFilter(),
                 new ResponseHeaderFilter("Header_name", "Header_value"),
                 new StatusCodeSuccessFilter(),
                 new StatusCodeClientErrorFilter(),

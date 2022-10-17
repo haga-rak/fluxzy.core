@@ -85,7 +85,7 @@ namespace Fluxzy.Desktop.Services
                 yield return new HostFilter(subDomain!,
                     StringSelectorOperation.EndsWith)
                 {
-                    Description = $"Subdomain of : «*.{subDomain}»"
+                    Description = $"Subdomain : «*.{subDomain}»"
                 };
             }
 
