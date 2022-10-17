@@ -26,5 +26,16 @@ namespace Fluxzy
         string? Comment { get; }
 
         HashSet<Tag>? Tags { get;  }
+
+        //AgentInfo?  AgentInfo { get; }
     }
+
+    //public class AgentInfo
+    //{
+    //    public string ? OsName { get; set; }
+
+    //    public string ? AgentName { get; set; }
+
+    //    public string ? AgentVersion { get; set; }
+    //}
 }

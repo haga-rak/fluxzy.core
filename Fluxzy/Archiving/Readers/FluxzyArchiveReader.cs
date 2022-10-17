@@ -17,6 +17,18 @@ namespace Fluxzy.Readers
             _zipFile = ZipFile.OpenRead(filePath);
         }
 
+        public ArchiveMetaInformation ReadMetaInformation()
+        {
+            var metaEntry = _zipFile.Entries.FirstOrDefault(e => e.FullName.EndsWith("meta.json"));
+
+            if (metaEntry == null)
+                return new ArchiveMetaInformation();
+
+            using var metaStream = metaEntry.Open();
+            return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream, GlobalArchiveOption.JsonSerializerOptions)!;
+        }
+
+
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
         {
             return _zipFile.Entries.Where(e => 

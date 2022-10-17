@@ -193,6 +193,8 @@ namespace Fluxzy
             if (_halted)
                 return; 
 
+            
+
             _halted = true;
 
             Writer?.Dispose();

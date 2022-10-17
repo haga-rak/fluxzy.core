@@ -45,7 +45,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
                 return trunkState;
 
             return trunkState.ApplyFilter(filteredExchangeState);
-
         }
 
         [HttpDelete("")]
@@ -54,5 +53,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
             (await _fileContentOperationManager.FirstAsync()).Clear();
             return await _trunkObservable.FirstAsync();
         }
+        
     }
 }

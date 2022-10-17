@@ -7,6 +7,8 @@ namespace Fluxzy.Readers
 {
     public interface IArchiveReader : IDisposable
     {
+        ArchiveMetaInformation ReadMetaInformation(); 
+
         IEnumerable<ExchangeInfo> ReadAllExchanges();
         
         ExchangeInfo? ReadExchange(int exchangeId);

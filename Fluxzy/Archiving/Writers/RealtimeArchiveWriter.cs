@@ -66,6 +66,7 @@ namespace Fluxzy.Writers
 
         protected virtual void Dispose(bool disposing)
         {
+
         }
     }
 

@@ -4,6 +4,7 @@ using System.Reactive.Subjects;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Hubs;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Writers;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Fluxzy.Desktop.Services
@@ -15,6 +16,7 @@ namespace Fluxzy.Desktop.Services
         private Proxy?  _proxy;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
         private ViewFilter?  _viewFilter;
+        private readonly Subject<RealtimeArchiveWriter?> _writerSubject = new(); 
 
         public ProxyControl(
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
@@ -62,13 +64,17 @@ namespace Fluxzy.Desktop.Services
                     _internalSubject.OnNext(proxyState)).Subscribe();
 
             Subject = _internalSubject;
+            WriterObservable = _writerSubject.AsObservable();
 
 
             viewFilter
                 .Do((v => _viewFilter = v))
                 .Subscribe();
+
         }
-        
+
+        public IObservable<RealtimeArchiveWriter?> WriterObservable { get; } 
+
         private async Task<ProxyState> ReloadProxy(
             FluxzySetting fluxzySetting, 
             FileContentOperationManager currentContentOperationManager, int maxConnectionId, int maxExchangeId)
@@ -76,7 +82,7 @@ namespace Fluxzy.Desktop.Services
             if (_proxy != null)
             {
                 await _proxy.DisposeAsync();
-                _proxy = null; 
+                _proxy = null;
             }
 
             IEnumerable<IPEndPoint> endPoints = Array.Empty<IPEndPoint>();
@@ -89,6 +95,8 @@ namespace Fluxzy.Desktop.Services
 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
                 _proxy.IdProvider.SetNextExchangeId(maxExchangeId);
+
+                _writerSubject.OnNext(_proxy.Writer);
 
                 _proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
                 {
@@ -116,8 +124,12 @@ namespace Fluxzy.Desktop.Services
             }
             catch (Exception ex)
             {
-                if (_proxy != null)
+                if (_proxy != null) {
+
+                    _writerSubject.OnNext(null);
+
                     await _proxy.DisposeAsync();
+                }
 
                 return new ProxyState()
                 {
