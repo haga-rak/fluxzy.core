@@ -83,6 +83,13 @@ namespace Fluxzy.Readers
 
             return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
+
+        public bool HasRequestBody(int exchangeId)
+        {
+            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentRequestPath(_baseDirectory, exchangeId));
+            return fileInfo.Exists && fileInfo.Length > 0; 
+        }
+
         public Stream? GetResponseBody(int exchangeId)
         {
             var requestContentPath = DirectoryArchiveHelper.GetContentResponsePath(_baseDirectory, exchangeId);
@@ -91,6 +98,12 @@ namespace Fluxzy.Readers
                 return null;
 
             return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+
+        public bool HasResponseBody(int exchangeId)
+        {
+            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentResponsePath(_baseDirectory, exchangeId));
+            return fileInfo.Exists && fileInfo.Length > 0;
         }
 
         public void Dispose()

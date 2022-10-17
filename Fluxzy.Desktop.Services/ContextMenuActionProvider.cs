@@ -33,17 +33,36 @@ namespace Fluxzy.Desktop.Services
                 return ImmutableList.Create<ContextMenuAction>(); 
 
             actions.Add(new ContextMenuAction("delete", "Delete exchange"));
-            actions.Add(ContextMenuAction.GetDivider());
 
             // Adding filters 
 
             var filterActions = _contextMenuFilterProvider.GetFilters(exchange, archiveReader).ToList();
 
             if (filterActions.Any()) {
+
+                actions.Add(ContextMenuAction.GetDivider());
                 actions.AddRange(filterActions.Select(f => new ContextMenuAction(f)));
             }
 
+            var downloadActions = GetDownloadActions(exchange, archiveReader).ToList();
+
+            if (downloadActions.Any())
+            {
+                actions.Add(ContextMenuAction.GetDivider());
+                actions.AddRange(downloadActions);
+            }
+
             return actions.ToImmutableList(); 
+        }
+
+        private IEnumerable<ContextMenuAction> GetDownloadActions(ExchangeInfo exchange, IArchiveReader archiveReader)
+        {
+            if (archiveReader.HasRequestBody(exchange.Id))
+                yield return new ContextMenuAction("download-request-body", "Save request body"); 
+
+            if (archiveReader.HasResponseBody(exchange.Id))
+                yield return new ContextMenuAction("download-response-body", "Save response body"); 
+
         }
     }
 
