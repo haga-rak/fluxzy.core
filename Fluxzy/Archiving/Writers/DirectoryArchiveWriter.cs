@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,6 +62,18 @@ namespace Fluxzy.Writers
             await using var fileStream = File.Create(exchangePath);
             await JsonSerializer.SerializeAsync(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions,
                 cancellationToken);
+
+            if (exchangeInfo.Tags?.Any() ?? false) {
+
+                var modified = false; 
+                foreach (var tag in exchangeInfo.Tags) {
+                    modified = _archiveMetaInformation.Tags.Add(tag) || modified; 
+                }
+
+                if (modified) {
+                    UpdateMeta();
+                }
+            }
         }
 
         public override async Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)

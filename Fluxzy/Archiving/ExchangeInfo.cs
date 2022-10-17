@@ -19,7 +19,7 @@ namespace Fluxzy
             EgressIp = exchange.EgressIp;
             Pending = !exchange.Complete.IsCompleted;
             Comment = exchange.Comment;
-            Tags = exchange.Tags; 
+            Tags = exchange.Tags ?? new(); ; 
         }
 
         [JsonConstructor]
@@ -36,7 +36,7 @@ namespace Fluxzy
             EgressIp = egressIp;
             Pending = pending;
             Comment = comment;
-            Tags = tags;
+            Tags = tags ?? new ();
         }
 
         public int Id { get;  }
@@ -77,9 +77,9 @@ namespace Fluxzy
 
         public string? EgressIp { get; }
 
-        public string? Comment { get; }
+        public string? Comment { get; set; }
 
-        public HashSet<Tag>? Tags { get; }
+        public HashSet<Tag> Tags { get; }
 
         public bool Pending { get; }
     }

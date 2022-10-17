@@ -21,4 +21,13 @@ namespace Fluxzy.Desktop.Ui.ViewModels
 
         public string FileName { get;  }
     }
+
+    public class ApplyTagViewModel
+    {
+        public Guid ? TagIdentifier { get; set; }
+
+        public string ? TagName { get; set; }
+
+        public List<int> ExchangeIds { get; set; }
+    }
 }

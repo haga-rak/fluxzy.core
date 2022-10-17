@@ -95,6 +95,13 @@ namespace Fluxzy.Desktop.Ui
 
             // Core objects 
 
+            builder.ExportAsInterface<ArchiveMetaInformation>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<Tag>()
+                .ApplyGenericProperties();
+
+
             builder.ExportAsInterface<ExchangeInfo>()
                 .ApplyGenericProperties();
 

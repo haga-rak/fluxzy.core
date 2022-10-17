@@ -18,6 +18,18 @@ namespace Fluxzy.Readers
             _captureDirectory = Path.Combine(baseDirectory, "captures");
         }
 
+        public ArchiveMetaInformation ReadMetaInformation()
+        {
+            var metaPath = DirectoryArchiveHelper.GetMetaPath(_baseDirectory);
+
+            if (!File.Exists(metaPath))
+                return new ArchiveMetaInformation();
+
+            using var metaStream = File.Open(metaPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream, GlobalArchiveOption.JsonSerializerOptions)!; 
+        }
+
+
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
         {
             var exchangeDirectory = new DirectoryInfo(Path.Combine(_baseDirectory, "exchanges"));

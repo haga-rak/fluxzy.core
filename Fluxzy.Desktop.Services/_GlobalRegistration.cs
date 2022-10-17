@@ -5,6 +5,7 @@ using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Responses;
+using Fluxzy.Writers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Fluxzy.Desktop.Services
@@ -34,6 +35,9 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton<IObservable<ProxyState>>
                 (s => s.GetRequiredService<ProxyControl>().Observable);
+
+            collection.AddSingleton<IObservable<RealtimeArchiveWriter?>>
+                (s => s.GetRequiredService<ProxyControl>().WriterObservable);
 
             collection.AddSingleton<IObservable<ViewFilter>>
                 (s => s.GetRequiredService<ActiveViewFilterManager>().Observable);
