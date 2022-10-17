@@ -60,10 +60,15 @@ export class DialogService {
         this.bsModalRef.content.closeBtnName = 'Close';
     }
 
-    public openManageFilters(selectMode: boolean): void {
+    public openManageFilters(selectMode: boolean): Observable<Filter | null> {
+
+        const subject = new Subject<Filter | null>() ;
+        const callBack = (f : Filter | null) => {  subject.next(f); subject.complete()};
+
         const config: ModalOptions = {
             initialState: {
-                selectMode
+                selectMode,
+                callBack
             },
             ignoreBackdropClick : true
         };
@@ -74,6 +79,8 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
+
+        return subject.asObservable();
     }
 
     public openFilterEdit(filter: Filter, isEdit : boolean = true): Observable<Filter | null> {

@@ -14,11 +14,15 @@ import { DialogService } from '../../services/dialog.service';
 export class ManageFiltersComponent implements OnInit {
     public selectMode = false;
     public filterHolders : FilterHolder[] = null;
+    public callBack : (f : Filter | null) => void ;
+    public selectedFilter : Filter |null ;
+
 
     constructor(public bsModalRef: BsModalRef, public options: ModalOptions,
       private apiService : ApiService, private cd : ChangeDetectorRef,
       public dialogService : DialogService) {
       this.selectMode = options.initialState.selectMode as boolean;
+      this.callBack = this.options.initialState.callBack as  (f : Filter | null) => void ;
     }
 
     ngOnInit(): void {
@@ -64,8 +68,23 @@ export class ManageFiltersComponent implements OnInit {
           ).subscribe();
     }
 
-    public save() : void {
-        this.apiService.viewFilterPatch(this.filterHolders).subscribe() ;
+    public save(selectOn : boolean) : void {
+        this.apiService
+            .viewFilterPatch(this.filterHolders)
+            .pipe(
+                tap(_ => {
+                    if (selectOn && this.selectedFilter) {
+                        this.callBack(this.selectedFilter);
+                    }
+                })
+            )
+            .subscribe() ;
+
+        this.bsModalRef.hide();
+    }
+
+    public close() : void {
+        this.callBack(null);
         this.bsModalRef.hide();
     }
 }
