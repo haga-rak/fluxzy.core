@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Fluxzy.Misc;
+using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
@@ -18,6 +20,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         {
             yield return exchange.KnownAuthority;
         }
+
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 

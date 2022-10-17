@@ -63,6 +63,7 @@ namespace Fluxzy.Rules.Filters
         
         protected abstract IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange);
 
+
         public string Pattern { get; set; }
 
         public StringSelectorOperation Operation { get; set; } = StringSelectorOperation.Exact;

@@ -1,4 +1,7 @@
-﻿namespace Fluxzy.Rules.Filters.ResponseFilters
+﻿using Fluxzy.Misc;
+using System;
+
+namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class ContentTypeJsonFilter : ResponseHeaderFilter
     {
@@ -7,6 +10,8 @@
         public ContentTypeJsonFilter() : base("json", StringSelectorOperation.Contains, "Content-Type")
         {
         }
+
+        public override Guid Identifier => Guid.Parse("588C2A97-EBD2-4EF9-84F2-15664480914B");
 
         public override string GenericName => "JSON response only";
 
