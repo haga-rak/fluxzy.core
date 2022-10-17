@@ -2,6 +2,7 @@
 
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Filters;
+using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Rules.Filters;
 using Microsoft.AspNetCore.Mvc;
 
