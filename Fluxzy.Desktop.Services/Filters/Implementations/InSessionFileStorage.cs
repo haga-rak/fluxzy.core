@@ -30,7 +30,8 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
 
         public void Patch(IEnumerable<Filter> filters)
         {
-            _currentFilters = filters.ToDictionary(t => t.Identifier, t => t); 
+            _currentFilters = filters.DistinctBy(t => t.Identifier)
+                                     .ToDictionary(t => t.Identifier, t => t); 
         }
     }
 }
