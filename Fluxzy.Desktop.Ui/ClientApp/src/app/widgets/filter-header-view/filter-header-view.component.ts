@@ -51,8 +51,21 @@ export class FilterHeaderViewComponent implements OnInit {
             ).subscribe() ;
     }
 
-    public selectFilter(filter : Filter) : void {
-        this.apiService.filterApplyToview(filter).subscribe();
+    public selectFilter(filterItem : Filter) : void {
+        if (filterItem.identifier === this.selectedFilter?.identifier){
+
+            this.dialogService.openFilterEdit(filterItem, true)
+                .pipe(
+                    filter(t => !!t),
+                    tap(t => t.description = null),
+                    switchMap(t => this.apiService.filterValidate(t)),
+                    switchMap(t => this.apiService.filterApplyToview(t))
+                ).subscribe() ;
+
+            return;
+        }
+
+        this.apiService.filterApplyToview(filterItem).subscribe();
     }
 
     public skipEvent($event: MouseEvent) : void {

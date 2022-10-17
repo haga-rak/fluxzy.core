@@ -28,7 +28,7 @@
             [title]="selectedFilter.friendlyName"
             class="btn btn-dark" aria-current="page"
             [ngClass]=" {'active' : selectedFilter.identifier === uiState.viewFilter.filter.identifier, 'bg-primary' : selectedFilter.identifier === uiState.viewFilter.filter.identifier}"
-    >{{ selectedFilter.shortName }}</button>
+    >{{ selectedFilter.shortName }} <i class="bi bi-pencil"></i></button>
 
 
     <div class="btn-group" role="group" dropdown *ngIf="uiState.templateToolBarFilterModel">
