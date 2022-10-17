@@ -26,28 +26,36 @@
             </div>
 
             <div class="shady-box table-box" style="">
-                <table style="width:100%" class="filter-table">
+                <div class="lead text-center" style="padding: 48px"  *ngIf="filterHolders.length === 0">
+                        There's no custom filter configured yet. <br/>
+                        <a href="javascript:;" (click)="openFilterCreate()" class="fw-bold">Create a new filter</a>
+                </div>
+                <table style="width:100%" class="filter-table" *ngIf="filterHolders.length > 0">
                     <tr>
                         <th style="width:32px">&nbsp;</th>
                         <th>Name</th>
                         <th style="width:150px">Kind</th>
                         <th style="width:100px">Storage</th>
-                        <th>Actions</th>
+                        <th style="width:250px">Actions</th>
                     </tr>
                     <tr *ngFor="let filterHolder of filterHolders">
                         <td>
-                            <div class="form-check">
+                            <div class="form-check" [hidden]="!selectMode">
                                 <input class="form-check-input  bg-secondary" [(ngModel)]="selectedFilter"  type="radio" [value]="filterHolder.filter">
                               </div>
                         </td>
-                        <td>{{filterHolder.filter.friendlyName }}</td>
+                        <td>
+                            <a href="javascript:;" (click)="selectedFilter = filterHolder.filter" class="span-friendly-name text-white"
+                            [ngClass]="{'span-friendly-name-selected' : filterHolder.filter.identifier === selectedFilter?.identifier}">{{filterHolder.filter.friendlyName }}</a>
+                        </td>
                         <td>{{filterHolder.filter.genericName }}</td>
                         <td>
                             <span *ngIf="filterHolder.storeLocation === 'Computer'">Computer</span>
                             <span *ngIf="filterHolder.storeLocation === 'OnSession'">In session</span>
                         </td>
                         <td>
-                            <button class="btn btn-secondary btn-outline-primary" [disabled]="filterHolder.filter.preMadeFilter"  (click)="openFilterEdit(filterHolder.filter)">Edit</button> &nbsp;
+                            <button class="btn btn-secondary btn-outline-white" (click)="invert(filterHolder.filter)">Negate</button> &nbsp;
+                            <button class="btn btn-secondary btn-outline-white strong" [disabled]="filterHolder.filter.preMadeFilter"  (click)="openFilterEdit(filterHolder.filter)">Edit</button> &nbsp;
                             <button class="btn btn-secondary btn-outline-danger" (click)="deleteFilter(filterHolder.filter)">Delete</button>
                         </td>
                     </tr>

@@ -48,7 +48,8 @@ export class ManageFiltersComponent implements OnInit {
                 tap(t => this.filterHolders.push({
                     filter : t,
                     storeLocation : "OnSession"
-                }))
+                })),
+                tap(t => this.selectedFilter = t),
             ).subscribe();
     }
 
@@ -64,6 +65,7 @@ export class ManageFiltersComponent implements OnInit {
                       console.log(this.filterHolders)
                   }
               }),
+              tap(t => this.selectedFilter = t),
               tap(_ => this.cd.detectChanges())
           ).subscribe();
     }
@@ -86,6 +88,20 @@ export class ManageFiltersComponent implements OnInit {
     public close() : void {
         this.callBack(null);
         this.bsModalRef.hide();
+    }
+
+    public invert(filterItem: Filter) : void {
+        filterItem.inverted = !filterItem.inverted ;
+        this.apiService.filterValidate(filterItem)
+            .pipe(
+                tap(t => {
+                    const index = _.findIndex(this.filterHolders, a => a.filter.identifier === t.identifier) ;
+                    if (index >= 0) {
+                        this.filterHolders[index].filter = t;
+                    }
+                    this.cd.detectChanges();
+                } )
+            ).subscribe() ;
     }
 }
 
