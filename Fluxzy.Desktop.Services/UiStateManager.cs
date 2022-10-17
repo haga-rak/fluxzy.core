@@ -20,7 +20,9 @@ namespace Fluxzy.Desktop.Services
             IObservable<FluxzySettingsHolder> settingHolder,
             IObservable<SystemProxyState> systemProxySate,
             IObservable<ViewFilter> viewFilter, 
+            IObservable<TemplateToolBarFilterModel> templateToolBarFilterModel,
             IHubContext<GlobalHub> hub,
+
             ToolBarFilterProvider toolBarFilterProvider)
         {
             _state = fileState.CombineLatest(
@@ -28,14 +30,21 @@ namespace Fluxzy.Desktop.Services
                 settingHolder,
                 systemProxySate,
                 viewFilter,
-                (f, p, s,sp, v) => new UiState(fileState: f, proxyState: p, settingsHolder: s, systemProxyState: sp, viewFilter : v, toolBarFilters: toolBarFilterProvider.GetDefault().ToList()));
+                templateToolBarFilterModel,
+                (f, p, s,sp, v, tt) =>
+                {
+                    var defaultToolBarFilters = toolBarFilterProvider.GetDefault().ToList();
+                    return new UiState(fileState: f, proxyState: p, settingsHolder: s, systemProxyState: sp,
+                        viewFilter: v, toolBarFilters: defaultToolBarFilters, templateToolBarFilterModel:tt);
+                });
 
             Observable = _stateObservable
                 .AsObservable()
                 .Where(s => s != null)
-                .Select(s => s!); 
+                .Select(s => s!);
 
             _state
+                .Throttle(TimeSpan.FromMilliseconds(10))
                 .Do(uiState => _stateObservable.OnNext(uiState))
                 .Select(uiState => hub.Clients.All.SendAsync("uiUpdate", uiState).ToObservable())
                 .Switch()

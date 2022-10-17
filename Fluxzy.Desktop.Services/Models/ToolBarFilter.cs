@@ -13,7 +13,7 @@ namespace Fluxzy.Desktop.Services.Models
             Description = filter.FriendlyName;
         }
 
-        public string ShortName { get; }
+        public string? ShortName { get; }
 
         public Filter Filter { get;  }
 

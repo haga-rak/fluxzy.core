@@ -129,6 +129,11 @@ export interface SetCookieItem
 	secure: boolean;
 	httpOnly: boolean;
 }
+export interface TemplateToolBarFilterModel
+{
+	quickFilters: Filter[];
+	lastUsedFilters: Filter[];
+}
 export interface FilterTemplate
 {
 	label: string;
@@ -305,6 +310,7 @@ export interface UiState
 	proxyState: ProxyState;
 	systemProxyState: any;
 	viewFilter: ViewFilter;
+	templateToolBarFilterModel: TemplateToolBarFilterModel;
 	toolBarFilters: ToolBarFilter[];
 	settingsHolder: FluxzySettingsHolder;
 }
@@ -346,7 +352,7 @@ export interface ViewFilter
 }
 export interface ToolBarFilter
 {
-	shortName: string;
+	shortName?: string;
 	filter: Filter;
 	description?: string;
 }

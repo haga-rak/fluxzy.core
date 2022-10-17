@@ -197,6 +197,7 @@ namespace Fluxzy.Desktop.Ui
 
         private static void ConfigureFilters(ConfigurationBuilder builder)
         {
+            builder.ExportAsInterface<TemplateToolBarFilterModel>().ApplyGenericProperties();
             builder.ExportAsInterface<FilterTemplate>().ApplyGenericProperties();
 
             builder.ExportAsInterface<StoredFilter>().ApplyGenericProperties();
