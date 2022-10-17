@@ -7,6 +7,9 @@ namespace Fluxzy.Extensions
 {
     public static class ExchangeExtensions
     {
+
+
+
         public static string? GetResponseHeaderValue(this ExchangeInfo exchangeInfo, string headerName)
         {
             if (exchangeInfo.ResponseHeader?.Headers == null)

@@ -101,6 +101,14 @@ namespace Fluxzy.Readers
             return entry.Open();
         }
 
+        public bool HasRequestBody(int exchangeId)
+        {
+            var path = DirectoryArchiveHelper.GetContentRequestPath(string.Empty, exchangeId).Replace("\\", "/");
+            var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
+
+            return entry != null; 
+        }
+
         public Stream? GetResponseBody(int exchangeId)
         {
             var path = DirectoryArchiveHelper.GetContentResponsePath(string.Empty, exchangeId).Replace("\\", "/");
@@ -110,6 +118,14 @@ namespace Fluxzy.Readers
                 return null;
 
             return entry.Open();
+        }
+
+        public bool HasResponseBody(int exchangeId)
+        {
+            var path = DirectoryArchiveHelper.GetContentResponsePath(string.Empty, exchangeId).Replace("\\", "/");
+            var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
+
+            return entry != null; 
         }
 
         public void Dispose()
