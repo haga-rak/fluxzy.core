@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Observable, take, map, tap } from 'rxjs';
 import {
-    ConnectionInfo,
+    ConnectionInfo, ContextMenuAction,
     ExchangeBrowsingState,
     ExchangeState,
     FileContentDelete,
@@ -175,5 +175,9 @@ export class ApiService {
 
     public filterApplyToview(filter: Filter) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/filter/apply-to-view`, filter).pipe(take(1));
+    }
+
+    public contextMenuGetActions(exchangeId : number) : Observable<ContextMenuAction[]> {
+        return this.httpClient.get<ContextMenuAction[]>(`api/context-menu/${exchangeId}`).pipe(take(1));
     }
 }
