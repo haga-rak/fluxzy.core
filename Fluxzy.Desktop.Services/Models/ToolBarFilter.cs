@@ -6,11 +6,11 @@ namespace Fluxzy.Desktop.Services.Models
 {
     public class ToolBarFilter
     {
-        public ToolBarFilter(string shortName, Filter filter, string? description = null)
+        public ToolBarFilter(Filter filter)
         {
-            ShortName = shortName;
+            ShortName = filter.ShortName;
             Filter = filter;
-            Description = description;
+            Description = filter.FriendlyName;
         }
 
         public string ShortName { get; }

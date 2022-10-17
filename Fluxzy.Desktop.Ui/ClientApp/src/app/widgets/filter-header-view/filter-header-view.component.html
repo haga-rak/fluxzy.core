@@ -15,10 +15,12 @@
 <div class="btn-group" role="group" *ngIf="uiState">
 
     <button *ngFor="let toolBarFilter of uiState.toolBarFilters" type="button" href="javascript:;"
-            [ngClass]=" {'active' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier}"
+
             (click)="selectFilter(toolBarFilter.filter)"
             [title]="toolBarFilter.description"
-            class="btn btn-dark" aria-current="page">{{ toolBarFilter.shortName }}</button>
+            class="btn btn-dark" aria-current="page"
+            [ngClass]=" {'active' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier, 'bg-primary' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier}"
+    >{{ toolBarFilter.shortName }}</button>
 
 
 <!--    <button type="button" href="javascript:;" class="btn btn-dark active" aria-current="page">all</button>-->
@@ -30,7 +32,7 @@
 <!--        title="dynamic datas are structure who can holds models. This includes (json, bson, proto-buf, xml) ">dyn</button>-->
 
     <div class="btn-group" role="group" dropdown>
-        <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+        <button  type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
             aria-expanded="false" dropdownToggle>
             create
         </button>
