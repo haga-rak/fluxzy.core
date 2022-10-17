@@ -17,10 +17,18 @@
     <button *ngFor="let toolBarFilter of uiState.toolBarFilters" type="button" href="javascript:;"
 
             (click)="selectFilter(toolBarFilter.filter)"
-            [title]="toolBarFilter.description"
+            [title]="toolBarFilter.filter.friendlyName"
             class="btn btn-dark" aria-current="page"
             [ngClass]=" {'active' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier, 'bg-primary' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier}"
-    >{{ toolBarFilter.shortName }}</button>
+    >{{ toolBarFilter.filter.shortName }}</button>
+
+    <button *ngIf="selectedFilter" type="button" href="javascript:;"
+
+            (click)="selectFilter(selectedFilter)"
+            [title]="selectedFilter.friendlyName"
+            class="btn btn-dark" aria-current="page"
+            [ngClass]=" {'active' : selectedFilter.identifier === uiState.viewFilter.filter.identifier, 'bg-primary' : selectedFilter.identifier === uiState.viewFilter.filter.identifier}"
+    >{{ selectedFilter.shortName }}</button>
 
 
 <!--    <button type="button" href="javascript:;" class="btn btn-dark active" aria-current="page">all</button>-->

@@ -12,12 +12,22 @@ import {ApiService} from "../../services/api.service";
 })
 export class FilterHeaderViewComponent implements OnInit {
     private uiState: UiState;
+    private selectedFilter : Filter | null ;
+
     constructor(private dialogService : DialogService, private uiStateService : UiStateService, private apiService: ApiService) {}
 
     ngOnInit(): void {
         this.uiStateService.getUiState()
             .pipe(
-                tap(t => this.uiState = t)
+                tap(t => this.uiState = t),
+                tap(t => {
+                    this.selectedFilter = this.uiState.viewFilter?.filter ;
+
+                    if (this.selectedFilter && this.uiState.toolBarFilters.filter(f => f.filter.identifier === this.selectedFilter.identifier).length !== 0){
+                        this.selectedFilter = null ;
+                    }
+                })
+
             ).subscribe() ;
 
     }
