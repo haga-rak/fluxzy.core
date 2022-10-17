@@ -6,7 +6,7 @@ namespace Fluxzy.Desktop.Services.Models
     {
         public UiState(FileState fileState, ProxyState proxyState,
             FluxzySettingsHolder settingsHolder, SystemProxyState systemProxyState, 
-            ViewFilter viewFilter, List<ToolBarFilter> toolBarFilters) 
+            ViewFilter viewFilter, List<ToolBarFilter> toolBarFilters, TemplateToolBarFilterModel templateToolBarFilterModel) 
         {
             FileState = fileState;
             ProxyState = proxyState;
@@ -14,6 +14,7 @@ namespace Fluxzy.Desktop.Services.Models
             SystemProxyState = systemProxyState;
             ViewFilter = viewFilter;
             ToolBarFilters = toolBarFilters;
+            TemplateToolBarFilterModel = templateToolBarFilterModel;
         }
 
         public Guid Id { get; } = Guid.NewGuid();
@@ -25,6 +26,8 @@ namespace Fluxzy.Desktop.Services.Models
         public SystemProxyState SystemProxyState { get; }
 
         public ViewFilter ViewFilter { get; }
+
+        public TemplateToolBarFilterModel TemplateToolBarFilterModel { get; }
 
         public List<ToolBarFilter> ToolBarFilters { get; }
 

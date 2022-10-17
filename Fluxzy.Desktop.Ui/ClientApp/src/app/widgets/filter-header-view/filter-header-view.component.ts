@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DialogService } from '../../services/dialog.service';
 import {UiStateService} from "../../services/ui.service";
-import {tap} from "rxjs";
+import {tap, filter, switchMap} from "rxjs";
 import {Filter, UiState} from "../../core/models/auto-generated";
 import {ApiService} from "../../services/api.service";
 
@@ -36,7 +36,22 @@ export class FilterHeaderViewComponent implements OnInit {
       this.dialogService.openManageFilters(true);
     }
 
+    public createTemplateFilter(filterElement : Filter) : void {
+        this.dialogService.openFilterEdit(filterElement, false)
+            .pipe(
+                filter(t => !!t),
+                tap(t => t.description = null),
+                switchMap(t => this.apiService.filterValidate(t)),
+                tap(t => this.selectFilter(t))
+            ).subscribe() ;
+    }
+
     public selectFilter(filter : Filter) : void {
         this.apiService.filterApplyToview(filter).subscribe();
+    }
+
+    public skipEvent($event: MouseEvent) : void {
+        $event.stopPropagation();
+        $event.preventDefault();
     }
 }

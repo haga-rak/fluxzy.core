@@ -31,29 +31,23 @@
     >{{ selectedFilter.shortName }}</button>
 
 
-<!--    <button type="button" href="javascript:;" class="btn btn-dark active" aria-current="page">all</button>-->
-<!--    <button type="button" href="javascript:;" class="btn btn-dark"-->
-<!--        title="every exchange having response content-type equals to json">json</button>-->
-<!--    <button type="button" href="javascript:;" class="btn btn-dark">(x)html</button>-->
-<!--    <button type="button" href="javascript:;" class="btn btn-dark">post</button>-->
-<!--    <button type="button" href="javascript:;" class="btn btn-dark"-->
-<!--        title="dynamic datas are structure who can holds models. This includes (json, bson, proto-buf, xml) ">dyn</button>-->
-
-    <div class="btn-group" role="group" dropdown>
+    <div class="btn-group" role="group" dropdown *ngIf="uiState.templateToolBarFilterModel">
         <button  type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
             aria-expanded="false" dropdownToggle>
-            create
+            more filters
         </button>
         <ul class="dropdown-menu bg-light text-primary" *dropdownMenu aria-labelledby="btnGroupDrop851">
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;">Quick create host filter</a></li>
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;">Quick create method filter</a></li>
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;">Quick create process filter</a></li>
-            <li class="divider dropdown-divider"></li>
+            <li role="menuitem" *ngFor="let filter of uiState.templateToolBarFilterModel.quickFilters">
+                <a class="dropdown-item" href="javascript:;" (click)="createTemplateFilter(filter)">{{ filter.friendlyName}}</a>
+            </li>
 
-            <li role="menuitem"><span class="dropdown-item"><i>Last filters</i></span></li>
+            <ng-container *ngIf="uiState.templateToolBarFilterModel.lastUsedFilters.length > 0 ">
+                <li class="divider dropdown-divider"></li>
+                <li role="menuitem" (click)="skipEvent($event)" ><span class="dropdown-item"><i>Last used filters</i></span></li>
+                <li role="menuitem"  *ngFor="let filter of uiState.templateToolBarFilterModel.lastUsedFilters">
+                    <a class="dropdown-item small" href="javascript:;" (click)="selectFilter(filter)">{{filter.friendlyName}}</a></li>
+            </ng-container>
 
-
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;">host <strong>smartizy.com</strong></a></li>
             <li class="divider dropdown-divider"></li>
             <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="openManagedFilters()">Create advanced filter</a></li>
         </ul>
