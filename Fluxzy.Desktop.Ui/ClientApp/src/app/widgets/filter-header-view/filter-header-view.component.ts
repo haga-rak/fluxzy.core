@@ -72,4 +72,14 @@ export class FilterHeaderViewComponent implements OnInit {
         $event.stopPropagation();
         $event.preventDefault();
     }
+
+    public createCustomFilter() : void {
+        this.dialogService.openFilterCreate()
+            .pipe(
+                filter(t => !!t),
+                tap(t => t.description = null),
+                switchMap(t => this.apiService.filterValidate(t)),
+                tap(t => this.selectFilter(t))
+            ).subscribe() ;
+    }
 }

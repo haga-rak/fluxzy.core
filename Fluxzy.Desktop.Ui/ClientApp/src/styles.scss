@@ -149,6 +149,9 @@ pre > code {
     min-width: 1000px !important;
     width: 90% !important;
 }
+.modal {
+    background: rgba(0, 0, 0, .7);
+}
 
 .modal-header {
     border-bottom-color: var(--bs-gray-900) !important;
