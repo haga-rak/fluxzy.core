@@ -22,9 +22,11 @@ namespace Fluxzy.Rules.Filters
 
         public override string GenericName => "Filter by Egress IP Address";
 
+        public override string ShortName => "ip";
+
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
         {
-            yield return exchange.EgressIp;
+            yield return exchange.EgressIp ?? string.Empty;
         }
 
     }

@@ -27,6 +27,8 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         {
         }
 
+        public override string ShortName => "resp head.";
+
         public override string GenericName => "Filter by response header";
     }
 }
