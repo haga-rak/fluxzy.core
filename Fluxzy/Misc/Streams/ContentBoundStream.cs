@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Fluxzy.Misc.Streams
 {
     /// <summary>
-    /// Read an inner stream up to max length
+    /// Convert an existing stream to a substream with max length
     /// </summary>
     public class ContentBoundStream : Stream
     {
