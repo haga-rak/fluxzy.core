@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Misc;
 using System;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
@@ -12,7 +13,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             return statusCode is >= 200 and < 300; 
         }
 
-        public override Guid Identifier => Guid.Parse("1624B110-F8F3-407A-9755-AC17C4EF767F");
+        public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
 

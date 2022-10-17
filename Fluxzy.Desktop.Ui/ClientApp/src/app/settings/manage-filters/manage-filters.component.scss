@@ -8,4 +8,21 @@
 .edit-form-table tr th:first-child {
     width : 180px;
     text-align: right;
-} 
+}
+
+.filter-table tr:nth-child(even) {
+}
+
+.span-friendly-name {
+    cursor : default ;
+    color : var(--bs-gray-200);
+    text-decoration : none;
+}
+
+.span-friendly-name-selected {
+    color : var(--bs-blue);
+    font-weight: 500;
+}
+.span-friendly-name:hover {
+    text-decoration : underline;
+}

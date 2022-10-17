@@ -16,6 +16,7 @@
                             <tr *ngFor="let childFilter of filter.children">
                                 <td>
                                         <span class="text-info">
+                                            <a href="javascript:;" title="Negate" class="text-white" (click)="negate(childFilter)"><i class="bi bi-exclamation-circle"></i></a>&nbsp;
                                             <a href="javascript:;" title="Edit" class="text-white" (click)="edit(childFilter)"><i class="bi bi-pencil-square"></i></a>&nbsp;
                                             <a href="javascript:;" title="Delete" class="text-danger" (click)="delete(childFilter)"><i class="bi bi-trash-fill"></i></a>
                                             {{ childFilter.genericName}} </span>

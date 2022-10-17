@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fluxzy.Misc;
+using System;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
@@ -10,7 +11,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         {
         }
 
-        public override Guid Identifier => Guid.Parse("7C0474E6-925E-4179-BD21-5BEAE6B37E17");
+        public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();
 
         public override string GenericName => "XML response only";
 

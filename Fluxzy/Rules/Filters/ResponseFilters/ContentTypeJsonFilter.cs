@@ -11,7 +11,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         {
         }
 
-        public override Guid Identifier => Guid.Parse("588C2A97-EBD2-4EF9-84F2-15664480914B");
+        public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();
 
         public override string GenericName => "JSON response only";
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fluxzy.Misc;
+using System;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
@@ -11,7 +12,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         }
 
 
-        public override Guid Identifier => Guid.Parse("7DB577F4-7938-4D6B-90F6-55EC6A116167");
+        public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
 

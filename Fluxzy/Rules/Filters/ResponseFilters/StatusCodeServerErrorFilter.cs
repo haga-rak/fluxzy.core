@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fluxzy.Misc;
+using System;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
@@ -10,7 +11,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             return statusCode is >= 500 and < 600; 
         }
 
-        public override Guid Identifier => Guid.Parse("213C02EC-0AC1-424A-95F7-37F6F73F716D");
+        public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
 

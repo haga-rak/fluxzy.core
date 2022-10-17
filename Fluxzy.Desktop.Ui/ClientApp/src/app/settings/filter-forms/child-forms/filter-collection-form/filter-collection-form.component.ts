@@ -64,4 +64,19 @@ export class FilterCollectionFormComponent extends ValidationTargetComponent<Fil
             ).subscribe();
     }
 
+    public negate(childFilter: Filter) : void{
+        childFilter.inverted = !childFilter.inverted;
+
+        this.apiService.filterValidate(childFilter)
+            .pipe(
+                tap(t => {
+                    const targetIndex = _.findIndex(this.filter.children, c => c.identifier === t.identifier);
+                    if (targetIndex >= 0) {
+                        this.filter.children[targetIndex] = t ;
+                    }
+                }),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe();
+
+    }
 }
