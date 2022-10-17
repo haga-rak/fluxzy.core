@@ -50,9 +50,6 @@ export class UiStateService {
         });
 
         this.apiService.registerEvent('visibleExchangeUpdate', (f: FilteredExchangeState) => {
-                console.log('visibleExchangeUpdate') ;
-                console.log(f);
-               // this.filteredUpdate$.next(f);
             }
         );
 

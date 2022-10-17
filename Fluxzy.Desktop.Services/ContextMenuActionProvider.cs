@@ -84,6 +84,7 @@ namespace Fluxzy.Desktop.Services
             Id = filter.Identifier.ToString(); 
             Label = $"Filter : “{filter.FriendlyName}”";
             IsDivider = false;
+            Filter = filter;
         }
 
         [JsonConstructor]

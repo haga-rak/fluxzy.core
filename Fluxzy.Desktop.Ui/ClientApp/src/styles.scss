@@ -2,17 +2,17 @@
 
 
 
- 
+
 @import "variables-colors.scss";
 
 @import "~bootstrap/scss/bootstrap";
-@import "../node_modules/bootstrap-icons/";  
+@import "../node_modules/bootstrap-icons/";
 
 /* Importing Datepicker SCSS file. */
 @import "node_modules/ngx-bootstrap/datepicker/bs-datepicker";
- 
 
-@import "../node_modules/@fontsource/roboto/";  
+
+@import "../node_modules/@fontsource/roboto/";
 @import '../node_modules/material-icons/';
 
 
@@ -21,7 +21,7 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: "Roboto";
-} 
+}
 
 /* CAN (MUST) BE REMOVED ! Sample Global style */
 
@@ -36,8 +36,13 @@ html, body {
  //box-shadow: var(--bs-gray-900) 0px 2px 4px 0px, var(--bs-gray-900) 0px 2px 16px 0px;
 }
 
+.shady-box-primary {
+    //box-shadow:  var(--bs-primary) 8px 3px 8px;
+    box-shadow: var(--bs-gray-600) 0px 1px 2px, var(--bs-gray-600) 0px 2px 4px, var(--bs-gray-600) 0px 4px 8px, var(--bs-gray-600) 0px 8px 16px, var(--bs-gray-600) 0px 16px 32px, var(--bs-gray-600) 0px 32px 64px;
+}
+
 .table-box {
-    
+
     background-color: var(--bs-gray-500);
     padding: 8px;
     border-radius:8px;
@@ -60,14 +65,14 @@ html, body {
   }
 
 .text-blue {
-    color : $blue; 
+    color : $blue;
 }
 
 .text-orange {
-    color : $orange; 
+    color : $orange;
 }
 .text-green {
-    color : $green; 
+    color : $green;
 }
 
 .viewer-textarea {
@@ -83,15 +88,15 @@ html, body {
 
 .as-split-gutter-icon {
     background-color:var(--bs-gray-500);
-    
+
  }
 
 .summary-table {
-    width : 100%; 
+    width : 100%;
 }
 
 .summary-table th{
-    width : 150px; 
+    width : 150px;
     vertical-align: top;
     font-weight: 400;
     color: var(--bs-gray-300);
@@ -111,13 +116,13 @@ html, body {
 
 
 .view-box {
-    background: var(--bs-gray-600); 
-    width : 100%; 
-    margin-top: 10px; 
-    border-radius: 8px; 
-    padding: 12px; 
-    flex-grow : 4; 
-    display : flex; 
+    background: var(--bs-gray-600);
+    width : 100%;
+    margin-top: 10px;
+    border-radius: 8px;
+    padding: 12px;
+    flex-grow : 4;
+    display : flex;
 }
 
 pre {
@@ -162,9 +167,9 @@ pre > code {
 .edit-form-table tr td:first-child {
     width : 180px;
     text-align: right;
-} 
+}
 
 .edit-form-table td {
-    padding : 4px 8px 4px 8px; 
+    padding : 4px 8px 4px 8px;
     vertical-align: top !important;
-} 
+}

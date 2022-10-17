@@ -17,7 +17,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
         {
-            yield return authority.HostName;
+            yield return exchange.KnownAuthority;
         }
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;

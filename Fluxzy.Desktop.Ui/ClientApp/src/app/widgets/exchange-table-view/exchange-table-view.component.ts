@@ -14,7 +14,8 @@ import { ExchangeContentService } from '../../services/exchange-content.service'
 import {   FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
 import { ExchangeSelection, ExchangeSelectionService } from '../../services/exchange-selection.service';
 import {ContextMenuService, Coordinate} from "../../services/context-menu.service";
-import {ContextMenuExchangeService} from "../../services/context-menu-exchange.service";
+import {ContextMenuExecutionService} from "../../services/context-menu-execution.service";
+import {ApiService} from "../../services/api.service";
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -39,7 +40,8 @@ export class ExchangeTableViewComponent implements OnInit {
         private selectionService : ExchangeSelectionService,
         private exchangeContentService : ExchangeContentService,
         private contextMenuService : ContextMenuService,
-        private contextMenuExchangeService : ContextMenuExchangeService
+        private contextMenuExchangeService : ContextMenuExecutionService,
+        private apiService: ApiService
         ) { }
 
     ngOnInit(): void {
@@ -155,9 +157,10 @@ export class ExchangeTableViewComponent implements OnInit {
             x: event.clientX
         };
 
-        this.contextMenuExchangeService.getActions(exchange)
+        this.apiService.contextMenuGetActions(exchange.id)
             .pipe(
                 tap(actions =>  this.contextMenuService.showPopup(
+                    exchange.id,
                     coordinate,
                     actions
                 ))
