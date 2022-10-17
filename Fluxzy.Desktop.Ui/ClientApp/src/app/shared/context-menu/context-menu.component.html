@@ -1,8 +1,12 @@
-<div #contextMenuBlock [hidden]="menuHide"  class="context-menu shady-box" *ngIf="contextMenuModel" [style.top]="getTop() +'px'" [style.left]="getLeft()+'px'">
+<div #contextMenuBlock [hidden]="menuHide"  class="context-menu shady-box-primary" *ngIf="contextMenuModel" [style.top]="getTop() +'px'" [style.left]="getLeft()+'px'">
     <div class="context-menu-action"*ngFor="let contextMenuAction of contextMenuModel.contextMenuActions"
             [ngClass]="{'context-menu-action-clickable' : !contextMenuAction.isDivider,'context-menu-action-divider' : contextMenuAction.isDivider}"
             [title]="contextMenuAction.label"
-            (mousedown)="triggered($event)">
+            (mousedown)="triggered($event, contextMenuAction)" (mouseup)="mouseUp($event)">
+        <span style="display : inline-block; width : 16px; min-width: 16px; max-width: 16px;">
+            <i class="bi" [ngClass]="getIcon(contextMenuAction)"></i>
+        </span>
+
         {{contextMenuAction.label}}
     </div>
 </div>

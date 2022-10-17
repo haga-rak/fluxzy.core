@@ -54,10 +54,7 @@ export class ExchangeManagementService {
             .pipe(
                 filter(t => !!this.currentSelection),
                 switchMap(_ => this.exchangeDelete(ExchangeSelectedIds(this.currentSelection))),
-                tap(t => this.exchangeContentService.update(t))
-
             ).subscribe();
-
 
         this.registerExchangeUpdate();
 
@@ -146,12 +143,15 @@ export class ExchangeManagementService {
             }));
     }
 
-    public exchangeDelete(exchangeIds : number []) : Observable<TrunkState> {
-        console.log('deleting') ;
-        console.log(exchangeIds) ;
-        return this.apiService.trunkDelete( {
+    public exchangeDelete(exchangeIds : number []) : Observable<object> {
+        const trunkState = this.apiService.trunkDelete( {
             identifiers : exchangeIds
-        })
+        });
+
+        return trunkState.pipe(
+            tap(t => this.exchangeContentService.update(t)),
+            map(t => t as object)
+        );
     }
 }
 
