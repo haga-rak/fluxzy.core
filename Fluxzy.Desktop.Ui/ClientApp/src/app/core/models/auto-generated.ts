@@ -425,6 +425,17 @@ export interface FileContentDelete
 {
 	identifiers: number[];
 }
+export interface ArchiveMetaInformation
+{
+	captureDate: Date;
+	tags: Tag[];
+	viewFilters: Filter[];
+}
+export interface Tag
+{
+	identifier: string;
+	value: string;
+}
 export interface ExchangeInfo
 {
 	id: number;
@@ -442,7 +453,7 @@ export interface ExchangeInfo
 	statusCode: number;
 	egressIp?: string;
 	comment?: string;
-	tags?: any[];
+	tags: Tag[];
 	pending: boolean;
 }
 export interface RequestHeaderInfo

@@ -7,21 +7,22 @@ import {ExchangeInfo} from '../../core/models/auto-generated';
     styleUrls: ['./exchange-viewer-header.component.scss']
 })
 export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
-    public tabs : string [] = ['Content', 'Connectivity', 'Performance'] ;
-    public currentTab : string = 'Content'; 
+    public tabs : string [] = ['Content', 'Connectivity', 'Performance', 'MetaInformation'] ;
+    public currentTab : string = 'Content';
 
     public context : { currentTab : string } = { currentTab : 'Content'}
 
     @Input() public exchange: ExchangeInfo;
 
     constructor() {
+
     }
 
     ngOnInit(): void {
         // console.log('header');
         // console.log(this.exchange);
     }
-    
+
     ngOnChanges(changes: SimpleChanges): void {
         // console.log('heade change');
         // console.log(this.exchange);
