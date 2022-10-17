@@ -380,6 +380,13 @@ export interface TrunkState
 	exchangesIndexer: { [key:number]: number };
 	connectionsIndexer: { [key:number]: number };
 }
+export interface ContextMenuAction
+{
+	id?: string;
+	label?: string;
+	isDivider: boolean;
+	filter?: Filter;
+}
 export interface FileContentDelete
 {
 	identifiers: number[];

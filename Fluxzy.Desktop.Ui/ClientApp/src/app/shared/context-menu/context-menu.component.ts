@@ -1,6 +1,7 @@
 import {ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild} from '@angular/core';
-import {ContextMenuAction, ContextMenuModel, ContextMenuService} from "../../services/context-menu.service";
+import {ContextMenuModel, ContextMenuService} from "../../services/context-menu.service";
 import {tap} from "rxjs";
+import {ContextMenuAction} from "../../core/models/auto-generated";
 
 @Component({
     selector: 'app-context-menu',

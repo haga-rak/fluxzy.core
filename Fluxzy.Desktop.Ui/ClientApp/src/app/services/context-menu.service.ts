@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, Subject} from "rxjs";
+import {ContextMenuAction} from "../core/models/auto-generated";
 
 @Injectable({
     providedIn: 'root'
@@ -33,9 +34,4 @@ export interface ContextMenuModel {
     contextMenuActions: ContextMenuAction[];
     coordinate : Coordinate;
 
-}
-
-export interface ContextMenuAction {
-    label?: string;
-    isDivider?: boolean;
 }

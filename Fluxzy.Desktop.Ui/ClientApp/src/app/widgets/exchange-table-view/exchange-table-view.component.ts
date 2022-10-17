@@ -146,23 +146,22 @@ export class ExchangeTableViewComponent implements OnInit {
 
     }
 
-    public contextMenu(event :MouseEvent, exchange : ExchangeInfo) {
+    public contextMenu(event : MouseEvent, exchange : ExchangeInfo) {
         if (event.button !== 2)
             return;
 
         const coordinate : Coordinate = {
             y : event.clientY,
             x: event.clientX
-        }
+        };
 
-        const actions = this.contextMenuExchangeService.getActions(exchange);
-
-        this.contextMenuService.showPopup(
-            coordinate,
-            actions
-        )
-
-        console.log(event);
+        this.contextMenuExchangeService.getActions(exchange)
+            .pipe(
+                tap(actions =>  this.contextMenuService.showPopup(
+                    coordinate,
+                    actions
+                ))
+            ).subscribe();
     }
 }
 
