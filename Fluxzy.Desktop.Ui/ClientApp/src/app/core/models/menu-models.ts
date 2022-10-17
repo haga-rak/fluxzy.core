@@ -80,6 +80,11 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 accelerator: 'Ctrl+A',
             },
             {
+                id : 'invert-selection',
+                label : 'Invert selection',
+
+            },
+            {
                 type :  'separator'
             },
             {
@@ -94,10 +99,6 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 id : 'delete',
                 label : 'Delete selected exchanges',
                 accelerator: 'Delete',
-            },
-            {
-                id : 'delete-unselected',
-                label : 'Delete not selected exchanges',
             },
             {
                 type :  'separator'

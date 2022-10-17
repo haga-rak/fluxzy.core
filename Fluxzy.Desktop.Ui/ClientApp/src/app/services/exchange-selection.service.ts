@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, tap } from 'rxjs';
-import { ExchangeInfo } from '../core/models/auto-generated';
+import {ExchangeInfo, TrunkState} from '../core/models/auto-generated';
 import { ExchangeContentService } from './exchange-content.service';
+import {MenuService} from "../core/services/menu-service.service";
 
 @Injectable({
     providedIn: 'root',
@@ -20,26 +21,33 @@ export class ExchangeSelectionService {
         map: {},
     };
     private currentSelection$: Observable<ExchangeSelection>;
+    private trunkState: TrunkState;
+    private selectedIds: number[];
 
-    constructor(private exchangeContentService : ExchangeContentService) {
+    constructor(private exchangeContentService : ExchangeContentService, private menuService : MenuService) {
+
         this.currentRawSelectionObservable$ =   this.currentRawSelection$.asObservable()
             .pipe(
                 distinctUntilChanged()
             );
+
+
+
         this.currentSelection$ = combineLatest([
             this.currentRawSelectionObservable$,
             this.exchangeContentService.getTrunkState()
+                .pipe(tap(t => this.trunkState = t))
             ]).pipe(
                     map(t => {
                         const rawSelection = t[0] ;
                         const trunkState = t[1] ;
 
-                        
+
                         // console.log('kselecion' + rawSelection.lastSelectedExchangeId);
 
                         const selectedIds = ExchangeSelectedIds(rawSelection);
 
-                        
+
                        // console.log('zselecion' + selectedIds[0]);
 
                         for (const selectedId of selectedIds) {
@@ -57,7 +65,8 @@ export class ExchangeSelectionService {
             map((t) => ExchangeSelectedIds(t))
         );
         this.currenSelectionCount$ = this.currentSelectedIds$.pipe(
-            map((t) => t.length)
+            tap(t => this.selectedIds = t),
+            map((t) => t.length),
         );
 
         this.currentSelection$.pipe(tap((t) => (this.currentSelection = t))).subscribe();
@@ -85,6 +94,9 @@ export class ExchangeSelectionService {
                 }),
                 tap(s => this.selected$.next(s))
             ).subscribe();
+
+
+        this.setUpMenuEvents ();
     }
 
     public setSelection(...exchangeIds: number[]): void {
@@ -99,7 +111,7 @@ export class ExchangeSelectionService {
             }
 
             this.currentRawSelection$.next(exchangeSelection);
-            
+
         } else {
             const exchangeSelection: ExchangeSelection = {
                 map: {},
@@ -136,6 +148,31 @@ export class ExchangeSelectionService {
     public getCurrentSelectedIds(): Observable<number[]> {
         return this.currentSelectedIds$;
     }
+
+
+    public setUpMenuEvents ()  : void {
+
+        this.menuService.registerMenuEvent('invert-selection', () => {
+                if (!this.trunkState || !this.selectedIds)
+                    return ;
+
+                const setSelectedIds = new Set<number>(this.selectedIds) ;
+                const result : number [] = [] ;
+
+                for(let exchangeId of this.trunkState.exchanges.map(e => e.id)){
+                    if (!setSelectedIds.has(exchangeId))
+                        result.push(exchangeId);
+                }
+
+                this.setSelection(...result) ;
+
+
+        });
+    }
+
+
+
+
 }
 
 export interface ExchangeSelection {
