@@ -83,7 +83,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
                          .Select(i => archiveReader.ReadExchange(i)).Where(t => t != null)) {
 
                 exchange!.Tags.Add(tag);
-                await archiveWriter.Update(exchange, CancellationToken.None);
+                archiveWriter.Update(exchange, CancellationToken.None);
             }
 
             return true; 
@@ -99,7 +99,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
                                             .Where(s => s != null)) {
 
                 exchange!.Comment = comment.Comment; 
-                await archiveWriter.Update(exchange, CancellationToken.None);
+                archiveWriter.Update(exchange, CancellationToken.None);
             }
 
             return true; 

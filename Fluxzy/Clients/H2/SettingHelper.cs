@@ -52,7 +52,13 @@ namespace Fluxzy.Clients.H2
             {
                 ArrayPool<byte>.Shared.Return(settingBuffer);
             }
-            
+        }
+
+        public static void WriteAck(Stream innerStream)
+        {
+            Span<byte> settingBuffer = stackalloc byte[80];
+            int written = new SettingFrame(true).Write(settingBuffer);
+            innerStream.Write(settingBuffer.Slice(0, written));
 
         }
     }

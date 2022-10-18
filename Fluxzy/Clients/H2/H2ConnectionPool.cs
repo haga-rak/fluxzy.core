@@ -444,7 +444,7 @@ namespace Fluxzy.Clients.H2
             _logger.TraceDeep(0, () => "deadlock?");
             return true; 
         }
-
+        
         /// <summary>
         /// %Write and read has to use the same thread 
         /// </summary>
@@ -459,177 +459,16 @@ namespace Fluxzy.Clients.H2
             {
                 while (EvaluateCond() && !token.IsCancellationRequested)
                 {
-
                     _logger.TraceDeep(0,() => "1");
 
                     H2FrameReadResult frame = 
                         await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         token).ConfigureAwait(false);
 
-                    _logger.TraceDeep(0, () => "2");
-
-                    if (frame.IsEmpty)
+                    if (ProcessNewFrame(token, frame, ref readBuffer))
                         break;
-
-                    _logger.TraceDeep(0, () => "3");
-
-                    _lastActivity = ITimingProvider.Default.Instant();
-
-                    _logger.IncomingFrame(ref frame);
-                    
-                    _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
-                    
-                    if (frame.BodyType == H2FrameType.Settings)
-                    {
-                        var settingReceived = ProcessIncomingSettingFrame(frame.GetSettingFrame());
-
-
-                        _logger.TraceDeep(0, () => "4");
-
-                        if (settingReceived)
-                            await SettingHelper.WriteAckSetting(_baseStream).ConfigureAwait(false);
-                        
-                        if (_setting.Remote.MaxFrameSize != readBuffer.Length)
-                        {
-                            // Update of max frae 
-
-                            if (_setting.Remote.MaxFrameSize > _setting.MaxFrameSizeAllowed)
-                            {
-
-                                _logger.Trace(0, () => $"Server required max frame size is larger than MaxFrameSizeAllowed = {_setting.MaxFrameSizeAllowed}");
-
-                                _setting.Remote.MaxFrameSize = _setting.MaxFrameSizeAllowed;
-                            }
-
-                            readBuffer = new byte[_setting.Remote.MaxFrameSize];
-
-                            _logger.Trace(0, () => $"max frame size updated to {_setting.Remote.MaxFrameSize}");
-                        }
-
+                    else
                         continue;
-                    }
-
-                    if (frame.BodyType == H2FrameType.Priority)
-                    {
-                        _logger.TraceDeep(0, () => "5");
-
-                        if (activeStream == null)
-                        {
-                            continue;
-                        }
-
-                        activeStream.SetPriority(frame.GetPriorityFrame());
-                    }
-
-                    if (frame.BodyType == H2FrameType.Headers)
-                    {
-                        _logger.TraceDeep(0, () => "6");
-
-                        if (activeStream == null)
-                        {
-                            // TODO : Notify stream error, stream already closed 
-                            continue;
-                        }
-
-                        // TODO: THIS IS SO DIRTY; HeaderFrames shouldn't be a ref struct 
-
-                        activeStream.ReceiveHeaderFragmentFromConnection(
-                            frame.GetHeadersFrame().BodyLength,
-                            frame.GetHeadersFrame().EndStream,
-                            frame.GetHeadersFrame().EndHeaders,
-                            frame.GetHeadersFrame().Data
-                            );
-
-                        continue;
-                    }
-
-                    if (frame.BodyType == H2FrameType.Continuation)
-                    {
-                        _logger.TraceDeep(0, () => "7");
-
-                        if (activeStream == null)
-                        {
-                            // TODO : Notify stream error, stream already closed 
-                            continue;
-                        }
-
-                        // THIS IS SO DIRTY; ContinuationFrame shouldn't be a ref struct 
-
-                        activeStream.ReceiveHeaderFragmentFromConnection(
-                            frame.GetContinuationFrame().BodyLength,
-                            frame.GetContinuationFrame().EndHeaders,
-                            frame.GetContinuationFrame().Data
-                            );
-
-                        continue;
-                    }
-
-                    if (frame.BodyType == H2FrameType.Data)
-                    {
-
-                        _logger.TraceDeep(0, () => "8 : ");
-                        if (activeStream == null)
-                        {
-                            continue;
-                        }
-
-                        _logger.TraceDeep(0, () => "8 : " + activeStream.StreamIdentifier);
-
-                        await activeStream.ReceiveBodyFragmentFromConnection(
-                            frame.GetDataFrame().Buffer, 
-                            frame.Flags.HasFlag(HeaderFlags.EndStream), token);
-
-
-                        _logger.TraceDeep(0, () => "8 1 : " + activeStream.StreamIdentifier);
-
-                        continue;
-                    }
-
-                    if (frame.BodyType == H2FrameType.RstStream)
-                    {
-                        _logger.TraceDeep(0, () => "9");
-
-                        if (activeStream == null)
-                        {
-                            continue;
-                        }
-
-                        activeStream.ResetRequest(frame.GetRstStreamFrame().ErrorCode);
-                        continue;
-                    }
-
-                    if (frame.BodyType == H2FrameType.WindowUpdate)
-                    {
-                        _logger.TraceDeep(0, () => "10");
-
-                        var windowSizeIncrement = frame.GetWindowUpdateFrame().WindowSizeIncrement;
-
-                        if (activeStream == null)
-                        {
-                            _overallWindowSizeHolder.UpdateWindowSize(windowSizeIncrement);
-                            continue;
-                        }
-
-                        activeStream.NotifyStreamWindowUpdate(windowSizeIncrement);
-
-                        continue;
-                    }
-
-                    if (frame.BodyType == H2FrameType.Ping)
-                    {
-                        _logger.TraceDeep(0, () => "11");
-
-                        EmitPing(frame.GetPingFrame().OpaqueData);
-                        continue;
-                    }
-
-                    if (frame.BodyType == H2FrameType.Goaway)
-                    {
-                        _logger.TraceDeep(0, () => "12");
-
-                        OnGoAway(frame.GetGoAwayFrame());
-                        break;
-                    }
                 }
 
                 _logger.TraceDeep(0, () => "Natural death");
@@ -650,6 +489,164 @@ namespace Fluxzy.Clients.H2
             }
         }
 
+        private bool ProcessNewFrame(CancellationToken token, H2FrameReadResult frame, ref byte[] readBuffer)
+        {
+            _logger.TraceDeep(0, () => "2");
+
+            if (frame.IsEmpty)
+                return true;
+
+            _logger.TraceDeep(0, () => "3");
+
+            _lastActivity = ITimingProvider.Default.Instant();
+
+            _logger.IncomingFrame(ref frame);
+
+            _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
+
+            if (frame.BodyType == H2FrameType.Settings)
+            {
+                var settingReceived = ProcessIncomingSettingFrame(frame.GetSettingFrame());
+
+                _logger.TraceDeep(0, () => "4");
+
+                if (settingReceived)
+                    SettingHelper.WriteAck(_baseStream);
+
+                if (_setting.Remote.MaxFrameSize != readBuffer.Length)
+                {
+                    // Update of max frame 
+
+                    if (_setting.Remote.MaxFrameSize > _setting.MaxFrameSizeAllowed)
+                    {
+                        _logger.Trace(0,
+                            () =>
+                                $"Server required max frame size is larger than MaxFrameSizeAllowed = {_setting.MaxFrameSizeAllowed}");
+
+                        _setting.Remote.MaxFrameSize = _setting.MaxFrameSizeAllowed;
+                    }
+
+                    readBuffer = new byte[_setting.Remote.MaxFrameSize];
+                    _logger.Trace(0, () => $"max frame size updated to {_setting.Remote.MaxFrameSize}");
+                }
+
+                return false;
+            }
+
+            if (frame.BodyType == H2FrameType.Priority)
+            {
+                _logger.TraceDeep(0, () => "5");
+
+                if (activeStream == null)
+                {
+                    return false;
+                }
+
+                activeStream.SetPriority(frame.GetPriorityFrame());
+            }
+
+            if (frame.BodyType == H2FrameType.Headers)
+            {
+                _logger.TraceDeep(0, () => "6");
+
+                if (activeStream == null)
+                {
+                    // TODO : Notify stream error, stream already closed 
+                    return false;
+                }
+                
+                var headerFrame = frame.GetHeadersFrame();
+
+                activeStream.ReceiveHeaderFragmentFromConnection(ref headerFrame);
+
+                return false;
+            }
+
+            if (frame.BodyType == H2FrameType.Continuation)
+            {
+                _logger.TraceDeep(0, () => "7");
+
+                if (activeStream == null)
+                {
+                    // TODO : Notify stream error, stream already closed 
+                    return false;
+                }
+
+                var continuationFrame = frame.GetContinuationFrame(); 
+
+                activeStream.ReceiveHeaderFragmentFromConnection(ref continuationFrame);
+
+                return false;
+            }
+
+            if (frame.BodyType == H2FrameType.Data)
+            {
+                _logger.TraceDeep(0, () => "8 : ");
+                if (activeStream == null)
+                {
+                    return false;
+                }
+
+                _logger.TraceDeep(0, () => "8 : " + activeStream.StreamIdentifier);
+
+                activeStream.ReceiveBodyFragmentFromConnection(
+                    frame.GetDataFrame().Buffer,
+                    frame.Flags.HasFlag(HeaderFlags.EndStream));
+
+
+                _logger.TraceDeep(0, () => "8 1 : " + activeStream.StreamIdentifier);
+
+                return false;
+            }
+
+            if (frame.BodyType == H2FrameType.RstStream)
+            {
+                _logger.TraceDeep(0, () => "9");
+
+                if (activeStream == null)
+                {
+                    return false;
+                }
+
+                activeStream.ResetRequest(frame.GetRstStreamFrame().ErrorCode);
+                return false;
+            }
+
+            if (frame.BodyType == H2FrameType.WindowUpdate)
+            {
+                _logger.TraceDeep(0, () => "10");
+
+                var windowSizeIncrement = frame.GetWindowUpdateFrame().WindowSizeIncrement;
+
+                if (activeStream == null)
+                {
+                    _overallWindowSizeHolder.UpdateWindowSize(windowSizeIncrement);
+                    return false;
+                }
+
+                activeStream.NotifyStreamWindowUpdate(windowSizeIncrement);
+
+                return false;
+            }
+
+            if (frame.BodyType == H2FrameType.Ping)
+            {
+                _logger.TraceDeep(0, () => "11");
+
+                EmitPing(frame.GetPingFrame().OpaqueData);
+                return false;
+            }
+
+            if (frame.BodyType == H2FrameType.Goaway)
+            {
+                _logger.TraceDeep(0, () => "12");
+
+                OnGoAway(frame.GetGoAwayFrame());
+                return true;
+            }
+
+            return false;
+        }
 
 
         public async ValueTask Send(
