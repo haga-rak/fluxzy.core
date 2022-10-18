@@ -109,7 +109,8 @@ namespace Fluxzy.Clients
 
             try
             {
-                await semaphore.WaitAsync(cancellationToken);
+                if (!semaphore.Wait(0))
+                    await semaphore.WaitAsync(cancellationToken);
 
                 // Looking for existing HttpPool
 

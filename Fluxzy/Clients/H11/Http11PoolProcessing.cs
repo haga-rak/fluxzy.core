@@ -29,7 +29,7 @@ namespace Fluxzy.Clients.H11
         /// <param name="buffer"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if remote server close connection</returns>
-        public async Task<bool> Process(Exchange exchange, byte[] buffer, CancellationToken cancellationToken)
+        public async ValueTask<bool> Process(Exchange exchange, byte[] buffer, CancellationToken cancellationToken)
         {
             var bufferRaw = buffer;
 

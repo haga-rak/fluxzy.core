@@ -17,10 +17,10 @@ namespace Fluxzy.Rules.Actions
 
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
-        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             context.ClientCertificates.Add(ClientCertificate.GetCertificate());
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

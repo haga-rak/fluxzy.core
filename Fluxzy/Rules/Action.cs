@@ -11,6 +11,6 @@ namespace Fluxzy.Rules
     {
         public abstract FilterScope ActionScope { get; }
 
-        public abstract Task Alter(ExchangeContext context, Exchange exchange, Connection connection);
+        public abstract ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection);
     }
 }

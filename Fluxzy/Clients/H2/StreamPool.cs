@@ -80,8 +80,10 @@ namespace Fluxzy.Clients.H2
             if (_onError)
                 throw new ConnectionCloseException("This connection is on error");
 
-            await _maxConcurrentStreamBarrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
-
+            if (!_maxConcurrentStreamBarrier.Wait(TimeSpan.Zero))
+            {
+                await _maxConcurrentStreamBarrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
+            }
 
             var res = CreateActiveStream(exchange, callerCancellationToken, ongoingStreamInit, resetTokenSource);
 

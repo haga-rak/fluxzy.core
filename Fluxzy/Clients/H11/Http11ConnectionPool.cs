@@ -70,7 +70,8 @@ namespace Fluxzy.Clients.H11
             {
                 _logger.Trace(exchange, "Begin wait for authority slot");
 
-                await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+                if (!_semaphoreSlim.Wait(0))
+                    await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.Trace(exchange.Id, "Acquiring slot");
 
