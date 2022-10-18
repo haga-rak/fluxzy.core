@@ -64,9 +64,9 @@ namespace Fluxzy.Core
 
                     var listenerCopy = listener;
 
-                    HandleAcceptConnection(listenerCopy);
+                    //HandleAcceptConnection(listenerCopy);
 
-                   // Task.Run(() => HandleAcceptConnection(listenerCopy));
+                    Task.Run(() => HandleAcceptConnection(listenerCopy));
                 }
                 catch (SocketException sex)
                 {
@@ -84,26 +84,43 @@ namespace Fluxzy.Core
             return ListenEndpoints;
         }
 
-        private async void HandleAcceptConnection(TcpListener listener)
+        private void HandleAcceptConnection(TcpListener listener)
         {
             try
             {
-                while (true)
+                //while (true)
                 {
-                    var tcpClient = await listener.AcceptTcpClientAsync();
+                    listener.BeginAcceptTcpClient(Callback, listener);
+                    //var tcpClient = listener.AcceptTcpClientAsync();
 
-                    tcpClient.NoDelay = true; // NO Delay for local connection
-                    // tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
-                    //tcpClient.ReceiveBufferSize = 1024 * 64;
-                    //tcpClient.SendBufferSize = 32 * 1024;
-                    //tcpClient.SendTimeout = 200;
+                    //tcpClient.NoDelay = true; // NO Delay for local connection
+                    //// tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
+                    ////tcpClient.ReceiveBufferSize = 1024 * 64;
+                    ////tcpClient.SendBufferSize = 32 * 1024;
+                    ////tcpClient.SendTimeout = 200;
 
-                    _pendingClientConnections.Writer.TryWrite(tcpClient);
+                    //_pendingClientConnections.Writer.TryWrite(tcpClient);
                 }
             }
             catch (Exception)
             {
                 // Connection closed 
+            }
+        }
+
+        private void Callback(IAsyncResult ar)
+        {
+            try
+            {
+                var listener = (TcpListener)ar.AsyncState;
+                var tcpClient = listener.EndAcceptTcpClient(ar);
+                listener.BeginAcceptTcpClient(Callback, listener);
+                _pendingClientConnections.Writer.TryWrite(tcpClient);
+
+            }
+            catch (Exception)
+            {
+
             }
         }
 

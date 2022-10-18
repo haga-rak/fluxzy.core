@@ -79,7 +79,7 @@ namespace Fluxzy.Misc.Streams
             return read;
         }
 
-        public Func<Task>? OnDisposeDoneTask { get; set; }
+        public Func<ValueTask>? OnDisposeDoneTask { get; set; }
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)

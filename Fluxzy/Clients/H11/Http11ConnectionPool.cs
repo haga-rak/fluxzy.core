@@ -109,7 +109,7 @@ namespace Fluxzy.Clients.H11
                     openingResult.Connection.HttpVersion = exchange.HttpVersion;
 
                     if (_archiveWriter != null)
-                        await _archiveWriter.Update(exchange.Connection, cancellationToken);
+                        _archiveWriter.Update(exchange.Connection, cancellationToken);
 
                     _logger.Trace(exchange.Id, () => $"New connection obtained: {exchange.Connection.Id}");
                 }

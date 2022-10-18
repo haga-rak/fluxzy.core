@@ -116,7 +116,7 @@ namespace Fluxzy.Clients.H11
             exchange.Connection = openingResult.Connection;
 
             if (_archiveWriter != null)
-                await _archiveWriter.Update(exchange.Connection, cancellationToken);
+                _archiveWriter.Update(exchange.Connection, cancellationToken);
 
             if (exchange.Request.Header.IsWebSocketRequest)
             {

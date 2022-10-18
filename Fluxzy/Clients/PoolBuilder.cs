@@ -170,7 +170,7 @@ namespace Fluxzy.Clients
                     exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";
 
                     if (_archiveWriter != null)
-                        await _archiveWriter.Update(openingResult.Connection, cancellationToken);
+                        _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
                     lock (_connectionPools)
                     {
@@ -188,7 +188,7 @@ namespace Fluxzy.Clients
                     exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/2";
 
                     if (_archiveWriter != null)
-                        await _archiveWriter.Update(openingResult.Connection, cancellationToken);
+                        _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
                     lock (_connectionPools)
                     {
