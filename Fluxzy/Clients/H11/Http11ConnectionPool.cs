@@ -48,14 +48,14 @@ namespace Fluxzy.Clients.H11
 
         public bool Complete => false;
 
-        public Task Init()
+        public ValueTask Init()
         {
-            return Task.CompletedTask; 
+            return default;
         }
 
-        public Task<bool> CheckAlive()
+        public ValueTask<bool> CheckAlive()
         {
-            return Task.FromResult(true); 
+            return new ValueTask<bool>(true); 
         }
 
         private readonly H1Logger _logger;

@@ -37,14 +37,14 @@ namespace Fluxzy.Clients.H11
 
         public bool Complete => _complete;
 
-        public Task Init()
+        public ValueTask Init()
         {
-            return Task.CompletedTask; 
+            return default; 
         }
 
-        public Task<bool> CheckAlive()
+        public ValueTask<bool> CheckAlive()
         {
-            return Task.FromResult(!Complete); 
+            return new ValueTask<bool>(!Complete); 
         }
 
         public async ValueTask Send(

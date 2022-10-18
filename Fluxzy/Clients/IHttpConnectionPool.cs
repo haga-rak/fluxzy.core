@@ -15,9 +15,9 @@ namespace Fluxzy.Clients
 
         bool Complete { get; }
         
-        Task Init();
+        ValueTask Init();
 
-        Task<bool> CheckAlive();
+        ValueTask<bool> CheckAlive();
         
         ValueTask Send(Exchange exchange, ILocalLink localLink, byte[] buffer, CancellationToken cancellationToken = default);
     }
