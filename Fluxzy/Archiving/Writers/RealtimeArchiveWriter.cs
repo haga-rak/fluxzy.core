@@ -17,9 +17,9 @@ namespace Fluxzy.Writers
 
         public abstract void UpdateTags(IEnumerable<Tag> tags);
 
-        public abstract Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
+        public abstract ValueTask Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
 
-        public abstract Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
+        public abstract ValueTask Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
 
         public abstract Stream CreateRequestBodyStream(int exchangeId);
 
@@ -42,7 +42,7 @@ namespace Fluxzy.Writers
         public event EventHandler<ExchangeUpdateEventArgs>? ExchangeUpdated;
         public event EventHandler<ConnectionUpdateEventArgs>? ConnectionUpdated;
 
-        public virtual async Task Update(Connection connection, CancellationToken cancellationToken)
+        public virtual async ValueTask Update(Connection connection, CancellationToken cancellationToken)
         {
             var connectionInfo = new ConnectionInfo(connection);
 
@@ -53,7 +53,8 @@ namespace Fluxzy.Writers
                 ConnectionUpdated(this, new ConnectionUpdateEventArgs(connectionInfo));
         }
 
-        public virtual async Task Update(Exchange exchange, UpdateType updateType, CancellationToken cancellationToken)
+        public virtual async ValueTask Update(Exchange exchange, UpdateType updateType,
+            CancellationToken cancellationToken)
         {
             var exchangeInfo = new ExchangeInfo(exchange);
 

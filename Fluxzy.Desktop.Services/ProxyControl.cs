@@ -85,7 +85,7 @@ namespace Fluxzy.Desktop.Services
                 _proxy = null;
             }
 
-            IEnumerable<IPEndPoint> endPoints = Array.Empty<IPEndPoint>();
+            IEnumerable<IPEndPoint> endPoints;
 
             try
             {
@@ -107,6 +107,7 @@ namespace Fluxzy.Desktop.Services
                     if (_viewFilter?.Filter == null || _viewFilter.Filter.Apply(null, args.ExchangeInfo))
                     {
                         _hub.Clients.All.SendAsync("exchangeUpdate", args.ExchangeInfo);
+                      
                     }
 
                     _filteredExchangeManager.OnExchangeAdded(args.ExchangeInfo);

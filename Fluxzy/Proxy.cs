@@ -91,7 +91,7 @@ namespace Fluxzy
 
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss"); 
         
-        private async Task MainLoop()
+        private async ValueTask MainLoop()
         {
             Writer.Init();
 

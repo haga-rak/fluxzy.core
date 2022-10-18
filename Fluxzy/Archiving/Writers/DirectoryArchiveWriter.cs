@@ -53,15 +53,14 @@ namespace Fluxzy.Writers
             UpdateMeta();
         }
 
-        public override async Task Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        public override ValueTask Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
             var exchangePath = DirectoryArchiveHelper.GetExchangePath(_baseDirectory, exchangeInfo);
 
             DirectoryArchiveHelper.CreateDirectory(exchangePath); 
 
-            await using var fileStream = File.Create(exchangePath);
-            await JsonSerializer.SerializeAsync(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions,
-                cancellationToken);
+            using var fileStream = File.Create(exchangePath);
+            JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions);
 
             if (exchangeInfo.Tags?.Any() ?? false) {
 
@@ -74,17 +73,20 @@ namespace Fluxzy.Writers
                     UpdateMeta();
                 }
             }
+
+            return default;
         }
 
-        public override async Task Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
+        public override ValueTask Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
         {
             var connectionPath = DirectoryArchiveHelper.GetConnectionPath(_baseDirectory, connectionInfo);
 
             DirectoryArchiveHelper.CreateDirectory(connectionPath);
 
-            await using var fileStream = File.Create(connectionPath);
-            await JsonSerializer.SerializeAsync(fileStream, connectionInfo, GlobalArchiveOption.JsonSerializerOptions,
-                cancellationToken);
+            using var fileStream = File.Create(connectionPath);
+            JsonSerializer.Serialize(fileStream, connectionInfo, GlobalArchiveOption.JsonSerializerOptions);
+
+            return default; 
         }
 
         public override Stream CreateRequestBodyStream(int exchangeId)

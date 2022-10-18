@@ -94,7 +94,7 @@ namespace Fluxzy.Clients
             _idProvider = idProvider;
         }
 
-        public async Task<ExchangeBuildingResult?> InitClientConnection(
+        public async ValueTask<ExchangeBuildingResult?> InitClientConnection(
             Stream stream,
             byte [] buffer,
             ProxyRuntimeSetting runtimeSetting,
@@ -197,7 +197,7 @@ namespace Fluxzy.Clients
                     : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy), false); 
         }
 
-        public async Task<Exchange> ReadExchange(
+        public async ValueTask<Exchange> ReadExchange(
             Stream inStream, Authority authority, byte[] buffer,
             ProxyRuntimeSetting runTimeSetting,
             CancellationToken token)

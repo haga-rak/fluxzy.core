@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import {debounceTime, Observable, Subject} from 'rxjs';
 import { TrunkState } from '../core/models/auto-generated';
 
 @Injectable({
@@ -10,7 +10,9 @@ export class ExchangeContentService {
     private trunkStateObservable$: Observable<TrunkState>;
 
     constructor() {
-        this.trunkStateObservable$ = this.trunkState$.asObservable();
+        this.trunkStateObservable$ = this.trunkState$.asObservable().pipe(
+            debounceTime(10)
+        );
     }
 
     public update(trunkState: TrunkState): void {

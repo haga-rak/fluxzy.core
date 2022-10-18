@@ -63,10 +63,11 @@ namespace Fluxzy.Clients
 
         public IIdProvider IdProvider { get; set; } = new FromIndexIdProvider(0, 0);
 
-        public async Task EnforceRules(ExchangeContext context, FilterScope filterScope, 
+        public async ValueTask EnforceRules(ExchangeContext context, FilterScope filterScope, 
              Connection connection = null, Exchange exchange = null)
         {
-            foreach (var rule in _startupSetting.AlterationRules.Where(a => a.Action.ActionScope == filterScope))
+            foreach (var rule in
+                     _startupSetting.AlterationRules.Where(a => a.Action.ActionScope == filterScope))
             {
                 await rule.Enforce(context, exchange, connection);
             }

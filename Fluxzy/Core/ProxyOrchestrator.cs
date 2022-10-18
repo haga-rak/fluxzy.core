@@ -31,7 +31,7 @@ namespace Fluxzy.Core
             _archiveWriter = proxyRuntimeSetting.ArchiveWriter;
         }
 
-        public async Task Operate(TcpClient client, byte [] buffer, CancellationToken token)
+        public async ValueTask Operate(TcpClient client, byte [] buffer, CancellationToken token)
         {
             try
             {
@@ -407,7 +407,7 @@ namespace Fluxzy.Core
             }
         }
 
-        private async Task SafeCloseRequestBody(Exchange exchange)
+        private async ValueTask SafeCloseRequestBody(Exchange exchange)
         {
             if (exchange.Request.Body != null)
             {
@@ -425,7 +425,7 @@ namespace Fluxzy.Core
             }
         }
 
-        private async Task SafeCloseResponseBody(Exchange exchange)
+        private async ValueTask SafeCloseResponseBody(Exchange exchange)
         {
             if (exchange.Response.Body != null)
             {

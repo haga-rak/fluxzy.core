@@ -35,14 +35,16 @@ namespace Fluxzy.Rules
 
         public Action Action { get; set; }
 
-        public async Task Enforce(ExchangeContext context,
+        public ValueTask Enforce(ExchangeContext context,
             Exchange exchange,
             Connection connection)
         {
             if (Filter.Apply(context.Authority, exchange))
             {
-                await Action.Alter(context, exchange, connection);
+                return Action.Alter(context, exchange, connection);
             }
+
+            return default;
         }
     }
 }

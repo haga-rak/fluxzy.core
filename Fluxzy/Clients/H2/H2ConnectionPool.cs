@@ -104,7 +104,7 @@ namespace Fluxzy.Clients.H2
 
         private void UpStreamChannel(ref WriteTask data)
         {
-            _writerChannel.Writer.TryWrite(data);
+            _writerChannel!.Writer.TryWrite(data);
         }
 
         private void EmitPing(long opaqueData)
@@ -203,13 +203,11 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        private async Task<bool> WaitForSettingReceivedOrRaiseException()
+        private Task<bool> WaitForSettingReceivedOrRaiseException()
         {
             RaiseExceptionIfSettingNotReceived();
 
-            return await _waitForSettingReception.Task;
-
-            //await taskValidation; 
+            return _waitForSettingReception.Task;
         }
 
         public bool Complete => _complete;
@@ -331,8 +329,8 @@ namespace Fluxzy.Clients.H2
 
             try
             {
-                List<WriteTask> tasks = new List<WriteTask>();
-                byte[] windowSizeBuffer = new byte[13];
+                var tasks = new List<WriteTask>();
+                var windowSizeBuffer = new byte[13];
                 
 
                 while (!token.IsCancellationRequested)
@@ -674,7 +672,7 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        private async Task InternalSend(Exchange exchange, byte[] buffer, CancellationToken callerCancellationToken)
+        private async ValueTask InternalSend(Exchange exchange, byte[] buffer, CancellationToken callerCancellationToken)
         {
             exchange.HttpVersion = "HTTP/2";
 

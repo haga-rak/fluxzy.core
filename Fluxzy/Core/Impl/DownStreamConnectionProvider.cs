@@ -27,7 +27,7 @@ namespace Fluxzy.Core
             _token = _tokenSource.Token;
         }
 
-        public async Task<TcpClient?> GetNextPendingConnection()
+        public async ValueTask<TcpClient?> GetNextPendingConnection()
         {
             if (!_listeners.Any())
                 return null;
@@ -64,9 +64,9 @@ namespace Fluxzy.Core
 
                     var listenerCopy = listener;
 
-                  //  HandleAcceptConnection(listenerCopy);
+                    HandleAcceptConnection(listenerCopy);
 
-                    Task.Run(() => HandleAcceptConnection(listenerCopy));
+                   // Task.Run(() => HandleAcceptConnection(listenerCopy));
                 }
                 catch (SocketException sex)
                 {
@@ -84,13 +84,13 @@ namespace Fluxzy.Core
             return ListenEndpoints;
         }
 
-        private void HandleAcceptConnection(TcpListener listener)
+        private async void HandleAcceptConnection(TcpListener listener)
         {
             try
             {
                 while (true)
                 {
-                    var tcpClient = listener.AcceptTcpClient();
+                    var tcpClient = await listener.AcceptTcpClientAsync();
 
                     tcpClient.NoDelay = true; // NO Delay for local connection
                     // tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.

@@ -12,10 +12,10 @@ namespace Fluxzy.Rules.Actions
 
         public string? Comment { get; set; }
 
-        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             exchange.Comment = Comment;
-            return Task.CompletedTask; 
+            return default;
         }
     }
 }

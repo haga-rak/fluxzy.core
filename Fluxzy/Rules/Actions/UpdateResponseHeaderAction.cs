@@ -20,12 +20,12 @@ namespace Fluxzy.Rules.Actions
 
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
-        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             exchange.Response.Header.AltReplaceHeaders(
                 HeaderName, HeaderValue);
 
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

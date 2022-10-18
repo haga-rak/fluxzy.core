@@ -14,7 +14,7 @@ namespace Fluxzy.Rules.Actions
 
         public Tag? Tag { get; set; }
 
-        public override Task Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
             if (Tag != null)
             {
@@ -22,7 +22,7 @@ namespace Fluxzy.Rules.Actions
                 exchange.Tags.Add(Tag);
             }
 
-            return Task.CompletedTask;
+            return default;
         }
     }
 }
