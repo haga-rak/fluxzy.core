@@ -235,24 +235,41 @@ namespace Fluxzy.Clients.H2
                 }
         }
 
-        internal void ReceiveHeaderFragmentFromConnection(
-            int bodyLength, bool endStream, bool endHeader, ReadOnlyMemory<byte> data)
+        internal void ReceiveHeaderFragmentFromConnection(ref HeadersFrame headerFrame)
         {
-            _exchange.Metrics.TotalReceived += bodyLength;
+            _exchange.Metrics.TotalReceived += headerFrame.BodyLength;
 
             if (_exchange.Metrics.ResponseHeaderStart == default)
                 _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
 
-            if (endStream)
+            if (headerFrame.EndStream)
                 _noBodyStream = true;
-            ReceiveHeaderFragmentFromConnection(data, endHeader);
+            ReceiveHeaderFragmentFromConnection(headerFrame.Data, headerFrame.EndHeaders);
         }
 
-        internal void ReceiveHeaderFragmentFromConnection(int bodyLength, bool endHeader, ReadOnlyMemory<byte> data)
+        //internal void ReceiveHeaderFragmentFromConnection(
+        //    int bodyLength, bool endStream, bool endHeader, ReadOnlyMemory<byte> data)
+        //{
+        //    _exchange.Metrics.TotalReceived += bodyLength;
+
+        //    if (_exchange.Metrics.ResponseHeaderStart == default)
+        //        _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
+
+        //    if (endStream)
+        //        _noBodyStream = true;
+        //    ReceiveHeaderFragmentFromConnection(data, endHeader);
+        //}
+
+        internal void ReceiveHeaderFragmentFromConnection(ref ContinuationFrame continuationFrame)
         {
-            _exchange.Metrics.TotalReceived += bodyLength;
-            ReceiveHeaderFragmentFromConnection(data, endHeader);
+            _exchange.Metrics.TotalReceived += continuationFrame.BodyLength;
+            ReceiveHeaderFragmentFromConnection(continuationFrame.Data, continuationFrame.EndHeaders);
         }
+        //internal void ReceiveHeaderFragmentFromConnection(int bodyLength, bool endHeader, ReadOnlyMemory<byte> data)
+        //{
+        //    _exchange.Metrics.TotalReceived += bodyLength;
+        //    ReceiveHeaderFragmentFromConnection(data, endHeader);
+        //}
 
         private void ReceiveHeaderFragmentFromConnection(ReadOnlyMemory<byte> buffer,
             bool lastHeaderFragment)
@@ -339,8 +356,7 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        public async ValueTask ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream,
-            CancellationToken token)
+        public void ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream)
         {
             if (_noBodyStream)
                 throw new InvalidOperationException("Receiving response body was not expected. " +
@@ -374,11 +390,21 @@ namespace Fluxzy.Clients.H2
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 3");
 
-            var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);
+            var cancelled = false; 
+
+            try
+            {
+                _pipeResponseBody.Writer.Write(buffer.Span);
+            }
+            catch
+            {
+                cancelled = true; 
+            }
+           // var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 4");
 
-            var shouldEnd = endStream || flushResult.IsCompleted || flushResult.IsCanceled;
+            var shouldEnd = endStream || cancelled;
 
             if (shouldEnd)
             {
@@ -389,8 +415,8 @@ namespace Fluxzy.Clients.H2
                 _logger.Trace(_exchange, StreamIdentifier,
                     () => "End");
 
-                if (!flushResult.IsCanceled)
-                    await _pipeResponseBody.Writer.CompleteAsync();
+                if (!cancelled)
+                    _pipeResponseBody.Writer.Complete();
 
                 _logger.TraceDeep(StreamIdentifier, () => "a - 5");
 
@@ -398,7 +424,7 @@ namespace Fluxzy.Clients.H2
 
                 // Give a chance for semaphores to released before disposed
 
-                await Task.Yield();
+               // await Task.Yield();
 
                 _logger.TraceDeep(StreamIdentifier, () => "a - 6");
 

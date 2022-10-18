@@ -13,6 +13,7 @@ namespace Fluxzy.Core
     {
         public static readonly string Generic502 =
             "HTTP/1.1 502 Bad gateway\r\n" +
+            "x-fluxzy: Fluxzy error\r\n" +
             "Content-length: {0}\r\n" +
             "Content-type: text/plain\r\n" +
             "Connection : close\r\n\r\n";
