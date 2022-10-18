@@ -44,14 +44,10 @@ export class UiStateService {
     ) {
         this.refreshUiState();
 
-        this.apiService.registerEvent('uiUpdate', (state: UiState) => {
+        this.apiService.registerEvent('UiState', (state: UiState) => {
             this.uiState$.next(state);
             console.log(state);
         });
-
-        this.apiService.registerEvent('visibleExchangeUpdate', (f: FilteredExchangeState) => {
-            }
-        );
 
         combineLatest([
             this.getUiState(),

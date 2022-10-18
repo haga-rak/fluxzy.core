@@ -21,8 +21,7 @@ namespace Fluxzy.Desktop.Services
             IObservable<SystemProxyState> systemProxySate,
             IObservable<ViewFilter> viewFilter, 
             IObservable<TemplateToolBarFilterModel> templateToolBarFilterModel,
-            IHubContext<GlobalHub> hub,
-
+            ForwardMessageManager forwardMessageManager,
             ToolBarFilterProvider toolBarFilterProvider)
         {
             _state = fileState.CombineLatest(
@@ -46,8 +45,7 @@ namespace Fluxzy.Desktop.Services
             _state
                 .Throttle(TimeSpan.FromMilliseconds(10))
                 .Do(uiState => _stateObservable.OnNext(uiState))
-                .Select(uiState => hub.Clients.All.SendAsync("uiUpdate", uiState).ToObservable())
-                .Switch()
+                .Do(uiState => forwardMessageManager.Send(uiState))
                 .Subscribe();
         }
         

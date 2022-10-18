@@ -178,6 +178,12 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 var encodedLength = _codec.GetEncodedLength(inputBytes);
 
+
+                if (encodedLength > buffer.Length)
+                {
+
+                }
+
                 huffmanEncoded =  encodedLength < inputBytes.Length;
 
                 buffer[0] = (byte)(huffmanEncoded ? 0x80 : 0);

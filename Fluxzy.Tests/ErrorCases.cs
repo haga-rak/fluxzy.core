@@ -34,7 +34,7 @@ namespace Fluxzy.Tests
 
                 var responseBody = await response.Content.ReadAsStringAsync();
 
-                Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+                Assert.Equal((HttpStatusCode)528, response.StatusCode);
                 Assert.True(!string.IsNullOrWhiteSpace(responseBody));
             }
             catch (HttpRequestException)

@@ -98,12 +98,14 @@ namespace Fluxzy.Desktop.Services
 
                 var newContainer = new ConnectionContainer(connectionInfo);
 
-                connectionListFinal = !current.ConnectionsIndexer.TryGetValue(connectionInfo.Id, out var connectionIndex) ?
-                    // Add 
-                    connectionListFinal.Add(newContainer) 
-                    :
-                    // AddOrUpdate 
-                    connectionListFinal.SetItem(connectionIndex , newContainer);
+                if (!current.ConnectionsIndexer.TryGetValue(connectionInfo.Id, out var connectionIndex))
+                {
+                    connectionListFinal.Add(newContainer);
+                }
+                else
+                {
+                    connectionListFinal[connectionIndex] = newContainer;
+                }
 
                 current = new TrunkState(current.Exchanges, connectionListFinal);
 
@@ -121,13 +123,15 @@ namespace Fluxzy.Desktop.Services
                 var exchangeListFinal = current.Exchanges;
 
                 var newContainer = new ExchangeContainer(exchangeInfo);
-              
-                exchangeListFinal = !current.ExchangesIndexer.TryGetValue(exchangeInfo.Id, out var exchangeIndex) ?
-                    // Add 
-                    exchangeListFinal.Add(newContainer) 
-                    :
-                    // AddOrUpdate 
-                    exchangeListFinal.SetItem(exchangeIndex , newContainer);
+
+                if (!current.ExchangesIndexer.TryGetValue(exchangeInfo.Id, out var exchangeIndex))
+                {
+                    exchangeListFinal.Add(newContainer);
+                }
+                else
+                {
+                    exchangeListFinal[exchangeIndex] = newContainer;
+                }
 
                 current = new TrunkState(exchangeListFinal, current.Connections);
 
@@ -143,7 +147,7 @@ namespace Fluxzy.Desktop.Services
                 var current = _subject.Value;
                 var exchangeListFinal = current.Exchanges;
 
-                exchangeListFinal = exchangeListFinal.RemoveAll(e => deleteOp.Identifiers.Contains(e.Id));
+                exchangeListFinal.RemoveAll(e => deleteOp.Identifiers.Contains(e.Id));
 
                 current = new TrunkState(exchangeListFinal, current.Connections);
 
@@ -158,8 +162,11 @@ namespace Fluxzy.Desktop.Services
             {
                 var current = _subject.Value;
 
-                var exchangeListFinal = current.Exchanges.Clear();
-                var connectionListFinal = current.Connections.Clear(); 
+                var exchangeListFinal = current.Exchanges;
+                var connectionListFinal = current.Connections; 
+
+                exchangeListFinal.Clear();
+                connectionListFinal.Clear();
 
                 current = new TrunkState(exchangeListFinal, connectionListFinal);
 

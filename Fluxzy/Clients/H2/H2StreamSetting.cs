@@ -24,7 +24,7 @@ namespace Fluxzy.Clients.H2
         /// <summary>
         /// Number of idle seconds before the h2 connection is released
         /// </summary>
-        public int MaxIdleSeconds { get; set; } = 5; 
+        public int MaxIdleSeconds { get; set; } = 500; 
 
         /// <summary>
         /// Read buffer used by the connection. Should be at least MAX_FRAME_SIZE

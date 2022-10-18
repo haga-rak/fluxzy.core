@@ -35,7 +35,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 
-app.MapHub<GlobalHub>("/xs");
 app.MapFallbackToFile("index.html");
 
 var globalFileManager = app.Services.GetRequiredService<FileManager>();

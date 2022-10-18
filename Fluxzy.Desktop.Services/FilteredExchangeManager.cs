@@ -15,8 +15,8 @@ namespace Fluxzy.Desktop.Services
         protected override BehaviorSubject<FilteredExchangeState?> Subject { get; } = new (null);
 
         public FilteredExchangeManager(
-            IObservable<FileState> fileStateObservable, IObservable<ViewFilter> viewFilterObservable, 
-            IHubContext<GlobalHub> hub, ActiveViewFilterManager activeViewFilterManager)
+            IObservable<FileState> fileStateObservable, IObservable<ViewFilter> viewFilterObservable,
+            ActiveViewFilterManager activeViewFilterManager, ForwardMessageManager forwardMessageManager)
         {
             _activeViewFilterManager = activeViewFilterManager;
 
@@ -48,8 +48,8 @@ namespace Fluxzy.Desktop.Services
                                 .Do(v => Subject.OnNext(v))
                                 .Do(v =>
                                 {
-                                    hub.Clients.All.SendAsync(
-                                        "visibleExchangeUpdate", v);
+                                    if (v != null)
+                                        forwardMessageManager.Send(v);
                                 })
                                 .Subscribe((c) =>
                                 {

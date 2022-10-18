@@ -322,6 +322,11 @@ export interface UiState
 	toolBarFilters: ToolBarFilter[];
 	settingsHolder: FluxzySettingsHolder;
 }
+export interface ForwardMessage
+{
+	type: string;
+	payload: any;
+}
 export interface ProxyState
 {
 	boundConnections: ProxyEndPoint[];

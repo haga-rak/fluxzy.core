@@ -106,7 +106,7 @@ export class ExchangeManagementService {
 
 
     private registerExchangeUpdate() : void {
-        this.apiService.registerEvent('exchangeUpdate', (exchangeInfo: ExchangeInfo) => {
+        this.apiService.registerEvent('ExchangeInfo', (exchangeInfo: ExchangeInfo) => {
             if (!this.trunkState) {
                 return;
             }

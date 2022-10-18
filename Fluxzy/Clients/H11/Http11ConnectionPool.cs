@@ -176,9 +176,9 @@ namespace Fluxzy.Clients.H11
             }
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
-            await Task.CompletedTask;
+            return default; 
         }
 
         public void Dispose()

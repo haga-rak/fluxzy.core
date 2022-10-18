@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
@@ -165,5 +167,80 @@ namespace Fluxzy.Tests.Cli
             }
 
         }
+
+        [Fact]
+        public async Task Run_Cli_Aggressive_Request_Response()
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+
+            var bodyLength = 307978;
+            var count = 700;
+
+            var url =
+                "https://cci-news.com/wp-content/mmr/e44b2584-1639397252.min.js";
+
+
+            for (int i = 0 ; i < 2; i ++ )
+            {
+                await Task.WhenAll(
+                    Enumerable.Range(0, count).Select((i, e) =>
+                        AggressiveCallProducer.MakeAggressiveCall(
+                            $"{url}",
+                            fluxzyInstance.ListenPort, bodyLength, i % 2 == 0))
+                );
+
+
+               // await Task.Delay(30 * 1000);
+            }
+        }
+
     }
+
+
+    public static class AggressiveCallProducer
+    {
+        public static async Task MakeAggressiveCall(string url, int listenPort, int bodyLength, bool abort)
+        {
+            using var handler = new HttpClientHandler()
+            {
+                Proxy = new WebProxy($"http://127.0.0.1:{listenPort}")
+            };
+
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            using var client = new HttpClient(handler);
+            
+            var responseMessageTask = client.GetAsync(url, cancellationTokenSource.Token);
+            var contentLength = -1; 
+
+            if (abort)
+            {
+                await Task.Delay(50);
+                cancellationTokenSource.Cancel();
+            }
+
+            try
+            {
+                var responseMessage = await responseMessageTask;
+
+                contentLength = (await responseMessage.Content.ReadAsStreamAsync(cancellationTokenSource.Token))
+                    .Drain();
+            }
+            catch (OperationCanceledException)
+            {
+                return; 
+            }
+
+            if (!abort)
+                Assert.Equal(bodyLength, contentLength);
+            
+
+        }
+    }
+
 }

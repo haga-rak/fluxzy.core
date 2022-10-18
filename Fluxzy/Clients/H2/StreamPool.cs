@@ -9,7 +9,7 @@ namespace Fluxzy.Clients.H2
     internal class StreamPool : IDisposable, IAsyncDisposable
     {
         private readonly SemaphoreSlim _maxConcurrentStreamBarrier;
-        private readonly ConcurrentDictionary<int, StreamWorker> _runningStreams = new ConcurrentDictionary<int, StreamWorker>();
+        private readonly ConcurrentDictionary<int, StreamWorker> _runningStreams = new();
 
         private int _lastStreamIdentifier = -1;
         private bool _onError;

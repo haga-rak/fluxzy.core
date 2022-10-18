@@ -1,7 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
-import { Observable, take, map, tap } from 'rxjs';
+import {
+    Observable,
+    take,
+    map,
+    tap,
+    Subject,
+    finalize,
+    filter,
+    interval,
+    switchAll,
+    switchMap,
+    catchError,
+    of, delay, BehaviorSubject, pipe
+} from 'rxjs';
 import {
     ConnectionInfo, ContextMenuAction,
     ExchangeBrowsingState,
@@ -12,7 +25,7 @@ import {
     Filter, FilterTemplate,
     FluxzySettingsHolder,
     FormatterContainerViewModel,
-    FormattingResult,
+    FormattingResult, ForwardMessage,
     MultipartItem,
     SaveFileMultipartActionModel,
     StoredFilter,
@@ -26,30 +39,42 @@ import {FilterHolder} from "../settings/manage-filters/manage-filters.component"
 })
 // This service is responsible of delivering http service towards the .NET web service
 export class ApiService {
-    private hubConnection: HubConnection ;
+    private forwardMessages$ = new Subject<ForwardMessage>();
+    private loop$ = new BehaviorSubject<any>(null);
 
     constructor(private httpClient: HttpClient)
     {
-        this.hubConnection = new HubConnectionBuilder()
-                              .withUrl('/xs',
-                                    {
-                                         // localhost from **AspNetCore3.1 service**
-                                        //skipNegotiation: true,
-                                        transport: HttpTransportType.LongPolling // TODO remove in production
-                                    }
-                                )
-                              .build();
-
-        this.hubConnection
-            .start()
-            .then(() => console.log('signalR connected'))
-            .catch(err => console.log(`signalR error${err}`));
+        this.loopForwardMessage();
     }
 
+    public loopForwardMessage() : void {
+
+        this.loop$.asObservable()
+            .pipe(
+              //  tap(_ => console.log('triggered')),
+                switchMap(_ =>  this.forwardMessageConsume().
+                        pipe(
+                            catchError(err =>  of([]).pipe(delay(2000)))
+                        )
+                ),
+                tap(messages => {
+                    console.log('tapped');
+                    for (const message of messages) {
+                        this.forwardMessages$.next(message);
+                    }
+                }),
+                tap((_) => this.loop$.next(null))
+            ).subscribe();
+    }
+
+
     public registerEvent<T>(name : string, callback : (arg : T) => void ){
-        this.hubConnection.on(name, (data: T) => {
-            callback(data);
-        });
+
+        this.forwardMessages$.asObservable()
+            .pipe(
+                filter(t => t.type === name),
+                tap(m => callback(m.payload as T))
+            ).subscribe();
     }
 
     public trunkDelete(fileContentDelete : FileContentDelete ) : Observable<TrunkState> {
@@ -180,4 +205,9 @@ export class ApiService {
     public contextMenuGetActions(exchangeId : number) : Observable<ContextMenuAction[]> {
         return this.httpClient.get<ContextMenuAction[]>(`api/context-menu/${exchangeId}`).pipe(take(1));
     }
+
+    public forwardMessageConsume() : Observable<ForwardMessage[]> {
+        return this.httpClient.post<ForwardMessage[]>(`api/forward-message/consume`, null).pipe(take(1));
+    }
+
 }

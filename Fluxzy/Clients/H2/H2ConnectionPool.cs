@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -104,7 +105,7 @@ namespace Fluxzy.Clients.H2
 
         private void UpStreamChannel(ref WriteTask data)
         {
-            _writerChannel!.Writer.TryWrite(data);
+            _writerChannel?.Writer.TryWrite(data);
         }
 
         private void EmitPing(long opaqueData)
@@ -211,9 +212,17 @@ namespace Fluxzy.Clients.H2
         }
 
         public bool Complete => _complete;
+        private volatile bool initied = false;
 
         public async ValueTask Init()
         {
+            if (initied)
+            {
+                return; 
+            }
+
+            initied = false;
+
             var token = _connectionCancellationTokenSource.Token; 
 
             await _baseStream.WriteAsync(Preface, token).ConfigureAwait(false);
@@ -289,7 +298,7 @@ namespace Fluxzy.Clients.H2
             _complete = true; 
             // End the connection. This operation is idempotent. 
 
-            _logger.Trace(0, "Cleanup start");
+            _logger.Trace(0, "Cleanup start " + ex?.ToString());
 
             if (_onConnectionFaulted != null)
                 _onConnectionFaulted(this);
@@ -336,6 +345,10 @@ namespace Fluxzy.Clients.H2
                 while (!token.IsCancellationRequested)
                 {
                     tasks.Clear();
+
+                    if (_writerChannel == null)
+                        break; 
+
                     if (_writerChannel.Reader.TryReadAll(ref tasks))
                     {
                         var windowUpdateTasks = tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate).ToArray();
@@ -403,11 +416,6 @@ namespace Fluxzy.Clients.H2
                                 throw;
                             }
                         }
-
-                        if (count > 1)
-                        {
-                            Console.WriteLine($"Accumlated frames : {count} / {totalSize}");
-                        }
                     }
                     else
                     {
@@ -465,10 +473,21 @@ namespace Fluxzy.Clients.H2
                         await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
                         token).ConfigureAwait(false);
 
+                    var watch = new Stopwatch();
+
+                    watch.Start();
+
+
                     if (ProcessNewFrame(token, frame, ref readBuffer))
                         break;
-                    else
-                        continue;
+
+                    watch.Stop();
+
+                    if (watch.ElapsedMilliseconds > 5)
+                    {
+                       // Console.WriteLine($"Processing cost {watch.ElapsedMilliseconds} / {Authority.HostName} / {frame.BodyType}");
+                    }
+
                 }
 
                 _logger.TraceDeep(0, () => "Natural death");
@@ -735,7 +754,7 @@ namespace Fluxzy.Clients.H2
 
                 exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 
-                await activeStream.ProcessResponse(streamCancellationToken)
+                await activeStream.ProcessResponse(streamCancellationToken, this)
                     .ConfigureAwait(false);
 
             }
@@ -764,11 +783,16 @@ namespace Fluxzy.Clients.H2
         }
 
         public Authority Authority { get; }
-        
+
+        public volatile bool IsDisposed;
+    
+
         public async ValueTask DisposeAsync()
         {
             if (_connectionCancellationTokenSource == null)
                 return;
+
+            IsDisposed = true; 
 
             _writerChannel?.Writer.TryComplete();
 
@@ -797,32 +821,34 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        public void Dispose()
-        {
-            if (_connectionCancellationTokenSource == null)
-                return; 
+        //public void Dispose()
+        //{
+        //    if (_connectionCancellationTokenSource == null)
+        //        return;
 
-            _writerChannel?.Writer.TryComplete();
-            _writerChannel = null;
+        //    IsDisposed = true;
 
-            _overallWindowSizeHolder?.Dispose();
-            _overallWindowSizeHolder = null;
+        //    _writerChannel?.Writer.TryComplete();
+        //    _writerChannel = null;
 
-            _logger.Trace(0, () => "Disposed");
-            _connectionCancellationTokenSource.Cancel();
-            _connectionCancellationTokenSource?.Dispose();
-            _connectionCancellationTokenSource = null;
+        //    _overallWindowSizeHolder?.Dispose();
+        //    _overallWindowSizeHolder = null;
 
-            _writeSemaphore?.Dispose();
-            _writeSemaphore = null;
-            _streamCreationLock.Dispose();
+        //    _logger.Trace(0, () => "Disposed");
+        //    _connectionCancellationTokenSource.Cancel();
+        //    _connectionCancellationTokenSource?.Dispose();
+        //    _connectionCancellationTokenSource = null;
 
-            if (_baseStream != null)
-            {
-                _baseStream.Dispose();
-                _baseStream = null; 
-            }
-        }
+        //    _writeSemaphore?.Dispose();
+        //    _writeSemaphore = null;
+        //    _streamCreationLock.Dispose();
+
+        //    if (_baseStream != null)
+        //    {
+        //        _baseStream.Dispose();
+        //        _baseStream = null; 
+        //    }
+        //}
     }
     
 }

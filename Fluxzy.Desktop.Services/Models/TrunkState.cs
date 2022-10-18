@@ -8,17 +8,17 @@ namespace Fluxzy.Desktop.Services.Models
     public class TrunkState
     {
         public TrunkState(
-            IEnumerable<ExchangeContainer> internalExchanges,
-            IEnumerable<ConnectionContainer> internalConnections)
+            List<ExchangeContainer> internalExchanges,
+            List<ConnectionContainer> internalConnections)
         {
-            Exchanges = internalExchanges.OrderBy(r => r.Id).ToImmutableList();
-            Connections = internalConnections.OrderBy(r => r.Id).ToImmutableList();
-            
+            Exchanges = internalExchanges;
+            Connections = internalConnections;
+
             for (int index = 0; index < Exchanges.Count; index++)
             {
                 var exchange = Exchanges[index];
                 ExchangesIndexer[exchange.Id] = index;
-                MaxExchangeId = exchange.Id; 
+                MaxExchangeId = exchange.Id;
             }
 
             for (var index = 0; index < Connections.Count; index++)
@@ -29,10 +29,17 @@ namespace Fluxzy.Desktop.Services.Models
             }
         }
 
-        public ImmutableList<ExchangeContainer> Exchanges { get; }
+        public TrunkState(
+            IEnumerable<ExchangeContainer> internalExchanges,
+            IEnumerable<ConnectionContainer> internalConnections)
+            : this(internalExchanges.OrderBy(r => r.Id).ToList(), internalConnections.OrderBy(r => r.Id).ToList())
+        {
+        }
+
+        public List<ExchangeContainer> Exchanges { get; }
 
 
-        public ImmutableList<ConnectionContainer> Connections { get; }
+        public List<ConnectionContainer> Connections { get; }
 
 
         public int MaxExchangeId { get;  }
