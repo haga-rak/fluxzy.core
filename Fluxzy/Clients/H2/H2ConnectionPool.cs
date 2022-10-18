@@ -325,7 +325,7 @@ namespace Fluxzy.Clients.H2
 
         private async Task InternalWriteLoop(CancellationToken token)
         {
-            Exception outException = null;
+            Exception? outException = null;
 
             try
             {
@@ -338,6 +338,7 @@ namespace Fluxzy.Clients.H2
                     tasks.Clear();
                     if (_writerChannel.Reader.TryReadAll(ref tasks))
                     {
+                        int count = 0; 
                         foreach (var element
                                  in tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate))
                         {
@@ -352,9 +353,15 @@ namespace Fluxzy.Clients.H2
                                 break; 
 
                             await _baseStream.WriteAsync(windowSizeBuffer, token).ConfigureAwait(false);
-                            await _baseStream.FlushAsync(token);
+                            count++; 
+                            //await _baseStream.FlushAsync(token);
 
                             // _lastActivity = ITimingProvider.Default.Instant();
+                        }
+
+                        if (count > 1)
+                        {
+                            Console.WriteLine($"Count write " + count);
                         }
 
                         // TODO improve the priority rule 
