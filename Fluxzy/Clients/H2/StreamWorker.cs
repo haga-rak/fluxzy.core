@@ -339,7 +339,7 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        public async Task ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream,
+        public async ValueTask ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream,
             CancellationToken token)
         {
             if (_noBodyStream)

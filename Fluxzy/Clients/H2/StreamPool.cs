@@ -9,7 +9,7 @@ namespace Fluxzy.Clients.H2
     internal class StreamPool : IDisposable, IAsyncDisposable
     {
         private readonly SemaphoreSlim _maxConcurrentStreamBarrier;
-        private readonly IDictionary<int, StreamWorker> _runningStreams = new ConcurrentDictionary<int, StreamWorker>();
+        private readonly ConcurrentDictionary<int, StreamWorker> _runningStreams = new ConcurrentDictionary<int, StreamWorker>();
 
         private int _lastStreamIdentifier = -1;
         private bool _onError;
@@ -73,7 +73,7 @@ namespace Fluxzy.Clients.H2
         ///     Get or create  active stream
         /// </summary>
         /// <returns></returns>
-        public async Task<StreamWorker> CreateNewStreamProcessing(Exchange exchange,
+        public async ValueTask<StreamWorker> CreateNewStreamProcessing(Exchange exchange,
             CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit,
             CancellationTokenSource resetTokenSource)
         {
@@ -94,7 +94,7 @@ namespace Fluxzy.Clients.H2
         {
             // reset can happens here 
 
-            if (_runningStreams.Remove(streamWorker.StreamIdentifier))
+            if (_runningStreams.TryRemove(streamWorker.StreamIdentifier, out _))
             {
                 _maxConcurrentStreamBarrier.Release();
                 streamWorker.Dispose();
