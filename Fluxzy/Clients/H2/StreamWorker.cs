@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -244,6 +245,7 @@ namespace Fluxzy.Clients.H2
 
             if (headerFrame.EndStream)
                 _noBodyStream = true;
+
             ReceiveHeaderFragmentFromConnection(headerFrame.Data, headerFrame.EndHeaders);
         }
 
@@ -284,11 +286,23 @@ namespace Fluxzy.Clients.H2
             {
                 _exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
+                var watch = new Stopwatch();
+
+                watch.Start();
+
                 var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
+
+                watch.Stop();
+
+                if (watch.ElapsedMilliseconds > 5)
+                {
+                   // Console.WriteLine($"Processing decode and allocate {watch.ElapsedMilliseconds} / {Parent.Context.Authority.HostName} / {charHeader.Length}");
+                }
 
                 _exchange.Response.Header = new ResponseHeader(charHeader, true, Parent.Context.Parser);
 
                 _logger.TraceResponse(this, _exchange);
+                
 
                 if (DebugContext.InsertFluxzyMetricsOnResponseHeader)
                 {
@@ -300,6 +314,7 @@ namespace Fluxzy.Clients.H2
                         new HeaderField(headerName, headerValue));
                 }
 
+
                 _logger.Trace(StreamIdentifier, "Releasing semaphore");
 
                 _headerReceivedSemaphore.Release();
@@ -308,18 +323,29 @@ namespace Fluxzy.Clients.H2
 
         private Memory<char> DecodeAndAllocate(ReadOnlySpan<byte> onWire)
         {
-            Span<char> tempBuffer = stackalloc char[Parent.Context.Setting.MaxHeaderSize];
+            var byteArray = ArrayPool<char>.Shared.Rent(1024 * 64);
 
-            var decoded = Parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
-            Memory<char> charBuffer = new char[decoded.Length + 256];
+            try
+            {
+                // Span<char> tempBuffer = stackalloc char[Parent.Context.Setting.MaxHeaderSize];
+                Span<char> tempBuffer = byteArray;
 
-            decoded.CopyTo(charBuffer.Span);
-            var length = decoded.Length;
+                var decoded = Parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
+                Memory<char> charBuffer = new char[decoded.Length + 256];
 
-            return charBuffer.Slice(0, length);
+                decoded.CopyTo(charBuffer.Span);
+                var length = decoded.Length;
+
+                return charBuffer.Slice(0, length);
+            }
+            finally
+            {
+                ArrayPool<char>.Shared.Return(byteArray);
+            }
+
         }
 
-        public async ValueTask ProcessResponse(CancellationToken cancellationToken)
+        public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
         {
             SendWindowUpdate(Parent.Context.Setting.Local.WindowSize, StreamIdentifier);
 
@@ -334,8 +360,8 @@ namespace Fluxzy.Clients.H2
             }
             catch (OperationCanceledException)
             {
-                _logger.Trace(StreamIdentifier, "Received no header, cancelled by caller");
-                throw new IOException("Received no header, cancelled by caller");
+                _logger.Trace(StreamIdentifier, $"Received no header, cancelled by caller {StreamIdentifier}");
+                throw new IOException($"Received no header, cancelled by caller {StreamIdentifier} / {Parent.Context.ConnectionId} / {cp.IsDisposed}");
             }
             catch (Exception)
             {

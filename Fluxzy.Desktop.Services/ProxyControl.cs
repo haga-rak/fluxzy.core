@@ -11,7 +11,7 @@ namespace Fluxzy.Desktop.Services
 {
     public class ProxyControl : ObservableProvider<ProxyState>
     {
-        private readonly IHubContext<GlobalHub> _hub;
+        private readonly ForwardMessageManager _forwardMessageManager;
         private readonly FilteredExchangeManager _filteredExchangeManager;
         private Proxy?  _proxy;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
@@ -22,10 +22,10 @@ namespace Fluxzy.Desktop.Services
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<FileContentOperationManager> contentObservable,
             IObservable<ViewFilter> viewFilter,
-            IHubContext<GlobalHub> hub,
+             ForwardMessageManager forwardMessageManager,
             FilteredExchangeManager filteredExchangeManager)
         {
-            _hub = hub;
+            _forwardMessageManager = forwardMessageManager;
             _filteredExchangeManager = filteredExchangeManager;
 
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState()
@@ -106,8 +106,7 @@ namespace Fluxzy.Desktop.Services
 
                     if (_viewFilter?.Filter == null || _viewFilter.Filter.Apply(null, args.ExchangeInfo))
                     {
-                        _hub.Clients.All.SendAsync("exchangeUpdate", args.ExchangeInfo);
-                      
+                        _forwardMessageManager.Send(args.ExchangeInfo);
                     }
 
                     _filteredExchangeManager.OnExchangeAdded(args.ExchangeInfo);
@@ -116,9 +115,7 @@ namespace Fluxzy.Desktop.Services
                 _proxy.Writer.ConnectionUpdated += delegate(object? sender, ConnectionUpdateEventArgs args)
                 {
                     currentContentOperationManager.AddOrUpdate(args.Connection);
-
-                    _hub.Clients.All.SendAsync(
-                        "connectionUpdate", args.Connection);
+                    _forwardMessageManager.Send(args.Connection);
                 };
 
                 endPoints = _proxy.Run();

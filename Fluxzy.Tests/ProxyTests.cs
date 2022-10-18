@@ -571,7 +571,7 @@ namespace Fluxzy.Tests
                await response.Content.ReadAsStringAsync(
                     cancellationTokenSource.Token);
 
-                Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+                Assert.Equal((HttpStatusCode)528, response.StatusCode);
 
                 await requestReceived.Task;
             }

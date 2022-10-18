@@ -160,7 +160,7 @@ namespace Fluxzy.Clients.H11
 
         public ValueTask DisposeAsync()
         {
-            return new ValueTask(Task.CompletedTask); 
+            return default;
         }
     }
 }

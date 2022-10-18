@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
@@ -33,7 +34,7 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             var entry = new HeaderField(headerName, headerValue, _memoryProvider);
             var value = _dynamicTable.Add(entry);
-            
+
             return entry;
         }
 

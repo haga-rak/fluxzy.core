@@ -42,6 +42,9 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<UiState>()
                 .ApplyGenericProperties();
 
+            builder.ExportAsInterface<ForwardMessage>()
+                .ApplyGenericProperties();
+
             builder.ExportAsInterface<ProxyState>()
                 .ApplyGenericProperties();
 

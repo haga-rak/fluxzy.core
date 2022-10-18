@@ -107,6 +107,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         {
             Span<char> cookieBuffer = stackalloc char[_maxHeaderLine];
             var length = InternalWrite(entries, buffer, cookieBuffer);
+
             return buffer.Slice(0, length);
         }
 

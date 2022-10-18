@@ -10,7 +10,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
-    public class FluxzyHttp2Handler : HttpMessageHandler
+    public class FluxzyHttp2Handler : HttpMessageHandler, IAsyncDisposable
     {
         private readonly H2StreamSetting _streamSetting;
         private readonly IDictionary<string, H2ConnectionPool>
@@ -71,9 +71,16 @@ namespace Fluxzy.Clients.DotNetBridge
 
             foreach (var connection in _activeConnections.Values)
             {
-                connection.Dispose();
+               // connection.Dispose();
             }
         }
 
+        public async ValueTask DisposeAsync()
+        {
+            foreach (var connection in _activeConnections.Values)
+            {
+                await connection.DisposeAsync();
+            }
+        }
     }
 }

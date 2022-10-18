@@ -145,7 +145,6 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
             .asObservable()
             .pipe(
                 tap((t) => (this.propertyContext.currentResponseTabView = t)),
-               // tap(t => setTimeout(() => this.cdr.detectChanges(),0)), // TODO : check issue here
                 )
             .subscribe();
 

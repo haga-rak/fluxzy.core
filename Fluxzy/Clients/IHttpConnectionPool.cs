@@ -9,7 +9,7 @@ namespace Fluxzy.Clients
     /// <summary>
     /// Represents a connection pool to the same authority, using the same .
     /// </summary>
-    public interface IHttpConnectionPool : IAsyncDisposable, IDisposable
+    public interface IHttpConnectionPool : IAsyncDisposable
     {
         Authority Authority { get; }
 

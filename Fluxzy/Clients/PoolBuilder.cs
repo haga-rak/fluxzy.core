@@ -106,12 +106,13 @@ namespace Fluxzy.Clients
 
             IHttpConnectionPool? result = null;
 
-            var semaphore = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
+            var semaphorePerAuthority = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
+            var released = false; 
 
             try
             {
-                if (!semaphore.Wait(0))
-                    await semaphore.WaitAsync(cancellationToken);
+                if (!semaphorePerAuthority.Wait(0))
+                    await semaphorePerAuthority.WaitAsync(cancellationToken);
 
                 // Looking for existing HttpPool
 
@@ -204,7 +205,12 @@ namespace Fluxzy.Clients
                 try
                 {
                     if (result != null)
+                    {
+                        released = true;
+                        semaphorePerAuthority.Release();
+                        
                         await result.Init();
+                    }
 
                     exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
                 }
@@ -215,7 +221,8 @@ namespace Fluxzy.Clients
                 }
                 finally
                 {
-                    semaphore.Release();
+                    if (!released)
+                        semaphorePerAuthority.Release();
                 }
             }
             //return null; 
@@ -239,15 +246,20 @@ namespace Fluxzy.Clients
         {
             lock (_connectionPools)
             {
-                _connectionPools.Remove(h2ConnectionPool.Authority);
+                if (_connectionPools.Remove(h2ConnectionPool.Authority))
+                {
+                    Console.WriteLine("Removed " + h2ConnectionPool.Authority.HostName);
+                    h2ConnectionPool.DisposeAsync();
+                }
             }
 
             try
             {
+                // h2ConnectionPool.Dispose();
             }
             catch
             {
-                h2ConnectionPool.Dispose();
+                // Dispose and suppress errors
             }
         }
     }

@@ -12,7 +12,7 @@ namespace Fluxzy.Core
     public static class ConnectionErrorConstants
     {
         public static readonly string Generic502 =
-            "HTTP/1.1 502 Bad gateway\r\n" +
+            "HTTP/1.1 528 Fluxzy error\r\n" +
             "x-fluxzy: Fluxzy error\r\n" +
             "Content-length: {0}\r\n" +
             "Content-type: text/plain\r\n" +
@@ -50,6 +50,11 @@ namespace Fluxzy.Core
                     header.AsMemory(),
                     exchange.Authority.Secure,
                     Parser);
+
+                if (DebugContext.EnableDumpStackTraceOn502)
+                {
+                    Console.WriteLine(message);
+                }
 
                 exchange.Response.Body = new MemoryStream(messageBinary);
 
