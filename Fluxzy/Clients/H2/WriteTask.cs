@@ -25,7 +25,7 @@ namespace Fluxzy.Clients.H2
 
         public ReadOnlyMemory<byte> BufferBytes { get; }
 
-        public void OnComplete(Exception ex)
+        public void OnComplete(Exception? ex)
         {
             if (ex != null)
             {
@@ -48,6 +48,6 @@ namespace Fluxzy.Clients.H2
 
         public int WindowUpdateSize { get; }
 
-        public TaskCompletionSource<object> CompletionSource { get; }
+        public TaskCompletionSource<object?> CompletionSource { get; }
     }
 }

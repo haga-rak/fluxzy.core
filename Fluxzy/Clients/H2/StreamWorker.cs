@@ -372,7 +372,6 @@ namespace Fluxzy.Clients.H2
 
             _exchange.Metrics.TotalReceived += buffer.Length;
 
-
             _logger.TraceDeep(StreamIdentifier, () => "a - 3");
 
             var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);

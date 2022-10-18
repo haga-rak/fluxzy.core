@@ -338,31 +338,36 @@ namespace Fluxzy.Clients.H2
                     tasks.Clear();
                     if (_writerChannel.Reader.TryReadAll(ref tasks))
                     {
-                        int count = 0; 
-                        foreach (var element
-                                 in tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate))
+                        var windowUpdateTasks = tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate).ToArray();
+
+                        if (windowUpdateTasks.Length > 0)
                         {
-                            // _lastActivity = ITimingProvider.Default.Instant();
+                            var bufferLength = windowUpdateTasks.Length * 13;
+                            var buffer = ArrayPool<byte>.Shared.Rent(bufferLength);
+                            var memoryBuffer = new Memory<byte>(buffer).Slice(0, bufferLength);
 
-                            new WindowUpdateFrame(element.WindowUpdateSize, element.StreamIdentifier)
-                                .Write(windowSizeBuffer);
+                            try
+                            {
+                                foreach (var writeTask in windowUpdateTasks)
+                                {
+                                    new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
+                                        .Write(memoryBuffer.Span);
 
-                            _logger.OutgoingWindowUpdate(element.WindowUpdateSize, element.StreamIdentifier);
+                                    memoryBuffer = memoryBuffer.Slice(13);
 
-                            if (token.IsCancellationRequested)
-                                break; 
-
-                            await _baseStream.WriteAsync(windowSizeBuffer, token).ConfigureAwait(false);
-                            count++; 
-                            //await _baseStream.FlushAsync(token);
-
-                            // _lastActivity = ITimingProvider.Default.Instant();
+                                    _logger.OutgoingWindowUpdate(writeTask.WindowUpdateSize, writeTask.StreamIdentifier);
+                                }
+                            }
+                            finally
+                            {
+                                ArrayPool<byte>.Shared.Return(buffer);
+                            }
+                            
+                            await _baseStream.WriteAsync(buffer,0, bufferLength, token).ConfigureAwait(false);
                         }
 
-                        if (count > 1)
-                        {
-                            Console.WriteLine($"Count write " + count);
-                        }
+                        int count = 0;
+                        int totalSize = 0; 
 
                         // TODO improve the priority rule 
                         foreach (var writeTask in tasks
@@ -382,7 +387,11 @@ namespace Fluxzy.Clients.H2
                                 
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 
-                                await _baseStream.FlushAsync(token);
+                                totalSize += writeTask.BufferBytes.Length; 
+
+                                count++; 
+
+                               // await _baseStream.FlushAsync(token);
 
                                 // _lastActivity = ITimingProvider.Default.Instant();
 
@@ -393,6 +402,11 @@ namespace Fluxzy.Clients.H2
                                 writeTask.OnComplete(ex);
                                 throw;
                             }
+                        }
+
+                        if (count > 1)
+                        {
+                            Console.WriteLine($"Accumlated frames : {count} / {totalSize}");
                         }
                     }
                     else
@@ -517,7 +531,7 @@ namespace Fluxzy.Clients.H2
                             continue;
                         }
 
-                        // THIS IS SO DIRTY; HeaderFrames shouldn't be a ref struct 
+                        // TODO: THIS IS SO DIRTY; HeaderFrames shouldn't be a ref struct 
 
                         activeStream.ReceiveHeaderFragmentFromConnection(
                             frame.GetHeadersFrame().BodyLength,
