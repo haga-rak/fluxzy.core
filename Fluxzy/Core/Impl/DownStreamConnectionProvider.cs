@@ -66,7 +66,10 @@ namespace Fluxzy.Core
 
                     //HandleAcceptConnection(listenerCopy);
 
-                    Task.Run(() => HandleAcceptConnection(listenerCopy));
+                    new Thread((a) => HandleAcceptConnection((TcpListener)a))
+                    {
+                        IsBackground = true
+                    }.Start(listenerCopy);
                 }
                 catch (SocketException sex)
                 {
@@ -91,6 +94,7 @@ namespace Fluxzy.Core
                 //while (true)
                 {
                     listener.BeginAcceptTcpClient(Callback, listener);
+
                     //var tcpClient = listener.AcceptTcpClientAsync();
 
                     //tcpClient.NoDelay = true; // NO Delay for local connection
@@ -112,15 +116,16 @@ namespace Fluxzy.Core
         {
             try
             {
-                var listener = (TcpListener)ar.AsyncState;
+                var listener = (TcpListener) ar.AsyncState;
                 var tcpClient = listener.EndAcceptTcpClient(ar);
                 listener.BeginAcceptTcpClient(Callback, listener);
+                tcpClient.NoDelay = true;
                 _pendingClientConnections.Writer.TryWrite(tcpClient);
 
             }
             catch (Exception)
             {
-
+                // ignored
             }
         }
 

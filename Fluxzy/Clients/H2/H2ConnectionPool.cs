@@ -212,7 +212,7 @@ namespace Fluxzy.Clients.H2
 
         public bool Complete => _complete;
 
-        public async Task Init()
+        public async ValueTask Init()
         {
             var token = _connectionCancellationTokenSource.Token; 
 
@@ -241,7 +241,7 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        public Task<bool> CheckAlive()
+        public ValueTask<bool> CheckAlive()
         {
             var instant = ITimingProvider.Default.Instant();
 
@@ -264,10 +264,10 @@ namespace Fluxzy.Clients.H2
                     _logger.Trace(0, () => $"IDLE timeout. Connection closed.");
                 }
 
-                return Task.FromResult(false); 
+                return new ValueTask<bool>(false); 
             }
 
-            return Task.FromResult(true); 
+            return new ValueTask<bool>(true); 
         }
 
         private void OnGoAway(GoAwayFrame frame)
@@ -709,7 +709,7 @@ namespace Fluxzy.Clients.H2
                         _streamCreationLock.Release();
                 }
 
-                await waitForHeaderSentTask.ConfigureAwait(false);
+                await waitForHeaderSentTask;
 
                 exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 

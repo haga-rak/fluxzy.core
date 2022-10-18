@@ -11,6 +11,7 @@ using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Misc;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Clients
@@ -75,7 +76,7 @@ namespace Fluxzy.Clients
                         activePools = _connectionPools.Values.ToList();
                     }
 
-                    await Task.WhenAll(activePools.Select(s => s.CheckAlive()));
+                    await ValueTaskUtil.WhenAll(activePools.Select(s => s.CheckAlive()).ToArray());
                 }
             }
             catch (TaskCanceledException)
@@ -141,7 +142,7 @@ namespace Fluxzy.Clients
 
                 if (!exchange.Authority.Secure)
                 {
-                    // Plain HTTP/1.1
+                    // Plain HTTP/1, no h2c
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _http11Parser, _archiveWriter);
 
@@ -203,9 +204,14 @@ namespace Fluxzy.Clients
                 try
                 {
                     if (result != null)
-                        await PoolInit(result);
+                        await result.Init();
 
                     exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+                }
+                catch
+                {
+                    if (result != null)
+                        OnConnectionFaulted(result);
                 }
                 finally
                 {
@@ -215,19 +221,19 @@ namespace Fluxzy.Clients
             //return null; 
         }
 
-        private async Task PoolInit(IHttpConnectionPool result)
-        {
-            try
-            {
-                await result.Init();
-            }
-            catch (Exception)
-            {
-                OnConnectionFaulted(result);
+        //private ValueTask PoolInit(IHttpConnectionPool result)
+        //{
+        //    try
+        //    {
+        //        return result.Init();
+        //    }
+        //    catch (Exception)
+        //    {
+        //        OnConnectionFaulted(result);
 
-                throw;
-            }
-        }
+        //        throw;
+        //    }
+        //}
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)
         {

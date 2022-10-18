@@ -35,14 +35,14 @@ namespace Fluxzy.Clients.Mock
 
         public bool Complete => _complete;
 
-        public Task Init()
+        public ValueTask Init()
         {
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task<bool> CheckAlive()
+        public ValueTask<bool> CheckAlive()
         {
-            return Task.FromResult(_complete); 
+            return new ValueTask<bool>(_complete); 
         }
 
         public async ValueTask Send(
@@ -64,7 +64,6 @@ namespace Fluxzy.Clients.Mock
 
             exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
             exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
-
 
             exchange.Response.Body =
                 new MetricsStream(_preMadeResponse.ReadBody(_authority),
