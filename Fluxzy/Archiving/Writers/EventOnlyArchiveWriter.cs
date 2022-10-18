@@ -13,14 +13,12 @@ namespace Fluxzy.Writers
 
         }
 
-        public override ValueTask Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        public override void Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
-            return default;
         }
 
-        public override ValueTask Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
+        public override void Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
         {
-            return default;
         }
 
         public override Stream CreateRequestBodyStream(int exchangeId)

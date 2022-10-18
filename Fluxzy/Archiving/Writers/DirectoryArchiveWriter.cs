@@ -53,7 +53,7 @@ namespace Fluxzy.Writers
             UpdateMeta();
         }
 
-        public override ValueTask Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        public override void Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
             var exchangePath = DirectoryArchiveHelper.GetExchangePath(_baseDirectory, exchangeInfo);
 
@@ -73,11 +73,10 @@ namespace Fluxzy.Writers
                     UpdateMeta();
                 }
             }
-
-            return default;
+            
         }
 
-        public override ValueTask Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
+        public override void Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
         {
             var connectionPath = DirectoryArchiveHelper.GetConnectionPath(_baseDirectory, connectionInfo);
 
@@ -85,8 +84,7 @@ namespace Fluxzy.Writers
 
             using var fileStream = File.Create(connectionPath);
             JsonSerializer.Serialize(fileStream, connectionInfo, GlobalArchiveOption.JsonSerializerOptions);
-
-            return default; 
+            
         }
 
         public override Stream CreateRequestBodyStream(int exchangeId)

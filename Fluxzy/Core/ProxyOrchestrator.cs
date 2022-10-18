@@ -92,7 +92,7 @@ namespace Fluxzy.Core
                             {
                                 if (_archiveWriter != null)
                                 {
-                                    await _archiveWriter.Update(
+                                    _archiveWriter.Update(
                                         exchange,
                                         UpdateType.BeforeRequestHeader,
                                         CancellationToken.None
@@ -199,7 +199,7 @@ namespace Fluxzy.Core
                                 {
                                     // Update the state of the exchange
                                     // 
-                                    await _archiveWriter.Update(exchange, UpdateType.AfterResponseHeader, CancellationToken.None
+                                    _archiveWriter.Update(exchange, UpdateType.AfterResponseHeader, CancellationToken.None
                                     );
 
                                     if (exchange.Response.Body != null &&
@@ -211,12 +211,14 @@ namespace Fluxzy.Core
 
                                         var ext = exchange;
 
-                                        dispatchStream.OnDisposeDoneTask = async () =>
+                                        dispatchStream.OnDisposeDoneTask = () =>
                                         {
-                                            await _archiveWriter.Update(ext, 
+                                            _archiveWriter.Update(ext, 
                                                 UpdateType.AfterResponse, 
                                                 CancellationToken.None
                                             );
+
+                                            return default;
                                         };
 
                                         exchange.Response.Body = dispatchStream;
@@ -225,7 +227,7 @@ namespace Fluxzy.Core
                                     {
                                         // No response body, we ensure the stream is done
 
-                                        await _archiveWriter.Update(exchange,
+                                        _archiveWriter.Update(exchange,
                                             UpdateType.AfterResponse,
                                             CancellationToken.None
                                         );
