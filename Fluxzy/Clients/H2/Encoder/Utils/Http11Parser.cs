@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Clients.H2.Encoder.HPack;
@@ -105,10 +106,25 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             ICollection<HeaderField> entries, 
             Span<char> buffer)
         {
-            Span<char> cookieBuffer = stackalloc char[_maxHeaderLine];
-            var length = InternalWrite(entries, buffer, cookieBuffer);
+            char[]? heapBuffer = null;
 
-            return buffer.Slice(0, length);
+            try
+            {
+                var minimumLength = entries.Sum(s => s.Size)  + 64;
+
+                Span<char> cookieBuffer = minimumLength < 1024 ? stackalloc char[minimumLength]
+                    : heapBuffer = ArrayPool<char>.Shared.Rent(minimumLength);
+
+                var length = InternalWrite(entries, buffer, cookieBuffer);
+
+                return buffer.Slice(0, length);
+            }
+            finally
+            {
+                if (heapBuffer != null)
+                    ArrayPool<char>.Shared.Return(heapBuffer);
+            }
+
         }
 
         /// <summary>
@@ -121,9 +137,23 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             ICollection<HeaderFieldInfo> entries, 
             Span<char> buffer)
         {
-            Span<char> cookieBuffer = stackalloc char[_maxHeaderLine];
-            var length = InternalWrite(entries, buffer, cookieBuffer);
-            return buffer.Slice(0, length);
+            char[]? heapBuffer = null;
+
+            try
+            {
+                var minimumLength = entries.Sum(s => s.Value.Length + s.Name.Length + 32) + 64;
+
+                Span<char> cookieBuffer = minimumLength < 1024 ? stackalloc char[minimumLength]
+                    : heapBuffer = ArrayPool<char>.Shared.Rent(minimumLength);
+
+                var length = InternalWrite(entries, buffer, cookieBuffer);
+                return buffer.Slice(0, length);
+            }
+            finally
+            {
+                if (heapBuffer != null)
+                    ArrayPool<char>.Shared.Return(heapBuffer);
+            }
         }
 
         private static int InternalWrite(in ICollection<HeaderField> entries, in Span<char> buffer, in Span<char> cookieBuffer)
