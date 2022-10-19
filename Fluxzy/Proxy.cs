@@ -123,7 +123,7 @@ namespace Fluxzy
                 using (client)
                 {
                     var buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
-
+                    
                     try
                     {
                         // already disposed

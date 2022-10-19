@@ -32,7 +32,7 @@ namespace Fluxzy.Clients.H11
             var totalRead = 0;
             var indexFound = -1;
             var firstBytes = true;
-
+            
             while (totalRead < buffer.Length)
             {
                 var currentRead = await stream.ReadAsync(bufferIndex, token);

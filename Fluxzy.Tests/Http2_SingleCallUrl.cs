@@ -385,5 +385,26 @@ namespace Fluxzy.Tests
         }
         
 
+        [Fact]
+        public async Task Get_304()
+        {
+            using var handler = new FluxzyHttp2Handler();
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://registry.2befficient.io:40300/status/304"
+            );
+
+            requestMessage.Headers.Add("x-Header-a", "ads");
+
+            var response = await httpClient.SendAsync(requestMessage);
+
+            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            Assert.Equal((HttpStatusCode)304, response.StatusCode);
+        }
+        
+
     }
 }
