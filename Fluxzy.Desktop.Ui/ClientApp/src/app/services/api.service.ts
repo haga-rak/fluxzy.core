@@ -140,10 +140,17 @@ export class ApiService {
             );
     }
 
-    public getFormatters(exchangeId : number) : Observable<FormatterContainerViewModel> {
+    public formattersGet(exchangeId : number) : Observable<FormatterContainerViewModel> {
         return this.httpClient.get<FormatterContainerViewModel>(`api/producers/formatters/${exchangeId}`)
             .pipe(
-                take(1)
+                take(1),
+                catchError( (_) => {
+                    return of({
+                        contextInfo : null,
+                        requests : [],
+                        responses : []
+                    });
+                })
             );
     }
 
