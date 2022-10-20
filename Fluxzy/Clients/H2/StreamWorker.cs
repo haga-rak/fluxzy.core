@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Frames;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
 {
@@ -152,7 +153,7 @@ namespace Fluxzy.Clients.H2
             Exclusive = priorityFrame.Exclusive;
         }
 
-        public Task EnqueueRequestHeader(Exchange exchange, byte[] buffer, CancellationToken token)
+        public Task EnqueueRequestHeader(Exchange exchange, RsBuffer buffer, CancellationToken token)
         {
             var endStream = exchange.Request.Header.ContentLength == 0 ||
                             exchange.Request.Body == null ||
@@ -173,18 +174,18 @@ namespace Fluxzy.Clients.H2
                                   .ContinueWith(t => _exchange.Metrics.TotalSent += readyToBeSent.Length, token);
         }
 
-        public async ValueTask ProcessRequestBody(Exchange exchange, byte[] buffer, CancellationToken token)
+        public async ValueTask ProcessRequestBody(Exchange exchange, RsBuffer buffer, CancellationToken token)
         {
             var totalSent = 0;
             var requestBodyStream = exchange.Request.Body;
             var bodyLength = exchange.Request.Header.ContentLength;
-            var localBuffer = new Memory<byte>(buffer);
+            var localBuffer = buffer.Memory;
 
             if (requestBodyStream != null
                 && (!requestBodyStream.CanSeek || requestBodyStream.Length > 0))
                 while (true)
                 {
-                    var bookedSize = Parent.Context.Setting.Local.MaxFrameSize - 9;
+                    var bookedSize = Math.Min(Parent.Context.Setting.Local.MaxFrameSize - 9, buffer.Buffer.Length - 9);
 
                     if (_disposed)
                         throw new TaskCanceledException("Stream cancellation request");

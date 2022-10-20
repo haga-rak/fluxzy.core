@@ -548,7 +548,6 @@ namespace Fluxzy.Tests
             Assert.True(response.IsSuccessStatusCode);
 
             await requestReceived.Task;
-            
         }
 
         [Fact]

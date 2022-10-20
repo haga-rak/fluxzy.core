@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.Mock
@@ -45,9 +46,8 @@ namespace Fluxzy.Clients.Mock
             return new ValueTask<bool>(_complete); 
         }
 
-        public async ValueTask Send(
-            Exchange exchange,
-            ILocalLink localLink, byte[] buffer,
+        public async ValueTask Send(Exchange exchange,
+            ILocalLink localLink, RsBuffer buffer,
             CancellationToken cancellationToken = default)
         {
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
