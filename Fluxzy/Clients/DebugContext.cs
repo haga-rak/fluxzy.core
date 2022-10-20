@@ -44,11 +44,6 @@ namespace Fluxzy.Clients
         public static string WindowSizeTraceDumpDirectory { get; } = "trace";
 
 
-        /// <summary>
-        /// Incremental index of filedump 
-        /// </summary>
-        internal static int FileDumpIndex = 0;
-
         static DebugContext()
         {
             var fileDump = Environment

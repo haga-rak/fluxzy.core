@@ -142,8 +142,11 @@ namespace Fluxzy.Cli
                 {
                     var endPoints = proxy.Run();
 
+                    //  Console.WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
+                    
                     invocationContext.BindingContext.Console
                                      .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
+                    
 
                     if (registerAsSystemProxy)
                     {

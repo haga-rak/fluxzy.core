@@ -80,7 +80,7 @@ namespace Fluxzy.Clients
         private readonly Http11Parser _http11Parser;
         private readonly IIdProvider _idProvider;
 
-        private static string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
+        private static readonly string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
 
         private static readonly byte [] AcceptTunnelResponse =
             Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
