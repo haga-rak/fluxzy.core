@@ -155,7 +155,7 @@ export class ExchangeViewerComponent implements OnInit, OnChanges {
                 this.propertyContext.requestFormattingResults = null;
                 this.propertyContext.responseFormattingResults = null;
             }),
-            switchMap((t) => this.apiService.getFormatters(t.id)),
+            switchMap((t) => this.apiService.formattersGet(t.id)),
             tap((t) => {
                 this.context = t.contextInfo ;
                 this.propertyContext.requestFormattingResults = t.requests;
