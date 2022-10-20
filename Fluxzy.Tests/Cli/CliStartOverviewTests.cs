@@ -180,7 +180,7 @@ namespace Fluxzy.Tests.Cli
         {
 
             // Arrange 
-            var commandLine = "start -l 127.0.0.1/12356";
+            var commandLine = "start -l 127.0.0.1/0";
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
