@@ -74,7 +74,7 @@ namespace Fluxzy.Core
 
                     do
                     {
-                        if (exchange != null &&
+                        if (
                             (!exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase)
                              || localConnection.TunnelOnly)
                            )
@@ -341,7 +341,7 @@ namespace Fluxzy.Core
 
                         try
                         {
-                            if (_archiveWriter != null && exchange != null && !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
+                            if (_archiveWriter != null  && !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
                             {
                                 //await _archiveWriter.Update(
                                 //    exchange,
@@ -376,7 +376,7 @@ namespace Fluxzy.Core
                                 buffer, _proxyRuntimeSetting, token
                             );
 
-                            if (exchange != null && exchange.Metrics != null)
+                            if (exchange != null)
                             {
                                 var ep2 = (IPEndPoint) client.Client.RemoteEndPoint;
 

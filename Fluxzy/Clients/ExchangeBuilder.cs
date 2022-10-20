@@ -198,7 +198,7 @@ namespace Fluxzy.Clients
                     : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy), false); 
         }
 
-        public async ValueTask<Exchange> ReadExchange(
+        public async ValueTask<Exchange?> ReadExchange(
             Stream inStream, Authority authority, RsBuffer buffer,
             ProxyRuntimeSetting runTimeSetting,
             CancellationToken token)

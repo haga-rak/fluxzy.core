@@ -27,7 +27,7 @@ namespace Fluxzy.Clients
             SslApplicationProtocol.Http2
         };
 
-        private readonly RealtimeArchiveWriter? _archiveWriter;
+        private readonly RealtimeArchiveWriter _archiveWriter;
 
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
             new Dictionary<Authority, IHttpConnectionPool>();
@@ -145,7 +145,8 @@ namespace Fluxzy.Clients
                 {
                     // Plain HTTP/1, no h2c
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
-                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _http11Parser, _archiveWriter);
+                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _http11Parser, 
+                        _archiveWriter!);
 
                     exchange.HttpVersion = "HTTP/1.1";
 

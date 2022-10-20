@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -16,20 +17,18 @@ using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
 {
-
     public class H2ConnectionPool : IHttpConnectionPool
     {
-        private static readonly byte[] Preface = System.Text.Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
+        private static readonly byte[] Preface = Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
 
-        private static int _connectionIdCounter = 0;
+        private static int _connectionIdCounter;
 
         private Stream _baseStream;
 
         private CancellationTokenSource _connectionCancellationTokenSource = new();
-        
-        private readonly H2StreamSetting _setting;
+
         private readonly Connection _connection;
-        private readonly Action<H2ConnectionPool>?  _onConnectionFaulted;
+        private readonly Action<H2ConnectionPool>? _onConnectionFaulted;
 
         private volatile bool _complete;
 
@@ -38,9 +37,9 @@ namespace Fluxzy.Clients.H2
         private Task? _innerReadTask;
         private Task? _innerWriteRun;
 
-        private readonly TaskCompletionSource<bool> _waitForSettingReception = new(); 
+        private readonly TaskCompletionSource<bool> _waitForSettingReception = new();
 
-        private Channel<WriteTask>? _writerChannel;
+        private readonly Channel<WriteTask>? _writerChannel;
 
         private SemaphoreSlim? _writeSemaphore = new(1);
         private readonly SemaphoreSlim _streamCreationLock = new(1);
@@ -48,43 +47,42 @@ namespace Fluxzy.Clients.H2
         // Window size of the remote 
         private WindowSizeHolder _overallWindowSizeHolder;
 
-        public int CurrentProcessedRequest = 0;
-        public int FaultedRequest = 0;
-        public int TotalRequest = 0;
+        public int CurrentProcessedRequest;
+        public int FaultedRequest;
+        public int TotalRequest;
 
         private readonly H2Logger _logger;
 
         private DateTime _lastActivity = ITimingProvider.Default.Instant();
 
-        private Exception _loopEndException = null;
+        private Exception _loopEndException;
         private bool _goAwayInitByRemote;
 
         public H2ConnectionPool(
             Stream baseStream,
             H2StreamSetting setting,
-            Authority authority, 
+            Authority authority,
             Connection connection, Action<H2ConnectionPool> onConnectionFaulted
-            )
+        )
         {
-            Id = Interlocked.Increment(ref _connectionIdCounter); 
+            Id = Interlocked.Increment(ref _connectionIdCounter);
 
             Authority = authority;
             _baseStream = baseStream;
-            _setting = setting;
+            Setting = setting;
             _connection = connection;
             _onConnectionFaulted = onConnectionFaulted;
-            _logger = new H2Logger(Authority, Id); 
+            _logger = new H2Logger(Authority, Id);
 
-            _overallWindowSizeHolder = new WindowSizeHolder(_logger, _setting.OverallWindowSize,0);
+            _overallWindowSizeHolder = new WindowSizeHolder(_logger, Setting.OverallWindowSize, 0);
 
             _writerChannel =
-                Channel.CreateUnbounded<WriteTask>(new UnboundedChannelOptions()
-                {
+                Channel.CreateUnbounded<WriteTask>(new UnboundedChannelOptions {
                     SingleReader = true,
                     SingleWriter = false
                 });
 
-            var hPackEncoder = 
+            var hPackEncoder =
                 new HPackEncoder(new EncodingContext(ArrayPoolMemoryProvider<char>.Default));
 
             var hPackDecoder =
@@ -94,15 +92,15 @@ namespace Fluxzy.Clients.H2
 
             _streamPool = new StreamPool(
                 new StreamContext(
-                Id, authority, setting, _logger,
-                headerEncoder, UpStreamChannel, 
-                _overallWindowSizeHolder, 
-                new Http11Parser(setting.Local.MaxHeaderLine) ));
+                    Id, authority, setting, _logger,
+                    headerEncoder, UpStreamChannel,
+                    _overallWindowSizeHolder,
+                    new Http11Parser(setting.Local.MaxHeaderLine)));
         }
 
         public int Id { get; }
 
-        public H2StreamSetting Setting => _setting;
+        public H2StreamSetting Setting { get; }
 
         private void UpStreamChannel(ref WriteTask data)
         {
@@ -116,62 +114,56 @@ namespace Fluxzy.Clients.H2
 
             pingFrame.Write(buffer);
 
-            var writeTask = new WriteTask(H2FrameType.Ping, 0, 0, 0, buffer, 0);
-            UpStreamChannel(ref writeTask); 
+            var writeTask = new WriteTask(H2FrameType.Ping, 0, 0, 0, buffer);
+            UpStreamChannel(ref writeTask);
         }
 
         private void EmitGoAway(H2ErrorCode errorCode)
         {
-            var goAwayFrame = new GoAwayFrame(_streamPool.LastStreamIdentifier,errorCode);
+            var goAwayFrame = new GoAwayFrame(_streamPool.LastStreamIdentifier, errorCode);
             var buffer = new byte[9 + goAwayFrame.BodyLength];
 
             goAwayFrame.Write(buffer);
 
-            var writeTask = new WriteTask(H2FrameType.Goaway, 0, 0, 0, buffer, 0);
-            UpStreamChannel(ref writeTask); 
+            var writeTask = new WriteTask(H2FrameType.Goaway, 0, 0, 0, buffer);
+            UpStreamChannel(ref writeTask);
         }
 
         private bool ProcessIncomingSettingFrame(SettingFrame settingFrame)
         {
             _logger.IncomingSetting(ref settingFrame);
-            
-            if (settingFrame.Ack)
-            {
+
+            if (settingFrame.Ack) {
                 if (!_waitForSettingReception.Task.IsCompleted)
-                {
                     _waitForSettingReception.TrySetResult(true);
-                }
 
                 return false;
             }
-            
-            switch (settingFrame.SettingIdentifier)
-            {
+
+            switch (settingFrame.SettingIdentifier) {
                 case SettingIdentifier.SettingsEnablePush:
                     if (settingFrame.Value > 0)
-                    {
                         // TODO Send a Goaway. Push not supported 
                         return false;
-                    }
                     return true;
                 case SettingIdentifier.SettingsMaxConcurrentStreams:
-                    _setting.Remote.SettingsMaxConcurrentStreams = settingFrame.Value;
+                    Setting.Remote.SettingsMaxConcurrentStreams = settingFrame.Value;
                     return true;
 
                 case SettingIdentifier.SettingsInitialWindowSize:
-                    _setting.OverallWindowSize = settingFrame.Value;
+                    Setting.OverallWindowSize = settingFrame.Value;
                     return true;
 
                 case SettingIdentifier.SettingsMaxFrameSize:
-                    _setting.Remote.MaxFrameSize = settingFrame.Value;
+                    Setting.Remote.MaxFrameSize = settingFrame.Value;
                     return true;
 
-                case SettingIdentifier.SettingsMaxHeaderListSize: 
-                    _setting.Remote.MaxHeaderListSize = settingFrame.Value;
+                case SettingIdentifier.SettingsMaxHeaderListSize:
+                    Setting.Remote.MaxHeaderListSize = settingFrame.Value;
                     return true;
 
                 case SettingIdentifier.SettingsHeaderTableSize:
-                    _setting.SettingsHeaderTableSize = settingFrame.Value;
+                    Setting.SettingsHeaderTableSize = settingFrame.Value;
                     return true;
             }
 
@@ -180,29 +172,25 @@ namespace Fluxzy.Clients.H2
 
             // ---> old : throw new InvalidOperationException("Unknown setting type");
 
-            return true; 
+            return true;
         }
 
         private async void RaiseExceptionIfSettingNotReceived()
         {
-            try
-            {
-                await Task.Delay(_setting.WaitForSettingDelay, _connectionCancellationTokenSource.Token);
+            try {
+                await Task.Delay(Setting.WaitForSettingDelay, _connectionCancellationTokenSource.Token);
             }
-            catch (TaskCanceledException)
-            {
+            catch (TaskCanceledException) {
                 // Main connection was ended before receiving final setting acquittement 
 
                 _waitForSettingReception.TrySetResult(false);
-                return; 
+                return;
             }
 
             if (!_waitForSettingReception.Task.IsCompleted)
-            {
                 _waitForSettingReception.SetException(new H2Exception(
-                    $"Server settings was not received under {(int)_setting.WaitForSettingDelay.TotalMilliseconds}.",
-                    H2ErrorCode.SettingsTimeout, null));
-            }
+                    $"Server settings was not received under {(int) Setting.WaitForSettingDelay.TotalMilliseconds}.",
+                    H2ErrorCode.SettingsTimeout));
         }
 
         private Task<bool> WaitForSettingReceivedOrRaiseException()
@@ -213,29 +201,27 @@ namespace Fluxzy.Clients.H2
         }
 
         public bool Complete => _complete;
-        private volatile bool initied = false;
+        private volatile bool initied;
 
         public async ValueTask Init()
         {
             if (initied)
-            {
-                return; 
-            }
+                return;
 
             initied = false;
 
-            var token = _connectionCancellationTokenSource.Token; 
+            var token = _connectionCancellationTokenSource.Token;
 
             await _baseStream.WriteAsync(Preface, token).ConfigureAwait(false);
 
             // Write setting 
             await SettingHelper.WriteSetting(
                 _baseStream,
-                _setting.Local, _logger, token).ConfigureAwait(false);
+                Setting.Local, _logger, token).ConfigureAwait(false);
 
             _innerReadTask = InternalReadLoop(token);
             // Wait from setting reception 
-            
+
             var waitSettingTask = WaitForSettingReceivedOrRaiseException();
 
             await _waitForSettingReception.Task.ConfigureAwait(false);
@@ -245,89 +231,73 @@ namespace Fluxzy.Clients.H2
             _innerWriteRun = InternalWriteLoop(token);
 
             if (!settingReceived)
-            {
-                throw new IOException("Connection closed before receiving settings. More information on InnerException.",
+                throw new IOException(
+                    "Connection closed before receiving settings. More information on InnerException.",
                     _loopEndException);
-            }
         }
 
         public ValueTask<bool> CheckAlive()
         {
             var instant = ITimingProvider.Default.Instant();
 
-            if (!_complete && _streamPool.ActiveStreamCount == 0 && 
-                (instant - _lastActivity) > TimeSpan.FromSeconds(_setting.MaxIdleSeconds))
-            {
-                if (!_goAwayInitByRemote)
-                {
-                    try
-                    {
+            if (!_complete && _streamPool.ActiveStreamCount == 0 &&
+                instant - _lastActivity > TimeSpan.FromSeconds(Setting.MaxIdleSeconds)) {
+                if (!_goAwayInitByRemote) {
+                    try {
                         EmitGoAway(H2ErrorCode.NoError);
                     }
-                    catch
-                    {
+                    catch {
                         // Ignore go away error
                     }
 
                     OnLoopEnd(null, true);
 
-                    _logger.Trace(0, () => $"IDLE timeout. Connection closed.");
+                    _logger.Trace(0, () => "IDLE timeout. Connection closed.");
                 }
 
-                return new ValueTask<bool>(false); 
+                return new ValueTask<bool>(false);
             }
 
-            return new ValueTask<bool>(true); 
+            return new ValueTask<bool>(true);
         }
 
         private void OnGoAway(GoAwayFrame frame)
         {
-            _goAwayInitByRemote = true; 
+            _goAwayInitByRemote = true;
 
             if (frame.ErrorCode != H2ErrorCode.NoError)
-            {
-                throw new H2Exception($"Had to goaway {frame.ErrorCode}", errorCode: frame.ErrorCode); 
-            }
-
+                throw new H2Exception($"Had to goaway {frame.ErrorCode}", frame.ErrorCode);
         }
-        
+
         private void OnLoopEnd(Exception? ex, bool releaseChannelItems)
         {
             if (_complete)
-                return; 
+                return;
 
-            _complete = true; 
+            _complete = true;
             // End the connection. This operation is idempotent. 
 
-            _logger.Trace(0, "Cleanup start " + ex?.ToString());
+            _logger.Trace(0, "Cleanup start " + ex);
 
             if (_onConnectionFaulted != null)
                 _onConnectionFaulted(this);
 
-            if (ex != null)
-            {
+            if (ex != null) {
                 _streamPool.OnGoAway(ex);
-                _loopEndException = ex; 
+                _loopEndException = ex;
             }
 
             _connectionCancellationTokenSource?.Cancel();
 
-            if (releaseChannelItems && _writerChannel != null)
-            {
+            if (releaseChannelItems && _writerChannel != null) {
                 _writerChannel.Writer.TryComplete();
 
                 var list = new List<WriteTask>();
 
                 if (_writerChannel.Reader.TryReadAll(ref list))
-                {
                     foreach (var item in list)
-                    {
                         if (!item.DoneTask.IsCompleted)
-                        {
                             item.CompletionSource.SetCanceled();
-                        }
-                    }
-                }
             }
 
             _logger.Trace(0, "Cleanup end");
@@ -337,112 +307,93 @@ namespace Fluxzy.Clients.H2
         {
             Exception? outException = null;
 
-            try
-            {
+            try {
                 var tasks = new List<WriteTask>();
                 var windowSizeBuffer = new byte[13];
-                
 
-                while (!token.IsCancellationRequested)
-                {
+
+                while (!token.IsCancellationRequested) {
                     tasks.Clear();
 
                     if (_writerChannel == null)
-                        break; 
+                        break;
 
-                    if (_writerChannel.Reader.TryReadAll(ref tasks))
-                    {
+                    if (_writerChannel.Reader.TryReadAll(ref tasks)) {
                         var windowUpdateTasks = tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate).ToArray();
 
-                        if (windowUpdateTasks.Length > 0)
-                        {
+                        if (windowUpdateTasks.Length > 0) {
                             var bufferLength = windowUpdateTasks.Length * 13;
                             var buffer = ArrayPool<byte>.Shared.Rent(bufferLength);
                             var memoryBuffer = new Memory<byte>(buffer).Slice(0, bufferLength);
 
-                            try
-                            {
-                                foreach (var writeTask in windowUpdateTasks)
-                                {
+                            try {
+                                foreach (var writeTask in windowUpdateTasks) {
                                     new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
                                         .Write(memoryBuffer.Span);
 
                                     memoryBuffer = memoryBuffer.Slice(13);
 
-                                    _logger.OutgoingWindowUpdate(writeTask.WindowUpdateSize, writeTask.StreamIdentifier);
+                                    _logger.OutgoingWindowUpdate(writeTask.WindowUpdateSize,
+                                        writeTask.StreamIdentifier);
                                 }
                             }
-                            finally
-                            {
+                            finally {
                                 ArrayPool<byte>.Shared.Return(buffer);
                             }
-                            
-                            await _baseStream.WriteAsync(buffer,0, bufferLength, token).ConfigureAwait(false);
+
+                            await _baseStream.WriteAsync(buffer, 0, bufferLength, token).ConfigureAwait(false);
                         }
 
-                        int count = 0;
-                        int totalSize = 0; 
+                        var count = 0;
+                        var totalSize = 0;
 
                         // TODO improve the priority rule 
                         foreach (var writeTask in tasks
-                                     .Where(t => t.FrameType != H2FrameType.WindowUpdate)
-                                     .OrderBy(
-                                         r => r.FrameType == H2FrameType.Headers || r.FrameType == H2FrameType.Data)
-                                     .ThenBy(r => r.StreamDependency == 0)
-                                     .ThenBy(r => r.StreamIdentifier)
-                                     .ThenBy(r => r.Priority)
+                                                  .Where(t => t.FrameType != H2FrameType.WindowUpdate)
+                                                  .OrderBy(
+                                                      r => r.FrameType == H2FrameType.Headers ||
+                                                           r.FrameType == H2FrameType.Data)
+                                                  .ThenBy(r => r.StreamDependency == 0)
+                                                  .ThenBy(r => r.StreamIdentifier)
+                                                  .ThenBy(r => r.Priority)
                                 )
-                        {
-                            try
-                            {
+                            try {
                                 await _baseStream
-                                    .WriteAsync(writeTask.BufferBytes, token)
-                                    .ConfigureAwait(false);
-                                
+                                      .WriteAsync(writeTask.BufferBytes, token)
+                                      .ConfigureAwait(false);
+
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 
-                                totalSize += writeTask.BufferBytes.Length; 
+                                totalSize += writeTask.BufferBytes.Length;
 
-                                count++; 
+                                count++;
 
-                               // await _baseStream.FlushAsync(token);
-
+                                // await _baseStream.FlushAsync(token);
                                 // _lastActivity = ITimingProvider.Default.Instant();
-
                                 writeTask.OnComplete(null);
                             }
-                            catch (Exception ex) when (ex is SocketException || ex is IOException)
-                            {
+                            catch (Exception ex) when (ex is SocketException || ex is IOException) {
                                 writeTask.OnComplete(ex);
                                 throw;
                             }
-                        }
                     }
-                    else
-                    {
+                    else {
                         // async wait 
-                        if (!token.IsCancellationRequested 
+                        if (!token.IsCancellationRequested
                             && !await _writerChannel.Reader.WaitToReadAsync(token))
-                        {
                             break;
-                        }
                     }
-
                 }
             }
-            catch (OperationCanceledException)
-            {
-
+            catch (OperationCanceledException) {
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 // We catch this exception here to throw it to the
                 // caller in SendAsync() instead of Dispose() ;
 
-                outException = ex; 
+                outException = ex;
             }
-            finally
-            {
+            finally {
                 OnLoopEnd(outException, true);
             }
         }
@@ -451,28 +402,26 @@ namespace Fluxzy.Clients.H2
         private bool EvaluateCond()
         {
             _logger.TraceDeep(0, () => "deadlock?");
-            return true; 
+            return true;
         }
-        
+
         /// <summary>
-        /// %Write and read has to use the same thread 
+        ///     %Write and read has to use the same thread
         /// </summary>
         /// <returns></returns>
         private async Task InternalReadLoop(CancellationToken token)
         {
-            byte[] readBuffer = ArrayPool<byte>.Shared.Rent(_setting.Remote.MaxFrameSize);
-            
+            var readBuffer = ArrayPool<byte>.Shared.Rent(Setting.Remote.MaxFrameSize);
+
             Exception outException = null;
 
-            try
-            {
-                while (EvaluateCond() && !token.IsCancellationRequested)
-                {
-                    _logger.TraceDeep(0,() => "1");
+            try {
+                while (EvaluateCond() && !token.IsCancellationRequested) {
+                    _logger.TraceDeep(0, () => "1");
 
-                    H2FrameReadResult frame = 
+                    var frame =
                         await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
-                        token).ConfigureAwait(false);
+                            token).ConfigureAwait(false);
 
                     var watch = new Stopwatch();
 
@@ -484,26 +433,20 @@ namespace Fluxzy.Clients.H2
 
                     watch.Stop();
 
-                    if (watch.ElapsedMilliseconds > 5)
-                    {
-                       // Console.WriteLine($"Processing cost {watch.ElapsedMilliseconds} / {Authority.HostName} / {frame.BodyType}");
+                    if (watch.ElapsedMilliseconds > 5) {
+                        // Console.WriteLine($"Processing cost {watch.ElapsedMilliseconds} / {Authority.HostName} / {frame.BodyType}");
                     }
-
                 }
 
                 _logger.TraceDeep(0, () => "Natural death");
             }
-            catch (OperationCanceledException)
-            {
-
+            catch (OperationCanceledException) {
                 _logger.TraceDeep(0, () => "OperationCanceledException death");
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 outException = ex;
             }
-            finally
-            {
+            finally {
                 ArrayPool<byte>.Shared.Return(readBuffer);
                 OnLoopEnd(outException, false);
             }
@@ -524,8 +467,7 @@ namespace Fluxzy.Clients.H2
 
             _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 
-            if (frame.BodyType == H2FrameType.Settings)
-            {
+            if (frame.BodyType == H2FrameType.Settings) {
                 var settingReceived = ProcessIncomingSettingFrame(frame.GetSettingFrame());
 
                 _logger.TraceDeep(0, () => "4");
@@ -533,48 +475,40 @@ namespace Fluxzy.Clients.H2
                 if (settingReceived)
                     SettingHelper.WriteAck(_baseStream);
 
-                if (_setting.Remote.MaxFrameSize != readBuffer.Length)
-                {
+                if (Setting.Remote.MaxFrameSize != readBuffer.Length) {
                     // Update of max frame 
 
-                    if (_setting.Remote.MaxFrameSize > _setting.MaxFrameSizeAllowed)
-                    {
+                    if (Setting.Remote.MaxFrameSize > Setting.MaxFrameSizeAllowed) {
                         _logger.Trace(0,
                             () =>
-                                $"Server required max frame size is larger than MaxFrameSizeAllowed = {_setting.MaxFrameSizeAllowed}");
+                                $"Server required max frame size is larger than MaxFrameSizeAllowed = {Setting.MaxFrameSizeAllowed}");
 
-                        _setting.Remote.MaxFrameSize = _setting.MaxFrameSizeAllowed;
+                        Setting.Remote.MaxFrameSize = Setting.MaxFrameSizeAllowed;
                     }
 
-                    readBuffer = new byte[_setting.Remote.MaxFrameSize];
-                    _logger.Trace(0, () => $"max frame size updated to {_setting.Remote.MaxFrameSize}");
+                    readBuffer = new byte[Setting.Remote.MaxFrameSize];
+                    _logger.Trace(0, () => $"max frame size updated to {Setting.Remote.MaxFrameSize}");
                 }
 
                 return false;
             }
 
-            if (frame.BodyType == H2FrameType.Priority)
-            {
+            if (frame.BodyType == H2FrameType.Priority) {
                 _logger.TraceDeep(0, () => "5");
 
                 if (activeStream == null)
-                {
                     return false;
-                }
 
                 activeStream.SetPriority(frame.GetPriorityFrame());
             }
 
-            if (frame.BodyType == H2FrameType.Headers)
-            {
+            if (frame.BodyType == H2FrameType.Headers) {
                 _logger.TraceDeep(0, () => "6");
 
                 if (activeStream == null)
-                {
                     // TODO : Notify stream error, stream already closed 
                     return false;
-                }
-                
+
                 var headerFrame = frame.GetHeadersFrame();
 
                 activeStream.ReceiveHeaderFragmentFromConnection(ref headerFrame);
@@ -582,30 +516,24 @@ namespace Fluxzy.Clients.H2
                 return false;
             }
 
-            if (frame.BodyType == H2FrameType.Continuation)
-            {
+            if (frame.BodyType == H2FrameType.Continuation) {
                 _logger.TraceDeep(0, () => "7");
 
                 if (activeStream == null)
-                {
                     // TODO : Notify stream error, stream already closed 
                     return false;
-                }
 
-                var continuationFrame = frame.GetContinuationFrame(); 
+                var continuationFrame = frame.GetContinuationFrame();
 
                 activeStream.ReceiveHeaderFragmentFromConnection(ref continuationFrame);
 
                 return false;
             }
 
-            if (frame.BodyType == H2FrameType.Data)
-            {
+            if (frame.BodyType == H2FrameType.Data) {
                 _logger.TraceDeep(0, () => "8 : ");
                 if (activeStream == null)
-                {
                     return false;
-                }
 
                 _logger.TraceDeep(0, () => "8 : " + activeStream.StreamIdentifier);
 
@@ -619,27 +547,22 @@ namespace Fluxzy.Clients.H2
                 return false;
             }
 
-            if (frame.BodyType == H2FrameType.RstStream)
-            {
+            if (frame.BodyType == H2FrameType.RstStream) {
                 _logger.TraceDeep(0, () => "9");
 
                 if (activeStream == null)
-                {
                     return false;
-                }
 
                 activeStream.ResetRequest(frame.GetRstStreamFrame().ErrorCode);
                 return false;
             }
 
-            if (frame.BodyType == H2FrameType.WindowUpdate)
-            {
+            if (frame.BodyType == H2FrameType.WindowUpdate) {
                 _logger.TraceDeep(0, () => "10");
 
                 var windowSizeIncrement = frame.GetWindowUpdateFrame().WindowSizeIncrement;
 
-                if (activeStream == null)
-                {
+                if (activeStream == null) {
                     _overallWindowSizeHolder.UpdateWindowSize(windowSizeIncrement);
                     return false;
                 }
@@ -649,16 +572,14 @@ namespace Fluxzy.Clients.H2
                 return false;
             }
 
-            if (frame.BodyType == H2FrameType.Ping)
-            {
+            if (frame.BodyType == H2FrameType.Ping) {
                 _logger.TraceDeep(0, () => "11");
 
                 EmitPing(frame.GetPingFrame().OpaqueData);
                 return false;
             }
 
-            if (frame.BodyType == H2FrameType.Goaway)
-            {
+            if (frame.BodyType == H2FrameType.Goaway) {
                 _logger.TraceDeep(0, () => "12");
 
                 OnGoAway(frame.GetGoAwayFrame());
@@ -675,26 +596,23 @@ namespace Fluxzy.Clients.H2
             Interlocked.Increment(ref CurrentProcessedRequest);
             Interlocked.Increment(ref TotalRequest);
 
-            try
-            {
+            try {
                 _logger.Trace(exchange, "Send start");
 
-                exchange.Connection = _connection; 
+                exchange.Connection = _connection;
 
                 await InternalSend(exchange, buffer, cancellationToken);
 
                 _logger.Trace(exchange, "Response header received");
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 Interlocked.Increment(ref FaultedRequest);
                 _logger.Trace(exchange, "Send on error " + ex);
 
 
                 if (ex is OperationCanceledException opex
                     && cancellationToken != default
-                    && opex.CancellationToken == cancellationToken)
-                {
+                    && opex.CancellationToken == cancellationToken) {
                     // The caller cancels this exchange. 
                     // Send a reset on stream to prevent the remote 
                 }
@@ -703,45 +621,43 @@ namespace Fluxzy.Clients.H2
 
                 throw;
             }
-            finally
-            {
+            finally {
                 Interlocked.Decrement(ref CurrentProcessedRequest);
             }
         }
 
-        private async ValueTask InternalSend(Exchange exchange, RsBuffer buffer, CancellationToken callerCancellationToken)
+        private async ValueTask InternalSend(Exchange exchange, RsBuffer buffer,
+            CancellationToken callerCancellationToken)
         {
             exchange.HttpVersion = "HTTP/2";
 
-            StreamWorker activeStream = null;
+            StreamWorker? activeStream = null;
 
             using var streamCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                 callerCancellationToken,
                 _connectionCancellationTokenSource.Token);
 
-            CancellationToken streamCancellationToken = streamCancellationTokenSource.Token;
+            var streamCancellationToken = streamCancellationTokenSource.Token;
 
-            try
-            {
+            try {
                 Task waitForHeaderSentTask;
 
-                try
-                {
+                try {
                     if (Complete || _connectionCancellationTokenSource.Token.IsCancellationRequested)
                         throw new ConnectionCloseException("This connection is already closed");
 
                     activeStream =
                         await _streamPool.CreateNewStreamProcessing(
-                                exchange, streamCancellationToken, _streamCreationLock,
-                                streamCancellationTokenSource)
-                            .ConfigureAwait(false);
+                                             exchange, streamCancellationToken, _streamCreationLock,
+                                             streamCancellationTokenSource)
+                                         .ConfigureAwait(false);
 
                     // activeStream.OR
 
-                    waitForHeaderSentTask = activeStream.EnqueueRequestHeader(exchange, buffer, streamCancellationToken);
+                    waitForHeaderSentTask =
+                        activeStream.EnqueueRequestHeader(exchange, buffer, streamCancellationToken);
                 }
-                finally
-                {
+                finally {
                     if (_streamCreationLock.CurrentCount == 0)
                         _streamCreationLock.Release();
                 }
@@ -755,44 +671,35 @@ namespace Fluxzy.Clients.H2
                 exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 
                 await activeStream.ProcessResponse(streamCancellationToken, this)
-                    .ConfigureAwait(false);
-
+                                  .ConfigureAwait(false);
             }
-            catch (OperationCanceledException opex)
-            {
+            catch (OperationCanceledException opex) {
                 if (activeStream != null &&
                     opex.CancellationToken == callerCancellationToken)
-                {
-
                     // The caller cancels this exchange. 
                     // Send a reset on stream to prevent the remote 
                     // from sending further data 
-
                     activeStream.ResetByCaller();
-                }
 
                 throw;
             }
-            finally
-            {
+            finally {
                 if (!streamCancellationTokenSource.IsCancellationRequested)
-                {
                     streamCancellationTokenSource.Cancel();
-                }
             }
         }
 
         public Authority Authority { get; }
 
         public volatile bool IsDisposed;
-    
+
 
         public async ValueTask DisposeAsync()
         {
             if (_connectionCancellationTokenSource == null)
                 return;
 
-            IsDisposed = true; 
+            IsDisposed = true;
 
             _writerChannel?.Writer.TryComplete();
 
@@ -803,7 +710,7 @@ namespace Fluxzy.Clients.H2
             _logger.Trace(0, () => "Disposed");
             _connectionCancellationTokenSource.Cancel();
             _connectionCancellationTokenSource?.Dispose();
-            _connectionCancellationTokenSource = null; 
+            _connectionCancellationTokenSource = null;
 
             _writeSemaphore?.Dispose();
             _writeSemaphore = null;
@@ -814,41 +721,10 @@ namespace Fluxzy.Clients.H2
             if (_innerWriteRun != null)
                 await _innerWriteRun.ConfigureAwait(false);
 
-            if (_baseStream != null)
-            {
+            if (_baseStream != null) {
                 await _baseStream.DisposeAsync();
                 _baseStream = null;
             }
         }
-
-        //public void Dispose()
-        //{
-        //    if (_connectionCancellationTokenSource == null)
-        //        return;
-
-        //    IsDisposed = true;
-
-        //    _writerChannel?.Writer.TryComplete();
-        //    _writerChannel = null;
-
-        //    _overallWindowSizeHolder?.Dispose();
-        //    _overallWindowSizeHolder = null;
-
-        //    _logger.Trace(0, () => "Disposed");
-        //    _connectionCancellationTokenSource.Cancel();
-        //    _connectionCancellationTokenSource?.Dispose();
-        //    _connectionCancellationTokenSource = null;
-
-        //    _writeSemaphore?.Dispose();
-        //    _writeSemaphore = null;
-        //    _streamCreationLock.Dispose();
-
-        //    if (_baseStream != null)
-        //    {
-        //        _baseStream.Dispose();
-        //        _baseStream = null; 
-        //    }
-        //}
     }
-    
 }
