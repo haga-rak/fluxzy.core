@@ -220,7 +220,7 @@ namespace Fluxzy.Tests.Cli
 
             if (abort)
             {
-                await Task.Delay(50);
+               // await Task.Delay(50);
                 cancellationTokenSource.Cancel();
             }
 
