@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
@@ -33,7 +34,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
             var connection = await _poolBuilder.GetPool(exchange, ProxyRuntimeSetting.Default, cancellationToken);
             
-            await connection.Send(exchange, null, new byte[32* 1024],
+            await connection.Send(exchange, null, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);
             
             return new FluxzyHttpResponseMessage(exchange);

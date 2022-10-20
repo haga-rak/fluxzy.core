@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Clients.H11
@@ -60,7 +61,8 @@ namespace Fluxzy.Clients.H11
 
         private readonly H1Logger _logger;
 
-        public async ValueTask Send(Exchange exchange, ILocalLink _, byte [] buffer, CancellationToken cancellationToken)
+        public async ValueTask Send(Exchange exchange, ILocalLink _, RsBuffer buffer,
+            CancellationToken cancellationToken)
         {
             ITimingProvider.Default.Instant();
 

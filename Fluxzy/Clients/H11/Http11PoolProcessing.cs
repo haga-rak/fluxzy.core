@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.H11
@@ -29,22 +30,18 @@ namespace Fluxzy.Clients.H11
         /// <param name="buffer"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if remote server close connection</returns>
-        public async ValueTask<bool> Process(Exchange exchange, byte[] buffer, CancellationToken cancellationToken)
+        public async ValueTask<bool> Process(Exchange exchange, RsBuffer buffer, CancellationToken cancellationToken)
         {
-            var bufferRaw = buffer;
-
-            Memory<byte> headerBuffer = bufferRaw;
-
             exchange.Connection!.AddNewRequestProcessed();
             
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
             
             _logger.Trace(exchange.Id, () => $"Begin writing header");
-            var headerLength = exchange.Request.Header.WriteHttp11(headerBuffer.Span, true, true);
+            var headerLength = exchange.Request.Header.WriteHttp11(buffer.Buffer, true, true);
             
             // Sending request header 
 
-            await exchange.Connection.WriteStream.WriteAsync(headerBuffer.Slice(0, headerLength), cancellationToken);
+            await exchange.Connection.WriteStream.WriteAsync(buffer.Memory.Slice(0, headerLength), cancellationToken);
 
             _logger.Trace(exchange.Id, () => $"Header sent");
 
@@ -65,7 +62,7 @@ namespace Fluxzy.Clients.H11
 
             // Waiting for header block 
 
-            var headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, headerBuffer,
+            var headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, buffer,
                     () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
                     () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
                     true,
@@ -74,7 +71,7 @@ namespace Fluxzy.Clients.H11
             Memory<char> headerContent = new char[headerBlockDetectResult.HeaderLength];
 
             Encoding.ASCII
-                .GetChars(headerBuffer.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
+                .GetChars(buffer.Memory.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
             
             exchange.Response.Header = new ResponseHeader(
                 headerContent, exchange.Authority.Secure, _parser);
@@ -112,7 +109,7 @@ namespace Fluxzy.Clients.H11
                 var remainder = new byte[headerBlockDetectResult.TotalReadLength -
                                          headerBlockDetectResult.HeaderLength];
                 
-                Buffer.BlockCopy(bufferRaw, headerBlockDetectResult.HeaderLength,
+                Buffer.BlockCopy(buffer.Buffer, headerBlockDetectResult.HeaderLength,
                     remainder, 0, remainder.Length);
 
                 // Concat the extra body bytes read while retrieving header

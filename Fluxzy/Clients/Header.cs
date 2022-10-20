@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients
 {
@@ -100,6 +101,8 @@ namespace Fluxzy.Clients
 
         protected abstract int WriteHeaderLine(Span<byte> buffer);
 
+        protected abstract int GetHeaderLineLength();
+
 
         public ReadOnlyMemory<char> GetHttp11Header()
         {
@@ -134,6 +137,65 @@ namespace Fluxzy.Clients
             }
         }
 
+        public int GetHttp11LengthOnly(bool skipNonForwardableHeader)
+        {
+            var totalLength = 0;
+           
+            // Writing Method Path Http Protocol Version
+            totalLength += GetHeaderLineLength();
+
+            foreach (var header in _rawHeaderFields)
+            {
+                if (header.Name.Span[0] == ':') // H2 control header 
+                    continue;
+
+                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name))
+                    continue;
+
+                totalLength += Encoding.ASCII.GetByteCount(header.Name.Span);
+                totalLength += Encoding.ASCII.GetByteCount(": ");
+                totalLength += Encoding.ASCII.GetByteCount(header.Value.Span);
+                totalLength += Encoding.ASCII.GetByteCount("\r\n");
+            }
+            
+            totalLength += Encoding.ASCII.GetByteCount("\r\n");
+
+            return totalLength; 
+        }
+
+        public int WriteHttp11(RsBuffer buffer, 
+            bool skipNonForwardableHeader, bool writeExtraHeaderField = false)
+        {
+            var totalLength = 0;
+            var http11Length = GetHttp11LengthOnly(skipNonForwardableHeader);
+
+            while (buffer.Buffer.Length < http11Length) {
+                buffer.Extend(2);
+            }
+
+            Span<byte> data = buffer.Buffer;
+
+            // Writing Method Path Http Protocol Version
+            totalLength += WriteHeaderLine(data);
+
+            foreach (var header in _rawHeaderFields)
+            {
+                if (header.Name.Span[0] == ':') // H2 control header 
+                    continue;
+
+                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name))
+                    continue;
+
+                totalLength += Encoding.ASCII.GetBytes(header.Name.Span, data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
+                totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+            }
+            
+            totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+
+            return totalLength; 
+        }
         public int WriteHttp11(in Span<byte> data, 
             bool skipNonForwardableHeader, bool writeExtraHeaderField = false)
         {

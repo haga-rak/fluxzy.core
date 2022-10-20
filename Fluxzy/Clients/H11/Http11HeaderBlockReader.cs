@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H11
 {
@@ -22,18 +23,18 @@ namespace Fluxzy.Clients.H11
         /// <returns></returns>
         public static async ValueTask<HeaderBlockReadResult>
             GetNext(
-                Stream stream, Memory<byte> buffer, 
+                Stream stream, RsBuffer buffer, 
                 Action firstByteReceived, 
                 Action headerBlockReceived, 
                 bool throwOnError = false, 
                 CancellationToken token = default)
         {
-            var bufferIndex = buffer;
+            var bufferIndex = buffer.Memory;
             var totalRead = 0;
             var indexFound = -1;
             var firstBytes = true;
             
-            while (totalRead < buffer.Length)
+            while (totalRead < buffer.Buffer.Length)
             {
                 var currentRead = await stream.ReadAsync(bufferIndex, token);
 
@@ -54,7 +55,7 @@ namespace Fluxzy.Clients.H11
 
                 var start = totalRead - 4 < 0 ? 0 : (totalRead - 4);
 
-                var searchBuffer = buffer.Slice(start, currentRead + (totalRead - start)); // We should look at that buffer 
+                var searchBuffer = buffer.Memory.Slice(start, currentRead + (totalRead - start)); // We should look at that buffer 
 
                 totalRead += currentRead;
                 bufferIndex = bufferIndex.Slice(currentRead);
@@ -67,13 +68,20 @@ namespace Fluxzy.Clients.H11
                     indexFound = start + detected + 4;
                     break;
                 }
+
+                if (totalRead >= buffer.Buffer.Length) {
+                    var bufferIndexLength = totalRead; 
+                    
+                    buffer.Multiply(2);
+                    bufferIndex = buffer.Memory.Slice(bufferIndexLength);
+                }
             }
 
             if (indexFound < 0)
             {
                 if (throwOnError)
                     throw new ExchangeException(
-                        $"Double CRLF not detected or header buffer size ({buffer.Length}) is less than actual header size.");
+                        $"Double CRLF not detected or header buffer size ({buffer.Buffer.Length}) is less than actual header size.");
 
                 return default; 
             }

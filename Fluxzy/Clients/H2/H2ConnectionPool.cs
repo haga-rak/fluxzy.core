@@ -12,6 +12,7 @@ using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Misc;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
 {
@@ -668,8 +669,7 @@ namespace Fluxzy.Clients.H2
         }
 
 
-        public async ValueTask Send(
-            Exchange exchange, ILocalLink _, byte[] buffer,
+        public async ValueTask Send(Exchange exchange, ILocalLink _, RsBuffer buffer,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref CurrentProcessedRequest);
@@ -709,7 +709,7 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        private async ValueTask InternalSend(Exchange exchange, byte[] buffer, CancellationToken callerCancellationToken)
+        private async ValueTask InternalSend(Exchange exchange, RsBuffer buffer, CancellationToken callerCancellationToken)
         {
             exchange.HttpVersion = "HTTP/2";
 

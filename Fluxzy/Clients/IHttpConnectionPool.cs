@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients
 {
@@ -19,6 +20,7 @@ namespace Fluxzy.Clients
 
         ValueTask<bool> CheckAlive();
         
-        ValueTask Send(Exchange exchange, ILocalLink localLink, byte[] buffer, CancellationToken cancellationToken = default);
+        ValueTask Send(Exchange exchange, ILocalLink localLink, RsBuffer buffer,
+            CancellationToken cancellationToken = default);
     }
 }

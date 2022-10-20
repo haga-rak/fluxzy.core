@@ -11,6 +11,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
+using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
@@ -122,7 +123,7 @@ namespace Fluxzy
 
                 using (client)
                 {
-                    var buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
+                    using var buffer = RsBuffer.Allocate(4 * 1024);
                     
                     try
                     {
@@ -134,7 +135,6 @@ namespace Fluxzy
                     }
                     finally
                     {
-                        ArrayPool<byte>.Shared.Return(buffer);
                         client.Close();
                     }
                 }

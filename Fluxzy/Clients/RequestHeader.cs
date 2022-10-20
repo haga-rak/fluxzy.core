@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients
 {
@@ -56,6 +57,21 @@ namespace Fluxzy.Clients
             
             return totalLength; 
         }
+
+        protected override int GetHeaderLineLength()
+        {
+            var totalLength = 0;
+
+            totalLength += Encoding.ASCII.GetByteCount(Method.Span);
+            totalLength += Encoding.ASCII.GetByteCount(" ");
+            totalLength += Encoding.ASCII.GetByteCount(Path.Span);
+            totalLength += Encoding.ASCII.GetByteCount(" HTTP/1.1\r\n");
+            totalLength += Encoding.ASCII.GetByteCount("Host: ");
+            totalLength += Encoding.ASCII.GetByteCount(Authority.Span);
+            totalLength += Encoding.ASCII.GetByteCount("\r\n");
+
+            return totalLength;
+        }
     }
 
     public class ResponseHeader : Header
@@ -103,5 +119,19 @@ namespace Fluxzy.Clients
             return totalLength;
         }
 
+        protected override int GetHeaderLineLength()
+        {
+            var totalLength = 0;
+
+            var statusCodeString = StatusCode.ToString();
+
+            totalLength += Encoding.ASCII.GetByteCount("HTTP/1.1 ");
+            totalLength += Encoding.ASCII.GetByteCount(statusCodeString);
+            totalLength += Encoding.ASCII.GetByteCount(" ");
+            totalLength += Encoding.ASCII.GetByteCount(Http11Constants.GetStatusLine(statusCodeString.AsMemory()).Span);
+            totalLength += Encoding.ASCII.GetByteCount("\r\n");
+
+            return totalLength;
+        }
     }
 }
