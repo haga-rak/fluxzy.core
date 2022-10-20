@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Fluxzy.Misc.ResizableBuffers
 {
@@ -14,6 +12,8 @@ namespace Fluxzy.Misc.ResizableBuffers
 
         public byte [] Buffer { get; private set;  }
 
+        public Memory<byte> Memory => new(Buffer); 
+
         public static RsBuffer Allocate(int size)
         {
             var rawBuffer = ArrayPool<byte>.Shared.Rent(size);
@@ -25,10 +25,7 @@ namespace Fluxzy.Misc.ResizableBuffers
 
         public void Multiply(int size)
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(Buffer.Length * size);
-            System.Buffer.BlockCopy(Buffer, 0, newBuffer, 0, Buffer.Length);
-            ArrayPool<byte>.Shared.Return(Buffer);
-            Buffer = newBuffer;
+            Extend(Buffer.Length * size);
         }
 
         public void Extend(int extensionLength)
@@ -37,6 +34,8 @@ namespace Fluxzy.Misc.ResizableBuffers
             System.Buffer.BlockCopy(Buffer, 0, newBuffer, 0, Buffer.Length);
             ArrayPool<byte>.Shared.Return(Buffer);
             Buffer = newBuffer;
+
+            Console.WriteLine("extend");
         }
 
         public void Dispose()

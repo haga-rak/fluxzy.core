@@ -248,7 +248,6 @@ namespace Fluxzy.Clients
             {
                 if (_connectionPools.Remove(h2ConnectionPool.Authority))
                 {
-                    Console.WriteLine("Removed " + h2ConnectionPool.Authority.HostName);
                     h2ConnectionPool.DisposeAsync();
                 }
             }

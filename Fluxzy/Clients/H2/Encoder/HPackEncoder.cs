@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
@@ -37,6 +38,19 @@ namespace Fluxzy.Clients.H2.Encoder
         }
 
         public EncodingContext Context => _encodingContext;
+        
+        
+        public int GetEncodedLength(ReadOnlyMemory<char> headerContent, bool isHttps = true)
+        {
+            int offset = 0;
+
+            foreach (var headerField in _parser.Read(headerContent, isHttps))
+            {
+                offset += GetEncodedLength(headerField);
+            }
+
+            return offset;
+        }
 
         public ReadOnlySpan<byte> Encode(ReadOnlyMemory<char> headerContent, Span<byte> buffer, bool isHttps = true)
         {
@@ -50,6 +64,80 @@ namespace Fluxzy.Clients.H2.Encoder
             return buffer.Slice(0, offset);
         }
         
+        private int GetEncodedLength(in HeaderField entry)
+        {
+            int index;
+            int result = 0; 
+
+            if (_encodingContext.TryGetEntry(entry.Name, entry.Value, out index))
+            {
+                // Existing 
+                var length = _primitiveOperation.GetInt32Length(index, 7);
+
+                return length;
+            }
+
+            if (_encodingContext.TryGetEntry(entry.Name, out index))
+            {
+
+                if (_codecSetting.EncodedHeaders.Contains(entry.Name))
+                {
+                    var length = _primitiveOperation.GetInt32Length(index, 6);
+                    var res = GetWriteStringLength(entry.Value.Span);
+                    length += res;
+
+                    return length;
+                }
+                else
+                {
+                    // Value is not meant to be saved 
+
+                    var length = _primitiveOperation.GetInt32Length(index, 4);
+                    length += GetWriteStringLength(entry.Value.Span);
+
+                    return length;
+                }
+            }
+
+            if (_codecSetting.EncodedHeaders.Contains(entry.Name))
+            {
+                var length = 1;
+                
+                Span<char> lowerCaseBuffer = stackalloc char[entry.Name.Length];
+                entry.Name.Span.ToLowerInvariant(lowerCaseBuffer);
+
+                length += GetWriteStringLength(lowerCaseBuffer);
+                length += GetWriteStringLength(entry.Value.Span);
+
+                return length;
+            }
+
+            {
+                var length = 1;
+
+                char[]? heapBuffer = null;
+
+                try {
+                    Span<char> lowerCaseBuffer = entry.Name.Length < 1024 ? stackalloc char[entry.Name.Length] :
+                        (heapBuffer = ArrayPool<char>.Shared.Rent(entry.Name.Length));
+
+                    lowerCaseBuffer = lowerCaseBuffer.Slice(0, entry.Name.Length);
+
+                    entry.Name.Span.ToLowerInvariant(lowerCaseBuffer);
+
+                    length += GetWriteStringLength(lowerCaseBuffer);
+                    length += GetWriteStringLength(entry.Value.Span);
+                    return length;
+                }
+                finally {
+                    if (heapBuffer != null) {
+                        ArrayPool<char>.Shared.Return(heapBuffer);
+                    }
+                }
+            }
+        }
+
+
         private int Encode(in HeaderField entry, in Span<byte> buffer)
         {
             int index;
@@ -124,18 +212,35 @@ namespace Fluxzy.Clients.H2.Encoder
                 var length = 1;
                 buffer[0] = 0x0;
 
-                Span<char> lowerCaseBuffer = stackalloc char[entry.Name.Length];
-                entry.Name.Span.ToLowerInvariant(lowerCaseBuffer);
+                char[]? heapBuffer = null;
 
-                length += InternalWriteString(lowerCaseBuffer, buffer.Slice(length)).Length;
-                length += InternalWriteString(entry.Value, buffer.Slice(length)).Length;
-                return length;
+                try {
+                    Span<char> lowerCaseBuffer = entry.Name.Length < 1024
+                        ? stackalloc char[entry.Name.Length]
+                        : (heapBuffer = ArrayPool<char>.Shared.Rent(entry.Name.Length));
+                    entry.Name.Span.ToLowerInvariant(lowerCaseBuffer);
+
+                    length += InternalWriteString(lowerCaseBuffer, buffer.Slice(length)).Length;
+                    length += InternalWriteString(entry.Value, buffer.Slice(length)).Length;
+                    return length;
+                }
+                finally {
+                    if (heapBuffer != null) {
+                        ArrayPool<char>.Shared.Return(heapBuffer);
+                    }
+                }
             }
         }
 
         private Span<byte> InternalWriteString(ReadOnlySpan<char> input, Span<byte> buffer)
         {
             return _primitiveOperation.WriteString(input, buffer,
+                _codecSetting.MaxLengthUncompressedString < input.Length);
+        }
+
+        private int GetWriteStringLength(ReadOnlySpan<char> input)
+        {
+            return _primitiveOperation.GetStringLength(input, 
                 _codecSetting.MaxLengthUncompressedString < input.Length);
         }
 

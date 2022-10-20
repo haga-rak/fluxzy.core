@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
-using Fluxzy.Core;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -237,12 +236,6 @@ namespace Fluxzy
             return this;
         }
 
-        public FluxzySetting SetVerbose(bool value)
-        {
-            Verbose = value;
-            return this;
-        }
-
         /// <summary>
         ///     Change the default certificate used by fluxzy
         /// </summary>
@@ -270,11 +263,6 @@ namespace Fluxzy
             {
                 ConnectionPerHost = 8,
             }.SetBoundAddress("127.0.0.1", 44344);
-        }
-
-        internal IConsoleOutput GetDefaultOutput()
-        {
-            return new DefaultConsoleOutput(Verbose ? Console.Out : null);
         }
     }
 }
