@@ -10,3 +10,7 @@
                             *ngIf="filter.typeKind === 'PathFilter'"></app-path-filter-form>
 <app-ip-egress-filter-form [filter]="get(filter)" [validationSource]="validationSource"
                             *ngIf="filter.typeKind === 'IpEgressFilter'"></app-ip-egress-filter-form>
+<app-request-header-filer-form [filter]="get(filter)" [validationSource]="validationSource"
+                            *ngIf="filter.typeKind === 'RequestHeaderFilter'"></app-request-header-filer-form>
+<app-response-header-filter-form [filter]="get(filter)" [validationSource]="validationSource"
+                            *ngIf="filter.typeKind === 'ResponseHeaderFilter'"></app-response-header-filter-form>

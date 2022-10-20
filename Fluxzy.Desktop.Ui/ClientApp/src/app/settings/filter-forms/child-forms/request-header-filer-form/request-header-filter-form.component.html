@@ -1,0 +1,37 @@
+<div class="row mb-3">
+    <div class="col-sm-9">
+
+        <div class="form-floating">
+            <input  [typeahead]="RequestHeaderNames" [(ngModel)]="filter.headerName" class="form-control" />
+            <label >Header name</label>
+        </div>
+        <div class="p-1 text-danger" *ngIf="validationState['headerName']">
+            {{ validationState['headerName'] }}
+        </div>
+    </div>
+</div><div class="row mb-3">
+    <div class="col-sm-9">
+
+        <div class="form-floating">
+            <input type="text" [(ngModel)]="filter.pattern" class="form-control" />
+            <label >Header value</label>
+        </div>
+        <div class="p-1 text-danger" *ngIf="validationState['pattern']">
+            {{ validationState['pattern'] }}
+        </div>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-sm-9">
+        <div class="form-floating">
+            <select type="text" [(ngModel)]="filter.operation" class="form-select" >
+                <option *ngFor="let checkOperation of StringOperationTypes"> {{ checkOperation }}</option>
+            </select>
+            <label>Check operation (header value)</label>
+        </div>
+        <div class="p-1 text-danger" *ngIf="validationState['operation']">
+            {{ validationState['operation'] }}
+        </div>
+    </div>
+</div>
+

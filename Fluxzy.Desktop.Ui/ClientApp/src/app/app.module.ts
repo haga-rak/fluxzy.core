@@ -64,6 +64,9 @@ import { PathFilterFormComponent } from './settings/filter-forms/child-forms/pat
 import { IpEgressFilterFormComponent } from './settings/filter-forms/child-forms/ip-egress-filter-form/ip-egress-filter-form.component';
 import { FuncFilterPipe } from './directives/func-filter.pipe';
 import { ContextMenuComponent } from './shared/context-menu/context-menu.component';
+import { RequestHeaderFilterFormComponent } from './settings/filter-forms/child-forms/request-header-filer-form/request-header-filter-form.component';
+import {TypeaheadModule} from "ngx-bootstrap/typeahead";
+import { ResponseHeaderFilterFormComponent } from './settings/filter-forms/child-forms/response-header-filter-form/response-header-filter-form.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -118,6 +121,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         IpEgressFilterFormComponent,
         FuncFilterPipe,
         ContextMenuComponent,
+        RequestHeaderFilterFormComponent,
+        ResponseHeaderFilterFormComponent,
 
 
     ],
@@ -152,6 +157,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         }),
         BrowserAnimationsModule,
         AccordionModule,
+        TypeaheadModule,
     ],
     providers: [
         {
