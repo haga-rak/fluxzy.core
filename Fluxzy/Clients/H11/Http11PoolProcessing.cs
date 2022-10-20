@@ -102,7 +102,7 @@ namespace Fluxzy.Clients.H11
                 return true;
             }
 
-            Stream bodyStream = exchange.Connection.ReadStream;
+            Stream bodyStream = exchange.Connection.ReadStream!;
             
             if (headerBlockDetectResult.HeaderLength < headerBlockDetectResult.TotalReadLength)
             {
@@ -116,7 +116,7 @@ namespace Fluxzy.Clients.H11
                 bodyStream = new CombinedReadonlyStream(
                     shouldCloseConnection,
                     new MemoryStream(remainder),
-                    exchange.Connection.ReadStream
+                    exchange.Connection.ReadStream!
                 );
             }
 

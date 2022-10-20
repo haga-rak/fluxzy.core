@@ -22,7 +22,7 @@ namespace Fluxzy.Rules.Actions
 
         public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
-            exchange.Response.Header.AltAddHeader(
+            exchange.Response.Header?.AltAddHeader(
                 HeaderName,
                 HeaderValue
             );

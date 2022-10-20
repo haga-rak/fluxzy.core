@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +10,6 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
-using Fluxzy.Misc;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -23,63 +21,62 @@ namespace Fluxzy
     {
         private readonly ITcpConnectionProvider _tcpConnectionProvider;
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
-        private CancellationTokenSource _proxyHaltTokenSource = new();
+        private CancellationTokenSource? _proxyHaltTokenSource = new();
 
         private bool _disposed;
-        private Task _loopTask;
+        private Task? _loopTask;
         private bool _started;
-        private bool _halted; 
-        
-        private ProxyOrchestrator _proxyOrchestrator;
-        public RealtimeArchiveWriter Writer { get; private set; } = new EventOnlyArchiveWriter();
+        private bool _halted;
 
-        private  int _currentConcurrentCount = 0;
+        private ProxyOrchestrator? _proxyOrchestrator;
+        public RealtimeArchiveWriter? Writer { get; private set; } = new EventOnlyArchiveWriter();
+
+        private int _currentConcurrentCount;
 
         public Proxy(
             FluxzySetting startupSetting,
-            ICertificateProvider certificateProvider, 
+            ICertificateProvider certificateProvider,
             ITcpConnectionProvider tcpConnectionProvider = null
-            )
+        )
         {
             _tcpConnectionProvider = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
-            IdProvider = new FromIndexIdProvider(0, 0); 
-            
+            IdProvider = new FromIndexIdProvider(0, 0);
+
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
-           
+
             var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);
 
-            if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory)
+            if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory
+                && StartupSetting.ArchivingPolicy.Directory != null) 
             {
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
                 Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory);
             }
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
-            {
                 _tcpConnectionProvider = ITcpConnectionProvider.Default;
-            }
-            
+
             var http1Parser = new Http11Parser(StartupSetting.MaxHeaderLength);
             var poolBuilder = new PoolBuilder(
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default, http1Parser,
+                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default,
+                http1Parser,
                 Writer);
 
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
 
-            var runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, _tcpConnectionProvider, Writer, IdProvider);
+            var runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, _tcpConnectionProvider,
+                Writer, IdProvider);
 
             _proxyOrchestrator = new ProxyOrchestrator(runTimeSetting,
                 new ExchangeBuilder(secureConnectionManager, http1Parser, IdProvider), poolBuilder);
 
-            if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction && 
-                                                          t.Filter.Children.OfType<AnyFilter>().Any() 
-                                                          && t.Filter.Children.Count == 1) 
+            if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
+                                                         t.Filter.Children.OfType<AnyFilter>().Any()
+                                                         && t.Filter.Children.Count == 1)
                 && StartupSetting.AutoInstallCertificate)
-            {
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
-            }
         }
 
         public IReadOnlyCollection<IPEndPoint> ListenAddresses => _downStreamConnectionProvider.ListenEndpoints;
@@ -90,14 +87,13 @@ namespace Fluxzy
 
         public ProxyExecutionContext ExecutionContext { get; }
 
-        public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss"); 
-        
+        public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+
         private async ValueTask MainLoop()
         {
             Writer.Init();
 
-            while (true)
-            {
+            while (true) {
                 var client =
                     await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
 
@@ -110,43 +106,39 @@ namespace Fluxzy
 
         public static Proxy Create(FluxzySetting startupSetting)
         {
-            return new Proxy(startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache())); 
+            return new Proxy(startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache()));
         }
 
         private async void ProcessingConnection(TcpClient client)
         {
             Interlocked.Increment(ref _currentConcurrentCount);
 
-            try
-            {
+            try {
                 await Task.Yield();
 
-                using (client)
-                {
+                using (client) {
                     using var buffer = RsBuffer.Allocate(16 * 1024);
-                    
-                    try
-                    {
+
+                    try {
                         // already disposed
                         if (_proxyHaltTokenSource == null)
-                            return; 
+                            return;
 
-                        await _proxyOrchestrator.Operate(client, buffer, _proxyHaltTokenSource.Token).ConfigureAwait(false);
+                        await _proxyOrchestrator!.Operate(client, buffer, _proxyHaltTokenSource.Token)
+                                                .ConfigureAwait(false);
                     }
-                    finally
-                    {
+                    finally {
                         client.Close();
                     }
                 }
             }
-            finally
-            {
+            finally {
                 Interlocked.Decrement(ref _currentConcurrentCount);
             }
         }
 
         /// <summary>
-        ///  Start proxy
+        ///     Start proxy
         /// </summary>
         public IReadOnlyCollection<IPEndPoint> Run()
         {
@@ -157,15 +149,15 @@ namespace Fluxzy
                 throw new InvalidOperationException("Proxy was already started");
 
             _started = true;
-            
-            var endPoints = _downStreamConnectionProvider.Init(_proxyHaltTokenSource.Token);
+
+            var endPoints = _downStreamConnectionProvider.Init(_proxyHaltTokenSource!.Token);
 
             _loopTask = Task.Run(MainLoop);
-            
 
-            return endPoints; 
+
+            return endPoints;
         }
-        
+
         public void Dispose()
         {
             InternalDispose();
@@ -174,13 +166,11 @@ namespace Fluxzy
         public async ValueTask DisposeAsync()
         {
             InternalDispose();
-            
-            try
-            {
+
+            try {
                 await _loopTask.ConfigureAwait(false); // Wait for main loop to end
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 // Loop task exception 
             }
         }
@@ -188,7 +178,7 @@ namespace Fluxzy
         private void InternalDispose()
         {
             if (_halted)
-                return; 
+                return;
 
             _halted = true;
 
@@ -201,7 +191,7 @@ namespace Fluxzy
             _proxyOrchestrator?.Dispose();
             _proxyOrchestrator = null;
 
-            _proxyHaltTokenSource.Cancel();
+            _proxyHaltTokenSource?.Cancel();
 
             _proxyHaltTokenSource?.Dispose();
             _proxyHaltTokenSource = null;
@@ -220,8 +210,6 @@ namespace Fluxzy
 
         public string SessionId { get; }
 
-        public FluxzySetting StartupSetting { get; } 
+        public FluxzySetting StartupSetting { get; }
     }
-
-
 }

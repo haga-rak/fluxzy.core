@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
@@ -36,8 +35,7 @@ namespace Fluxzy
         {
             hostName = GetRootDomain(hostName);
 
-            lock (string.Intern(hostName))
-            {
+            lock (string.Intern(hostName)) {
                 if (_solveCertificateRepository.TryGetValue(hostName, out var value))
                     return value;
 
@@ -69,6 +67,7 @@ namespace Fluxzy
 
             return string.Join(".", splittedArray.Reverse().Take(splittedArray.Length - 1).Reverse());
         }
+
         private byte[] BuildCertificateForRootDomain(string rootDomain)
         {
             var watch = new Stopwatch();
@@ -81,7 +80,7 @@ namespace Fluxzy
                 _rsaKeyEngine,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
-            
+
             watch.Stop();
 
             certificateRequest.CertificateExtensions.Add(
@@ -106,8 +105,7 @@ namespace Fluxzy
             certificateRequest.CertificateExtensions.Add(alternativeName.Build());
             certificateRequest.CertificateExtensions.Add(
                 new X509EnhancedKeyUsageExtension(
-                    new OidCollection
-                    {
+                    new OidCollection {
                         new("1.3.6.1.5.5.7.3.1")
                     },
                     true));
@@ -123,7 +121,7 @@ namespace Fluxzy
 
             if (offSetEnd > offsetLimit) offSetEnd = offsetLimit;
 
-            var buffer = new byte[16]; 
+            var buffer = new byte[16];
             randomGenerator.NextBytes(buffer);
 
             using var cert = certificateRequest.Create(_baseCertificate,
