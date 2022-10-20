@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using Fluxzy.Clients.H2.Encoder.Huffman;
 
 namespace Fluxzy.Clients.H2.Encoder.HPack
@@ -19,6 +20,36 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             _maxStringLength = maxStringLength;
         }
 
+
+        public int GetInt32Length(int value, int prefixSize)
+        {
+            try
+            {
+                var maxSize = (1 << prefixSize) - 1;
+
+                if (value < maxSize)
+                {
+                    return 1;
+                }
+
+                var fullPrefix = (0xFF >> (8 - prefixSize));
+                value -= fullPrefix;
+
+                int index = 1;
+
+                do
+                {
+                    index++;
+                    value >>= 7;
+                } while (value > 0);
+
+                return index;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                throw new HPackCodecException($"Provided buffer is not large enough");
+            }
+        }
         public int WriteInt32(Span<byte> output, int value, int prefixSize)
         {
             try
@@ -167,22 +198,57 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
         }
 
-        public Span<byte> WriteString(ReadOnlySpan<char> input, Span<byte> buffer, bool huffmanEncoded)
+        public int GetStringLength(ReadOnlySpan<char> input, bool huffmanEncoded)
         {
-            try
-            {
-                Span<byte> inputByteBuffer = stackalloc byte[input.Length * 2];
-                int size = System.Text.Encoding.ASCII.GetBytes(input, inputByteBuffer);
-                Span<byte> inputBytes = inputByteBuffer.Slice(0, size); 
+            byte[]? heapBuffer = null; 
 
+            try {
+                
+                Span<byte> inputByteBuffer = input.Length * 2 < 1024 ? stackalloc byte[input.Length * 2] 
+                        : heapBuffer = ArrayPool<byte>.Shared.Rent(input.Length * 2);
+
+                int size = System.Text.Encoding.ASCII.GetBytes(input, inputByteBuffer);
+                Span<byte> inputBytes = inputByteBuffer.Slice(0, size);
 
                 var encodedLength = _codec.GetEncodedLength(inputBytes);
 
+                huffmanEncoded = encodedLength < inputBytes.Length;
 
-                if (encodedLength > buffer.Length)
-                {
+                var length = !huffmanEncoded ? input.Length : encodedLength;
 
+                var offset = GetInt32Length(length, 7);
+
+                if (huffmanEncoded) {
+                    var encoded = _codec.GetEncodedLength(inputBytes);
+                    return offset + encoded;
                 }
+
+                return offset + input.Length;
+
+            }
+            catch (IndexOutOfRangeException) {
+                throw new HPackCodecException($"Provided buffer is not large enough");
+            }
+            finally {
+                if (heapBuffer != null) {
+                    ArrayPool<byte>.Shared.Return(heapBuffer);
+                }
+            }
+        }
+
+        public Span<byte> WriteString(ReadOnlySpan<char> input, Span<byte> buffer, bool huffmanEncoded)
+        {
+            byte[]? heapBuffer = null;
+
+            try
+            {
+                Span<byte> inputByteBuffer = input.Length * 2 < 1024 ? stackalloc byte[input.Length * 2]
+                    : heapBuffer = ArrayPool<byte>.Shared.Rent(input.Length * 2);
+
+                int size = System.Text.Encoding.ASCII.GetBytes(input, inputByteBuffer);
+                Span<byte> inputBytes = inputByteBuffer.Slice(0, size); 
+
+                var encodedLength = _codec.GetEncodedLength(inputBytes);
 
                 huffmanEncoded =  encodedLength < inputBytes.Length;
 
@@ -206,6 +272,13 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             catch (IndexOutOfRangeException)
             {
                 throw new HPackCodecException($"Provided buffer is not large enough");
+            }
+            finally
+            {
+                if (heapBuffer != null)
+                {
+                    ArrayPool<byte>.Shared.Return(heapBuffer);
+                }
             }
         }
         

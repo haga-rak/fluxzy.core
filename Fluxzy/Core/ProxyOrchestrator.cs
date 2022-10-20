@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
+using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
@@ -31,7 +32,7 @@ namespace Fluxzy.Core
             _archiveWriter = proxyRuntimeSetting.ArchiveWriter;
         }
 
-        public async ValueTask Operate(TcpClient client, byte [] buffer, CancellationToken token)
+        public async ValueTask Operate(TcpClient client, RsBuffer buffer, CancellationToken token)
         {
             try
             {
@@ -238,7 +239,7 @@ namespace Fluxzy.Core
                                 {
                                     // Start sending response to browser
                                     await localConnection.WriteStream.WriteAsync(
-                                        new ReadOnlyMemory<byte>(buffer, 0, responseHeaderLength),
+                                        new ReadOnlyMemory<byte>(buffer.Buffer, 0, responseHeaderLength),
                                         token);
                                 }
                                 catch (Exception ex)
@@ -269,7 +270,7 @@ namespace Fluxzy.Core
                                     try
                                     {
                                         await exchange.Response.Body.CopyDetailed(
-                                            localConnectionWriteStream, buffer, _ => { }, token);
+                                            localConnectionWriteStream, buffer.Buffer, _ => { }, token);
 
                                         (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
 

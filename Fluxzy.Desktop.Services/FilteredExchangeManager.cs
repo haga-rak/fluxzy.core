@@ -51,18 +51,7 @@ namespace Fluxzy.Desktop.Services
                                     if (v != null)
                                         forwardMessageManager.Send(v);
                                 })
-                                .Subscribe((c) =>
-                                {
-                                    Console.WriteLine("next");
-
-                                }, (c) =>
-                                {
-                                    Console.WriteLine("error");
-
-                                }, () =>
-                                {
-                                    Console.WriteLine("Complete");
-                                }); 
+                                .Subscribe(); 
         }
 
 

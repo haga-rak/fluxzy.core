@@ -1,5 +1,6 @@
 ﻿using System;
 using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
 {
@@ -17,7 +18,7 @@ namespace Fluxzy.Clients.H2
         /// <param name="destinationBuffer"></param>
         /// <param name="endStream"></param>
         /// <returns></returns>
-        ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, Memory<byte> destinationBuffer, bool endStream); 
+        ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, RsBuffer destinationBuffer, bool endStream); 
 
         /// <summary>
         /// Remove hpack 

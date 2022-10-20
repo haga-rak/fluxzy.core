@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
@@ -51,7 +52,7 @@ namespace Fluxzy.Clients.DotNetBridge
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 
-            await _activeConnections[request.RequestUri.Authority].Send(exchange, null, new byte[32 * 1024],
+            await _activeConnections[request.RequestUri.Authority].Send(exchange, null, RsBuffer.Allocate(32* 1024),
                 cancellationToken).ConfigureAwait(false);
             
             return new FluxzyHttpResponseMessage(exchange);

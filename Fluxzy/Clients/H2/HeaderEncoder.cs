@@ -1,7 +1,9 @@
 ﻿// Copyright © 2021 Haga Rakotoharivelo
 
 using System;
+using System.Buffers;
 using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
 {
@@ -25,17 +27,31 @@ namespace Fluxzy.Clients.H2
 
         public HPackDecoder Decoder => _hPackDecoder;
 
-        public ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, Memory<byte> destinationBuffer, bool endStream)
+        public ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, RsBuffer destinationBuffer, bool endStream)
         {
-            Span<byte> buffer = stackalloc byte[_streamSetting.Remote.MaxHeaderLine];
-            var encodedHeader = _hPackEncoder.Encode(encodingJob.Data, buffer);
+            // heavy assumption that encoded length is at much twice larger than inital chars
+            var encodedMaxLength = encodingJob.Data.Length * 2;
+            byte[]? heapBuffer = null;
 
-            var res = Packetizer.PacketizeHeader(
-                encodedHeader, destinationBuffer.Span, 
-                endStream, encodingJob.StreamIdentifier,
-                _streamSetting.Remote.MaxFrameSize, encodingJob.StreamDependency);
+            try {
 
-            return destinationBuffer.Slice(0, res.Length);
+                Span<byte> buffer = encodedMaxLength < 1024 ? stackalloc byte[encodedMaxLength]
+                        : heapBuffer = ArrayPool<byte>.Shared.Rent(encodedMaxLength);
+
+                var encodedHeader = _hPackEncoder.Encode(encodingJob.Data, buffer);
+
+                var res = Packetizer.PacketizeHeader(
+                    encodedHeader, destinationBuffer.Buffer,
+                    endStream, encodingJob.StreamIdentifier,
+                    _streamSetting.Remote.MaxFrameSize, encodingJob.StreamDependency);
+
+                return destinationBuffer.Memory.Slice(0, res.Length);
+            }
+            finally {
+                if (heapBuffer != null) {
+                    ArrayPool<byte>.Shared.Return(heapBuffer);
+                }
+            }
         }
 
         public ReadOnlyMemory<char> Decode(ReadOnlyMemory<byte> encodedBuffer, Memory<char> destinationBuffer)

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
+using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
 using CombinedReadonlyStream = Fluxzy.Misc.Streams.CombinedReadonlyStream;
@@ -79,7 +80,7 @@ namespace Fluxzy.Clients
         private readonly Http11Parser _http11Parser;
         private readonly IIdProvider _idProvider;
 
-        private static string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
+        private static readonly string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
 
         private static readonly byte [] AcceptTunnelResponse =
             Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
@@ -96,7 +97,7 @@ namespace Fluxzy.Clients
 
         public async ValueTask<ExchangeBuildingResult?> InitClientConnection(
             Stream stream,
-            byte [] buffer,
+            RsBuffer buffer,
             ProxyRuntimeSetting runtimeSetting,
             CancellationToken token)
         {
@@ -112,7 +113,7 @@ namespace Fluxzy.Clients
 
             var plainHeaderChars = new char[blockReadResult.HeaderLength];
 
-            Encoding.ASCII.GetChars(new Memory<byte>(buffer, 0, blockReadResult.HeaderLength).Span,
+            Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
                 plainHeaderChars);
 
             var plainHeader = new RequestHeader(plainHeaderChars, true, _http11Parser);
@@ -198,7 +199,7 @@ namespace Fluxzy.Clients
         }
 
         public async ValueTask<Exchange> ReadExchange(
-            Stream inStream, Authority authority, byte[] buffer,
+            Stream inStream, Authority authority, RsBuffer buffer,
             ProxyRuntimeSetting runTimeSetting,
             CancellationToken token)
         {
@@ -212,7 +213,7 @@ namespace Fluxzy.Clients
 
             var secureHeaderChars = new char[blockReadResult.HeaderLength];
 
-            Encoding.ASCII.GetChars(new Memory<byte>(buffer, 0, blockReadResult.HeaderLength).Span,
+            Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
                 secureHeaderChars);
 
             var secureHeader = new RequestHeader(secureHeaderChars, true, _http11Parser);
@@ -220,7 +221,7 @@ namespace Fluxzy.Clients
             if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
             {
                 inStream = new CombinedReadonlyStream(false,
-                    new MemoryStream(buffer, blockReadResult.HeaderLength,
+                    new MemoryStream(buffer.Buffer, blockReadResult.HeaderLength,
                         blockReadResult.TotalReadLength - blockReadResult.HeaderLength),
                     inStream); 
             }

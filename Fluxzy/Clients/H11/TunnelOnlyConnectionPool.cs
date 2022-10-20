@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Writers;
 
@@ -47,8 +48,7 @@ namespace Fluxzy.Clients.H11
             return new ValueTask<bool>(!Complete); 
         }
 
-        public async ValueTask Send(
-            Exchange exchange, ILocalLink localLink, byte [] buffer,
+        public async ValueTask Send(Exchange exchange, ILocalLink localLink, RsBuffer buffer,
             CancellationToken cancellationToken = default)
         {
             try
@@ -60,7 +60,7 @@ namespace Fluxzy.Clients.H11
                     _connectionBuilder, 
                     _proxyRuntimeSetting, null);
 
-                await ex.Process(exchange, localLink, buffer, CancellationToken.None);
+                await ex.Process(exchange, localLink, buffer.Buffer, CancellationToken.None);
             }
             finally
             {
