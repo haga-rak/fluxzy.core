@@ -134,7 +134,13 @@ namespace Fluxzy.Tests.Cli
                     var exchanges = archiveReader.ReadAllExchanges().ToList();
                     var connections = archiveReader.ReadAllConnections().ToList();
 
-                    var exchange = exchanges.First();
+                    var exchange = exchanges.FirstOrDefault();
+
+                    if (exchange == null) {
+
+                    }
+
+
                     var connection = connections.First();
 
                     Assert.Equal(0, await commandLineHost.ExitCode);
@@ -168,7 +174,31 @@ namespace Fluxzy.Tests.Cli
 
         }
 
+
         [Fact]
+        public async Task Run_Cli_Wait_For_Complete_When_304()
+        {
+
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/12356";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                "https://registry.2befficient.io:40300/status/304");
+
+            //  requestMessage.Headers.Add("xxxx", new string('a', 1024 * 2));
+
+            var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+        }
+
+        //[Fact]
         public async Task Run_Cli_Aggressive_Request_Response()
         {
             // Arrange 

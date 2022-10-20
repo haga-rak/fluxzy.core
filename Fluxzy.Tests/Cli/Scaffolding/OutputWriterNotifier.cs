@@ -21,19 +21,18 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             {
                 if (!_runningWait.TryGetValue(regexPattern, out var completionSource))
                 {
-                    _runningWait[regexPattern] = completionSource = new TimeoutTaskCompletionSource<string>(timeoutSeconds);
+                    _runningWait[regexPattern] = completionSource = new TimeoutTaskCompletionSource<string>(timeoutSeconds, regexPattern);
                 }
 
                 return completionSource.CompletionSource.Task;
             }
         }
-
         public override void Write(string? value)
         {
             if (value != null)
             {
-                lock (_runningWait)
-                {
+                lock (_runningWait) {
+
                     foreach (var (regexPattern, cancellableTaskSource)
                              in _runningWait.Where(v => !v.Value.CompletionSource.Task.IsCompleted))
                     {

@@ -11,6 +11,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
+using Fluxzy.Misc;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -53,7 +54,6 @@ namespace Fluxzy
             {
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
                 Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory);
-                
             }
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
@@ -123,7 +123,7 @@ namespace Fluxzy
 
                 using (client)
                 {
-                    using var buffer = RsBuffer.Allocate(4 * 1024);
+                    using var buffer = RsBuffer.Allocate(16 * 1024);
                     
                     try
                     {
@@ -161,10 +161,7 @@ namespace Fluxzy
             var endPoints = _downStreamConnectionProvider.Init(_proxyHaltTokenSource.Token);
 
             _loopTask = Task.Run(MainLoop);
-
-            StartupSetting.GetDefaultOutput()
-                          .WriteLine($@"Listening on {string.Join(", ",
-                              endPoints.Select(e => e.ToString()))}");
+            
 
             return endPoints; 
         }
@@ -192,8 +189,6 @@ namespace Fluxzy
         {
             if (_halted)
                 return; 
-
-            
 
             _halted = true;
 
