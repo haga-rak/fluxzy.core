@@ -8,6 +8,7 @@ import { GlobalSettingComponent } from '../settings/global-setting/global-settin
 import { ManageFiltersComponent } from '../settings/manage-filters/manage-filters.component';
 import {ApiService} from "./api.service";
 import {FilterPreCreateComponent} from "../settings/filter-forms/filter-pre-create/filter-pre-create.component";
+import {ManageRulesComponent} from "../settings/manage-rules/manage-rules.component";
 
 @Injectable({
     providedIn: 'root',
@@ -37,6 +38,14 @@ export class DialogService {
           tap((t) => this.openManageFilters(false))
       )
       .subscribe();
+
+      this.menuService
+      .getApplicationMenuEvents()
+      .pipe(
+          filter((t) => t.menuId === 'manage-rules'),
+          tap((t) => this.openManageRules())
+      )
+      .subscribe();
     }
 
     public openGlobalSettings(): void {
@@ -55,6 +64,19 @@ export class DialogService {
 
         this.bsModalRef = this.modalService.show(
             GlobalSettingComponent,
+            config
+        );
+        this.bsModalRef.content.closeBtnName = 'Close';
+    }
+
+    public openManageRules() {
+        const config: ModalOptions = {
+            initialState: {
+            },
+            ignoreBackdropClick : true
+        };
+        this.bsModalRef = this.modalService.show(
+            ManageRulesComponent,
             config
         );
         this.bsModalRef.content.closeBtnName = 'Close';

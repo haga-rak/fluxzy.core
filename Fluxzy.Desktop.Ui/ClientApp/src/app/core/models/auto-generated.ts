@@ -313,7 +313,7 @@ export interface RequestHeaderFilter extends HeaderFilter
 }
 export interface Rule
 {
-	id: string;
+	identifier: string;
 	filter: Filter;
 	action: Action;
 	inScope: boolean;

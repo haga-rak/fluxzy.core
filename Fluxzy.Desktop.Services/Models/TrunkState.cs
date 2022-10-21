@@ -47,7 +47,7 @@ namespace Fluxzy.Desktop.Services.Models
         public int MaxConnectionId { get;  }
 
         /// <summary>
-        /// Map a exchange Id to its position (index) on Exchanges list
+        /// Map a exchange Identifier to its position (index) on Exchanges list
         /// </summary>
         public Dictionary<int, int> ExchangesIndexer { get; } = new();
 
