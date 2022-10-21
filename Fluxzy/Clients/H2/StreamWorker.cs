@@ -488,7 +488,7 @@ namespace Fluxzy.Clients.H2
 
         public override string ToString()
         {
-            return $"Stream Id : {StreamIdentifier}";
+            return $"Stream Identifier : {StreamIdentifier}";
         }
     }
 }

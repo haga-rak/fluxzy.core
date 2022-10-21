@@ -1,0 +1,63 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        <span>Manage rules</span>
+
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="close()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 400px">
+    <p *ngIf="!ruleContainers">
+        Loading rules
+    </p>
+    <div *ngIf="ruleContainers">
+         <p class="alert alert-dark">Rules are active actions applied to HTTP traffic. Rules can be a regular request setup such as using a client certificate to complex traffic alteration.
+              </p>
+
+        <div style="margin-bottom:18px">
+            <button class="btn  btn-primary"  (click)="createRule()">+ Add a new rule</button>
+        </div>
+
+        <div class="shady-box table-box">
+            <perfect-scrollbar #perfectScroll style="height: 400px;">
+
+                <div class="lead text-center" style="padding: 64px"  *ngIf="ruleContainers.length === 0">
+                    There's no rule configured yet. <br/>
+                    <a href="javascript:;" (click)="createRule()" class="fw-bold">Create a new rule</a>
+                </div>
+
+                <table style="width:100%" class="filter-table" *ngIf="ruleContainers.length > 0">
+                    <tr>
+                        <th style="width:32px">&nbsp;</th>
+                        <th>Action</th>
+                        <th style="width:150px">Filter</th>
+                        <th style="width:250px">&nbsp;</th>
+                    </tr>
+                    <tr *ngFor="let ruleContainer of ruleContainers">
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox"  [(ngModel)]="ruleContainer.enabled" >
+<!--                                <label class="form-check-label">{{ruleContainer.rule.action.typeKind}}</label>-->
+                            </div>
+                        </td>
+                        <td>
+                            <a href="javascript:;" (click)="ruleContainer.enabled = !ruleContainer.enabled" class="span-friendly-name text-info"
+                               [ngClass]="{'text-white' : ruleContainer.enabled}">{{ruleContainer.rule.action.typeKind }}</a>
+                        </td>
+                        <td>{{ruleContainer.rule.filter.friendlyName }}</td>
+                        <td>
+                             <button class="btn btn-secondary btn-outline-danger" (click)="deleteRule(ruleContainer.rule)">Delete</button>
+                        </td>
+                    </tr>
+                </table>
+            </perfect-scrollbar>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="save()">
+        Save
+    </button>
+    <button class="btn btn-dark" (click)="bsModalRef.hide()">Cancel</button>
+</div>

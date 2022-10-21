@@ -16,6 +16,7 @@ import {
     of, delay, BehaviorSubject, pipe
 } from 'rxjs';
 import {
+    Action,
     ConnectionInfo, ContextMenuAction,
     ExchangeBrowsingState,
     ExchangeState,
@@ -26,7 +27,7 @@ import {
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult, ForwardMessage,
-    MultipartItem,
+    MultipartItem, RuleContainer,
     SaveFileMultipartActionModel,
     StoredFilter,
     TrunkState,
@@ -196,7 +197,6 @@ export class ApiService {
         return this.httpClient.patch<boolean>(`api/view-filter/store`,filterHolders).pipe(take(1));
     }
 
-
     public filterGetTemplates() : Observable<FilterTemplate[]> {
         return this.httpClient.get<FilterTemplate[]>(`api/filter/templates`).pipe(take(1));
     }
@@ -217,4 +217,19 @@ export class ApiService {
         return this.httpClient.post<ForwardMessage[]>(`api/forward-message/consume`, null).pipe(take(1));
     }
 
+    public ruleGetContainer() : Observable<RuleContainer[]> {
+        return this.httpClient.get<RuleContainer[]>(`api/rule/container`).pipe(take(1)) ;
+    }
+
+    public ruleUpdateContainer(containers : RuleContainer[]) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/rule/container`,containers).pipe(take(1)) ;
+    }
+
+    public actionValidate(action: Action) : Observable<Action> {
+        return this.httpClient.post<Action>(`api/rule/action/validate`,action).pipe(take(1)) ;
+    }
+
+    public actionGetTemplates() : Observable<Action[]> {
+        return this.httpClient.get<Action[]>(`api/rule/action`).pipe(take(1)) ;
+    }
 }

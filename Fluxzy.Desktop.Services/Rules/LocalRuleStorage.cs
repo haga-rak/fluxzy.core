@@ -13,7 +13,7 @@ namespace Fluxzy.Desktop.Services.Rules
 
         public LocalRuleStorage()
         {
-            var basePath = Environment.ExpandEnvironmentVariables("%appdata%/fluxzy/filters");
+            var basePath = Environment.ExpandEnvironmentVariables("%appdata%/fluxzy/rules");
             Directory.CreateDirectory(basePath);
             _filterDirectory = new DirectoryInfo(basePath);
 
@@ -42,7 +42,7 @@ namespace Fluxzy.Desktop.Services.Rules
 
         private string GetRulePath(Rule rule)
         {
-            return Path.Combine(_filterDirectory.FullName, $"{rule.Id}.rule.json");
+            return Path.Combine(_filterDirectory.FullName, $"{rule.Identifier}.rule.json");
         }
 
         public Task Update(ICollection<RuleContainer> rules)
