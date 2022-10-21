@@ -24,5 +24,7 @@ namespace Fluxzy.Rules.Actions
             context.ClientCertificates.Add(ClientCertificate.GetCertificate());
             return default;
         }
+
+        public override string DefaultDescription => $"Set client certificate".Trim();
     }
 }

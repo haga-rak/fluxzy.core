@@ -17,5 +17,7 @@ namespace Fluxzy.Rules.Actions
             exchange.Comment = Comment;
             return default;
         }
+
+        public override string DefaultDescription => $"Apply comment {Comment}".Trim();
     }
 }

@@ -16,5 +16,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         {
             throw new System.NotImplementedException();
         }
+
+        public override string DefaultDescription => "Full request substitution";
     }
 }

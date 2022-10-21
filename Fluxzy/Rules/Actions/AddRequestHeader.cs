@@ -29,5 +29,9 @@ namespace Fluxzy.Rules.Actions
 
             return default;
         }
+        public override string DefaultDescription =>
+            string.IsNullOrWhiteSpace(HeaderName) ?
+                $"Add request header" :
+                $"Add request header ({HeaderName}, {HeaderValue})";
     }
 }

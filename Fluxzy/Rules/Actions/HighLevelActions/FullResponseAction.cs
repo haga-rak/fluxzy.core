@@ -23,5 +23,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             context.PreMadeResponse = PreMadeResponse;
             return default;
         }
+
+        public override string DefaultDescription => "Full response substitution";
     }
 }

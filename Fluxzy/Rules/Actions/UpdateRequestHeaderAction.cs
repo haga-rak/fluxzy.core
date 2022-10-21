@@ -27,5 +27,7 @@ namespace Fluxzy.Rules.Actions
 
             return default;
         }
+
+        public override string DefaultDescription => $"Update request header {HeaderName}".Trim();
     }
 }

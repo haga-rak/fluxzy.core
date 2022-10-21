@@ -15,5 +15,7 @@ namespace Fluxzy.Rules.Actions
             context.BlindMode = true;
             return default;
         }
+
+        public override string DefaultDescription => $"Do not decrypt".Trim();
     }
 }
