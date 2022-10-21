@@ -19,8 +19,10 @@ namespace Fluxzy.Rules.Actions
 
         public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
         {
-            exchange.Response.Header.AltDeleteHeader(HeaderName);
+            exchange.Response.Header?.AltDeleteHeader(HeaderName);
             return default;
         }
+
+        public override string DefaultDescription => $"Remove response header {HeaderName}".Trim();
     }
 }

@@ -9,9 +9,9 @@ namespace Fluxzy.Rules.Actions
 {
     public class SpoofDnsAction : Action
     {
-        public IPAddress RemoteHostIp { get; set; }
+        public IPAddress?  RemoteHostIp { get; set; }
 
-        public int RemoteHostPort { get; set; }
+        public int ? RemoteHostPort { get; set; }
 
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
@@ -22,5 +22,10 @@ namespace Fluxzy.Rules.Actions
 
             return default;
         }
+
+        public override string DefaultDescription =>
+            RemoteHostIp == null ? 
+            $"Spoof dns".Trim(): 
+            $"Spoof dns {RemoteHostIp}:{RemoteHostPort}".Trim();
     }
 }

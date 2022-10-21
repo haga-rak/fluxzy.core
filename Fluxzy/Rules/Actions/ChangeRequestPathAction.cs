@@ -23,5 +23,7 @@ namespace Fluxzy.Rules.Actions
             exchange.Request.Header.Path = NewPath.AsMemory();
             return default;
         }
+
+        public override string DefaultDescription => $"Change url path {NewPath}".Trim();
     }
 }

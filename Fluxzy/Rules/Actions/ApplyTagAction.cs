@@ -24,5 +24,7 @@ namespace Fluxzy.Rules.Actions
 
             return default;
         }
+
+        public override string DefaultDescription => $"Apply tag {Tag}".Trim();
     }
 }

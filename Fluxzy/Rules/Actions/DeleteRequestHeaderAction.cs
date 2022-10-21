@@ -22,5 +22,7 @@ namespace Fluxzy.Rules.Actions
             exchange.Request.Header.AltDeleteHeader(HeaderName);
             return default;
         }
+
+        public override string DefaultDescription => $"Remove header {HeaderName}".Trim();
     }
 }

@@ -53,5 +53,9 @@ namespace Fluxzy
             return HashCode.Combine(Identifier, Value);
         }
 
+        public override string ToString()
+        {
+            return $"{Value} ({Identifier})"; 
+        }
     }
 }

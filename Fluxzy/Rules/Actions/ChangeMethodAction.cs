@@ -23,5 +23,6 @@ namespace Fluxzy.Rules.Actions
             exchange.Request.Header.Method = NewMethod.AsMemory();
             return default;
         }
+        public override string DefaultDescription => $"Change method {NewMethod}".Trim();
     }
 }
