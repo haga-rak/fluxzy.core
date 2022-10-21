@@ -5,16 +5,19 @@ using Fluxzy.Clients;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Ui.ViewModels;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Formatters.Producers.Responses;
 using Fluxzy.Misc.Converters;
+using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
 using Reinforced.Typings.Fluent;
+using Action = Fluxzy.Rules.Action;
 using ConfigurationBuilder = Reinforced.Typings.Fluent.ConfigurationBuilder;
 
 [assembly: TsGlobal(CamelCaseForProperties = true, AutoOptionalProperties = true)]
@@ -36,6 +39,7 @@ namespace Fluxzy.Desktop.Ui
             ConfigureViewModels(builder);
             ConfigureProducers(builder);
             ConfigureFilters(builder); 
+            ConfigureRules(builder); 
 
             // UI objects
 
@@ -130,6 +134,7 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
         }
 
+
         private static void ConfigureViewModels(ConfigurationBuilder builder)
         {
 
@@ -216,6 +221,19 @@ namespace Fluxzy.Desktop.Ui
                                       .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)
                                                             && derivedType.IsClass).ToList();
 
+
+            builder.ExportAsInterfaces(foundTypes, a => a.ApplyGenericPropertiesGeneric());
+        }
+        
+        private static void ConfigureRules(ConfigurationBuilder builder)
+        {
+            builder.ExportAsInterface<Rule>().ApplyGenericProperties();
+            builder.ExportAsInterface<RuleContainer>().ApplyGenericProperties();
+            builder.ExportAsInterface<Certificate>().ApplyGenericProperties();
+
+            var foundTypes = typeof(Action).Assembly.GetTypes()
+                           .Where(derivedType => typeof(Action).IsAssignableFrom(derivedType)
+                                                 && derivedType.IsClass).ToList();
 
             builder.ExportAsInterfaces(foundTypes, a => a.ApplyGenericPropertiesGeneric());
         }

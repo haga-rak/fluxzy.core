@@ -311,6 +311,108 @@ export interface RequestHeaderFilter extends HeaderFilter
 	shortName: string;
 	genericName: string;
 }
+export interface Rule
+{
+	id: string;
+	filter: Filter;
+	action: Action;
+	inScope: boolean;
+}
+export interface RuleContainer
+{
+	rule: Rule;
+	enabled: boolean;
+}
+export interface Certificate
+{
+	retrieveMode: number;
+	thumbPrint?: string;
+	pkcs12File?: number[];
+	pkcs12Password?: string;
+}
+export interface Action extends PolymorphicObject
+{
+	actionScope: number;
+}
+export interface AddRequestHeaderAction extends Action
+{
+	headerName: string;
+	headerValue: string;
+	actionScope: number;
+}
+export interface AddResponseHeaderAction extends Action
+{
+	headerName: string;
+	headerValue: string;
+	actionScope: number;
+}
+export interface ApplyCommentAction extends Action
+{
+	actionScope: number;
+	comment?: string;
+}
+export interface ApplyTagAction extends Action
+{
+	actionScope: number;
+	tag?: Tag;
+}
+export interface ChangeRequestMethodAction extends Action
+{
+	newMethod: string;
+	actionScope: number;
+}
+export interface ChangeRequestPathAction extends Action
+{
+	newPath: string;
+	actionScope: number;
+}
+export interface DeleteRequestHeaderAction extends Action
+{
+	headerName: string;
+	actionScope: number;
+}
+export interface DeleteResponseHeaderAction extends Action
+{
+	headerName: string;
+	actionScope: number;
+}
+export interface SetClientCertificateAction extends Action
+{
+	clientCertificate: Certificate;
+	actionScope: number;
+}
+export interface SkipSslTunnelingAction extends Action
+{
+	actionScope: number;
+}
+export interface SpoofDnsAction extends Action
+{
+	remoteHostIp: string;
+	remoteHostPort: number;
+	actionScope: number;
+}
+export interface UpdateRequestHeaderAction extends Action
+{
+	headerName: string;
+	headerValue: string;
+	actionScope: number;
+}
+export interface UpdateResponseHeaderAction extends Action
+{
+	headerName: string;
+	headerValue: string;
+	actionScope: number;
+}
+export interface FullResponseAction extends Action
+{
+	preMadeResponse: any;
+	actionScope: number;
+}
+export interface ReplaceRequestBodyAction extends Action
+{
+	replacement: any;
+	actionScope: number;
+}
 export interface UiState
 {
 	id: string;
@@ -384,7 +486,7 @@ export interface FluxzySetting
 	verbose: boolean;
 	connectionPerHost: number;
 	serverProtocols: number;
-	caCertificate: any;
+	caCertificate: Certificate;
 	certificateCacheDirectory: string;
 	autoInstallCertificate: boolean;
 	checkCertificateRevocation: boolean;
@@ -392,7 +494,7 @@ export interface FluxzySetting
 	byPassHost: string[];
 	maxHeaderLength: number;
 	archivingPolicy: ArchivingPolicy;
-	alterationRules: any[];
+	alterationRules: Rule[];
 	filterSetting: any;
 }
 export interface ExchangeState

@@ -1,7 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
@@ -16,9 +15,13 @@ namespace Fluxzy.Rules
             Action = action;
         }
 
+        public Guid Id { get; set; } = new(); 
+
         public Filter Filter { get; set; }
 
         public Action Action { get; set; }
+
+        public bool InScope => Filter.FilterScope <= Action.ActionScope;
 
         public ValueTask Enforce(ExchangeContext context,
             Exchange exchange,

@@ -2,6 +2,7 @@
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Responses;
@@ -24,6 +25,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<ToolBarFilterProvider>();
             collection.AddSingleton<TemplateToolBarFilterProvider>();
             collection.AddSingleton<ForwardMessageManager>();
+            collection.AddSingleton<IRuleStorage, LocalRuleStorage>();
 
             collection.AddSingleton<IObservable<SystemProxyState>>
                 (s => s.GetRequiredService<SystemProxyStateControl>().Observable);
@@ -61,6 +63,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddScoped<FilterTemplateManager>();
             collection.AddScoped<ContextMenuActionProvider>();
             collection.AddScoped<ContextMenuFilterProvider>();
+            collection.AddScoped<ActionTemplateManager>();
 
             collection.AddTransient<FxzyDirectoryPackager>();
 
