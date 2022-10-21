@@ -10,28 +10,13 @@ namespace Fluxzy.Rules
 {
     public class Rule
     {
-        public Rule(Action action, FilterCollection filter)
+        public Rule(Action action, Filter filter)
         {
-            if (!filter.Children.Any())
-            {
-                throw new ArgumentException(
-                    $"You must specify at least one filter. Use {nameof(AnyFilter)} if the filter is a blank filter.",
-                    nameof(filter)); 
-            }
-
             Filter = filter;
             Action = action;
-
-            // TODO : validate filter and action scope coherency 
-            // TODO : Example response header filter should not match with DoNotDecrypt action
         }
 
-        public Rule(Action action, params Filter [] filters)
-            : this (action, new FilterCollection(filters))
-        {
-        }
-
-        public FilterCollection Filter { get; set; }
+        public Filter Filter { get; set; }
 
         public Action Action { get; set; }
 

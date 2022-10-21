@@ -73,8 +73,7 @@ namespace Fluxzy
                 new ExchangeBuilder(secureConnectionManager, http1Parser, IdProvider), poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
-                                                         t.Filter.Children.OfType<AnyFilter>().Any()
-                                                         && t.Filter.Children.Count == 1)
+                                                         t.Filter == AnyFilter.Default)
                 && StartupSetting.AutoInstallCertificate)
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
         }
