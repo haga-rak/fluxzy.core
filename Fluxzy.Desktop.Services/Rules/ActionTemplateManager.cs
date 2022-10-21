@@ -1,0 +1,34 @@
+﻿// Copyright © 2022 Haga Rakotoharivelo
+
+using Fluxzy.Rules.Actions;
+using Action = Fluxzy.Rules.Action;
+
+namespace Fluxzy.Desktop.Services.Rules
+{
+    public class ActionTemplateManager
+    {
+        private readonly List<Action> _defaultActions = new()
+        {
+            new AddRequestHeaderAction(string.Empty, string.Empty),
+            new AddResponseHeaderAction(string.Empty, string.Empty),
+            new UpdateRequestHeaderAction("", ""),
+            new UpdateResponseHeaderAction("", ""),
+            new DeleteRequestHeaderAction(""),
+            new DeleteResponseHeaderAction(""),
+            new ApplyCommentAction(),
+            new ApplyTagAction(),
+            new ChangeRequestMethodAction("GET"),
+            new ChangeRequestPathAction("/"),
+            new SetClientCertificateAction(new Certificate()
+            {
+                RetrieveMode = CertificateRetrieveMode.FromPkcs12
+            }),
+            new SpoofDnsAction(),
+        }; 
+
+        public List<Action> GetDefaultActions()
+        {
+            return _defaultActions;
+        }
+    }
+}

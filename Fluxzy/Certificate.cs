@@ -12,7 +12,7 @@ namespace Fluxzy
         private X509Certificate2? _cachedCertificate = null;
 
         [JsonInclude]
-        public CertificateRetrieveMode RetrieveMode { get; private set; } = CertificateRetrieveMode.FluxzyDefault;
+        public CertificateRetrieveMode RetrieveMode { get; set; } = CertificateRetrieveMode.FluxzyDefault;
 
         /// <summary>
         /// The certificate thumb print when location type is FromUserStoreByThumbPrint
@@ -59,8 +59,7 @@ namespace Fluxzy
                 RetrieveMode = CertificateRetrieveMode.FluxzyDefault
             };
         }
-
-
+        
         public X509Certificate2 GetCertificate()
         {
 
