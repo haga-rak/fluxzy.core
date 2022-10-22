@@ -16,7 +16,7 @@ import {
     of, delay, BehaviorSubject, pipe
 } from 'rxjs';
 import {
-    Action,
+    Action, AnyFilter,
     ConnectionInfo, ContextMenuAction,
     ExchangeBrowsingState,
     ExchangeState,
@@ -198,6 +198,10 @@ export class ApiService {
 
     public filterGetTemplates() : Observable<FilterTemplate[]> {
         return this.httpClient.get<FilterTemplate[]>(`api/filter/templates`).pipe(take(1));
+    }
+
+    public filterGetAnyTemplate() : Observable<AnyFilter> {
+        return this.httpClient.get<AnyFilter>(`api/filter/templates/any`).pipe(take(1));
     }
 
     public filterValidate(filter: Filter) : Observable<Filter> {

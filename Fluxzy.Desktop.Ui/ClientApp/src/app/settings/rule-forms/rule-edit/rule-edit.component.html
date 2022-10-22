@@ -42,6 +42,8 @@
                             Filter decides when this rule applies.
                         </div>
                         <div style="margin-bottom: 8px" class="lead">{{ rule.filter.friendlyName }}</div>
+                        <a href="javascript:;" class="btn btn-outline-primary btn-secondary" (click)="changeToAnyFilter()">All requests</a>
+                        &nbsp;
                         <a href="javascript:;" class="btn btn-outline-primary btn-secondary" (click)="changeFilter()">Create filter</a>
                         &nbsp;
                         <a href="javascript:;" class="btn btn-outline-primary btn-secondary" (click)="selectLocalFilter()">Select local filter</a>
@@ -52,8 +54,9 @@
     </div>
 </div>
 <div class="modal-footer">
-     <span class="float-start  me-auto text-danger" >
-        This rule is out of scope. This means that it's too late to active action when the filter matched.
+     <span class="float-start  me-auto text-danger" *ngIf="rule.action.scopeId < rule.filter.scopeId">
+         <i class="bi bi-exclamation-triangle-fill"></i>
+        This rule is out of scope. This means that the action is triggered before the filtering operation.
       </span>
 
     <button class="btn btn-primary" (click)="save()">Save</button>
