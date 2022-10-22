@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
-import {filter, finalize, Observable, Subject, switchMap, take, tap} from 'rxjs';
-import {Action, Filter} from '../core/models/auto-generated';
+import {filter, finalize, map, Observable, Subject, switchMap, take, tap} from 'rxjs';
+import {Action, Filter, Rule} from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter-edit.component';
 import { GlobalSettingComponent } from '../settings/global-setting/global-setting.component';
@@ -10,6 +10,7 @@ import {ApiService} from "./api.service";
 import {FilterPreCreateComponent} from "../settings/filter-forms/filter-pre-create/filter-pre-create.component";
 import {ManageRulesComponent} from "../settings/manage-rules/manage-rules.component";
 import {RulePreCreateComponent} from "../settings/rule-forms/rule-pre-create/rule-pre-create.component";
+import {RuleEditComponent} from "../settings/rule-forms/rule-edit/rule-edit.component";
 
 @Injectable({
     providedIn: 'root',
@@ -18,7 +19,8 @@ export class DialogService {
     bsModalRef?: BsModalRef;
     constructor(
         private modalService: BsModalService,
-        private menuService: MenuService
+        private menuService: MenuService,
+        private apiService : ApiService
     ) {
     }
 
@@ -182,6 +184,17 @@ export class DialogService {
         return subject.asObservable();
     }
 
+    public openRuleCreate() : Observable<Rule | null> {
+
+        return this.openRulePreCreate()
+            .pipe(
+                filter(t => !!t),
+                switchMap(t => this.openRuleCreateFromAction(t)),
+                take(1)
+            );
+
+    }
+
     public openRulePreCreate(): Observable<Action | null> {
         const subject = new Subject<Action | null>() ;
 
@@ -197,6 +210,38 @@ export class DialogService {
 
         this.bsModalRef = this.modalService.show(
             RulePreCreateComponent,
+            config
+        );
+
+        this.bsModalRef.content.closeBtnName = 'Close';
+        return subject.asObservable();
+    }
+
+    public openRuleCreateFromAction(action : Action) : Observable<Rule | null> {
+        return this.apiService.ruleCreateFromAction(action)
+            .pipe(
+                filter(t => !!t),
+                switchMap(r => this.openRuleEdit(r, false)),
+                take(1)
+            );
+    }
+
+    public openRuleEdit(rule : Rule, isEdit : boolean = false): Observable<Rule | null> {
+        const subject = new Subject<Rule | null>() ;
+
+        const callBack = (f : Rule | null) => {  subject.next(f); subject.complete()};
+
+        const config: ModalOptions = {
+            initialState: {
+                callBack,
+                isEdit,
+                rule
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.bsModalRef = this.modalService.show(
+            RuleEditComponent,
             config
         );
 

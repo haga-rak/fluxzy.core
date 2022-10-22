@@ -27,7 +27,7 @@ import {
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult, ForwardMessage,
-    MultipartItem, RuleContainer,
+    MultipartItem, Rule, RuleContainer,
     SaveFileMultipartActionModel,
     StoredFilter,
     TrunkState,
@@ -218,6 +218,14 @@ export class ApiService {
 
     public ruleGetContainer() : Observable<RuleContainer[]> {
         return this.httpClient.get<RuleContainer[]>(`api/rule/container`).pipe(take(1)) ;
+    }
+
+    public ruleValidate(rule : Rule) : Observable<Rule> {
+        return this.httpClient.post<Rule>(`api/rule/validation`, rule).pipe(take(1)) ;
+    }
+
+    public ruleCreateFromAction(action : Action) : Observable<Rule> {
+        return this.httpClient.post<Rule>(`api/rule`, action).pipe(take(1)) ;
     }
 
     public ruleUpdateContainer(containers : RuleContainer[]) : Observable<boolean> {

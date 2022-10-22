@@ -69,6 +69,8 @@ import {TypeaheadModule} from "ngx-bootstrap/typeahead";
 import { ResponseHeaderFilterFormComponent } from './settings/filter-forms/child-forms/response-header-filter-form/response-header-filter-form.component';
 import { ManageRulesComponent } from './settings/manage-rules/manage-rules.component';
 import { RulePreCreateComponent } from './settings/rule-forms/rule-pre-create/rule-pre-create.component';
+import { RuleEditComponent } from './settings/rule-forms/rule-edit/rule-edit.component';
+import { RuleRenderComponent } from './settings/rule-forms/rule-edit/rule-render/rule-render.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -127,6 +129,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ResponseHeaderFilterFormComponent,
         ManageRulesComponent,
         RulePreCreateComponent,
+        RuleEditComponent,
+        RuleRenderComponent,
 
 
     ],
@@ -170,6 +174,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         },
     ],
     bootstrap: [AppComponent],
-    entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent,FilterPreCreateComponent,ManageRulesComponent]
+    entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent,FilterPreCreateComponent,ManageRulesComponent,RuleEditComponent, RulePreCreateComponent]
 })
 export class AppModule {}

@@ -1,6 +1,8 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using Fluxzy.Desktop.Services.Rules;
+using Fluxzy.Rules;
+using Fluxzy.Rules.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Action = Fluxzy.Rules.Action;
 
@@ -31,9 +33,25 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("action/validation")]
-        public ActionResult<Fluxzy.Rules.Action> Patch([FromBody] Fluxzy.Rules.Action action)
+        public ActionResult<Action> Patch([FromBody] Action action)
         {
             return action; 
+        }
+
+
+        [HttpPost("validation")]
+        public ActionResult<Rule> ValidateRule([FromBody] Rule rule)
+        {
+            return rule; 
+        }
+
+        [HttpPost]
+        public ActionResult<Rule> CreateRule([FromBody] Action action)
+        {
+            return new Rule(
+                action,
+                new AnyFilter() // TODO build better intel here 
+            ); 
         }
 
 
