@@ -24,6 +24,12 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return templateManager.ReadAvailableTemplates();
         }
 
+        [HttpGet("templates/any")]
+        public ActionResult<AnyFilter> GetTemplates()
+        {
+            return AnyFilter.Default;
+        }
+
         [HttpPost("apply-to-view")]
         public ActionResult<bool> ApplyToView(Filter filter, [FromServices] ActiveViewFilterManager activeViewFilterManager,
             [FromServices] TemplateToolBarFilterProvider filterProvider)

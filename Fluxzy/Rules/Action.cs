@@ -12,6 +12,7 @@ namespace Fluxzy.Rules
     public abstract class Action : PolymorphicObject
     {
         public abstract FilterScope ActionScope { get; }
+        public int ScopeId => (int) ActionScope;
 
         public virtual Guid Identifier { get; set; } = Guid.NewGuid();
 
