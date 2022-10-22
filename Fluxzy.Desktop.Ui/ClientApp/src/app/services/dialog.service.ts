@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import {filter, finalize, Observable, Subject, switchMap, take, tap} from 'rxjs';
-import { Filter } from '../core/models/auto-generated';
+import {Action, Filter} from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter-edit.component';
 import { GlobalSettingComponent } from '../settings/global-setting/global-setting.component';
@@ -9,6 +9,7 @@ import { ManageFiltersComponent } from '../settings/manage-filters/manage-filter
 import {ApiService} from "./api.service";
 import {FilterPreCreateComponent} from "../settings/filter-forms/filter-pre-create/filter-pre-create.component";
 import {ManageRulesComponent} from "../settings/manage-rules/manage-rules.component";
+import {RulePreCreateComponent} from "../settings/rule-forms/rule-pre-create/rule-pre-create.component";
 
 @Injectable({
     providedIn: 'root',
@@ -174,6 +175,28 @@ export class DialogService {
 
         this.bsModalRef = this.modalService.show(
             FilterPreCreateComponent,
+            config
+        );
+
+        this.bsModalRef.content.closeBtnName = 'Close';
+        return subject.asObservable();
+    }
+
+    public openRulePreCreate(): Observable<Action | null> {
+        const subject = new Subject<Action | null>() ;
+
+        const callBack = (f : Action | null) => {  subject.next(f); subject.complete()};
+
+        const config: ModalOptions = {
+            initialState: {
+                callBack,
+                isEdit : false
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.bsModalRef = this.modalService.show(
+            RulePreCreateComponent,
             config
         );
 
