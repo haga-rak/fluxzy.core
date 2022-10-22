@@ -2,3 +2,7 @@
                         *ngIf="action.typeKind === 'AddRequestHeaderAction'"></app-add-request-header-form>
 <app-add-response-header-form [action]="get(action)" [validationSource]="validationSource"
                         *ngIf="action.typeKind === 'AddResponseHeaderAction'"></app-add-response-header-form>
+<app-update-request-header-form [action]="get(action)" [validationSource]="validationSource"
+                        *ngIf="action.typeKind === 'UpdateRequestHeaderAction'"></app-update-request-header-form>
+<app-update-response-header-form [action]="get(action)" [validationSource]="validationSource"
+                        *ngIf="action.typeKind === 'UpdateResponseHeaderAction'"></app-update-response-header-form>

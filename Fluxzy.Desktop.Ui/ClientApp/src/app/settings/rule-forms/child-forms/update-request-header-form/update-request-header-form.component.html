@@ -1,0 +1,24 @@
+<div class="row mb-3">
+    <div class="col-sm-9">
+
+        <div class="form-floating">
+            <input  [typeahead]="RequestHeaderNames" [(ngModel)]="action.headerName" class="form-control" />
+            <label >Header name</label>
+        </div>
+        <div class="p-1 text-danger" *ngIf="validationState['headerName']">
+            {{ validationState['headerName'] }}
+        </div>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-sm-9">
+
+        <div class="form-floating">
+            <input type="text" [(ngModel)]="action.headerValue" class="form-control" />
+            <label >Header value</label>
+        </div>
+        <div class="p-1 text-danger" *ngIf="validationState['headerValue']">
+            {{ validationState['headerValue'] }}
+        </div>
+    </div>
+</div>
