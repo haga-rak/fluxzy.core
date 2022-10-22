@@ -30,5 +30,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override string ShortName => "url";
 
         public override string GenericName => "Filter by full url";
+
+        public override bool Common { get; set; } = true;
     }
 }

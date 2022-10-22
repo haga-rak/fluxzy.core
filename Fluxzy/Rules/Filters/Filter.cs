@@ -49,5 +49,24 @@ namespace Fluxzy.Rules.Filters
                 return initialName;
             }
         }
+
+
+        public string Category
+        {
+            get
+            {
+                var typeFullName = GetType().FullName;
+
+                if (typeFullName.Contains("RequestFilters"))
+                    return "Request";
+
+                if (typeFullName.Contains("ResponseFilters"))
+                    return "Response";
+
+                return "Global";
+            }
+        }
+
+        public virtual bool Common { get; set; } = false;
     }
 }
