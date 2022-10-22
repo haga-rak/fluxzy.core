@@ -1,7 +1,22 @@
 .button-container {
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
 .accordion-g {
     background-color: var(--bs-gray-700) !important;
+}
+
+.search-block-input{
+    padding : 12px;
+}
+
+.search-block-input::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: var(--bs-gray-300);
+}
+
+.search-result-block {
+    padding : 16px;
+    margin-bottom: 16px;
+    background: var(--bs-gray-800);
+    border-radius: 8px;
 }
