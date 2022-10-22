@@ -27,11 +27,15 @@ export class ManageRulesComponent implements OnInit {
     }
 
     public close() : void {
-
+        this.bsModalRef.hide();
     }
 
     public save() : void {
-
+        this.apiService.ruleUpdateContainer(
+            this.ruleContainers
+        ).pipe(
+            tap(_ => this.bsModalRef.hide())
+        ).subscribe();
     }
 
     public createRule() : void{
