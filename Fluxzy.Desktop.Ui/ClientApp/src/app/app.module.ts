@@ -75,6 +75,8 @@ import { AddRequestHeaderFormComponent } from './settings/rule-forms/child-forms
 import { AddResponseHeaderFormComponent } from './settings/rule-forms/child-forms/add-response-header-form/add-response-header-form.component';
 import { UpdateRequestHeaderFormComponent } from './settings/rule-forms/child-forms/update-request-header-form/update-request-header-form.component';
 import { UpdateResponseHeaderFormComponent } from './settings/rule-forms/child-forms/update-response-header-form/update-response-header-form.component';
+import { DeleteResponseHeaderFormComponent } from './settings/rule-forms/child-forms/delete-response-header-form/delete-response-header-form.component';
+import { DeleteRequestHeaderFormComponent } from './settings/rule-forms/child-forms/delete-request-header-form/delete-request-header-form.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -139,6 +141,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         AddResponseHeaderFormComponent,
         UpdateRequestHeaderFormComponent,
         UpdateResponseHeaderFormComponent,
+        DeleteResponseHeaderFormComponent,
+        DeleteRequestHeaderFormComponent,
 
 
     ],
