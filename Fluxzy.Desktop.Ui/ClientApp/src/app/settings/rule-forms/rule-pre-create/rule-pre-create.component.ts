@@ -1,8 +1,8 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
 import {ApiService} from "../../../services/api.service";
 import {Action, Filter, FilterTemplate, Rule} from "../../../core/models/auto-generated";
-import {BehaviorSubject, combineLatest, tap} from "rxjs";
+import {BehaviorSubject, combineLatest, Subject, takeUntil, tap} from "rxjs";
 import {SearchByKeyword} from "../../../core/models/filter-constants";
 
 @Component({
@@ -10,7 +10,7 @@ import {SearchByKeyword} from "../../../core/models/filter-constants";
     templateUrl: './rule-pre-create.component.html',
     styleUrls: ['./rule-pre-create.component.scss']
 })
-export class RulePreCreateComponent implements OnInit {
+export class RulePreCreateComponent implements OnInit, OnDestroy {
 
     public callBack :  (action : Action | null) => void ;
     public actions : Action [] ;
@@ -19,6 +19,14 @@ export class RulePreCreateComponent implements OnInit {
     public searchString : string = '' ;
     public searchString$ = new BehaviorSubject<string>('');
 
+    private componentDestroyed$: Subject<boolean> = new Subject();
+
+    ngOnDestroy() {
+        this.componentDestroyed$.next(true);
+        this.componentDestroyed$.complete();
+
+        console.log('destroyed');
+    }
 
     constructor(
         public bsModalRef: BsModalRef,
@@ -38,7 +46,8 @@ export class RulePreCreateComponent implements OnInit {
                 ]
         ).pipe(
             tap(t => this.filteredActions = this.applyFilter(t[0], t[1])),
-            tap( _ => this.cd.detectChanges())
+            tap( _ => this.cd.detectChanges()),
+            takeUntil(this.componentDestroyed$),
         ).subscribe() ;
     }
 

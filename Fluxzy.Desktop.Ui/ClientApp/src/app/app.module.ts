@@ -71,6 +71,7 @@ import { ManageRulesComponent } from './settings/manage-rules/manage-rules.compo
 import { RulePreCreateComponent } from './settings/rule-forms/rule-pre-create/rule-pre-create.component';
 import { RuleEditComponent } from './settings/rule-forms/rule-edit/rule-edit.component';
 import { RuleRenderComponent } from './settings/rule-forms/rule-edit/rule-render/rule-render.component';
+import { AddRequestHeaderFormComponent } from './settings/rule-forms/child-forms/add-request-header-form/add-request-header-form.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -131,6 +132,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         RulePreCreateComponent,
         RuleEditComponent,
         RuleRenderComponent,
+        AddRequestHeaderFormComponent,
 
 
     ],

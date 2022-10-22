@@ -1,8 +1,8 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
 import {ApiService} from "../../../services/api.service";
 import {Filter, FilterTemplate} from "../../../core/models/auto-generated";
-import {BehaviorSubject, tap, pipe,combineLatest} from "rxjs";
+import {BehaviorSubject, tap, pipe, combineLatest, Subject, takeUntil} from "rxjs";
 import {SearchByKeyword} from "../../../core/models/filter-constants";
 
 @Component({
@@ -10,7 +10,7 @@ import {SearchByKeyword} from "../../../core/models/filter-constants";
     templateUrl: './filter-pre-create.component.html',
     styleUrls: ['./filter-pre-create.component.scss']
 })
-export class FilterPreCreateComponent implements OnInit {
+export class FilterPreCreateComponent implements OnInit, OnDestroy {
     public filterTemplates : FilterTemplate[] ;
     public filteredFilterTemplates : FilterTemplate[];
 
@@ -18,6 +18,13 @@ export class FilterPreCreateComponent implements OnInit {
     public searchString$ = new BehaviorSubject<string>('');
 
     public callBack :  (f : Filter | null) => void ;
+
+    private componentDestroyed$: Subject<boolean> = new Subject();
+
+    ngOnDestroy() {
+        this.componentDestroyed$.next(true)
+        this.componentDestroyed$.complete()
+    }
 
     constructor(
         public bsModalRef: BsModalRef,
@@ -40,7 +47,8 @@ export class FilterPreCreateComponent implements OnInit {
                 t =>
                 this.filteredFilterTemplates = this.applyFilter(t[0], t[1])
             ),
-            tap (_ => this.cd.detectChanges())
+            tap (_ => this.cd.detectChanges()),
+            takeUntil(this.componentDestroyed$),
         ).subscribe();
     }
 

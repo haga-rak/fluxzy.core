@@ -1,1 +1,3 @@
-<p>rule-render works!</p>
+
+<app-add-request-header-form [action]="get(action)" [validationSource]="validationSource"
+                        *ngIf="action.typeKind === 'AddRequestHeaderAction'"></app-add-request-header-form>
