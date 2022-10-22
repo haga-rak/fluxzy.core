@@ -1,3 +1,4 @@
-
 <app-add-request-header-form [action]="get(action)" [validationSource]="validationSource"
                         *ngIf="action.typeKind === 'AddRequestHeaderAction'"></app-add-request-header-form>
+<app-add-response-header-form [action]="get(action)" [validationSource]="validationSource"
+                        *ngIf="action.typeKind === 'AddResponseHeaderAction'"></app-add-response-header-form>
