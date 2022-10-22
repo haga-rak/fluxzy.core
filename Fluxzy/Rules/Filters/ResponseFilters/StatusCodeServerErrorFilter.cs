@@ -5,7 +5,8 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class StatusCodeServerErrorFilter : Filter
     {
-        protected override bool InternalApply(IAuthority authority, IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+            IFilteringContext? filteringContext)
         {
             var statusCode = exchange.StatusCode;
             return statusCode is >= 500 and < 600; 

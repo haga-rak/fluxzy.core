@@ -39,6 +39,7 @@ namespace Fluxzy.Desktop.Services.Filters
                 new IpEgressFilter("164.132.227.11"),
                 new H11TrafficOnlyFilter(),
                 new H2TrafficOnlyFilter(),
+                new HasRequestBodyFilter(),
             };
 
             return res; 

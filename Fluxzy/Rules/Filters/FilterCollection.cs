@@ -23,11 +23,12 @@ namespace Fluxzy.Rules.Filters
 
         public SelectorCollectionOperation Operation { get; set; }
 
-        protected override bool InternalApply(IAuthority authority, IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+            IFilteringContext? filteringContext)
         {
             foreach (var child in Children)
             {
-                var res = child.Apply(authority, exchange);
+                var res = child.Apply(authority, exchange, filteringContext);
 
                 if (Operation == SelectorCollectionOperation.And && !res)
                     return false; 

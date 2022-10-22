@@ -6,6 +6,7 @@ using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Responses;
+using Fluxzy.Readers;
 using Fluxzy.Writers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -32,6 +33,10 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton<IObservable<FileState>>
                 (s => s.GetRequiredService<FileManager>().Observable);
+
+            collection.AddSingleton<IObservable<IArchiveReader>>
+                (s => s.GetRequiredService<IObservable<FileState>>()
+                       .Select(f => new DirectoryArchiveReader(f.WorkingDirectory)));
 
             collection.AddSingleton<IObservable<FluxzySettingsHolder>>
                 (s => s.GetRequiredService<FluxzySettingManager>().Observable);

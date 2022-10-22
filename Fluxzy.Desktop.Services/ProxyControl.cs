@@ -104,7 +104,7 @@ namespace Fluxzy.Desktop.Services
 
                     // Filter should be applied here 
 
-                    if (_viewFilter?.Filter == null || _viewFilter.Filter.Apply(null, args.ExchangeInfo))
+                    if (_viewFilter?.Filter == null || _viewFilter.Filter.Apply(null, args.ExchangeInfo, null))
                     {
                         _forwardMessageManager.Send(args.ExchangeInfo);
                     }
