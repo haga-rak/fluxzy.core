@@ -4,6 +4,7 @@ import {ApiService} from "../../services/api.service";
 import {tap} from "rxjs";
 import {Rule, RuleContainer} from "../../core/models/auto-generated";
 import * as _ from "lodash";
+import {DialogService} from "../../services/dialog.service";
 
 @Component({
     selector: 'app-manage-rules',
@@ -13,7 +14,8 @@ import * as _ from "lodash";
 export class ManageRulesComponent implements OnInit {
     private ruleContainers: RuleContainer[];
 
-    constructor(public bsModalRef: BsModalRef, public options: ModalOptions, private apiService : ApiService, private cd : ChangeDetectorRef) {
+    constructor(public bsModalRef: BsModalRef, public options: ModalOptions, private apiService : ApiService, private cd : ChangeDetectorRef,
+                private dialogService : DialogService) {
     }
 
     ngOnInit(): void {
@@ -33,7 +35,7 @@ export class ManageRulesComponent implements OnInit {
     }
 
     public createRule() : void{
-
+        this.dialogService.openRulePreCreate();
     }
 
     public deleteRule(rule: Rule) {

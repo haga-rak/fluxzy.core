@@ -20,7 +20,7 @@
 
             <h4>Commonly used filters</h4>
 
-            <div class="search-result-block">
+            <div class="search-result-block shady-box">
 
                 <div class="row">
                     <div *ngFor="let filterTemplate of filterTemplates | funcFilter : commonOnly" class="col-md-4 button-container">
@@ -37,7 +37,7 @@
 
             <h4>Search results</h4>
 
-            <div class="search-result-block">
+            <div class="search-result-block shady-box">
 
                 <ng-container *ngIf="filteredFilterTemplates.length">
                     <div class="row">
