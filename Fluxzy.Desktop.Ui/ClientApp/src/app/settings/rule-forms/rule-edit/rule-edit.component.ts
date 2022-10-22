@@ -45,6 +45,7 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
 
     public register(target: ActionValidationTargetComponent<Action>): void {
         this.targets.push(target);
+        this.cd.detectChanges();
     }
 
 
@@ -76,6 +77,9 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
                     tap(f => this.callBack(f))
                 ).subscribe();
             this.bsModalRef.hide();
+        }
+        else {
+            this.cd.detectChanges();
         }
     }
 

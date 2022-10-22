@@ -21,7 +21,7 @@
         </p>
 
         <div class="">
-            <h4>Action</h4>
+            <h4>Action ({{action.friendlyName}})</h4>
             <div class="shady-box rule-form-box" style="margin-bottom: 16px">
 
                 <div class="row">
@@ -38,7 +38,9 @@
             <div class="shady-box rule-form-box" style="">
                 <div class="row">
                     <div class="col-md-8 offset-2">
-
+                        <div class="text-info">
+                            Filter decides when this rule applies.
+                        </div>
                         <div style="margin-bottom: 8px" class="lead">{{ rule.filter.friendlyName }}</div>
                         <a href="javascript:;" class="btn btn-outline-primary btn-secondary" (click)="changeFilter()">Create filter</a>
                         &nbsp;
@@ -50,6 +52,10 @@
     </div>
 </div>
 <div class="modal-footer">
+     <span class="float-start  me-auto text-danger" >
+        This rule is out of scope. This means that it's too late to active action when the filter matched.
+      </span>
+
     <button class="btn btn-primary" (click)="save()">Save</button>
     <button class="btn btn-dark" (click)="cancel()">Cancel</button>
 </div>
