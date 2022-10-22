@@ -7,7 +7,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class H2TrafficOnlyFilter : Filter
     {
-        protected override bool InternalApply(IAuthority authority, IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+            IFilteringContext? filteringContext)
         {
             return exchange.HttpVersion == "HTTP/2";
         }

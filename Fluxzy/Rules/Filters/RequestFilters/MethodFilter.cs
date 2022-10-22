@@ -19,10 +19,11 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override Guid Identifier => $"{Pattern}|{Operation}".GetMd5Guid();
 
-        protected override bool InternalApply(IAuthority authority, IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+            IFilteringContext? filteringContext)
         {
             CaseSensitive = false;
-            return base.InternalApply(authority, exchange);
+            return base.InternalApply(authority, exchange, filteringContext);
         }
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

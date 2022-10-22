@@ -27,7 +27,8 @@ namespace Fluxzy.Rules
             Exchange exchange,
             Connection connection)
         {
-            if (Filter.Apply(context.Authority, exchange))
+            // TODO put a decent filtering context here 
+            if (Filter.Apply(context.Authority, exchange, null))
             {
                 return Action.Alter(context, exchange, connection);
             }

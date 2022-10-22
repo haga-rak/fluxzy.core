@@ -4,6 +4,8 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Hubs;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Formatters;
+using Fluxzy.Readers;
 using Fluxzy.Rules.Filters;
 using Microsoft.AspNetCore.SignalR;
 
@@ -16,19 +18,25 @@ namespace Fluxzy.Desktop.Services
 
         public FilteredExchangeManager(
             IObservable<FileState> fileStateObservable, IObservable<ViewFilter> viewFilterObservable,
-            ActiveViewFilterManager activeViewFilterManager, ForwardMessageManager forwardMessageManager)
+            ActiveViewFilterManager activeViewFilterManager, 
+            IObservable<IArchiveReader> archiveReaderObservable,
+            ForwardMessageManager forwardMessageManager)
         {
             _activeViewFilterManager = activeViewFilterManager;
 
             var trunkStateObservable = fileStateObservable.Select(fileState =>
                 System.Reactive.Linq.Observable.FromAsync(
-                    async () => await fileState.ContentOperation.Observable.FirstAsync())
+                    async () =>
+                    {
+                        return await fileState.ContentOperation.Observable.FirstAsync();
+                    })
                         
             ).Concat();
+            
 
             trunkStateObservable.CombineLatest(
-                                    viewFilterObservable,
-                                    (fileState, viewFilter) =>
+                                    viewFilterObservable, archiveReaderObservable,
+                                    (trunkState, viewFilter, archiveReader) =>
                                     {
                                         // Ne pas s'abonner à truk state ici 
                                         // viewFilter devra just s'appliquer au nouveau venu et devra sauvegarder son état 
@@ -37,8 +45,8 @@ namespace Fluxzy.Desktop.Services
                                             return null;
                                         
                                         var filteredIds =
-                                            fileState.Exchanges
-                                                     .Where(e => viewFilter.Filter.Apply(null, e.ExchangeInfo))
+                                            trunkState.Exchanges
+                                                     .Where(e => viewFilter.Filter.Apply(null, e.ExchangeInfo, new ExchangeInfoFilteringContext(archiveReader, e.ExchangeInfo.Id)))
                                                      .Select(e => e.Id);
 
                                         return new FilteredExchangeState(filteredIds);
@@ -62,7 +70,7 @@ namespace Fluxzy.Desktop.Services
 
             if (filteredExchangeState != null)
             {
-                var passFilter = viewFilter.Filter.Apply(null, exchange);
+                var passFilter = viewFilter.Filter.Apply(null, exchange, null);
 
                 if (passFilter)
                 {

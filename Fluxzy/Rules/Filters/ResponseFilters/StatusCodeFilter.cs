@@ -8,7 +8,8 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class StatusCodeFilter : Filter
     {
-        protected override bool InternalApply(IAuthority authority, IExchange exchange)
+        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+            IFilteringContext? filteringContext)
         {
             return StatusCodes.Contains(exchange.StatusCode); 
         }

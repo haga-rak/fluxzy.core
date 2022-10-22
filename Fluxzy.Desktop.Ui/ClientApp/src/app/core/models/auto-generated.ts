@@ -295,6 +295,7 @@ export interface H11TrafficOnlyFilter extends Filter
 	filterScope: number;
 	genericName: string;
 	shortName: string;
+	preMadeFilter: boolean;
 }
 export interface H2TrafficOnlyFilter extends Filter
 {
@@ -302,6 +303,15 @@ export interface H2TrafficOnlyFilter extends Filter
 	filterScope: number;
 	genericName: string;
 	shortName: string;
+	preMadeFilter: boolean;
+}
+export interface HasRequestBodyFilter extends Filter
+{
+	identifier: string;
+	filterScope: number;
+	genericName: string;
+	shortName: string;
+	preMadeFilter: boolean;
 }
 export interface HostFilter extends StringFilter
 {
@@ -330,21 +340,25 @@ export interface PostFilter extends MethodFilter
 	genericName: string;
 	common: boolean;
 	shortName: string;
+	preMadeFilter: boolean;
 }
 export interface PatchFilter extends MethodFilter
 {
 	genericName: string;
 	shortName: string;
+	preMadeFilter: boolean;
 }
 export interface DeleteFilter extends MethodFilter
 {
 	genericName: string;
 	shortName: string;
+	preMadeFilter: boolean;
 }
 export interface PutFilter extends MethodFilter
 {
 	genericName: string;
 	shortName: string;
+	preMadeFilter: boolean;
 }
 export interface RequestHeaderFilter extends HeaderFilter
 {

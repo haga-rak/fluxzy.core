@@ -1,5 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.IO;
+
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class PostFilter : MethodFilter
