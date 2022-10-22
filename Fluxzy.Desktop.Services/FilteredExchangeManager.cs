@@ -25,7 +25,7 @@ namespace Fluxzy.Desktop.Services
             _activeViewFilterManager = activeViewFilterManager;
 
             var trunkStateObservable = fileStateObservable.Select(fileState =>
-                System.Reactive.Linq.Observable.FromAsync(
+                Observable.FromAsync(
                     async () =>
                     {
                         return await fileState.ContentOperation.Observable.FirstAsync();

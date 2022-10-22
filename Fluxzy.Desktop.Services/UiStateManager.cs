@@ -2,10 +2,8 @@
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Reactive.Threading.Tasks;
-using Fluxzy.Desktop.Services.Hubs;
 using Fluxzy.Desktop.Services.Models;
-using Microsoft.AspNetCore.SignalR;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -21,6 +19,7 @@ namespace Fluxzy.Desktop.Services
             IObservable<SystemProxyState> systemProxySate,
             IObservable<ViewFilter> viewFilter, 
             IObservable<TemplateToolBarFilterModel> templateToolBarFilterModel,
+            IObservable<List<Rule>> activeRulesObservable,
             ForwardMessageManager forwardMessageManager,
             ToolBarFilterProvider toolBarFilterProvider)
         {
@@ -30,11 +29,14 @@ namespace Fluxzy.Desktop.Services
                 systemProxySate,
                 viewFilter,
                 templateToolBarFilterModel,
-                (f, p, s,sp, v, tt) =>
+                activeRulesObservable,
+                (f, p, s,sp, v, tt, aro) =>
                 {
                     var defaultToolBarFilters = toolBarFilterProvider.GetDefault().ToList();
-                    return new UiState(fileState: f, proxyState: p, settingsHolder: s, systemProxyState: sp,
-                        viewFilter: v, toolBarFilters: defaultToolBarFilters, templateToolBarFilterModel:tt);
+                    return new UiState(fileState: f, proxyState: p,
+                        settingsHolder: s, systemProxyState: sp,
+                        viewFilter: v, toolBarFilters: defaultToolBarFilters, 
+                        templateToolBarFilterModel:tt, activeRules: aro);
                 });
 
             Observable = _stateObservable

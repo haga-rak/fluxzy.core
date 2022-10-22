@@ -495,6 +495,7 @@ export interface UiState
 	systemProxyState: any;
 	viewFilter: ViewFilter;
 	templateToolBarFilterModel: TemplateToolBarFilterModel;
+	activeRules: Rule[];
 	toolBarFilters: ToolBarFilter[];
 	settingsHolder: FluxzySettingsHolder;
 }

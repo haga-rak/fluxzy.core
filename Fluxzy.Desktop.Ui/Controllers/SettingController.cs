@@ -21,7 +21,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpGet]
         public async Task<ActionResult<FluxzySettingsHolder>> Get()
         {
-            var settingsHolder = await _settingManager.Observable.FirstAsync();
+            var settingsHolder = await _settingManager.ProvidedObservable.FirstAsync();
             return settingsHolder; 
         }
 

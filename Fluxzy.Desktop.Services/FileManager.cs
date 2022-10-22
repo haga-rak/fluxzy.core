@@ -28,7 +28,7 @@ namespace Fluxzy.Desktop.Services
         
         protected sealed override BehaviorSubject<FileState> Subject { get; }
 
-        public override IObservable<FileState> Observable => Subject.AsObservable().DistinctUntilChanged();
+        public override IObservable<FileState> ProvidedObservable => Subject.AsObservable().DistinctUntilChanged();
 
         private static (Guid, string) GenerateNewDirectory(string tempDirectory)
         {
@@ -84,7 +84,7 @@ namespace Fluxzy.Desktop.Services
 
         public async Task Save(TrunkState trunkState)
         {
-            var current = await Observable.FirstAsync(); 
+            var current = await ProvidedObservable.FirstAsync(); 
 
             if (current.MappedFileFullPath == null)
                 throw new InvalidOperationException("No mapped filed");
@@ -102,7 +102,7 @@ namespace Fluxzy.Desktop.Services
 
         public async Task SaveAs(TrunkState trunkState, string fileName)
         {
-            var current = await Observable.FirstAsync(); 
+            var current = await ProvidedObservable.FirstAsync(); 
 
             if (current == null)
                 throw new InvalidOperationException("Current working directory/file is not set");
