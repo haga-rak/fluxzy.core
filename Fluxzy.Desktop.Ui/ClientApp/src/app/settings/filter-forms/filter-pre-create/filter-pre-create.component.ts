@@ -39,7 +39,8 @@ export class FilterPreCreateComponent implements OnInit {
             tap (
                 t =>
                 this.filteredFilterTemplates = this.applyFilter(t[0], t[1])
-            )
+            ),
+            tap (_ => this.cd.detectChanges())
         ).subscribe();
     }
 

@@ -19,7 +19,7 @@ namespace Fluxzy.Rules
 
         public abstract string DefaultDescription { get; }
 
-        public virtual string Description { get; set; }
+        public virtual string Description { get; set; } = "";
 
         public virtual string FriendlyName => !string.IsNullOrWhiteSpace(Description) ? Description : DefaultDescription;
     }

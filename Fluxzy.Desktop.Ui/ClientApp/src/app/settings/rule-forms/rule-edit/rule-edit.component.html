@@ -1,0 +1,55 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        <span *ngIf="isEdit">Edit</span>
+        <span *ngIf="!isEdit">Create</span>
+        rule
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 50px">
+    <div>
+
+        <p *ngIf="validationState !== null">
+            <span *ngIf="validationState" class="text-success">
+                Validation succeed
+            </span>
+            <span *ngIf="!validationState" class="text-danger">
+                Some inputs were not filled correctly.
+            </span>
+        </p>
+
+        <div class="">
+            <h4>Action</h4>
+            <div class="shady-box rule-form-box" style="margin-bottom: 16px">
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="" style="padding: 16px">
+                            <app-rule-render [action]="action"  [validationSource]="validationSource"></app-rule-render>
+                            <p *ngIf="targets.length === 0">This action has no editable setting.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <h4>Filter</h4>
+            <div class="shady-box rule-form-box" style="">
+                <div class="row">
+                    <div class="col-md-8 offset-2">
+
+                        <div style="margin-bottom: 8px" class="lead">{{ rule.filter.friendlyName }}</div>
+                        <a href="javascript:;" class="btn btn-outline-primary btn-secondary" (click)="changeFilter()">Create filter</a>
+                        &nbsp;
+                        <a href="javascript:;" class="btn btn-outline-primary btn-secondary" (click)="selectLocalFilter()">Select local filter</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="save()">Save</button>
+    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+</div>

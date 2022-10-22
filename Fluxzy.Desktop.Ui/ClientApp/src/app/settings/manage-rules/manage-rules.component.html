@@ -12,7 +12,7 @@
         Loading rules
     </p>
     <div *ngIf="ruleContainers">
-         <p class="alert alert-dark">Rules are active actions applied to HTTP traffic. Rules can be a regular request setup such as using a client certificate to complex traffic alteration.
+         <p class="alert alert-dark">Rules are active actions applied to HTTP traffic during capture. Rules can be a regular request setup such as using a client certificate to complex traffic alteration.
               </p>
 
         <div style="margin-bottom:18px">
@@ -31,7 +31,7 @@
                     <tr>
                         <th style="width:32px">&nbsp;</th>
                         <th>Action</th>
-                        <th style="width:150px">Filter</th>
+                        <th style="width:250px">Filter</th>
                         <th style="width:250px">&nbsp;</th>
                     </tr>
                     <tr *ngFor="let ruleContainer of ruleContainers">
@@ -47,6 +47,7 @@
                         </td>
                         <td>{{ruleContainer.rule.filter.friendlyName }}</td>
                         <td>
+                            <button class="btn btn-secondary btn-outline-primary" (click)="editRule(ruleContainer.rule)">Edit</button> &nbsp;
                              <button class="btn btn-secondary btn-outline-danger" (click)="deleteRule(ruleContainer.rule)">Delete</button>
                         </td>
                     </tr>
