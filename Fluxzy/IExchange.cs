@@ -11,6 +11,8 @@ namespace Fluxzy
 
         string KnownAuthority { get; }
 
+        string HttpVersion { get;  }
+
         string Method { get; }
 
         string Path { get; }

@@ -18,5 +18,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override string ShortName => "json";
 
         public override bool PreMadeFilter => true;
+
+        public override bool Common { get; set; } = true;
     }
 }

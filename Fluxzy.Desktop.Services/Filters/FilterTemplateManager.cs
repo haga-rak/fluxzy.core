@@ -16,6 +16,11 @@ namespace Fluxzy.Desktop.Services.Filters
                 new PathFilter(string.Empty),
                 new RequestHeaderFilter("Header_name", "Header_value"),
 
+                new PostFilter(),
+                new PatchFilter(),
+                new PutFilter(),
+                new DeleteFilter(),
+
                 new ContentTypeJsonFilter(),
                 new ContentTypeXmlFilter(),
                 new ImageFilter(),
@@ -27,8 +32,13 @@ namespace Fluxzy.Desktop.Services.Filters
                 new StatusCodeRedirectionFilter(),
 
                 new AnyFilter(),
-                new FilterCollection(),
+                new FilterCollection()
+                {
+                    Common = true
+                },
                 new IpEgressFilter("164.132.227.11"),
+                new H11TrafficOnlyFilter(),
+                new H2TrafficOnlyFilter(),
             };
 
             return res; 

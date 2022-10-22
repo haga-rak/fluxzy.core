@@ -24,5 +24,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override string ShortName => "2XX";
 
         public override bool PreMadeFilter => true;
+
+        public override bool Common { get; set; } = true;
     }
 }
