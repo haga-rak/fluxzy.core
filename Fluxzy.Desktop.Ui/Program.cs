@@ -38,7 +38,10 @@ app.MapControllerRoute(
 app.MapFallbackToFile("index.html");
 
 var globalFileManager = app.Services.GetRequiredService<FileManager>();
+var activeRuleManages = app.Services.GetRequiredService<ActiveRuleManager>();
 //await globalFileManager.Off();
+
 await globalFileManager.Open(@"../Samples/boot.fxzy");
+await activeRuleManages.InitRules();
 
 app.Run();

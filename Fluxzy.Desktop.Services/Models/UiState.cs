@@ -1,12 +1,15 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Rules;
+
 namespace Fluxzy.Desktop.Services.Models
 {
     public class UiState
     {
         public UiState(FileState fileState, ProxyState proxyState,
             FluxzySettingsHolder settingsHolder, SystemProxyState systemProxyState, 
-            ViewFilter viewFilter, List<ToolBarFilter> toolBarFilters, TemplateToolBarFilterModel templateToolBarFilterModel) 
+            ViewFilter viewFilter, List<ToolBarFilter> toolBarFilters, 
+            TemplateToolBarFilterModel templateToolBarFilterModel, List<Rule> activeRules) 
         {
             FileState = fileState;
             ProxyState = proxyState;
@@ -15,6 +18,7 @@ namespace Fluxzy.Desktop.Services.Models
             ViewFilter = viewFilter;
             ToolBarFilters = toolBarFilters;
             TemplateToolBarFilterModel = templateToolBarFilterModel;
+            ActiveRules = activeRules;
         }
 
         public Guid Id { get; } = Guid.NewGuid();
@@ -28,6 +32,8 @@ namespace Fluxzy.Desktop.Services.Models
         public ViewFilter ViewFilter { get; }
 
         public TemplateToolBarFilterModel TemplateToolBarFilterModel { get; }
+
+        public List<Rule> ActiveRules { get; }
 
         public List<ToolBarFilter> ToolBarFilters { get; }
 

@@ -4,6 +4,7 @@ using System.Reactive.Subjects;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Hubs;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Rules;
 using Fluxzy.Writers;
 using Microsoft.AspNetCore.SignalR;
 
@@ -22,6 +23,7 @@ namespace Fluxzy.Desktop.Services
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<FileContentOperationManager> contentObservable,
             IObservable<ViewFilter> viewFilter,
+            IObservable<List<Rule>> activeRuleObservable,
              ForwardMessageManager forwardMessageManager,
             FilteredExchangeManager filteredExchangeManager)
         {
@@ -37,10 +39,11 @@ namespace Fluxzy.Desktop.Services
             fluxzySettingHolderObservable
                 .CombineLatest(
                     contentObservable
-                        .DistinctUntilChanged(t => t.State.Identifier) // this will avoid unecessary refresh  
+                        .DistinctUntilChanged(t => t.State.Identifier), // this will avoid unecessary refresh  
+                        activeRuleObservable
                     ) 
                 .Select(stateAndSetting =>
-                    System.Reactive.Linq.Observable.Create<ProxyState>(
+                    Observable.Create<ProxyState>(
                         async (observer, _) =>
                         {
                             var setting = stateAndSetting.First.StartupSetting;
@@ -51,6 +54,8 @@ namespace Fluxzy.Desktop.Services
                                 ArchivingPolicy.CreateFromDirectory(
                                     stateAndSetting.Second.State.WorkingDirectory    
                                     );
+
+                            setting.AlterationRules = stateAndSetting.Third;
 
                             var proxyState = await ReloadProxy(
                                 setting, stateAndSetting.Second, 

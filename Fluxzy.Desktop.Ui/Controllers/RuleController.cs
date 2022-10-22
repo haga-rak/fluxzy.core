@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
@@ -26,9 +27,13 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("container")]
-        public async Task<ActionResult<bool>> Patch([FromBody] RuleContainer[] containers)
+        public async Task<ActionResult<bool>> Patch([FromBody] RuleContainer[] containers, [FromServices] ActiveRuleManager activeRuleManager)
         {
             await _ruleStorage.Update(containers);
+
+            activeRuleManager.SetCurrentSelection(
+                containers.Where(c => c.Enabled).Select(c => c.Rule.Identifier));
+
             return true; 
         }
 

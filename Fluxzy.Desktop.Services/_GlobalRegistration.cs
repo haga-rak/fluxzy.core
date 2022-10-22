@@ -5,8 +5,8 @@ using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
-using Fluxzy.Formatters.Producers.Responses;
 using Fluxzy.Readers;
+using Fluxzy.Rules;
 using Fluxzy.Writers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,34 +27,38 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<TemplateToolBarFilterProvider>();
             collection.AddSingleton<ForwardMessageManager>();
             collection.AddSingleton<IRuleStorage, LocalRuleStorage>();
+            collection.AddSingleton<ActiveRuleManager>();
 
             collection.AddSingleton<IObservable<SystemProxyState>>
-                (s => s.GetRequiredService<SystemProxyStateControl>().Observable);
+                (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
 
             collection.AddSingleton<IObservable<FileState>>
-                (s => s.GetRequiredService<FileManager>().Observable);
+                (s => s.GetRequiredService<FileManager>().ProvidedObservable);
 
             collection.AddSingleton<IObservable<IArchiveReader>>
                 (s => s.GetRequiredService<IObservable<FileState>>()
                        .Select(f => new DirectoryArchiveReader(f.WorkingDirectory)));
 
             collection.AddSingleton<IObservable<FluxzySettingsHolder>>
-                (s => s.GetRequiredService<FluxzySettingManager>().Observable);
+                (s => s.GetRequiredService<FluxzySettingManager>().ProvidedObservable);
 
             collection.AddSingleton<IObservable<ProxyState>>
-                (s => s.GetRequiredService<ProxyControl>().Observable);
+                (s => s.GetRequiredService<ProxyControl>().ProvidedObservable);
 
             collection.AddSingleton<IObservable<RealtimeArchiveWriter?>>
                 (s => s.GetRequiredService<ProxyControl>().WriterObservable);
 
             collection.AddSingleton<IObservable<ViewFilter>>
-                (s => s.GetRequiredService<ActiveViewFilterManager>().Observable);
+                (s => s.GetRequiredService<ActiveViewFilterManager>().ProvidedObservable);
 
             collection.AddSingleton<IObservable<FilteredExchangeState?>>
-                (s => s.GetRequiredService<FilteredExchangeManager>().Observable);
+                (s => s.GetRequiredService<FilteredExchangeManager>().ProvidedObservable);
+
+            collection.AddSingleton<IObservable<List<Rule>>>
+                (s => s.GetRequiredService<ActiveRuleManager>().ActiveRules);
 
             collection.AddSingleton<IObservable<TemplateToolBarFilterModel>>
-                (s => s.GetRequiredService<TemplateToolBarFilterProvider>().Observable);
+                (s => s.GetRequiredService<TemplateToolBarFilterProvider>().ProvidedObservable);
 
             collection.AddSingleton<IObservable<FileContentOperationManager>>
                 (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));
