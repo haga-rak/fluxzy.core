@@ -11,15 +11,51 @@
         Loading templates ....
     </p>
     <div *ngIf="filterTemplates">
-        <div class="alert bg-dark">Select the type of filter to create</div>
-
-        <div class="row">
-            <div *ngFor="let filterTemplate of filterTemplates" class="col-md-4 button-container">
-                <a href="javascript:;" (click)="select(filterTemplate.filter)"
-                   class="btn btn-outline-primary btn-dark text-white">{{filterTemplate.label}}
-                    ({{filterTemplate.group}})</a>
-            </div>
+        <div style="margin-bottom: 12px">
+            <input type="text" [(ngModel)]="searchString" (ngModelChange)="searchStringChanged()" class="form-control search-block-input"
+                   [placeholder]="'Search a filter template among ' + filterTemplates.length + ' templates and premade filters'" />
         </div>
+
+        <ng-container *ngIf="!searchString">
+
+            <h4>Commonly used filters</h4>
+
+            <div class="search-result-block">
+
+                <div class="row">
+                    <div *ngFor="let filterTemplate of filterTemplates | funcFilter : commonOnly" class="col-md-4 button-container">
+                        <a href="javascript:;" (click)="select(filterTemplate.filter)"
+                           class="btn btn-outline-primary btn-dark text-white">{{filterTemplate.label}}
+                            ({{filterTemplate.group}})</a>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+
+        <ng-container *ngIf="searchString">
+
+            <h4>Search results</h4>
+
+            <div class="search-result-block">
+
+                <ng-container *ngIf="filteredFilterTemplates.length">
+                    <div class="row">
+                        <div *ngFor="let filterTemplate of filteredFilterTemplates" class="col-md-4 button-container">
+                            <a href="javascript:;" (click)="select(filterTemplate.filter)"
+                               class="btn btn-outline-primary btn-dark text-white">{{filterTemplate.label}}
+                                ({{filterTemplate.group}})</a>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <ng-container  *ngIf="!filteredFilterTemplates.length">
+                    <p class="text-center">No result found for <strong>{{searchString}}</strong></p>
+                </ng-container>
+
+            </div>
+        </ng-container>
+
 
     </div>
 </div>

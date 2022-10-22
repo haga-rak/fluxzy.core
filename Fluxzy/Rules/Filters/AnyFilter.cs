@@ -22,7 +22,7 @@ namespace Fluxzy.Rules.Filters
 
         public override bool PreMadeFilter => true;
 
-        public override string? Description { get; set; } = "No filter";
+        public override string? Description { get; set; } = "Any requests";
 
         public static AnyFilter Default { get;  } = new()
         {

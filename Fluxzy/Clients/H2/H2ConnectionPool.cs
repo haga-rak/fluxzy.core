@@ -47,9 +47,9 @@ namespace Fluxzy.Clients.H2
         // Window size of the remote 
         private WindowSizeHolder _overallWindowSizeHolder;
 
-        public int CurrentProcessedRequest;
-        public int FaultedRequest;
-        public int TotalRequest;
+        public volatile int CurrentProcessedRequest;
+        public volatile int FaultedRequest;
+        public volatile int TotalRequest;
 
         private readonly H2Logger _logger;
 

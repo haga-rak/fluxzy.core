@@ -59,7 +59,6 @@ export class ApiService {
                         )
                 ),
                 tap(messages => {
-                    console.log('tapped');
                     for (const message of messages) {
                         this.forwardMessages$.next(message);
                     }
