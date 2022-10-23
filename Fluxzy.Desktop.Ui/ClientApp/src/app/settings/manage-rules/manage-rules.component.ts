@@ -5,6 +5,7 @@ import {filter, switchMap, take, tap} from "rxjs";
 import {Rule, RuleContainer} from "../../core/models/auto-generated";
 import * as _ from "lodash";
 import {DialogService} from "../../services/dialog.service";
+import {StatusBarService} from "../../services/status-bar.service";
 
 @Component({
     selector: 'app-manage-rules',
@@ -15,7 +16,7 @@ export class ManageRulesComponent implements OnInit {
     private ruleContainers: RuleContainer[];
 
     constructor(public bsModalRef: BsModalRef, public options: ModalOptions, private apiService : ApiService, private cd : ChangeDetectorRef,
-                private dialogService : DialogService) {
+                private dialogService : DialogService, private statusBarService : StatusBarService) {
     }
 
     ngOnInit(): void {
@@ -34,7 +35,8 @@ export class ManageRulesComponent implements OnInit {
         this.apiService.ruleUpdateContainer(
             this.ruleContainers
         ).pipe(
-            tap(_ => this.bsModalRef.hide())
+            tap(_ => this.bsModalRef.hide()),
+            tap(_ => this.statusBarService.addMessage('Rules saved'))
         ).subscribe();
     }
 

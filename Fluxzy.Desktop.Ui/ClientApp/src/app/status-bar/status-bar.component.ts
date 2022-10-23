@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { tap } from 'rxjs';
-import { ExchangeState, FileState, UiState } from '../core/models/auto-generated';
-import { ApiService } from '../services/api.service';
-import {  ExchangeManagementService } from '../services/exchange-management.service';
-import { ExchangeSelectionService } from '../services/exchange-selection.service';
-import { UiStateService } from '../services/ui.service';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {tap} from 'rxjs';
+import {ExchangeState, FileState, UiState} from '../core/models/auto-generated';
+import {ApiService} from '../services/api.service';
+import {ExchangeManagementService} from '../services/exchange-management.service';
+import {ExchangeSelectionService} from '../services/exchange-selection.service';
+import {UiStateService} from '../services/ui.service';
+import {StatusBarService} from "../services/status-bar.service";
 
 @Component({
     selector: 'app-status-bar',
@@ -13,23 +14,32 @@ import { UiStateService } from '../services/ui.service';
 })
 export class StatusBarComponent implements OnInit {
     public selectedCount: number;
-    public exchangeState : ExchangeState;
+    public exchangeState: ExchangeState;
     public fileState: FileState;
     public uiState: UiState;
-    
+    private statusMessage: string;
+
     constructor(
-        private exchangeManagementService : ExchangeManagementService,
-         private cdr: ChangeDetectorRef, private uiStateService : UiStateService,
-         private selectionService : ExchangeSelectionService,
-         private apiService:  ApiService
-         
-         ) { }
-    
+        private exchangeManagementService: ExchangeManagementService,
+        private cdr: ChangeDetectorRef, private uiStateService: UiStateService,
+        private selectionService: ExchangeSelectionService,
+        private apiService: ApiService,
+        private statusBarService : StatusBarService
+    ) {
+    }
+
     ngOnInit(): void {
+
+        this.statusBarService.getPendingMessages()
+            .pipe(
+                tap(t => this.statusMessage = t ? t.content : null),
+                tap(_ => this.cdr.detectChanges())
+            ).subscribe();
+
         this.selectionService.getCurrenSelectionCount().pipe(
             tap(n => this.selectedCount = n)
-        ).subscribe(); 
-        
+        ).subscribe();
+
         this.exchangeManagementService.exchangeState$.pipe(
             tap(exState => this.exchangeState = exState),
             tap(_ => this.cdr.detectChanges()),
@@ -38,20 +48,20 @@ export class StatusBarComponent implements OnInit {
         this.uiStateService.getUiState()
             .pipe(
                 tap(u => this.uiState = u)
-            ).subscribe(); 
+            ).subscribe();
 
         this.uiStateService.getFileState()
             .pipe(
-                tap(f => this.fileState = f) 
-            ).subscribe() ; 
+                tap(f => this.fileState = f)
+            ).subscribe();
     }
 
-    public proxyOn() : void {
-        this.apiService.proxyOn().subscribe() ; 
+    public proxyOn(): void {
+        this.apiService.proxyOn().subscribe();
     }
-    
-    public proxyOff() : void {
-        this.apiService.proxyOff().subscribe() ; 
+
+    public proxyOff(): void {
+        this.apiService.proxyOff().subscribe();
     }
-    
+
 }
