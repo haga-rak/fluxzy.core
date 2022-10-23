@@ -11,7 +11,7 @@ export class StatusBarService {
     constructor() {
         this.rawPendingMessage$.pipe(
             filter (t => !!t),
-            switchMap(t => of(null).pipe(delay(2000))),
+            switchMap(t => of(t).pipe(delay(t.delayMillis))),
             tap( _ => this.rawPendingMessage$.next(null)),
            // tap(_ => console.log('sending null'))
         ).subscribe();

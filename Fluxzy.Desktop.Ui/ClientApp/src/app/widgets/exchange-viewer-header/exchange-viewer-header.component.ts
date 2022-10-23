@@ -26,7 +26,7 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     }
 
     public mark(): void {
-        this.statusBarService.addMessage('Marked !!');
+        this.statusBarService.addMessage('Marked !!', 1000);
     }
 
     comment() {
