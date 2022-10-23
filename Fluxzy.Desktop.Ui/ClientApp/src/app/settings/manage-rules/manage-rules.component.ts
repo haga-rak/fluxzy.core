@@ -36,7 +36,8 @@ export class ManageRulesComponent implements OnInit {
             this.ruleContainers
         ).pipe(
             tap(_ => this.bsModalRef.hide()),
-            tap(_ => this.statusBarService.addMessage('Rules saved'))
+            tap(_ => this.statusBarService.addMessage('Rules saved')),
+            tap(_ => this.cd.detectChanges())
         ).subscribe();
     }
 
@@ -130,5 +131,13 @@ export class ManageRulesComponent implements OnInit {
     }
 
     public changeFilter(ruleContainer: RuleContainer) : void {
+    }
+
+    public disableAll() : void {
+        for (const container of this.ruleContainers) {
+            container.enabled = false;
+        }
+
+        this.cd.detectChanges();
     }
 }

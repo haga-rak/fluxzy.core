@@ -16,7 +16,9 @@
               </p>
 
         <div style="margin-bottom:18px">
-            <button class="btn  btn-primary"  (click)="createRule()">+ Add a new rule</button>
+            <button class="btn  btn-primary"  (click)="createRule()">+ Add a new rule</button>&nbsp;
+            <button class="btn  btn-primary"  (click)="disableAll()">
+                - Disable all rules</button>
         </div>
 
         <div class="shady-box table-box">
@@ -69,12 +71,12 @@
                         <td class="text-center">{{ ruleContainer.rule.order}}</td>
                         <td>
 <!--                            <button class="btn btn-secondary btn-outline-success"  (click)="enabledDisabled(ruleContainer)">Enabled</button> &nbsp;-->
-                            <button [disabled]="i === 0"  title="Move up" class="btn btn-outline-primary btn-green bg-secondary" (click)="moveUp(ruleContainer)">
+                            <button [disabled]="i === 0"  title="Move up" class="btn btn-outline-primary bg-info" (click)="moveUp(ruleContainer)">
                                 <span  class="material-icons  mi mi-sm">
                                     expand_less
                                 </span>
                             </button>&nbsp;
-                            <button [disabled]="i === ruleContainers.length - 1"  title="Move down" class="btn btn-outline-primary btn-green bg-secondary" (click)="moveDown(ruleContainer)">
+                            <button [disabled]="i === ruleContainers.length - 1"  title="Move down" class="btn btn-outline-primary" (click)="moveDown(ruleContainer)">
                                 <span  class="material-icons  mi mi-sm">
                                     expand_more
                                 </span>
