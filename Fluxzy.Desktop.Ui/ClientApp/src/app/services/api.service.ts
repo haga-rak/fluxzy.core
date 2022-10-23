@@ -16,7 +16,7 @@ import {
     of, delay, BehaviorSubject, pipe
 } from 'rxjs';
 import {
-    Action, AnyFilter,
+    Action, AnyFilter, ArchiveMetaInformation, CommentUpdateModel,
     ConnectionInfo, ContextMenuAction,
     ExchangeBrowsingState,
     ExchangeState,
@@ -29,11 +29,12 @@ import {
     FormattingResult, ForwardMessage,
     MultipartItem, Rule, RuleContainer,
     SaveFileMultipartActionModel,
-    StoredFilter,
+    StoredFilter, Tag, TagUpdateModel,
     TrunkState,
     UiState
 } from '../core/models/auto-generated';
 import {FilterHolder} from "../settings/manage-filters/manage-filters.component";
+import {IWithName} from "../core/models/model-extensions";
 
 @Injectable({
   providedIn: 'root'
@@ -242,5 +243,25 @@ export class ApiService {
 
     public actionGetTemplates() : Observable<Action[]> {
         return this.httpClient.get<Action[]>(`api/rule/action`).pipe(take(1)) ;
+    }
+
+    public metaInfoGet() : Observable<ArchiveMetaInformation> {
+        return this.httpClient.get<ArchiveMetaInformation>(`api/meta-info`).pipe(take(1)) ;
+    }
+
+    public metaInfoCreateTag(model : TagUpdateModel) : Observable<Tag> {
+        return this.httpClient.post<Tag>(`api/meta-info/tag`, model).pipe(take(1)) ;
+    }
+
+    public metaInfoUpdateTag(tagIdentifier : string, model : TagUpdateModel) : Observable<boolean> {
+        return this.httpClient.patch<boolean>(`api/meta-info/tag/${tagIdentifier}`, model).pipe(take(1)) ;
+    }
+
+    public metaInfoApplyTag(tagIdentifier : string, exchangeIds : number[]) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/meta-info/tag/${tagIdentifier}`, exchangeIds).pipe(take(1)) ;
+    }
+
+    public metaInfoApplyComment(model : CommentUpdateModel) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/meta-info/comment/`, model).pipe(take(1)) ;
     }
 }

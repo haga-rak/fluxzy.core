@@ -77,6 +77,9 @@ import { UpdateRequestHeaderFormComponent } from './settings/rule-forms/child-fo
 import { UpdateResponseHeaderFormComponent } from './settings/rule-forms/child-forms/update-response-header-form/update-response-header-form.component';
 import { DeleteResponseHeaderFormComponent } from './settings/rule-forms/child-forms/delete-response-header-form/delete-response-header-form.component';
 import { DeleteRequestHeaderFormComponent } from './settings/rule-forms/child-forms/delete-request-header-form/delete-request-header-form.component';
+import { ApplyCommentFormComponent } from './settings/rule-forms/child-forms/apply-comment-form/apply-comment-form.component';
+import { ApplyTagFormComponent } from './settings/rule-forms/child-forms/apply-tag-form/apply-tag-form.component';
+import { CreateTagComponent } from './settings/tags/create-tag/create-tag.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -143,6 +146,9 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         UpdateResponseHeaderFormComponent,
         DeleteResponseHeaderFormComponent,
         DeleteRequestHeaderFormComponent,
+        ApplyCommentFormComponent,
+        ApplyTagFormComponent,
+        CreateTagComponent,
 
 
     ],
@@ -186,6 +192,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         },
     ],
     bootstrap: [AppComponent],
-    entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent,FilterPreCreateComponent,ManageRulesComponent,RuleEditComponent, RulePreCreateComponent]
+    entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent,
+        FilterPreCreateComponent,ManageRulesComponent,RuleEditComponent, RulePreCreateComponent,CreateTagComponent]
 })
 export class AppModule {}

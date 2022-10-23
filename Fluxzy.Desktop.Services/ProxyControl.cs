@@ -2,11 +2,9 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core;
-using Fluxzy.Desktop.Services.Hubs;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Rules;
 using Fluxzy.Writers;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -17,7 +15,7 @@ namespace Fluxzy.Desktop.Services
         private Proxy?  _proxy;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
         private ViewFilter?  _viewFilter;
-        private readonly Subject<RealtimeArchiveWriter?> _writerSubject = new(); 
+        private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null); 
 
         public ProxyControl(
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,

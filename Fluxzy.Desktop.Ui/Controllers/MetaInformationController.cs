@@ -27,11 +27,13 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public async Task<ActionResult<ArchiveMetaInformation>> Get()
         {
             var archiveReader = (await _archiveReaderProvider.Get())!;
-            return archiveReader.ReadMetaInformation(); 
+            var metaInfo =  archiveReader.ReadMetaInformation();
+
+            return metaInfo; 
         }
 
         [HttpPost("tag")]
-        public async Task<ActionResult<bool>> CreateTag(TagUpdateModel model)
+        public async Task<ActionResult<Tag>> CreateTag(TagUpdateModel model)
         {
             var archiveReader = (await _archiveReaderProvider.Get())!;
             var archiveWriter = (await _archiveWriterObservable.FirstAsync())!; 
@@ -45,7 +47,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             archiveWriter.UpdateTags(metaInformation.Tags);
 
-            return Created("", tag.Identifier); 
+            return tag;
         }
 
         [HttpPatch("tag/{tagIdentifier}")]

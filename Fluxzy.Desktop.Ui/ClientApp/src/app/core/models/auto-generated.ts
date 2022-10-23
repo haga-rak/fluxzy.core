@@ -129,6 +129,15 @@ export interface SetCookieItem
 	secure: boolean;
 	httpOnly: boolean;
 }
+export interface CommentUpdateModel
+{
+	comment: string;
+	exchangeIds: number[];
+}
+export interface TagUpdateModel
+{
+	name: string;
+}
 export interface TemplateToolBarFilterModel
 {
 	quickFilters: Filter[];
