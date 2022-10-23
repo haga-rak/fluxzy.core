@@ -51,5 +51,9 @@ namespace Fluxzy
         public HashAlgorithmType HashAlgorithm { get; }
 
         public CipherAlgorithmType CipherAlgorithm { get; }
+
+        public byte[] ? RemoteCertificate { get; set;  }
+
+        public byte[] ? LocalCertificate { get; set;  }
     }
 }

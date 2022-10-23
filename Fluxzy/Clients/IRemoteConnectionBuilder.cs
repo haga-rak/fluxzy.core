@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
@@ -83,7 +84,17 @@ namespace Fluxzy.Clients
 
             connection.SslNegotiationStart = _timeProvider.Instant();
 
-            var sslStream = new SslStream(newlyOpenedStream, false, setting.CertificateValidationCallback);
+            byte[] remoteCertificate = null; 
+
+
+            var sslStream = new SslStream(newlyOpenedStream, false, (sender, certificate, chain, errors) =>
+            {
+                //remoteCertificate = certificate.Export(X509ContentType.Cert);
+
+               // File.WriteAllBytes("d:\\t.cer", remoteCertificate);
+
+                return errors == SslPolicyErrors.None;
+            });
 
             Stream resultStream = sslStream; 
 
@@ -99,9 +110,10 @@ namespace Fluxzy.Clients
 
             await sslStream.AuthenticateAsClientAsync(authenticationOptions, token);
 
-            connection.SslInfo = new SslInfo(sslStream); 
+            connection.SslInfo = new SslInfo(sslStream);
 
             connection.SslNegotiationEnd = _timeProvider.Instant();
+            connection.SslInfo.RemoteCertificate = remoteCertificate;
 
             if (DebugContext.EnableNetworkFileDump)
             {

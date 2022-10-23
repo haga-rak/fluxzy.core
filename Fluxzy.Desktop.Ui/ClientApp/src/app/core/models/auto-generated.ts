@@ -730,4 +730,6 @@ export interface SslInfo
 	keyExchangeAlgorithm: string;
 	hashAlgorithm: number;
 	cipherAlgorithm: number;
+	remoteCertificate?: number[];
+	localCertificate?: number[];
 }

@@ -1,7 +1,9 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using Fluxzy.Formatters;
+using Fluxzy.Readers;
 using Microsoft.AspNetCore.Mvc;
+using System.Reactive.Linq;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
@@ -9,18 +11,18 @@ namespace Fluxzy.Desktop.Ui.Controllers
     [ApiController]
     public class ConnectionController
     {
-        private readonly IArchiveReaderProvider _archiveReaderProvider;
+        private readonly IObservable<IArchiveReader> _archiveReaderObservable;
 
-        public ConnectionController(IArchiveReaderProvider archiveReaderProvider)
+        public ConnectionController(IObservable<IArchiveReader> archiveReaderObservable)
         {
-            _archiveReaderProvider = archiveReaderProvider;
+            _archiveReaderObservable = archiveReaderObservable;
         }
 
         [HttpGet("{connectionId}")]
         public async Task<ActionResult<ConnectionInfo?>> Get(int connectionId)
         {
-            var archiveReader = await _archiveReaderProvider.Get();
-            return  archiveReader?.ReadConnection(connectionId);
+            var archiveReader = await _archiveReaderObservable.FirstAsync();
+            return archiveReader.ReadConnection(connectionId);
         }
     }
 }
