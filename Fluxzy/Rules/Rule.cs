@@ -21,6 +21,8 @@ namespace Fluxzy.Rules
 
         public Action Action { get; set; }
 
+        public int Order { get; set; }
+
         public bool InScope => Filter.FilterScope <= Action.ActionScope;
 
         public ValueTask Enforce(ExchangeContext context,

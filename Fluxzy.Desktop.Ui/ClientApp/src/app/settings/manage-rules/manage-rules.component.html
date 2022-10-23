@@ -31,23 +31,55 @@
                     <tr>
                         <th style="width:32px">&nbsp;</th>
                         <th>Action</th>
-                        <th style="width:250px">Filter</th>
+                        <th style="width:280px">Filter</th>
+                        <th style="width:32px" tilte="Rules are applied from low to high order">Order</th>
                         <th style="width:250px">&nbsp;</th>
                     </tr>
-                    <tr *ngFor="let ruleContainer of ruleContainers">
-                        <td>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox"  [(ngModel)]="ruleContainer.enabled" >
-<!--                                <label class="form-check-label">{{ruleContainer.rule.action.typeKind}}</label>-->
-                            </div>
+                    <tr *ngFor="let ruleContainer  of ruleContainers | sort: 'rule.order'; let i = index" >
+                        <td style="text-align: center">
+
+                            <a href="javascript:;"  (click)="enabledDisabled(ruleContainer)">
+
+                                <span  class="material-icons mi text-green" *ngIf="ruleContainer.enabled">
+                                    play_circle
+                                </span>
+                                    <span  class="material-icons  mi text-white-50" *ngIf="!ruleContainer.enabled">
+                                    do_not_disturb_on
+                                </span>
+                            </a>
+<!--                            <div class="form-check form-switch">-->
+<!--                                <input class="form-check-input" type="checkbox"  [(ngModel)]="ruleContainer.enabled" >-->
+<!--&lt;!&ndash;                                <label class="form-check-label">{{ruleContainer.rule.action.typeKind}}</label>&ndash;&gt;-->
+<!--                            </div>-->
                         </td>
                         <td>
-                            <a href="javascript:;" (click)="ruleContainer.enabled = !ruleContainer.enabled" class="span-friendly-name text-info"
+                            <a href="javascript:;" (click)="enabledDisabled(ruleContainer)" class="span-friendly-name text-info"
                                [ngClass]="{'text-white' : ruleContainer.enabled}">{{ruleContainer.rule.action.friendlyName }}</a>
                         </td>
-                        <td>{{ruleContainer.rule.filter.friendlyName }}</td>
                         <td>
-                            <button class="btn btn-secondary btn-outline-primary" (click)="editRule(ruleContainer.rule)">Edit</button> &nbsp;
+
+                            <i class="bi bi-exclamation-triangle-fill text-danger"
+                               title="This filter is out of scope for current action. This rule will not be applied."
+                               *ngIf="ruleContainer.rule.filter.scopeId > ruleContainer.rule.action.scopeId"></i>
+                            {{ruleContainer.rule.filter.friendlyName }}
+                            <a href="javascript:;" title="Change this filter" (click)="editRule(ruleContainer.rule)">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                        </td>
+                        <td class="text-center">{{ ruleContainer.rule.order}}</td>
+                        <td>
+<!--                            <button class="btn btn-secondary btn-outline-success"  (click)="enabledDisabled(ruleContainer)">Enabled</button> &nbsp;-->
+                            <button [disabled]="i === 0"  title="Move up" class="btn btn-outline-primary btn-green bg-secondary" (click)="moveUp(ruleContainer)">
+                                <span  class="material-icons  mi mi-sm">
+                                    expand_less
+                                </span>
+                            </button>&nbsp;
+                            <button [disabled]="i === ruleContainers.length - 1"  title="Move down" class="btn btn-outline-primary btn-green bg-secondary" (click)="moveDown(ruleContainer)">
+                                <span  class="material-icons  mi mi-sm">
+                                    expand_more
+                                </span>
+                            </button>&nbsp;
+<!--                             <button class="btn btn-secondary btn-outline-primary" (click)="editRule(ruleContainer.rule)">Edit</button>&nbsp;-->
                              <button class="btn btn-secondary btn-outline-danger" (click)="deleteRule(ruleContainer.rule)">Delete</button>
                         </td>
                     </tr>

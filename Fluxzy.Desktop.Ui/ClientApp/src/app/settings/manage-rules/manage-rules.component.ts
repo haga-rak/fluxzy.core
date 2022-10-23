@@ -43,10 +43,20 @@ export class ManageRulesComponent implements OnInit {
             .pipe(
                 filter(t => !!t),
                 switchMap(t => this.apiService.ruleValidate(t)),
-                tap(t => this.ruleContainers.push( {
-                    rule : t,
-                    enabled : true
-                })),
+                tap(t => {
+                    let max = 0 ;
+
+                    if (this.ruleContainers.length) {
+                        max = _.maxBy(this.ruleContainers, c => c.rule.order).rule.order;
+                    }
+
+                    t.order = max + 1 ;
+
+                    return this.ruleContainers.push({
+                        rule: t,
+                        enabled: true,
+                    });
+                }),
                 tap(_ => this.cd.detectChanges())
             ).subscribe();
     }
@@ -73,5 +83,50 @@ export class ManageRulesComponent implements OnInit {
                 }),
                 tap(_ => this.cd.detectChanges())
             ).subscribe();
+    }
+
+    public enabledDisabled(ruleContainer: RuleContainer) {
+
+        ruleContainer.enabled = !ruleContainer.enabled ;
+        this.cd.detectChanges();
+
+    }
+
+    public moveUp(ruleContainer: any) {
+        const index = _.findIndex(this.ruleContainers, a => a.rule.identifier === ruleContainer.rule.identifier) ;
+
+        if (index === 0)
+            return;
+
+
+        const temp = this.ruleContainers[index - 1] ;
+        this.ruleContainers[index - 1] = ruleContainer;
+        this.ruleContainers[index] = temp;
+
+        const oldIndex = temp.rule.order ;
+        temp.rule.order =  ruleContainer.rule.order ;
+        ruleContainer.rule.order = oldIndex;
+
+        this.cd.detectChanges();
+    }
+
+    public moveDown(ruleContainer: any) {
+        const index = _.findIndex(this.ruleContainers, a => a.rule.identifier === ruleContainer.rule.identifier) ;
+
+        if (index === this.ruleContainers.length - 1)
+            return;
+
+        const temp = this.ruleContainers[index + 1] ;
+        this.ruleContainers[index + 1] = ruleContainer;
+        this.ruleContainers[index] = temp;
+
+        const oldIndex = temp.rule.order ;
+        temp.rule.order =  ruleContainer.rule.order ;
+        ruleContainer.rule.order = oldIndex;
+
+        this.cd.detectChanges();
+    }
+
+    public changeFilter(ruleContainer: RuleContainer) : void {
     }
 }
