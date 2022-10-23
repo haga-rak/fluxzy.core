@@ -144,6 +144,13 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 label : 'Manage filters',
                 id : 'manage-filters'
             },
+            {
+                type :  'separator'
+            },
+            {
+                label : 'Create new tags',
+                id : 'create-tag'
+            },
         ]
     },
     {

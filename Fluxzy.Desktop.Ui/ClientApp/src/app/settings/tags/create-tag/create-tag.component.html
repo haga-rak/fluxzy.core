@@ -1,0 +1,24 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        Create tag
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 50px">
+    <div class=" rule-form-box" style="">
+        <div class="row">
+            <div class="col-md-8 offset-2">
+                <div class="form-floating">
+                    <input type="text" [(ngModel)]="tagUpdateModel.name" class="form-control" placeholder="Type a new tag name"/>
+                    <label>Tag name</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="create()">Create</button>
+    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+</div>

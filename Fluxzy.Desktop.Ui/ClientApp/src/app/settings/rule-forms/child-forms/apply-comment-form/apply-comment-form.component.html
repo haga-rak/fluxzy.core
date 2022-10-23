@@ -1,0 +1,11 @@
+<div class="row mb-3">
+    <div class="col-sm-9">
+        <div class="form-floating">
+            <input type="text" [(ngModel)]="action.comment" class="form-control" />
+            <label>Comment</label>
+        </div>
+        <div class="p-1 text-danger" *ngIf="validationState['comment']">
+            {{ validationState['comment'] }}
+        </div>
+    </div>
+</div>

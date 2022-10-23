@@ -8,7 +8,7 @@ namespace Fluxzy.Rules.Actions
 {
     public class ApplyCommentAction : Action
     {
-        public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
+        public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
         public string? Comment { get; set; }
 

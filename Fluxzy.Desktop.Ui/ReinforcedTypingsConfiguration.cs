@@ -17,6 +17,7 @@ using Fluxzy.Rules.Filters;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
 using Reinforced.Typings.Fluent;
+using static Fluxzy.Desktop.Ui.Controllers.MetaInformationController;
 using Action = Fluxzy.Rules.Action;
 using ConfigurationBuilder = Reinforced.Typings.Fluent.ConfigurationBuilder;
 
@@ -207,6 +208,12 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<SetCookieItem>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<CommentUpdateModel>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<TagUpdateModel>()
                    .ApplyGenericProperties();
         }
 
