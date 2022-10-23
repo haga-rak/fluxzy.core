@@ -372,6 +372,7 @@ export interface Rule
 	identifier: string;
 	filter: Filter;
 	action: Action;
+	order: number;
 	inScope: boolean;
 }
 export interface RuleContainer

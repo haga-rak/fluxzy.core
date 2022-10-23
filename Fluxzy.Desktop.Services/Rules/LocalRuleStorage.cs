@@ -37,7 +37,21 @@ namespace Fluxzy.Desktop.Services.Rules
                 rules.Add(JsonSerializer.Deserialize<RuleContainer>(stream, GlobalArchiveOption.JsonSerializerOptions)!);
             }
 
+            rules = rules.OrderBy(r => r.Rule.Order).ToList();
+
+            FixOrder(rules);
+            
             return Task.FromResult(rules);
+        }
+
+        private static void FixOrder(ICollection<RuleContainer> rules)
+        {
+            int count = 0;
+            
+            foreach (var rule in rules.OrderBy(o => o.Rule.Order))
+            {
+                rule.Rule.Order = ++count;
+            }
         }
 
         private string GetRulePath(Rule rule)
@@ -47,6 +61,8 @@ namespace Fluxzy.Desktop.Services.Rules
 
         public Task Update(ICollection<RuleContainer> rules)
         {
+            FixOrder(rules); 
+
             var dictionaryRules = rules.ToDictionary(t =>
                 new FileInfo(GetRulePath(t.Rule)).FullName, t => t);
 

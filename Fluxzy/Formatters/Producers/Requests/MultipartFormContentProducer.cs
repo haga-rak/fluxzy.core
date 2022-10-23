@@ -227,9 +227,9 @@ namespace Fluxzy.Formatters.Producers.Requests
                     
                     // read body 
                     var bodyLength = ReadBody(stream, endBoundaryBytes, readBodyBufferSize);
-                    
+
                     if (bodyLength < 0)
-                        throw new InvalidOperationException("Unexpected EOF");
+                        return new List<RawMultipartItem>();
 
                     result.Add(new RawMultipartItem(rawHeader, boundary,
                         offSetBeforeReadingBody,
