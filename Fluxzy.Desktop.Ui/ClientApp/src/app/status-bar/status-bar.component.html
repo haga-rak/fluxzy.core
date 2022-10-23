@@ -1,5 +1,5 @@
 <div class="status-container" *ngIf="fileState && uiState">
-    
+
     <strong class="font-primary">
         <span *ngIf="fileState?.mappedFileName">{{ fileState.mappedFileName}}</span>
         <span *ngIf="!fileState?.mappedFileName">[new file]</span>
@@ -7,7 +7,7 @@
     <small *ngIf="fileState.unsaved"> (*not saved)</small>
     &nbsp;|&nbsp;
     <span *ngIf="exchangeState">
-        {{ exchangeState.totalCount }} items 
+        {{ exchangeState.totalCount }} items
         <span *ngIf="selectedCount > 0">
             ({{selectedCount}} selected)
         </span>
@@ -22,11 +22,20 @@
         <i class="bi bi-filter-circle-fill"></i>
         8 filters in file
     </span>
- 
+
     <span class="float-end">
+
+        <span *ngIf="statusMessage">
+
+            <strong class="update-info text-blue" >
+                {{statusMessage }}
+            </strong>
+            |
+        </span>
+
         <span>
             <i class="bi bi-key-fill"></i>
-            decrypt all 
+            decrypt all
         </span>
         &nbsp;|&nbsp;
         <span>

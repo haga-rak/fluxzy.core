@@ -111,6 +111,10 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 type :  'separator'
             },
             {
+                label : 'Create new tag',
+                id : 'create-tag'
+            },
+            {
                 id : 'tag',
                 label : 'Tag selected exchanges',
             },
@@ -146,10 +150,6 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 type :  'separator'
-            },
-            {
-                label : 'Create new tags',
-                id : 'create-tag'
             },
         ]
     },

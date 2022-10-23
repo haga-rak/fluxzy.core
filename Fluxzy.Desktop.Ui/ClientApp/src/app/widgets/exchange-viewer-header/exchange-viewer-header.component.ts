@@ -1,5 +1,6 @@
 import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {ExchangeInfo} from '../../core/models/auto-generated';
+import {StatusBarService} from "../../services/status-bar.service";
 
 @Component({
     selector: 'app-exchange-viewer-header',
@@ -7,25 +8,29 @@ import {ExchangeInfo} from '../../core/models/auto-generated';
     styleUrls: ['./exchange-viewer-header.component.scss']
 })
 export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
-    public tabs : string [] = ['Content', 'Connectivity', 'Performance', 'MetaInformation'] ;
-    public currentTab : string = 'Content';
+    public tabs: string [] = ['Content', 'Connectivity', 'Performance', 'MetaInformation'];
+    public currentTab: string = 'Content';
 
-    public context : { currentTab : string } = { currentTab : 'Content'}
+    public context: { currentTab: string } = {currentTab: 'Content'}
 
     @Input() public exchange: ExchangeInfo;
 
-    constructor() {
+    constructor(private statusBarService : StatusBarService) {
 
     }
 
     ngOnInit(): void {
-        // console.log('header');
-        // console.log(this.exchange);
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        // console.log('heade change');
-        // console.log(this.exchange);
     }
 
+    public mark(): void {
+        this.statusBarService.addMessage('Marked !!');
+    }
+
+    comment() {
+        this.statusBarService.addMessage('Commented %%');
+
+    }
 }
