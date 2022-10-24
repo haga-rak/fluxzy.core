@@ -59,8 +59,7 @@ namespace Fluxzy.Clients.H2
         {
             var connectionPool =  new Http11ConnectionPool(authority,
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
-                ITimingProvider.Default, ProxyRuntimeSetting.Default, new Http11Parser(
-                    16 * 1024), null);
+                ITimingProvider.Default, ProxyRuntimeSetting.Default, new Http11Parser(), null);
 
             await connectionPool.Init();
 

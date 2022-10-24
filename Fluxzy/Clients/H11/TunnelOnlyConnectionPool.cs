@@ -18,7 +18,7 @@ namespace Fluxzy.Clients.H11
         private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _connectionBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
-        private SemaphoreSlim _semaphoreSlim;
+        private readonly SemaphoreSlim _semaphoreSlim;
         private bool _complete;
 
         public TunnelOnlyConnectionPool(
@@ -71,13 +71,10 @@ namespace Fluxzy.Clients.H11
 
         public ValueTask DisposeAsync()
         {
+            _semaphoreSlim.Dispose();
             return new ValueTask(Task.CompletedTask); 
         }
-
-        public void Dispose()
-        {
-            _semaphoreSlim.Dispose();
-        }
+        
     }
 
     internal class TunneledConnectionProcess : IDisposable, IAsyncDisposable
@@ -86,13 +83,13 @@ namespace Fluxzy.Clients.H11
         private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ProxyRuntimeSetting _creationSetting;
-        private readonly RealtimeArchiveWriter _archiveWriter;
+        private readonly RealtimeArchiveWriter? _archiveWriter;
 
         public TunneledConnectionProcess(Authority authority,
             ITimingProvider timingProvider,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ProxyRuntimeSetting creationSetting,
-            RealtimeArchiveWriter archiveWriter)
+            RealtimeArchiveWriter? archiveWriter)
         {
             _authority = authority;
             _timingProvider = timingProvider;
@@ -115,8 +112,7 @@ namespace Fluxzy.Clients.H11
             
             exchange.Connection = openingResult.Connection;
 
-            if (_archiveWriter != null)
-                _archiveWriter.Update(exchange.Connection, cancellationToken);
+            _archiveWriter?.Update(exchange.Connection, cancellationToken);
 
             if (exchange.Request.Header.IsWebSocketRequest)
             {

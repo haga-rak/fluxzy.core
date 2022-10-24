@@ -20,7 +20,7 @@ namespace Fluxzy.Formatters.Producers.Requests
             var requestHeaders = exchangeInfo.GetRequestHeaders().ToList();
             var stringBuilder = new StringBuilder();
 
-            Http11Parser parser = new Http11Parser(32 * 1024);
+            Http11Parser parser = new Http11Parser();
 
             var charBuffer = ArrayPool<char>.Shared.Rent(context.Settings.MaxHeaderLength);
 

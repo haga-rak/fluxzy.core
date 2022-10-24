@@ -11,7 +11,7 @@ namespace Fluxzy.Clients.DotNetBridge
     public class FluxzyDefaultHandler : HttpMessageHandler
     {
         private readonly SemaphoreSlim _semaphore = new(1);
-        private readonly Http11Parser _parser = new(16384);
+        private readonly Http11Parser _parser = new();
         private readonly PoolBuilder _poolBuilder;
         private readonly IIdProvider _idProvider;
 

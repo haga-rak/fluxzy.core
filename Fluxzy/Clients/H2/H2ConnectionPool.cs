@@ -95,7 +95,7 @@ namespace Fluxzy.Clients.H2
                     Id, authority, setting, _logger,
                     headerEncoder, UpStreamChannel,
                     _overallWindowSizeHolder,
-                    new Http11Parser(setting.Local.MaxHeaderLine)));
+                    new Http11Parser()));
         }
 
         public int Id { get; }

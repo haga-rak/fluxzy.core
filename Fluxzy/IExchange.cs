@@ -29,6 +29,8 @@ namespace Fluxzy
 
         HashSet<Tag>? Tags { get;  }
 
+        bool IsWebSocket { get; }
+
         //AgentInfo?  AgentInfo { get; }
     }
 

@@ -58,7 +58,7 @@ namespace Fluxzy
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
                 _tcpConnectionProvider = ITcpConnectionProvider.Default;
 
-            var http1Parser = new Http11Parser(StartupSetting.MaxHeaderLength);
+            var http1Parser = new Http11Parser();
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default,
                 http1Parser,
@@ -73,7 +73,7 @@ namespace Fluxzy
                 new ExchangeBuilder(secureConnectionManager, http1Parser, IdProvider), poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
-                                                         t.Filter == AnyFilter.Default)
+                                                         t.Filter is AnyFilter)
                 && StartupSetting.AutoInstallCertificate)
                 CertificateUtility.CheckAndInstallCertificate(startupSetting);
         }
