@@ -2,8 +2,6 @@
 // 
 
 using System;
-using System.Buffers;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -222,117 +220,6 @@ namespace Fluxzy.Clients.H11
     }
 
 
-    /// <summary>
-    /// A websocket reading stream 
-    /// </summary>
-    public class WebSocketStream
-    {
-        private readonly Pipe _pipe;
-
-        public WebSocketStream(int limitFile = )
-        {
-            _pipe = new Pipe();
-            
-        }
-
-        private async Task InitRead()
-        {
-            while (true)
-            {
-                if (!_pipe.Reader.TryRead(out var readResult)) {
-                    readResult = await _pipe.Reader.ReadAsync();
-                }
-
-                if (readResult.IsCompleted || readResult.IsCanceled)
-                    return;
-
-                var buffer = readResult.Buffer;
-                var headerLength = -1;
-
-                WsFrame wsFrame = default; 
-
-                if (!((headerLength = TryReadWsFrameHeader(ref buffer, ref wsFrame)) < 0)) {
-
-                    // not enough data to complete the header frame send back to read 
-
-                    _pipe.Reader.AdvanceTo(buffer.Start); 
-                    continue; 
-                }
-
-                _pipe.Reader.AdvanceTo(buffer.GetPosition(headerLength));
-
-                
-
-            }
-        }
-
-
-        private int TryReadWsFrameHeader(ref ReadOnlySequence<byte> sequencBuffer, ref WsFrame wsFrame)
-        {
-            if (sequencBuffer.Length < 2)
-                return -1;
-
-            var buffer = sequencBuffer.FirstSpan;
-
-            wsFrame.FinalFragment = (buffer[0] & 0x80) > 0;
-
-            wsFrame.OpCode = (WsOpCode) (buffer[0] & 0xF);
-
-            int byteIndex = 1;
-
-            var maskedPayload = (buffer[byteIndex] & 0x80) > 0;
-            var payloadIndicator = (byte) (buffer[byteIndex] & 0X7f);
-
-            if (payloadIndicator < 126) {
-                wsFrame.PayloadLength = payloadIndicator;
-            }
-            else
-            {
-                var startBuffer = buffer.Slice(byteIndex);
-
-                if (payloadIndicator == 126) {
-                    if (startBuffer.Length < 2)
-                        return -1; // Not enough data 
-
-                    wsFrame.PayloadLength = BinaryPrimitives.ReadUInt16BigEndian(startBuffer);
-                    byteIndex += 2; 
-                }
-                else
-                {
-                    if (startBuffer.Length < 4)
-                        return -1; // Not enough data 
-
-                    wsFrame.PayloadLength = BinaryPrimitives.ReadInt64BigEndian(startBuffer);
-                    byteIndex += 8;
-                }
-
-                byteIndex += 1;
-            }
-
-
-            if (maskedPayload) {
-
-                var startBuffer = buffer.Slice(byteIndex);
-
-                if (startBuffer.Length < 4)
-                    return -1;
-
-                wsFrame.PayloadLength = BinaryPrimitives.ReadInt32BigEndian(startBuffer);
-                byteIndex += 4;
-            }
-
-            // Reading the buffer 
-
-            return byteIndex; 
-        }
-
-
-        private void Write(ReadOnlySpan<byte> data)
-        {
-            _pipe.Writer.WriteAsync();
-        }
-    }
-
     public struct WsFrame
     {
         public int FrameId { get; set; }
@@ -383,10 +270,23 @@ namespace Fluxzy.Clients.H11
                 pipeReader.AdvanceTo(readResult.Buffer.GetPosition(wsFrame.PayloadLength));
             }
             else {
-                
+                int totalWritten = 0;
+                var stream = outStream(); 
 
+                while (totalWritten < wsFrame.PayloadLength) {
 
+                    // Write into file 
 
+                    var readResult = await pipeReader.ReadAsync();
+
+                    var writtableBufferLength = (int) Math.Min(readResult.Buffer.Length, (wsFrame.PayloadLength - totalWritten)); 
+
+                    stream.Write(readResult.Buffer.FirstSpan.Slice(0, writtableBufferLength));
+
+                    totalWritten += writtableBufferLength; 
+
+                    pipeReader.AdvanceTo(readResult.Buffer.GetPosition(writtableBufferLength));
+                }
             }
                 
             CurrentLength += wsFrame.PayloadLength; 
