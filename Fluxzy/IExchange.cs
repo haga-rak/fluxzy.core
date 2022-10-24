@@ -1,8 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Collections.Generic;
-using Fluxzy.Core.SystemProxySetup.Linux;
+using Fluxzy.Clients.H11;
 
 namespace Fluxzy
 {
@@ -32,7 +31,9 @@ namespace Fluxzy
 
         bool IsWebSocket { get; }
 
-        
+
+        List<WsMessage>? WebSocketMessages { get; }
+
 
         //AgentInfo?  AgentInfo { get; }
     }

@@ -1,11 +1,8 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿//// Copyright 2022 - Haga Rakotoharivelo
 
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
-using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -19,8 +16,9 @@ namespace Fluxzy.Clients.H11
     public class WebSocketStream : Stream
     {
         private readonly Stream _innerStream;
+        private readonly ITimingProvider _timingProvider;
         private readonly Action<WsMessage> _onMessage;
-        private readonly Func<Stream> _outStream;
+        private readonly Func<int, Stream> _outStream;
         private readonly Pipe _pipe;
         private readonly Task _runningTask;
 
@@ -28,10 +26,11 @@ namespace Fluxzy.Clients.H11
         private int _messageCounter;
         private readonly int _maxBufferedWsMessage = 1024; 
 
-        public WebSocketStream(Stream innerStream,
-            Action<WsMessage> onMessage, Func<Stream> outStream) 
+        public WebSocketStream(Stream innerStream, ITimingProvider timingProvider,
+            Action<WsMessage> onMessage, Func<int, Stream> outStream) 
         {
             _innerStream = innerStream;
+            _timingProvider = timingProvider;
             _onMessage = onMessage;
             _outStream = outStream;
             _pipe = new Pipe();
@@ -55,7 +54,7 @@ namespace Fluxzy.Clients.H11
 
                 WsFrame wsFrame = default; 
 
-                if (!((headerLength = TryReadWsFrameHeader(ref buffer, ref wsFrame)) < 0)) {
+                if (((headerLength = TryReadWsFrameHeader(ref buffer, ref wsFrame)) < 0)) {
 
                     // not enough data to complete the header frame send back to read 
 
@@ -65,13 +64,16 @@ namespace Fluxzy.Clients.H11
 
                 _pipe.Reader.AdvanceTo(buffer.GetPosition(headerLength));
 
-                _currentMessage ??= new WsMessage(++_messageCounter);
+                _currentMessage ??= new WsMessage(++_messageCounter) {
+                    MessageStart = _timingProvider.Instant()
+                };
 
                 await _currentMessage
                     .AddFrame(wsFrame, _maxBufferedWsMessage,
                         _pipe.Reader, _outStream);
 
                 if (wsFrame.FinalFragment) {
+                    _currentMessage.MessageEnd = _timingProvider.Instant(); 
                     _onMessage(_currentMessage); 
                     _currentMessage = null;
                 }
@@ -128,13 +130,13 @@ namespace Fluxzy.Clients.H11
                 if (startBuffer.Length < 4)
                     return -1;
 
-                wsFrame.PayloadLength = BinaryPrimitives.ReadInt32BigEndian(startBuffer);
+                wsFrame.MaskedPayload = BinaryPrimitives.ReadInt32BigEndian(startBuffer);
                 byteIndex += 4;
             }
 
             // Reading the buffer 
 
-            return byteIndex; 
+            return byteIndex + 1; 
         }
 
         public override void Flush()
@@ -143,14 +145,19 @@ namespace Fluxzy.Clients.H11
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            _pipe.Writer.Write(new ReadOnlySpan<byte>(buffer).Slice(offset, count));
-            return _innerStream.Read(buffer, offset, count);
+            var readCount =  _innerStream.Read(buffer, offset, count);
+            _pipe.Writer.Write(new ReadOnlySpan<byte>(buffer).Slice(offset, readCount));
+            return readCount; 
         }
 
-        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
         {
-            _pipe.Writer.Write(buffer.Span);
-            return base.ReadAsync(buffer, cancellationToken);
+            var read =  await _innerStream.ReadAsync(buffer, cancellationToken);
+            
+            _pipe.Writer.Write(buffer.Span.Slice(0,read));
+            await _pipe.Writer.FlushAsync(cancellationToken);
+
+            return read; 
         }
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -182,14 +189,15 @@ namespace Fluxzy.Clients.H11
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
+            _innerStream.Dispose();
             _pipe.Writer.Complete(); 
+
         }
 
         public override async ValueTask DisposeAsync()
         {
-            await base.DisposeAsync();
-
+            await _innerStream.DisposeAsync();
+            Dispose(true);
             await _runningTask;
         }
     }

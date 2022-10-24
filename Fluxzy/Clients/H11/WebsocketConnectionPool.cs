@@ -174,10 +174,30 @@ namespace Fluxzy.Clients.H11
                 //await using var remoteStream = exchange.Connection.WriteStream;
 
                 var outGressWriteStream = exchange.Connection.WriteStream;
-                var outGressReadStream = concatedReadStream;
+
+                var outGressReadStream = concatedReadStream;  // Response read 
+                var inGressReadStream = localLink.ReadStream!; // RequestRead
+                
+                //outGressReadStream = new WebSocketStream(outGressReadStream, _timingProvider,
+                //    (wsMessage) =>
+                //    {
+                //        exchange.WebSocketMessages ??= new List<WsMessage>();
+                //        exchange.WebSocketMessages.Add(wsMessage);
+                //        _archiveWriter!.Update(exchange, UpdateType.WsMessageReceived, CancellationToken.None);
+                //    },
+                //    (wsMessageId) => _archiveWriter!.CreateWebSocketResponseContent(exchange.Id, wsMessageId));
+
+                inGressReadStream = new WebSocketStream(inGressReadStream, _timingProvider,
+                    (wsMessage) =>
+                    {
+                        exchange.WebSocketMessages ??= new List<WsMessage>();
+                        exchange.WebSocketMessages.Add(wsMessage);
+                        _archiveWriter!.Update(exchange, UpdateType.WsMessageSent, CancellationToken.None);
+                    },
+                    (wsMessageId) => _archiveWriter!.CreateWebSocketRequestContent(exchange.Id, wsMessageId)); 
 
                 var copyTask = Task.WhenAll(
-                    localLink.ReadStream!.CopyDetailed(outGressWriteStream, buffer, (copied) =>
+                    inGressReadStream.CopyDetailed(outGressWriteStream, buffer, (copied) =>
                             exchange.Metrics.TotalSent += copied
                         , cancellationToken).AsTask(),
                     outGressReadStream.CopyDetailed(localLink.WriteStream, 1024 * 16, (copied) =>
@@ -231,6 +251,7 @@ namespace Fluxzy.Clients.H11
         public bool FinalFragment { get; set; }
 
         public byte []  Data { get; set; }
+        public int MaskedPayload { get; set; }
     }
     
 
@@ -245,19 +266,29 @@ namespace Fluxzy.Clients.H11
 
         public WsOpCode OpCode { get; set; }
 
-        public long CurrentLength { get; set; }
+        public long Length { get; set; }
 
         public byte[]?  Data { get; set; }
 
+        public DateTime MessageStart { get; set; }
+
+        public DateTime MessageEnd { get; set; }
+
+        internal async void ApplyXor(Span<byte> data, int mask)
+        {
+
+        }
+
+
         internal async Task AddFrame(
             WsFrame wsFrame, int maxWsMessageLengthBuffered, PipeReader pipeReader,
-                            Func<Stream> outStream)
+                            Func<int, Stream> outStream)
         {
             if (wsFrame.OpCode != 0) {
                 OpCode = wsFrame.OpCode; 
             }
 
-            if (wsFrame.FinalFragment && CurrentLength == 0 && wsFrame.PayloadLength < maxWsMessageLengthBuffered) {
+            if (wsFrame.FinalFragment && Length == 0 && wsFrame.PayloadLength < maxWsMessageLengthBuffered) {
                 // Build direct buffer for message 
 
                 var readResult = await pipeReader.ReadAtLeastAsync((int) wsFrame.PayloadLength);
@@ -271,7 +302,7 @@ namespace Fluxzy.Clients.H11
             }
             else {
                 int totalWritten = 0;
-                var stream = outStream(); 
+                var stream = outStream(Id); 
 
                 while (totalWritten < wsFrame.PayloadLength) {
 
@@ -289,11 +320,9 @@ namespace Fluxzy.Clients.H11
                 }
             }
                 
-            CurrentLength += wsFrame.PayloadLength; 
+            Length += wsFrame.PayloadLength; 
         }
-
-
-
+        
 
     }
 
