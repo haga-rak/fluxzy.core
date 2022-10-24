@@ -47,8 +47,7 @@ namespace Fluxzy.Core
 
                     try
                     {
-                        localConnection = await _exchangeBuilder.InitClientConnection(
-                            client.GetStream(), buffer, _proxyRuntimeSetting, token);
+                        localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), buffer, _proxyRuntimeSetting, token);
                     }
                     catch (Exception ex)
                     {

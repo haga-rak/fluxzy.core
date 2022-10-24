@@ -37,7 +37,7 @@ namespace Fluxzy.Clients.H2.Encoder
             _primitiveOperation = primitiveOperation ?? new PrimitiveOperation(new HuffmanCodec(HPackDictionary.Instance));
             _codecSetting = codecSetting ?? new CodecSetting();
             _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
-            _parser = parser ?? new Http11Parser(_codecSetting.MaxHeaderLineLength);
+            _parser = parser ?? new Http11Parser();
         }
 
 

@@ -6,6 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.WebSockets;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
@@ -13,6 +16,7 @@ using Fluxzy.Readers;
 using Fluxzy.Tests.Cli.Scaffolding;
 using Fluxzy.Tests.Tools;
 using Fluxzy.Tests.Utils;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -140,7 +144,6 @@ namespace Fluxzy.Tests.Cli
 
                     }
 
-
                     var connection = connections.First();
 
                     Assert.Equal(0, await commandLineHost.ExitCode);
@@ -196,6 +199,46 @@ namespace Fluxzy.Tests.Cli
             var content = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Run_Cli_For_Web_Socket_Tests()
+        {
+            // Arrange 
+            var testCount = 5; 
+
+            var commandLine = "start -l 127.0.0.1/0 -d ws";
+            
+            var message = Encoding.UTF8.GetBytes("AZERTY123!%$");
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using( var fluxzyInstance = await commandLineHost.Run())
+            {
+
+                using var ws = new ClientWebSocket()
+                {
+                    Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
+                };
+
+                var uri = new Uri($"{TestConstants.WssHost}/websocket");
+
+                var buffer = (Memory<byte>)new byte[4096];
+
+                await ws.ConnectAsync(uri, CancellationToken.None);
+                await ws.ReceiveAsync(buffer, CancellationToken.None);
+
+                await ws.SendAsync(message, WebSocketMessageType.Text,
+                    WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression,
+                    CancellationToken.None);
+
+                var res = await ws.ReceiveAsync(buffer, CancellationToken.None);
+
+                var resultHash = Encoding.ASCII.GetString(buffer.Slice(0, res.Count).Span);
+                var expectedHash = Convert.ToBase64String(SHA1.HashData(message));
+
+                Assert.Equal(expectedHash, resultHash);
+            }
         }
 
         //[Fact]

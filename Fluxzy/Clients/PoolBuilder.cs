@@ -131,10 +131,18 @@ namespace Fluxzy.Clients
                 }
 
                 //  pool 
-                if (exchange.Context.BlindMode
-                    || exchange.Request.Header.IsWebSocketRequest)
+                if (exchange.Context.BlindMode)
                 {
                     var tunneledConnectionPool = new TunnelOnlyConnectionPool(
+                        exchange.Authority, _timingProvider,
+                        _remoteConnectionBuilder, proxyRuntimeSetting);
+
+                    return result = tunneledConnectionPool;
+                }
+
+                if (exchange.Request.Header.IsWebSocketRequest)
+                {
+                    var tunneledConnectionPool = new WebsocketConnectionPool(
                         exchange.Authority, _timingProvider,
                         _remoteConnectionBuilder, proxyRuntimeSetting);
 

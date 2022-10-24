@@ -1,7 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Collections.Generic;
+using Fluxzy.Clients.H11;
 
 namespace Fluxzy
 {
@@ -28,6 +28,12 @@ namespace Fluxzy
         string? Comment { get; }
 
         HashSet<Tag>? Tags { get;  }
+
+        bool IsWebSocket { get; }
+
+
+        List<WsMessage>? WebSocketMessages { get; }
+
 
         //AgentInfo?  AgentInfo { get; }
     }
