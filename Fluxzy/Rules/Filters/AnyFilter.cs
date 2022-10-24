@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -12,7 +13,7 @@ namespace Fluxzy.Rules.Filters
             return true; 
         }
 
-        public override Guid Identifier { get; init; } = Guid.Parse("A62052B4-516D-492E-93B3-2888CDA4E92D");
+        public override Guid Identifier  => ($"{Inverted}A62052B4-516D-492E-93B3-2888CDA4E92D").GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 
