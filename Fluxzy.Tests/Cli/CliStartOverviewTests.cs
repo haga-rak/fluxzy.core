@@ -205,39 +205,41 @@ namespace Fluxzy.Tests.Cli
         public async Task Run_Cli_For_Web_Socket_Tests()
         {
             // Arrange 
+            var testCount = 5; 
 
             var commandLine = "start -l 127.0.0.1/0 -d ws";
-
+            
             var message = Encoding.UTF8.GetBytes("AZERTY123!%$");
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
-            await using var fluxzyInstance = await commandLineHost.Run();
-            
-            using var ws = new ClientWebSocket()
+            await using( var fluxzyInstance = await commandLineHost.Run())
             {
-                Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
-            };
 
-            var uri = new Uri($"{TestConstants.WssHost}/websocket");
+                using var ws = new ClientWebSocket()
+                {
+                    Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
+                };
 
-            var buffer = (Memory<byte>) new byte[4096];
+                var uri = new Uri($"{TestConstants.WssHost}/websocket");
 
-            await ws.ConnectAsync(uri, CancellationToken.None);
-            await ws.ReceiveAsync(buffer, CancellationToken.None);
+                var buffer = (Memory<byte>)new byte[4096];
 
-            await ws.SendAsync(message, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression,
-                CancellationToken.None);
+                await ws.ConnectAsync(uri, CancellationToken.None);
+                await ws.ReceiveAsync(buffer, CancellationToken.None);
 
-            var res = await ws.ReceiveAsync(buffer, CancellationToken.None);
+                await ws.SendAsync(message, WebSocketMessageType.Text,
+                    WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression,
+                    CancellationToken.None);
 
-            var resultHash = Encoding.ASCII.GetString(buffer.Slice(0, res.Count).Span);
-            var expectedHash = Convert.ToBase64String(SHA1.HashData(message));
+                var res = await ws.ReceiveAsync(buffer, CancellationToken.None);
 
-            Assert.Equal(expectedHash, resultHash);
+                var resultHash = Encoding.ASCII.GetString(buffer.Slice(0, res.Count).Span);
+                var expectedHash = Convert.ToBase64String(SHA1.HashData(message));
+
+                Assert.Equal(expectedHash, resultHash);
+            }
         }
-
-
 
         //[Fact]
         public async Task Run_Cli_Aggressive_Request_Response()

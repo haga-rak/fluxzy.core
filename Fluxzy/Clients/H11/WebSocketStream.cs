@@ -98,6 +98,7 @@ namespace Fluxzy.Clients.H11
 
             if (payloadIndicator < 126) {
                 wsFrame.PayloadLength = payloadIndicator;
+                byteIndex += 1;
             }
             else
             {
@@ -118,8 +119,6 @@ namespace Fluxzy.Clients.H11
                     wsFrame.PayloadLength = BinaryPrimitives.ReadInt64BigEndian(startBuffer);
                     byteIndex += 8;
                 }
-
-                byteIndex += 1;
             }
 
 
@@ -136,7 +135,7 @@ namespace Fluxzy.Clients.H11
 
             // Reading the buffer 
 
-            return byteIndex + 1; 
+            return byteIndex; 
         }
 
         public override void Flush()
