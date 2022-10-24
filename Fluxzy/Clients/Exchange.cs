@@ -139,6 +139,7 @@ namespace Fluxzy.Clients
 
         internal TaskCompletionSource<bool> ExchangeCompletionSource => _exchangeCompletionSource;
 
+        public bool IsWebSocket => Request.Header.IsWebSocketRequest; 
 
         public string FullUrl => Request.Header.GetFullUrl();
 

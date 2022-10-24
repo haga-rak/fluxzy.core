@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Fluxzy.Tests
 {
-    public class PoolBuilder_SingleCall
+    public class PoolBuilderTests
     {
         [Fact]
         public async Task Get_H2()

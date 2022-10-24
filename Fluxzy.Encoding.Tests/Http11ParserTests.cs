@@ -13,7 +13,7 @@ namespace Fluxzy.Encoding.Tests
         [Fact]
         public void Parse_Unparse_Request_Header()
         {
-            var parser = new Http11Parser(MaxHeaderLength);
+            var parser = new Http11Parser();
 
             var header = Headers.Req001;
             
@@ -28,7 +28,7 @@ namespace Fluxzy.Encoding.Tests
         [Fact]
         public void Parse_Unparse_Response_Header()
         {
-            var parser = new Http11Parser(MaxHeaderLength);
+            var parser = new Http11Parser();
 
             var header = Headers.Resp001;
             

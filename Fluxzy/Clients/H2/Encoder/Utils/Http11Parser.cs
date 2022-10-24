@@ -11,13 +11,6 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
     /// </summary>
     public class Http11Parser
     {
-        private readonly int _maxHeaderLine;
-
-        public Http11Parser(int maxHeaderLine)
-        {
-            _maxHeaderLine = maxHeaderLine;
-        }
-        
         public IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true, bool keepNonForwardableHeader = false, 
             bool splitCookies = true)
         {
