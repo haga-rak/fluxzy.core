@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Fluxzy.Core.SystemProxySetup.Linux;
 
 namespace Fluxzy
 {
@@ -30,6 +31,8 @@ namespace Fluxzy
         HashSet<Tag>? Tags { get;  }
 
         bool IsWebSocket { get; }
+
+        
 
         //AgentInfo?  AgentInfo { get; }
     }
