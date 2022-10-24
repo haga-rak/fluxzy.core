@@ -176,15 +176,15 @@ namespace Fluxzy.Clients.H11
 
                 var outGressReadStream = concatedReadStream;  // Response read 
                 var inGressReadStream = localLink.ReadStream!; // RequestRead
-                
-                //outGressReadStream = new WebSocketStream(outGressReadStream, _timingProvider,
-                //    (wsMessage) =>
-                //    {
-                //        exchange.WebSocketMessages ??= new List<WsMessage>();
-                //        exchange.WebSocketMessages.Add(wsMessage);
-                //        _archiveWriter!.Update(exchange, UpdateType.WsMessageReceived, CancellationToken.None);
-                //    },
-                //    (wsMessageId) => _archiveWriter!.CreateWebSocketResponseContent(exchange.Id, wsMessageId));
+
+                outGressReadStream = new WebSocketStream(outGressReadStream, _timingProvider,
+                    (wsMessage) =>
+                    {
+                        exchange.WebSocketMessages ??= new List<WsMessage>();
+                        exchange.WebSocketMessages.Add(wsMessage);
+                        _archiveWriter!.Update(exchange, UpdateType.WsMessageReceived, CancellationToken.None);
+                    },
+                    (wsMessageId) => _archiveWriter!.CreateWebSocketResponseContent(exchange.Id, wsMessageId));
 
                 inGressReadStream = new WebSocketStream(inGressReadStream, _timingProvider,
                     (wsMessage) =>
@@ -195,7 +195,7 @@ namespace Fluxzy.Clients.H11
                     },
                     (wsMessageId) => _archiveWriter!.CreateWebSocketRequestContent(exchange.Id, wsMessageId)); 
 
-                var copyTask = Task.WhenAll(
+                var copyTask = Task.WhenAny(
                     inGressReadStream.CopyDetailed(outGressWriteStream, buffer, (copied) =>
                             exchange.Metrics.TotalSent += copied
                         , cancellationToken).AsTask(),
@@ -204,6 +204,8 @@ namespace Fluxzy.Clients.H11
                         , cancellationToken).AsTask());
 
                 await copyTask.ConfigureAwait(false);
+
+
             }
             catch (Exception ex)
             {
@@ -218,6 +220,7 @@ namespace Fluxzy.Clients.H11
             finally
             {
                 exchange.Metrics.RemoteClosed = _timingProvider.Instant();
+                exchange.ExchangeCompletionSource.TrySetResult(true);
             }
         }
 
