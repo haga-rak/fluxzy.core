@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Writers
@@ -27,6 +26,16 @@ namespace Fluxzy.Writers
         }
 
         public override Stream CreateResponseBodyStream(int exchangeId)
+        {
+            return new MockedWriteStream();
+        }
+
+        public override Stream CreateWebSocketRequestContent(int exchangeId, int messageId)
+        {
+            return new MockedWriteStream();
+        }
+
+        public override Stream CreateWebSocketResponseContent(int exchangeId, int messageId)
         {
             return new MockedWriteStream();
         }

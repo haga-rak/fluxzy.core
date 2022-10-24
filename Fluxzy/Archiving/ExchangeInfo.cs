@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
+using Fluxzy.Clients.H11;
 using Fluxzy.Utils;
 
 namespace Fluxzy
@@ -22,12 +23,13 @@ namespace Fluxzy
             Comment = exchange.Comment;
             Tags = exchange.Tags ?? new(); 
             IsWebSocket = exchange.IsWebSocket;
+            WebSocketMessages = exchange.WebSocketMessages;
         }
 
         [JsonConstructor]
         public ExchangeInfo(int id, int connectionId, string httpVersion,
             RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader, 
-            ExchangeMetrics metrics, string egressIp, bool pending, string ? comment, HashSet<Tag> ? tags, bool isWebSocket)
+            ExchangeMetrics metrics, string egressIp, bool pending, string ? comment, HashSet<Tag> ? tags, bool isWebSocket, List<WsMessage> webSocketMessages)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -39,6 +41,7 @@ namespace Fluxzy
             Pending = pending;
             Comment = comment;
             IsWebSocket = isWebSocket;
+            WebSocketMessages = webSocketMessages;
             Tags = tags ?? new ();
         }
 
@@ -83,7 +86,10 @@ namespace Fluxzy
         public string? Comment { get; set; }
 
         public HashSet<Tag> Tags { get; }
+
         public bool IsWebSocket { get; }
+
+        public List<WsMessage> WebSocketMessages { get; }
 
         public bool Pending { get; }
     }

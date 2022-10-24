@@ -25,6 +25,11 @@ namespace Fluxzy.Writers
 
         public abstract Stream CreateResponseBodyStream(int exchangeId);
 
+        public abstract Stream CreateWebSocketRequestContent(int exchangeId, int messageId);
+
+        public abstract Stream CreateWebSocketResponseContent(int exchangeId, int messageId);
+
+
         public virtual string GetDumpfilePath(int connectionId)
         {
             return string.Empty;
@@ -76,6 +81,8 @@ namespace Fluxzy.Writers
         BeforeRequestHeader,
         AfterResponseHeader,
         AfterResponse,
+        WsMessageSent,
+        WsMessageReceived,
         Complete,
     }
 }

@@ -99,6 +99,18 @@ namespace Fluxzy.Writers
             return File.Create(path);
         }
 
+        public override Stream CreateWebSocketRequestContent(int exchangeId, int messageId)
+        {
+            var path = Path.Combine(_contentDirectory, $"req-{exchangeId}-ws-{messageId}.data");
+            return File.Create(path);
+        }
+
+        public override Stream CreateWebSocketResponseContent(int exchangeId, int messageId)
+        {
+            var path = Path.Combine(_contentDirectory, $"res-{exchangeId}-ws-{messageId}.data");
+            return File.Create(path);
+        }
+
         public override string GetDumpfilePath(int connectionId)
         {
             return Path.Combine(_captureDirectory, $"{connectionId}.pcap");

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc.Streams;
@@ -139,7 +140,9 @@ namespace Fluxzy.Clients
 
         internal TaskCompletionSource<bool> ExchangeCompletionSource => _exchangeCompletionSource;
 
-        public bool IsWebSocket => Request.Header.IsWebSocketRequest; 
+        public bool IsWebSocket => Request.Header.IsWebSocketRequest;
+
+        public List<WsMessage>?  WebSocketMessages { get; set; }
 
         public string FullUrl => Request.Header.GetFullUrl();
 
