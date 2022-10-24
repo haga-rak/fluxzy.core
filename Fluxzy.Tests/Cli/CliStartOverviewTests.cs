@@ -226,7 +226,7 @@ namespace Fluxzy.Tests.Cli
             await ws.ConnectAsync(uri, CancellationToken.None);
             await ws.ReceiveAsync(buffer, CancellationToken.None);
 
-            await ws.SendAsync(message, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage,
+            await ws.SendAsync(message, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression,
                 CancellationToken.None);
 
             var res = await ws.ReceiveAsync(buffer, CancellationToken.None);
