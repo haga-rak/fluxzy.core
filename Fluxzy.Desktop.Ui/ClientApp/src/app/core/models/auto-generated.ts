@@ -201,6 +201,14 @@ export interface IpEgressFilter extends StringFilter
 	genericName: string;
 	shortName: string;
 }
+export interface IsWebSocketFilter extends Filter
+{
+	identifier: string;
+	filterScope: number;
+	genericName: string;
+	shortName?: string;
+	description?: string;
+}
 export interface NoFilter extends Filter
 {
 	filterScope: number;
@@ -656,6 +664,8 @@ export interface ExchangeInfo
 	egressIp?: string;
 	comment?: string;
 	tags: Tag[];
+	isWebSocket: boolean;
+	webSocketMessages: any[];
 	pending: boolean;
 }
 export interface RequestHeaderInfo
