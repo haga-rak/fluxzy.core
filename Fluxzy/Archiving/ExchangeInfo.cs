@@ -89,7 +89,7 @@ namespace Fluxzy
 
         public bool IsWebSocket { get; }
 
-        public List<WsMessage> WebSocketMessages { get; }
+        public List<WsMessage>? WebSocketMessages { get; }
 
         public bool Pending { get; }
     }
