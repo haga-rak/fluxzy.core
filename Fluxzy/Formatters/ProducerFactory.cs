@@ -33,6 +33,7 @@ namespace Fluxzy.Formatters
             new ResponseBodyJsonProducer(),
             new SetCookieProducer(),
             new ResponseTextContentProducer(),
+            new WsMessageProducer()
         };
 
         public ProducerFactory(IArchiveReaderProvider archiveReaderProvider, ProducerSettings producerSettings)

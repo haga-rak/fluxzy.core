@@ -210,6 +210,9 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<SetCookieItem>()
                    .ApplyGenericProperties();
 
+            builder.ExportAsInterface<WsMessageFormattingResult>()
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<CommentUpdateModel>()
                    .ApplyGenericProperties();
 
