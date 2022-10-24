@@ -68,7 +68,7 @@ namespace Fluxzy.Clients.H11
             Func<int, Stream> outStream)
         {
             if (wsFrame.OpCode != 0) {
-                OpCode = wsFrame.OpCode; 
+                OpCode |= wsFrame.OpCode; 
             }
 
             if (wsFrame.FinalFragment && Length == 0 && wsFrame.PayloadLength < maxWsMessageLengthBuffered) {
@@ -76,14 +76,14 @@ namespace Fluxzy.Clients.H11
 
                 var readResult = await pipeReader.ReadAtLeastAsync((int) wsFrame.PayloadLength);
 
-                Data = new byte[wsFrame.PayloadLength];
-
-                readResult.Buffer.FirstSpan.Slice(0, (int)wsFrame.PayloadLength)
-                          .CopyTo(Data);
+                Data = readResult.Buffer.ToArray();
+                
+                //readResult.Buffer.FirstSpan.Slice(0, (int) wsFrame.PayloadLength)
+                //          .CopyTo(Data);
 
                 ApplyXor(Data, wsFrame.MaskedPayload);
 
-                DataString = Encoding.UTF8.GetString(Data);
+                // DataString = Encoding.UTF8.GetString(Data);
 
                 pipeReader.AdvanceTo(readResult.Buffer.GetPosition(wsFrame.PayloadLength));
             }
@@ -97,33 +97,44 @@ namespace Fluxzy.Clients.H11
 
                     var readResult = await pipeReader.ReadAsync();
 
+                   // readResult.Buffer.Slice()
+
                     var effectiveBufferLength = (int) Math.Min(readResult.Buffer.Length, (wsFrame.PayloadLength - totalWritten));
 
-                    if (wsFrame.MaskedPayload == 0)
+                    var totalWriteLength = 0; 
+                    
+                    foreach (var sequence in readResult.Buffer)
                     {
-                        stream.Write(readResult.Buffer.FirstSpan.Slice(0, effectiveBufferLength));
-                    }
-                    else
-                    {
-                        var data = ArrayPool<byte>.Shared.Rent(effectiveBufferLength);
-                        try
+                        var memory = sequence.Slice(0,
+                            Math.Min(sequence.Length, effectiveBufferLength - totalWriteLength));
+                        
+                        if (wsFrame.MaskedPayload != 0)
                         {
-                            readResult.Buffer.FirstSpan.Slice(0, effectiveBufferLength)
-                                      .CopyTo(data);
+                            var copyBuffer = ArrayPool<byte>.Shared.Rent(memory.Length);
 
-                            ApplyXor(new Span<byte>(data, 0, effectiveBufferLength), wsFrame.MaskedPayload);
+                            try
+                            {
+                                memory.CopyTo(copyBuffer);
 
-                            stream.Write(data, 0, effectiveBufferLength);
+                                ApplyXor(new Span<byte>(copyBuffer, 0, memory.Length),
+                                        wsFrame.MaskedPayload);
 
+                                stream.Write(copyBuffer, 0, memory.Length);
+                            }
+                            finally
+                            {
+                                ArrayPool<byte>.Shared.Return(copyBuffer);
+
+                            }
                         }
-                        finally
+                        else
                         {
-                            ArrayPool<byte>.Shared.Return(data);
+                            stream.Write(memory.Span);
                         }
-
-
+                        
+                        totalWriteLength += memory.Length;
                     }
-
+                   
                     totalWritten += effectiveBufferLength; 
 
                     pipeReader.AdvanceTo(readResult.Buffer.GetPosition(effectiveBufferLength));

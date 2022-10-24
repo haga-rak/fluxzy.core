@@ -129,6 +129,20 @@ export interface SetCookieItem
 	secure: boolean;
 	httpOnly: boolean;
 }
+export interface WsMessageFormattingResult extends FormattingResult
+{
+	messages: WsMessage[];
+}
+export interface WsMessage
+{
+	id: number;
+	opCode: number;
+	length: number;
+	data?: number[];
+	dataString?: string;
+	messageStart: Date;
+	messageEnd: Date;
+}
 export interface CommentUpdateModel
 {
 	comment: string;
@@ -665,7 +679,7 @@ export interface ExchangeInfo
 	comment?: string;
 	tags: Tag[];
 	isWebSocket: boolean;
-	webSocketMessages: any[];
+	webSocketMessages?: WsMessage[];
 	pending: boolean;
 }
 export interface RequestHeaderInfo
