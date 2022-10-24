@@ -2,6 +2,7 @@
 // 
 
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.IO;
 using System.IO.Pipelines;
@@ -37,31 +38,29 @@ namespace Fluxzy.Clients.H11
                 return; 
 
             Span<byte> maskData = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32BigEndian(maskData, mask);
-            for (int i = 0; i < data.Length; i++) {
-                data[i] = (byte) (data[i] ^ maskData[i % 4]);
 
+            for (int i = 0; i < data.Length;)
+            {
+                var currentBlock = data.Slice(i);
+
+                if (currentBlock.Length >= 4)
+                {
+                    var val = BinaryPrimitives.ReadInt32BigEndian(currentBlock);
+                    var finalVal = val ^ mask;
+                    BinaryPrimitives.WriteInt32BigEndian(currentBlock, finalVal);
+                    i += 4;
+                    continue;
+                }
+                BinaryPrimitives.WriteInt32BigEndian(maskData, mask);
+
+                for (int j = 0; j < currentBlock.Length; j++)
+                {
+                    currentBlock[j] = (byte)(currentBlock[j] ^ maskData[j]);
+                }
+
+                break;
             }
-
-            //for (int i = 0; i < data.Length;) {
-                //    var currentBlock = data.Slice(i);
-
-                //    if (currentBlock.Length >= 4) {
-                //        var val = BinaryPrimitives.ReadInt32BigEndian(currentBlock);
-                //        var finalVal = val ^ mask; 
-                //        BinaryPrimitives.WriteInt32BigEndian(currentBlock, finalVal);
-                //        i += 4;
-                //        continue;
-                //    }
-                //    BinaryPrimitives.WriteInt32BigEndian(maskData, mask);
-
-                //    for (int j = 0; j < currentBlock.Length; j++) {
-                //        currentBlock[j] = (byte) (currentBlock[j] ^ maskData[j]); 
-                //    }
-
-                //    break; 
-                //}
-            }
+        }
 
 
         internal async Task AddFrame(
@@ -98,13 +97,36 @@ namespace Fluxzy.Clients.H11
 
                     var readResult = await pipeReader.ReadAsync();
 
-                    var writtableBufferLength = (int) Math.Min(readResult.Buffer.Length, (wsFrame.PayloadLength - totalWritten)); 
+                    var effectiveBufferLength = (int) Math.Min(readResult.Buffer.Length, (wsFrame.PayloadLength - totalWritten));
 
-                    stream.Write(readResult.Buffer.FirstSpan.Slice(0, writtableBufferLength));
+                    if (wsFrame.MaskedPayload == 0)
+                    {
+                        stream.Write(readResult.Buffer.FirstSpan.Slice(0, effectiveBufferLength));
+                    }
+                    else
+                    {
+                        var data = ArrayPool<byte>.Shared.Rent(effectiveBufferLength);
+                        try
+                        {
+                            readResult.Buffer.FirstSpan.Slice(0, effectiveBufferLength)
+                                      .CopyTo(data);
 
-                    totalWritten += writtableBufferLength; 
+                            ApplyXor(new Span<byte>(data, 0, effectiveBufferLength), wsFrame.MaskedPayload);
 
-                    pipeReader.AdvanceTo(readResult.Buffer.GetPosition(writtableBufferLength));
+                            stream.Write(data, 0, effectiveBufferLength);
+
+                        }
+                        finally
+                        {
+                            ArrayPool<byte>.Shared.Return(data);
+                        }
+
+
+                    }
+
+                    totalWritten += effectiveBufferLength; 
+
+                    pipeReader.AdvanceTo(readResult.Buffer.GetPosition(effectiveBufferLength));
                 }
             }
                 

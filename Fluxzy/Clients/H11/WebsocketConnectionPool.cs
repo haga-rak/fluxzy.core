@@ -239,21 +239,6 @@ namespace Fluxzy.Clients.H11
     }
 
 
-    public struct WsFrame
-    {
-        public int FrameId { get; set; }
-
-        public long PayloadLength { get; set; }
-
-        public WsOpCode OpCode { get; set; }
-
-        public bool FinalFragment { get; set; }
-
-        public byte []  Data { get; set; }
-        public int MaskedPayload { get; set; }
-    }
-
-
     //*  %x0 denotes a continuation frame
 
     //    *  %x1 denotes a text frame
