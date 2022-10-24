@@ -21,7 +21,7 @@ namespace Fluxzy.Core
 
     public class ConnectionErrorHandler
     {
-        private static readonly Http11Parser Parser = new(4096);
+        private static readonly Http11Parser Parser = new();
 
         public static bool RequalifyOnResponseSendError(
             Exception ex, 
