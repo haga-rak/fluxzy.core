@@ -2,6 +2,7 @@
 
 using System.Net;
 using Fluxzy.Clients;
+using Fluxzy.Clients.H11;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Models;
@@ -211,6 +212,9 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<WsMessageFormattingResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<WsMessage>()
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<CommentUpdateModel>()

@@ -3,6 +3,8 @@
 using Fluxzy.Clients.H11;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Fluxzy.Misc;
 
 namespace Fluxzy.Formatters.Producers.Responses
 {
@@ -15,6 +17,15 @@ namespace Fluxzy.Formatters.Producers.Responses
             if (exchangeInfo.WebSocketMessages == null || !exchangeInfo.WebSocketMessages.Any())
             {
                 return null; 
+            }
+
+            foreach (var message in exchangeInfo.WebSocketMessages
+                                                .Where(d => d.Data != null))
+            {
+                if (!ArrayTextUtilities.IsText(message.Data))
+                    continue;
+
+                message.DataString = Encoding.UTF8.GetString(message.Data!);
             }
 
             return new WsMessageFormattingResult(ResultTitle, exchangeInfo.WebSocketMessages.ToList());

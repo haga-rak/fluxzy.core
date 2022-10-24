@@ -80,6 +80,7 @@ import { DeleteRequestHeaderFormComponent } from './settings/rule-forms/child-fo
 import { ApplyCommentFormComponent } from './settings/rule-forms/child-forms/apply-comment-form/apply-comment-form.component';
 import { ApplyTagFormComponent } from './settings/rule-forms/child-forms/apply-tag-form/apply-tag-form.component';
 import { CreateTagComponent } from './settings/tags/create-tag/create-tag.component';
+import { WsMessageFormattingResultComponent } from './widgets/exchange-viewer/details-response/ws-message-formatting-result/ws-message-formatting-result.component';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -149,6 +150,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ApplyCommentFormComponent,
         ApplyTagFormComponent,
         CreateTagComponent,
+        WsMessageFormattingResultComponent,
 
 
     ],
