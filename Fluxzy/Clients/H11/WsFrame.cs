@@ -10,6 +10,6 @@ namespace Fluxzy.Clients.H11
 
         public bool FinalFragment { get; set; }
         
-        public int MaskedPayload { get; set; }
+        public uint MaskedPayload { get; set; }
     }
 }

@@ -22,7 +22,7 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "anyrandomtexTyoo!!";
             var headerName = "X-Haga-Unit-Test";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -67,7 +67,7 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "X-Haga-Unit-Test-value!!";
             var headerNewValue = "updated to ABCDef";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -113,9 +113,9 @@ namespace Fluxzy.Tests.Rules
             var headerName = "x-h";
             var headerValue = "Cd";
             var headerNewValue = "{{previous}} Ab";
-            var headerValueAltered = "Cd Ab"; 
+            var headerValueAltered = "Cd Ab";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -161,7 +161,7 @@ namespace Fluxzy.Tests.Rules
         {
             var headerName = "X-Haga-Unit-Test";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -202,7 +202,7 @@ namespace Fluxzy.Tests.Rules
         [InlineData(TestConstants.Http2Host)]
         public async Task ChangeMethodFilterHostOnly(string host)
         {
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
 
             proxy.StartupSetting.AlterationRules.Add(

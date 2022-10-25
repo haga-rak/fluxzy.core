@@ -21,6 +21,10 @@ namespace Fluxzy.Readers
 
         Stream? GetRequestBody(int exchangeId);
 
+        Stream? GetRequestWebsocketContent(int exchangeId, int messageId);
+
+        Stream? GetResponseWebsocketContent(int exchangeId, int messageId);
+
         bool HasRequestBody(int exchangeId); 
 
         Stream? GetResponseBody(int exchangeId);

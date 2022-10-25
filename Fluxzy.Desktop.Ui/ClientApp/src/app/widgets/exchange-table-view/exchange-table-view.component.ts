@@ -52,11 +52,17 @@ export class ExchangeTableViewComponent implements OnInit {
         this.exchangeManagementService.exchangeState$.pipe(
             tap(exState => this.exchangeState = exState),
             tap(_ => this.cdr.detectChanges()),
+            tap(t => console.log('exchange state changed')),
             //tap(_ => this.perfectScroll.directiveRef.update())
         ).subscribe();
 
         this.exchangeContentService.getTrunkState()
-            .pipe(tap(t => this.trunkState = t))
+            .pipe(
+                tap(t => this.trunkState = t),
+                tap(t => console.log('trunk state changed')),
+                tap(_ => this.cdr.detectChanges())
+
+            )
             .subscribe() ;
 
         this.exchangeManagementService.getBrowsingState().pipe(

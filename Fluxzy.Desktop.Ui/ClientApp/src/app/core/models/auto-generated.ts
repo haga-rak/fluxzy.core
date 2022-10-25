@@ -136,12 +136,14 @@ export interface WsMessageFormattingResult extends FormattingResult
 export interface WsMessage
 {
 	id: number;
+	direction: string;
 	opCode: number;
 	length: number;
 	data?: number[];
 	dataString?: string;
 	messageStart: Date;
 	messageEnd: Date;
+	frameCount: number;
 }
 export interface CommentUpdateModel
 {

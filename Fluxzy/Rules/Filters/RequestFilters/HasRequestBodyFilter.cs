@@ -7,7 +7,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class HasRequestBodyFilter : Filter
     {
-        protected override bool InternalApply(IAuthority authority, IExchange exchange, IFilteringContext? filteringContext)
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
         {
             return filteringContext?.HasRequestBody ?? false;
         }

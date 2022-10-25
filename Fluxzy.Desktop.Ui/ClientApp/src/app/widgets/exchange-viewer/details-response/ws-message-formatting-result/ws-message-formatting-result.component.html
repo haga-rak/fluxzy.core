@@ -1,7 +1,31 @@
 
 <div style="height:100%">
-    <p>
-        Websocket block
-    </p>
-
+    <table class="summary-table" *ngIf="exchange.webSocketMessages">
+        <th>
+            Direction
+        </th>
+        <th>
+            Instant
+        </th>
+        <th>
+            Content type
+        </th>
+        <th>
+            Data
+        </th>
+        <tr *ngFor="let message of exchange.webSocketMessages">
+            <td>
+                {{ message.direction }}
+            </td>
+            <td>
+                {{ message.messageEnd }}
+            </td>
+            <td>
+                {{ message.opCode }}
+            </td>
+            <td>
+                {{ message.length }}
+            </td>
+        </tr>
+    </table>
 </div>

@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "value!!!";
             var headerName = "X-pRepend-Header";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -67,7 +67,7 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "fluxzy-proxy";
             var headerName = "Server";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
 
             proxy.StartupSetting.AlterationRules.Add(
@@ -109,7 +109,7 @@ namespace Fluxzy.Tests.Rules
             var headerValue = "{{previous}}fluxzy-proxy";
             var headerName = "Server";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -150,7 +150,7 @@ namespace Fluxzy.Tests.Rules
         {
             var headerName = "server";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
             
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(

@@ -18,11 +18,11 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public RequestHeaderFilter(string pattern, StringSelectorOperation operation, string headerName) : base(pattern, operation, headerName)
         {
         }
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
         {
-            return exchange.GetRequestHeaders().Where(e =>
-                    e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
-                .Select(s => s.Value.ToString());
+            return exchange?.GetRequestHeaders().Where(e =>
+                               e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
+                           .Select(s => s.Value.ToString()) ?? Array.Empty<string>();
         }
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

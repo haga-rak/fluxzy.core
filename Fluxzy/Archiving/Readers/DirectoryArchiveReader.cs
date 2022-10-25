@@ -96,6 +96,26 @@ namespace Fluxzy.Readers
             return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
+        public Stream? GetRequestWebsocketContent(int exchangeId, int messageId)
+        {
+            var requestBodyPath = DirectoryArchiveHelper.GetWebsocketContentRequestPath(_baseDirectory, exchangeId, messageId);
+
+            if (!File.Exists(requestBodyPath))
+                return null;
+
+            return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+
+        public Stream? GetResponseWebsocketContent(int exchangeId, int messageId)
+        {
+            var responseBodyPath = DirectoryArchiveHelper.GetWebsocketContentResponsePath(_baseDirectory, exchangeId, messageId);
+
+            if (!File.Exists(responseBodyPath))
+                return null;
+
+            return File.Open(responseBodyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+
         public bool HasRequestBody(int exchangeId)
         {
             var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentRequestPath(_baseDirectory, exchangeId));

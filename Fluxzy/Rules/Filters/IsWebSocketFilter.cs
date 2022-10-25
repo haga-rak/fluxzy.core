@@ -7,9 +7,10 @@ namespace Fluxzy.Rules.Filters
 {
     public class IsWebSocketFilter : Filter
     {
-        protected override bool InternalApply(IAuthority authority, IExchange exchange, IFilteringContext? filteringContext)
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
         {
-            return exchange.IsWebSocket; 
+            return exchange?.IsWebSocket ?? false; 
         }
 
         public override Guid Identifier => ($"{Inverted}{GetType()}").GetMd5Guid();
