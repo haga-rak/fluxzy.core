@@ -11,7 +11,6 @@ namespace Fluxzy.Clients.H2.Encoder
         private readonly PrimitiveOperation _primitiveOperation;
         private readonly CodecSetting _codecSetting;
         private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
-        private readonly Http11Parser _parser;
 
         /// <summary>
         /// Decoding process 
@@ -25,16 +24,14 @@ namespace Fluxzy.Clients.H2.Encoder
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal HPackEncoder(
             EncodingContext encodingContext,
-            CodecSetting codecSetting = null,
-            ArrayPoolMemoryProvider<char> memoryProvider = null,
-            Http11Parser parser = null,
-            PrimitiveOperation primitiveOperation = null)
+            CodecSetting? codecSetting = null,
+            ArrayPoolMemoryProvider<char>? memoryProvider = null,
+            PrimitiveOperation? primitiveOperation = null)
         {
             _encodingContext = encodingContext;
             _primitiveOperation = primitiveOperation ?? new PrimitiveOperation(new HuffmanCodec());
             _codecSetting = codecSetting ?? new CodecSetting();
             _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
-            _parser = parser ?? new Http11Parser();
         }
 
         public EncodingContext Context => _encodingContext;
@@ -44,7 +41,7 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             int offset = 0;
 
-            foreach (var headerField in _parser.Read(headerContent, isHttps))
+            foreach (var headerField in Http11Parser.Read(headerContent, isHttps))
             {
                 offset += GetEncodedLength(headerField);
             }
@@ -56,7 +53,7 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             int offset = 0;
 
-            foreach (var headerField in _parser.Read(headerContent, isHttps))
+            foreach (var headerField in Http11Parser.Read(headerContent, isHttps))
             {
                 offset += Encode(headerField, buffer.Slice(offset));
             }

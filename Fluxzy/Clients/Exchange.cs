@@ -27,7 +27,6 @@ namespace Fluxzy.Clients
             ReadOnlyMemory<char> responseHeader,
             Stream responseBody,
             bool isSecure,
-            Http11Parser parser, 
             string httpVersion, DateTime receivedFromProxy)
         {
             Id = idProvider.NextExchangeId();
@@ -35,13 +34,13 @@ namespace Fluxzy.Clients
             Context = context;
             Authority = authority;
             HttpVersion = httpVersion;
-            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure, parser))
+            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure))
             {
                 Body = requestBody ?? StreamUtils.EmptyStream
             };
             Response = new Response()
             {
-                Header = new ResponseHeader(responseHeader, isSecure, parser),
+                Header = new ResponseHeader(responseHeader, isSecure),
                 Body = responseBody ?? StreamUtils.EmptyStream
             };
 
@@ -53,10 +52,10 @@ namespace Fluxzy.Clients
         }
 
         public static Exchange CreateUntrackedExchange(
-            IIdProvider idProvider, ExchangeContext context, Authority authority, ReadOnlyMemory<char> requestHeaderPlain, Stream requestBody, ReadOnlyMemory<char> responseHeader, Stream responseBody, bool isSecure, Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
+            IIdProvider idProvider, ExchangeContext context, Authority authority, ReadOnlyMemory<char> requestHeaderPlain, Stream requestBody, ReadOnlyMemory<char> responseHeader, Stream responseBody, bool isSecure, string httpVersion, DateTime receivedFromProxy)
         {
             return new Exchange(idProvider,context, authority, 
-                requestHeaderPlain, requestBody, responseHeader, responseBody, isSecure, parser, httpVersion, receivedFromProxy);
+                requestHeaderPlain, requestBody, responseHeader, responseBody, isSecure, httpVersion, receivedFromProxy);
         }
 
         public Exchange(
@@ -82,14 +81,13 @@ namespace Fluxzy.Clients
         public Exchange(
             IIdProvider idProvider,
             Authority authority, 
-            ReadOnlyMemory<char> requestHeaderPlain, 
-            Http11Parser parser, string httpVersion, DateTime receivedFromProxy)
+            ReadOnlyMemory<char> requestHeaderPlain, string httpVersion, DateTime receivedFromProxy)
         {
             Id = idProvider.NextExchangeId(); 
             Context = new ExchangeContext(authority);
             Authority = authority;
             HttpVersion = httpVersion;
-            Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure, parser));
+            Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure));
             Metrics.ReceivedFromProxy = receivedFromProxy;
         }
 

@@ -300,7 +300,7 @@ namespace Fluxzy.Clients.H2
                    // Console.WriteLine($"Processing decode and allocate {watch.ElapsedMilliseconds} / {Parent.Context.Authority.HostName} / {charHeader.Length}");
                 }
 
-                _exchange.Response.Header = new ResponseHeader(charHeader, true, Parent.Context.Parser);
+                _exchange.Response.Header = new ResponseHeader(charHeader, true);
 
                 _logger.TraceResponse(this, _exchange);
                 

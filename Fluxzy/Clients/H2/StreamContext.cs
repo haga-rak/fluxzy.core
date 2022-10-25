@@ -11,7 +11,7 @@ namespace Fluxzy.Clients.H2
             H2Logger logger,
             IHeaderEncoder headerEncoder,
             UpStreamChannel upStreamChannel, 
-            WindowSizeHolder overallWindowSizeHolder, Http11Parser parser)
+            WindowSizeHolder overallWindowSizeHolder)
         {
             ConnectionId = connectionId;
             Authority = authority;
@@ -20,7 +20,6 @@ namespace Fluxzy.Clients.H2
             HeaderEncoder = headerEncoder;
             UpStreamChannel = upStreamChannel;
             OverallWindowSizeHolder = overallWindowSizeHolder;
-            Parser = parser;
         }
 
         public int ConnectionId { get; }
@@ -36,7 +35,5 @@ namespace Fluxzy.Clients.H2
         public UpStreamChannel UpStreamChannel { get; }
 
         public WindowSizeHolder OverallWindowSizeHolder { get; }
-
-        public Http11Parser Parser { get;  }
     }
 }

@@ -32,8 +32,6 @@ namespace Fluxzy.Clients
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
             new Dictionary<Authority, IHttpConnectionPool>();
 
-        private readonly Http11Parser _http11Parser;
-
         private readonly ConcurrentDictionary<Authority, SemaphoreSlim> _lock = new();
         private readonly CancellationTokenSource _poolCheckHaltSource = new();
 
@@ -43,12 +41,10 @@ namespace Fluxzy.Clients
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
-            Http11Parser http11Parser,
             RealtimeArchiveWriter archiveWriter)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
-            _http11Parser = http11Parser;
             _archiveWriter = archiveWriter;
 
             CheckPoolStatus(_poolCheckHaltSource.Token);
@@ -101,7 +97,7 @@ namespace Fluxzy.Clients
             // At this point, we'll trying the suitable pool for exchange
 
             if (exchange.Context.PreMadeResponse != null)
-                return new MockedConnectionPool(_http11Parser, exchange.Authority,
+                return new MockedConnectionPool(exchange.Authority,
                     exchange.Context.PreMadeResponse);
 
             IHttpConnectionPool? result = null;
@@ -153,7 +149,7 @@ namespace Fluxzy.Clients
                 {
                     // Plain HTTP/1, no h2c
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
-                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _http11Parser, 
+                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting,
                         _archiveWriter!);
 
                     exchange.HttpVersion = "HTTP/1.1";
@@ -176,7 +172,7 @@ namespace Fluxzy.Clients
                 if (openingResult.Type == RemoteConnectionResultType.Http11)
                 {
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
-                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _http11Parser, _archiveWriter);
+                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter);
 
                     exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";
 

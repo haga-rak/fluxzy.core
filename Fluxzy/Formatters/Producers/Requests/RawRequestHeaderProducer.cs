@@ -19,14 +19,12 @@ namespace Fluxzy.Formatters.Producers.Requests
         {
             var requestHeaders = exchangeInfo.GetRequestHeaders().ToList();
             var stringBuilder = new StringBuilder();
-
-            Http11Parser parser = new Http11Parser();
-
+            
             var charBuffer = ArrayPool<char>.Shared.Rent(context.Settings.MaxHeaderLength);
 
             try
             {
-                var spanRes = parser.Write(requestHeaders, charBuffer);
+                var spanRes = Http11Parser.Write(requestHeaders, charBuffer);
 
                 stringBuilder.Append(spanRes);
             }

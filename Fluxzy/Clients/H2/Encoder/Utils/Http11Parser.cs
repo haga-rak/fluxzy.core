@@ -9,9 +9,9 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
     /// <summary>
     /// Converts a flat HTTP/1.1 request to a list of (name, value) headers compatible with HTTP/2
     /// </summary>
-    public class Http11Parser
+    public static class Http11Parser
     {
-        public IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true, bool keepNonForwardableHeader = false, 
+        public static IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true, bool keepNonForwardableHeader = false, 
             bool splitCookies = true)
         {
             bool firstLine = true;
@@ -95,7 +95,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
         }
 
-        public Span<char> Write(
+        public static Span<char> Write(
             ICollection<HeaderField> entries, 
             Span<char> buffer)
         {
@@ -126,7 +126,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         /// <param name="entries"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public Span<char> Write(
+        public static Span<char> Write(
             ICollection<HeaderFieldInfo> entries, 
             Span<char> buffer)
         {
