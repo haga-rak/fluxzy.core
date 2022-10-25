@@ -14,13 +14,13 @@ namespace Fluxzy.Encoding.Tests
         public void Write_And_Read_Simple_Request()
         {
             ArrayPoolMemoryProvider<char> memoryProvider = ArrayPoolMemoryProvider<char>.Default;
-            Http11Parser parser = new Http11Parser();
+           
             PrimitiveOperation primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
             var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
-                memoryProvider : memoryProvider, parser: parser, primitiveOperation : primitiveOperation);
+                memoryProvider : memoryProvider,  primitiveOperation : primitiveOperation);
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
-                memoryProvider : memoryProvider, parser: parser, primitiveOperation: primitiveOperation);
+                memoryProvider : memoryProvider, primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];
@@ -43,13 +43,12 @@ namespace Fluxzy.Encoding.Tests
         public void Write_And_Read_Simple_Response()
         {
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
-            var parser = new Http11Parser();
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
             var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
-                memoryProvider : memoryProvider, parser: parser, primitiveOperation : primitiveOperation);
+                memoryProvider : memoryProvider,  primitiveOperation : primitiveOperation);
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
-                memoryProvider : memoryProvider, parser: parser, primitiveOperation: primitiveOperation);
+                memoryProvider : memoryProvider,  primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];
@@ -73,13 +72,12 @@ namespace Fluxzy.Encoding.Tests
         public void Write_And_Read_Simple_Response_Double()
         {
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
-            var parser = new Http11Parser();
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
             var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
-                memoryProvider : memoryProvider, parser: parser, primitiveOperation : primitiveOperation);
+                memoryProvider : memoryProvider,  primitiveOperation : primitiveOperation);
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
-                memoryProvider : memoryProvider, parser: parser, primitiveOperation: primitiveOperation);
+                memoryProvider : memoryProvider,  primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];

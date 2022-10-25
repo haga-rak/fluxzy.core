@@ -139,6 +139,7 @@ export interface WsMessage
 	direction: string;
 	opCode: number;
 	length: number;
+	writtenLength: number;
 	data?: number[];
 	dataString?: string;
 	messageStart: Date;
