@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 namespace Fluxzy.Clients.H2.Encoder.Utils
@@ -18,13 +19,28 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         {
             unchecked
             {
-                Span<char> buffer1 = stackalloc char[obj.Name.Span.Length];
-                Span<char> buffer2 = stackalloc char[obj.Value.Span.Length];
+                char[]? heapBuffer = null;
 
-                obj.Name.Span.ToLowerInvariant(buffer1);
-                obj.Value.Span.ToLowerInvariant(buffer2);
+                try
+                {
+                    Span<char> buffer1 = stackalloc char[obj.Name.Span.Length];
+                    Span<char> buffer2 = obj.Value.Span.Length < 1024 ? 
+                        stackalloc char[obj.Value.Span.Length] : heapBuffer = ArrayPool<char>.Shared.Rent(obj.Value.Span.Length);
 
-                return (buffer1.GetHashCodeArray() * 397) ^ buffer2.GetHashCodeArray();
+                    obj.Name.Span.ToLowerInvariant(buffer1);
+                    obj.Value.Span.ToLowerInvariant(buffer2);
+
+                    return (buffer1.GetHashCodeArray() * 397) ^ buffer2.GetHashCodeArray();
+                }
+                finally
+                {
+                    if (heapBuffer != null)
+                    {
+                        ArrayPool<char>.Shared.Return(heapBuffer);
+                    }
+                }
+
+
             }
         }
     }
