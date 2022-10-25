@@ -60,11 +60,12 @@ namespace Fluxzy.Clients.H11
             }
         }
 
-        internal void ApplyXor(Span<byte> data, int mask, int countIndex)
+        internal void ApplyXor(Span<byte> data, uint mask, int countIndex)
         {
             if (mask == 0)
                 return;
-            mask = RotateLeft(mask, (countIndex % 4) * 8);
+
+            mask = RotateRight(mask, (countIndex % 4) * 8);
 
             Span<byte> maskData = stackalloc byte[4];
 
@@ -74,13 +75,13 @@ namespace Fluxzy.Clients.H11
 
                 if (currentBlock.Length >= 4)
                 {
-                    var val = BinaryPrimitives.ReadInt32BigEndian(currentBlock);
+                    var val = BinaryPrimitives.ReadUInt32BigEndian(currentBlock);
                     var finalVal = val ^ mask;
-                    BinaryPrimitives.WriteInt32BigEndian(currentBlock, finalVal);
+                    BinaryPrimitives.WriteUInt32BigEndian(currentBlock, finalVal);
                     i += 4;
                     continue;
                 }
-                BinaryPrimitives.WriteInt32BigEndian(maskData, mask);
+                BinaryPrimitives.WriteUInt32BigEndian(maskData, mask);
 
                 for (int j = 0; j < currentBlock.Length; j++)
                 {
@@ -186,12 +187,12 @@ namespace Fluxzy.Clients.H11
             Length += wsFrame.PayloadLength; 
         }
 
-        internal static int RotateLeft(int value, int count)
+        internal static uint RotateLeft(uint value, int count)
         {
             return (value << count) | (value >> (32 - count));
         }
 
-        internal static int RotateRight(int value, int count)
+        internal static uint RotateRight(uint value, int count)
         {
             return (value >> count) | (value << (32 - count));
         }

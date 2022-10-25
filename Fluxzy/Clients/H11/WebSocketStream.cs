@@ -147,7 +147,7 @@ namespace Fluxzy.Clients.H11
                 if (startBuffer.Length < 4)
                     return -1;
 
-                wsFrame.MaskedPayload = BinaryPrimitives.ReadInt32BigEndian(startBuffer);
+                wsFrame.MaskedPayload = BinaryPrimitives.ReadUInt32BigEndian(startBuffer);
                 byteIndex += 4;
             }
 
