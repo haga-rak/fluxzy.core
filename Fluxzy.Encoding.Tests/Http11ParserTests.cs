@@ -13,14 +13,12 @@ namespace Fluxzy.Encoding.Tests
         [Fact]
         public void Parse_Unparse_Request_Header()
         {
-            var parser = new Http11Parser();
-
             var header = Headers.Req001;
             
             Span<char> resultBuffer = stackalloc char[MaxHeaderLength];
 
-            var headerBlocks = parser.Read(header.AsMemory(), true).ToList();
-            var result = parser.Write(headerBlocks, resultBuffer).ToString();
+            var headerBlocks = Http11Parser.Read(header.AsMemory(), true).ToList();
+            var result = Http11Parser.Write(headerBlocks, resultBuffer).ToString();
 
             Assert.Equal(result, header, StringComparer.OrdinalIgnoreCase);
         }
@@ -28,14 +26,12 @@ namespace Fluxzy.Encoding.Tests
         [Fact]
         public void Parse_Unparse_Response_Header()
         {
-            var parser = new Http11Parser();
-
             var header = Headers.Resp001;
             
             Span<char> resultBuffer = stackalloc char[MaxHeaderLength];
 
-            var headerBlocks = parser.Read(header.AsMemory(), true).ToList();
-            var result = parser.Write(headerBlocks, resultBuffer).ToString();
+            var headerBlocks = Http11Parser.Read(header.AsMemory(), true).ToList();
+            var result = Http11Parser.Write(headerBlocks, resultBuffer).ToString();
 
             Assert.Equal(result, header, StringComparer.OrdinalIgnoreCase);
         }
