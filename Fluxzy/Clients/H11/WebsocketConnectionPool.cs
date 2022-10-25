@@ -128,8 +128,6 @@ namespace Fluxzy.Clients.H11
 
             using var rsBuffer = RsBuffer.Allocate(1024 * 16); 
 
-            // Read response header 
-
             var headerBlock = await
                 Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, rsBuffer,
                     () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
@@ -170,9 +168,6 @@ namespace Fluxzy.Clients.H11
             try
             {
                 var outWriteStream = exchange.Connection.WriteStream;
-
-                //var upReadStream = concatedReadStream;  // Response read 
-                //var downReaderStream = localLink.ReadStream!; // RequestRead
 
                 var addLock = new object(); 
 

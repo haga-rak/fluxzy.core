@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import {LOCALE_ID, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { CoreModule } from './core/core.module';
@@ -81,6 +81,11 @@ import { ApplyCommentFormComponent } from './settings/rule-forms/child-forms/app
 import { ApplyTagFormComponent } from './settings/rule-forms/child-forms/apply-tag-form/apply-tag-form.component';
 import { CreateTagComponent } from './settings/tags/create-tag/create-tag.component';
 import { WsMessageFormattingResultComponent } from './widgets/exchange-viewer/details-response/ws-message-formatting-result/ws-message-formatting-result.component';
+
+
+import localeFr from '@angular/common/locales/fr';
+import {registerLocaleData} from "@angular/common";
+registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -192,6 +197,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
             provide: PERFECT_SCROLLBAR_CONFIG,
             useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG,
         },
+        { provide: LOCALE_ID, useValue: "en-US" },
+        { provide: LOCALE_ID, useValue: "fr-FR" },
     ],
     bootstrap: [AppComponent],
     entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent,

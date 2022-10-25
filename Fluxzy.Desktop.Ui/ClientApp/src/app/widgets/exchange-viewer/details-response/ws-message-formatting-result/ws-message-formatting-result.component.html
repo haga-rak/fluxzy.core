@@ -1,30 +1,44 @@
 
 <div style="height:100%">
-    <table class="summary-table" *ngIf="exchange.webSocketMessages">
-        <th>
-            Direction
+    <table class="ws-table" *ngIf="exchange.webSocketMessages">
+        <th style="width: 24px;">
+            &nbsp;
         </th>
-        <th>
+        <th style="width: 90px;">
             Instant
         </th>
-        <th>
+        <th style="width: 120px">
             Content type
         </th>
-        <th>
-            Data
+        <th style="width: 90px">
+            Length
         </th>
-        <tr *ngFor="let message of exchange.webSocketMessages">
-            <td>
-                {{ message.direction }}
+        <th>
+            Content
+        </th>
+        <tr *ngFor="let message of model.messages">
+            <td class="text-center">
+                <span *ngIf="message.direction === 'Receive'" class="text-warning">
+                    <i class="bi bi-box-arrow-in-down-left"></i>
+                </span>
+                <span *ngIf="message.direction === 'Sent'" class="text-primary">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                </span>
             </td>
-            <td>
-                {{ message.messageEnd }}
+            <td >
+                <span [title]="message.messageEnd |date : 'medium'">
+                {{ message.messageEnd |date : 'mediumTime' }}
+
+                </span>
             </td>
             <td>
                 {{ message.opCode }}
             </td>
             <td>
                 {{ message.length }}
+            </td>
+            <td>
+                {{ message.dataString }}
             </td>
         </tr>
     </table>

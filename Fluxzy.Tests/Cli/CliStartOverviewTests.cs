@@ -217,7 +217,6 @@ namespace Fluxzy.Tests.Cli
 
             await using( var fluxzyInstance = await commandLineHost.Run())
             {
-
                 using var ws = new ClientWebSocket()
                 {
                     Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
@@ -266,11 +265,8 @@ namespace Fluxzy.Tests.Cli
 
             }
 
-            //if (Directory.Exists(directoryName))
-            //    Directory.Delete(directoryName, true);
-
-            //if (File.Exists(fileName))
-            //    File.Delete(fileName);
+            if (Directory.Exists(directoryName))
+                Directory.Delete(directoryName, true);
 
         }
         
