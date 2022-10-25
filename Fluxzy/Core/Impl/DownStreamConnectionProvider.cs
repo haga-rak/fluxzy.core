@@ -14,8 +14,8 @@ namespace Fluxzy.Core
     {
         private readonly List<TcpListener> _listeners;
 
-        private readonly Channel<TcpClient> _pendingClientConnections =
-            Channel.CreateUnbounded<TcpClient>(new UnboundedChannelOptions()
+        private readonly Channel<IAsyncResult> _pendingClientConnections =
+            Channel.CreateUnbounded<IAsyncResult>(new UnboundedChannelOptions()
             {
                 SingleWriter = true,
                 SingleReader = true
@@ -39,10 +39,16 @@ namespace Fluxzy.Core
 
             try
             {
-                var nextConnection = await
+                var asyncState = await
                     _pendingClientConnections.Reader.ReadAsync(_token);
 
-                return nextConnection;
+                var listener = (TcpListener) asyncState.AsyncState;
+
+                var tcpClient = listener.EndAcceptTcpClient(asyncState);
+
+                tcpClient.NoDelay = true; 
+
+                return tcpClient; 
             }
             catch (Exception)
             {
@@ -108,10 +114,12 @@ namespace Fluxzy.Core
             try
             {
                 var listener = (TcpListener) ar.AsyncState;
-                var tcpClient = listener.EndAcceptTcpClient(ar);
+                _pendingClientConnections.Writer.TryWrite(ar);
                 listener.BeginAcceptTcpClient(Callback, listener);
-                tcpClient.NoDelay = true;
-                _pendingClientConnections.Writer.TryWrite(tcpClient);
+
+                //var tcpClient = listener.EndAcceptTcpClient(ar); // This may take long time 
+                //
+                //tcpClient.NoDelay = true;
             }
             catch (Exception)
             {
