@@ -1,16 +1,16 @@
 
 <div style="height:100%">
     <table class="ws-table" *ngIf="exchange.webSocketMessages">
-        <th style="width: 24px;">
+        <th style="width: 16px;">
             &nbsp;
         </th>
-        <th style="width: 90px;">
+        <th style="width: 60px; text-align: center">
             Instant
         </th>
-        <th style="width: 120px">
-            Content type
+        <th style="width: 50px">
+            Type
         </th>
-        <th style="width: 90px">
+        <th style="width: 96px">
             Length
         </th>
         <th>
@@ -25,14 +25,16 @@
                     <i class="bi bi-box-arrow-up-right"></i>
                 </span>
             </td>
-            <td >
+            <td style="text-align: center">
                 <span [title]="message.messageEnd |date : 'medium'">
                 {{ message.messageEnd |date : 'mediumTime' }}
 
                 </span>
             </td>
             <td>
-                {{ message.opCode }}
+                <span title="OpCode" class="text-lowercase">
+                    {{ message.opCode }}
+                </span>
             </td>
             <td>
                 {{ message.length }}
