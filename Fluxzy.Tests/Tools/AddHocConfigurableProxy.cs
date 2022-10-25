@@ -12,7 +12,7 @@ using Fluxzy.Writers;
 
 namespace Fluxzy.Tests.Tools;
 
-public class AddHocConfigurableProxy : IDisposable
+public class AddHocConfigurableProxy : IAsyncDisposable
 {
     private readonly int _expectedRequestCount;
     private readonly FluxzySetting _startupSetting;
@@ -85,10 +85,11 @@ public class AddHocConfigurableProxy : IDisposable
     {
         return _completionSource.Task; 
     }
-
-    public void Dispose()
+    
+    public async ValueTask DisposeAsync()
     {
-        _proxy.Dispose();
+
+        await _proxy.DisposeAsync();
         _cancellationSource.Dispose();
     }
 }

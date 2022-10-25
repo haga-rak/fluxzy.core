@@ -24,7 +24,7 @@ namespace Fluxzy.Rules.Filters
 
         public override string ShortName => "ip";
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
         {
             yield return exchange.EgressIp ?? string.Empty;
         }

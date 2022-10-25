@@ -20,9 +20,9 @@ namespace Fluxzy.Tests.Rules
         [InlineData(TestConstants.Http2Host)]
         public async Task AddNewResponseHeaderWithFilterHostOnly(string host)
         {
-            var bodyString = "This will be the default body you received"; 
+            var bodyString = "This will be the default body you received";
 
-            using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
 
 
             proxy.StartupSetting.AlterationRules.Add(

@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -17,25 +18,28 @@ namespace Fluxzy.Clients.H11
     {
         private readonly Stream _innerStream;
         private readonly ITimingProvider _timingProvider;
+        private readonly CancellationToken _token;
         private readonly Action<WsMessage> _onMessage;
         private readonly Func<int, Stream> _outStream;
         private readonly Pipe _pipe;
         private readonly Task _runningTask;
 
-        private WsMessage? _currentMessage;
+        // private WsMessage? _currentMessage;
         private int _messageCounter;
-        private readonly int _maxBufferedWsMessage = 1024; 
+        private readonly int _maxBufferedWsMessage = 1024;
 
-        public WebSocketStream(Stream innerStream, ITimingProvider timingProvider,
+        private WsMessage? _current = null;
+
+        public WebSocketStream(Stream innerStream, ITimingProvider timingProvider, CancellationToken token,
             Action<WsMessage> onMessage, Func<int, Stream> outStream) 
         {
             _innerStream = innerStream;
             _timingProvider = timingProvider;
+            _token = token;
             _onMessage = onMessage;
             _outStream = outStream;
             _pipe = new Pipe();
             _runningTask = InitRead();
-            
         }
 
         private async Task InitRead()
@@ -43,7 +47,7 @@ namespace Fluxzy.Clients.H11
             while (true)
             {
                 if (!_pipe.Reader.TryRead(out var readResult)) {
-                    readResult = await _pipe.Reader.ReadAsync();
+                    readResult = await _pipe.Reader.ReadAsync(_token);
                 }
 
                 if (readResult.IsCompleted || readResult.IsCanceled)
@@ -64,28 +68,41 @@ namespace Fluxzy.Clients.H11
 
                 _pipe.Reader.AdvanceTo(buffer.GetPosition(headerLength));
 
-                _currentMessage ??= new WsMessage(++_messageCounter) {
+                if (wsFrame.OpCode >= (WsOpCode) 8)
+                {
+                    // Control frame
+
+                    var immediateMessage = new WsMessage(++_messageCounter);
+                    wsFrame.FinalFragment = true; 
+                    await immediateMessage.AddFrame(wsFrame, _maxBufferedWsMessage, _pipe.Reader, _outStream, _token);
+                    immediateMessage.MessageEnd = _timingProvider.Instant();
+                    _onMessage(immediateMessage);
+
+                    continue; 
+                }
+                
+                _current ??= new WsMessage(++_messageCounter) {
                     MessageStart = _timingProvider.Instant()
                 };
 
-                await _currentMessage
+                await _current
                     .AddFrame(wsFrame, _maxBufferedWsMessage,
-                        _pipe.Reader, _outStream);
+                        _pipe.Reader, _outStream, _token);
 
                 if (wsFrame.FinalFragment) {
-                    _currentMessage.MessageEnd = _timingProvider.Instant(); 
-                    _onMessage(_currentMessage); 
-                    _currentMessage = null;
+                    _current.MessageEnd = _timingProvider.Instant(); 
+                    _onMessage(_current);
+                    _current = null;
                 }
             }
         }
         
-        private int TryReadWsFrameHeader(ref ReadOnlySequence<byte> sequencBuffer, ref WsFrame wsFrame)
+        private int TryReadWsFrameHeader(ref ReadOnlySequence<byte> sequence, ref WsFrame wsFrame)
         {
-            if (sequencBuffer.Length < 2)
+            if (sequence.Length < 2)
                 return -1;
 
-            var buffer = sequencBuffer.FirstSpan;
+            var buffer = sequence.FirstSpan;
 
             wsFrame.FinalFragment = (buffer[0] & 0x80) > 0;
 
@@ -98,10 +115,11 @@ namespace Fluxzy.Clients.H11
 
             if (payloadIndicator < 126) {
                 wsFrame.PayloadLength = payloadIndicator;
-                byteIndex += 1;
+                byteIndex++;
             }
             else
             {
+                byteIndex++;
                 var startBuffer = buffer.Slice(byteIndex);
 
                 if (payloadIndicator == 126) {
@@ -120,7 +138,7 @@ namespace Fluxzy.Clients.H11
                     byteIndex += 8;
                 }
             }
-
+            
 
             if (maskedPayload) {
 
@@ -146,6 +164,7 @@ namespace Fluxzy.Clients.H11
         {
             var readCount =  _innerStream.Read(buffer, offset, count);
             _pipe.Writer.Write(new ReadOnlySpan<byte>(buffer).Slice(offset, readCount));
+            
             return readCount; 
         }
 
@@ -184,7 +203,6 @@ namespace Fluxzy.Clients.H11
         public override bool CanWrite => false; 
         public override long Length => throw new InvalidOperationException("Stream is non seekable");
         public override long Position { get; set; }
-
 
         protected override void Dispose(bool disposing)
         {

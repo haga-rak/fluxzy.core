@@ -6,7 +6,7 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.IO;
 using System.IO.Pipelines;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fluxzy.Clients.H11
@@ -33,6 +33,8 @@ namespace Fluxzy.Clients.H11
 
         public long Length { get; set; }
 
+        public long WrittenLength { get; set; }
+
         public byte[]?  Data { get; set; }
 
         public string? DataString { get; set; }
@@ -41,10 +43,28 @@ namespace Fluxzy.Clients.H11
 
         public DateTime MessageEnd { get; set; }
 
-        internal void ApplyXor(Span<byte> data, int mask)
+        public int FrameCount { get; set; }
+
+        internal void ApplyXorSlow(Span<byte> data, int mask, int countIndex)
         {
             if (mask == 0)
-                return; 
+                return;
+
+
+            Span<byte> maskData = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32BigEndian(maskData, mask);
+
+            for (int i = 0; i < data.Length; i ++)
+            {
+                data[i] ^= maskData[i % 4];
+            }
+        }
+
+        internal void ApplyXor(Span<byte> data, int mask, int countIndex)
+        {
+            if (mask == 0)
+                return;
+            mask = RotateLeft(mask, (countIndex % 4) * 8);
 
             Span<byte> maskData = stackalloc byte[4];
 
@@ -74,48 +94,53 @@ namespace Fluxzy.Clients.H11
 
         internal async Task AddFrame(
             WsFrame wsFrame, int maxWsMessageLengthBuffered, PipeReader pipeReader,
-            Func<int, Stream> outStream)
+            Func<int, Stream> outStream, CancellationToken token)
         {
-            if (wsFrame.OpCode != 0) {
-                OpCode |= wsFrame.OpCode; 
+            if (wsFrame.OpCode != 0) { // We don't affect continuation frame
+                OpCode = wsFrame.OpCode; 
             }
 
             if (wsFrame.FinalFragment && Length == 0 && wsFrame.PayloadLength < maxWsMessageLengthBuffered) {
                 // Build direct buffer for message 
 
-                var readResult = await pipeReader.ReadAtLeastAsync((int) wsFrame.PayloadLength);
+                var readResult = await pipeReader.ReadAtLeastAsync((int) wsFrame.PayloadLength, token);
+
+                // TODO optimize with stackalloc on sequence
 
                 Data = readResult.Buffer.ToArray();
-                
-                //readResult.Buffer.FirstSpan.Slice(0, (int) wsFrame.PayloadLength)
-                //          .CopyTo(Data);
 
-                ApplyXor(Data, wsFrame.MaskedPayload);
+                ApplyXor(Data, wsFrame.MaskedPayload,0);
 
-                // DataString = Encoding.UTF8.GetString(Data);
+                WrittenLength = Data.Length;
 
                 pipeReader.AdvanceTo(readResult.Buffer.GetPosition(wsFrame.PayloadLength));
             }
             else {
-                int totalWritten = 0;
-                var stream = outStream(Id); 
-
-                while (totalWritten < wsFrame.PayloadLength) {
+                await using var stream = outStream(Id);
+                int lengthShift = 0; 
+                
+                while (WrittenLength < wsFrame.PayloadLength) {
 
                     // Write into file 
 
-                    var readResult = await pipeReader.ReadAsync();
+                    if (!pipeReader.TryRead(out var readResult))
+                    {
+                        readResult = await pipeReader.ReadAsync();
+                    }
 
-                   // readResult.Buffer.Slice()
+                    
+                    // readResult.Buffer.Slice()
 
-                    var effectiveBufferLength = (int) Math.Min(readResult.Buffer.Length, (wsFrame.PayloadLength - totalWritten));
+                    var effectiveBufferLength = (int) Math.Min(readResult.Buffer.Length, (wsFrame.PayloadLength - WrittenLength));
 
-                    var totalWriteLength = 0; 
+                    var totalWriteInSequence = 0;
+
+                    int i = 0; 
                     
                     foreach (var sequence in readResult.Buffer)
                     {
                         var memory = sequence.Slice(0,
-                            Math.Min(sequence.Length, effectiveBufferLength - totalWriteLength));
+                            Math.Min(sequence.Length, effectiveBufferLength - totalWriteInSequence));
                         
                         if (wsFrame.MaskedPayload != 0)
                         {
@@ -124,35 +149,53 @@ namespace Fluxzy.Clients.H11
                             try
                             {
                                 memory.CopyTo(copyBuffer);
-
+                                
                                 ApplyXor(new Span<byte>(copyBuffer, 0, memory.Length),
-                                        wsFrame.MaskedPayload);
+                                        wsFrame.MaskedPayload, lengthShift);
+                                
+                                lengthShift = (lengthShift + memory.Length) % 4; 
 
                                 stream.Write(copyBuffer, 0, memory.Length);
+                                stream.Flush();
                             }
                             finally
                             {
                                 ArrayPool<byte>.Shared.Return(copyBuffer);
-
                             }
                         }
                         else
                         {
                             stream.Write(memory.Span);
+                            stream.Flush();
                         }
                         
-                        totalWriteLength += memory.Length;
+                        totalWriteInSequence += memory.Length;
                     }
-                   
-                    totalWritten += effectiveBufferLength; 
+
+                    WrittenLength += effectiveBufferLength; 
 
                     pipeReader.AdvanceTo(readResult.Buffer.GetPosition(effectiveBufferLength));
                 }
+
+                if (wsFrame.FinalFragment)
+                {
+                }
             }
-                
+
+            FrameCount++;
             Length += wsFrame.PayloadLength; 
         }
-        
+
+        internal static int RotateLeft(int value, int count)
+        {
+            return (value << count) | (value >> (32 - count));
+        }
+
+        internal static int RotateRight(int value, int count)
+        {
+            return (value >> count) | (value << (32 - count));
+        }
+
 
     }
 }

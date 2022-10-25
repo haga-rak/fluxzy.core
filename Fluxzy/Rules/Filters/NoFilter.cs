@@ -4,7 +4,7 @@ namespace Fluxzy.Rules.Filters
 {
     public class NoFilter : Filter
     {
-        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return false; 

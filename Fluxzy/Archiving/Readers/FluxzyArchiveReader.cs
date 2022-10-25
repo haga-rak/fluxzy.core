@@ -113,6 +113,30 @@ namespace Fluxzy.Readers
             return entry.Open();
         }
 
+        public Stream? GetRequestWebsocketContent(int exchangeId, int messageId)
+        {
+            var path = DirectoryArchiveHelper.GetWebsocketContentRequestPath(string.Empty, exchangeId, messageId).Replace("\\", "/");
+
+            var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
+
+            if (entry == null)
+                return null;
+
+            return entry.Open();
+        }
+
+        public Stream? GetResponseWebsocketContent(int exchangeId, int messageId)
+        {
+            var path = DirectoryArchiveHelper.GetWebsocketContentResponsePath(string.Empty, exchangeId, messageId).Replace("\\", "/");
+
+            var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
+
+            if (entry == null)
+                return null;
+
+            return entry.Open();
+        }
+
         public bool HasRequestBody(int exchangeId)
         {
             var path = DirectoryArchiveHelper.GetContentRequestPath(string.Empty, exchangeId).Replace("\\", "/");

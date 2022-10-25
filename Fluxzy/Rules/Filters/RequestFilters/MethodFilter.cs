@@ -12,14 +12,15 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         }
         
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
         {
-            yield return exchange.Method;
+            if (exchange != null)
+                yield return exchange.Method;
         }
 
         public override Guid Identifier => $"{Pattern}|{Operation}".GetMd5Guid();
 
-        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             CaseSensitive = false;

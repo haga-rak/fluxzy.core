@@ -26,7 +26,7 @@ namespace Fluxzy.Tests
         [InlineData(TestConstants.Http2Host)]
         public async Task Proxy_Receiving_Multiple_Repeating_Header_Value(string host)
         {
-            using var proxy = new AddHocProxy(1, 10);
+            await using var proxy = new AddHocProxy(1, 10);
 
             using var clientHandler = new HttpClientHandler
             {
@@ -96,7 +96,7 @@ namespace Fluxzy.Tests
         [InlineData(TestConstants.Http2Host)]
         public async Task Proxy_SingleRequest(string host)
         {
-            using var proxy = new AddHocProxy(1, 10);
+            await using var proxy = new AddHocProxy(1, 10);
 
             using var clientHandler = new HttpClientHandler
             {
@@ -126,7 +126,7 @@ namespace Fluxzy.Tests
         [InlineData(TestConstants.Http2Host)]
         public async Task Proxy_SingleRequest_XL(string host)
         {
-            using var proxy = new AddHocProxy(1, 10);
+            await using var proxy = new AddHocProxy(1, 10);
 
             using var clientHandler = new HttpClientHandler
             {
@@ -156,7 +156,7 @@ namespace Fluxzy.Tests
         [InlineData(TestConstants.Http2Host)]
         public async Task Proxy_SingleRequest_WsStatic(string host)
         {
-            using var proxy = new AddHocProxy(1, 10);
+            await using var proxy = new AddHocProxy(1, 10);
 
             using var clientHandler = new HttpClientHandler
             {
@@ -182,7 +182,7 @@ namespace Fluxzy.Tests
         {
             int concurrentCount = 15; 
 
-            using var proxy = new AddHocProxy(concurrentCount, 10);
+            await using var proxy = new AddHocProxy(concurrentCount, 10);
 
             using var clientHandler = new HttpClientHandler
             {
@@ -219,7 +219,7 @@ namespace Fluxzy.Tests
         {
             var message = Encoding.ASCII.GetBytes("Hello world!");
 
-            using var proxy = new AddHocProxy(1, 10);
+            await using var proxy = new AddHocProxy(1, 10);
 
             using ClientWebSocket ws = new()
             {
@@ -365,7 +365,7 @@ namespace Fluxzy.Tests
                 }
             });
             
-            using var proxy = new Proxy(startupSetting,
+            await using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
             proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
@@ -413,9 +413,9 @@ namespace Fluxzy.Tests
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
                 }
             });
-            
 
-            using var proxy = new Proxy(startupSetting,
+
+            await using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
             proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
@@ -468,8 +468,8 @@ namespace Fluxzy.Tests
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
                 }
             });
-            
-            using var proxy = new Proxy(startupSetting,
+
+            await using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
             proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
@@ -523,7 +523,7 @@ namespace Fluxzy.Tests
                 }
             });
 
-            using var proxy = new Proxy(startupSetting,
+            await using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
             proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)

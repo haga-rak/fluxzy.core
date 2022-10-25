@@ -16,7 +16,7 @@ namespace Fluxzy.Rules
 
         public virtual Guid Identifier { get; set; } = Guid.NewGuid();
 
-        public abstract ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection);
+        public abstract ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection);
 
         public abstract string DefaultDescription { get; }
 
