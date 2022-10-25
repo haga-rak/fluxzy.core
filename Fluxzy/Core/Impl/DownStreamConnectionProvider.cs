@@ -15,7 +15,11 @@ namespace Fluxzy.Core
         private readonly List<TcpListener> _listeners;
 
         private readonly Channel<TcpClient> _pendingClientConnections =
-            Channel.CreateUnbounded<TcpClient>(); 
+            Channel.CreateUnbounded<TcpClient>(new UnboundedChannelOptions()
+            {
+                SingleWriter = true,
+                SingleReader = true
+            }); 
 
         private CancellationToken _token;
 
@@ -59,17 +63,16 @@ namespace Fluxzy.Core
             {
                 try
                 {
-                    listener.Start(int.MaxValue);
+                    listener.Start(200);
 
-                    boundEndPoints.Add((IPEndPoint)listener.LocalEndpoint);
+                    boundEndPoints.Add((IPEndPoint) listener.LocalEndpoint);
 
                     var listenerCopy = listener;
 
-                    //HandleAcceptConnection(listenerCopy);
-
                     new Thread((a) => HandleAcceptConnection((TcpListener)a))
                     {
-                        IsBackground = true
+                        IsBackground = true,
+                        Priority = ThreadPriority.Normal
                     }.Start(listenerCopy);
                 }
                 catch (SocketException sex)
@@ -92,20 +95,7 @@ namespace Fluxzy.Core
         {
             try
             {
-                //while (true)
-                {
-                    listener.BeginAcceptTcpClient(Callback, listener);
-
-                    //var tcpClient = listener.AcceptTcpClientAsync();
-
-                    //tcpClient.NoDelay = true; // NO Delay for local connection
-                    //// tcpClient.ReceiveTimeout = 500; // We forgot connection after receiving.
-                    ////tcpClient.ReceiveBufferSize = 1024 * 64;
-                    ////tcpClient.SendBufferSize = 32 * 1024;
-                    ////tcpClient.SendTimeout = 200;
-
-                    //_pendingClientConnections.Writer.TryWrite(tcpClient);
-                }
+                listener.BeginAcceptTcpClient(Callback, listener);
             }
             catch (Exception)
             {
@@ -122,7 +112,6 @@ namespace Fluxzy.Core
                 listener.BeginAcceptTcpClient(Callback, listener);
                 tcpClient.NoDelay = true;
                 _pendingClientConnections.Writer.TryWrite(tcpClient);
-
             }
             catch (Exception)
             {
