@@ -15,7 +15,7 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
         if (exchangeInfo.pending){
 
             return   {
-                iconClass : ["bi",  "bi-arrow-clockwise"],
+                iconClass : ["fa",  "fa-spinner", "fa-spin", "fa-fw"],
                 textClass : ["text-teal", "bold"]
             };
         }
@@ -38,13 +38,14 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
 
     if (exchangeInfo.responseHeader.statusCode < 300) {
         return   {
-            iconClass : ["bi",  "bi-circle-fill"],
+            iconClass : ["fa",  "fa-circle"],
             textClass : ["text-success"]
         };
     }
 
     if (exchangeInfo.responseHeader.statusCode < 400) {
         return   {
+            //fa fa-spinner fa-spin fa-3x fa-fw
             iconClass : ["bi",  "bi bi-arrow-right-circle-fill"],
             textClass : ["text-teal"]
         };
@@ -52,14 +53,14 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
 
     if (exchangeInfo.responseHeader.statusCode < 500) {
         return   {
-            iconClass : ["bi",  "bi-dash-circle-fill"],
+            iconClass : ["fa",  "fa-minus-circle"],
             textClass : ["text-danger", "bold"]
         };
     }
 
     if (exchangeInfo.responseHeader.statusCode < 600) {
         return   {
-            iconClass : ["bi",  "bi-exclamation-octagon-fill"],
+            iconClass : ["fa",  "fa-exclamation-triangle"],
             textClass : ["text-danger"]
         };
     }
