@@ -1,13 +1,9 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Fluxzy.Clients.H2.Encoder.Utils;
-using Fluxzy.Misc;
-using Fluxzy.Readers;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
