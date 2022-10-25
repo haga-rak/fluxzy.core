@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -106,13 +107,30 @@ namespace Fluxzy.Clients
 
         public ReadOnlyMemory<char> GetHttp11Header()
         {
-            Span<byte> maxHeader = stackalloc byte[1024 * 32]; // TODO :  Hard coded value needs to be retrieved from settings
+            var estimatedHeaderLength = GetHttp11LengthOnly(true);
 
-            var totalReadByte = WriteHttp11(maxHeader, true, true);
+            byte[]? heapBuffer = null; 
 
-            var res = Encoding.UTF8.GetString(maxHeader.Slice(0, totalReadByte));
+            try
+            {
+                Span<byte> maxHeader = estimatedHeaderLength < 1024 ? stackalloc byte[estimatedHeaderLength] :
+                    heapBuffer = ArrayPool<byte>.Shared.Rent(estimatedHeaderLength); // TODO :  Hard coded value needs to be retrieved from settings
 
-            return res.AsMemory();
+                var totalReadByte = WriteHttp11(maxHeader, true, true);
+
+                var res = Encoding.UTF8.GetString(maxHeader.Slice(0, totalReadByte));
+
+                return res.AsMemory();
+            }
+            finally
+            {
+                if (heapBuffer != null)
+                {
+                    ArrayPool<byte>.Shared.Return(heapBuffer);
+                }
+            }
+
+
         }
 
         public override string ToString()
