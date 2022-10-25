@@ -11,6 +11,13 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Clients.H11
 {
+
+    public enum WsMessageDirection
+    {
+        Sent = 1, 
+        Receive
+    }
+
     public class WsMessage
     {
         public WsMessage(int id)
@@ -19,6 +26,8 @@ namespace Fluxzy.Clients.H11
         }
 
         public int Id { get; set; }
+
+        public WsMessageDirection Direction { get; set; }
 
         public WsOpCode OpCode { get; set; }
 
