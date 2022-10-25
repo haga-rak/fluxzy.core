@@ -41,7 +41,8 @@ var globalFileManager = app.Services.GetRequiredService<FileManager>();
 var activeRuleManages = app.Services.GetRequiredService<ActiveRuleManager>();
 //await globalFileManager.Off();
 
-await globalFileManager.Open(@"../Samples/boot.fxzy");
+// await globalFileManager.Open(@"../Samples/boot.fxzy");
+await globalFileManager.New();
 await activeRuleManages.InitRules();
 
 app.Run();

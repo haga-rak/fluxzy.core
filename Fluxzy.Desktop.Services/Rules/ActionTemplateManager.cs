@@ -19,6 +19,7 @@ namespace Fluxzy.Desktop.Services.Rules
             new ApplyTagAction(),
             new ChangeRequestMethodAction("GET"),
             new ChangeRequestPathAction("/"),
+            new SkipSslTunnelingAction(),
             new SetClientCertificateAction(new Certificate()
             {
                 RetrieveMode = CertificateRetrieveMode.FromPkcs12

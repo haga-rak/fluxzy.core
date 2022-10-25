@@ -10,12 +10,13 @@ namespace Fluxzy.Misc.Streams
     {
         private long _position;
         private readonly bool _closeStreams;
-        private IEnumerator<Stream> _iterator;
+        private IEnumerator<Stream>?  _iterator;
         private Stream? _current;
 
         public CombinedReadonlyStream(bool closeStreams, params Stream[] args)
         : this(args, closeStreams)
         {
+            
         }
 
         public CombinedReadonlyStream(IEnumerable<Stream> source, bool closeStreams = false)
@@ -60,7 +61,7 @@ namespace Fluxzy.Misc.Streams
             if (disposing)
             {
                 EndOfStream();
-                _iterator.Dispose();
+                _iterator?.Dispose();
                 _iterator = null;
                 _current = null;
             }

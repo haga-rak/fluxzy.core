@@ -9,11 +9,11 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class ResponseHeaderFilter : HeaderFilter
     {
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
         {
-            return exchange.GetResponseHeaders()?.Where(e =>
-                    e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
-                .Select(s => s.Value.ToString()) ?? Array.Empty<string>();
+            return exchange?.GetResponseHeaders()?.Where(e =>
+                               e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
+                           .Select(s => s.Value.ToString()) ?? Array.Empty<string>();
         }
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;

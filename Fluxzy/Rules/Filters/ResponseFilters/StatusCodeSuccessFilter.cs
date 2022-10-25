@@ -7,9 +7,12 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     public class StatusCodeSuccessFilter : Filter
     {
-        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
+            if (exchange == null)
+                return false;
+
             var statusCode = exchange.StatusCode;
             return statusCode is >= 200 and < 300; 
         }

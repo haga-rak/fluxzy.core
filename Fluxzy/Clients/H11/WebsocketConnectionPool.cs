@@ -65,7 +65,7 @@ namespace Fluxzy.Clients.H11
                     _connectionBuilder,
                     _proxyRuntimeSetting, _proxyRuntimeSetting.ArchiveWriter);
 
-                await ex.Process(exchange, localLink, buffer.Buffer, CancellationToken.None);
+                await ex.Process(exchange, localLink, buffer.Buffer, cancellationToken);
             }
             finally
             {
@@ -171,25 +171,34 @@ namespace Fluxzy.Clients.H11
             {
                 var outWriteStream = exchange.Connection.WriteStream;
 
-                var upReadStream = concatedReadStream;  // Response read 
-                var downReaderStream = localLink.ReadStream!; // RequestRead
+                //var upReadStream = concatedReadStream;  // Response read 
+                //var downReaderStream = localLink.ReadStream!; // RequestRead
 
-                upReadStream = new WebSocketStream(upReadStream, _timingProvider,
+                var addLock = new object(); 
+
+                await using var upReadStream = new WebSocketStream(concatedReadStream, _timingProvider, cancellationToken,
                     (wsMessage) =>
                     {
                         wsMessage.Direction = WsMessageDirection.Receive;
-                        exchange.WebSocketMessages ??= new List<WsMessage>();
-                        exchange.WebSocketMessages.Add(wsMessage);
+                        lock (addLock)
+                        {
+                            exchange.WebSocketMessages ??= new List<WsMessage>();
+                            exchange.WebSocketMessages.Add(wsMessage);
+                        }
                         _archiveWriter!.Update(exchange, UpdateType.WsMessageReceived, CancellationToken.None);
                     },
                     (wsMessageId) => _archiveWriter!.CreateWebSocketResponseContent(exchange.Id, wsMessageId));
 
-                downReaderStream = new WebSocketStream(downReaderStream, _timingProvider,
+                await using var downReaderStream = new WebSocketStream(localLink.ReadStream, _timingProvider, cancellationToken,
                     (wsMessage) =>
                     {
                         wsMessage.Direction = WsMessageDirection.Sent;
-                        exchange.WebSocketMessages ??= new List<WsMessage>();
-                        exchange.WebSocketMessages.Add(wsMessage);
+                        lock (addLock)
+                        {
+                            exchange.WebSocketMessages ??= new List<WsMessage>();
+                            exchange.WebSocketMessages.Add(wsMessage);
+                        }
+
                         _archiveWriter!.Update(exchange, UpdateType.WsMessageSent, CancellationToken.None);
                     },
                     (wsMessageId) => _archiveWriter!.CreateWebSocketRequestContent(exchange.Id, wsMessageId)); 
@@ -239,26 +248,7 @@ namespace Fluxzy.Clients.H11
             return default; 
         }
     }
-
-
-    //*  %x0 denotes a continuation frame
-
-    //    *  %x1 denotes a text frame
-
-    //    *  %x2 denotes a binary frame
-
-    //    *  %x3-7 are reserved for further non-control frames
-
-    //    *  %x8 denotes a connection close
-
-    //    *  %x9 denotes a ping
-
-    //    *  %xA denotes a pong
-
-    //    *  %xB-F are reserved for further control frames
-
-
-    [Flags]
+    
     public enum WsOpCode
     {
         Continuation = 0, 
@@ -267,5 +257,19 @@ namespace Fluxzy.Clients.H11
         ConnectionClose = 8, 
         Ping = 9, 
         Pong = 0xA,
+        PingBinary = Ping | Binary,
+        PingText = Ping | Text,
+        PongBinary = Pong | Binary,
+        PongText = Pong | Text,
+    }
+
+    public static class WsOpCodeUtils
+    {
+        public static WsOpCode RemoveControlFlags(this WsOpCode original)
+        {
+            original =  original & ~WsOpCode.ConnectionClose;
+
+            return original; 
+        }
     }
 }
