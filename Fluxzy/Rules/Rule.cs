@@ -26,8 +26,8 @@ namespace Fluxzy.Rules
         public bool InScope => Filter.FilterScope <= Action.ActionScope;
 
         public ValueTask Enforce(ExchangeContext context,
-            Exchange exchange,
-            Connection connection)
+            Exchange? exchange,
+            Connection? connection)
         {
             // TODO put a decent filtering context here 
             if (Filter.Apply(context.Authority, exchange, null))

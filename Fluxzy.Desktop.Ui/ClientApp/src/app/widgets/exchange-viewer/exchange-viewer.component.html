@@ -171,6 +171,10 @@
                                                  [formatter]="C(propertyContext.responseFormattingResult)" [exchange]="exchange" [context]="context">
                     </app-set-cookie-result>
 
+                    <app-ws-message-formatting-result *ngIf="ofTypeResponse('WsMessageFormattingResult')"
+                                                 [formatter]="C(propertyContext.responseFormattingResult)" [exchange]="exchange" [context]="context">
+                    </app-ws-message-formatting-result>
+
                 </perfect-scrollbar>
             </div>
 

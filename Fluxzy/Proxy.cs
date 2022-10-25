@@ -17,7 +17,7 @@ using Fluxzy.Writers;
 
 namespace Fluxzy
 {
-    public class Proxy : IDisposable, IAsyncDisposable
+    public class Proxy : IAsyncDisposable
     {
         private readonly ITcpConnectionProvider _tcpConnectionProvider;
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
@@ -29,9 +29,9 @@ namespace Fluxzy
         private bool _halted;
 
         private ProxyOrchestrator? _proxyOrchestrator;
-        public RealtimeArchiveWriter? Writer { get; private set; } = new EventOnlyArchiveWriter();
+        public RealtimeArchiveWriter Writer { get; private set; } = new EventOnlyArchiveWriter();
 
-        private int _currentConcurrentCount;
+        private volatile int _currentConcurrentCount;
 
         public Proxy(
             FluxzySetting startupSetting,
@@ -86,9 +86,17 @@ namespace Fluxzy
 
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
 
+
+        public static Proxy Create(FluxzySetting startupSetting)
+        {
+            return new Proxy(startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache()));
+        }
+
         private async ValueTask MainLoop()
         {
             Writer.Init();
+
+            var taskId = 0;
 
             while (true) {
                 var client =
@@ -96,17 +104,13 @@ namespace Fluxzy
 
                 if (client == null)
                     break;
-
-                ProcessingConnection(client);
+                
+                ProcessingConnection(client, ++taskId);
             }
         }
+        
 
-        public static Proxy Create(FluxzySetting startupSetting)
-        {
-            return new Proxy(startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache()));
-        }
-
-        private async void ProcessingConnection(TcpClient client)
+        private async void ProcessingConnection(TcpClient client, int taskId)
         {
             Interlocked.Increment(ref _currentConcurrentCount);
 
@@ -130,7 +134,7 @@ namespace Fluxzy
                 }
             }
             finally {
-                Interlocked.Decrement(ref _currentConcurrentCount);
+                var value = Interlocked.Decrement(ref _currentConcurrentCount);
             }
         }
 
@@ -154,18 +158,21 @@ namespace Fluxzy
 
             return endPoints;
         }
-
-        public void Dispose()
-        {
-            InternalDispose();
-        }
+        
 
         public async ValueTask DisposeAsync()
         {
             InternalDispose();
 
             try {
-                await _loopTask.ConfigureAwait(false); // Wait for main loop to end
+                await _loopTask!.ConfigureAwait(false); // Wait for main loop to end
+
+                int n = 100; 
+                while (_currentConcurrentCount > 0 && n-- > 0)
+                {
+                    await Task.Delay(5);
+                }
+
             }
             catch (Exception) {
                 // Loop task exception 

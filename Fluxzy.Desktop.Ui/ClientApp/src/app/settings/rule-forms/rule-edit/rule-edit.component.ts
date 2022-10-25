@@ -111,6 +111,15 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
                 take (1)
             ).subscribe() ;
     }
+
+    public editFilter(filterItem: Filter) {
+        this.dialogService.openFilterEdit(filterItem, true)
+            .pipe(
+                filter(t => !!t),
+                tap(f => this.rule.filter = f),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe();
+    }
 }
 
 

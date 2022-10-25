@@ -18,9 +18,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         }
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange)
+        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
         {
-            yield return exchange.FullUrl;
+            if (exchange != null )
+                yield return exchange.FullUrl;
         }
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

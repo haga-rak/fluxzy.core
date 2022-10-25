@@ -22,7 +22,7 @@ namespace Fluxzy.Rules.Filters
             Operation = operation;
         }
 
-        protected override bool InternalApply(IAuthority authority, IExchange exchange,
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             var inputList = GetMatchInputs(authority, exchange);
@@ -62,7 +62,7 @@ namespace Fluxzy.Rules.Filters
             return false; 
         }
         
-        protected abstract IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange exchange);
+        protected abstract IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange);
 
 
         public string Pattern { get; set; }

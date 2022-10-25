@@ -70,7 +70,7 @@ namespace Fluxzy.Core
         {
             if (_oldSetting != null)
             {
-                _systemProxySetter?.ApplySetting(_oldSetting);
+                _systemProxySetter.ApplySetting(_oldSetting);
                 _oldSetting = null; 
                 return; 
             }
@@ -78,10 +78,19 @@ namespace Fluxzy.Core
             if (_currentSetting != null)
             {
                 _currentSetting.Enabled = false; 
-                _systemProxySetter?.ApplySetting(_currentSetting);
+                _systemProxySetter.ApplySetting(_currentSetting);
                 _currentSetting = null; 
                 return; 
             }
+
+            var existingSetting = GetSystemProxySetting();
+
+            if (existingSetting.Enabled)
+            {
+                existingSetting.Enabled = false;
+                _systemProxySetter.ApplySetting(existingSetting);
+            }
+
         }
 
         private static IPAddress GetConnectableIpAddr(IPAddress address)

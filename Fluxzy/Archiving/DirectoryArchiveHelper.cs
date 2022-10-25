@@ -37,6 +37,15 @@ namespace Fluxzy
         {
             return Path.Combine(baseDirectory, "contents", $"req-{exchangeId}.data");
         }
+        internal static string GetWebsocketContentRequestPath(string baseDirectory, int exchangeId, int messageId)
+        {
+            return Path.Combine(baseDirectory, "contents", $"req-{exchangeId}-ws-{messageId}.data");
+        }
+
+        internal static string GetWebsocketContentResponsePath(string baseDirectory, int exchangeId, int messageId)
+        {
+            return Path.Combine(baseDirectory, "contents", $"res-{exchangeId}-ws-{messageId}.data");
+        }
 
         internal static string GetContentRequestPath(string baseDirectory, ExchangeInfo exchangeInfo)
         {

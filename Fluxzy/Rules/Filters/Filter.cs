@@ -11,7 +11,7 @@ namespace Fluxzy.Rules.Filters
 
         public bool Inverted { get; set; }
 
-        protected abstract bool InternalApply(IAuthority authority, IExchange exchange,
+        protected abstract bool InternalApply(IAuthority? authority, IExchange? exchange,
             IFilteringContext? filteringContext);
 
         public abstract FilterScope FilterScope { get; }
@@ -24,7 +24,7 @@ namespace Fluxzy.Rules.Filters
 
         public virtual bool PreMadeFilter { get; } = false;
         
-        public virtual bool Apply(IAuthority authority, IExchange exchange, IFilteringContext? filteringContext)
+        public virtual bool Apply(IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
         {
             var internalApplyResult = InternalApply(authority, exchange, filteringContext);
 
