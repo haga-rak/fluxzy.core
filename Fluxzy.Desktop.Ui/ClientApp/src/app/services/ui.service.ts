@@ -11,7 +11,7 @@ import {
     switchMap,
     combineLatest,
     distinct,
-    pipe, BehaviorSubject,
+    pipe, BehaviorSubject, finalize,
 } from 'rxjs';
 import {
     ExchangeBrowsingState,
@@ -26,6 +26,7 @@ import {
     ExchangeSelectedIds,
     ExchangeSelectionService,
 } from './exchange-selection.service';
+import {DialogService} from "./dialog.service";
 
 @Injectable({
     providedIn: 'root',
@@ -40,7 +41,8 @@ export class UiStateService {
         private menuService: MenuService,
         private apiService: ApiService,
         private selectionService: ExchangeSelectionService,
-        private exchangeContentService: ExchangeContentService
+        private exchangeContentService: ExchangeContentService,
+        private dialogService : DialogService
     ) {
         this.refreshUiState();
 
@@ -101,7 +103,10 @@ export class UiStateService {
             .pipe(
                 filter((t) => !!t),
                 filter(t => !this.uiState.fileState.unsaved || this.menuService.confirm("This operation will discard changes made on current file. Do you wish to continue?") === ConfirmResult.Yes),
-                switchMap((fileName) => this.apiService.fileOpen(fileName))
+                tap(t => this.dialogService.openWaitDialog("Unpacking file")),
+                switchMap((fileName) => this.apiService.fileOpen(fileName)),
+                take(1),
+                finalize(() => this.dialogService.closeWaitDialog())
             )
             .subscribe();
 
