@@ -103,7 +103,6 @@ namespace Fluxzy.Clients.H11
             _creationSetting = creationSetting;
             _archiveWriter = archiveWriter;
         }
-
         public async Task Process(Exchange exchange, ILocalLink localLink, byte[] buffer, CancellationToken cancellationToken)
         {
             if (localLink == null)
@@ -170,25 +169,25 @@ namespace Fluxzy.Clients.H11
 
             try
             {
-                //await using var remoteStream = exchange.Connection.WriteStream;
+                var outWriteStream = exchange.Connection.WriteStream;
 
-                var outGressWriteStream = exchange.Connection.WriteStream;
+                var upReadStream = concatedReadStream;  // Response read 
+                var downReaderStream = localLink.ReadStream!; // RequestRead
 
-                var outGressReadStream = concatedReadStream;  // Response read 
-                var inGressReadStream = localLink.ReadStream!; // RequestRead
-
-                outGressReadStream = new WebSocketStream(outGressReadStream, _timingProvider,
+                upReadStream = new WebSocketStream(upReadStream, _timingProvider,
                     (wsMessage) =>
                     {
+                        wsMessage.Direction = WsMessageDirection.Receive;
                         exchange.WebSocketMessages ??= new List<WsMessage>();
                         exchange.WebSocketMessages.Add(wsMessage);
                         _archiveWriter!.Update(exchange, UpdateType.WsMessageReceived, CancellationToken.None);
                     },
                     (wsMessageId) => _archiveWriter!.CreateWebSocketResponseContent(exchange.Id, wsMessageId));
 
-                inGressReadStream = new WebSocketStream(inGressReadStream, _timingProvider,
+                downReaderStream = new WebSocketStream(downReaderStream, _timingProvider,
                     (wsMessage) =>
                     {
+                        wsMessage.Direction = WsMessageDirection.Sent;
                         exchange.WebSocketMessages ??= new List<WsMessage>();
                         exchange.WebSocketMessages.Add(wsMessage);
                         _archiveWriter!.Update(exchange, UpdateType.WsMessageSent, CancellationToken.None);
@@ -196,10 +195,10 @@ namespace Fluxzy.Clients.H11
                     (wsMessageId) => _archiveWriter!.CreateWebSocketRequestContent(exchange.Id, wsMessageId)); 
 
                 var copyTask = Task.WhenAny(
-                    inGressReadStream.CopyDetailed(outGressWriteStream, buffer, (copied) =>
+                    downReaderStream.CopyDetailed(outWriteStream, buffer, (copied) =>
                             exchange.Metrics.TotalSent += copied
                         , cancellationToken).AsTask(),
-                    outGressReadStream.CopyDetailed(localLink.WriteStream, 1024 * 16, (copied) =>
+                    upReadStream.CopyDetailed(localLink.WriteStream, 1024 * 16, (copied) =>
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken).AsTask());
 
