@@ -182,13 +182,27 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 }
                 newOffset = stringLength + offset;
+                
+                var decodedLength = _codec.GetDecodedLength(rawString);
 
-                Span<byte> decodeBuffer = stackalloc byte[_maxStringLength];
-                var decoded = _codec.Decode(rawString, decodeBuffer);
+                byte[]? heapBuffer = null; 
+                
+                Span<byte> decodeBuffer = decodedLength < 1024 ?
+                    stackalloc byte[decodedLength] : heapBuffer = ArrayPool<byte>.Shared.Rent(decodedLength);
 
-                var resultLength = System.Text.Encoding.ASCII.GetChars(decoded, buffer);
+                try
+                {
+                    var decoded = _codec.Decode(rawString, decodeBuffer);
 
-                return buffer.Slice(0, resultLength);
+                    var resultLength = System.Text.Encoding.ASCII.GetChars(decoded, buffer);
+
+                    return buffer.Slice(0, resultLength);
+                }
+                finally
+                {
+                    if (heapBuffer != null)
+                        ArrayPool<byte>.Shared.Return(heapBuffer);
+                }
 
             }
             catch (IndexOutOfRangeException)

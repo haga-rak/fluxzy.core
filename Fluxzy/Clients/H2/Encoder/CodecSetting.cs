@@ -53,6 +53,6 @@ namespace Fluxzy.Clients.H2.Encoder
         /// <summary>
         /// Max length for a stackalloc, beyond this value heap allocation is used
         /// </summary>
-        public int MaxStackAllocationLength { get; set; } = 4096; 
+        public int MaxStackAllocationLength { get; set; } = 1024; 
     }
 }
