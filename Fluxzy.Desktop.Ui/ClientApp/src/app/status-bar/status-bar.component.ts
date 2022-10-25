@@ -6,6 +6,7 @@ import {ExchangeManagementService} from '../services/exchange-management.service
 import {ExchangeSelectionService} from '../services/exchange-selection.service';
 import {UiStateService} from '../services/ui.service';
 import {StatusBarService} from "../services/status-bar.service";
+import {DialogService} from "../services/dialog.service";
 
 @Component({
     selector: 'app-status-bar',
@@ -24,7 +25,8 @@ export class StatusBarComponent implements OnInit {
         private cdr: ChangeDetectorRef, private uiStateService: UiStateService,
         private selectionService: ExchangeSelectionService,
         private apiService: ApiService,
-        private statusBarService : StatusBarService
+        private statusBarService : StatusBarService,
+        private dialogService : DialogService
     ) {
     }
 
@@ -64,4 +66,8 @@ export class StatusBarComponent implements OnInit {
         this.apiService.proxyOff().subscribe();
     }
 
+    public decryptTrigger() : void {
+        this.dialogService.openWaitDialog("Its me its me");
+
+    }
 }

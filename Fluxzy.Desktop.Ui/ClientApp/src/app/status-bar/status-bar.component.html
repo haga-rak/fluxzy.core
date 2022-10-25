@@ -33,10 +33,10 @@
             |
         </span>
 
-        <span>
+        <a href="javascript:;" class="text-secondary" (click)="decryptTrigger()">
             <i class="bi bi-key-fill"></i>
             decrypt all
-        </span>
+        </a>
         &nbsp;|&nbsp;
         <span>
             <a *ngIf="uiState.systemProxyState.on" (click)="proxyOff()"

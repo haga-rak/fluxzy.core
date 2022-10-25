@@ -12,12 +12,14 @@ import {ManageRulesComponent} from "../settings/manage-rules/manage-rules.compon
 import {RulePreCreateComponent} from "../settings/rule-forms/rule-pre-create/rule-pre-create.component";
 import {RuleEditComponent} from "../settings/rule-forms/rule-edit/rule-edit.component";
 import {CreateTagComponent} from "../settings/tags/create-tag/create-tag.component";
+import {WaitDialogComponent} from "../shared/wait-dialog/wait-dialog.component";
 
 @Injectable({
     providedIn: 'root',
 })
 export class DialogService {
     bsModalRef?: BsModalRef;
+    waitModalRef?: BsModalRef;
     constructor(
         private modalService: BsModalService,
         private menuService: MenuService,
@@ -269,5 +271,30 @@ export class DialogService {
 
         this.bsModalRef.content.closeBtnName = 'Close';
         return subject.asObservable();
+    }
+
+    public openWaitDialog(message : string) : void {
+        const subject = new Subject<any>() ;
+
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                message,
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.waitModalRef = this.modalService.show(
+            WaitDialogComponent,
+            config
+        );
+    }
+
+    public closeWaitDialog() : void {
+        console.log('finalize called');
+        if (this.waitModalRef) {
+            this.waitModalRef.hide();
+            this.waitModalRef = null ;
+        }
     }
 }
