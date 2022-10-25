@@ -240,3 +240,51 @@ pre > code {
     background: var(--bs-gray-800);
     border-radius: 8px;
 }
+
+
+.btn-gray-100 {
+    background-color: var(--bs-gray-400) ;
+}
+
+.btn-gray-200 {
+    background-color: var(--bs-gray-400) ;
+}
+.btn-gray-300 {
+    background-color: var(--bs-gray-400) ;
+}
+.btn-gray-400 {
+    background-color: var(--bs-gray-400) ;
+}
+
+.btn-gray-500 {
+    background-color: var(--bs-gray-500) ;
+}
+.btn-gray-600 {
+    background-color: var(--bs-gray-600) ;
+}
+.btn-gray-700 {
+    background-color: var(--bs-gray-700) ;
+}
+.btn-gray-800 {
+    background-color: var(--bs-gray-800) ;
+}
+
+.btn-gray-900 {
+    background-color: var(--bs-gray-900) ;
+}
+
+.btn {
+    box-shadow: var(--bs-gray-500) 0px 1px 2px 0px, var(--bs-gray-500) 0px 2px 6px 2px;
+}
+
+.text-primary {
+    font-weight : 600;
+}
+
+a {
+    color : var(--bs-teal);
+}
+
+.text-teal {
+    color : var(--bs-teal);
+}

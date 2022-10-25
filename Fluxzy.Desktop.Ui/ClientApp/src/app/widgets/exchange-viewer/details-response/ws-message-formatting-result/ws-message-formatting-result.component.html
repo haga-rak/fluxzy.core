@@ -1,10 +1,10 @@
 
-<div style="height:100%">
+<div style="height:100%; padding :8px; padding-top: 0px">
     <table class="ws-table" *ngIf="exchange.webSocketMessages">
-        <th style="width: 16px;">
+        <th style="width: 24px;">
             &nbsp;
         </th>
-        <th style="width: 60px; text-align: center">
+        <th style="width: 70px; text-align: center">
             Instant
         </th>
         <th style="width: 50px">
@@ -17,11 +17,11 @@
             Content
         </th>
         <tr *ngFor="let message of model.messages">
-            <td class="text-center">
-                <span *ngIf="message.direction === 'Receive'" class="text-warning">
+            <td class="text-end">
+                <span *ngIf="message.direction === 'Receive'" class="text-warning" title="Received message">
                     <i class="bi bi-box-arrow-in-down-left"></i>
                 </span>
-                <span *ngIf="message.direction === 'Sent'" class="text-primary">
+                <span *ngIf="message.direction === 'Sent'" class="text-teal" title="Sent message">
                     <i class="bi bi-box-arrow-up-right"></i>
                 </span>
             </td>
@@ -37,10 +37,16 @@
                 </span>
             </td>
             <td>
-                {{ message.length }}
+                <span [title]="message.length">{{ message.length | size : 0 }}</span>
             </td>
             <td>
-                {{ message.dataString }}
+                <input type="text" class="form-control" readonly="readonly" *ngIf="message.dataString " [title]="message.dataString"
+                       style="height: 20px !important; width: 100%"
+                        [value]="message.dataString " />
+
+                <span *ngIf="!message.dataString ">
+                    <a href="javascript:;" class="text-info">Dowload content</a>
+                </span>
             </td>
         </tr>
     </table>

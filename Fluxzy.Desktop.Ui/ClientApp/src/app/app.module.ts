@@ -85,6 +85,7 @@ import { WsMessageFormattingResultComponent } from './widgets/exchange-viewer/de
 
 import localeFr from '@angular/common/locales/fr';
 import {registerLocaleData} from "@angular/common";
+import { SizePipe } from './directives/size.pipe';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -156,6 +157,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ApplyTagFormComponent,
         CreateTagComponent,
         WsMessageFormattingResultComponent,
+        SizePipe,
 
 
     ],
