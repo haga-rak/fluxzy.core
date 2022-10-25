@@ -9,21 +9,32 @@ export interface ExchangeStyle {
 
 export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
 
-    if (exchangeInfo && exchangeInfo.pending) {
-        return   {
-            iconClass : ["bi",  "bi-hourglass"],
-            textClass : ["text-primary", "bold"]
-        };
-    }
+
+    if (!exchangeInfo || !exchangeInfo.responseHeader || !exchangeInfo.responseHeader.statusCode){
+
+        if (exchangeInfo.pending){
+
+            return   {
+                iconClass : ["bi",  "bi-arrow-clockwise"],
+                textClass : ["text-teal", "bold"]
+            };
+        }
 
 
-    if (!exchangeInfo || !exchangeInfo.responseHeader || !exchangeInfo.responseHeader.statusCode)
         return   {
             iconClass : ["bi",  "bi-exclamation-triangle-fill"],
             textClass : ["text-danger", "bold"]
         };
+    }
 
 
+
+    if (exchangeInfo.responseHeader.statusCode < 200) {
+        return   {
+            iconClass : ["bi",  "bi-sign-turn-slight-left-fill"],
+            textClass : ["text-teal"]
+        };
+    }
 
     if (exchangeInfo.responseHeader.statusCode < 300) {
         return   {
@@ -35,7 +46,7 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
     if (exchangeInfo.responseHeader.statusCode < 400) {
         return   {
             iconClass : ["bi",  "bi bi-arrow-right-circle-fill"],
-            textClass : ["text-blue"]
+            textClass : ["text-teal"]
         };
     }
 
@@ -52,6 +63,14 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
             textClass : ["text-danger"]
         };
     }
+
+    if (exchangeInfo && exchangeInfo.pending) {
+        return   {
+            iconClass : ["bi",  "bi-hourglass"],
+            textClass : ["text-teal", "bold"]
+        };
+    }
+
 
     return   {
         iconClass : ["bi",  "bi-exclamation-diamond-fill"],

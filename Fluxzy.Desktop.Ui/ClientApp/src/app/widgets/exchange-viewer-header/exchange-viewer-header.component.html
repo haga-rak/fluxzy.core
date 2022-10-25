@@ -2,7 +2,9 @@
 
     <div style="margin-bottom: 8px;border-bottom: 2px solid var(--bs-primary); padding-bottom:6px" class="">
         <ng-container *ngFor="let tab of tabs">
-            <a class="btn" [class]="{'btn-primary' : tab === context.currentTab,'btn-secondary' : tab !== context.currentTab  }"
+            <a class="btn" [class]="{'btn-primary' : tab === context.currentTab,
+            'btn-gray-900' : tab !== context.currentTab
+              }"
                 (click)="context.currentTab = tab"
                 href="javascript:;">
                 {{tab}}

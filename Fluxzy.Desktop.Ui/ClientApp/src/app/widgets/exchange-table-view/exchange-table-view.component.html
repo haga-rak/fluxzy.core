@@ -26,7 +26,9 @@
                         {{ exchangeContainer.exchangeInfo.knownAuthority }}
                         <!-- <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i> -->
                     </div></td>
-                <td class="text-end">{{ exchangeContainer.exchangeInfo.method }}&nbsp;&nbsp;</td>
+                <td class="text-end">
+                    <span class="">{{ exchangeContainer.exchangeInfo.method }}</span>
+                    &nbsp;&nbsp;</td>
                 <td  [title]="exchangeContainer.exchangeInfo.path"  style="overflow: hidden; max-width: 0; white-space: nowrap; text-overflow: ellipsis;">
                     {{ exchangeContainer.exchangeInfo.path }}
                 </td>
@@ -34,7 +36,7 @@
                 <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td>
                 <td [title]="exchangeContainer.exchangeInfo.contentType">
                     <span  style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; ">
-                        {{ exchangeContainer.exchangeInfo.contentType }}
+                        {{ exchangeContainer.exchangeInfo.contentType }}&nbsp;
                     </span>
                 </td>
             </tr>

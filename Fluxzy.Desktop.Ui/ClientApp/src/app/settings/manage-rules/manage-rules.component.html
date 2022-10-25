@@ -68,21 +68,24 @@
                                 <i class="bi bi-pencil-fill"></i>
                             </a>
                         </td>
-                        <td class="text-center">{{ ruleContainer.rule.order}}</td>
+                        <td class="text-center">
+                            <span class="badge btn-gray-300" title="Order of execution. Lower value runs first."> {{ ruleContainer.rule.order}}</span>
+
+                        </td>
                         <td>
 <!--                            <button class="btn btn-secondary btn-outline-success"  (click)="enabledDisabled(ruleContainer)">Enabled</button> &nbsp;-->
-                            <button [disabled]="i === 0"  title="Move up" class="btn btn-outline-primary bg-info" (click)="moveUp(ruleContainer)">
+                            <button [disabled]="i === 0"  title="Move up" class="btn  btn-gray-400" (click)="moveUp(ruleContainer)">
                                 <span  class="material-icons  mi mi-sm">
                                     expand_less
                                 </span>
                             </button>&nbsp;
-                            <button [disabled]="i === ruleContainers.length - 1"  title="Move down" class="btn btn-outline-primary" (click)="moveDown(ruleContainer)">
+                            <button [disabled]="i === ruleContainers.length - 1"  title="Move down" class="btn btn-gray-400" (click)="moveDown(ruleContainer)">
                                 <span  class="material-icons  mi mi-sm">
                                     expand_more
                                 </span>
                             </button>&nbsp;
 <!--                             <button class="btn btn-secondary btn-outline-primary" (click)="editRule(ruleContainer.rule)">Edit</button>&nbsp;-->
-                             <button class="btn btn-secondary btn-outline-danger" (click)="deleteRule(ruleContainer.rule)">Delete</button>
+                             <button class="btn  btn-gray-400 btn-outline-danger" (click)="deleteRule(ruleContainer.rule)">Delete</button>
                         </td>
                     </tr>
                 </table>
