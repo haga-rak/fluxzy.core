@@ -114,7 +114,7 @@ namespace Fluxzy.Clients
             try
             {
                 Span<byte> maxHeader = estimatedHeaderLength < 1024 ? stackalloc byte[estimatedHeaderLength] :
-                    heapBuffer = ArrayPool<byte>.Shared.Rent(estimatedHeaderLength); // TODO :  Hard coded value needs to be retrieved from settings
+                    heapBuffer = ArrayPool<byte>.Shared.Rent(estimatedHeaderLength); 
 
                 var totalReadByte = WriteHttp11(maxHeader, true, true);
 

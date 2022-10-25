@@ -63,7 +63,7 @@ namespace Fluxzy.Core
             {
                 try
                 {
-                    listener.Start(200);
+                    listener.Start(1000);
 
                     boundEndPoints.Add((IPEndPoint) listener.LocalEndpoint);
 

@@ -91,7 +91,6 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                 throw new HPackCodecException($"Provided buffer is not large enough");
             }
         }
-
         public int ReadInt32(ReadOnlySpan<byte> input, int prefixSize, out int  value)
         {
             try
@@ -129,7 +128,6 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                 throw new HPackCodecException($"Provided buffer is not large enough");
             }
         }
-
 
         public int GetStringLength(ReadOnlySpan<byte> input)
         {
@@ -179,8 +177,8 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                     newOffset = stringLength + offset;
                     return res;
-
                 }
+
                 newOffset = stringLength + offset;
                 
                 var decodedLength = _codec.GetDecodedLength(rawString);

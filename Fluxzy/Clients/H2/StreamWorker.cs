@@ -328,7 +328,6 @@ namespace Fluxzy.Clients.H2
 
             try
             {
-                // Span<char> tempBuffer = stackalloc char[Parent.Context.Setting.MaxHeaderSize];
                 Span<char> tempBuffer = byteArray;
 
                 var decoded = Parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
