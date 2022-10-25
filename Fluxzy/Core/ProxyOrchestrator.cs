@@ -269,7 +269,9 @@ namespace Fluxzy.Core
                                     try
                                     {
                                         await exchange.Response.Body.CopyDetailed(
-                                            localConnectionWriteStream, buffer.Buffer, _ => { }, token);
+                                            localConnectionWriteStream, buffer.Buffer, _ =>
+                                            {
+                                            }, token);
 
                                         (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
 

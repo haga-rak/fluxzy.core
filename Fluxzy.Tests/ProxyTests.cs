@@ -297,6 +297,9 @@ namespace Fluxzy.Tests
                 //Assert.StartsWith("HTTP", responseString);
 
                 var exchange = await requestReceived.Task;
+
+                await Task.Delay(5);
+
                 Assert.True(exchange.Complete.IsCompleted);
             }
             finally {
