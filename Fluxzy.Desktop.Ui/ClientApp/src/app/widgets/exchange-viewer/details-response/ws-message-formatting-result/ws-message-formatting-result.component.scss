@@ -1,0 +1,22 @@
+
+.ws-table {
+    width : 100%;
+}
+
+.ws-table th{
+    vertical-align: top;
+    font-weight: 400;
+    color: var(--bs-gray-300);
+}
+
+.ws-table td {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+.ws-table th, .ws-table td {
+    text-align: center;
+}
