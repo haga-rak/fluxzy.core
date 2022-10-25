@@ -57,11 +57,9 @@ namespace Fluxzy
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
                 _tcpConnectionProvider = ITcpConnectionProvider.Default;
-
-            var http1Parser = new Http11Parser();
+            
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default,
-                http1Parser,
                 Writer);
 
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
@@ -70,7 +68,7 @@ namespace Fluxzy
                 Writer, IdProvider);
 
             _proxyOrchestrator = new ProxyOrchestrator(runTimeSetting,
-                new ExchangeBuilder(secureConnectionManager, http1Parser, IdProvider), poolBuilder);
+                new ExchangeBuilder(secureConnectionManager,  IdProvider), poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
                                                          t.Filter is AnyFilter)

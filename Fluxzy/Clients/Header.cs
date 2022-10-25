@@ -57,12 +57,12 @@ namespace Fluxzy.Clients
         
         protected Header(
             ReadOnlyMemory<char> rawHeader, 
-            bool isSecure, Http11Parser parser)
+            bool isSecure)
         {
             _rawHeader = rawHeader;
             HeaderLength = rawHeader.Length; 
 
-            _rawHeaderFields = parser.Read(rawHeader, isSecure, true, false).ToList();
+            _rawHeaderFields = Http11Parser.Read(rawHeader, isSecure, true, false).ToList();
 
             _lookupFields = _rawHeaderFields
                 .ToLookup(t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);

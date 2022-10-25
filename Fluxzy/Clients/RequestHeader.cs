@@ -13,9 +13,8 @@ namespace Fluxzy.Clients
     {
         public RequestHeader(
             ReadOnlyMemory<char> headerContent,
-            bool isSecure,
-            Http11Parser parser)
-            : base(headerContent, isSecure, parser)
+            bool isSecure)
+            : base(headerContent, isSecure)
         {
             Authority = this[Http11Constants.AuthorityVerb].First().Value;
             Path = this[Http11Constants.PathVerb].First().Value;
@@ -78,9 +77,8 @@ namespace Fluxzy.Clients
     {
         public ResponseHeader(
             ReadOnlyMemory<char> headerContent,
-            bool isSecure,
-            Http11Parser parser)
-            : base(headerContent, isSecure, parser)
+            bool isSecure)
+            : base(headerContent, isSecure)
         {
             StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
             ConnectionCloseRequest = HeaderFields.Any(

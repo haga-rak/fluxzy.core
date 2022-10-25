@@ -21,8 +21,6 @@ namespace Fluxzy.Core
 
     public class ConnectionErrorHandler
     {
-        private static readonly Http11Parser Parser = new();
-
         public static bool RequalifyOnResponseSendError(
             Exception ex, 
             Exchange exchange )
@@ -48,8 +46,7 @@ namespace Fluxzy.Core
 
                 exchange.Response.Header = new ResponseHeader(
                     header.AsMemory(),
-                    exchange.Authority.Secure,
-                    Parser);
+                    exchange.Authority.Secure);
 
                 if (DebugContext.EnableDumpStackTraceOn502)
                 {

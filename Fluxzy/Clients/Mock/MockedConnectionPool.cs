@@ -11,14 +11,12 @@ namespace Fluxzy.Clients.Mock
 {
     public class MockedConnectionPool : IHttpConnectionPool
     {
-        private readonly Http11Parser _parser;
         private readonly Authority _authority;
         private readonly PreMadeResponse _preMadeResponse;
         private bool _complete; 
 
-        public MockedConnectionPool(Http11Parser parser, Authority authority, PreMadeResponse preMadeResponse)
+        public MockedConnectionPool( Authority authority, PreMadeResponse preMadeResponse)
         {
-            _parser = parser;
             _authority = authority;
             _preMadeResponse = preMadeResponse;
         }
@@ -60,7 +58,7 @@ namespace Fluxzy.Clients.Mock
             
             exchange.Response.Header = new ResponseHeader(
                 _preMadeResponse.GetFlatH11Header(_authority).AsMemory(), 
-                exchange.Authority.Secure, _parser);
+                exchange.Authority.Secure);
 
             exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
             exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();

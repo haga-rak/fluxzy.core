@@ -77,7 +77,6 @@ namespace Fluxzy.Clients
     internal class ExchangeBuilder
     {
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
-        private readonly Http11Parser _http11Parser;
         private readonly IIdProvider _idProvider;
 
         private static readonly string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
@@ -87,11 +86,9 @@ namespace Fluxzy.Clients
 
         public ExchangeBuilder(
             SecureConnectionUpdater secureConnectionUpdater,
-            Http11Parser http11Parser, 
             IIdProvider idProvider)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
-            _http11Parser = http11Parser;
             _idProvider = idProvider;
         }
 
@@ -116,7 +113,7 @@ namespace Fluxzy.Clients
             Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
                 plainHeaderChars);
 
-            var plainHeader = new RequestHeader(plainHeaderChars, true, _http11Parser);
+            var plainHeader = new RequestHeader(plainHeaderChars, true);
 
             // Classic TLS Request 
             if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase))
@@ -145,7 +142,7 @@ namespace Fluxzy.Clients
                             Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                                 authority, plainHeaderChars, null,
                                 AcceptTunnelResponseString.AsMemory(),
-                                null, false, _http11Parser, 
+                                null, false, 
                                 "HTTP/1.1",
                                 receivedFromProxy), true);
                 }
@@ -163,7 +160,7 @@ namespace Fluxzy.Clients
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, null,
                     AcceptTunnelResponseString.AsMemory(),
-                    null, false, _http11Parser, "HTTP/1.1", receivedFromProxy);
+                    null, false,  "HTTP/1.1", receivedFromProxy);
 
                 exchange.Metrics.CreateCertStart = certStart; 
                 exchange.Metrics.CreateCertEnd = certEnd; 
@@ -216,7 +213,7 @@ namespace Fluxzy.Clients
             Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
                 secureHeaderChars);
 
-            var secureHeader = new RequestHeader(secureHeaderChars, true, _http11Parser);
+            var secureHeader = new RequestHeader(secureHeaderChars, true);
 
             if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
             {

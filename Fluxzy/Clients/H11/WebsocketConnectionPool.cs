@@ -143,7 +143,7 @@ namespace Fluxzy.Clients.H11
                     .GetChars(rsBuffer.Memory.Slice(0, headerBlock.HeaderLength).Span, headerContent.Span);
 
             exchange.Response.Header = new ResponseHeader(
-                headerContent, exchange.Authority.Secure, new Http11Parser());
+                headerContent, exchange.Authority.Secure);
 
 
             await localLink.WriteStream!.WriteAsync(rsBuffer.Buffer, 0, headerBlock.HeaderLength, cancellationToken);

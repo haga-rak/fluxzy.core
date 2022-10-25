@@ -13,12 +13,10 @@ namespace Fluxzy.Clients.H11
 {
     internal class Http11PoolProcessing
     {
-        private readonly Http11Parser _parser;
         private readonly H1Logger _logger;
 
-        public Http11PoolProcessing(Http11Parser parser, H1Logger logger)
+        public Http11PoolProcessing(H1Logger logger)
         {
-            _parser = parser;
             _logger = logger;
         }
         
@@ -74,7 +72,7 @@ namespace Fluxzy.Clients.H11
                 .GetChars(buffer.Memory.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
             
             exchange.Response.Header = new ResponseHeader(
-                headerContent, exchange.Authority.Secure, _parser);
+                headerContent, exchange.Authority.Secure);
 
             _logger.TraceResponse(exchange);
 

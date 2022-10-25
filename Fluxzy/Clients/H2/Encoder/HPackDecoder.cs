@@ -12,7 +12,6 @@ namespace Fluxzy.Clients.H2.Encoder
         private readonly PrimitiveOperation _primitiveOperation;
         private readonly CodecSetting _codecSetting;
         private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
-        private readonly Http11Parser _parser;
 
         private readonly List<HeaderField> _tempEntries = new List<HeaderField>();
 
@@ -30,14 +29,12 @@ namespace Fluxzy.Clients.H2.Encoder
             DecodingContext decodingContext,
             CodecSetting codecSetting = null,
             ArrayPoolMemoryProvider<char> memoryProvider = null,
-            Http11Parser parser = null,
             PrimitiveOperation primitiveOperation = null)
         {
             _decodingContext = decodingContext;
             _primitiveOperation = primitiveOperation ?? new PrimitiveOperation(new HuffmanCodec(HPackDictionary.Instance));
             _codecSetting = codecSetting ?? new CodecSetting();
             _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
-            _parser = parser ?? new Http11Parser();
         }
 
 
@@ -69,7 +66,7 @@ namespace Fluxzy.Clients.H2.Encoder
                     headerContent = headerContent.Slice(readen);
                 }
 
-                return _parser.Write(_tempEntries, buffer);
+                return Http11Parser.Write(_tempEntries, buffer);
             }
             finally
             {
@@ -100,7 +97,7 @@ namespace Fluxzy.Clients.H2.Encoder
                     headerContent = headerContent.Slice(readen);
                 }
 
-                return _parser.Write(_tempEntries, buffer);
+                return Http11Parser.Write(_tempEntries, buffer);
             }
             finally
             {

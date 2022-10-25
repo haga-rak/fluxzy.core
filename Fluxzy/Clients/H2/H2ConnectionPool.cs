@@ -94,8 +94,7 @@ namespace Fluxzy.Clients.H2
                 new StreamContext(
                     Id, authority, setting, _logger,
                     headerEncoder, UpStreamChannel,
-                    _overallWindowSizeHolder,
-                    new Http11Parser()));
+                    _overallWindowSizeHolder));
         }
 
         public int Id { get; }

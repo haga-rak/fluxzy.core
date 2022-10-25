@@ -19,7 +19,6 @@ namespace Fluxzy.Clients.H11
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
-        private readonly Http11Parser _parser;
         private readonly RealtimeArchiveWriter _archiveWriter;
         private readonly SemaphoreSlim _semaphoreSlim;
 
@@ -30,13 +29,11 @@ namespace Fluxzy.Clients.H11
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
             ProxyRuntimeSetting proxyRuntimeSetting, 
-            Http11Parser parser,
             RealtimeArchiveWriter archiveWriter)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
             _proxyRuntimeSetting = proxyRuntimeSetting;
-            _parser = parser;
             _archiveWriter = archiveWriter;
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
@@ -116,7 +113,7 @@ namespace Fluxzy.Clients.H11
                     _logger.Trace(exchange.Id, () => $"New connection obtained: {exchange.Connection.Id}");
                 }
 
-                var poolProcessing = new Http11PoolProcessing(_parser, _logger);
+                var poolProcessing = new Http11PoolProcessing(_logger);
 
                 try
                 {
