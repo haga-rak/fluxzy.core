@@ -57,10 +57,12 @@ namespace Fluxzy.Writers
         {
             var exchangePath = DirectoryArchiveHelper.GetExchangePath(_baseDirectory, exchangeInfo);
 
-            DirectoryArchiveHelper.CreateDirectory(exchangePath); 
+            DirectoryArchiveHelper.CreateDirectory(exchangePath);
 
-            using var fileStream = File.Create(exchangePath);
-            JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions);
+            using (var fileStream = File.Create(exchangePath))
+            {
+                JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions);
+            }
 
             if (exchangeInfo.Tags?.Any() ?? false) {
 

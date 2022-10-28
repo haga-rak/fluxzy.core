@@ -155,6 +155,11 @@ export interface TagUpdateModel
 {
 	name: string;
 }
+export interface TagGlobalApplyModel
+{
+	exchangeIds: number[];
+	tagIdentifiers: string[];
+}
 export interface TemplateToolBarFilterModel
 {
 	quickFilters: Filter[];

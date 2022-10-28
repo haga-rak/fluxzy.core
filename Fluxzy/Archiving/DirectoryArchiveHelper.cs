@@ -11,7 +11,7 @@ namespace Fluxzy
             var fullDir = new FileInfo(fullPath).Directory;
 
             if (fullDir != null)
-                Directory.CreateDirectory(fullDir.FullName); 
+                Directory.CreateDirectory(fullDir.FullName);
         }
 
         internal static string GetExchangePath(string baseDirectory, int exchangeId)

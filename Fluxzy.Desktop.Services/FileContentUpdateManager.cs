@@ -25,7 +25,8 @@ namespace Fluxzy.Desktop.Services
                 .Subscribe();
 
             contentObservable
-                .Do(c => this._currentContentOperationManager = c); 
+                .Do(c => _currentContentOperationManager = c)
+                .Subscribe(); 
         }
 
         public void AddOrUpdate(ConnectionInfo connectionInfo)
@@ -37,8 +38,6 @@ namespace Fluxzy.Desktop.Services
             _forwardMessageManager.Send(connectionInfo);
         }
 
-
-        // TODO : Move this role to another object 
         public void AddOrUpdate(ExchangeInfo exchangeInfo)
         {
             if (_currentContentOperationManager == null)

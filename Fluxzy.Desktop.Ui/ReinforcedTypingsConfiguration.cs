@@ -222,6 +222,9 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<TagUpdateModel>()
                    .ApplyGenericProperties();
+
+            builder.ExportAsInterface<TagGlobalApplyModel>()
+                   .ApplyGenericProperties();
         }
 
         private static void ConfigureFilters(ConfigurationBuilder builder)
