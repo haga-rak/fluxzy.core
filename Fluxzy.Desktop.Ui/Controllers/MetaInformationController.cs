@@ -3,6 +3,7 @@ using Fluxzy.Formatters;
 using Fluxzy.Writers;
 using Microsoft.AspNetCore.Mvc;
 using System.Reactive.Linq;
+using Fluxzy.Misc;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
@@ -14,7 +15,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         private readonly IObservable<RealtimeArchiveWriter?> _archiveWriterObservable;
         private readonly FileContentUpdateManager _fileContentUpdateManager;
 
-        public record TagUpdateModel(string Name); 
+        public record TagUpdateModel(string Name);
+
+        public record TagGlobalApplyModel(int[] ExchangeIds, Guid[] TagIdentifiers); 
+
 
         public record CommentUpdateModel(string Comment, int[] ExchangeIds); 
 
@@ -88,6 +92,33 @@ namespace Fluxzy.Desktop.Ui.Controllers
                          .Select(i => archiveReader.ReadExchange(i)).Where(t => t != null)) {
 
                 exchange!.Tags.Add(tag);
+                archiveWriter.Update(exchange, CancellationToken.None);
+
+                _fileContentUpdateManager.AddOrUpdate(exchange);
+            }
+
+            return true; 
+        }
+
+
+        [HttpPost("tag/{tagIdentifier}")]
+        public async Task<ActionResult<bool>> GlobalApplyTag(TagGlobalApplyModel model)
+        {
+            var archiveReader = (await _archiveReaderProvider.Get())!;
+            var archiveWriter = (await _archiveWriterObservable.FirstAsync())!;
+            var metaInformation = archiveReader.ReadMetaInformation();
+
+            var tags = metaInformation.Tags
+                                      .Where(t => model.TagIdentifiers.Contains(t.Identifier))
+                                      .ToList(); 
+            
+            foreach (var exchange in model.ExchangeIds.Distinct()
+                                     .Select(i => archiveReader.ReadExchange(i))
+                                     .Where(t => t != null)) {
+
+                exchange.Tags.Clear();
+                exchange.Tags.AddRange(tags);
+
                 archiveWriter.Update(exchange, CancellationToken.None);
 
                 _fileContentUpdateManager.AddOrUpdate(exchange);
