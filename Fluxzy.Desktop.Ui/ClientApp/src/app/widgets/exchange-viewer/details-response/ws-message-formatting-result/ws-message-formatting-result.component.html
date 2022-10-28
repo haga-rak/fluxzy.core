@@ -45,7 +45,7 @@
                         [value]="message.dataString " />
 
                 <span *ngIf="!message.dataString ">
-                    <a href="javascript:;" class="text-info">Download content</a>
+                    <a href="javascript:;" class="text-info" (click)="saveWebSocketBody(message)"> Download content</a>
                 </span>
             </td>
         </tr>
