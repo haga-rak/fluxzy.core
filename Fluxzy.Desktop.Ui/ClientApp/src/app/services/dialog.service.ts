@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import {filter, finalize, map, Observable, Subject, switchMap, take, tap} from 'rxjs';
-import {Action, Filter, Rule, Tag} from '../core/models/auto-generated';
+import {Action, CommentUpdateModel, Filter, Rule, Tag} from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter-edit.component';
 import { GlobalSettingComponent } from '../settings/global-setting/global-setting.component';
@@ -13,6 +13,7 @@ import {RulePreCreateComponent} from "../settings/rule-forms/rule-pre-create/rul
 import {RuleEditComponent} from "../settings/rule-forms/rule-edit/rule-edit.component";
 import {CreateTagComponent} from "../settings/tags/create-tag/create-tag.component";
 import {WaitDialogComponent} from "../shared/wait-dialog/wait-dialog.component";
+import {CommentApplyComponent} from "../shared/comment-apply/comment-apply.component";
 
 @Injectable({
     providedIn: 'root',
@@ -274,8 +275,6 @@ export class DialogService {
     }
 
     public openWaitDialog(message : string) : void {
-        const subject = new Subject<any>() ;
-
         const config: ModalOptions = {
             class: 'little-down modal-dialog-small',
             initialState: {
@@ -296,5 +295,32 @@ export class DialogService {
             this.waitModalRef.hide();
             this.waitModalRef = null ;
         }
+    }
+
+
+    public openCommentApplyDialog(comment : string, exchangeIds : number[]) : Observable<CommentUpdateModel | null> {
+        const subject = new Subject<CommentUpdateModel>() ;
+        const callBack = (f : CommentUpdateModel | null) => {  subject.next(f); subject.complete()};
+        const commentUpdateModel  : CommentUpdateModel = {
+            comment,
+            exchangeIds
+        }
+
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                class: 'little-down modal-dialog-small',
+                commentUpdateModel,
+                callBack
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.waitModalRef = this.modalService.show(
+            CommentApplyComponent,
+            config
+        );
+
+        return subject.asObservable().pipe(take(1));
     }
 }

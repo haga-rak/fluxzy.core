@@ -1,0 +1,25 @@
+
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        Apply comment
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 50px">
+    <div>
+
+        <p>
+            Type the comment text to apply to {{ commentUpdateModel.exchangeIds.length }} exchanges.
+        </p>
+
+        <div class="">
+            <textarea style="height : 150px" class="form-control" [(ngModel)]="commentUpdateModel.comment"></textarea>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="save()">Save</button>
+    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+</div>

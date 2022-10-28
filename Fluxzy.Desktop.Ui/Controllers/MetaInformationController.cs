@@ -1,4 +1,5 @@
-﻿using Fluxzy.Formatters;
+﻿using Fluxzy.Desktop.Services;
+using Fluxzy.Formatters;
 using Fluxzy.Writers;
 using Microsoft.AspNetCore.Mvc;
 using System.Reactive.Linq;
@@ -11,16 +12,18 @@ namespace Fluxzy.Desktop.Ui.Controllers
     {
         private readonly IArchiveReaderProvider _archiveReaderProvider;
         private readonly IObservable<RealtimeArchiveWriter?> _archiveWriterObservable;
+        private readonly FileContentUpdateManager _fileContentUpdateManager;
 
         public record TagUpdateModel(string Name); 
 
         public record CommentUpdateModel(string Comment, int[] ExchangeIds); 
 
         public MetaInformationController(IArchiveReaderProvider archiveReaderProvider, 
-            IObservable<RealtimeArchiveWriter?> archiveWriterObservable)
+            IObservable<RealtimeArchiveWriter?> archiveWriterObservable, FileContentUpdateManager fileContentUpdateManager)
         {
             _archiveReaderProvider = archiveReaderProvider;
             _archiveWriterObservable = archiveWriterObservable;
+            _fileContentUpdateManager = fileContentUpdateManager;
         }
 
         [HttpGet()]
@@ -86,6 +89,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
                 exchange!.Tags.Add(tag);
                 archiveWriter.Update(exchange, CancellationToken.None);
+
+                _fileContentUpdateManager.AddOrUpdate(exchange);
             }
 
             return true; 
@@ -102,6 +107,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
                 exchange!.Comment = comment.Comment; 
                 archiveWriter.Update(exchange, CancellationToken.None);
+
+                _fileContentUpdateManager.AddOrUpdate(exchange);
             }
 
             return true; 

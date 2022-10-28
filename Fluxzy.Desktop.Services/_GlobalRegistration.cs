@@ -23,6 +23,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<SystemProxyStateControl>();
             collection.AddSingleton<ActiveViewFilterManager>();
             collection.AddSingleton<FilteredExchangeManager>();
+            collection.AddSingleton<FileContentUpdateManager>();
             collection.AddSingleton<ToolBarFilterProvider>();
             collection.AddSingleton<TemplateToolBarFilterProvider>();
             collection.AddSingleton<ForwardMessageManager>();

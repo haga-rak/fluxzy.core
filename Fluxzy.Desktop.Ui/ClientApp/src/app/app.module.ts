@@ -87,6 +87,7 @@ import localeFr from '@angular/common/locales/fr';
 import {registerLocaleData} from "@angular/common";
 import { SizePipe } from './directives/size.pipe';
 import { WaitDialogComponent } from './shared/wait-dialog/wait-dialog.component';
+import { CommentApplyComponent } from './shared/comment-apply/comment-apply.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -160,6 +161,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         WsMessageFormattingResultComponent,
         SizePipe,
         WaitDialogComponent,
+        CommentApplyComponent,
 
 
     ],
