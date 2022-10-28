@@ -6,7 +6,7 @@
 
         public ResponseTextContentResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
-            if (context.IsTextContent && !string.IsNullOrWhiteSpace(context.RequestBodyText))
+            if (context.IsTextContent && !string.IsNullOrWhiteSpace(context.ResponseBodyText))
                 return new ResponseTextContentResult(ResultTitle);
 
             return null; 
