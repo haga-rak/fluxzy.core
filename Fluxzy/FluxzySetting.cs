@@ -101,8 +101,6 @@ namespace Fluxzy
         public List<Rule> AlterationRules { get; set; } = new();
 
 
-        public FluxzyFilterSetting FilterSetting { get; set; } = new(); 
-
         /// <summary>
         ///     Set hosts that bypass the proxy
         /// </summary>
