@@ -63,8 +63,8 @@ namespace Fluxzy.Desktop.Services
 
             if (archiveReader.HasResponseBody(exchange.Id))
                 yield return new ContextMenuAction("download-response-body", "Save response body"); 
-
         }
+        
     }
 
     public class ContextMenuFilterProvider
@@ -89,7 +89,7 @@ namespace Fluxzy.Desktop.Services
                 };
             }
 
-            if (Uri.TryCreate(exchange.FullUrl, UriKind.Absolute,  out var absoluteUri)) {
+            if (Uri.TryCreate(exchange.FullUrl, UriKind.Absolute,  out var absoluteUri) && absoluteUri.AbsolutePath.Length > 3) {
                 yield return new PathFilter(absoluteUri.AbsolutePath, StringSelectorOperation.Contains); 
             }
 
@@ -99,6 +99,25 @@ namespace Fluxzy.Desktop.Services
                 if (contentTypeHeader != null) {
                     yield return new ResponseHeaderFilter(contentTypeHeader, "Content-Type"); 
                 }
+            }
+
+            if (!string.IsNullOrWhiteSpace(exchange.Comment)) {
+                yield return new CommentSearchFilter(exchange.Comment!) {
+                    Description = $"Comment contains  «{exchange.Comment}»"
+                };
+
+                yield return new HasCommentFilter(); 
+            }
+
+            if (exchange.Tags.Any()) {
+                yield return new HasTagFilter();
+
+                foreach (var tag in exchange.Tags.Take(5)) {
+                    yield return new TagContainsFilter(tag) {
+                        Description = $"Has tag «{tag.Value}»"
+                    }; 
+                }
+
             }
         }
     }

@@ -20,7 +20,7 @@ namespace Fluxzy.Desktop.Services.Filters
                 Group = "Response filter";
             }
 
-            Label = filter.GenericName;
+            Label = filter.FriendlyName;
 
             Filter = filter;
         }

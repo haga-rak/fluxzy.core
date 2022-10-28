@@ -48,6 +48,6 @@ namespace Fluxzy.Rules.Filters
 
         public string?  ExplicitShortName { get; set; }
 
-        public override string GenericName => "Filter collection";
+        public virtual string GenericName => "Filter collection";
     }
 }

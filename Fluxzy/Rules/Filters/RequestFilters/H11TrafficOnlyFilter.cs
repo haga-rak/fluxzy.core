@@ -17,7 +17,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public override string GenericName => "HTTP/1.1 only";
+        public virtual string GenericName => "HTTP/1.1 only";
 
         public override string ShortName => "h11";
 

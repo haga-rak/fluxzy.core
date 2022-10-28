@@ -12,7 +12,7 @@ namespace Fluxzy.Rules.Filters
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 
-        public override string GenericName => "Block all";
+        public virtual string GenericName => "Block all";
 
         public override bool PreMadeFilter => true;
     }

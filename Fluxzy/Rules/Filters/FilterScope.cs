@@ -8,6 +8,8 @@ namespace Fluxzy.Rules.Filters
         RequestHeaderReceivedFromClient,
         RequestBodyReceivedFromClient,
         ResponseHeaderReceivedFromRemote,
-        ResponseBodyReceivedFromRemote
+        ResponseBodyReceivedFromRemote,
+
+        OutOfScope = 99999
     }
 }
