@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Clients.H11;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Microsoft.AspNetCore.Mvc;
@@ -45,6 +46,16 @@ namespace Fluxzy.Desktop.Ui.Controllers
             [FromQuery(Name = "decode")] bool decode = true)
         {
             return await action.Do(exchangeId,decode, body.FileName);
+        }
+
+
+        [HttpPost("{exchangeId}/save-ws-body/{direction}/{messageId}")]
+        public async Task<ActionResult<bool>> SaveWsBody(
+            [FromServices] SaveWebSocketBodyAction action,
+            [FromBody] SaveFileViewModel body,
+            int exchangeId, WsMessageDirection direction, int mesageId)
+        {
+            return await action.Do(exchangeId, mesageId, direction, body.FileName);
         }
     }
 }
