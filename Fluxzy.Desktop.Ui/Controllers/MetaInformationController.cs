@@ -4,6 +4,7 @@ using Fluxzy.Writers;
 using Microsoft.AspNetCore.Mvc;
 using System.Reactive.Linq;
 using Fluxzy.Misc;
+using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
@@ -23,7 +24,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public record CommentUpdateModel(string Comment, int[] ExchangeIds); 
 
         public MetaInformationController(IArchiveReaderProvider archiveReaderProvider, 
-            IObservable<RealtimeArchiveWriter?> archiveWriterObservable, FileContentUpdateManager fileContentUpdateManager)
+            IObservable<RealtimeArchiveWriter?> archiveWriterObservable,
+            FileContentUpdateManager fileContentUpdateManager)
         {
             _archiveReaderProvider = archiveReaderProvider;
             _archiveWriterObservable = archiveWriterObservable;
@@ -40,7 +42,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("tag")]
-        public async Task<ActionResult<Tag>> CreateTag(TagUpdateModel model)
+        public async Task<ActionResult<Tag>> CreateTag(TagUpdateModel model, [FromServices] IObservable<FileState> filestate)
         {
             var archiveReader = (await _archiveReaderProvider.Get())!;
             var archiveWriter = (await _archiveWriterObservable.FirstAsync())!; 
@@ -49,16 +51,17 @@ namespace Fluxzy.Desktop.Ui.Controllers
             var tag = new Tag(Guid.NewGuid(), model.Name);
 
             metaInformation.Tags = metaInformation.Tags;
-
             metaInformation.Tags.Add(tag);
 
             archiveWriter.UpdateTags(metaInformation.Tags);
+            
+            (await filestate.FirstAsync()).Owner.SetUnsaved(true);
 
             return tag;
         }
 
         [HttpPatch("tag/{tagIdentifier}")]
-        public async Task<ActionResult<bool>> UpdateTag(Guid tagIdentifier, TagUpdateModel model)
+        public async Task<ActionResult<bool>> UpdateTag(Guid tagIdentifier, TagUpdateModel model, [FromServices] IObservable<FileState> filestate)
         {
             var archiveReader = (await _archiveReaderProvider.Get())!;
             var archiveWriter = (await _archiveWriterObservable.FirstAsync())!; 
@@ -71,6 +74,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
             metaInformation.Tags.Add(new Tag(tag.Identifier, model.Name));
 
             archiveWriter.UpdateTags(metaInformation.Tags);
+
+            (await filestate.FirstAsync()).Owner.SetUnsaved(true);
 
             return true; 
         }
@@ -109,7 +114,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             var metaInformation = archiveReader.ReadMetaInformation();
 
             var tags = metaInformation.Tags
-                                      .Where(t => model.TagIdentifiers.Contains(t.Identifier))
+                                      .Where(t => model.TagIdentifiers.Any(r => r == t.Identifier))
                                       .ToList(); 
             
             foreach (var exchange in model.ExchangeIds.Distinct()

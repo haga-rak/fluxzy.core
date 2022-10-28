@@ -110,7 +110,7 @@ export class DialogService {
 
         this.bsModalRef.content.closeBtnName = 'Close';
 
-        return subject.asObservable();
+        return subject.asObservable().pipe(take(1));;
     }
 
     public openFilterEdit(filter: Filter, isEdit : boolean = true): Observable<Filter | null> {
@@ -134,7 +134,7 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
-        return subject.asObservable();
+        return subject.asObservable().pipe(take(1));;
     }
 
     public openFilterCreate() : Observable<Filter | null> {
@@ -164,7 +164,7 @@ export class DialogService {
                 })
             ).subscribe();
 
-        return subject.asObservable();
+        return subject.asObservable().pipe(take(1));;
     }
 
     public openFilterPreCreate(): Observable<Filter | null> {
@@ -186,7 +186,7 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
-        return subject.asObservable();
+        return subject.asObservable().pipe(take(1));;
     }
 
     public openRuleCreate() : Observable<Rule | null> {
@@ -219,7 +219,7 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
-        return subject.asObservable();
+        return subject.asObservable().pipe(take(1));;
     }
 
     public openRuleCreateFromAction(action : Action) : Observable<Rule | null> {
@@ -251,7 +251,7 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
-        return subject.asObservable();
+        return subject.asObservable().pipe(take(1));;
     }
 
     public openTagCreate() : Observable<Tag | null> {
@@ -260,6 +260,7 @@ export class DialogService {
         const callBack = (f : Tag | null) => {  subject.next(f); subject.complete()};
 
         const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
             initialState: {
                 callBack,
             },
@@ -272,7 +273,7 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
-        return subject.asObservable();
+        return subject.asObservable().pipe(take(1));;
     }
 
     public openWaitDialog(message : string) : void {

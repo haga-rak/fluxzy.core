@@ -16,9 +16,34 @@
 
         <div class="">
             <div *ngIf="tags">
-                <select class="form-select" multiple="multiple" *ngIf="tags.length" [(ngModel)]="model.tagIdentifiers">
-                    <option *ngFor="let tag of tags" [value]="tag.identifier">{{ tag.value }}</option>
-                </select>
+
+                <div>Tags applied to this exchange</div>
+                <div class="tag-list-container">
+                    <span *ngFor="let tag of getSelectedTags()" >
+                        <span>
+                            <a class="btn btn-gray-400"  href="javascript:;" (click)="unSelect(tag.identifier)">
+                                {{ tag.value }}
+                            </a>&nbsp;
+                        </span>
+                    </span>
+                    <span *ngIf="this.model.tagIdentifiers.length === 0">
+                        <i>No tag selected</i>
+                    </span>
+                </div>
+                <div>Available tag on file</div>
+                <div class="tag-list-container">
+                    <span *ngFor="let tag of getUnSelectedTags()" >
+                        <span>
+                            <a class="btn btn-gray-400" href="javascript:;" (click)="select(tag.identifier)">
+                                {{ tag.value }}
+                            </a>&nbsp;
+                        </span>
+                    </span>
+                    <span  *ngIf="getUnSelectedTags().length === 0">
+                        Not tag available
+                    </span>
+                </div>
+
                 <p>
                     <span *ngIf="tags.length === 0">No existing tag was found on file. </span>
                     <span>
