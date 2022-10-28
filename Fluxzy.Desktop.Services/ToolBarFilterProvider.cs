@@ -1,7 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;

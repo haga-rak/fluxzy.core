@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -11,34 +12,36 @@ using Xunit;
 
 namespace Fluxzy.Tests
 {
-    public class Http2_SingleCallUrl
+    public class Http2ClientHandler
     {
-        [Fact]
-        public async Task Get_IIS()
+        public static IEnumerable<object[]> GetHttpMethods
         {
-            using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            get
+            {
+                int[] checkLength = new[] { 0, 152, 12464, 150002 };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ"
-            );
-
-            var response = await httpClient.SendAsync(requestMessage);
-
-            Assert.True(response.IsSuccessStatusCode);
+                foreach (var length in checkLength)
+                {
+                    yield return new object[] { HttpMethod.Get, length };
+                    yield return new object[] { HttpMethod.Post, length };
+                    yield return new object[] { HttpMethod.Put, length };
+                    yield return new object[] { HttpMethod.Patch, length };
+                }
+            }
         }
+        
 
-        [Fact]
-        public async Task Get_Abc_Test()
+        [Theory]
+        [MemberData(nameof(GetHttpMethods))]
+        public async Task Check_Global_Health(HttpMethod method, int length)
         {
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
             
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+            var requestMessage = new HttpRequestMessage(method,
                 $"{TestConstants.Http2Host}/global-health-check?dsf=sdfs&dsf=3");
 
-            await using var randomStream = new RandomDataStream(48, 23632, true);
+            await using var randomStream = new RandomDataStream(48, length, true);
             await using var hashedStream = new HashedStream(randomStream);
 
             requestMessage.Content = new StreamContent(hashedStream);
@@ -46,49 +49,26 @@ namespace Fluxzy.Tests
 
             using var response = await httpClient.SendAsync(requestMessage);
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
+            Assert.True(response.IsSuccessStatusCode);
         }
 
 
-        [Fact]
-        public async Task Get_Error_Case()
+        [Theory]
+        [InlineData("https://fr.wiktionary.org/w/skins/Vector/resources/common/images/arrow-down.svg?9426f")]
+        [InlineData("https://discord.com/assets/afe2828ad8a44f9ed87d.js")]
+        [InlineData("https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js")]
+        [InlineData("https://services.gfe.nvidia.com/GFE/v1.0/dao/x64")]
+        [InlineData("https://feedback.adrecover.com/ARWebService/checkCID")]
+        [InlineData("https://registry.2befficient.io:40300/ip")]
+        [InlineData("https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ")]
+        public async Task Get_Error_Case(string url)
         {
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://fr.wiktionary.org/w/skins/Vector/resources/common/images/arrow-down.svg?9426f"
-            );
-
-            var response = await httpClient.SendAsync(requestMessage);
-
-            Assert.True(response.IsSuccessStatusCode);
-        }
-        [Fact]
-        public async Task Get_Error_Case_Discord()
-        {
-            using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
-
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://discord.com/assets/afe2828ad8a44f9ed87d.js"
-            );
-
-            var response = await httpClient.SendAsync(requestMessage);
-
-            Assert.True(response.IsSuccessStatusCode);
-        }
-
-        [Fact]
-        public async Task Get_Error_Case_Ws_Static()
-        {
-            using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
-
-            var requestMessage = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"
+                url
             );
 
             var response = await httpClient.SendAsync(requestMessage);
@@ -96,77 +76,7 @@ namespace Fluxzy.Tests
 
             Assert.True(response.IsSuccessStatusCode);
         }
-
-        [Fact]
-        public async Task Get_Error_Case_Nvidia()
-        {
-            using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
-
-            var requestMessage = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://services.gfe.nvidia.com/GFE/v1.0/dao/x64"
-            );
-
-            var response = await httpClient.SendAsync(requestMessage);
-            var responseData = await response.Content.ReadAsStringAsync();
-
-            Assert.True(response.IsSuccessStatusCode);
-        }
-
-        // [Fact]
-        public async Task Get_Error_Case_LargeMaxFrameSize()
-        {
-            using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
-
-            var requestMessage = new HttpRequestMessage(
-                HttpMethod.Post,
-                "https://beacons.gcp.gvt2.com/domainreliability/upload"
-            );
-
-            requestMessage.Content = new StreamContent(new MemoryStream(new byte[512 * 1024]));
-
-            var response = await httpClient.SendAsync(requestMessage);
-            var responseData = await response.Content.ReadAsStringAsync();
-
-            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
-        }
-
-        [Fact]
-        public async Task Get_Error_Case_Ws_Analytics_Valiz()
-        {
-            using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
-
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://analytics.valiuz.com/"
-            );
-
-            var response = await httpClient.SendAsync(requestMessage);
-            var responseData = await response.Content.ReadAsStringAsync();
-
-            Assert.True(response.StatusCode == HttpStatusCode.NotFound);
-        }
-
-        [Fact]
-        public async Task Get_Error_Case_Ws_Ad_recover()
-        {
-            using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
-
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://feedback.adrecover.com/ARWebService/checkCID"
-            );
-
-            var response = await httpClient.SendAsync(requestMessage);
-            var responseData = await response.Content.ReadAsStringAsync();
-
-            Assert.True(response.StatusCode == HttpStatusCode.OK);
-        }
-
+        
         [Fact]
         public async Task Get_Control_Single_Headers()
         {
@@ -184,24 +94,7 @@ namespace Fluxzy.Tests
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
         }
-
-        [Fact]
-        public async Task Get_With_200_Simple()
-        {
-            using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
-
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://registry.2befficient.io:40300/ip"
-            );
-            
-            var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            Assert.True(response.IsSuccessStatusCode);
-            AssertHelpers.ControlHeaders(contentText, requestMessage);
-        }
+        
 
         [Fact]
         public async Task Get_With_204_No_Body()
