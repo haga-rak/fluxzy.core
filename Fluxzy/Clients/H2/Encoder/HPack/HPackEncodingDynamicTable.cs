@@ -38,7 +38,6 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                     return evictedSize;
                 }
                 
-
                 var a = _entries.Remove(i);
                 var b = _reverseEntries.Remove(tableEntry);
 
