@@ -6,8 +6,8 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 {
     public class HPackEncodingDynamicTable
     {
-        private readonly Dictionary<int, HeaderField> _entries = new Dictionary<int, HeaderField>();
-        private readonly Dictionary<HeaderField, int> _reverseEntries = new Dictionary<HeaderField, int>(new TableEntryComparer()); // only used for evicting
+        private readonly Dictionary<int, HeaderField> _entries = new();
+        private readonly Dictionary<HeaderField, int> _reverseEntries = new(new TableEntryComparer()); // only used for evicting
 
         private int _currentMaxSize;
         private int _currentSize;
@@ -37,9 +37,18 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                     _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
                     return evictedSize;
                 }
+                
 
-                _entries.Remove(i);
-                _reverseEntries.Remove(tableEntry);
+                var a = _entries.Remove(i);
+                var b = _reverseEntries.Remove(tableEntry);
+
+                if (a != b)
+                {
+                    //var tableEntryStr = $"{tableEntry.Name} {tableEntry.Value}";
+                    //var av = string.Join("\r\n", _entries.OrderBy(r => r.Value.Name.ToString()).Select(t => $"{t.Value.Name}\t\t{t.Value.Value}"));
+                    //var bv = string.Join("\r\n", _reverseEntries.OrderBy(r => r.Key.Name.ToString()).Select(t => $"{t.Key.Name}\t\t{t.Key.Value}"));
+                    
+                }
 
                 _currentSize -= tableEntry.Size;
                 evictedSize += tableEntry.Size;
@@ -98,6 +107,12 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             _currentSize += entry.Size;
 
             _internalIndex += 1;
+
+            if (_entries.ContainsKey(_internalIndex) != _reverseEntries.ContainsKey(entry))
+            {
+
+            }
+
 
             _entries[_internalIndex] = entry;
             _reverseEntries[entry] = _internalIndex;

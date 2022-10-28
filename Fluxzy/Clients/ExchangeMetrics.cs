@@ -30,6 +30,8 @@ namespace Fluxzy.Clients
 
         public DateTime CreateCertEnd { get; set; }
 
+        public DateTime ErrorInstant { get; set; }
+
         public long TotalSent { get; set; }
 
         public long TotalReceived { get; set; }

@@ -264,6 +264,11 @@ namespace Fluxzy.Clients.H2
         {
             _goAwayInitByRemote = true;
 
+            if (frame.ErrorCode == H2ErrorCode.CompressionError)
+            {
+                Console.WriteLine("Compression error");
+            }
+
             if (frame.ErrorCode != H2ErrorCode.NoError)
                 throw new H2Exception($"Had to goaway {frame.ErrorCode}", frame.ErrorCode);
         }
@@ -286,6 +291,10 @@ namespace Fluxzy.Clients.H2
                 _loopEndException = ex;
             }
 
+            if (Authority.HostName.EndsWith("casalemedia.com"))
+            {
+
+            }
             _connectionCancellationTokenSource?.Cancel();
 
             if (releaseChannelItems && _writerChannel != null) {

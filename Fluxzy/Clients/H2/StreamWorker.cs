@@ -76,8 +76,15 @@ namespace Fluxzy.Clients.H2
 
             RemoteWindowSize?.Dispose();
 
-            _headerReceivedSemaphore.Release();
-            _headerReceivedSemaphore.Dispose();
+            try
+            {
+                _headerReceivedSemaphore.Release();
+                _headerReceivedSemaphore.Dispose();
+            }
+            catch (SemaphoreFullException)
+            {
+                // We do nothing here
+            }
 
             _logger.Trace(StreamIdentifier, ".... disposed");
         }
@@ -349,6 +356,10 @@ namespace Fluxzy.Clients.H2
         {
             SendWindowUpdate(Parent.Context.Setting.Local.WindowSize, StreamIdentifier);
 
+            Stopwatch watch = new Stopwatch();
+            
+            watch.Start();
+
             try
             {
                 _logger.Trace(StreamIdentifier, "Before semaphore ");
@@ -360,6 +371,7 @@ namespace Fluxzy.Clients.H2
             }
             catch (OperationCanceledException)
             {
+                var elapsed = watch.Elapsed; 
                 _logger.Trace(StreamIdentifier, $"Received no header, cancelled by caller {StreamIdentifier}");
                 throw new IOException($"Received no header, cancelled by caller {StreamIdentifier} / {Parent.Context.ConnectionId} / {cp.IsDisposed}");
             }
