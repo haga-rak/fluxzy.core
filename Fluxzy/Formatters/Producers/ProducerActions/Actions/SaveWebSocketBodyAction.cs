@@ -10,18 +10,24 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
 {
     public class SaveWebSocketBodyAction
     {
-        private readonly IArchiveReader _archiverReader;
+        private readonly IArchiveReaderProvider _archiveReaderProvider;
 
-        public SaveWebSocketBodyAction(IArchiveReader archiverReader)
+        public SaveWebSocketBodyAction(IArchiveReaderProvider archiveReaderProvider)
         {
-            _archiverReader = archiverReader;
+            _archiveReaderProvider = archiveReaderProvider;
         }
 
         public async Task<bool> Do(int exchangeId, int messageId, WsMessageDirection direction, string filePath)
         {
+            var archiverReader = await _archiveReaderProvider.Get();
+
+            if (archiverReader == null)
+                return false; 
+
+
             if (direction == WsMessageDirection.Sent) {
                 using var stream =
-                    _archiverReader.GetRequestWebsocketContent(exchangeId, messageId);
+                    archiverReader.GetRequestWebsocketContent(exchangeId, messageId);
 
                 if (stream == null)
                     return false;
@@ -34,7 +40,7 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
 
             if (direction == WsMessageDirection.Receive) {
                 using var stream =
-                    _archiverReader.GetRequestWebsocketContent(exchangeId, messageId);
+                    archiverReader.GetRequestWebsocketContent(exchangeId, messageId);
 
                 if (stream == null)
                     return false;

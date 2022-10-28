@@ -167,6 +167,12 @@ export class ApiService {
         }).pipe(take(1));
     }
 
+    public exchangeSaveWebSocketBody(exchangeId: number, messageId : number, fileName : string, direction : string) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/save-ws-body/${direction}/${messageId}`, {
+            fileName : fileName
+        }).pipe(take(1));
+    }
+
     public exchangeSaveMultipartContent(exchangeId: number, fileName: string, model : MultipartItem) : Observable<FormattingResult[]> {
         let payload : SaveFileMultipartActionModel = {
             filePath : fileName,
