@@ -67,7 +67,7 @@ namespace Fluxzy.Desktop.Services
 
             var openFileInfo = new FileInfo(fileName);
 
-            using var fileStream = openFileInfo.OpenRead();
+            await using var fileStream = openFileInfo.OpenRead();
 
             await _directoryPackager.Unpack(fileStream, directoryInfo.FullName);
 

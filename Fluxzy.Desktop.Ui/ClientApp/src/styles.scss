@@ -285,7 +285,7 @@ a {
 }
 
 .text-teal {
-    color : var(--bs-teal);
+    color : var(--bs-teal) !important;
 }
 
 .little-down {
@@ -297,4 +297,10 @@ a {
 
     min-width: 600px !important;
     width: 600px  !important;
+}
+
+
+a.auto-color {
+    color: var(--bs-gray-300);
+    text-decoration: none;
 }

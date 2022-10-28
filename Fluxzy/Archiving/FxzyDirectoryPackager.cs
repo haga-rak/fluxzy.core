@@ -42,7 +42,7 @@ namespace Fluxzy
             IEnumerable<ConnectionInfo> connectionInfos)
         {
             var fileInfos = new List<FileInfo>();
-
+            
             foreach (var exchangeInfo in exchangeInfos)
             {
                 fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetExchangePath(directory, exchangeInfo)));

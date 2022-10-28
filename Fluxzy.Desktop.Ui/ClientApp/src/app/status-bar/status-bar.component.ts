@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {tap} from 'rxjs';
+import {filter, switchMap, take, tap} from 'rxjs';
 import {ExchangeState, FileState, UiState} from '../core/models/auto-generated';
 import {ApiService} from '../services/api.service';
 import {ExchangeManagementService} from '../services/exchange-management.service';
@@ -7,6 +7,7 @@ import {ExchangeSelectionService} from '../services/exchange-selection.service';
 import {UiStateService} from '../services/ui.service';
 import {StatusBarService} from "../services/status-bar.service";
 import {DialogService} from "../services/dialog.service";
+import {SystemCallService} from "../core/services/system-call.service";
 
 @Component({
     selector: 'app-status-bar',
@@ -26,7 +27,8 @@ export class StatusBarComponent implements OnInit {
         private selectionService: ExchangeSelectionService,
         private apiService: ApiService,
         private statusBarService : StatusBarService,
-        private dialogService : DialogService
+        private dialogService : DialogService,
+        private systemCallService : SystemCallService
     ) {
     }
 
@@ -49,7 +51,9 @@ export class StatusBarComponent implements OnInit {
 
         this.uiStateService.getUiState()
             .pipe(
-                tap(u => this.uiState = u)
+                tap(u => this.uiState = u),
+
+                tap(_ => this.cdr.detectChanges()),
             ).subscribe();
 
         this.uiStateService.getFileState()
@@ -68,6 +72,27 @@ export class StatusBarComponent implements OnInit {
 
     public decryptTrigger() : void {
         this.dialogService.openWaitDialog("Its me its me");
+
+    }
+
+    fileClick(toCopy : string) {
+        this.systemCallService.setClipBoard(toCopy);
+    }
+
+    selectFilter() {
+
+        this.dialogService.openFilterCreate()
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                tap(t => t.description = null),
+                switchMap(t => this.apiService.filterValidate(t)),
+                switchMap(t => this.apiService.filterApplyToview(t))
+            ).subscribe() ;
+    }
+
+    selectRule() {
+        this.dialogService.openManageRules();
 
     }
 }
