@@ -6,9 +6,9 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy
 {
-    public class GlobalArchiveOption
+    public static class GlobalArchiveOption
     {
-        public static JsonSerializerOptions JsonSerializerOptions => new()
+        public static JsonSerializerOptions JsonSerializerOptions { get;  } = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
