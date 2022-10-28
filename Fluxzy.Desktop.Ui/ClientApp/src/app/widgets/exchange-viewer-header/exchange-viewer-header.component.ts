@@ -2,7 +2,7 @@ import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core'
 import {ExchangeInfo, TagGlobalApplyModel} from '../../core/models/auto-generated';
 import {StatusBarService} from "../../services/status-bar.service";
 import {DialogService} from "../../services/dialog.service";
-import {filter, switchMap, tap} from 'rxjs';
+import {filter, switchMap, take, tap} from 'rxjs';
 import {ApiService} from "../../services/api.service";
 
 @Component({
@@ -34,10 +34,14 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
             tagIdentifiers : this.exchange.tags.map(t => t.identifier)
         } ;
 
+        this.dialogService.openTagApplyDialog(model)
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(t => this.apiService.metaInfoGlobalApply(t)),
+                tap(_ => this.statusBarService.addMessage('Tag applied', 1000))
 
-        this.dialogService.openTagApplyDialog(model  )
-
-        this.statusBarService.addMessage('Marked !!', 1000);
+            ).subscribe();
     }
 
     public comment() : void {
