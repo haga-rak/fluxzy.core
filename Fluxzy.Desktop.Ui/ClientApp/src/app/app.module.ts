@@ -89,6 +89,7 @@ import { SizePipe } from './directives/size.pipe';
 import { WaitDialogComponent } from './shared/wait-dialog/wait-dialog.component';
 import { CommentApplyComponent } from './shared/comment-apply/comment-apply.component';
 import { TagApplyComponent } from './shared/tag-apply/tag-apply.component';
+import { CommentSearchFilterFormComponent } from './settings/filter-forms/child-forms/comment-search-filter-form/comment-search-filter-form.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -164,6 +165,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         WaitDialogComponent,
         CommentApplyComponent,
         TagApplyComponent,
+        CommentSearchFilterFormComponent,
 
 
     ],

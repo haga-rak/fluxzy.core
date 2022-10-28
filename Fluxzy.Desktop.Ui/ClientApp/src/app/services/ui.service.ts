@@ -130,9 +130,14 @@ export class UiStateService {
         this.menuService
             .getNextSaveFile()
             .pipe(
+                tap(t => this.dialogService.openWaitDialog("Unpacking file")),
                 switchMap((fileName) => this.apiService.fileSaveAs({
                     fileName: fileName
-                }))
+                }).pipe(
+                    take(1),
+                    finalize(() => this.dialogService.closeWaitDialog()),
+                    catchError(e => of (null))
+                ))
             )
             .subscribe();
 
