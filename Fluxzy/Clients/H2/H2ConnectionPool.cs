@@ -290,11 +290,7 @@ namespace Fluxzy.Clients.H2
                 _streamPool.OnGoAway(ex);
                 _loopEndException = ex;
             }
-
-            if (Authority.HostName.EndsWith("casalemedia.com"))
-            {
-
-            }
+            
             _connectionCancellationTokenSource?.Cancel();
 
             if (releaseChannelItems && _writerChannel != null) {
