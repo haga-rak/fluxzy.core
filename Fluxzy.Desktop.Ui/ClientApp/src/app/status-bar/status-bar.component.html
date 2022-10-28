@@ -1,6 +1,7 @@
 <div class="status-container" *ngIf="fileState && uiState">
 
-    <strong class="font-primary">
+    <strong class="font-primary" [title]="uiState.fileState.workingDirectory"
+            (click)="fileClick(uiState.fileState.workingDirectory)">
         <span *ngIf="fileState?.mappedFileName">{{ fileState.mappedFileName}}</span>
         <span *ngIf="!fileState?.mappedFileName">[new file]</span>
     </strong>
@@ -13,21 +14,34 @@
         </span>
     </span>
     &nbsp;|&nbsp;
-    <span>
-        <i class="bi bi-filter-circle-fill"></i>
-        no filter applied
-    </span>
+    <a href="javascript:;" (click)="selectFilter()" class="auto-color" title="Current view filter">
+        <i class="bi bi-filter-circle-fill"></i>&nbsp;
+        <span [ngClass]="{'text-teal' :uiState.viewFilter.filter.typeKind !== 'AnyFilter' }">
+            <span *ngIf="uiState.viewFilter.filter.typeKind === 'AnyFilter'">no filter applied</span>
+            <span
+                *ngIf="uiState.viewFilter.filter.typeKind !== 'AnyFilter'"> {{ uiState.viewFilter.filter.friendlyName }}</span>
+        </span>
+    </a>
     &nbsp;|&nbsp;
-    <span>
-        <i class="bi bi-filter-circle-fill"></i>
-        8 filters in file
-    </span>
+    <a href="javascript:;" (click)="selectRule()" class="auto-color">
+        <i class="fa fa-gavel" aria-hidden="true"></i>
+        <span [ngClass]="{'text-teal' :uiState.activeRules.length  > 0 }">
+
+            {{ uiState.activeRules.length }}
+            <span *ngIf="uiState.activeRules.length < 2">
+                active rule
+            </span>
+            <span *ngIf="uiState.activeRules.length >= 2">
+                actives rules
+            </span>
+        </span>
+    </a>
 
     <span class="float-end">
 
         <span *ngIf="statusMessage">
 
-            <strong class="update-info text-blue" >
+            <strong class="update-info text-blue">
                 {{statusMessage }}
             </strong>
             |
@@ -40,9 +54,11 @@
         &nbsp;|&nbsp;
         <span>
             <a *ngIf="uiState.systemProxyState.on" (click)="proxyOff()"
-             href="javascript:;" class="text-green" title="Capture is on. Clic to toggle off"><i class="bi bi-play-circle-fill"></i></a>
+               href="javascript:;" class="text-green" title="Capture is on. Clic to toggle off"><i
+                class="bi bi-play-circle-fill"></i></a>
             <a *ngIf="!uiState.systemProxyState.on" (click)="proxyOn()"
-             href="javascript:;" class="text-secondary" title="Capture is off. Clic to toggle on"><i class="bi bi-stop-circle-fill"></i></a>
+               href="javascript:;" class="text-secondary" title="Capture is off. Clic to toggle on"><i
+                class="bi bi-stop-circle-fill"></i></a>
         </span>
         <strong *ngIf="uiState.proxyState.boundConnections.length > 0">
             {{uiState.proxyState.boundConnections[0].address}}:{{uiState.proxyState.boundConnections[0].port}}

@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
-using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Writers
 {
@@ -39,6 +37,9 @@ namespace Fluxzy.Writers
 
         private void UpdateMeta()
         {
+            if (File.Exists(_archiveMetaInformationPath))
+                return; 
+
             using var fileStream = File.Create(_archiveMetaInformationPath);
             JsonSerializer.Serialize(fileStream, _archiveMetaInformation, GlobalArchiveOption.JsonSerializerOptions);
         }
