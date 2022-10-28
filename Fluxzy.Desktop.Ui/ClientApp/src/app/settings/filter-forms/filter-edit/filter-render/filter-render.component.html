@@ -14,3 +14,5 @@
                             *ngIf="filter.typeKind === 'RequestHeaderFilter'"></app-request-header-filer-form>
 <app-response-header-filter-form [filter]="get(filter)" [validationSource]="validationSource"
                             *ngIf="filter.typeKind === 'ResponseHeaderFilter'"></app-response-header-filter-form>
+<app-comment-search-filter-form [filter]="get(filter)" [validationSource]="validationSource"
+                            *ngIf="filter.typeKind === 'CommentSearchFilter'"></app-comment-search-filter-form>

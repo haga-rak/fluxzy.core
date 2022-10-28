@@ -22,5 +22,7 @@ namespace Fluxzy.Rules.Filters
         public override string? ShortName => "ws";
 
         public override string? Description { get; set; } = "Websocket exchange";
+
+        public override bool PreMadeFilter => true;
     }
 }
