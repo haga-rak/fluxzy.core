@@ -29,6 +29,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string ShortName => "req head.";
 
-        public override string GenericName => "Filter by request header";
+        public virtual string GenericName => "Filter by request header";
     }
 }

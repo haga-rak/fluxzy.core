@@ -20,7 +20,7 @@ namespace Fluxzy.Rules.Filters
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 
-        public override string GenericName => "Filter by Egress IP Address";
+        public virtual string GenericName => "Filter by Egress IP Address";
 
         public override string ShortName => "ip";
 

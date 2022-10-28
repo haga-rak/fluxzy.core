@@ -41,6 +41,11 @@ namespace Fluxzy.Desktop.Services.Filters
                 new H2TrafficOnlyFilter(),
                 new IsWebSocketFilter(),
                 new HasRequestBodyFilter(),
+
+                new HasCommentFilter(),
+                new HasTagFilter(), 
+                new CommentSearchFilter(string.Empty),
+                new TagContainsFilter(null)
             };
 
             return res; 
