@@ -1,6 +1,9 @@
 import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {ExchangeInfo} from '../../core/models/auto-generated';
 import {StatusBarService} from "../../services/status-bar.service";
+import {DialogService} from "../../services/dialog.service";
+import {filter, switchMap, tap} from 'rxjs';
+import {ApiService} from "../../services/api.service";
 
 @Component({
     selector: 'app-exchange-viewer-header',
@@ -15,7 +18,7 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
 
     @Input() public exchange: ExchangeInfo;
 
-    constructor(private statusBarService : StatusBarService) {
+    constructor(private statusBarService : StatusBarService, private dialogService : DialogService, private apiService : ApiService) {
 
     }
 
@@ -29,8 +32,13 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
         this.statusBarService.addMessage('Marked !!', 1000);
     }
 
-    comment() {
-        this.statusBarService.addMessage('Commented %%');
+    public comment() : void {
+        this.dialogService.openCommentApplyDialog(this.exchange.comment ?? '',
+            [this.exchange.id])
+            .pipe(
+                filter (c => !! c),
+                switchMap(t => this.apiService.metaInfoApplyComment(t)),
+            ).subscribe();
 
     }
 }

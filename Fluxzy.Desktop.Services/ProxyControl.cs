@@ -10,11 +10,9 @@ namespace Fluxzy.Desktop.Services
 {
     public class ProxyControl : ObservableProvider<ProxyState>
     {
-        private readonly ForwardMessageManager _forwardMessageManager;
-        private readonly FilteredExchangeManager _filteredExchangeManager;
+        private readonly FileContentUpdateManager _fileContentUpdateManager;
         private Proxy?  _proxy;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
-        private ViewFilter?  _viewFilter;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null); 
 
         public ProxyControl(
@@ -22,11 +20,9 @@ namespace Fluxzy.Desktop.Services
             IObservable<FileContentOperationManager> contentObservable,
             IObservable<ViewFilter> viewFilter,
             IObservable<List<Rule>> activeRuleObservable,
-             ForwardMessageManager forwardMessageManager,
-            FilteredExchangeManager filteredExchangeManager)
+            FileContentUpdateManager fileContentUpdateManager)
         {
-            _forwardMessageManager = forwardMessageManager;
-            _filteredExchangeManager = filteredExchangeManager;
+            _fileContentUpdateManager = fileContentUpdateManager;
 
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState()
             {
@@ -71,7 +67,7 @@ namespace Fluxzy.Desktop.Services
 
 
             viewFilter
-                .Do((v => _viewFilter = v))
+                .Do((v => { }))
                 .Subscribe();
 
         }
@@ -101,24 +97,14 @@ namespace Fluxzy.Desktop.Services
 
                 _writerSubject.OnNext(_proxy.Writer);
 
-                _proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
+                _proxy.Writer.ExchangeUpdated += delegate(object? _, ExchangeUpdateEventArgs args)
                 {
-                    currentContentOperationManager.AddOrUpdate(args.ExchangeInfo);
-
-                    // Filter should be applied here 
-
-                    if (_viewFilter?.Filter == null || _viewFilter.Filter.Apply(null, args.ExchangeInfo, null))
-                    {
-                        _forwardMessageManager.Send(args.ExchangeInfo);
-                    }
-
-                    _filteredExchangeManager.OnExchangeAdded(args.ExchangeInfo);
+                    _fileContentUpdateManager.AddOrUpdate(args.ExchangeInfo);
                 };
 
-                _proxy.Writer.ConnectionUpdated += delegate(object? sender, ConnectionUpdateEventArgs args)
+                _proxy.Writer.ConnectionUpdated += delegate(object? _, ConnectionUpdateEventArgs args)
                 {
-                    currentContentOperationManager.AddOrUpdate(args.Connection);
-                    _forwardMessageManager.Send(args.Connection);
+                    _fileContentUpdateManager.AddOrUpdate(args.Connection);
                 };
 
                 endPoints = _proxy.Run();

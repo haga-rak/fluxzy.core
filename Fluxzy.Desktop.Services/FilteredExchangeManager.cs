@@ -2,12 +2,9 @@
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Fluxzy.Desktop.Services.Hubs;
 using Fluxzy.Desktop.Services.Models;
-using Fluxzy.Formatters;
 using Fluxzy.Readers;
 using Fluxzy.Rules.Filters;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -38,7 +35,7 @@ namespace Fluxzy.Desktop.Services
                                     viewFilterObservable, archiveReaderObservable,
                                     (trunkState, viewFilter, archiveReader) =>
                                     {
-                                        // Ne pas s'abonner à truk state ici 
+                                        // Ne pas s'abonner à trunk state ici 
                                         // viewFilter devra just s'appliquer au nouveau venu et devra sauvegarder son état 
                                         
                                         if (viewFilter.Filter is AnyFilter)
