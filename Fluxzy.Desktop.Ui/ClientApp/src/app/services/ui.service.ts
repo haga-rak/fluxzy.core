@@ -11,7 +11,7 @@ import {
     switchMap,
     combineLatest,
     distinct,
-    pipe, BehaviorSubject, finalize,
+    pipe, BehaviorSubject, finalize, catchError,
 } from 'rxjs';
 import {
     ExchangeBrowsingState,
@@ -104,9 +104,14 @@ export class UiStateService {
                 filter((t) => !!t),
                 filter(t => !this.uiState.fileState.unsaved || this.menuService.confirm("This operation will discard changes made on current file. Do you wish to continue?") === ConfirmResult.Yes),
                 tap(t => this.dialogService.openWaitDialog("Unpacking file")),
-                switchMap((fileName) => this.apiService.fileOpen(fileName)),
-                take(1),
-                finalize(() => this.dialogService.closeWaitDialog())
+                switchMap((fileName) =>
+                    this.apiService.fileOpen(fileName)
+                        .pipe(
+                            take(1),
+                            finalize(() => this.dialogService.closeWaitDialog()),
+                            catchError(e => of (null))
+                        )
+                )
             )
             .subscribe();
 
