@@ -37,18 +37,10 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                     _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
                     return evictedSize;
                 }
-                
+
                 var a = _entries.Remove(i);
                 var b = _reverseEntries.Remove(tableEntry);
-
-                if (a != b)
-                {
-                    //var tableEntryStr = $"{tableEntry.Name} {tableEntry.Value}";
-                    //var av = string.Join("\r\n", _entries.OrderBy(r => r.Value.Name.ToString()).Select(t => $"{t.Value.Name}\t\t{t.Value.Value}"));
-                    //var bv = string.Join("\r\n", _reverseEntries.OrderBy(r => r.Key.Name.ToString()).Select(t => $"{t.Key.Name}\t\t{t.Key.Value}"));
-                    
-                }
-
+                
                 _currentSize -= tableEntry.Size;
                 evictedSize += tableEntry.Size;
             }
