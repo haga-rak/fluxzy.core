@@ -414,7 +414,6 @@ namespace Fluxzy.Tests
                 }
             });
 
-
             await using var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
