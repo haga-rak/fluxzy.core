@@ -29,7 +29,7 @@ import {
     FormattingResult, ForwardMessage,
     MultipartItem, Rule, RuleContainer,
     SaveFileMultipartActionModel,
-    StoredFilter, Tag, TagUpdateModel,
+    StoredFilter, Tag, TagGlobalApplyModel, TagUpdateModel,
     TrunkState,
     UiState
 } from '../core/models/auto-generated';
@@ -265,6 +265,10 @@ export class ApiService {
 
     public metaInfoApplyTag(tagIdentifier : string, exchangeIds : number[]) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/meta-info/tag/${tagIdentifier}`, exchangeIds).pipe(take(1)) ;
+    }
+
+    public metaInfoGlobalApply(model : TagGlobalApplyModel) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/meta-info/tag/apply`, model).pipe(take(1)) ;
     }
 
     public metaInfoApplyComment(model : CommentUpdateModel) : Observable<boolean> {

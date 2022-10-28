@@ -15,8 +15,7 @@ export class CommentApplyComponent implements OnInit {
     constructor(
         public bsModalRef: BsModalRef,
         public options: ModalOptions,
-        private cd: ChangeDetectorRef,
-        private dialogService: DialogService) {
+        private cd: ChangeDetectorRef) {
 
         this.commentUpdateModel = (this.options.initialState.commentUpdateModel as CommentUpdateModel)
         this.callBack = this.options.initialState.callBack as (f : CommentUpdateModel | null) => void ;

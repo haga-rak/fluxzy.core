@@ -1,0 +1,41 @@
+
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        <i class="fa fa-tag" aria-hidden="true"></i> Apply tag
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 50px">
+    <div>
+
+        <p>
+            Choose existing tag from current file
+        </p>
+
+        <div class="">
+            <div *ngIf="tags">
+                <select class="form-select" multiple="multiple" *ngIf="tags.length" [(ngModel)]="model.tagIdentifiers">
+                    <option *ngFor="let tag of tags" [value]="tag.identifier">{{ tag.value }}</option>
+                </select>
+                <p>
+                    <span *ngIf="tags.length === 0">No existing tag was found on file. </span>
+                    <span>
+                        <a href="javascript:;" (click)="createNewTag()">Create a new tag</a>.
+                    </span>
+                </p>
+
+            </div>
+            <p *ngIf="!tags">
+                <i class="fa fa-spinner fa-spin  fa-fw"></i> Loading tags from file ...
+            </p>
+
+
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="save()">Save</button>
+    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+</div>

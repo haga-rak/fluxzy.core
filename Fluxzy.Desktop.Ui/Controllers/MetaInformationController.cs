@@ -101,7 +101,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
 
-        [HttpPost("tag/{tagIdentifier}")]
+        [HttpPost("tag/apply")]
         public async Task<ActionResult<bool>> GlobalApplyTag(TagGlobalApplyModel model)
         {
             var archiveReader = (await _archiveReaderProvider.Get())!;
@@ -116,7 +116,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
                                      .Select(i => archiveReader.ReadExchange(i))
                                      .Where(t => t != null)) {
 
-                exchange.Tags.Clear();
+                exchange!.Tags.Clear();
                 exchange.Tags.AddRange(tags);
 
                 archiveWriter.Update(exchange, CancellationToken.None);
