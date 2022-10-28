@@ -740,6 +740,7 @@ export interface ExchangeMetrics
 	remoteClosed: Date;
 	createCertStart: Date;
 	createCertEnd: Date;
+	errorInstant: Date;
 	totalSent: number;
 	totalReceived: number;
 	localPort: number;

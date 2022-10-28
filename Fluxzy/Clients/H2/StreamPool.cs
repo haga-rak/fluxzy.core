@@ -97,7 +97,7 @@ namespace Fluxzy.Clients.H2
             if (_runningStreams.TryRemove(streamWorker.StreamIdentifier, out _))
             {
                 _maxConcurrentStreamBarrier.Release();
-                streamWorker.Dispose();
+                 streamWorker.Dispose();
             }
         }
 

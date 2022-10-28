@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
+using System.Text.Json;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.H2.Encoder.Utils;
@@ -38,6 +39,15 @@ namespace Fluxzy.Core
 
                 if (DebugContext.EnableDumpStackTraceOn502)
                     message += ex.ToString();
+
+                if (DebugContext.EnableDumpStackTraceOn502)
+                {
+                    exchange.Metrics.ErrorInstant = DateTime.Now; 
+                    message += ("\r\n" + "\r\n" + JsonSerializer.Serialize(exchange.Metrics, new JsonSerializerOptions()
+                    {
+                        WriteIndented = true
+                    }));
+                }
 
                 var messageBinary = Encoding.UTF8.GetBytes(message);
 
