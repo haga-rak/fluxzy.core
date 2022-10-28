@@ -128,7 +128,6 @@ namespace Fluxzy.Desktop.Services
                 if (_proxy != null) {
 
                     _writerSubject.OnNext(null);
-
                     await _proxy.DisposeAsync();
                 }
 
