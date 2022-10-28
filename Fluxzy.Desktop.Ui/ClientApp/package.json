@@ -27,6 +27,7 @@
     "lint": "ng lint"
   },
   "dependencies": {
+    "@angular-devkit/core": "14.2.7",
     "@angular/common": "^14.2.8",
     "@angular/compiler": "^14.2.8",
     "@angular/core": "^14.2.8",
@@ -55,14 +56,14 @@
     "zone.js": "~0.11.5"
   },
   "devDependencies": {
-    "@angular-builders/custom-webpack": "^13.1.0",
-    "@angular-devkit/build-angular": "^14.2.7",
+    "@angular-builders/custom-webpack": "14.0.1",
+    "@angular-devkit/build-angular": "14.2.7",
     "@angular-eslint/builder": "^14.1.2",
     "@angular-eslint/eslint-plugin": "^14.1.2",
     "@angular-eslint/eslint-plugin-template": "^14.1.2",
     "@angular-eslint/schematics": "^14.1.2",
     "@angular-eslint/template-parser": "^14.1.2",
-    "@angular/cli": "^14.2.7",
+    "@angular/cli": "14.2.7",
     "@angular/compiler-cli": "^14.2.8",
     "@ngx-translate/core": "14.0.0",
     "@ngx-translate/http-loader": "7.0.0",
