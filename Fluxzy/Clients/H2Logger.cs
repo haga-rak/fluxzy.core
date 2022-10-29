@@ -23,6 +23,9 @@ namespace Fluxzy.Clients
 
         static H2Logger()
         {
+            if (!DebugContext.IsH2TracingEnabled)
+                return; 
+
             _directory = new DirectoryInfo(Path.Combine(loggerPath, "h2")).FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
 
@@ -42,22 +45,19 @@ namespace Fluxzy.Clients
 
             AuthorizedHosts = null; 
         }
-
-
+        
         public Authority Authority { get; }
         public int ConnectionId { get; }
 
         private readonly bool _active;
 
-
-
+        
         public H2Logger(Authority authority, int connectionId, bool? active = null)
         {
             Authority = authority;
             ConnectionId = connectionId;
 
-            active ??= string.Equals(Environment.GetEnvironmentVariable("EnableH2Tracing"),
-                "true", StringComparison.OrdinalIgnoreCase);
+            active ??= DebugContext.IsH2TracingEnabled;
 
             _active = active.Value;
             
