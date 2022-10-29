@@ -361,13 +361,7 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-
-        private bool EvaluateCond()
-        {
-            _logger.TraceDeep(0, () => "deadlock?");
-            return true;
-        }
-
+        
         /// <summary>
         ///     %Write and read has to use the same thread
         /// </summary>
@@ -376,28 +370,18 @@ namespace Fluxzy.Clients.H2
         {
             var readBuffer = ArrayPool<byte>.Shared.Rent(Setting.Remote.MaxFrameSize);
 
-            Exception outException = null;
+            Exception? outException = null;
 
             try {
-                while (EvaluateCond() && !token.IsCancellationRequested) {
+                while (!token.IsCancellationRequested) {
                     _logger.TraceDeep(0, () => "1");
 
                     var frame =
                         await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
                             token).ConfigureAwait(false);
-
-                    var watch = new Stopwatch();
-
-                    watch.Start();
-
+                    
                     if (ProcessNewFrame(frame))
                         break;
-
-                    watch.Stop();
-
-                    if (watch.ElapsedMilliseconds > 5) {
-                        // Console.WriteLine($"Processing cost {watch.ElapsedMilliseconds} / {Authority.HostName} / {frame.BodyType}");
-                    }
                 }
 
                 _logger.TraceDeep(0, () => "Natural death");

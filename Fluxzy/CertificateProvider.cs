@@ -70,19 +70,14 @@ namespace Fluxzy
 
         private byte[] BuildCertificateForRootDomain(string rootDomain)
         {
-            var watch = new Stopwatch();
             var randomGenerator = new Random();
-
-            watch.Start();
-
+            
             var certificateRequest = new CertificateRequest(
                 $"CN=*.{rootDomain}, OU={rootDomain.ToUpperInvariant()}",
                 _rsaKeyEngine,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
-
-            watch.Stop();
-
+            
             certificateRequest.CertificateExtensions.Add(
                 new X509BasicConstraintsExtension(false, false, 0, false));
 
