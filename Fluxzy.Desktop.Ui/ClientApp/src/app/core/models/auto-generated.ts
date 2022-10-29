@@ -635,7 +635,6 @@ export interface FluxzySetting
 	maxHeaderLength: number;
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: Rule[];
-	filterSetting: any;
 }
 export interface ExchangeState
 {

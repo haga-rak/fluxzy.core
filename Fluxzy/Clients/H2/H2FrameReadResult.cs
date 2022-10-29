@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using Fluxzy.Clients.H2.Frames;
 
 namespace Fluxzy.Clients.H2
@@ -34,10 +35,27 @@ namespace Fluxzy.Clients.H2
         {
             return new DataFrame(_bodyBytes, Flags, StreamIdentifier);
         }
-
-        public SettingFrame GetSettingFrame()
+        public bool TryReadNextSetting(out SettingFrame settingFrame, ref int index)
         {
-            return new SettingFrame(_bodyBytes.Span, Flags);
+            if (BodyLength == 0 && index == 0)
+            {
+                settingFrame = new SettingFrame(_bodyBytes.Span.Slice(index), Flags);
+                index += 1;
+
+                // ACK frame
+
+                return true; 
+            }
+
+            settingFrame = default;
+
+            if ((BodyLength - index) < 4)
+                return false;
+
+            settingFrame = new SettingFrame(_bodyBytes.Span.Slice(index), Flags);
+            index += settingFrame.BodyLength; 
+
+            return true;
         }
 
         public HeadersFrame GetHeadersFrame()
