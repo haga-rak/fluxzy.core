@@ -9,34 +9,35 @@ namespace Fluxzy.Clients.H2
 {
     internal static class SettingHelper
     {
-        private static int WriteSetting(Memory<byte> buffer, PeerSetting setting, H2Logger logger)
+        private static int WriteStartupSetting(Span<byte> buffer, PeerSetting setting, H2Logger logger)
         {
-            var pushDisabled = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0);
+            var written = 0;
 
-            int written = pushDisabled.Write(buffer.Span);
-
-            var incrementUpdate = setting.WindowSize - 65535;
-
-            logger.OutgoingSetting(ref pushDisabled);
+            {
+                //var currentSetting = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0);
+                //written += currentSetting.Write(buffer);
+                //logger.OutgoingSetting(ref currentSetting);
+            }
+            {
+                //var currentSetting = new SettingFrame(SettingIdentifier.SettingsInitialWindowSize, 1073741824);
+                //written += currentSetting.Write(buffer);
+                //logger.OutgoingSetting(ref currentSetting);
+            }
+            {
+                var currentSetting = new SettingFrame(SettingIdentifier.SettingsMaxConcurrentStreams, 256);
+                written += currentSetting.Write(buffer);
+                logger.OutgoingSetting(ref currentSetting);
+            }
 
             return written;
         }
 
-        public static async Task WriteSetting(Stream innerStream, PeerSetting setting, H2Logger logger, 
-            CancellationToken token)
+        public static void WriteWelcomeSettings(Stream innerStream, PeerSetting setting, H2Logger logger)
         {
-            byte [] settingBuffer = ArrayPool<byte>.Shared.Rent(80);
+            Span<byte> settingBuffer = stackalloc byte[128];
 
-            try
-            {
-                var written = WriteSetting(settingBuffer, setting, logger);
-                await innerStream.WriteAsync(settingBuffer, 0, written, token);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(settingBuffer);
-            }
-
+            var written = WriteStartupSetting(settingBuffer, setting, logger);
+            innerStream.Write(settingBuffer[..written]);
         }
 
         public static async Task WriteAckSetting(Stream innerStream)
@@ -54,10 +55,13 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        public static void WriteAck(Stream innerStream)
+        public static void WriteAck(Stream innerStream, H2Logger logger)
         {
             Span<byte> settingBuffer = stackalloc byte[80];
-            int written = new SettingFrame(true).Write(settingBuffer);
+            var settingFrame = new SettingFrame(true);
+            int written = settingFrame.Write(settingBuffer);
+
+            logger.OutgoingSetting(ref settingFrame);
             innerStream.Write(settingBuffer.Slice(0, written));
 
         }

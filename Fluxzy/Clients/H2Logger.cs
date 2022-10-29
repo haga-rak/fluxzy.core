@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.H2.Frames;
 
@@ -132,8 +133,16 @@ namespace Fluxzy.Clients
                 }
                 case H2FrameType.Settings:
                 {
-                    var innerFrame = frame.GetSettingFrame();
-                    return $"Ack = {innerFrame.Ack}, SettingIdentifier = {innerFrame.SettingIdentifier}, Value = {innerFrame.Value}";
+                    StringBuilder builder = new StringBuilder();
+                    int index = 0;
+
+                    while (frame.TryReadNextSetting(out var innerFrame, ref index))
+                    {
+                        builder.Append(
+                            $"Ack = {innerFrame.Ack}, SettingIdentifier = {innerFrame.SettingIdentifier}, Value = {innerFrame.Value}, ");
+                    }
+
+                    return builder.ToString();
                 }
                 case H2FrameType.PushPromise:
                 {

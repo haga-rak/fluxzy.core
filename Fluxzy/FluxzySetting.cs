@@ -100,7 +100,6 @@ namespace Fluxzy
         /// </summary>
         public List<Rule> AlterationRules { get; set; } = new();
 
-
         /// <summary>
         ///     Set hosts that bypass the proxy
         /// </summary>

@@ -153,7 +153,7 @@ namespace Fluxzy.Clients.H2
             Parent.NotifyDispose(this);
         }
 
-        public void SetPriority(PriorityFrame priorityFrame)
+        public void SetPriority(ref PriorityFrame priorityFrame)
         {
             StreamDependency = priorityFrame.StreamDependency;
             StreamPriority = priorityFrame.Weight;

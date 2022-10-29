@@ -37,8 +37,6 @@ namespace Fluxzy.Clients.H2
         private Task? _innerReadTask;
         private Task? _innerWriteRun;
 
-        private readonly TaskCompletionSource<bool> _waitForSettingReception = new();
-
         private readonly Channel<WriteTask>? _writerChannel;
 
         private SemaphoreSlim? _writeSemaphore = new(1);
@@ -55,7 +53,6 @@ namespace Fluxzy.Clients.H2
 
         private DateTime _lastActivity = ITimingProvider.Default.Instant();
 
-        private Exception _loopEndException;
         private bool _goAwayInitByRemote;
 
         public H2ConnectionPool(
@@ -128,14 +125,11 @@ namespace Fluxzy.Clients.H2
             UpStreamChannel(ref writeTask);
         }
 
-        private bool ProcessIncomingSettingFrame(SettingFrame settingFrame)
+        private bool ProcessIncomingSettingFrame(ref SettingFrame settingFrame)
         {
             _logger.IncomingSetting(ref settingFrame);
 
             if (settingFrame.Ack) {
-                if (!_waitForSettingReception.Task.IsCompleted)
-                    _waitForSettingReception.TrySetResult(true);
-
                 return false;
             }
 
@@ -171,68 +165,33 @@ namespace Fluxzy.Clients.H2
 
             // ---> old : throw new InvalidOperationException("Unknown setting type");
 
-            return true;
+            return false;
         }
-
-        private async void RaiseExceptionIfSettingNotReceived()
-        {
-            try {
-                await Task.Delay(Setting.WaitForSettingDelay, _connectionCancellationTokenSource.Token);
-            }
-            catch (TaskCanceledException) {
-                // Main connection was ended before receiving final setting acquittement 
-
-                _waitForSettingReception.TrySetResult(false);
-                return;
-            }
-
-            if (!_waitForSettingReception.Task.IsCompleted)
-                _waitForSettingReception.SetException(new H2Exception(
-                    $"Server settings was not received under {(int) Setting.WaitForSettingDelay.TotalMilliseconds}.",
-                    H2ErrorCode.SettingsTimeout));
-        }
-
-        private Task<bool> WaitForSettingReceivedOrRaiseException()
-        {
-            RaiseExceptionIfSettingNotReceived();
-
-            return _waitForSettingReception.Task;
-        }
+        
 
         public bool Complete => _complete;
         private volatile bool initied;
 
-        public async ValueTask Init()
+        public ValueTask Init()
         {
             if (initied)
-                return;
+                return default;
 
             initied = false;
 
             var token = _connectionCancellationTokenSource.Token;
 
-            await _baseStream.WriteAsync(Preface, token).ConfigureAwait(false);
+            _baseStream.Write(Preface);
 
-            // Write setting 
-            await SettingHelper.WriteSetting(
-                _baseStream,
-                Setting.Local, _logger, token).ConfigureAwait(false);
+            // Send initial settings synchronously as
+            // we are sure to hit the network buffer
+
+            SettingHelper.WriteWelcomeSettings(_baseStream, Setting.Local, _logger);
 
             _innerReadTask = InternalReadLoop(token);
-            // Wait from setting reception 
-
-            var waitSettingTask = WaitForSettingReceivedOrRaiseException();
-
-            await _waitForSettingReception.Task.ConfigureAwait(false);
-
-            var settingReceived = await waitSettingTask;
-
             _innerWriteRun = InternalWriteLoop(token);
 
-            if (!settingReceived)
-                throw new IOException(
-                    "Connection closed before receiving settings. More information on InnerException.",
-                    _loopEndException);
+            return default;
         }
 
         public ValueTask<bool> CheckAlive()
@@ -260,7 +219,7 @@ namespace Fluxzy.Clients.H2
             return new ValueTask<bool>(true);
         }
 
-        private void OnGoAway(GoAwayFrame frame)
+        private void OnGoAway(ref GoAwayFrame frame)
         {
             _goAwayInitByRemote = true;
 
@@ -288,7 +247,6 @@ namespace Fluxzy.Clients.H2
 
             if (ex != null) {
                 _streamPool.OnGoAway(ex);
-                _loopEndException = ex;
             }
             
             _connectionCancellationTokenSource?.Cancel();
@@ -313,8 +271,6 @@ namespace Fluxzy.Clients.H2
 
             try {
                 var tasks = new List<WriteTask>();
-                var windowSizeBuffer = new byte[13];
-
 
                 while (!token.IsCancellationRequested) {
                     tasks.Clear();
@@ -327,8 +283,8 @@ namespace Fluxzy.Clients.H2
 
                         if (windowUpdateTasks.Length > 0) {
                             var bufferLength = windowUpdateTasks.Length * 13;
-                            var buffer = ArrayPool<byte>.Shared.Rent(bufferLength);
-                            var memoryBuffer = new Memory<byte>(buffer).Slice(0, bufferLength);
+                            var heapBuffer = ArrayPool<byte>.Shared.Rent(bufferLength);
+                            var memoryBuffer = new Memory<byte>(heapBuffer).Slice(0, bufferLength);
 
                             try {
                                 foreach (var writeTask in windowUpdateTasks) {
@@ -342,10 +298,10 @@ namespace Fluxzy.Clients.H2
                                 }
                             }
                             finally {
-                                ArrayPool<byte>.Shared.Return(buffer);
+                                ArrayPool<byte>.Shared.Return(heapBuffer);
                             }
 
-                            await _baseStream.WriteAsync(buffer, 0, bufferLength, token).ConfigureAwait(false);
+                            await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
                         }
 
                         var count = 0;
@@ -362,6 +318,8 @@ namespace Fluxzy.Clients.H2
                                                   .ThenBy(r => r.Priority)
                                 )
                             try {
+
+
                                 await _baseStream
                                       .WriteAsync(writeTask.BufferBytes, token)
                                       .ConfigureAwait(false);
@@ -380,6 +338,9 @@ namespace Fluxzy.Clients.H2
                                 writeTask.OnComplete(ex);
                                 throw;
                             }
+
+                            
+
                     }
                     else {
                         // async wait 
@@ -431,8 +392,7 @@ namespace Fluxzy.Clients.H2
 
                     watch.Start();
 
-
-                    if (ProcessNewFrame(token, frame, ref readBuffer))
+                    if (ProcessNewFrame(frame))
                         break;
 
                     watch.Stop();
@@ -448,7 +408,8 @@ namespace Fluxzy.Clients.H2
                 _logger.TraceDeep(0, () => "OperationCanceledException death");
             }
             catch (Exception ex) {
-                outException = ex;
+                if (!_goAwayInitByRemote)
+                    outException = ex;
             }
             finally {
                 ArrayPool<byte>.Shared.Return(readBuffer);
@@ -456,7 +417,7 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        private bool ProcessNewFrame(CancellationToken token, H2FrameReadResult frame, ref byte[] readBuffer)
+        private bool ProcessNewFrame(H2FrameReadResult frame)
         {
             _logger.TraceDeep(0, () => "2");
 
@@ -471,27 +432,27 @@ namespace Fluxzy.Clients.H2
 
             _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 
-            if (frame.BodyType == H2FrameType.Settings) {
-                var settingReceived = ProcessIncomingSettingFrame(frame.GetSettingFrame());
+            if (frame.BodyType == H2FrameType.Settings)
+            {
+                int indexer = 0;
+                var sendAck = false; 
 
-                _logger.TraceDeep(0, () => "4");
+                while (frame.TryReadNextSetting(out var settingFrame, ref indexer))
+                {
+                    var needAck = ProcessIncomingSettingFrame(ref settingFrame);
 
-                if (settingReceived)
-                    SettingHelper.WriteAck(_baseStream);
+                    sendAck = sendAck || needAck; 
 
-                if (Setting.Remote.MaxFrameSize != readBuffer.Length) {
-                    // Update of max frame 
+                    _logger.TraceDeep(0, () => "4");
+                }
 
-                    if (Setting.Remote.MaxFrameSize > Setting.MaxFrameSizeAllowed) {
-                        _logger.Trace(0,
-                            () =>
-                                $"Server required max frame size is larger than MaxFrameSizeAllowed = {Setting.MaxFrameSizeAllowed}");
-
-                        Setting.Remote.MaxFrameSize = Setting.MaxFrameSizeAllowed;
-                    }
-
-                    readBuffer = new byte[Setting.Remote.MaxFrameSize];
-                    _logger.Trace(0, () => $"max frame size updated to {Setting.Remote.MaxFrameSize}");
+                if (sendAck)
+                {
+                    var settingFrame = new SettingFrame(true);
+                    var buffer = new byte[9];
+                    settingFrame.Write(buffer);
+                    var writeTask = new WriteTask(H2FrameType.Settings, 0, 0, 0, buffer); 
+                    UpStreamChannel(ref writeTask);
                 }
 
                 return false;
@@ -503,7 +464,9 @@ namespace Fluxzy.Clients.H2
                 if (activeStream == null)
                     return false;
 
-                activeStream.SetPriority(frame.GetPriorityFrame());
+                var priorityFrame = frame.GetPriorityFrame();
+
+                activeStream.SetPriority(ref priorityFrame);
             }
 
             if (frame.BodyType == H2FrameType.Headers) {
@@ -586,8 +549,10 @@ namespace Fluxzy.Clients.H2
             if (frame.BodyType == H2FrameType.Goaway) {
                 _logger.TraceDeep(0, () => "12");
 
-                OnGoAway(frame.GetGoAwayFrame());
-                return true;
+                var goAwayFrame = frame.GetGoAwayFrame();
+
+                OnGoAway(ref goAwayFrame);
+                return goAwayFrame.ErrorCode != H2ErrorCode.NoError;
             }
 
             return false;
