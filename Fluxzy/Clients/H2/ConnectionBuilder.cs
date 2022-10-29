@@ -48,7 +48,7 @@ namespace Fluxzy.Clients.H2
             var connectionPool = new H2ConnectionPool(sslStream, setting ?? new H2StreamSetting(),
                 authority, new Connection(authority, IIdProvider.FromZero), _ => {});
 
-            await connectionPool.Init();
+            connectionPool.Init();
 
 
             return connectionPool;
@@ -61,7 +61,7 @@ namespace Fluxzy.Clients.H2
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
                 ITimingProvider.Default, ProxyRuntimeSetting.Default,null);
 
-            await connectionPool.Init();
+            connectionPool.Init();
 
             return connectionPool; 
         }

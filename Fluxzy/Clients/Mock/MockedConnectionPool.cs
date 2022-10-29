@@ -34,9 +34,8 @@ namespace Fluxzy.Clients.Mock
 
         public bool Complete => _complete;
 
-        public ValueTask Init()
+        public void Init()
         {
-            return default;
         }
 
         public ValueTask<bool> CheckAlive()
