@@ -172,10 +172,10 @@ namespace Fluxzy.Clients.H2
         public bool Complete => _complete;
         private volatile bool initied;
 
-        public ValueTask Init()
+        public void Init()
         {
             if (initied)
-                return default;
+                return;
 
             initied = false;
 
@@ -190,8 +190,6 @@ namespace Fluxzy.Clients.H2
 
             _innerReadTask = InternalReadLoop(token);
             _innerWriteRun = InternalWriteLoop(token);
-
-            return default;
         }
 
         public ValueTask<bool> CheckAlive()

@@ -38,9 +38,8 @@ namespace Fluxzy.Clients.H11
 
         public bool Complete => _complete;
 
-        public ValueTask Init()
+        public void Init()
         {
-            return default; 
         }
 
         public ValueTask<bool> CheckAlive()

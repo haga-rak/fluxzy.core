@@ -16,7 +16,7 @@ namespace Fluxzy.Clients
 
         bool Complete { get; }
         
-        ValueTask Init();
+        void Init();
 
         ValueTask<bool> CheckAlive();
         

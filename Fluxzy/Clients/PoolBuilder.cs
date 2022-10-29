@@ -214,7 +214,7 @@ namespace Fluxzy.Clients
                         released = true;
                         semaphorePerAuthority.Release();
                         
-                        await result.Init();
+                        result.Init();
                     }
 
                     exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
@@ -230,22 +230,7 @@ namespace Fluxzy.Clients
                         semaphorePerAuthority.Release();
                 }
             }
-            //return null; 
         }
-
-        //private ValueTask PoolInit(IHttpConnectionPool result)
-        //{
-        //    try
-        //    {
-        //        return result.Init();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        OnConnectionFaulted(result);
-
-        //        throw;
-        //    }
-        //}
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)
         {

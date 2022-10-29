@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Writers;
 
@@ -46,9 +45,8 @@ namespace Fluxzy.Clients.H11
 
         public bool Complete => false;
 
-        public ValueTask Init()
+        public void Init()
         {
-            return default;
         }
 
         public ValueTask<bool> CheckAlive()
