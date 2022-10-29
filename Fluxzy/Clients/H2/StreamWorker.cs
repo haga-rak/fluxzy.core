@@ -294,19 +294,8 @@ namespace Fluxzy.Clients.H2
             {
                 _exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
-                var watch = new Stopwatch();
-
-                watch.Start();
-
                 var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
-
-                watch.Stop();
-
-                if (watch.ElapsedMilliseconds > 5)
-                {
-                   // Console.WriteLine($"Processing decode and allocate {watch.ElapsedMilliseconds} / {Parent.Context.Authority.HostName} / {charHeader.Length}");
-                }
-
+                
                 _exchange.Response.Header = new ResponseHeader(charHeader, true);
 
                 _logger.TraceResponse(this, _exchange);
@@ -355,11 +344,7 @@ namespace Fluxzy.Clients.H2
         public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
         {
             SendWindowUpdate(Parent.Context.Setting.Local.WindowSize, StreamIdentifier);
-
-            Stopwatch watch = new Stopwatch();
             
-            watch.Start();
-
             try
             {
                 _logger.Trace(StreamIdentifier, "Before semaphore ");
@@ -371,7 +356,6 @@ namespace Fluxzy.Clients.H2
             }
             catch (OperationCanceledException)
             {
-                var elapsed = watch.Elapsed; 
                 _logger.Trace(StreamIdentifier, $"Received no header, cancelled by caller {StreamIdentifier}");
                 throw new IOException($"Received no header, cancelled by caller {StreamIdentifier} / {Parent.Context.ConnectionId} / {cp.IsDisposed}");
             }

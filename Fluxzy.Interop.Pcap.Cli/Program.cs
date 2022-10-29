@@ -20,17 +20,13 @@ namespace Fluxzy.Interop.Pcap.Cli
             var totalLength = 20 * 1024 * 1024;
             var url = $"https://sandbox.smartizy.com/content-produce/{totalLength}/{totalLength}";
             var host = "sandbox.smartizy.com";
-
-            var stopWatch = new Stopwatch();
-
+            
             await using (var captureContext = new CaptureContext())
             await using (var tcpClient = new CapturableTcpConnection(captureContext, "gogo2.pcap")) {
                 var remoteIp = (await Dns.GetHostAddressesAsync(host)).First();
 
                 await tcpClient.ConnectAsync(remoteIp, 443);
-
-                stopWatch.Start();
-
+                
                 await using (var sslStream = new SslStream(tcpClient.GetStream(), false)) {
                     await sslStream.AuthenticateAsClientAsync(host);
 
@@ -48,8 +44,6 @@ namespace Fluxzy.Interop.Pcap.Cli
 
                     //  await Task.Delay(1000);
                 }
-
-                stopWatch.Stop();
             }
 
 
