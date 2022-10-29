@@ -30,6 +30,9 @@ namespace Fluxzy.Clients
             = !string.IsNullOrWhiteSpace(Environment
                 .GetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader"));
 
+        public static bool IsH2TracingEnabled =>
+            Environment.GetEnvironmentVariable("EnableH2Tracing") == "true";
+
 
         /// <summary>
         /// When EnableNetworkFileDump is enable. Get the dump directory. Default value is "./raw".
