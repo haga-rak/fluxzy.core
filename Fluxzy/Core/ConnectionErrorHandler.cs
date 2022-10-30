@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
-using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Core
 {
@@ -23,16 +22,16 @@ namespace Fluxzy.Core
     public class ConnectionErrorHandler
     {
         public static bool RequalifyOnResponseSendError(
-            Exception ex, 
-            Exchange exchange )
+            Exception ex,
+            Exchange exchange)
         {
             if (ex is SocketException sex ||
                 ex is IOException ioEx ||
                 ex is H2Exception hEx ||
                 ex is AuthenticationException aEx
-                )
+               )
             {
-                var message = $"Fluxzy close connection due to server connection errors.\r\n\r\n";
+                var message = "Fluxzy close connection due to server connection errors.\r\n\r\n";
 
                 if (DebugContext.EnableDumpStackTraceOn502 && exchange.Request?.Header != null)
                     message += exchange.Request.Header.GetHttp11Header().ToString();
@@ -42,11 +41,12 @@ namespace Fluxzy.Core
 
                 if (DebugContext.EnableDumpStackTraceOn502)
                 {
-                    exchange.Metrics.ErrorInstant = DateTime.Now; 
-                    message += ("\r\n" + "\r\n" + JsonSerializer.Serialize(exchange.Metrics, new JsonSerializerOptions()
+                    exchange.Metrics.ErrorInstant = DateTime.Now;
+
+                    message += "\r\n" + "\r\n" + JsonSerializer.Serialize(exchange.Metrics, new JsonSerializerOptions
                     {
                         WriteIndented = true
-                    }));
+                    });
                 }
 
                 var messageBinary = Encoding.UTF8.GetBytes(message);
@@ -59,20 +59,17 @@ namespace Fluxzy.Core
                     exchange.Authority.Secure);
 
                 if (DebugContext.EnableDumpStackTraceOn502)
-                {
                     Console.WriteLine(message);
-                }
 
                 exchange.Response.Body = new MemoryStream(messageBinary);
 
                 if (!exchange.ExchangeCompletionSource.Task.IsCompleted)
                     exchange.ExchangeCompletionSource.SetResult(true);
 
-
-                return true; 
+                return true;
             }
 
-            return false; 
+            return false;
         }
     }
 }

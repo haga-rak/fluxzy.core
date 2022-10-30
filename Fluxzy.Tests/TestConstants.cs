@@ -11,7 +11,6 @@ namespace Fluxzy.Tests
         public const string Http2Host2 = "https://sandbox.smartizy.com:4430";
         public const string WssHost = "wss://sandbox.smartizy.com:5001";
 
-
         public static string GetHost(string protocol)
         {
             if (protocol == "http11")
@@ -20,10 +19,7 @@ namespace Fluxzy.Tests
             if (protocol == "http2")
                 return Http2Host;
 
-            throw new ArgumentException(nameof(protocol), "Unknown protocol"); 
+            throw new ArgumentException(nameof(protocol), "Unknown protocol");
         }
     }
-
-
-    
 }

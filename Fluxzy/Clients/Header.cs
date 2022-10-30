@@ -13,12 +13,69 @@ namespace Fluxzy.Clients
 {
     public abstract class Header
     {
-
         protected List<HeaderField> _rawHeaderFields;
 
-        protected ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields ;
+        protected ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields;
         private readonly ReadOnlyMemory<char> _rawHeader;
-        
+
+        public int HeaderLength { get; }
+
+        public IEnumerable<HeaderField> this[ReadOnlyMemory<char> key] => _lookupFields[key];
+
+        /// <summary>
+        ///     If transfer-encoding chunked is defined
+        /// </summary>
+        public bool ChunkedBody { get; private set; }
+
+        /// <summary>
+        ///     Content length of body. -1 if undefined
+        /// </summary>
+        public long ContentLength { get; set; } = -1;
+
+        /// <summary>
+        ///     Returns all headers, including non-forwardable
+        /// </summary>
+        public IReadOnlyCollection<HeaderField> HeaderFields => _rawHeaderFields;
+
+        /// <summary>
+        ///     Returns all headers, excluding non-forwardable
+        /// </summary>
+        public IEnumerable<HeaderField> Headers
+        {
+            get
+            {
+                foreach (var header in _rawHeaderFields)
+                {
+                    if (Http11Constants.IsNonForwardableHeader(header.Name))
+                        continue;
+
+                    yield return header;
+                }
+            }
+        }
+
+        protected Header(
+            ReadOnlyMemory<char> rawHeader,
+            bool isSecure)
+        {
+            _rawHeader = rawHeader;
+            HeaderLength = rawHeader.Length;
+
+            _rawHeaderFields = Http11Parser.Read(rawHeader, isSecure, true, false).ToList();
+
+            _lookupFields = _rawHeaderFields
+                .ToLookup(t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
+
+            ChunkedBody = _lookupFields[Http11Constants.TransfertEncodingVerb]
+                .Any(t => t.Value.Span.Equals("chunked", StringComparison.OrdinalIgnoreCase));
+
+            var contentLength = -1L;
+
+            // In case of multiple content length we cake the last 
+            if (_lookupFields[Http11Constants.ContentLength].Any(t => long.TryParse(t.Value.Span, out contentLength)))
+                ContentLength = contentLength;
+        }
+
         internal void AddExtraHeaderFieldToLocalConnection(HeaderField headerField)
         {
             _rawHeaderFields.Add(headerField);
@@ -55,66 +112,22 @@ namespace Fluxzy.Clients
                 _rawHeaderFields.Add(replacement);
             }
         }
-        
-        protected Header(
-            ReadOnlyMemory<char> rawHeader, 
-            bool isSecure)
-        {
-            _rawHeader = rawHeader;
-            HeaderLength = rawHeader.Length; 
-
-            _rawHeaderFields = Http11Parser.Read(rawHeader, isSecure, true, false).ToList();
-
-            _lookupFields = _rawHeaderFields
-                .ToLookup(t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
-
-            ChunkedBody = _lookupFields[Http11Constants.TransfertEncodingVerb]
-                .Any(t => t.Value.Span.Equals("chunked", StringComparison.OrdinalIgnoreCase));
-
-            var contentLength = -1L; 
-
-            // In case of multiple content length we cake the last 
-            if (_lookupFields[Http11Constants.ContentLength].Any(t => long.TryParse(t.Value.Span, out contentLength)))
-            {
-                ContentLength = contentLength;
-            }
-        }
-
-        public int HeaderLength { get; }
-
-        public IEnumerable<HeaderField> this[ReadOnlyMemory<char> key] => _lookupFields[key];
-
-        /// <summary>
-        /// If transfer-encoding chunked is defined 
-        /// </summary>
-        public bool ChunkedBody { get; private set; }
-
-        /// <summary>
-        /// Content length of body. -1 if undefined 
-        /// </summary>
-        public long ContentLength { get; set; } = -1;
-
-
-        /// <summary>
-        /// Returns all headers, including non-forwardable 
-        /// </summary>
-        public IReadOnlyCollection<HeaderField> HeaderFields => _rawHeaderFields;
 
         protected abstract int WriteHeaderLine(Span<byte> buffer);
 
         protected abstract int GetHeaderLineLength();
 
-
         public ReadOnlyMemory<char> GetHttp11Header()
         {
             var estimatedHeaderLength = GetHttp11LengthOnly(true);
 
-            byte[]? heapBuffer = null; 
+            byte[]? heapBuffer = null;
 
             try
             {
-                Span<byte> maxHeader = estimatedHeaderLength < 1024 ? stackalloc byte[estimatedHeaderLength] :
-                    heapBuffer = ArrayPool<byte>.Shared.Rent(estimatedHeaderLength); 
+                var maxHeader = estimatedHeaderLength < 1024
+                    ? stackalloc byte[estimatedHeaderLength]
+                    : heapBuffer = ArrayPool<byte>.Shared.Rent(estimatedHeaderLength);
 
                 var totalReadByte = WriteHttp11(maxHeader, true, true);
 
@@ -125,12 +138,8 @@ namespace Fluxzy.Clients
             finally
             {
                 if (heapBuffer != null)
-                {
                     ArrayPool<byte>.Shared.Return(heapBuffer);
-                }
             }
-
-
         }
 
         public override string ToString()
@@ -138,27 +147,10 @@ namespace Fluxzy.Clients
             return GetHttp11Header().ToString();
         }
 
-        /// <summary>
-        /// Returns all headers, excluding non-forwardable 
-        /// </summary>
-        public IEnumerable<HeaderField> Headers
-        {
-            get
-            {
-                foreach (var header in _rawHeaderFields)
-                {
-                    if (Http11Constants.IsNonForwardableHeader(header.Name))
-                        continue;
-
-                    yield return header; 
-                }
-            }
-        }
-
         public int GetHttp11LengthOnly(bool skipNonForwardableHeader)
         {
             var totalLength = 0;
-           
+
             // Writing Method Path Http Protocol Version
             totalLength += GetHeaderLineLength();
 
@@ -175,21 +167,20 @@ namespace Fluxzy.Clients
                 totalLength += Encoding.ASCII.GetByteCount(header.Value.Span);
                 totalLength += Encoding.ASCII.GetByteCount("\r\n");
             }
-            
+
             totalLength += Encoding.ASCII.GetByteCount("\r\n");
 
-            return totalLength; 
+            return totalLength;
         }
 
-        public int WriteHttp11(RsBuffer buffer, 
+        public int WriteHttp11(RsBuffer buffer,
             bool skipNonForwardableHeader, bool writeExtraHeaderField = false)
         {
             var totalLength = 0;
             var http11Length = GetHttp11LengthOnly(skipNonForwardableHeader);
 
-            while (buffer.Buffer.Length < http11Length) {
+            while (buffer.Buffer.Length < http11Length)
                 buffer.Extend(2);
-            }
 
             Span<byte> data = buffer.Buffer;
 
@@ -209,16 +200,17 @@ namespace Fluxzy.Clients
                 totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
                 totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
             }
-            
+
             totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
 
-            return totalLength; 
+            return totalLength;
         }
-        public int WriteHttp11(in Span<byte> data, 
+
+        public int WriteHttp11(in Span<byte> data,
             bool skipNonForwardableHeader, bool writeExtraHeaderField = false)
         {
             var totalLength = 0;
-           
+
             // Writing Method Path Http Protocol Version
             totalLength += WriteHeaderLine(data);
 
@@ -235,17 +227,17 @@ namespace Fluxzy.Clients
                 totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
                 totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
             }
-            
+
             totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
 
-            return totalLength; 
+            return totalLength;
         }
-        
-        public int WriteHttp2(in Span<byte> data, 
+
+        public int WriteHttp2(in Span<byte> data,
             bool skipNonForwardableHeader, bool writeExtraHeaderField = false)
         {
             var totalLength = 0;
-           
+
             // Writing Method Path Http Protocol Version
             // totalLength += WriteHeaderLine(data);
 
@@ -262,16 +254,16 @@ namespace Fluxzy.Clients
                 totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
                 totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
             }
-            
+
             totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
 
-            return totalLength; 
+            return totalLength;
         }
 
         internal void ForceTransferChunked()
         {
             _rawHeaderFields.Add(new HeaderField("Transfer-Encoding", "chunked"));
-            ChunkedBody = true; 
+            ChunkedBody = true;
         }
     }
 }

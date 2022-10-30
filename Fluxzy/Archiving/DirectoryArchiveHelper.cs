@@ -20,23 +20,25 @@ namespace Fluxzy
             var directoryHint = $"{baseNumber}-{baseNumber + MaxItemPerDirectory}";
 
             var preDir = Path.Combine(baseDirectory, "exchanges", directoryHint);
-            
+
             return Path.Combine(preDir, $"ex-{exchangeId}.json");
         }
 
         internal static string GetExchangePath(string baseDirectory, ExchangeInfo exchangeInfo)
         {
-            return GetExchangePath(baseDirectory, exchangeInfo.Id); 
+            return GetExchangePath(baseDirectory, exchangeInfo.Id);
         }
+
         internal static string GetMetaPath(string baseDirectory)
         {
-            return Path.Combine(baseDirectory, "meta.json"); 
+            return Path.Combine(baseDirectory, "meta.json");
         }
 
         internal static string GetContentRequestPath(string baseDirectory, int exchangeId)
         {
             return Path.Combine(baseDirectory, "contents", $"req-{exchangeId}.data");
         }
+
         internal static string GetWebsocketContentRequestPath(string baseDirectory, int exchangeId, int messageId)
         {
             return Path.Combine(baseDirectory, "contents", $"req-{exchangeId}-ws-{messageId}.data");
@@ -49,12 +51,12 @@ namespace Fluxzy
 
         internal static string GetContentRequestPath(string baseDirectory, ExchangeInfo exchangeInfo)
         {
-            return GetContentRequestPath(baseDirectory, exchangeInfo.Id); 
+            return GetContentRequestPath(baseDirectory, exchangeInfo.Id);
         }
 
         internal static string GetContentResponsePath(string baseDirectory, ExchangeInfo exchangeInfo)
         {
-            return GetContentResponsePath(baseDirectory, exchangeInfo.Id); 
+            return GetContentResponsePath(baseDirectory, exchangeInfo.Id);
         }
 
         internal static string GetContentResponsePath(string baseDirectory, int exchangeId)
@@ -68,13 +70,13 @@ namespace Fluxzy
             var directoryHint = $"{baseNumber}-{baseNumber + MaxItemPerDirectory}";
 
             var preDir = Path.Combine(baseDirectory, "connections", directoryHint);
-            
+
             return Path.Combine(preDir, $"con-{connectionId}.json");
         }
 
         internal static string GetConnectionPath(string baseDirectory, ConnectionInfo connectionInfo)
         {
-            return GetConnectionPath(baseDirectory, connectionInfo.Id); 
+            return GetConnectionPath(baseDirectory, connectionInfo.Id);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -9,7 +8,6 @@ using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Tests.Tools;
-using Fluxzy.Tests.Utils;
 using Xunit;
 
 namespace Fluxzy.Tests.Rules
@@ -25,7 +23,7 @@ namespace Fluxzy.Tests.Rules
             var headerName = "X-pRepend-Header";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
+
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new AddResponseHeaderAction(
@@ -36,7 +34,7 @@ namespace Fluxzy.Tests.Rules
 
             using var clientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"http://{endPoint}"),
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -49,7 +47,7 @@ namespace Fluxzy.Tests.Rules
             var checkResult = await response.GetCheckResult();
 
             var headerIsPresent =
-                response.Headers.TryGetValues(headerName, out var actualResponseHeaders); 
+                response.Headers.TryGetValues(headerName, out var actualResponseHeaders);
 
             Assert.True(headerIsPresent);
             Assert.NotNull(actualResponseHeaders);
@@ -68,7 +66,6 @@ namespace Fluxzy.Tests.Rules
             var headerName = "Server";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -80,7 +77,7 @@ namespace Fluxzy.Tests.Rules
 
             using var clientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"http://{endPoint}"),
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -89,9 +86,9 @@ namespace Fluxzy.Tests.Rules
                 $"{host}/global-health-check");
 
             using var response = await httpClient.SendAsync(requestMessage);
-            
-           var headerIsPresent =
-                response.Headers.TryGetValues(headerName, out var actualResponseHeaders); 
+
+            var headerIsPresent =
+                response.Headers.TryGetValues(headerName, out var actualResponseHeaders);
 
             Assert.True(headerIsPresent);
             Assert.NotNull(actualResponseHeaders);
@@ -110,7 +107,7 @@ namespace Fluxzy.Tests.Rules
             var headerName = "Server";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
+
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new UpdateResponseHeaderAction(
@@ -121,7 +118,7 @@ namespace Fluxzy.Tests.Rules
 
             using var clientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"http://{endPoint}"),
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -130,9 +127,9 @@ namespace Fluxzy.Tests.Rules
                 $"{host}/global-health-check");
 
             using var response = await httpClient.SendAsync(requestMessage);
-            
-           var headerIsPresent =
-                response.Headers.TryGetValues(headerName, out var actualResponseHeaders); 
+
+            var headerIsPresent =
+                response.Headers.TryGetValues(headerName, out var actualResponseHeaders);
 
             Assert.True(headerIsPresent);
             Assert.NotNull(actualResponseHeaders);
@@ -142,7 +139,6 @@ namespace Fluxzy.Tests.Rules
             await proxy.WaitUntilDone();
         }
 
-
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
@@ -151,7 +147,7 @@ namespace Fluxzy.Tests.Rules
             var headerName = "server";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
+
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new DeleteResponseHeaderAction(
@@ -162,7 +158,7 @@ namespace Fluxzy.Tests.Rules
 
             using var clientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"http://{endPoint}"),
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);

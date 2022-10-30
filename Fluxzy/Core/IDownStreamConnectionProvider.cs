@@ -9,15 +9,14 @@ namespace Fluxzy.Core
 {
     public interface IDownStreamConnectionProvider : IDisposable
     {
+        IReadOnlyCollection<IPEndPoint> ListenEndpoints { get; }
+
         /// <summary>
-        /// UpdateTags le provider
+        ///     UpdateTags le provider
         /// </summary>
         /// <returns></returns>
-        IReadOnlyCollection<IPEndPoint> Init(CancellationToken token); 
+        IReadOnlyCollection<IPEndPoint> Init(CancellationToken token);
 
         ValueTask<TcpClient?> GetNextPendingConnection();
-
-        IReadOnlyCollection<IPEndPoint> ListenEndpoints { get;  }
-
     }
 }

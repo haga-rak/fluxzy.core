@@ -15,7 +15,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpPost("validate")]
         public ActionResult<Filter> Validate(Filter filter)
         {
-            return filter; 
+            return filter;
         }
 
         [HttpGet("templates")]
@@ -31,8 +31,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("apply-to-view")]
-        public ActionResult<bool> ApplyToView(Filter filter, [FromServices] ActiveViewFilterManager activeViewFilterManager,
-            [FromServices] TemplateToolBarFilterProvider filterProvider)
+        public ActionResult<bool> ApplyToView(Filter filter,
+            [FromServices] ActiveViewFilterManager activeViewFilterManager,
+            [FromServices]
+            TemplateToolBarFilterProvider filterProvider)
         {
             activeViewFilterManager.Update(new ViewFilter(filter));
             filterProvider.SetNewFilter(filter);

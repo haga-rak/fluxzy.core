@@ -17,7 +17,6 @@ using Fluxzy.Readers;
 using Fluxzy.Tests.Cli.Scaffolding;
 using Fluxzy.Tests.Tools;
 using Fluxzy.Tests.Utils;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -36,6 +35,7 @@ namespace Fluxzy.Tests.Cli
                     yield return new object[] { protocol, decryptStat };
             }
         }
+
         public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt
         {
             get
@@ -43,7 +43,6 @@ namespace Fluxzy.Tests.Cli
                 var protocols = new[] { "http11", "http2" };
                 var withPcapStatus = new[] { false, true };
                 var directoryParams = new[] { false, true };
-
 
                 foreach (var protocol in protocols)
                 foreach (var withPcap in withPcapStatus)
@@ -67,7 +66,8 @@ namespace Fluxzy.Tests.Cli
             await using var fluxzyInstance = await commandLineHost.Run();
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.GetHost(protocol)}/global-health-check");
+            var requestMessage =
+                new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.GetHost(protocol)}/global-health-check");
 
             await using var randomStream = new RandomDataStream(48, 23632, true);
             await using var hashedStream = new HashedStream(randomStream);
@@ -80,9 +80,7 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
-            
         }
-
 
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
@@ -93,91 +91,82 @@ namespace Fluxzy.Tests.Cli
             var directoryName = $"{Guid.NewGuid()}/{protocol}-{withPcap}-{outputDirectory}";
             var fileName = $"{Guid.NewGuid()}/{protocol}-{withPcap}-{outputDirectory}.fxzy";
 
-            var commandLine = $"start -l 127.0.0.1/0";
+            var commandLine = "start -l 127.0.0.1/0";
 
             commandLine += outputDirectory ? $" -d {directoryName}" : $" -o {fileName}";
 
             if (withPcap)
+                commandLine += " -c";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+            var requestBodyLength = 23632;
+            var bodyLength = 0L;
+
+            await using (var fluxzyInstance = await commandLineHost.Run())
             {
-                commandLine += " -c"; 
+                using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                    $"{TestConstants.GetHost(protocol)}/global-health-check");
+
+                await using var randomStream = new RandomDataStream(48, requestBodyLength, true);
+                await using var hashedStream = new HashedStream(randomStream);
+
+                requestMessage.Content = new StreamContent(hashedStream);
+                requestMessage.Headers.Add("X-Test-Header-256", "That value");
+
+                // Act 
+                using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+
+                bodyLength = response.Content.Headers.ContentLength ?? -1;
+                // Assert
+                await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
             }
 
-            try
+            // Assert outputDirectory content
+
+            using (IArchiveReader archiveReader = outputDirectory
+                       ? new DirectoryArchiveReader(directoryName)
+                       : new FluxzyArchiveReader(fileName))
             {
-                var commandLineHost = new FluxzyCommandLineHost(commandLine);
-                var requestBodyLength = 23632;
-                var bodyLength = 0L; 
+                var exchanges = archiveReader.ReadAllExchanges().ToList();
+                var connections = archiveReader.ReadAllConnections().ToList();
 
-                await using (var fluxzyInstance = await commandLineHost.Run())
+                var exchange = exchanges.FirstOrDefault();
+
+                if (exchange == null)
                 {
-                    using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
-
-                    var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.GetHost(protocol)}/global-health-check");
-
-                    await using var randomStream = new RandomDataStream(48, requestBodyLength, true);
-                    await using var hashedStream = new HashedStream(randomStream);
-
-                    requestMessage.Content = new StreamContent(hashedStream);
-                    requestMessage.Headers.Add("X-Test-Header-256", "That value");
-
-                    // Act 
-                    using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
-
-
-                    bodyLength = response.Content.Headers.ContentLength ?? -1;
-                    // Assert
-                    await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
                 }
 
-                // Assert outputDirectory content
+                var connection = connections.First();
 
-                using (IArchiveReader archiveReader = outputDirectory
-                           ? new DirectoryArchiveReader(directoryName)
-                           : new FluxzyArchiveReader(fileName))
-                {
+                Assert.Equal(0, await commandLineHost.ExitCode);
+                Assert.Single(exchanges);
+                Assert.Single(connections);
 
-                    var exchanges = archiveReader.ReadAllExchanges().ToList();
-                    var connections = archiveReader.ReadAllConnections().ToList();
+                Assert.Equal(200, exchange.StatusCode);
+                Assert.Equal(connection.Id, exchange.ConnectionId);
 
-                    var exchange = exchanges.FirstOrDefault();
+                Assert.Equal(requestBodyLength,
+                    await archiveReader.GetRequestBody(exchange.Id).DrainAsync(disposeStream: true));
 
-                    if (exchange == null) {
+                Assert.Equal(bodyLength,
+                    await archiveReader.GetResponseBody(exchange.Id).DrainAsync(disposeStream: true));
 
-                    }
+                Assert.Contains(exchange.RequestHeader.Headers,
+                    t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
 
-                    var connection = connections.First();
-
-                    Assert.Equal(0, await commandLineHost.ExitCode);
-                    Assert.Single(exchanges);
-                    Assert.Single(connections);
-
-                    Assert.Equal(200, exchange.StatusCode);
-                    Assert.Equal(connection.Id, exchange.ConnectionId);
-                    Assert.Equal(requestBodyLength, await archiveReader.GetRequestBody(exchange.Id).DrainAsync(disposeStream: true));
-                    Assert.Equal(bodyLength, await archiveReader.GetResponseBody(exchange.Id).DrainAsync(disposeStream: true));
-
-                    Assert.Contains(exchange.RequestHeader.Headers,
-                        t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
-
-                    if (withPcap)
-                    {
-                        Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).DrainAsync(disposeStream: true) > 0);
-                    }
-                }
-
-                if (Directory.Exists(directoryName))
-                    Directory.Delete(directoryName, true);
-
-                if (File.Exists(fileName))
-                    File.Delete(fileName);
-
-            }
-            finally
-            {
+                if (withPcap)
+                    Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).DrainAsync(disposeStream: true) >
+                                0);
             }
 
+            if (Directory.Exists(directoryName))
+                Directory.Delete(directoryName, true);
+
+            if (File.Exists(fileName))
+                File.Delete(fileName);
         }
-
 
         [Fact]
         public async Task Run_Cli_Wait_For_Complete_When_304()
@@ -205,19 +194,19 @@ namespace Fluxzy.Tests.Cli
         public async Task Run_Cli_For_Web_Socket_Tests()
         {
             // Arrange 
-            var directoryName = "ws"; 
+            var directoryName = "ws";
 
             var commandLine = $"start -l 127.0.0.1/0 -d {directoryName}";
 
             var originalMessage = "AZERTY123!%$";
 
-            var messageBytes =   Encoding.UTF8.GetBytes(originalMessage);
+            var messageBytes = Encoding.UTF8.GetBytes(originalMessage);
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
-            await using( var fluxzyInstance = await commandLineHost.Run())
+            await using (var fluxzyInstance = await commandLineHost.Run())
             {
-                using var ws = new ClientWebSocket()
+                using var ws = new ClientWebSocket
                 {
                     Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
                 };
@@ -237,10 +226,9 @@ namespace Fluxzy.Tests.Cli
 
                 var resultHash = Encoding.ASCII.GetString(buffer.Slice(0, res.Count).Span);
                 var expectedHash = Convert.ToBase64String(SHA1.HashData(messageBytes));
-                
+
                 Assert.Equal(expectedHash, resultHash);
             }
-
 
             using (IArchiveReader archiveReader = new DirectoryArchiveReader(directoryName))
             {
@@ -250,7 +238,7 @@ namespace Fluxzy.Tests.Cli
                 var exchange = exchanges.First();
                 var connection = connections.First();
 
-                var fistSentMessage = 
+                var fistSentMessage =
                     exchange.WebSocketMessages!.First(m => m.Direction == WsMessageDirection.Sent);
 
                 var expectedMessage = Encoding.UTF8.GetString(fistSentMessage.Data!);
@@ -262,14 +250,12 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(101, exchange.StatusCode);
                 Assert.Equal(connection.Id, exchange.ConnectionId);
                 Assert.Equal(expectedMessage, originalMessage);
-
             }
 
             if (Directory.Exists(directoryName))
                 Directory.Delete(directoryName, true);
-
         }
-        
+
         [Theory]
         [InlineData(5)]
         [InlineData(125 * 1024 + 5)]
@@ -287,20 +273,20 @@ namespace Fluxzy.Tests.Cli
 
             var originalMessage = RandomString(length, random);
 
-            var messageBytes =  Encoding.UTF8.GetBytes(originalMessage);
+            var messageBytes = Encoding.UTF8.GetBytes(originalMessage);
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
-            await using( var fluxzyInstance = await commandLineHost.Run())
+            await using (var fluxzyInstance = await commandLineHost.Run())
             {
-                using var ws = new ClientWebSocket()
+                using var ws = new ClientWebSocket
                 {
                     Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
                 };
 
                 var uri = new Uri($"{TestConstants.WssHost}/websocket-req-res");
 
-                var buffer = (Memory<byte>) new byte[4096];
+                var buffer = (Memory<byte>)new byte[4096];
 
                 await ws.ConnectAsync(uri, CancellationToken.None);
 
@@ -312,7 +298,7 @@ namespace Fluxzy.Tests.Cli
 
                 var resultHash = Encoding.ASCII.GetString(buffer.Slice(0, res.Count).Span);
                 var expectedHash = Convert.ToBase64String(SHA1.HashData(messageBytes));
-                
+
                 Assert.Equal(expectedHash, resultHash);
 
                 await Task.Delay(200);
@@ -326,15 +312,15 @@ namespace Fluxzy.Tests.Cli
                 var exchange = exchanges.First();
                 var connection = connections.First();
 
-                var fistSentMessage = 
+                var fistSentMessage =
                     exchange.WebSocketMessages!.First(m => m.Direction == WsMessageDirection.Sent);
 
-                var testData = fistSentMessage.Data; 
+                var testData = fistSentMessage.Data;
 
                 if (testData == null)
                 {
                     using var fileStream = archiveReader.GetRequestWebsocketContent(exchange.Id, fistSentMessage.Id);
-                    testData = fileStream.ToArrayGreedy(); 
+                    testData = fileStream.ToArrayGreedy();
                 }
 
                 var resultMessage = Encoding.UTF8.GetString(testData);
@@ -346,7 +332,6 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(101, exchange.StatusCode);
                 Assert.Equal(fistSentMessage.WrittenLength, fistSentMessage.Length);
 
-
                 Assert.Equal(connection.Id, exchange.ConnectionId);
 
                 Assert.Equal(originalMessage, resultMessage);
@@ -354,20 +339,17 @@ namespace Fluxzy.Tests.Cli
             }
 
             if (Directory.Exists(directoryName))
-            {
-
                 Directory.Delete(directoryName, true);
-            }
-
         }
-        
+
         public static string RandomString(int length, Random random)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/123456789";
+
             return new string(Enumerable.Repeat(chars, length)
                                         .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-        
+
         //[Fact]
         public async Task Run_Cli_Aggressive_Request_Response()
         {
@@ -384,29 +366,22 @@ namespace Fluxzy.Tests.Cli
             var url =
                 "https://cci-news.com/wp-content/mmr/e44b2584-1639397252.min.js";
 
-
-            for (int i = 0 ; i < 2; i ++ )
-            {
+            for (var i = 0; i < 2; i++)
                 await Task.WhenAll(
                     Enumerable.Range(0, count).Select((i, e) =>
                         AggressiveCallProducer.MakeAggressiveCall(
                             $"{url}",
                             fluxzyInstance.ListenPort, bodyLength, i % 2 == 0))
                 );
-
-
-               // await Task.Delay(30 * 1000);
-            }
+            // await Task.Delay(30 * 1000);
         }
-
     }
-
 
     public static class AggressiveCallProducer
     {
         public static async Task MakeAggressiveCall(string url, int listenPort, int bodyLength, bool abort)
         {
-            using var handler = new HttpClientHandler()
+            using var handler = new HttpClientHandler
             {
                 Proxy = new WebProxy($"http://127.0.0.1:{listenPort}")
             };
@@ -414,15 +389,13 @@ namespace Fluxzy.Tests.Cli
             var cancellationTokenSource = new CancellationTokenSource();
 
             using var client = new HttpClient(handler);
-            
+
             var responseMessageTask = client.GetAsync(url, cancellationTokenSource.Token);
-            var contentLength = -1; 
+            var contentLength = -1;
 
             if (abort)
-            {
-               // await Task.Delay(50);
+                // await Task.Delay(50);
                 cancellationTokenSource.Cancel();
-            }
 
             try
             {
@@ -433,14 +406,11 @@ namespace Fluxzy.Tests.Cli
             }
             catch (OperationCanceledException)
             {
-                return; 
+                return;
             }
 
             if (!abort)
                 Assert.Equal(bodyLength, contentLength);
-            
-
         }
     }
-
 }

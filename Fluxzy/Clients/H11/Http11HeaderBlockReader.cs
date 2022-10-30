@@ -1,3 +1,5 @@
+// Copyright © 2022 Haga RAKOTOHARIVELO
+
 using System;
 using System.IO;
 using System.Threading;
@@ -9,10 +11,10 @@ namespace Fluxzy.Clients.H11
 {
     internal static class Http11HeaderBlockReader
     {
-        private static readonly byte [] CrLf = { 0x0D, 0x0A, 0x0D, 0x0A };
+        private static readonly byte[] CrLf = { 0x0D, 0x0A, 0x0D, 0x0A };
 
         /// <summary>
-        /// Read header block from input to buffer. Returns the total header length including double CRLF
+        ///     Read header block from input to buffer. Returns the total header length including double CRLF
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
@@ -23,17 +25,17 @@ namespace Fluxzy.Clients.H11
         /// <returns></returns>
         public static async ValueTask<HeaderBlockReadResult>
             GetNext(
-                Stream stream, RsBuffer buffer, 
-                Action firstByteReceived, 
-                Action headerBlockReceived, 
-                bool throwOnError = false, 
+                Stream stream, RsBuffer buffer,
+                Action firstByteReceived,
+                Action headerBlockReceived,
+                bool throwOnError = false,
                 CancellationToken token = default)
         {
             var bufferIndex = buffer.Memory;
             var totalRead = 0;
             var indexFound = -1;
             var firstBytes = true;
-            
+
             while (totalRead < buffer.Buffer.Length)
             {
                 var currentRead = await stream.ReadAsync(bufferIndex, token);
@@ -53,9 +55,10 @@ namespace Fluxzy.Clients.H11
                     firstBytes = false;
                 }
 
-                var start = totalRead - 4 < 0 ? 0 : (totalRead - 4);
+                var start = totalRead - 4 < 0 ? 0 : totalRead - 4;
 
-                var searchBuffer = buffer.Memory.Slice(start, currentRead + (totalRead - start)); // We should look at that buffer 
+                var searchBuffer =
+                    buffer.Memory.Slice(start, currentRead + (totalRead - start)); // We should look at that buffer 
 
                 totalRead += currentRead;
                 bufferIndex = bufferIndex.Slice(currentRead);
@@ -66,12 +69,14 @@ namespace Fluxzy.Clients.H11
                 {
                     // FOUND CRLF 
                     indexFound = start + detected + 4;
+
                     break;
                 }
 
-                if (totalRead >= buffer.Buffer.Length) {
-                    var bufferIndexLength = totalRead; 
-                    
+                if (totalRead >= buffer.Buffer.Length)
+                {
+                    var bufferIndexLength = totalRead;
+
                     buffer.Multiply(2);
                     bufferIndex = buffer.Memory.Slice(bufferIndexLength);
                 }
@@ -83,7 +88,7 @@ namespace Fluxzy.Clients.H11
                     throw new ExchangeException(
                         $"Double CRLF not detected or header buffer size ({buffer.Buffer.Length}) is less than actual header size.");
 
-                return default; 
+                return default;
             }
 
             headerBlockReceived();

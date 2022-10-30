@@ -6,7 +6,6 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.H2
 {
-
     public class H2FrameReader
     {
         public static async ValueTask<H2FrameReadResult> ReadNextFrameAsync(

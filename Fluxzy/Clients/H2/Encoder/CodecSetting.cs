@@ -8,9 +8,9 @@ namespace Fluxzy.Clients.H2.Encoder
     public class CodecSetting
     {
         /// <summary>
-        /// The HPACK encoder will use dynamic table when encoding value of the headers on this list.
+        ///     The HPACK encoder will use dynamic table when encoding value of the headers on this list.
         /// </summary>
-        private static readonly string [] SavedHeadersStrings =
+        private static readonly string[] SavedHeadersStrings =
         {
             ":authority",
             "accept",
@@ -28,31 +28,30 @@ namespace Fluxzy.Clients.H2.Encoder
             "Sec-Fetch-Dest",
             "DNT",
             "sec-ch-ua-mobile",
-            "sec-ch-ua",
+            "sec-ch-ua"
         };
 
         /// <summary>
-        /// Header name in this list will be registered to the dynamic table when encoding. 
+        ///     Header name in this list will be registered to the dynamic table when encoding.
         /// </summary>
         public HashSet<ReadOnlyMemory<char>>
             EncodedHeaders { get; } =
-            new HashSet<ReadOnlyMemory<char>>(SavedHeadersStrings.Select(s => s.AsMemory()),
-                new SpanCharactersIgnoreCaseComparer()); 
-        
+            new(SavedHeadersStrings.Select(s => s.AsMemory()),
+                new SpanCharactersIgnoreCaseComparer());
+
         /// <summary>
-        /// The maximum header line (request line included)
+        ///     The maximum header line (request line included)
         /// </summary>
         public int MaxHeaderLineLength { get; set; } = 16384;
 
         /// <summary>
-        /// When encoding, Huffman is applied only if if string length exceed this value. 
+        ///     When encoding, Huffman is applied only if if string length exceed this value.
         /// </summary>
         public int MaxLengthUncompressedString { get; set; } = 4;
 
-
         /// <summary>
-        /// Max length for a stackalloc, beyond this value heap allocation is used
+        ///     Max length for a stackalloc, beyond this value heap allocation is used
         /// </summary>
-        public int MaxStackAllocationLength { get; set; } = 1024; 
+        public int MaxStackAllocationLength { get; set; } = 1024;
     }
 }

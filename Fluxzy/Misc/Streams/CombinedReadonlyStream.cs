@@ -8,28 +8,59 @@ namespace Fluxzy.Misc.Streams
 {
     internal class CombinedReadonlyStream : Stream
     {
-        private long _position;
         private readonly bool _closeStreams;
-        private IEnumerator<Stream>?  _iterator;
+        private long _position;
+        private IEnumerator<Stream>? _iterator;
         private Stream? _current;
 
-        public CombinedReadonlyStream(bool closeStreams, params Stream[] args)
-        : this(args, closeStreams)
+        public override bool CanRead => true;
+
+        public override bool CanWrite => false;
+
+        private Stream Current
         {
-            
+            get
+            {
+                if (_current != null) return _current;
+
+                if (_iterator == null) throw new ObjectDisposedException(GetType().Name);
+
+                if (_iterator.MoveNext())
+                    _current = _iterator.Current;
+
+                return _current;
+            }
+        }
+
+        public override bool CanSeek => false;
+
+        public override bool CanTimeout => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => _position;
+
+            set
+            {
+                if (value != _position) throw new NotSupportedException();
+            }
+        }
+
+        public CombinedReadonlyStream(bool closeStreams, params Stream[] args)
+            : this(args, closeStreams)
+        {
         }
 
         public CombinedReadonlyStream(IEnumerable<Stream> source, bool closeStreams = false)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             _iterator = source.GetEnumerator();
             _closeStreams = closeStreams;
         }
-
-        public override bool CanRead => true;
-
-        public override bool CanWrite => false;
 
         private void EndOfStream()
         {
@@ -40,20 +71,6 @@ namespace Fluxzy.Misc.Streams
             }
 
             _current = null;
-        }
-
-        private Stream Current
-        {
-            get
-            {
-                if (_current != null) return _current;
-                if (_iterator == null) throw new ObjectDisposedException(GetType().Name);
-                if (_iterator.MoveNext())
-                {
-                    _current = _iterator.Current;
-                }
-                return _current;
-            }
         }
 
         protected override void Dispose(bool disposing)
@@ -68,6 +85,7 @@ namespace Fluxzy.Misc.Streams
 
             base.Dispose(disposing);
         }
+
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new NotSupportedException();
@@ -77,10 +95,6 @@ namespace Fluxzy.Misc.Streams
         {
             throw new NotSupportedException();
         }
-
-        public override bool CanSeek => false;
-
-        public override bool CanTimeout => false;
 
         public override void SetLength(long value)
         {
@@ -94,66 +108,56 @@ namespace Fluxzy.Misc.Streams
 
         public override void Flush()
         {
-
-        }
-
-        public override long Length => throw new NotSupportedException();
-
-        public override long Position
-        {
-            get => _position;
-            set { if (value != _position) throw new NotSupportedException(); }
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int result = 0;
+            var result = 0;
+
             while (count > 0)
             {
-                Stream stream = Current;
+                var stream = Current;
 
                 if (stream == null)
                     break;
 
-                int thisCount = stream.Read(buffer, offset, count);
+                var thisCount = stream.Read(buffer, offset, count);
                 result += thisCount;
                 count -= thisCount;
                 offset += thisCount;
                 if (thisCount == 0) EndOfStream();
             }
+
             _position += result;
+
             return result;
         }
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token)
         {
-            int result = 0;
+            var result = 0;
 
             while (count > 0)
             {
-                Stream stream = Current;
+                var stream = Current;
 
                 if (stream == null)
                     break;
 
-                int currentReadCount =
-                    stream is MemoryStream ?
-                        stream.Read(buffer, offset, count) :
-                        await stream.ReadAsync(buffer, offset, count, token).ConfigureAwait(false);
+                var currentReadCount =
+                    stream is MemoryStream
+                        ? stream.Read(buffer, offset, count)
+                        : await stream.ReadAsync(buffer, offset, count, token).ConfigureAwait(false);
 
                 result += currentReadCount;
                 count -= currentReadCount;
                 offset += currentReadCount;
 
                 if (currentReadCount == 0)
-                {
                     EndOfStream();
-                    // break;
-                }
+                // break;
                 else
-                {
                     break; // We already have something, + NetworkStream may be blocked forever
-                }
             }
 
             _position += result;

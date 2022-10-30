@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Tests.Tools;
-using Fluxzy.Tests.Utils;
 using Xunit;
 
 namespace Fluxzy.Tests
@@ -19,22 +18,21 @@ namespace Fluxzy.Tests
 
             using var clientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://gql.twitch.tv/gql"
+                "https://gql.twitch.tv/gql"
                 //$"https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"
-                );
+            );
 
             using var response = await httpClient.SendAsync(requestMessage);
 
             var responesString = await response.Content.ReadAsStringAsync();
 
-           // Assert.True(response.IsSuccessStatusCode);
-
+            // Assert.True(response.IsSuccessStatusCode);
 
             await proxy.WaitUntilDone();
         }

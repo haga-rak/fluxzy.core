@@ -20,7 +20,7 @@ namespace Fluxzy.Clients.H2
             StreamDependency = streamDependency;
             FrameType = frameType;
             WindowUpdateSize = value;
-            CompletionSource = new TaskCompletionSource<object>();
+            CompletionSource = new TaskCompletionSource<object?>();
         }
 
         public ReadOnlyMemory<byte> BufferBytes { get; }

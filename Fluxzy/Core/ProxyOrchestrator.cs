@@ -10,7 +10,6 @@ using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Fluxzy.Core
 {
@@ -32,6 +31,10 @@ namespace Fluxzy.Core
             _archiveWriter = proxyRuntimeSetting.ArchiveWriter;
         }
 
+        public void Dispose()
+        {
+        }
+
         public async ValueTask Operate(TcpClient client, RsBuffer buffer, CancellationToken token)
         {
             try
@@ -47,41 +50,41 @@ namespace Fluxzy.Core
 
                     try
                     {
-                        localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), buffer, _proxyRuntimeSetting, token);
+                        localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), buffer,
+                            _proxyRuntimeSetting, token);
                     }
                     catch (Exception ex)
                     {
                         // Failure from the local connection
 
                         if (ex is SocketException || ex is IOException)
-                            return; 
+                            return;
                     }
 
                     if (localConnection == null)
                         return;
 
-                    Exchange? exchange =
+                    var exchange =
                         localConnection.ProvisionalExchange;
 
-                    var endPoint = (IPEndPoint) client.Client.RemoteEndPoint;
+                    var endPoint = (IPEndPoint)client.Client.RemoteEndPoint;
 
-                    exchange.Metrics.LocalPort = endPoint.Port; 
-                    exchange.Metrics.LocalAddress = endPoint.Address.ToString(); 
+                    exchange.Metrics.LocalPort = endPoint.Port;
+                    exchange.Metrics.LocalAddress = endPoint.Address.ToString();
 
                     var shouldClose = false;
-
 
                     do
                     {
                         if (
-                            (!exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase)
-                             || localConnection.TunnelOnly)
-                           )
+                            !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase)
+                            || localConnection.TunnelOnly
+                        )
                         {
                             // Check whether the local browser ask for a connection close 
 
                             shouldClose = exchange.ShouldClose();
-                            
+
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);
@@ -98,14 +101,11 @@ namespace Fluxzy.Core
                                         CancellationToken.None
                                     );
 
-
                                     if (exchange.Request.Body != null &&
                                         (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0))
-                                    {
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body,
                                             true,
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
-                                    }
                                 }
 
                                 while (true)
@@ -137,11 +137,8 @@ namespace Fluxzy.Core
                                         await SafeCloseRequestBody(exchange);
                                     }
 
-                                    
-
-                                    break; 
+                                    break;
                                 }
-
                             }
                             catch (Exception exception)
                             {
@@ -155,9 +152,7 @@ namespace Fluxzy.Core
 
                                 if (!ConnectionErrorHandler
                                         .RequalifyOnResponseSendError(exception, exchange))
-                                {
                                     throw;
-                                }
 
                                 shouldClose = true;
                             }
@@ -165,7 +160,7 @@ namespace Fluxzy.Core
                             // We do not need to read websocket response
 
                             if (!exchange.Request.Header.IsWebSocketRequest && !exchange.Context.BlindMode
-                                && exchange.Response.Header != null)
+                                                                            && exchange.Response.Header != null)
                             {
                                 // Request processed by IHttpConnectionPool returns before complete response body
 
@@ -176,22 +171,17 @@ namespace Fluxzy.Core
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     exchange.Response.Body != null &&
                                     exchange.HttpVersion == "HTTP/2")
-                                {
                                     // HTTP2 servers are allowed to send response body
                                     // without specifying a content-length or transfer-encoding chunked.
                                     // In case content-length is not present, we force transfer-encoding chunked 
                                     // in order to inform HTTP/1.1 receiver of the content body end
-
                                     exchange.Response.Header.ForceTransferChunked();
-                                }
 
                                 // Writing the received header to downstream
 
                                 if (DebugContext.InsertFluxzyMetricsOnResponseHeader)
-                                {
                                     exchange.Response.Header.AddExtraHeaderFieldToLocalConnection(
                                         exchange.GetMetricsSummaryAsHeader());
-                                }
 
                                 var responseHeaderLength = exchange.Response.Header.WriteHttp11(buffer, true, true);
 
@@ -199,7 +189,8 @@ namespace Fluxzy.Core
                                 {
                                     // Update the state of the exchange
                                     // 
-                                    _archiveWriter.Update(exchange, UpdateType.AfterResponseHeader, CancellationToken.None
+                                    _archiveWriter.Update(exchange, UpdateType.AfterResponseHeader,
+                                        CancellationToken.None
                                     );
 
                                     if (exchange.Response.Body != null &&
@@ -213,8 +204,8 @@ namespace Fluxzy.Core
 
                                         dispatchStream.OnDisposeDoneTask = () =>
                                         {
-                                            _archiveWriter.Update(ext, 
-                                                UpdateType.AfterResponse, 
+                                            _archiveWriter.Update(ext,
+                                                UpdateType.AfterResponse,
                                                 CancellationToken.None
                                             );
 
@@ -247,10 +238,8 @@ namespace Fluxzy.Core
                                     await SafeCloseResponseBody(exchange);
 
                                     if (ex is OperationCanceledException || ex is IOException)
-                                    {
                                         // local browser interrupt connection 
-                                        break; 
-                                    }
+                                        break;
 
                                     throw;
                                 }
@@ -261,17 +250,13 @@ namespace Fluxzy.Core
                                     var localConnectionWriteStream = localConnection.WriteStream;
 
                                     if (exchange.Response.Header.ChunkedBody)
-                                    {
                                         localConnectionWriteStream =
                                             new ChunkedTransferWriteStream(localConnectionWriteStream);
-                                    }
 
                                     try
                                     {
                                         await exchange.Response.Body.CopyDetailed(
-                                            localConnectionWriteStream, buffer.Buffer, _ =>
-                                            {
-                                            }, token);
+                                            localConnectionWriteStream, buffer.Buffer, _ => { }, token);
 
                                         (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
 
@@ -287,12 +272,8 @@ namespace Fluxzy.Core
                                             // without any error
 
                                             if (ex is IOException && ex.InnerException is SocketException sex)
-                                            {
                                                 if (sex.SocketErrorCode == SocketError.ConnectionAborted)
-                                                {
                                                     callerTokenSource.Cancel();
-                                                }
-                                            }
 
                                             break;
                                         }
@@ -319,7 +300,6 @@ namespace Fluxzy.Core
 
                                 try
                                 {
-
                                     shouldClose = shouldClose || await exchange.Complete;
                                 }
                                 catch (ExchangeException)
@@ -329,20 +309,19 @@ namespace Fluxzy.Core
                             }
                             else
                             {
-                                shouldClose = true; 
+                                shouldClose = true;
                             }
 
                             // Handle websocket request here and produce result 
                         }
 
                         if (shouldClose)
-                        {
                             break;
-                        }
 
                         try
                         {
-                            if (_archiveWriter != null  && !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
+                            if (_archiveWriter != null &&
+                                !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
                             {
                                 //await _archiveWriter.Update(
                                 //    exchange,
@@ -379,7 +358,7 @@ namespace Fluxzy.Core
 
                             if (exchange != null)
                             {
-                                var ep2 = (IPEndPoint) client.Client.RemoteEndPoint;
+                                var ep2 = (IPEndPoint)client.Client.RemoteEndPoint;
 
                                 exchange.Metrics.LocalPort = ep2.Port;
                                 exchange.Metrics.LocalAddress = ep2.Address.ToString();
@@ -388,37 +367,28 @@ namespace Fluxzy.Core
                         catch (IOException)
                         {
                             // Downstream close the underlying connection
-                            break; 
+                            break;
                         }
-
-                    } while (exchange != null);
-
+                    }
+                    while (exchange != null);
                 }
             }
             catch (Exception ex)
             {
                 if (ex is OperationCanceledException)
-                {
                     return;
-                }
 
                 // FATAL exception only happens here 
                 throw;
-            }
-            finally
-            {
-
             }
         }
 
         private async ValueTask SafeCloseRequestBody(Exchange exchange)
         {
             if (exchange.Request.Body != null)
-            {
                 try
                 {
                     // Clean the pipe 
-
                     await exchange.Request.Body.DisposeAsync();
                     exchange.Request.Body = null;
                 }
@@ -426,17 +396,14 @@ namespace Fluxzy.Core
                 {
                     // ignore errors when closing pipe 
                 }
-            }
         }
 
         private async ValueTask SafeCloseResponseBody(Exchange exchange)
         {
             if (exchange.Response.Body != null)
-            {
                 try
                 {
                     // Clean the pipe 
-
                     await exchange.Response.Body.DisposeAsync();
                     exchange.Response.Body = null;
                 }
@@ -444,11 +411,6 @@ namespace Fluxzy.Core
                 {
                     // ignore errors when closing pipe 
                 }
-            }
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

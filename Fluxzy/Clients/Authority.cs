@@ -5,7 +5,7 @@ using System;
 namespace Fluxzy.Clients
 {
     /// <summary>
-    /// Hold information about a hostname and a port number 
+    ///     Hold information about a hostname and a port number
     /// </summary>
     public readonly struct Authority : IEquatable<Authority>, IAuthority
     {
@@ -17,17 +17,16 @@ namespace Fluxzy.Clients
         }
 
         /// <summary>
-        /// Hostname
+        ///     Hostname
         /// </summary>
-        public string HostName { get;  }
+        public string HostName { get; }
 
         /// <summary>
-        /// Port number
+        ///     Port number
         /// </summary>
-        public int Port { get;  }
+        public int Port { get; }
 
         /// <summary>
-        /// 
         /// </summary>
         public bool Secure { get; }
 
@@ -46,13 +45,13 @@ namespace Fluxzy.Clients
         public override int GetHashCode()
         {
             Span<char> destBuffer = stackalloc char[HostName.Length];
+
             return HashCode.Combine(HostName.AsSpan().ToLowerInvariant(destBuffer), Port, Secure);
         }
 
-
         public override string ToString()
         {
-            return $"{HostName}:{Port}"; 
+            return $"{HostName}:{Port}";
         }
     }
 }

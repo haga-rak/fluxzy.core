@@ -17,19 +17,6 @@ namespace Fluxzy.Misc.Streams
         private readonly Action<Exception> _onReadError;
         private readonly CancellationToken _parentToken;
 
-        public MetricsStream(Stream innerStream,
-            Action firstBytesReaden,
-            Action<long> endRead,
-            Action<Exception> onReadError,
-            CancellationToken parentToken)
-        {
-            InnerStream = innerStream;
-            _firstBytesReaden = firstBytesReaden;
-            _endRead = endRead;
-            _onReadError = onReadError;
-            _parentToken = parentToken;
-        }
-
         public long TotalRead { get; private set; }
 
         public override bool CanRead => InnerStream.CanRead;
@@ -43,10 +30,24 @@ namespace Fluxzy.Misc.Streams
         public override long Position
         {
             get => InnerStream.Position;
+
             set => InnerStream.Position = value;
         }
 
         public Stream InnerStream { get; }
+
+        public MetricsStream(Stream innerStream,
+            Action firstBytesReaden,
+            Action<long> endRead,
+            Action<Exception> onReadError,
+            CancellationToken parentToken)
+        {
+            InnerStream = innerStream;
+            _firstBytesReaden = firstBytesReaden;
+            _endRead = endRead;
+            _onReadError = onReadError;
+            _parentToken = parentToken;
+        }
 
         public override void Flush()
         {

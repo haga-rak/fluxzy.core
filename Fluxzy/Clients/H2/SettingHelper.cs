@@ -1,7 +1,6 @@
 using System;
 using System.Buffers;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Frames;
 
@@ -18,11 +17,13 @@ namespace Fluxzy.Clients.H2
                 //written += currentSetting.Write(buffer);
                 //logger.OutgoingSetting(ref currentSetting);
             }
+
             {
                 //var currentSetting = new SettingFrame(SettingIdentifier.SettingsInitialWindowSize, 1073741824);
                 //written += currentSetting.Write(buffer);
                 //logger.OutgoingSetting(ref currentSetting);
             }
+
             {
                 var currentSetting = new SettingFrame(SettingIdentifier.SettingsMaxConcurrentStreams, 256);
                 written += currentSetting.Write(buffer);
@@ -42,11 +43,11 @@ namespace Fluxzy.Clients.H2
 
         public static async Task WriteAckSetting(Stream innerStream)
         {
-            byte[] settingBuffer = ArrayPool<byte>.Shared.Rent(80);
+            var settingBuffer = ArrayPool<byte>.Shared.Rent(80);
 
             try
             {
-                int written = new SettingFrame(true).Write(settingBuffer);
+                var written = new SettingFrame(true).Write(settingBuffer);
                 await innerStream.WriteAsync(settingBuffer, 0, written);
             }
             finally
@@ -59,11 +60,10 @@ namespace Fluxzy.Clients.H2
         {
             Span<byte> settingBuffer = stackalloc byte[80];
             var settingFrame = new SettingFrame(true);
-            int written = settingFrame.Write(settingBuffer);
+            var written = settingFrame.Write(settingBuffer);
 
             logger.OutgoingSetting(ref settingFrame);
             innerStream.Write(settingBuffer.Slice(0, written));
-
         }
     }
 }

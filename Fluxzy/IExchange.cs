@@ -11,29 +11,27 @@ namespace Fluxzy
 
         string KnownAuthority { get; }
 
-        string HttpVersion { get;  }
+        string HttpVersion { get; }
 
         string Method { get; }
 
         string Path { get; }
 
-        IEnumerable<HeaderFieldInfo> GetRequestHeaders();
-
-        IEnumerable<HeaderFieldInfo>? GetResponseHeaders();
-
         int StatusCode { get; }
 
-        string? EgressIp { get;  }
+        string? EgressIp { get; }
 
         string? Comment { get; }
 
-        HashSet<Tag>? Tags { get;  }
+        HashSet<Tag>? Tags { get; }
 
         bool IsWebSocket { get; }
 
-
         List<WsMessage>? WebSocketMessages { get; }
 
+        IEnumerable<HeaderFieldInfo> GetRequestHeaders();
+
+        IEnumerable<HeaderFieldInfo>? GetResponseHeaders();
 
         //AgentInfo?  AgentInfo { get; }
     }

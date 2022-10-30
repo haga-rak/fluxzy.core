@@ -66,21 +66,11 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             { "508", "Loop Detected" },
             { "510", "Not Extended" },
             { "511", "Network Authentication Required" }
-
         };
 
         private static readonly Dictionary<ReadOnlyMemory<char>, ReadOnlyMemory<char>> StatusLineMapping =
-            StatusLineMappingStr.ToDictionary(t => MemoryExtensions.AsMemory(t.Key), t => MemoryExtensions.AsMemory(t.Value), new SpanCharactersIgnoreCaseComparer());
-
-        public static ReadOnlyMemory<char> GetStatusLine(ReadOnlyMemory<char> statusCode)
-        {
-            if (StatusLineMapping.TryGetValue(statusCode, out var res))
-            {
-                return res; 
-            }
-
-            return "Unknown status".AsMemory();
-        }
+            StatusLineMappingStr.ToDictionary(t => t.Key.AsMemory(), t => t.Value.AsMemory(),
+                new SpanCharactersIgnoreCaseComparer());
 
         public static readonly HashSet<char> LineSeparators = new(new[] { '\r', '\n' });
         public static readonly HashSet<char> SpaceSeparators = new(new[] { ' ', '\t' });
@@ -123,13 +113,20 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
             new(new[]
             {
-                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade,AltSvc,Expect
+                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade, AltSvc, Expect
             }, new SpanCharactersIgnoreCaseComparer());
 
+        public static ReadOnlyMemory<char> GetStatusLine(ReadOnlyMemory<char> statusCode)
+        {
+            if (StatusLineMapping.TryGetValue(statusCode, out var res))
+                return res;
+
+            return "Unknown status".AsMemory();
+        }
 
         public static bool IsNonForwardableHeader(ReadOnlyMemory<char> headerName)
         {
-            return Http11Constants.NonH2Header.Contains(headerName);
+            return NonH2Header.Contains(headerName);
         }
     }
 }

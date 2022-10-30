@@ -8,7 +8,7 @@ namespace Fluxzy.Desktop.Services.Filters
     {
         public List<FilterTemplate> ReadAvailableTemplates()
         {
-            var res = new List<FilterTemplate>()
+            var res = new List<FilterTemplate>
             {
                 new FullUrlFilter(string.Empty),
                 new HostFilter(string.Empty),
@@ -32,7 +32,7 @@ namespace Fluxzy.Desktop.Services.Filters
                 new StatusCodeRedirectionFilter(),
 
                 new AnyFilter(),
-                new FilterCollection()
+                new FilterCollection
                 {
                     Common = true
                 },
@@ -43,12 +43,12 @@ namespace Fluxzy.Desktop.Services.Filters
                 new HasRequestBodyFilter(),
 
                 new HasCommentFilter(),
-                new HasTagFilter(), 
+                new HasTagFilter(),
                 new CommentSearchFilter(string.Empty),
                 new TagContainsFilter(null)
             };
 
-            return res; 
+            return res;
         }
     }
 }

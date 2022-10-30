@@ -24,19 +24,18 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
-                    new FullResponseAction(new ReplyStreamContent(403, 
+                    new FullResponseAction(new ReplyStreamContent(403,
                         Clients.Mock.BodyContent.CreateFromString(bodyString))),
                     new HostFilter("sandbox.smartizy.com")
-                    ));
+                ));
 
             var endPoint = proxy.Run().First();
 
             using var clientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"http://{endPoint}"),
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -47,7 +46,7 @@ namespace Fluxzy.Tests.Rules
             using var response = await httpClient.SendAsync(requestMessage);
 
             var actualBodyString = await response.Content.ReadAsStringAsync();
-            
+
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             Assert.Equal(bodyString, actualBodyString);
 

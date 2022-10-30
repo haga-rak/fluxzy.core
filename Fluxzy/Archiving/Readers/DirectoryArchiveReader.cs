@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System.Collections.Generic;
 using System.IO;
@@ -26,9 +26,10 @@ namespace Fluxzy.Readers
                 return new ArchiveMetaInformation();
 
             using var metaStream = File.Open(metaPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream, GlobalArchiveOption.JsonSerializerOptions)!; 
-        }
 
+            return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream,
+                GlobalArchiveOption.JsonSerializerOptions)!;
+        }
 
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
         {
@@ -98,7 +99,8 @@ namespace Fluxzy.Readers
 
         public Stream? GetRequestWebsocketContent(int exchangeId, int messageId)
         {
-            var requestBodyPath = DirectoryArchiveHelper.GetWebsocketContentRequestPath(_baseDirectory, exchangeId, messageId);
+            var requestBodyPath =
+                DirectoryArchiveHelper.GetWebsocketContentRequestPath(_baseDirectory, exchangeId, messageId);
 
             if (!File.Exists(requestBodyPath))
                 return null;
@@ -108,7 +110,8 @@ namespace Fluxzy.Readers
 
         public Stream? GetResponseWebsocketContent(int exchangeId, int messageId)
         {
-            var responseBodyPath = DirectoryArchiveHelper.GetWebsocketContentResponsePath(_baseDirectory, exchangeId, messageId);
+            var responseBodyPath =
+                DirectoryArchiveHelper.GetWebsocketContentResponsePath(_baseDirectory, exchangeId, messageId);
 
             if (!File.Exists(responseBodyPath))
                 return null;
@@ -119,7 +122,8 @@ namespace Fluxzy.Readers
         public bool HasRequestBody(int exchangeId)
         {
             var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentRequestPath(_baseDirectory, exchangeId));
-            return fileInfo.Exists && fileInfo.Length > 0; 
+
+            return fileInfo.Exists && fileInfo.Length > 0;
         }
 
         public Stream? GetResponseBody(int exchangeId)
@@ -135,6 +139,7 @@ namespace Fluxzy.Readers
         public bool HasResponseBody(int exchangeId)
         {
             var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentResponsePath(_baseDirectory, exchangeId));
+
             return fileInfo.Exists && fileInfo.Length > 0;
         }
 

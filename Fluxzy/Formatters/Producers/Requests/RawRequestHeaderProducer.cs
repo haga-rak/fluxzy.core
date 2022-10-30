@@ -15,7 +15,7 @@ namespace Fluxzy.Formatters.Producers.Requests
         {
             var requestHeaders = exchangeInfo.GetRequestHeaders().ToList();
             var stringBuilder = new StringBuilder();
-            
+
             var charBuffer = ArrayPool<char>.Shared.Rent(context.Settings.MaxHeaderLength);
 
             try
@@ -30,9 +30,7 @@ namespace Fluxzy.Formatters.Producers.Requests
             }
 
             if (context.RequestBodyText != null)
-            {
                 stringBuilder.Append(context.RequestBodyText);
-            }
 
             return new RawRequestHeaderResult(ResultTitle, stringBuilder.ToString());
         }
@@ -40,12 +38,12 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public class RawRequestHeaderResult : FormattingResult
     {
-        public RawRequestHeaderResult(string title, string rawHeader) : base(title)
+        public string RawHeader { get; }
+
+        public RawRequestHeaderResult(string title, string rawHeader)
+            : base(title)
         {
             RawHeader = rawHeader;
         }
-
-        public string RawHeader { get; }
     }
-
 }

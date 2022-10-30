@@ -11,30 +11,27 @@ namespace Fluxzy.Desktop.Services
     {
         private readonly List<ToolBarFilter> _defaults = new()
         {
-            new(AnyFilter.Default),
-            new(new ContentTypeJsonFilter()),
-            new(new MethodFilter("POST")),
-            new(new StatusCodeSuccessFilter()),
-            new(new FilterCollection(
+            new ToolBarFilter(AnyFilter.Default),
+            new ToolBarFilter(new ContentTypeJsonFilter()),
+            new ToolBarFilter(new MethodFilter("POST")),
+            new ToolBarFilter(new StatusCodeSuccessFilter()),
+            new ToolBarFilter(new FilterCollection(
                     new StatusCodeClientErrorFilter(),
                     new StatusCodeServerErrorFilter()
-                ) 
-            {
-                Operation = SelectorCollectionOperation.Or,
-                ExplicitShortName = "err",
-                Description = "Error 4XX and 5XX",
-                Identifier = Guid.Parse("E4B4D0B9-44CC-453B-9B13-8B06F1008B89")
-            }
+                )
+                {
+                    Operation = SelectorCollectionOperation.Or,
+                    ExplicitShortName = "err",
+                    Description = "Error 4XX and 5XX",
+                    Identifier = Guid.Parse("E4B4D0B9-44CC-453B-9B13-8B06F1008B89")
+                }
             ),
-            new(new IsWebSocketFilter()),
-
+            new ToolBarFilter(new IsWebSocketFilter())
         };
 
         public IReadOnlyCollection<ToolBarFilter> GetDefault()
         {
-            return _defaults; 
+            return _defaults;
         }
     }
-
-
 }

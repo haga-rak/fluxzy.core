@@ -10,17 +10,17 @@ using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Tests.Tools;
 using Fluxzy.Tests.Utils;
 using Xunit;
-using Header2 = fluxzy.sandbox.models.Header; 
+using Header2 = fluxzy.sandbox.models.Header;
 
 namespace Fluxzy.Tests
 {
     public class Http2_ConcurrentCall
     {
         public async Task CallSimple(
-            HttpClient httpClient, 
+            HttpClient httpClient,
             int bufferSize, int length, NameValueCollection? nvCol = null)
         {
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
                 $"{TestConstants.Http2Host}/global-health-check"
             );
@@ -28,13 +28,8 @@ namespace Fluxzy.Tests
             requestMessage.Headers.Add("x-buffer-size", bufferSize.ToString());
 
             if (nvCol != null)
-            {
                 foreach (string nv in nvCol)
-                {
                     requestMessage.Headers.Add(nv, nvCol[nv]);
-                }
-            }
-
 
             await using var randomStream = new RandomDataStream(9, length);
             var content = new StreamContent(randomStream, bufferSize);
@@ -54,19 +49,19 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler, false);
 
-            Random random = new Random(9);
+            var random = new Random(9);
 
-            int count = 15;
+            var count = 15;
 
-            var tasks = 
+            var tasks =
                 Enumerable.Repeat(httpClient, count).Select(h =>
-                CallSimple(h, (1024 * 16) + 10, 1024 * 4));
+                    CallSimple(h, 1024 * 16 + 10, 1024 * 4));
 
-            await Task.WhenAll(tasks); 
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>
-        /// The goal of this test is to challenge the dynamic table content
+        ///     The goal of this test is to challenge the dynamic table content
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -75,26 +70,26 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler, false);
 
-            int count = 20;
+            var count = 20;
 
-            byte[] buffer = new byte[500]; 
+            var buffer = new byte[500];
 
-            var tasks = 
+            var tasks =
                 Enumerable.Repeat(httpClient, count).Select((h, index) =>
                 {
                     new Random(index).NextBytes(buffer);
 
-                    return CallSimple(h, (1024 * 16) + 10, 128  *4, new NameValueCollection()
+                    return CallSimple(h, 1024 * 16 + 10, 128 * 4, new NameValueCollection
                     {
-                        { "Cookie" , Convert.ToBase64String(buffer) }
+                        { "Cookie", Convert.ToBase64String(buffer) }
                     });
                 });
 
-            await Task.WhenAll(tasks); 
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>
-        /// The goal of this test is to challenge the dynamic table content
+        ///     The goal of this test is to challenge the dynamic table content
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -104,25 +99,24 @@ namespace Fluxzy.Tests
 
             using var httpClient = new HttpClient(handler, false);
 
-            int count = 1;
+            var count = 1;
 
-            byte [] buffer = new byte[500]; 
+            var buffer = new byte[500];
 
-            var tasks = 
+            var tasks =
                 Enumerable.Repeat(httpClient, count).Select((h, index) =>
                 {
-                    new Random(index%2).NextBytes(buffer);
+                    new Random(index % 2).NextBytes(buffer);
 
                     return CallSimple(
-                        h, bufferSize: 16394, 
-                        length: 524288, new NameValueCollection()
-                    {
-                        { "Cookie" , Convert.ToBase64String(buffer) }
-                    });
+                        h, 16394,
+                        524288, new NameValueCollection
+                        {
+                            { "Cookie", Convert.ToBase64String(buffer) }
+                        });
                 });
 
-
-            await Task.WhenAll(tasks); 
+            await Task.WhenAll(tasks);
         }
 
         [Fact]
@@ -132,35 +126,34 @@ namespace Fluxzy.Tests
 
             using var httpClient = new HttpClient(handler, false);
 
-            int repeatCount = 20;
+            var repeatCount = 20;
 
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
-                .Select(async client =>
-                {
-                    var response = await client.GetAsync($"{TestConstants.Http2Host}/headers-random");
-                    var text = await response.Content.ReadAsStringAsync();
+                                  .Select(async client =>
+                                  {
+                                      var response = await client.GetAsync($"{TestConstants.Http2Host}/headers-random");
+                                      var text = await response.Content.ReadAsStringAsync();
 
-                    var items = JsonSerializer.Deserialize<Header2[]>(text
-                        , new JsonSerializerOptions()
-                        {
-                            PropertyNameCaseInsensitive = true
-                        })!;
+                                      var items = JsonSerializer.Deserialize<Header2[]>(text
+                                          , new JsonSerializerOptions
+                                          {
+                                              PropertyNameCaseInsensitive = true
+                                          })!;
 
-                    var mustBeTrue = items.All(i => response.Headers.Any(t => t.Key == i.Name
-                                                             && t.Value.Contains(i.Value))); 
+                                      var mustBeTrue = items.All(i => response.Headers.Any(t => t.Key == i.Name
+                                          && t.Value.Contains(i.Value)));
 
-                    Assert.True(mustBeTrue); 
-                }); 
-            
-            await Task.WhenAll(tasks); 
+                                      Assert.True(mustBeTrue);
+                                  });
+
+            await Task.WhenAll(tasks);
         }
-
 
         //[Fact]
         public async Task Headers_Multiple_Reception_Repeating_Value()
         {
             await Task.WhenAll(Enumerable.Repeat(0, 10)
-                .Select(p => Receiving_Multiple_Repeating_Header_Value_Call()));
+                                         .Select(p => Receiving_Multiple_Repeating_Header_Value_Call()));
         }
 
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call()
@@ -169,25 +162,27 @@ namespace Fluxzy.Tests
 
             using var httpClient = new HttpClient(handler, false);
 
-            int repeatCount = 40;
+            var repeatCount = 40;
 
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
-                .Select(async client =>
-                {
-                    var response = await client.GetAsync($"{TestConstants.Http2Host}/headers-random-repeat");
-                    var text = await response.Content.ReadAsStringAsync();
+                                  .Select(async client =>
+                                  {
+                                      var response =
+                                          await client.GetAsync($"{TestConstants.Http2Host}/headers-random-repeat");
 
-                    var items = JsonSerializer.Deserialize<Header2[]>(text
-                        , new JsonSerializerOptions()
-                        {
-                            PropertyNameCaseInsensitive = true
-                        })!;
+                                      var text = await response.Content.ReadAsStringAsync();
 
-                    var mustBeTrue = items.All(i => response.Headers.Any(t => t.Key == i.Name
-                                                                              && t.Value.Contains(i.Value)));
+                                      var items = JsonSerializer.Deserialize<Header2[]>(text
+                                          , new JsonSerializerOptions
+                                          {
+                                              PropertyNameCaseInsensitive = true
+                                          })!;
 
-                    Assert.True(mustBeTrue);
-                });
+                                      var mustBeTrue = items.All(i => response.Headers.Any(t => t.Key == i.Name
+                                          && t.Value.Contains(i.Value)));
+
+                                      Assert.True(mustBeTrue);
+                                  });
 
             await Task.WhenAll(tasks);
         }

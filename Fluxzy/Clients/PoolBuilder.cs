@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
-using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Misc;
 using Fluxzy.Writers;
@@ -103,7 +102,7 @@ namespace Fluxzy.Clients
             IHttpConnectionPool? result = null;
 
             var semaphorePerAuthority = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
-            var released = false; 
+            var released = false;
 
             try
             {
@@ -119,6 +118,7 @@ namespace Fluxzy.Clients
                         if (pool.Complete)
                         {
                             _connectionPools.Remove(pool.Authority);
+
                             continue;
                         }
 
@@ -188,7 +188,8 @@ namespace Fluxzy.Clients
                 if (openingResult.Type == RemoteConnectionResultType.Http2)
                 {
                     var h2ConnectionPool = new H2ConnectionPool(
-                        openingResult.Connection.ReadStream!, // Read and write stream are the same after the sslhandshake
+                        openingResult.Connection
+                                     .ReadStream!, // Read and write stream are the same after the sslhandshake
                         new H2StreamSetting(),
                         exchange.Authority, exchange.Connection, OnConnectionFaulted);
 
@@ -213,7 +214,7 @@ namespace Fluxzy.Clients
                     {
                         released = true;
                         semaphorePerAuthority.Release();
-                        
+
                         result.Init();
                     }
 
@@ -237,9 +238,7 @@ namespace Fluxzy.Clients
             lock (_connectionPools)
             {
                 if (_connectionPools.Remove(h2ConnectionPool.Authority))
-                {
                     h2ConnectionPool.DisposeAsync();
-                }
             }
 
             try

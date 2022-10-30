@@ -25,24 +25,26 @@ namespace Fluxzy.Readers
                 return new ArchiveMetaInformation();
 
             using var metaStream = metaEntry.Open();
-            return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream, GlobalArchiveOption.JsonSerializerOptions)!;
-        }
 
+            return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream,
+                GlobalArchiveOption.JsonSerializerOptions)!;
+        }
 
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
         {
-            return _zipFile.Entries.Where(e => 
-                               e.FullName.StartsWith("exchanges") 
-                                && e.FullName.EndsWith(".json"))
-                    .Select(s =>
-                    {
-                        using var stream = s.Open(); 
-                        return JsonSerializer.Deserialize<ExchangeInfo>(
-                            stream, 
-                            GlobalArchiveOption.JsonSerializerOptions);
-                    })
-                    .Where(t => t != null)
-                    .Select(t => t!);
+            return _zipFile.Entries.Where(e =>
+                               e.FullName.StartsWith("exchanges")
+                               && e.FullName.EndsWith(".json"))
+                           .Select(s =>
+                           {
+                               using var stream = s.Open();
+
+                               return JsonSerializer.Deserialize<ExchangeInfo>(
+                                   stream,
+                                   GlobalArchiveOption.JsonSerializerOptions);
+                           })
+                           .Where(t => t != null)
+                           .Select(t => t!);
         }
 
         public ExchangeInfo? ReadExchange(int exchangeId)
@@ -68,6 +70,7 @@ namespace Fluxzy.Readers
                            .Select(s =>
                            {
                                using var stream = s.Open();
+
                                return JsonSerializer.Deserialize<ConnectionInfo>(
                                    stream,
                                    GlobalArchiveOption.JsonSerializerOptions);
@@ -115,7 +118,8 @@ namespace Fluxzy.Readers
 
         public Stream? GetRequestWebsocketContent(int exchangeId, int messageId)
         {
-            var path = DirectoryArchiveHelper.GetWebsocketContentRequestPath(string.Empty, exchangeId, messageId).Replace("\\", "/");
+            var path = DirectoryArchiveHelper.GetWebsocketContentRequestPath(string.Empty, exchangeId, messageId)
+                                             .Replace("\\", "/");
 
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
@@ -127,7 +131,8 @@ namespace Fluxzy.Readers
 
         public Stream? GetResponseWebsocketContent(int exchangeId, int messageId)
         {
-            var path = DirectoryArchiveHelper.GetWebsocketContentResponsePath(string.Empty, exchangeId, messageId).Replace("\\", "/");
+            var path = DirectoryArchiveHelper.GetWebsocketContentResponsePath(string.Empty, exchangeId, messageId)
+                                             .Replace("\\", "/");
 
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
@@ -142,7 +147,7 @@ namespace Fluxzy.Readers
             var path = DirectoryArchiveHelper.GetContentRequestPath(string.Empty, exchangeId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            return entry != null; 
+            return entry != null;
         }
 
         public Stream? GetResponseBody(int exchangeId)
@@ -161,7 +166,7 @@ namespace Fluxzy.Readers
             var path = DirectoryArchiveHelper.GetContentResponsePath(string.Empty, exchangeId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            return entry != null; 
+            return entry != null;
         }
 
         public void Dispose()
@@ -169,6 +174,4 @@ namespace Fluxzy.Readers
             _zipFile?.Dispose();
         }
     }
-
-    
 }

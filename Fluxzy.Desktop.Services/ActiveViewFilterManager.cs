@@ -10,11 +10,11 @@ namespace Fluxzy.Desktop.Services
     {
         protected override BehaviorSubject<ViewFilter> Subject { get; } = new(new ViewFilter(AnyFilter.Default));
 
+        public ViewFilter Current => Subject.Value;
+
         public void Update(ViewFilter filter)
         {
             Subject.OnNext(filter);
         }
-
-        public ViewFilter Current => Subject.Value;
     }
 }

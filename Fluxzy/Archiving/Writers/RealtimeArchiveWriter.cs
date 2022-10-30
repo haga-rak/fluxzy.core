@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Fluxzy.Clients;
 
 namespace Fluxzy.Writers
@@ -12,7 +10,6 @@ namespace Fluxzy.Writers
     {
         public virtual void Init()
         {
-
         }
 
         public abstract void UpdateTags(IEnumerable<Tag> tags);
@@ -29,7 +26,6 @@ namespace Fluxzy.Writers
 
         public abstract Stream CreateWebSocketResponseContent(int exchangeId, int messageId);
 
-
         public virtual string GetDumpfilePath(int connectionId)
         {
             return string.Empty;
@@ -45,6 +41,7 @@ namespace Fluxzy.Writers
         }
 
         public event EventHandler<ExchangeUpdateEventArgs>? ExchangeUpdated;
+
         public event EventHandler<ConnectionUpdateEventArgs>? ConnectionUpdated;
 
         public virtual void Update(Connection connection, CancellationToken cancellationToken)
@@ -72,7 +69,6 @@ namespace Fluxzy.Writers
 
         protected virtual void Dispose(bool disposing)
         {
-
         }
     }
 
@@ -83,6 +79,6 @@ namespace Fluxzy.Writers
         AfterResponse,
         WsMessageSent,
         WsMessageReceived,
-        Complete,
+        Complete
     }
 }

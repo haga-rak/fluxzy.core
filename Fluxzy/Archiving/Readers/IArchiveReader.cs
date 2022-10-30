@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 
 namespace Fluxzy.Readers
 {
     public interface IArchiveReader : IDisposable
     {
-        ArchiveMetaInformation ReadMetaInformation(); 
+        ArchiveMetaInformation ReadMetaInformation();
 
         IEnumerable<ExchangeInfo> ReadAllExchanges();
-        
+
         ExchangeInfo? ReadExchange(int exchangeId);
 
         IEnumerable<ConnectionInfo> ReadAllConnections();
@@ -25,7 +24,7 @@ namespace Fluxzy.Readers
 
         Stream? GetResponseWebsocketContent(int exchangeId, int messageId);
 
-        bool HasRequestBody(int exchangeId); 
+        bool HasRequestBody(int exchangeId);
 
         Stream? GetResponseBody(int exchangeId);
 

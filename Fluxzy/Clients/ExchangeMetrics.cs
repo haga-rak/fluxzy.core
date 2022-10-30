@@ -21,7 +21,7 @@ namespace Fluxzy.Clients
         public DateTime ResponseHeaderEnd { get; set; }
 
         public DateTime ResponseBodyStart { get; set; }
-        
+
         public DateTime ResponseBodyEnd { get; set; }
 
         public DateTime RemoteClosed { get; set; }

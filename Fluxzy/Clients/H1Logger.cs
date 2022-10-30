@@ -10,7 +10,12 @@ namespace Fluxzy.Clients
 {
     internal class H1Logger
     {
+        private readonly bool _active;
+        private readonly string _directory;
+
         public static List<string>? AuthorizedHosts { get; }
+
+        public Authority Authority { get; }
 
         static H1Logger()
         {
@@ -20,8 +25,8 @@ namespace Fluxzy.Clients
             {
                 AuthorizedHosts =
                     hosts.Split(new[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(s => s.Trim())
-                        .ToList();
+                         .Select(s => s.Trim())
+                         .ToList();
 
                 return;
             }
@@ -29,29 +34,23 @@ namespace Fluxzy.Clients
             AuthorizedHosts = null;
         }
 
-        public Authority Authority { get; }
-    
-        private readonly bool _active;
-        private readonly string _directory;
-
-        public H1Logger(Authority authority,  bool? active = null)
+        public H1Logger(Authority authority, bool? active = null)
         {
             Authority = authority;
 
             active ??= string.Equals(Environment.GetEnvironmentVariable("EnableH1Tracing"),
                 "true", StringComparison.OrdinalIgnoreCase);
 
-            var loggerPath = Environment.ExpandEnvironmentVariables(Environment.GetEnvironmentVariable("TracingDirectory")
-                             ?? "%appdata%/echoes-debug"); 
+            var loggerPath = Environment.ExpandEnvironmentVariables(
+                Environment.GetEnvironmentVariable("TracingDirectory")
+                ?? "%appdata%/echoes-debug");
 
             _active = active.Value;
 
             if (_active && AuthorizedHosts != null)
-            {
                 // Check for domain restriction 
-                _active = AuthorizedHosts.Any(c => Authority.HostName.ToString().EndsWith(
+                _active = AuthorizedHosts.Any(c => Authority.HostName.EndsWith(
                     c, StringComparison.OrdinalIgnoreCase));
-            }
 
             _directory = new DirectoryInfo(Path.Combine(loggerPath, "h1")).FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
@@ -73,8 +72,10 @@ namespace Fluxzy.Clients
             fullPath = Path.Combine(fullPath, $"exId={exchangeId:00000}.txt");
 
             lock (string.Intern(fullPath))
+            {
                 File.AppendAllText(fullPath,
                     $"[{ITimingProvider.Default.InstantMillis:000000000}] {message}\r\n");
+            }
         }
 
         public void TraceResponse(Exchange exchange, bool full = false)
@@ -82,11 +83,11 @@ namespace Fluxzy.Clients
             if (!_active)
                 return;
 
-            var firstLine = full? 
-                exchange.Response.Header?.GetHttp11Header().ToString() : 
-                exchange.Response.Header?.GetHttp11Header().ToString().Split("\r\n").First();
+            var firstLine = full
+                ? exchange.Response.Header?.GetHttp11Header().ToString()
+                : exchange.Response.Header?.GetHttp11Header().ToString().Split("\r\n").First();
 
-            Trace(exchange.Id,  $"Response : " + firstLine);
+            Trace(exchange.Id, "Response : " + firstLine);
         }
 
         public void Trace(
@@ -98,12 +99,10 @@ namespace Fluxzy.Clients
             WriteLn(exchangeId, message);
         }
 
-
         public void Trace(
             int exchangeId,
             Func<string> sendMessage)
         {
-
             if (!_active)
                 return;
 
@@ -125,15 +124,13 @@ namespace Fluxzy.Clients
             if (!_active)
                 return;
 
-            Trace(exchange,  preMessage);
+            Trace(exchange, preMessage);
         }
-    
 
         public void Trace(
             Exchange exchange,
             Func<string> sendMessage)
         {
-
             if (!_active)
                 return;
 
@@ -150,12 +147,10 @@ namespace Fluxzy.Clients
             var method = exchange.Request.Header[":method".AsMemory()].First().Value.ToString();
             var path = exchange.Request.Header[":path".AsMemory()].First().Value.ToString();
 
-            int maxLength = 30;
+            var maxLength = 30;
 
             if (path.Length > maxLength)
-            {
-                path = "..." + path.Substring(path.Length - (maxLength - 3), (maxLength - 3));
-            }
+                path = "..." + path.Substring(path.Length - (maxLength - 3), maxLength - 3);
 
             var message =
                 $"{method.PadRight(6, ' ')} - " +
@@ -165,6 +160,5 @@ namespace Fluxzy.Clients
 
             WriteLn(exchange.Id, message);
         }
-    
     }
 }

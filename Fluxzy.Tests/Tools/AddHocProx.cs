@@ -19,23 +19,29 @@ namespace Fluxzy.Tests.Tools
         private readonly List<Exchange> _capturedExchanges = new();
         private readonly TaskCompletionSource _completionSource;
 
-        private int _requestCount = 0; 
+        private int _requestCount;
+
+        public int BindPort { get; }
+
+        public string BindHost { get; }
+
+        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
 
         public AddHocProxy(int expectedRequestCount = 1, int timeoutSeconds = 5)
         {
             _expectedRequestCount = expectedRequestCount;
 
-            BindHost = "127.0.0.1"; 
+            BindHost = "127.0.0.1";
 
             _startupSetting = FluxzySetting
-                .CreateDefault()
-                .SetBoundAddress(BindHost, BindPort);
+                              .CreateDefault()
+                              .SetBoundAddress(BindHost, BindPort);
 
             _proxy = new Proxy(_startupSetting,
                 new CertificateProvider(_startupSetting,
                     new InMemoryCertificateCache()));
 
-            _proxy.Writer.ExchangeUpdated +=  ProxyOnBeforeResponse;
+            _proxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 
             _cancellationSource = new CancellationTokenSource(timeoutSeconds * 1000);
             _completionSource = new TaskCompletionSource();
@@ -43,50 +49,40 @@ namespace Fluxzy.Tests.Tools
             _cancellationSource.Token.Register(() =>
             {
                 if (!_completionSource.Task.IsCompleted)
-                {
                     _completionSource.TrySetException(
                         new TimeoutException($"Timeout of {timeoutSeconds} seconds reached"));
-                }
-            }); 
+            });
 
             var endPoints = _proxy.Run();
 
-            var endPoint = endPoints.First(); 
-            
+            var endPoint = endPoints.First();
+
             BindPort = endPoint.Port;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _proxy.DisposeAsync();
+            _cancellationSource.Dispose();
         }
 
         private void ProxyOnBeforeResponse(object? sender, ExchangeUpdateEventArgs exchangeUpdateEventArgs)
         {
             if (exchangeUpdateEventArgs.UpdateType != UpdateType.AfterResponseHeader)
-                return; 
+                return;
 
             lock (_capturedExchanges)
+            {
                 _capturedExchanges.Add(exchangeUpdateEventArgs.Original);
+            }
 
             if (Interlocked.Increment(ref _requestCount) >= _expectedRequestCount)
-            {
                 _completionSource.TrySetResult();
-            }
         }
 
-        public int BindPort { get; }
-
-        public string BindHost { get; }
-
-        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
-        
         public Task WaitUntilDone()
         {
-            return _completionSource.Task; 
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-
-            await _proxy.DisposeAsync();
-            _cancellationSource.Dispose();
+            return _completionSource.Task;
         }
     }
 }
-

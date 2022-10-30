@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2;
-using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.DotNetBridge
@@ -17,8 +16,7 @@ namespace Fluxzy.Clients.DotNetBridge
         private readonly IDictionary<string, H2ConnectionPool>
             _activeConnections = new Dictionary<string, H2ConnectionPool>();
 
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         private readonly IIdProvider _idProvider;
 
@@ -26,7 +24,12 @@ namespace Fluxzy.Clients.DotNetBridge
         {
             _streamSetting = streamSetting ?? new H2StreamSetting();
             _idProvider = IIdProvider.FromZero;
+        }
 
+        public async ValueTask DisposeAsync()
+        {
+            foreach (var connection in _activeConnections.Values)
+                await connection.DisposeAsync();
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
@@ -58,10 +61,9 @@ namespace Fluxzy.Clients.DotNetBridge
 
             await _activeConnections[request.RequestUri.Authority].Send(exchange, null, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);
-            
+
             return new FluxzyHttpResponseMessage(exchange);
         }
-
 
         protected override void Dispose(bool disposing)
         {
@@ -71,15 +73,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
             foreach (var connection in _activeConnections.Values)
             {
-               // connection.Dispose();
-            }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            foreach (var connection in _activeConnections.Values)
-            {
-                await connection.DisposeAsync();
+                // connection.Dispose();
             }
         }
     }

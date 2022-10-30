@@ -7,26 +7,28 @@ using Fluxzy.Clients.H2.Encoder.HPack;
 namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     /// <summary>
-    /// Converts a flat HTTP/1.1 request to a list of (name, value) headers compatible with HTTP/2
+    ///     Converts a flat HTTP/1.1 request to a list of (name, value) headers compatible with HTTP/2
     /// </summary>
     public static class Http11Parser
     {
-        public static IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true, bool keepNonForwardableHeader = false, 
+        public static IEnumerable<HeaderField> Read(ReadOnlyMemory<char> input, bool isHttps = true,
+            bool keepNonForwardableHeader = false,
             bool splitCookies = true)
         {
-            bool firstLine = true;
-            
+            var firstLine = true;
+
             foreach (var line in input.Split(Http11Constants.LineSeparators).ToArray())
             {
                 if (firstLine)
                 {
                     // parsing request line
-                    var arrayOfValue = line.Split(Http11Constants.SpaceSeparators,3).ToArray();
+                    var arrayOfValue = line.Split(Http11Constants.SpaceSeparators, 3).ToArray();
 
                     if (arrayOfValue.Length >= 2)
                     {
-                        if (arrayOfValue[0].Length >= 4 
-                            && arrayOfValue[0].Slice(0, 4).Span.Equals("HTTP".AsSpan(), StringComparison.OrdinalIgnoreCase))
+                        if (arrayOfValue[0].Length >= 4
+                            && arrayOfValue[0].Slice(0, 4).Span
+                                              .Equals("HTTP".AsSpan(), StringComparison.OrdinalIgnoreCase))
                         {
                             // Response header block 
 
@@ -37,8 +39,12 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                             // Request header block
 
                             yield return new HeaderField(Http11Constants.MethodVerb, arrayOfValue[0]);
-                            yield return new HeaderField(Http11Constants.PathVerb, arrayOfValue[1].RemoveProtocolAndAuthority()); // Remove prefix on path
-                            yield return new HeaderField(Http11Constants.SchemeVerb, isHttps ? Http11Constants.HttpsVerb : Http11Constants.HttpVerb);
+
+                            yield return new HeaderField(Http11Constants.PathVerb,
+                                arrayOfValue[1].RemoveProtocolAndAuthority()); // Remove prefix on path
+
+                            yield return new HeaderField(Http11Constants.SchemeVerb,
+                                isHttps ? Http11Constants.HttpsVerb : Http11Constants.HttpVerb);
 
                             if (Http11Constants.SchemeVerb.Span.StartsWith(Http11Constants.HttpsVerb.Span))
                                 isHttps = true;
@@ -47,10 +53,10 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
                     firstLine = false;
 
-                    continue; 
+                    continue;
                 }
 
-                var kpValue = line.Split(Http11Constants.HeaderSeparator,2).ToArray();
+                var kpValue = line.Split(Http11Constants.HeaderSeparator, 2).ToArray();
 
                 if (kpValue.Length != 2)
                     throw new HPackCodecException($"Invalid header on line {line}");
@@ -58,45 +64,42 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 var headerName = kpValue[0].Trim();
 
                 if (!keepNonForwardableHeader && Http11Constants.NonH2Header.Contains(headerName))
-                    continue; 
+                    continue;
 
                 var headerValue = kpValue[1].Trim();
 
                 if (headerName.Span.Equals(Http11Constants.HostVerb.Span, StringComparison.OrdinalIgnoreCase))
                 {
                     yield return new HeaderField(Http11Constants.AuthorityVerb, headerValue);
-                    continue; 
+
+                    continue;
                 }
-                
+
                 if (headerName.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase))
-                {
                     if (splitCookies)
                     {
                         foreach (var cookieEntry in headerValue.Split(Http11Constants.CookieSeparators))
-                        {
                             yield return new HeaderField(Http11Constants.CookieVerb, cookieEntry.Trim());
-                        }
 
                         continue;
                     }
-                }
-                
+
                 yield return new HeaderField(headerName, headerValue);
             }
-
         }
 
         public static Span<char> Write(
-            ICollection<HeaderField> entries, 
+            ICollection<HeaderField> entries,
             Span<char> buffer)
         {
             char[]? heapBuffer = null;
 
             try
             {
-                var minimumLength = entries.Sum(s => s.Size)  + 64;
+                var minimumLength = entries.Sum(s => s.Size) + 64;
 
-                Span<char> cookieBuffer = minimumLength < 1024 ? stackalloc char[minimumLength]
+                var cookieBuffer = minimumLength < 1024
+                    ? stackalloc char[minimumLength]
                     : heapBuffer = ArrayPool<char>.Shared.Rent(minimumLength);
 
                 var length = InternalWrite(entries, buffer, cookieBuffer);
@@ -108,17 +111,16 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 if (heapBuffer != null)
                     ArrayPool<char>.Shared.Return(heapBuffer);
             }
-
         }
 
         /// <summary>
-        /// TODO bechn introduce base interface vs unboxing cost
+        ///     TODO bechn introduce base interface vs unboxing cost
         /// </summary>
         /// <param name="entries"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
         public static Span<char> Write(
-            ICollection<HeaderFieldInfo> entries, 
+            ICollection<HeaderFieldInfo> entries,
             Span<char> buffer)
         {
             char[]? heapBuffer = null;
@@ -127,10 +129,12 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             {
                 var minimumLength = entries.Sum(s => s.Value.Length + s.Name.Length + 32) + 64;
 
-                Span<char> cookieBuffer = minimumLength < 1024 ? stackalloc char[minimumLength]
+                var cookieBuffer = minimumLength < 1024
+                    ? stackalloc char[minimumLength]
                     : heapBuffer = ArrayPool<char>.Shared.Rent(minimumLength);
 
                 var length = InternalWrite(entries, buffer, cookieBuffer);
+
                 return buffer.Slice(0, length);
             }
             finally
@@ -140,29 +144,31 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             }
         }
 
-        private static int InternalWrite(in ICollection<HeaderField> entries, in Span<char> buffer, in Span<char> cookieBuffer)
+        private static int InternalWrite(in ICollection<HeaderField> entries, in Span<char> buffer,
+            in Span<char> cookieBuffer)
         {
             var mapping = entries
-                .Where(t => Http11Constants.ControlHeaders.Contains(t.Name))
-                .ToDictionary
-                    (t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
+                          .Where(t => Http11Constants.ControlHeaders.Contains(t.Name))
+                          .ToDictionary
+                              (t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
 
-            int totalWritten = 0;
+            var totalWritten = 0;
             var offsetBuffer = buffer;
 
-            if (!mapping.TryGetValue(Http11Constants.MethodVerb , out var method))
+            if (!mapping.TryGetValue(Http11Constants.MethodVerb, out var method))
             {
                 if (!mapping.TryGetValue(Http11Constants.StatusVerb, out var statusHeader))
-                {
                     throw new HPackCodecException("Invalid HTTP header. Could not find :method or :status");
-                }
 
                 // Response header 
 
                 offsetBuffer = offsetBuffer.Concat("HTTP/1.1 ", ref totalWritten);
                 offsetBuffer = offsetBuffer.Concat(statusHeader.Value.Span, ref totalWritten);
                 offsetBuffer = offsetBuffer.Concat(" ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(Http11Constants.GetStatusLine(statusHeader.Value).Span, ref totalWritten);
+
+                offsetBuffer = offsetBuffer.Concat(Http11Constants.GetStatusLine(statusHeader.Value).Span,
+                    ref totalWritten);
+
                 offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
             }
             else
@@ -174,7 +180,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
                 if (!mapping.TryGetValue(Http11Constants.AuthorityVerb, out var authority))
                     throw new HPackCodecException("Could not find authority verb");
-                
+
                 offsetBuffer = offsetBuffer.Concat(method.Value.Span, ref totalWritten);
                 offsetBuffer = offsetBuffer.Concat(' ', ref totalWritten);
                 offsetBuffer = offsetBuffer.Concat(path.Value.Span, ref totalWritten);
@@ -210,33 +216,35 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             }
 
             offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
-            
+
             return totalWritten;
         }
 
-        private static int InternalWrite(in ICollection<HeaderFieldInfo> entries, in Span<char> buffer, in Span<char> cookieBuffer)
+        private static int InternalWrite(in ICollection<HeaderFieldInfo> entries, in Span<char> buffer,
+            in Span<char> cookieBuffer)
         {
             var mapping = entries
-                .Where(t => Http11Constants.ControlHeaders.Contains(t.Name))
-                .ToDictionary
-                    (t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
+                          .Where(t => Http11Constants.ControlHeaders.Contains(t.Name))
+                          .ToDictionary
+                              (t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
 
-            int totalWritten = 0;
+            var totalWritten = 0;
             var offsetBuffer = buffer;
 
-            if (!mapping.TryGetValue(Http11Constants.MethodVerb , out var method))
+            if (!mapping.TryGetValue(Http11Constants.MethodVerb, out var method))
             {
                 if (!mapping.TryGetValue(Http11Constants.StatusVerb, out var statusHeader))
-                {
                     throw new HPackCodecException("Invalid HTTP header. Could not find :method or :status");
-                }
 
                 // Response header 
 
                 offsetBuffer = offsetBuffer.Concat("HTTP/1.1 ", ref totalWritten);
                 offsetBuffer = offsetBuffer.Concat(statusHeader.Value.Span, ref totalWritten);
                 offsetBuffer = offsetBuffer.Concat(" ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(Http11Constants.GetStatusLine(statusHeader.Value).Span, ref totalWritten);
+
+                offsetBuffer = offsetBuffer.Concat(Http11Constants.GetStatusLine(statusHeader.Value).Span,
+                    ref totalWritten);
+
                 offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
             }
             else
@@ -248,7 +256,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
                 if (!mapping.TryGetValue(Http11Constants.AuthorityVerb, out var authority))
                     throw new HPackCodecException("Could not find authority verb");
-                
+
                 offsetBuffer = offsetBuffer.Concat(method.Value.Span, ref totalWritten);
                 offsetBuffer = offsetBuffer.Concat(' ', ref totalWritten);
                 offsetBuffer = offsetBuffer.Concat(path.Value.Span, ref totalWritten);
@@ -284,7 +292,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             }
 
             offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
-            
+
             return totalWritten;
         }
     }

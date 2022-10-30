@@ -20,7 +20,7 @@ namespace Fluxzy.Tests.Rules
         [InlineData("-a/", new int[] { 6 })]
         [InlineData("-a/", new int[] { 6, 1024 * 1024 * 9 + 1, 12247})]
         [InlineData("---------------------s4fs6d4fs3df13sf3sdf/", new int[] { 8192, 12247})]
-        public void TestMultiPartReader(string boundary, int[] preferedLength)
+        public void TestMultiPartReader(string boundary, int[] prefferedLength)
         {
             var exampleHeader =
                 "Content-Disposition: form-data; name=\"strict-transport-security\"\r\n" +
@@ -30,7 +30,7 @@ namespace Fluxzy.Tests.Rules
 
             try
             {
-                var hashes = MultiPartTestCaseBuilder.Write(fileName, boundary, exampleHeader, preferedLength).ToList();
+                var hashes = MultiPartTestCaseBuilder.Write(fileName, boundary, exampleHeader, prefferedLength).ToList();
                 var fullPath = new FileInfo(fileName).FullName;
 
                 List<RawMultipartItem> items;
@@ -40,9 +40,9 @@ namespace Fluxzy.Tests.Rules
                     items = MultipartReader.ReadItems(readStream, boundary);
                 }
 
-                for (var index = 0; index < preferedLength.Length; index++)
+                for (var index = 0; index < prefferedLength.Length; index++)
                 {
-                    var length = preferedLength[index];
+                    var length = prefferedLength[index];
                     var res = items[index];
                     var expected = index + exampleHeader;
 

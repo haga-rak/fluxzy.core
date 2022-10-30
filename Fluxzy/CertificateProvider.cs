@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -35,7 +34,8 @@ namespace Fluxzy
         {
             hostName = GetRootDomain(hostName);
 
-            lock (string.Intern(hostName)) {
+            lock (string.Intern(hostName))
+            {
                 if (_solveCertificateRepository.TryGetValue(hostName, out var value))
                     return value;
 
@@ -71,13 +71,13 @@ namespace Fluxzy
         private byte[] BuildCertificateForRootDomain(string rootDomain)
         {
             var randomGenerator = new Random();
-            
+
             var certificateRequest = new CertificateRequest(
                 $"CN=*.{rootDomain}, OU={rootDomain.ToUpperInvariant()}",
                 _rsaKeyEngine,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
-            
+
             certificateRequest.CertificateExtensions.Add(
                 new X509BasicConstraintsExtension(false, false, 0, false));
 
@@ -98,9 +98,11 @@ namespace Fluxzy
             alternativeName.AddDnsName($"*.{rootDomain}");
 
             certificateRequest.CertificateExtensions.Add(alternativeName.Build());
+
             certificateRequest.CertificateExtensions.Add(
                 new X509EnhancedKeyUsageExtension(
-                    new OidCollection {
+                    new OidCollection
+                    {
                         new("1.3.6.1.5.5.7.3.1")
                     },
                     true));

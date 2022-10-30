@@ -1,4 +1,4 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -14,20 +14,22 @@ namespace Fluxzy.Clients.H11
     public class Http11ConnectionPool : IHttpConnectionPool
     {
         private static readonly List<SslApplicationProtocol> Http11Protocols = new() { SslApplicationProtocol.Http11 };
-        
-        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
-        private readonly ITimingProvider _timingProvider;
-        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly RealtimeArchiveWriter _archiveWriter;
-        private readonly SemaphoreSlim _semaphoreSlim;
+
+        private readonly H1Logger _logger;
 
         private readonly Queue<Http11ProcessingState> _processingStates = new();
+        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
+
+        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
+        private readonly SemaphoreSlim _semaphoreSlim;
+        private readonly ITimingProvider _timingProvider;
 
         internal Http11ConnectionPool(
             Authority authority,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
-            ProxyRuntimeSetting proxyRuntimeSetting, 
+            ProxyRuntimeSetting proxyRuntimeSetting,
             RealtimeArchiveWriter archiveWriter)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
@@ -37,7 +39,7 @@ namespace Fluxzy.Clients.H11
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
             _logger = new H1Logger(authority);
-            
+
             ITimingProvider.Default.Instant();
         }
 
@@ -51,10 +53,8 @@ namespace Fluxzy.Clients.H11
 
         public ValueTask<bool> CheckAlive()
         {
-            return new ValueTask<bool>(true); 
+            return new ValueTask<bool>(true);
         }
-
-        private readonly H1Logger _logger;
 
         public async ValueTask Send(Exchange exchange, ILocalLink _, RsBuffer buffer,
             CancellationToken cancellationToken)
@@ -74,16 +74,14 @@ namespace Fluxzy.Clients.H11
 
                 lock (_processingStates)
                 {
-                    DateTime requestDate = _timingProvider.Instant(); 
+                    var requestDate = _timingProvider.Instant();
 
                     while (_processingStates.TryDequeue(out var state))
                     {
-                        if ((requestDate - state.LastUsed) > TimeSpan.FromSeconds(_proxyRuntimeSetting.TimeOutSecondsUnusedConnection))
-                        {
+                        if (requestDate - state.LastUsed >
+                            TimeSpan.FromSeconds(_proxyRuntimeSetting.TimeOutSecondsUnusedConnection))
                             // The connection pool exceeds timing connection ..
-
-                            continue; 
-                        }
+                            continue;
 
                         exchange.Connection = state.Connection;
                         _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
@@ -91,16 +89,16 @@ namespace Fluxzy.Clients.H11
                         break;
                     }
                 }
-                
+
                 if (exchange.Connection == null)
                 {
-                    _logger.Trace(exchange.Id, () => $"New connection request");
+                    _logger.Trace(exchange.Id, () => "New connection request");
 
-                    var openingResult = 
+                    var openingResult =
                         await _remoteConnectionBuilder.OpenConnectionToRemote(
                             exchange.Authority, exchange.Context, Http11Protocols,
-                        _proxyRuntimeSetting, cancellationToken);
-                    
+                            _proxyRuntimeSetting, cancellationToken);
+
                     exchange.Connection = openingResult.Connection;
 
                     openingResult.Connection.HttpVersion = exchange.HttpVersion;
@@ -116,85 +114,87 @@ namespace Fluxzy.Clients.H11
                 try
                 {
                     await poolProcessing.Process(exchange, buffer, cancellationToken)
-                        .ConfigureAwait(false);
+                                        .ConfigureAwait(false);
 
-
-                    _logger.Trace(exchange.Id, () => $"[Process] return");
+                    _logger.Trace(exchange.Id, () => "[Process] return");
 
                     var res = exchange.Complete
-                        .ContinueWith(async completeTask =>
-                        {
-                            if (exchange.Metrics.ResponseBodyEnd == default)
-                            {
-                                exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
-                            }
+                                      .ContinueWith(async completeTask =>
+                                      {
+                                          if (exchange.Metrics.ResponseBodyEnd == default)
+                                              exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
-                            if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any())
-                            {
-                                _logger.Trace(exchange.Id, () => $"Complete on error {completeTask.Exception.GetType()} : {completeTask.Exception.Message}");
+                                          if (completeTask.Exception != null &&
+                                              completeTask.Exception.InnerExceptions.Any())
+                                          {
+                                              _logger.Trace(exchange.Id,
+                                                  () =>
+                                                      $"Complete on error {completeTask.Exception.GetType()} : {completeTask.Exception.Message}");
 
-                                foreach (var exception in completeTask.Exception.InnerExceptions)
-                                {
-                                    exchange.Errors.Add(new Error("Error while reading response", exception));
-                                }
-                            }
-                            else if (completeTask.IsCompletedSuccessfully && !completeTask.Result)
-                            {
-                                lock (_processingStates)
-                                    _processingStates.Enqueue(new Http11ProcessingState(exchange.Connection, _timingProvider));
+                                              foreach (var exception in completeTask.Exception.InnerExceptions)
+                                                  exchange.Errors.Add(new Error("Error while reading response",
+                                                      exception));
+                                          }
+                                          else if (completeTask.IsCompletedSuccessfully && !completeTask.Result)
+                                          {
+                                              lock (_processingStates)
+                                              {
+                                                  _processingStates.Enqueue(
+                                                      new Http11ProcessingState(exchange.Connection, _timingProvider));
+                                              }
 
-                                _logger.Trace(exchange.Id, () => $"Complete on success, recycling connection ...");
+                                              _logger.Trace(exchange.Id,
+                                                  () => "Complete on success, recycling connection ...");
 
-                                return; 
-                            }
-                            else
-                            {
-                                _logger.Trace(exchange.Id, () => $"Complete on success, closing connection ...");
-                                // should close connection 
-                            }
+                                              return;
+                                          }
+                                          else
+                                          {
+                                              _logger.Trace(exchange.Id,
+                                                  () => "Complete on success, closing connection ...");
+                                              // should close connection 
+                                          }
 
-                            await exchange.Connection.ReadStream.DisposeAsync();
+                                          await exchange.Connection.ReadStream.DisposeAsync();
 
-                            if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
-                                await exchange.Connection.WriteStream.DisposeAsync();
-
-                        }, cancellationToken);
+                                          if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
+                                              await exchange.Connection.WriteStream.DisposeAsync();
+                                      }, cancellationToken);
                 }
                 catch (Exception ex)
                 {
                     _logger.Trace(exchange.Id, () => $"Processing error {ex}");
+
                     throw;
                 }
             }
             finally
             {
-                _semaphoreSlim.Release(); 
+                _semaphoreSlim.Release();
                 ITimingProvider.Default.Instant();
             }
         }
 
         public ValueTask DisposeAsync()
         {
-            return default; 
+            return default;
         }
 
         public void Dispose()
         {
         }
-
     }
-
 
     public class Http11ProcessingState
     {
+        public Connection Connection { get; }
+
+        public DateTime LastUsed { get; set; }
+
         public Http11ProcessingState(Connection connection, ITimingProvider timingProvider)
         {
             Connection = connection;
             LastUsed = timingProvider.Instant();
         }
-
-        public Connection Connection { get; }
-
-        public DateTime LastUsed { get; set;  }
     }
 }

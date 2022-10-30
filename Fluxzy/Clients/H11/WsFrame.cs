@@ -9,7 +9,7 @@ namespace Fluxzy.Clients.H11
         public WsOpCode OpCode { get; set; }
 
         public bool FinalFragment { get; set; }
-        
+
         public uint MaskedPayload { get; set; }
     }
 }

@@ -9,9 +9,6 @@ namespace Fluxzy.Formatters
 {
     public class ProducerFactory
     {
-        private readonly IArchiveReaderProvider _archiveReaderProvider;
-        private readonly ProducerSettings _producerSettings;
-
         private static readonly List<IFormattingProducer<FormattingResult>> RequestProducers = new()
         {
             new RequestJsonBodyProducer(),
@@ -24,7 +21,7 @@ namespace Fluxzy.Formatters
             new RequestCookieProducer(),
             new RequestTextBodyProducer(),
             new AuthorizationProducer(),
-            new RawRequestHeaderProducer(),
+            new RawRequestHeaderProducer()
         };
 
         private static readonly List<IFormattingProducer<FormattingResult>> ResponseProducers = new()
@@ -35,6 +32,8 @@ namespace Fluxzy.Formatters
             new ResponseTextContentProducer(),
             new WsMessageProducer()
         };
+        private readonly IArchiveReaderProvider _archiveReaderProvider;
+        private readonly ProducerSettings _producerSettings;
 
         public ProducerFactory(IArchiveReaderProvider archiveReaderProvider, ProducerSettings producerSettings)
         {
@@ -47,19 +46,18 @@ namespace Fluxzy.Formatters
             var archiveReader = await _archiveReaderProvider.Get();
 
             if (archiveReader == null)
-                return null;  
+                return null;
 
             var exchangeInfo = archiveReader.ReadExchange(exchangeId);
 
             if (exchangeInfo == null)
-            {
                 return null;
-            }
 
             return new ProducerContext(exchangeInfo, archiveReader, _producerSettings);
         }
 
-        public IEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId, ProducerContext formattingProducerContext)
+        public IEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId,
+            ProducerContext formattingProducerContext)
         {
             foreach (var producer in RequestProducers)
             {
@@ -70,7 +68,8 @@ namespace Fluxzy.Formatters
             }
         }
 
-        public  IEnumerable<FormattingResult> GetResponseFormattedResults(int exchangeId, ProducerContext formattingProducerContext)
+        public IEnumerable<FormattingResult> GetResponseFormattedResults(int exchangeId,
+            ProducerContext formattingProducerContext)
         {
             foreach (var producer in ResponseProducers)
             {
@@ -81,6 +80,4 @@ namespace Fluxzy.Formatters
             }
         }
     }
-
-    
 }

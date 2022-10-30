@@ -12,7 +12,6 @@ namespace Fluxzy.Desktop.Services
             new(
                 new TemplateToolBarFilterModel(new List<Filter>()));
 
-
         public TemplateToolBarFilterProvider(ToolBarFilterProvider toolBarFilterProvider)
         {
             _defaultFilterSet = toolBarFilterProvider.GetDefault().Select(t => t.Filter.Identifier).ToHashSet();
@@ -22,17 +21,16 @@ namespace Fluxzy.Desktop.Services
         public void SetNewFilter(Filter setFilter)
         {
             if (_defaultFilterSet.Contains(setFilter.Identifier))
-                return; 
+                return;
 
             var lastUsedFilters = Subject.Value.LastUsedFilters;
 
-            lastUsedFilters.RemoveAll(f => f.Identifier == setFilter.Identifier); 
-            
+            lastUsedFilters.RemoveAll(f => f.Identifier == setFilter.Identifier);
+
             lastUsedFilters.Insert(0, setFilter);
 
-            while (lastUsedFilters.Count > 5) {
+            while (lastUsedFilters.Count > 5)
                 lastUsedFilters.RemoveAt(lastUsedFilters.Count - 1);
-            }
 
             Subject.OnNext(new TemplateToolBarFilterModel(lastUsedFilters));
         }

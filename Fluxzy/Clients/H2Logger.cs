@@ -11,21 +11,28 @@ using Fluxzy.Clients.H2.Frames;
 namespace Fluxzy.Clients
 {
     /// <summary>
-    /// Utility for tracing H2 Connection 
+    ///     Utility for tracing H2 Connection
     /// </summary>
     internal class H2Logger
     {
+        private static readonly string _directory;
+
+        private static readonly string loggerPath = Environment.ExpandEnvironmentVariables(
+            Environment.GetEnvironmentVariable("TracingDirectory")
+            ?? "%appdata%/echoes-debug");
+
+        private readonly bool _active;
+
         public static List<string>? AuthorizedHosts { get; }
 
+        public Authority Authority { get; }
 
-        private readonly static string _directory;
-        private static readonly string loggerPath = Environment.ExpandEnvironmentVariables(Environment.GetEnvironmentVariable("TracingDirectory")
-            ?? "%appdata%/echoes-debug");
+        public int ConnectionId { get; }
 
         static H2Logger()
         {
             if (!DebugContext.IsH2TracingEnabled)
-                return; 
+                return;
 
             _directory = new DirectoryInfo(Path.Combine(loggerPath, "h2")).FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
@@ -38,21 +45,15 @@ namespace Fluxzy.Clients
             {
                 AuthorizedHosts =
                     hosts.Split(new[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(s => s.Trim())
-                        .ToList();
+                         .Select(s => s.Trim())
+                         .ToList();
 
-                return; 
+                return;
             }
 
-            AuthorizedHosts = null; 
+            AuthorizedHosts = null;
         }
-        
-        public Authority Authority { get; }
-        public int ConnectionId { get; }
 
-        private readonly bool _active;
-
-        
         public H2Logger(Authority authority, int connectionId, bool? active = null)
         {
             Authority = authority;
@@ -61,16 +62,13 @@ namespace Fluxzy.Clients
             active ??= DebugContext.IsH2TracingEnabled;
 
             _active = active.Value;
-            
+
             if (_active && AuthorizedHosts != null)
-            {
                 // Check for domain restriction 
                 _active = AuthorizedHosts.Any(c => Authority.HostName.EndsWith(
-                    c, StringComparison.OrdinalIgnoreCase)); 
-            }
-
+                    c, StringComparison.OrdinalIgnoreCase));
         }
-        
+
         private void WriteLn(
             int streamIdentifier, string message)
         {
@@ -85,8 +83,10 @@ namespace Fluxzy.Clients
             fullPath = Path.Combine(fullPath, $"cId={ConnectionId:00000}-sId={streamIdentifier:00000}.txt");
 
             lock (string.Intern(fullPath))
+            {
                 File.AppendAllText(fullPath,
                     $"[{ITimingProvider.Default.InstantMillis:000000000}] {message}\r\n");
+            }
         }
 
         private void WriteLnHPack(
@@ -103,8 +103,10 @@ namespace Fluxzy.Clients
             fullPath = Path.Combine(fullPath, $"cId={ConnectionId:00000}-hpack.txt");
 
             lock (string.Intern(fullPath))
+            {
                 File.AppendAllText(fullPath,
                     $"[{ITimingProvider.Default.InstantMillis:000000000}] ({streamIdentifier:00000}) - {message}\r\n");
+            }
         }
 
         private static string GetFrameExtraMessage(ref H2FrameReadResult frame)
@@ -114,33 +116,37 @@ namespace Fluxzy.Clients
                 case H2FrameType.Data:
                 {
                     var innerFrame = frame.GetDataFrame();
+
                     return $"Length = {innerFrame.BodyLength}, EndStream = {innerFrame.EndStream}";
                 }
                 case H2FrameType.Headers:
                 {
                     var innerFrame = frame.GetHeadersFrame();
-                    return $"Length = {innerFrame.BodyLength}, EndHeaders = {innerFrame.EndHeaders}, EndStream = {innerFrame.EndStream}";
+
+                    return
+                        $"Length = {innerFrame.BodyLength}, EndHeaders = {innerFrame.EndHeaders}, EndStream = {innerFrame.EndStream}";
                 }
                 case H2FrameType.Priority:
                 {
                     var innerFrame = frame.GetPriorityFrame();
-                    return $"Exclusive = {innerFrame.Exclusive}, StreamDependency = {innerFrame.StreamDependency}, Weight = {innerFrame.Weight}";
+
+                    return
+                        $"Exclusive = {innerFrame.Exclusive}, StreamDependency = {innerFrame.StreamDependency}, Weight = {innerFrame.Weight}";
                 }
                 case H2FrameType.RstStream:
                 {
                     var innerFrame = frame.GetRstStreamFrame();
+
                     return $"ErrorCode = {innerFrame.ErrorCode}";
                 }
                 case H2FrameType.Settings:
                 {
-                    StringBuilder builder = new StringBuilder();
-                    int index = 0;
+                    var builder = new StringBuilder();
+                    var index = 0;
 
                     while (frame.TryReadNextSetting(out var innerFrame, ref index))
-                    {
                         builder.Append(
                             $"Ack = {innerFrame.Ack}, SettingIdentifier = {innerFrame.SettingIdentifier}, Value = {innerFrame.Value}, ");
-                    }
 
                     return builder.ToString();
                 }
@@ -150,28 +156,31 @@ namespace Fluxzy.Clients
                 }
                 case H2FrameType.Ping:
                 {
-                    return ""; 
+                    return "";
                 }
                 case H2FrameType.Goaway:
                 {
                     var innerFrame = frame.GetGoAwayFrame();
+
                     return $"ErrorCode = {innerFrame.ErrorCode}, LastStreamId = {innerFrame.LastStreamId}";
                 }
                 case H2FrameType.WindowUpdate:
                 {
                     var innerFrame = frame.GetWindowUpdateFrame();
+
                     return $"WindowSizeIncrement = {innerFrame.WindowSizeIncrement}";
                 }
                 case H2FrameType.Continuation:
                 {
                     var innerFrame = frame.GetContinuationFrame();
+
                     return $"Length = {innerFrame.BodyLength}, EndHeaders = {innerFrame.EndHeaders}";
                 }
                 default:
-                    return ""; 
+                    return "";
             }
         }
-        
+
         public void IncomingFrame(
             ref H2FrameReadResult frame)
         {
@@ -179,11 +188,11 @@ namespace Fluxzy.Clients
                 return;
 
             var message =
-                $"RCV <== " +
+                "RCV <== " +
                 $"Type = {frame.BodyType}, " +
                 $"Flags = {frame.Flags}, ";
 
-            message += GetFrameExtraMessage(ref frame); 
+            message += GetFrameExtraMessage(ref frame);
 
             WriteLn(frame.StreamIdentifier, message);
         }
@@ -195,11 +204,11 @@ namespace Fluxzy.Clients
                 return;
 
             var message =
-                $"SNT ==> " +
+                "SNT ==> " +
                 $"Type = {frame.BodyType}, " +
                 $"Flags = {frame.Flags}, ";
 
-            message += GetFrameExtraMessage(ref frame); 
+            message += GetFrameExtraMessage(ref frame);
 
             WriteLn(frame.StreamIdentifier, message);
         }
@@ -211,7 +220,7 @@ namespace Fluxzy.Clients
                 return;
 
             var frame = H2FrameReader.ReadFrame(ref buffer);
-            
+
             OutgoingFrame(ref frame);
         }
 
@@ -222,19 +231,20 @@ namespace Fluxzy.Clients
                 return;
 
             var message =
-                $"SNT ==> " +
+                "SNT ==> " +
                 $"Type = {H2FrameType.WindowUpdate}, ";
 
-            message += $"WindowSizeIncrement = {value}"; ; 
+            message += $"WindowSizeIncrement = {value}";
+            ;
 
             WriteLn(streamIdentifier, message);
         }
+
         public void Trace(
             int streamId, string message)
         {
             if (!_active)
                 return;
-            
 
             WriteLn(streamId, message);
         }
@@ -253,7 +263,6 @@ namespace Fluxzy.Clients
         {
             if (!_active)
                 return;
-            
 
             WriteLn(streamId, messageString());
         }
@@ -263,16 +272,15 @@ namespace Fluxzy.Clients
         {
             if (!_active || true)
                 return;
-            
 
             WriteLn(streamId, messageString());
         }
+
         public void TraceDeep(
             int streamId, string messageString)
         {
             if (!_active)
                 return;
-            
 
             WriteLn(streamId, messageString);
         }
@@ -280,7 +288,7 @@ namespace Fluxzy.Clients
         public void Trace(Exchange exchange, string preMessage, Exception ex = null, int streamIdentifier = 0)
         {
             if (!_active)
-                return; 
+                return;
 
             Trace(exchange, streamIdentifier, preMessage + (ex == null ? string.Empty : ex.ToString()));
         }
@@ -303,7 +311,7 @@ namespace Fluxzy.Clients
 
             var firstLine = exchange.Response.Header?.GetHttp11Header().ToString().Split("\r\n").First();
 
-            Trace(exchange, streamWorker.StreamIdentifier, $"Response : " + firstLine);
+            Trace(exchange, streamWorker.StreamIdentifier, "Response : " + firstLine);
         }
 
         public void IncomingSetting(ref SettingFrame settingFrame)
@@ -312,21 +320,24 @@ namespace Fluxzy.Clients
                 return;
 
             var message =
-                $"RCV <== "; 
+                "RCV <== ";
 
-            message += $"Ack = {settingFrame.Ack}, SettingIdentifier = {settingFrame.SettingIdentifier}, Value = {settingFrame.Value}";
+            message +=
+                $"Ack = {settingFrame.Ack}, SettingIdentifier = {settingFrame.SettingIdentifier}, Value = {settingFrame.Value}";
 
             WriteLn(0, message);
         }
+
         public void OutgoingSetting(ref SettingFrame settingFrame)
         {
             if (!_active)
                 return;
 
             var message =
-                $"SNT ==> "; 
+                "SNT ==> ";
 
-            message += $"Ack = {settingFrame.Ack}, SettingIdentifier = {settingFrame.SettingIdentifier}, Value = {settingFrame.Value}";
+            message +=
+                $"Ack = {settingFrame.Ack}, SettingIdentifier = {settingFrame.SettingIdentifier}, Value = {settingFrame.Value}";
 
             WriteLn(0, message);
         }
@@ -336,13 +347,11 @@ namespace Fluxzy.Clients
             int streamId,
             Func<string> sendMessage)
         {
-
             if (!_active)
                 return;
 
             Trace(exchange, streamId, sendMessage());
         }
-        
 
         public void Trace(
             Exchange exchange,
@@ -355,35 +364,33 @@ namespace Fluxzy.Clients
             var method = exchange.Request.Header[":method".AsMemory()].First().Value.ToString();
             var path = exchange.Request.Header[":path".AsMemory()].First().Value.ToString();
 
-            int maxLength = 30;
+            var maxLength = 30;
 
             if (path.Length > maxLength)
-            {
-                path = "..." + path.Substring(path.Length - (maxLength -3), (maxLength - 3));
-            }
+                path = "..." + path.Substring(path.Length - (maxLength - 3), maxLength - 3);
 
             var message =
                 $"{method.PadRight(6, ' ')} - " +
                 $"({path}) - " +
                 $"Sid = {streamId} " +
-                $" - {preMessage}"; 
-            
+                $" - {preMessage}";
+
             WriteLn(streamId, message);
         }
 
         public void Trace(
-            WindowSizeHolder holder, 
+            WindowSizeHolder holder,
             int windowSizeIncrement)
         {
             if (!_active)
                 return;
 
             var message =
-                $"Window Update - " +
+                "Window Update - " +
                 $"Before = {holder.WindowSize} - " +
                 $"Value = {windowSizeIncrement} -  " +
-                $"After = {(holder.WindowSize + windowSizeIncrement)} -  ";
-                //$"Sid = {holder.StreamIdentifier} " +
+                $"After = {holder.WindowSize + windowSizeIncrement} -  ";
+            //$"Sid = {holder.StreamIdentifier} " +
 
             WriteLn(holder.StreamIdentifier, message);
         }

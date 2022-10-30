@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.WebSockets;
+﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
@@ -10,26 +8,47 @@ namespace Fluxzy
 {
     public class ExchangeInfo : IExchange
     {
+        public int Id { get; }
+
+        public int ConnectionId { get; }
+
+        public RequestHeaderInfo RequestHeader { get; }
+
+        public ResponseHeaderInfo? ResponseHeader { get; }
+
+        public ExchangeMetrics Metrics { get; }
+
+        public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
+
+        public bool Done => ResponseHeader?.StatusCode > 0;
+
+        public bool Pending { get; }
+
         public ExchangeInfo(Exchange exchange)
         {
             Id = exchange.Id;
             HttpVersion = exchange.HttpVersion;
             ConnectionId = exchange.Connection?.Id ?? 0;
-            Metrics = exchange.Metrics;  
-            ResponseHeader = exchange.Response?.Header == null ? default : new ResponseHeaderInfo(exchange.Response.Header);
+            Metrics = exchange.Metrics;
+
+            ResponseHeader = exchange.Response?.Header == null
+                ? default
+                : new ResponseHeaderInfo(exchange.Response.Header);
+
             RequestHeader = new RequestHeaderInfo(exchange.Request.Header);
             EgressIp = exchange.EgressIp;
             Pending = !exchange.Complete.IsCompleted;
             Comment = exchange.Comment;
-            Tags = exchange.Tags ?? new(); 
+            Tags = exchange.Tags ?? new HashSet<Tag>();
             IsWebSocket = exchange.IsWebSocket;
             WebSocketMessages = exchange.WebSocketMessages;
         }
 
         [JsonConstructor]
         public ExchangeInfo(int id, int connectionId, string httpVersion,
-            RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader, 
-            ExchangeMetrics metrics, string egressIp, bool pending, string ? comment, HashSet<Tag> ? tags, bool isWebSocket, List<WsMessage> webSocketMessages)
+            RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader,
+            ExchangeMetrics metrics, string egressIp, bool pending, string? comment, HashSet<Tag>? tags,
+            bool isWebSocket, List<WsMessage> webSocketMessages)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -42,20 +61,10 @@ namespace Fluxzy
             Comment = comment;
             IsWebSocket = isWebSocket;
             WebSocketMessages = webSocketMessages;
-            Tags = tags ?? new ();
+            Tags = tags ?? new HashSet<Tag>();
         }
 
-        public int Id { get;  }
-
-        public int ConnectionId { get; }
-
         public string HttpVersion { get; }
-
-        public RequestHeaderInfo RequestHeader { get; }
-        
-        public ResponseHeaderInfo?  ResponseHeader { get; }
-        
-        public ExchangeMetrics Metrics { get; }
 
         public string FullUrl => RequestHeader.GetFullUrl();
 
@@ -64,10 +73,6 @@ namespace Fluxzy
         public string Method => RequestHeader.Method.ToString();
 
         public string Path => RequestHeader.Path.ToString();
-
-        public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
-
-        public bool Done => ResponseHeader?.StatusCode > 0; 
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
@@ -90,8 +95,6 @@ namespace Fluxzy
         public bool IsWebSocket { get; }
 
         public List<WsMessage>? WebSocketMessages { get; }
-
-        public bool Pending { get; }
     }
 
     public class BodyContent

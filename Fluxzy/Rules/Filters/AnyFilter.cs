@@ -7,13 +7,7 @@ namespace Fluxzy.Rules.Filters
 {
     public class AnyFilter : Filter
     {
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
-            IFilteringContext? filteringContext)
-        {
-            return true; 
-        }
-
-        public override Guid Identifier  => ($"{Inverted}A62052B4-516D-492E-93B3-2888CDA4E92D").GetMd5Guid();
+        public override Guid Identifier => $"{Inverted}A62052B4-516D-492E-93B3-2888CDA4E92D".GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 
@@ -25,11 +19,15 @@ namespace Fluxzy.Rules.Filters
 
         public override string? Description { get; set; } = "Any requests";
 
-        public static AnyFilter Default { get;  } = new()
+        public static AnyFilter Default { get; } = new()
         {
             Locked = true
         };
+
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
+        {
+            return true;
+        }
     }
-
-
 }

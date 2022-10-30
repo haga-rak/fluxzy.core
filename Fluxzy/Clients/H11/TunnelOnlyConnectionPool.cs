@@ -19,10 +19,9 @@ namespace Fluxzy.Clients.H11
         private readonly RemoteConnectionBuilder _connectionBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly SemaphoreSlim _semaphoreSlim;
-        private bool _complete;
 
         public TunnelOnlyConnectionPool(
-            Authority authority, 
+            Authority authority,
             ITimingProvider timingProvider,
             RemoteConnectionBuilder connectionBuilder,
             ProxyRuntimeSetting proxyRuntimeSetting)
@@ -31,12 +30,12 @@ namespace Fluxzy.Clients.H11
             _connectionBuilder = connectionBuilder;
             _proxyRuntimeSetting = proxyRuntimeSetting;
             Authority = authority;
-            _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection); 
+            _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
         }
 
         public Authority Authority { get; }
 
-        public bool Complete => _complete;
+        public bool Complete { get; private set; }
 
         public void Init()
         {
@@ -44,7 +43,7 @@ namespace Fluxzy.Clients.H11
 
         public ValueTask<bool> CheckAlive()
         {
-            return new ValueTask<bool>(!Complete); 
+            return new ValueTask<bool>(!Complete);
         }
 
         public async ValueTask Send(Exchange exchange, ILocalLink localLink, RsBuffer buffer,
@@ -56,7 +55,7 @@ namespace Fluxzy.Clients.H11
 
                 await using var ex = new TunneledConnectionProcess(
                     Authority, _timingProvider,
-                    _connectionBuilder, 
+                    _connectionBuilder,
                     _proxyRuntimeSetting, null);
 
                 await ex.Process(exchange, localLink, buffer.Buffer, CancellationToken.None);
@@ -64,16 +63,16 @@ namespace Fluxzy.Clients.H11
             finally
             {
                 _semaphoreSlim.Release();
-                _complete = true; 
+                Complete = true;
             }
         }
 
         public ValueTask DisposeAsync()
         {
             _semaphoreSlim.Dispose();
-            return new ValueTask(Task.CompletedTask); 
+
+            return new ValueTask(Task.CompletedTask);
         }
-        
     }
 
     internal class TunneledConnectionProcess : IDisposable, IAsyncDisposable
@@ -97,18 +96,28 @@ namespace Fluxzy.Clients.H11
             _archiveWriter = archiveWriter;
         }
 
-        public async Task Process(Exchange exchange, ILocalLink localLink, byte[] buffer, CancellationToken cancellationToken)
+        public ValueTask DisposeAsync()
+        {
+            return default;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public async Task Process(Exchange exchange, ILocalLink localLink, byte[] buffer,
+            CancellationToken cancellationToken)
         {
             if (localLink == null)
                 throw new ArgumentNullException(nameof(localLink));
 
             var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(
-                exchange.Authority, 
+                exchange.Authority,
                 exchange.Context,
                 new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
                 _creationSetting,
                 cancellationToken).ConfigureAwait(false);
-            
+
             exchange.Connection = openingResult.Connection;
 
             _archiveWriter?.Update(exchange.Connection, cancellationToken);
@@ -124,10 +133,10 @@ namespace Fluxzy.Clients.H11
                 await using var remoteStream = exchange.Connection.WriteStream;
 
                 var copyTask = Task.WhenAll(
-                    localLink.ReadStream.CopyDetailed(remoteStream, buffer, (copied) =>
+                    localLink.ReadStream.CopyDetailed(remoteStream, buffer, copied =>
                             exchange.Metrics.TotalSent += copied
                         , cancellationToken).AsTask(),
-                    remoteStream.CopyDetailed(localLink.WriteStream, 1024*16, (copied) =>
+                    remoteStream.CopyDetailed(localLink.WriteStream, 1024 * 16, copied =>
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken).AsTask());
 
@@ -138,6 +147,7 @@ namespace Fluxzy.Clients.H11
                 if (ex is IOException || ex is SocketException)
                 {
                     exchange.Errors.Add(new Error("", ex));
+
                     return;
                 }
 
@@ -147,15 +157,6 @@ namespace Fluxzy.Clients.H11
             {
                 exchange.Metrics.RemoteClosed = _timingProvider.Instant();
             }
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return default;
         }
     }
 }
