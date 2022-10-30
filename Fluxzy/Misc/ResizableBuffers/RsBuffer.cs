@@ -1,18 +1,25 @@
-﻿using System;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System;
 using System.Buffers;
 
 namespace Fluxzy.Misc.ResizableBuffers
 {
     public class RsBuffer : IDisposable
     {
+        public byte[] Buffer { get; private set; }
+
+        public Memory<byte> Memory => new(Buffer);
+
         private RsBuffer(byte[] buffer)
         {
             Buffer = buffer;
         }
 
-        public byte [] Buffer { get; private set;  }
-
-        public Memory<byte> Memory => new(Buffer); 
+        public void Dispose()
+        {
+            ArrayPool<byte>.Shared.Return(Buffer);
+        }
 
         public static RsBuffer Allocate(int size)
         {
@@ -20,7 +27,7 @@ namespace Fluxzy.Misc.ResizableBuffers
 
             var result = new RsBuffer(rawBuffer);
 
-            return result; 
+            return result;
         }
 
         public void Multiply(int size)
@@ -36,11 +43,6 @@ namespace Fluxzy.Misc.ResizableBuffers
             Buffer = newBuffer;
 
             Console.WriteLine("extend");
-        }
-
-        public void Dispose()
-        {
-            ArrayPool<byte>.Shared.Return(Buffer);
         }
     }
 }

@@ -1,17 +1,22 @@
-﻿using System;
-using System.Diagnostics;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System;
 using System.Linq;
 
 namespace Fluxzy.Clients.H2.Encoder.Huffman
 {
     internal class HPackDecodingTree
     {
-        public static HPackDecodingTree Default { get; } = new HPackDecodingTree();
+        public static HPackDecodingTree Default { get; } = new();
+
+        /// <summary>
+        ///     Using a raw array for first byte to improve perf
+        /// </summary>
+        public Node[] RootNodes { get; set; }
 
         private HPackDecodingTree()
         {
             var dictionary = HPackDictionary.Instance;
-
 
             RootNodes = new Node[dictionary.Symbols.Length];
 
@@ -28,22 +33,18 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                 if (bytes.Length == 1)
                 {
                     if (RootNodes[bytes[0]] == null)
-                    {
                         RootNodes[bytes[0]] = new Node(bytes[0], 1);
-                    }
 
                     RootNodes[bytes[0]].AppendSymbol(symbol);
                 }
                 else
                 {
-                    Node ? currentNode = null;
+                    Node? currentNode = null;
 
                     foreach (var value in bytes)
                     {
                         if (RootNodes[value] == null)
-                        {
-                            RootNodes[value] = (currentNode ?? new Node(symbol)); // final node 
-                        }
+                            RootNodes[value] = currentNode ?? new Node(symbol); // final node 
 
                         currentNode = RootNodes[value];
                     }
@@ -55,16 +56,11 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                 var node = RootNodes[index];
 
                 if (node == null)
-                    continue; 
+                    continue;
 
                 node.Seal();
             }
         }
-
-        /// <summary>
-        /// Using a raw array for first byte to improve perf 
-        /// </summary>
-        public Node [] RootNodes { get; set; }
 
         public Symbol Read(ReadOnlySpan<byte> data)
         {
@@ -76,7 +72,7 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
             if (node.Match(data.Slice(1), out var result))
                 return result;
 
-            throw new InvalidOperationException("Decoding error. Dictionnary could not resolve provided data");
+            throw new InvalidOperationException("Decoding error. Dictionary could not resolve provided data");
         }
     }
 }

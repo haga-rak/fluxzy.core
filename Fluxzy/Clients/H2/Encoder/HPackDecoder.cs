@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System;
 using System.Collections.Generic;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Fluxzy.Clients.H2.Encoder.Huffman;
@@ -14,7 +16,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
         private readonly List<HeaderField> _tempEntries = new();
 
-        internal H2Logger Logger { get; set; }
+        internal H2Logger? Logger { get; set; }
 
         public DecodingContext Context { get; }
 

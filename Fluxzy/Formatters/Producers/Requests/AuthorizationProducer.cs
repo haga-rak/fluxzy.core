@@ -1,13 +1,10 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
-using System.Collections.Generic;
-using Fluxzy.Readers;
 using System.Linq;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
-
     public class AuthorizationProducer : IFormattingProducer<AuthorizationResult>
     {
         public string ResultTitle => "Authorization Header";
@@ -27,17 +24,19 @@ namespace Fluxzy.Formatters.Producers.Requests
                 return null;
 
             var value = targetHeader.Value.Span.Trim().ToString();
+
             return new AuthorizationResult(ResultTitle, value);
         }
     }
 
     public class AuthorizationResult : FormattingResult
     {
-        public AuthorizationResult(string title, string value) : base(title)
+        public string Value { get; }
+
+        public AuthorizationResult(string title, string value)
+            : base(title)
         {
             Value = value;
         }
-
-        public string Value { get; }
     }
 }

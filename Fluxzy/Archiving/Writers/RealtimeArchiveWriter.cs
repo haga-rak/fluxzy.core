@@ -55,7 +55,7 @@ namespace Fluxzy.Writers
                 ConnectionUpdated(this, new ConnectionUpdateEventArgs(connectionInfo));
         }
 
-        public virtual void Update(Exchange exchange, UpdateType updateType,
+        public virtual void Update(Exchange exchange, ArchiveUpdateType updateType,
             CancellationToken cancellationToken)
         {
             var exchangeInfo = new ExchangeInfo(exchange);
@@ -72,7 +72,7 @@ namespace Fluxzy.Writers
         }
     }
 
-    public enum UpdateType
+    public enum ArchiveUpdateType
     {
         BeforeRequestHeader,
         AfterResponseHeader,

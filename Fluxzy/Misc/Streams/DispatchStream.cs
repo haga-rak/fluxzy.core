@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +19,23 @@ namespace Fluxzy.Misc.Streams
         private List<Stream>? _destinations;
         private bool _started;
 
+        public override bool CanRead => _baseStream.CanRead;
+
+        public override bool CanSeek => _baseStream.CanSeek;
+
+        public override bool CanWrite => _baseStream.CanWrite;
+
+        public override long Length => _baseStream.Length;
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+
+            set => throw new NotSupportedException();
+        }
+
+        public Func<ValueTask>? OnDisposeDoneTask { get; set; }
+
         /// <summary>
         ///     Constructor
         /// </summary>
@@ -32,29 +51,10 @@ namespace Fluxzy.Misc.Streams
             _destinations = listenerStreams.ToList();
         }
 
-        public override bool CanRead => _baseStream.CanRead;
-        public override bool CanSeek => _baseStream.CanSeek;
-        public override bool CanWrite => _baseStream.CanWrite;
-        public override long Length => _baseStream.Length;
-
-        public override long Position
-        {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
-        }
-
         public override void Flush()
         {
             foreach (var destination in _destinations)
                 destination.Flush();
-        }
-
-        public void AddListenerStream(Stream stream)
-        {
-            if (_started)
-                throw new InvalidOperationException("Stream reading already started.");
-
-            _destinations.Add(stream);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -79,8 +79,6 @@ namespace Fluxzy.Misc.Streams
             return read;
         }
 
-        public Func<ValueTask>? OnDisposeDoneTask { get; set; }
-
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
@@ -104,9 +102,7 @@ namespace Fluxzy.Misc.Streams
                 _destinations = null;
 
                 if (OnDisposeDoneTask != null)
-                {
                     await OnDisposeDoneTask();
-                }
             }
             else
             {

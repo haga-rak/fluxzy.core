@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using Fluxzy.Clients.H2.Frames;
@@ -8,7 +8,7 @@ namespace Fluxzy.Clients.H2
     public class Packetizer
     {
         /// <summary>
-        /// TODO : need some serious test 
+        ///     TODO : need some serious test
         /// </summary>
         /// <param name="rawData"></param>
         /// <param name="buffer"></param>
@@ -19,13 +19,13 @@ namespace Fluxzy.Clients.H2
         /// <returns></returns>
         public static ReadOnlySpan<byte> PacketizeHeader(
             ReadOnlySpan<byte> rawData,
-            Span<byte> buffer, bool endStream, int streamIdentifier, 
+            Span<byte> buffer, bool endStream, int streamIdentifier,
             int maxFrameSize, int streamDependency = 0)
         {
-            int currentWritten = 0;
-            int remains = rawData.Length;
-            int maxPayload = maxFrameSize - 9;
-            bool first = true; 
+            var currentWritten = 0;
+            var remains = rawData.Length;
+            var maxPayload = maxFrameSize - 9;
+            var first = true;
 
             while (remains > 0)
             {
@@ -34,10 +34,11 @@ namespace Fluxzy.Clients.H2
                 // Build header  here 
                 var end = writableLength == remains;
 
-                var frame = H2Frame.BuildHeaderFrameHeader(writableLength, streamIdentifier, first, endStream && end, end);
+                var frame = H2Frame.BuildHeaderFrameHeader(writableLength, streamIdentifier, first, endStream && end,
+                    end);
 
                 frame.Write(buffer.Slice(currentWritten));
-                
+
                 currentWritten += 9;
 
                 var headerFrame = new HeadersFrame(false, 0, false, end, endStream && end, 0, false, streamDependency);
@@ -46,12 +47,12 @@ namespace Fluxzy.Clients.H2
 
                 currentWritten += headerFrame.Write(buffer.Slice(currentWritten), body);
 
-                first = false; 
+                first = false;
 
-                remains -= writableLength; 
+                remains -= writableLength;
             }
 
-            return buffer.Slice(0, currentWritten); 
+            return buffer.Slice(0, currentWritten);
         }
     }
 }

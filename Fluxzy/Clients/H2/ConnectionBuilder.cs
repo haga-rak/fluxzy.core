@@ -1,4 +1,4 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -8,14 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H11;
-using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Clients.H2
 {
     public static class ConnectionBuilder
     {
         public static async Task<H2ConnectionPool> CreateH2(
-            string hostName, 
+            string hostName,
             int port = 443,
             H2StreamSetting? setting = default,
             CancellationToken token = default)
@@ -27,13 +26,13 @@ namespace Fluxzy.Clients.H2
             await tcpClient.ConnectAsync(hostName, port).ConfigureAwait(false);
 
             var sslStream = new SslStream(tcpClient.GetStream());
-            
-            var sslAuthenticationOption = new SslClientAuthenticationOptions()
+
+            var sslAuthenticationOption = new SslClientAuthenticationOptions
             {
                 TargetHost = hostName,
-                ApplicationProtocols = new List<SslApplicationProtocol>()
+                ApplicationProtocols = new List<SslApplicationProtocol>
                 {
-                    SslApplicationProtocol.Http2,
+                    SslApplicationProtocol.Http2
                 }
             };
 
@@ -46,24 +45,23 @@ namespace Fluxzy.Clients.H2
             var authority = new Authority(hostName, port, true);
 
             var connectionPool = new H2ConnectionPool(sslStream, setting ?? new H2StreamSetting(),
-                authority, new Connection(authority, IIdProvider.FromZero), _ => {});
+                authority, new Connection(authority, IIdProvider.FromZero), _ => { });
 
             connectionPool.Init();
-
 
             return connectionPool;
         }
 
-        public static async Task<Http11ConnectionPool> CreateH11(Authority authority, 
+        public static async Task<Http11ConnectionPool> CreateH11(Authority authority,
             CancellationToken token = default)
         {
-            var connectionPool =  new Http11ConnectionPool(authority,
+            var connectionPool = new Http11ConnectionPool(authority,
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
-                ITimingProvider.Default, ProxyRuntimeSetting.Default,null);
+                ITimingProvider.Default, ProxyRuntimeSetting.Default, null);
 
             connectionPool.Init();
 
-            return connectionPool; 
+            return connectionPool;
         }
     }
 }

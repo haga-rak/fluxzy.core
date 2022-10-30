@@ -163,7 +163,7 @@ namespace Fluxzy.Clients.H11
                 );
             }
 
-            _archiveWriter?.Update(exchange, UpdateType.AfterResponseHeader, cancellationToken);
+            _archiveWriter?.Update(exchange, ArchiveUpdateType.AfterResponseHeader, cancellationToken);
 
             try
             {
@@ -183,7 +183,7 @@ namespace Fluxzy.Clients.H11
                             exchange.WebSocketMessages.Add(wsMessage);
                         }
 
-                        _archiveWriter!.Update(exchange, UpdateType.WsMessageReceived, CancellationToken.None);
+                        _archiveWriter!.Update(exchange, ArchiveUpdateType.WsMessageReceived, CancellationToken.None);
                     },
                     wsMessageId => _archiveWriter!.CreateWebSocketResponseContent(exchange.Id, wsMessageId));
 
@@ -199,7 +199,7 @@ namespace Fluxzy.Clients.H11
                             exchange.WebSocketMessages.Add(wsMessage);
                         }
 
-                        _archiveWriter!.Update(exchange, UpdateType.WsMessageSent, CancellationToken.None);
+                        _archiveWriter!.Update(exchange, ArchiveUpdateType.WsMessageSent, CancellationToken.None);
                     },
                     wsMessageId => _archiveWriter!.CreateWebSocketRequestContent(exchange.Id, wsMessageId));
 

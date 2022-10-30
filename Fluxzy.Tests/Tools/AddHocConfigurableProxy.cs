@@ -70,7 +70,7 @@ namespace Fluxzy.Tests.Tools
 
         private void ProxyOnBeforeResponse(object? sender, ExchangeUpdateEventArgs exchangeUpdateEventArgs)
         {
-            if (exchangeUpdateEventArgs.UpdateType != UpdateType.AfterResponseHeader)
+            if (exchangeUpdateEventArgs.UpdateType != ArchiveUpdateType.AfterResponseHeader)
                 return;
 
             lock (_capturedExchanges)

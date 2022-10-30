@@ -43,7 +43,7 @@ namespace Fluxzy.Tests
         
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call(HttpClient httpClient)
         {
-            int repeatCount = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 100 : 10;
+            int repeatCount = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 50 : 10;
             var hosts = new[]
             {
                 TestConstants.Http2Host, 
@@ -54,8 +54,6 @@ namespace Fluxzy.Tests
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
                 .Select(async client =>
                 {
-
-                    // Interlocked.Increment(ref count);
                     var host = hosts[random.Next(0, hosts.Length)]; 
 
                     var response = await client.GetAsync($"{host}/headers-random-repeat");
@@ -327,7 +325,7 @@ namespace Fluxzy.Tests
 
             proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
             {
-                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
             };
 
@@ -370,7 +368,7 @@ namespace Fluxzy.Tests
 
             proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
             };
 
@@ -419,7 +417,7 @@ namespace Fluxzy.Tests
 
             proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
             };
 
@@ -473,7 +471,7 @@ namespace Fluxzy.Tests
 
             proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
             };
 
@@ -527,7 +525,7 @@ namespace Fluxzy.Tests
 
             proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
             {
-                if (args.UpdateType == UpdateType.AfterResponseHeader)
+                if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
             };
 

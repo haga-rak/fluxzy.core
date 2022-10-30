@@ -2,7 +2,7 @@
 
 namespace Fluxzy.Clients.H2.Encoder.Utils
 {
-    public static class AsciiStringHelper
+    public static class SpanCharExtensions
     {
         public static int GetHashCodeArray(this Span<char> obj)
         {

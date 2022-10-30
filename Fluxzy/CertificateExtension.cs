@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.IO;
@@ -16,25 +15,20 @@ namespace Fluxzy
 
             streamWriter.NewLine = "\r\n";
             streamWriter.WriteLine("-----BEGIN CERTIFICATE-----");
+
             streamWriter.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert),
                 Base64FormattingOptions.InsertLineBreaks));
+
             streamWriter.WriteLine("-----END CERTIFICATE-----");
         }
+
         public static byte[] ExportToPem(this X509Certificate cert)
         {
-            using var memoryStream = new MemoryStream(); 
+            using var memoryStream = new MemoryStream();
 
-            using var streamWriter = new StreamWriter(memoryStream, Encoding.ASCII, 1024 * 8, true);
+            cert.ExportToPem(memoryStream);
 
-            streamWriter.NewLine = "\r\n";
-            streamWriter.WriteLine("-----BEGIN CERTIFICATE-----");
-            streamWriter.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert),
-                Base64FormattingOptions.InsertLineBreaks));
-            streamWriter.WriteLine("-----END CERTIFICATE-----");
-
-            streamWriter.Flush();
-
-            return memoryStream.ToArray(); 
+            return memoryStream.ToArray();
         }
     }
 }

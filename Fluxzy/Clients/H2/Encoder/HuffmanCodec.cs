@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using Fluxzy.Clients.H2.Encoder.Huffman;
