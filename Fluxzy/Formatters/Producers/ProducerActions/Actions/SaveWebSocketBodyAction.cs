@@ -40,7 +40,7 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
 
             if (direction == WsMessageDirection.Receive) {
                 using var stream =
-                    archiverReader.GetRequestWebsocketContent(exchangeId, messageId);
+                    archiverReader.GetResponseWebsocketContent(exchangeId, messageId);
 
                 if (stream == null)
                     return false;
