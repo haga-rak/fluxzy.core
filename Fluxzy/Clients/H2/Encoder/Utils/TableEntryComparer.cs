@@ -31,11 +31,9 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                             ArrayPool<char>.Shared.Rent(obj.Value.Span.Length);
 
                     buffer2 = buffer2.Slice(0, obj.Value.Span.Length);
-
-                    //obj.Name.Span.ToLowerInvariant(buffer1);
+                    
                     obj.Value.Span.ToLowerInvariant(buffer2);
-
-                    //return 0;
+                    
                     return (buffer1.GetHashCodeArray() * 397) ^ buffer2.GetHashCodeArray();
                 }
                 finally

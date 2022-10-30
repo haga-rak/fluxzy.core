@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -17,11 +17,12 @@ namespace Fluxzy.Misc.Converters
             if (args.Any())
             {
                 _typeMapping = args.ToDictionary(t => t.Name, t => t);
+
                 return;
             }
-            
+
             var foundTypes = typeof(T).Assembly.GetTypes()
-                                      .Where(derivedType => typeof(T).IsAssignableFrom(derivedType) 
+                                      .Where(derivedType => typeof(T).IsAssignableFrom(derivedType)
                                                             && derivedType != typeof(T)
                                                             && !derivedType.IsAbstract
                                                             && derivedType.IsClass).ToList();
@@ -29,8 +30,10 @@ namespace Fluxzy.Misc.Converters
             _typeMapping = foundTypes.ToDictionary(t => t.Name, t => t);
         }
 
-        public override bool CanConvert(Type typeToConvert) =>
-            typeToConvert == typeof(T);
+        public override bool CanConvert(Type typeToConvert)
+        {
+            return typeToConvert == typeof(T);
+        }
 
         private Type GetFinalType(ref Utf8JsonReader reader)
         {
@@ -39,7 +42,7 @@ namespace Fluxzy.Misc.Converters
 
             if (!_typeMapping.TryGetValue(typeKind, out var type))
                 throw new JsonException($"Cannot parse {typeKind}");
-            
+
             return type;
         }
 
@@ -49,17 +52,17 @@ namespace Fluxzy.Misc.Converters
 
             var actualType = GetFinalType(ref typeCalculatorReader);
 
-            
-
             var res = (T?)JsonSerializer.Deserialize(ref reader, actualType, options);
 
-            return res; 
+            return res;
         }
 
-        public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) =>
+        public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+        {
             JsonSerializer.Serialize(writer, value, value.GetType(), options);
+        }
     }
-    
+
     public abstract class PolymorphicObject
     {
         public string TypeKind => GetType().Name;

@@ -1,3 +1,5 @@
+// Copyright © 2022 Haga RAKOTOHARIVELO
+
 using System.IO;
 
 namespace Fluxzy

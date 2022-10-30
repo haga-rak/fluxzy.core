@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -7,9 +9,6 @@ namespace Fluxzy.Extensions
 {
     public static class ExchangeExtensions
     {
-
-
-
         public static string? GetResponseHeaderValue(this ExchangeInfo exchangeInfo, string headerName)
         {
             if (exchangeInfo.ResponseHeader?.Headers == null)
@@ -36,18 +35,15 @@ namespace Fluxzy.Extensions
             var matchResult = Regex.Match(valueString, @"charset=([a-zA-Z\-0-9]+)");
 
             if (matchResult.Success)
-            {
                 try
                 {
                     return Encoding.GetEncoding(matchResult.Groups[1].Value);
                 }
                 catch (ArgumentException)
                 {
-
                 }
-            }
 
-            return null; 
+            return null;
         }
 
         public static bool IsChunkedTransferEncoded(this ExchangeInfo exchangeInfo)
@@ -56,26 +52,28 @@ namespace Fluxzy.Extensions
                 return false;
 
             return exchangeInfo.ResponseHeader.Headers.Any(h => !h.Forwarded &&
-                h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)
-                && h.Value.Span.Equals("chunked", StringComparison.OrdinalIgnoreCase)
-            ); 
+                                                                h.Name.Span.Equals("Transfer-Encoding",
+                                                                    StringComparison.OrdinalIgnoreCase)
+                                                                && h.Value.Span.Equals("chunked",
+                                                                    StringComparison.OrdinalIgnoreCase)
+            );
         }
 
         public static CompressionType GetCompressionType(this ExchangeInfo exchangeInfo)
         {
             if (exchangeInfo.ResponseHeader?.Headers == null)
-                throw new InvalidOperationException($"This exchange does not have response body");
+                throw new InvalidOperationException("This exchange does not have response body");
 
-            var encodingHeaders = exchangeInfo.ResponseHeader.Headers.Where(h => h.Forwarded &&
-                h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)
+            var encodingHeaders = exchangeInfo.ResponseHeader.Headers.Where(h => (h.Forwarded &&
+                    h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase))
                 || h.Name.Span.Equals("Content-encoding", StringComparison.OrdinalIgnoreCase)).ToList();
 
             if (encodingHeaders.Any(h => h.Value.Span.Contains("gzip", StringComparison.OrdinalIgnoreCase)))
-                return CompressionType.Gzip; 
+                return CompressionType.Gzip;
 
             if (encodingHeaders.Any(h => h.Value.Span.Contains("deflate", StringComparison.OrdinalIgnoreCase)))
                 return CompressionType.Deflate;
-            
+
             if (encodingHeaders.Any(h => h.Value.Span.Contains("br", StringComparison.OrdinalIgnoreCase)))
                 return CompressionType.Brotli;
 
@@ -88,10 +86,10 @@ namespace Fluxzy.Extensions
 
     public enum CompressionType
     {
-        None, 
-        Gzip, 
+        None,
+        Gzip,
         Deflate,
         Compress,
-        Brotli,
+        Brotli
     }
 }

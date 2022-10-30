@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System.Collections.Generic;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Clients.Mock;

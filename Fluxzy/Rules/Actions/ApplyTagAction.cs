@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients;

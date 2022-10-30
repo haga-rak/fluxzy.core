@@ -97,7 +97,7 @@ namespace Fluxzy.Core
                                 {
                                     _archiveWriter.Update(
                                         exchange,
-                                        UpdateType.BeforeRequestHeader,
+                                        ArchiveUpdateType.BeforeRequestHeader,
                                         CancellationToken.None
                                     );
 
@@ -189,7 +189,7 @@ namespace Fluxzy.Core
                                 {
                                     // Update the state of the exchange
                                     // 
-                                    _archiveWriter.Update(exchange, UpdateType.AfterResponseHeader,
+                                    _archiveWriter.Update(exchange, ArchiveUpdateType.AfterResponseHeader,
                                         CancellationToken.None
                                     );
 
@@ -205,7 +205,7 @@ namespace Fluxzy.Core
                                         dispatchStream.OnDisposeDoneTask = () =>
                                         {
                                             _archiveWriter.Update(ext,
-                                                UpdateType.AfterResponse,
+                                                ArchiveUpdateType.AfterResponse,
                                                 CancellationToken.None
                                             );
 
@@ -219,7 +219,7 @@ namespace Fluxzy.Core
                                         // No response body, we ensure the stream is done
 
                                         _archiveWriter.Update(exchange,
-                                            UpdateType.AfterResponse,
+                                            ArchiveUpdateType.AfterResponse,
                                             CancellationToken.None
                                         );
                                     }
@@ -325,7 +325,7 @@ namespace Fluxzy.Core
                             {
                                 //await _archiveWriter.Update(
                                 //    exchange,
-                                //    UpdateType.AfterResponse,
+                                //    ArchiveUpdateType.AfterResponse,
                                 //    CancellationToken.None
                                 //);
 
@@ -338,7 +338,7 @@ namespace Fluxzy.Core
                                 //    {
                                 //        await _archiveWriter.Update(
                                 //            ext,
-                                //            UpdateType.Complete,
+                                //            ArchiveUpdateType.Complete,
                                 //            CancellationToken.None
                                 //        );
                                 //    }

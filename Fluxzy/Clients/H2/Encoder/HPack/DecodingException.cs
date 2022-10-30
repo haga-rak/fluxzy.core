@@ -9,10 +9,5 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
 
         }
-        public HPackCodecException(string message, Exception exception)
-            : base(message, exception)
-        {
-
-        }
     }
 }

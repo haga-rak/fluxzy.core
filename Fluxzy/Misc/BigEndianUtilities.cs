@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System;
 using System.Buffers.Binary;
 using System.IO;
 
@@ -39,6 +41,7 @@ namespace Fluxzy.Misc
         public static Span<byte> BuWrite_32(this Span<byte> buffer, uint data)
         {
             BinaryPrimitives.WriteUInt32BigEndian(buffer, data);
+
             return buffer.Slice(4);
         }
 
@@ -50,6 +53,7 @@ namespace Fluxzy.Misc
         public static Span<byte> BuWrite_64(this Span<byte> buffer, ulong data)
         {
             BinaryPrimitives.WriteUInt64BigEndian(buffer, data);
+
             return buffer.Slice(4);
         }
 
@@ -95,7 +99,6 @@ namespace Fluxzy.Misc
             return stream.BuWrite_24((uint)data);
         }
 
-
         public static Stream BuWrite_16(this Stream stream, short data)
         {
             return stream.BuWrite_16((ushort)data);
@@ -111,25 +114,28 @@ namespace Fluxzy.Misc
             Span<byte> buffer = stackalloc byte[2];
             BinaryPrimitives.WriteUInt16BigEndian(buffer, data);
             stream.Write(buffer);
+
             return stream;
         }
 
         public static Span<byte> BuWrite_16(this Span<byte> buffer, ushort data)
         {
             BinaryPrimitives.WriteUInt16BigEndian(buffer, data);
+
             return buffer.Slice(2);
         }
 
         public static Stream BuWrite_1_31(this Stream stream, bool _1, uint _31)
         {
             var finalData = !_1 ? _31 & 0x7FFFFFFF : _31 | 0x80000000;
+
             return BuWrite_32(stream, finalData);
         }
-
 
         public static Span<byte> BuWrite_1_31(this Span<byte> buffer, bool _1, uint _31)
         {
             var finalData = !_1 ? _31 & 0x7FFFFFFF : _31 | 0x80000000;
+
             return BuWrite_32(buffer, finalData);
         }
 

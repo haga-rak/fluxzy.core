@@ -10,10 +10,10 @@ namespace Fluxzy
 
         public Exchange Original { get; }
 
-        public UpdateType UpdateType { get; }
+        public ArchiveUpdateType UpdateType { get; }
 
         public ExchangeUpdateEventArgs(ExchangeInfo exchangeInfo,
-            Exchange original, UpdateType updateType)
+            Exchange original, ArchiveUpdateType updateType)
         {
             ExchangeInfo = exchangeInfo;
             Original = original;

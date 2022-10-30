@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.IO;
@@ -138,10 +138,6 @@ namespace Fluxzy.Clients
                                 null, false,
                                 "HTTP/1.1",
                                 receivedFromProxy), true);
-
-                // TODO : Create an Exchange representing the CONNECT REQUEST
-
-                // THIS LINE WILL THROWS IF CLIENT OPEN A TUNNEL FOR A WEBSOCKET PLAIN REQUEST
 
                 var certStart = ITimingProvider.Default.Instant();
                 var certEnd = ITimingProvider.Default.Instant();
