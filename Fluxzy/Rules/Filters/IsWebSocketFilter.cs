@@ -7,13 +7,7 @@ namespace Fluxzy.Rules.Filters
 {
     public class IsWebSocketFilter : Filter
     {
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
-            IFilteringContext? filteringContext)
-        {
-            return exchange?.IsWebSocket ?? false; 
-        }
-
-        public override Guid Identifier => ($"{Inverted}{GetType()}").GetMd5Guid();
+        public override Guid Identifier => $"{Inverted}{GetType()}".GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 
@@ -24,5 +18,11 @@ namespace Fluxzy.Rules.Filters
         public override string? Description { get; set; } = "Websocket exchange";
 
         public override bool PreMadeFilter => true;
+
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
+        {
+            return exchange?.IsWebSocket ?? false;
+        }
     }
 }

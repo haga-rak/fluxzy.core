@@ -11,13 +11,16 @@ namespace Fluxzy.Encoding.Tests
         public void Read_Write_Simple_String()
         {
             var binaryHelper = new PrimitiveOperation(new HuffmanCodec());
-            var expectedText = "!\"#$%\r\n\t&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
+            var expectedText =
+                "!\"#$%\r\n\t&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
             var input = expectedText.AsSpan();
 
-            var buffer = (Span<byte>) stackalloc byte[2048];
-            var bufferDecoded = (Span<char>) stackalloc char[2048];
+            var buffer = (Span<byte>)stackalloc byte[2048];
+            var bufferDecoded = (Span<char>)stackalloc char[2048];
 
-            var encoded = binaryHelper.WriteString(input, buffer, false); 
+            var encoded = binaryHelper.WriteString(input, buffer, false);
             var decoded = binaryHelper.ReadString(encoded, bufferDecoded, out _);
 
             var decodedString = decoded.ToString();
@@ -32,16 +35,15 @@ namespace Fluxzy.Encoding.Tests
             var expectedText = string.Empty;
 
             var input = expectedText.AsSpan();
-            
-            var buffer = (Span<byte>) stackalloc byte[2048];
-            var bufferDecoded = (Span<char>) stackalloc char[2048];
 
-            var encoded = binaryHelper.WriteString(input, buffer, false); 
+            var buffer = (Span<byte>)stackalloc byte[2048];
+            var bufferDecoded = (Span<char>)stackalloc char[2048];
+
+            var encoded = binaryHelper.WriteString(input, buffer, false);
             var decoded = binaryHelper.ReadString(encoded, bufferDecoded, out _);
             var decodedString = decoded.ToString();
 
             Assert.Equal(expectedText, decodedString);
         }
-            
     }
 }

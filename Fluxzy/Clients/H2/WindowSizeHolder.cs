@@ -14,9 +14,18 @@ namespace Fluxzy.Clients.H2
         private readonly Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new();
         private volatile int _windowSize;
 
+        public int WindowSize
+        {
+            get => _windowSize;
+
+            private set => _windowSize = value;
+        }
+
+        public int StreamIdentifier { get; }
+
         public WindowSizeHolder(
-            H2Logger logger, 
-            int windowSize, 
+            H2Logger logger,
+            int windowSize,
             int streamIdentifier)
         {
             _logger = logger;
@@ -24,13 +33,11 @@ namespace Fluxzy.Clients.H2
             StreamIdentifier = streamIdentifier;
         }
 
-        public int WindowSize
+        public void Dispose()
         {
-            get => _windowSize;
-            private set => _windowSize = value;
+            //_semaphore?.Dispose();
+            // _semaphore = null;
         }
-
-        public int StreamIdentifier { get; }
 
         public void UpdateWindowSize(int windowSizeIncrement)
         {
@@ -38,12 +45,10 @@ namespace Fluxzy.Clients.H2
 
             lock (this)
             {
-                if ((WindowSize + ((long) windowSizeIncrement)) > int.MaxValue)
-                {
-                    WindowSize = int.MaxValue; 
-                }
+                if (WindowSize + (long)windowSizeIncrement > int.MaxValue)
+                    WindowSize = int.MaxValue;
                 else
-                    WindowSize += windowSizeIncrement; 
+                    WindowSize += windowSizeIncrement;
             }
 
             // This is not behaving as expected
@@ -51,26 +56,24 @@ namespace Fluxzy.Clients.H2
 
             lock (_windowSizeAWaiters)
             {
-                var list = new List<TaskCompletionSource<object?>>(); 
+                var list = new List<TaskCompletionSource<object?>>();
+
                 while (_windowSizeAWaiters.TryDequeue(out var item))
-                {
                     list.Add(item);
-                }
 
                 foreach (var item in list)
                 {
                     item.SetResult(null);
-                    ; 
+                    ;
                 }
             }
         }
-        
 
         public async ValueTask<int> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested || requestedLength == 0)
                 return 0;
-            
+
             lock (this)
             {
                 var maxAvailable = Math.Min(requestedLength, WindowSize);
@@ -90,18 +93,13 @@ namespace Fluxzy.Clients.H2
             // sleep until window updated 
 
             lock (_windowSizeAWaiters)
+            {
                 _windowSizeAWaiters.Enqueue(onJobReady);
+            }
 
-            await onJobReady.Task; 
+            await onJobReady.Task;
+
             return await BookWindowSize(requestedLength, cancellationToken).ConfigureAwait(false);
-        }
-
-        public void Dispose()
-        {
-            //_semaphore?.Dispose();
-            // _semaphore = null;
-
-
         }
     }
 }

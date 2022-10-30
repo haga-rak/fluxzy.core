@@ -11,11 +11,12 @@ namespace Fluxzy.Desktop.Services
     public class FilteredExchangeManager : ObservableProvider<FilteredExchangeState?>
     {
         private readonly ActiveViewFilterManager _activeViewFilterManager;
-        protected override BehaviorSubject<FilteredExchangeState?> Subject { get; } = new (null);
+
+        protected override BehaviorSubject<FilteredExchangeState?> Subject { get; } = new(null);
 
         public FilteredExchangeManager(
             IObservable<FileState> fileStateObservable, IObservable<ViewFilter> viewFilterObservable,
-            ActiveViewFilterManager activeViewFilterManager, 
+            ActiveViewFilterManager activeViewFilterManager,
             IObservable<IArchiveReader> archiveReaderObservable,
             ForwardMessageManager forwardMessageManager)
         {
@@ -23,13 +24,8 @@ namespace Fluxzy.Desktop.Services
 
             var trunkStateObservable = fileStateObservable.Select(fileState =>
                 Observable.FromAsync(
-                    async () =>
-                    {
-                        return await fileState.ContentOperation.Observable.FirstAsync();
-                    })
-                        
+                    async () => { return await fileState.ContentOperation.Observable.FirstAsync(); })
             ).Concat();
-            
 
             trunkStateObservable.CombineLatest(
                                     viewFilterObservable, archiveReaderObservable,
@@ -37,18 +33,19 @@ namespace Fluxzy.Desktop.Services
                                     {
                                         // Ne pas s'abonner à trunk state ici 
                                         // viewFilter devra just s'appliquer au nouveau venu et devra sauvegarder son état 
-                                        
+
                                         if (viewFilter.Filter is AnyFilter)
                                             return null;
-                                        
+
                                         var filteredIds =
                                             trunkState.Exchanges
-                                                     .Where(e => viewFilter.Filter.Apply(null, e.ExchangeInfo, new ExchangeInfoFilteringContext(archiveReader, e.ExchangeInfo.Id)))
-                                                     .Select(e => e.Id);
+                                                      .Where(e => viewFilter.Filter.Apply(null, e.ExchangeInfo,
+                                                          new ExchangeInfoFilteringContext(archiveReader,
+                                                              e.ExchangeInfo.Id)))
+                                                      .Select(e => e.Id);
 
                                         return new FilteredExchangeState(filteredIds);
                                     })
-                               
                                 .DistinctUntilChanged()
                                 .Do(v => Subject.OnNext(v))
                                 .Do(v =>
@@ -56,9 +53,8 @@ namespace Fluxzy.Desktop.Services
                                     if (v != null)
                                         forwardMessageManager.Send(v);
                                 })
-                                .Subscribe(); 
+                                .Subscribe();
         }
-
 
         public void OnExchangeAdded(ExchangeInfo exchange)
         {
@@ -70,9 +66,7 @@ namespace Fluxzy.Desktop.Services
                 var passFilter = viewFilter.Filter.Apply(null, exchange, null);
 
                 if (passFilter)
-                {
                     filteredExchangeState.Exchanges.Add(exchange.Id);
-                }
             }
         }
     }

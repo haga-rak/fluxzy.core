@@ -2,21 +2,18 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
-using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
-using CombinedReadonlyStream = Fluxzy.Misc.Streams.CombinedReadonlyStream;
 
 namespace Fluxzy.Clients
 {
-    public interface ILink 
+    public interface ILink
     {
         Stream? ReadStream { get; }
 
@@ -25,30 +22,36 @@ namespace Fluxzy.Clients
 
     public interface ILocalLink : ILink
     {
-
     }
 
     public interface IRemoteLink : ILink
     {
-
     }
 
     public class ExchangeBuildingResult : ILocalLink
     {
-        private static int _count = 0; 
+        private static int _count;
+
+        public int Id { get; }
+
+        public Authority Authority { get; }
+
+        public Exchange ProvisionalExchange { get; }
+
+        public bool TunnelOnly { get; }
 
         public ExchangeBuildingResult(
-            Authority authority, 
-            Stream readStream, 
-            Stream writeStream, 
+            Authority authority,
+            Stream readStream,
+            Stream writeStream,
             Exchange provisionalExchange, bool tunnelOnly)
         {
-            Id = Interlocked.Increment(ref _count); 
+            Id = Interlocked.Increment(ref _count);
             Authority = authority;
             ReadStream = readStream;
             WriteStream = writeStream;
             ProvisionalExchange = provisionalExchange;
-            TunnelOnly = tunnelOnly; 
+            TunnelOnly = tunnelOnly;
 
             if (DebugContext.EnableNetworkFileDump)
             {
@@ -56,33 +59,24 @@ namespace Fluxzy.Clients
                     ReadStream, true);
 
                 WriteStream = new DebugFileStream($"raw/{Id:0000}_browser_",
-                    WriteStream,false);
+                    WriteStream, false);
             }
         }
-
-        public int Id { get; }
-
-        public Authority Authority { get;  }
 
         public Stream ReadStream { get; }
 
         public Stream WriteStream { get; }
-
-        public Exchange ProvisionalExchange { get; }
-
-        public bool TunnelOnly { get;  }
-        
     }
 
     internal class ExchangeBuilder
     {
+        private static readonly string AcceptTunnelResponseString =
+            "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
+
+        private static readonly byte[] AcceptTunnelResponse =
+            Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
         private readonly IIdProvider _idProvider;
-
-        private static readonly string AcceptTunnelResponseString = "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
-
-        private static readonly byte [] AcceptTunnelResponse =
-            Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
 
         public ExchangeBuilder(
             SecureConnectionUpdater secureConnectionUpdater,
@@ -119,12 +113,12 @@ namespace Fluxzy.Clients
             if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase))
             {
                 // GET Authority 
-                var authorityArray = 
+                var authorityArray =
                     plainHeader.Path.ToString().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
                 var authority = new Authority
-                    (authorityArray[0], 
-                    int.Parse(authorityArray[1]), 
+                (authorityArray[0],
+                    int.Parse(authorityArray[1]),
                     true);
 
                 await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse),
@@ -133,19 +127,17 @@ namespace Fluxzy.Clients
                 var exchangeContext = new ExchangeContext(authority);
 
                 await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
-                
+
                 if (exchangeContext.BlindMode)
-                {
                     return
                         new ExchangeBuildingResult(
                             authority, plainStream, plainStream,
                             Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                                 authority, plainHeaderChars, null,
                                 AcceptTunnelResponseString.AsMemory(),
-                                null, false, 
+                                null, false,
                                 "HTTP/1.1",
                                 receivedFromProxy), true);
-                }
 
                 // TODO : Create an Exchange representing the CONNECT REQUEST
 
@@ -160,12 +152,12 @@ namespace Fluxzy.Clients
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, null,
                     AcceptTunnelResponseString.AsMemory(),
-                    null, false,  "HTTP/1.1", receivedFromProxy);
+                    null, false, "HTTP/1.1", receivedFromProxy);
 
-                exchange.Metrics.CreateCertStart = certStart; 
-                exchange.Metrics.CreateCertEnd = certEnd; 
+                exchange.Metrics.CreateCertStart = certStart;
+                exchange.Metrics.CreateCertEnd = certEnd;
 
-                return 
+                return
                     new ExchangeBuildingResult
                     (authority,
                         authenticateResult.InStream,
@@ -184,15 +176,15 @@ namespace Fluxzy.Clients
             await runtimeSetting.EnforceRules(plainExchangeContext, FilterScope.OnAuthorityReceived);
 
             return new ExchangeBuildingResult(
-                plainAuthority, 
-                plainStream, 
-                plainStream, 
+                plainAuthority,
+                plainStream,
+                plainStream,
                 new Exchange(_idProvider,
                     plainExchangeContext,
-                    plainAuthority, 
+                    plainAuthority,
                     plainHeader, plainHeader.ContentLength > 0
-                    ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                    : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy), false); 
+                        ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
+                        : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy), false);
         }
 
         public async ValueTask<Exchange?> ReadExchange(
@@ -216,12 +208,10 @@ namespace Fluxzy.Clients
             var secureHeader = new RequestHeader(secureHeaderChars, true);
 
             if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
-            {
                 inStream = new CombinedReadonlyStream(false,
                     new MemoryStream(buffer.Buffer, blockReadResult.HeaderLength,
                         blockReadResult.TotalReadLength - blockReadResult.HeaderLength),
-                    inStream); 
-            }
+                    inStream);
 
             var exchangeContext = new ExchangeContext(authority);
             await runTimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);

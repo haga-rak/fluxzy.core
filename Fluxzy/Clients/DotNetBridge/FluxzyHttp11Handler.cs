@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
-using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.DotNetBridge
@@ -15,19 +14,20 @@ namespace Fluxzy.Clients.DotNetBridge
         private readonly IDictionary<string, Http11ConnectionPool>
             _activeConnections = new Dictionary<string, Http11ConnectionPool>();
 
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
         private readonly IIdProvider _idProvider;
 
         public FluxzyHttp11Handler()
         {
-            _idProvider = IIdProvider.FromZero; 
+            _idProvider = IIdProvider.FromZero;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var authority = new Authority(request.RequestUri.Host, request.RequestUri.Port,
-                true); 
+                true);
+
             try
             {
                 await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -46,17 +46,16 @@ namespace Fluxzy.Clients.DotNetBridge
 
             var reqHttpString = request.ToHttp11String();
 
-            var exchange = new Exchange(_idProvider, authority, reqHttpString.AsMemory(),  "HTTP/1.1", DateTime.Now);
+            var exchange = new Exchange(_idProvider, authority, reqHttpString.AsMemory(), "HTTP/1.1", DateTime.Now);
 
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 
-            await _activeConnections[request.RequestUri.Authority].Send(exchange, null, RsBuffer.Allocate(32* 1024),
+            await _activeConnections[request.RequestUri.Authority].Send(exchange, null, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);
-            
+
             return new FluxzyHttpResponseMessage(exchange);
         }
-
 
         protected override void Dispose(bool disposing)
         {
@@ -65,10 +64,7 @@ namespace Fluxzy.Clients.DotNetBridge
             _semaphore.Dispose();
 
             foreach (var connection in _activeConnections.Values)
-            {
                 connection.Dispose();
-            }
         }
-
     }
 }

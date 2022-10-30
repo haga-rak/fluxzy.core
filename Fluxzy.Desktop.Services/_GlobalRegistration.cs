@@ -6,8 +6,6 @@ using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Readers;
-using Fluxzy.Rules;
-using Fluxzy.Writers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Fluxzy.Desktop.Services
@@ -30,44 +28,43 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<IRuleStorage, LocalRuleStorage>();
             collection.AddSingleton<ActiveRuleManager>();
 
-            collection.AddSingleton<IObservable<SystemProxyState>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
 
-            collection.AddSingleton<IObservable<FileState>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<FileManager>().ProvidedObservable);
 
             collection.AddSingleton<IObservable<IArchiveReader>>
-                (s => s.GetRequiredService<IObservable<FileState>>()
-                       .Select(f => new DirectoryArchiveReader(f.WorkingDirectory)));
+            (s => s.GetRequiredService<IObservable<FileState>>()
+                   .Select(f => new DirectoryArchiveReader(f.WorkingDirectory)));
 
-            collection.AddSingleton<IObservable<FluxzySettingsHolder>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<FluxzySettingManager>().ProvidedObservable);
 
-            collection.AddSingleton<IObservable<ProxyState>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<ProxyControl>().ProvidedObservable);
 
-            collection.AddSingleton<IObservable<RealtimeArchiveWriter?>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<ProxyControl>().WriterObservable);
 
-            collection.AddSingleton<IObservable<ViewFilter>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<ActiveViewFilterManager>().ProvidedObservable);
 
-            collection.AddSingleton<IObservable<FilteredExchangeState?>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<FilteredExchangeManager>().ProvidedObservable);
 
-            collection.AddSingleton<IObservable<List<Rule>>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<ActiveRuleManager>().ActiveRules);
 
-            collection.AddSingleton<IObservable<TemplateToolBarFilterModel>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<TemplateToolBarFilterProvider>().ProvidedObservable);
 
-            collection.AddSingleton<IObservable<FileContentOperationManager>>
+            collection.AddSingleton
                 (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));
 
-            collection.AddSingleton<IObservable<TrunkState>>
-                (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
-                    .Select(t => t.Observable).Switch());
-
+            collection.AddSingleton
+            (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
+                   .Select(t => t.Observable).Switch());
 
             collection.AddScoped<IArchiveReaderProvider, ArchiveReaderProvider>();
             collection.AddScoped<FilterTemplateManager>();
@@ -83,7 +80,7 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddViewFilters();
 
-            return collection; 
+            return collection;
         }
 
         public static IServiceCollection AddFluxzyProducers(this IServiceCollection serviceCollection)
@@ -95,7 +92,6 @@ namespace Fluxzy.Desktop.Services
             serviceCollection.AddScoped<SaveWebSocketBodyAction>();
 
             return serviceCollection;
-
         }
 
         public static IServiceCollection AddViewFilters(this IServiceCollection serviceCollection)
@@ -105,7 +101,6 @@ namespace Fluxzy.Desktop.Services
             serviceCollection.AddSingleton<InSessionFileStorage>();
 
             return serviceCollection;
-
         }
     }
 }

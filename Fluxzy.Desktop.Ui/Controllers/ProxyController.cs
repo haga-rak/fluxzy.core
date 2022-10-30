@@ -20,6 +20,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<bool> On()
         {
             _systemProxyStateControl.On();
+
             return true;
         }
 
@@ -27,7 +28,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<bool> Off()
         {
             _systemProxyStateControl.Off();
-            return true; 
+
+            return true;
         }
     }
 }

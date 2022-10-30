@@ -9,13 +9,7 @@ namespace Fluxzy.Rules
 {
     public class Rule
     {
-        public Rule(Action action, Filter filter)
-        {
-            Filter = filter;
-            Action = action;
-        }
-
-        public Guid Identifier { get; set; } = Guid.NewGuid(); 
+        public Guid Identifier { get; set; } = Guid.NewGuid();
 
         public Filter Filter { get; set; }
 
@@ -25,15 +19,19 @@ namespace Fluxzy.Rules
 
         public bool InScope => Filter.FilterScope <= Action.ActionScope;
 
+        public Rule(Action action, Filter filter)
+        {
+            Filter = filter;
+            Action = action;
+        }
+
         public ValueTask Enforce(ExchangeContext context,
             Exchange? exchange,
             Connection? connection)
         {
             // TODO put a decent filtering context here 
             if (Filter.Apply(context.Authority, exchange, null))
-            {
                 return Action.Alter(context, exchange, connection);
-            }
 
             return default;
         }

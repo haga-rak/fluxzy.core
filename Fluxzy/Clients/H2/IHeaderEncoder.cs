@@ -6,22 +6,21 @@ namespace Fluxzy.Clients.H2
 {
     internal interface IHeaderEncoder
     {
-
         HPackEncoder Encoder { get; }
 
         HPackDecoder Decoder { get; }
 
         /// <summary>
-        /// InternalApply header + hpack to headerbuffer 
+        ///     InternalApply header + hpack to headerbuffer
         /// </summary>
         /// <param name="encodingJob"></param>
         /// <param name="destinationBuffer"></param>
         /// <param name="endStream"></param>
         /// <returns></returns>
-        ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, RsBuffer destinationBuffer, bool endStream); 
+        ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, RsBuffer destinationBuffer, bool endStream);
 
         /// <summary>
-        /// Remove hpack 
+        ///     Remove hpack
         /// </summary>
         /// <param name="encodedBuffer"></param>
         /// <param name="destinationBuffer"></param>

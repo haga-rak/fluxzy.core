@@ -13,14 +13,15 @@ namespace Fluxzy.Encoding.Tests
         [Fact]
         public void Write_And_Read_Simple_Request()
         {
-            ArrayPoolMemoryProvider<char> memoryProvider = ArrayPoolMemoryProvider<char>.Default;
-           
-            PrimitiveOperation primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
+            var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
 
-            var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
-                memoryProvider : memoryProvider,  primitiveOperation : primitiveOperation);
+            var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
+
+            var encoder = new HPackEncoder(new EncodingContext(memoryProvider),
+                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
+
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
-                memoryProvider : memoryProvider, primitiveOperation: primitiveOperation);
+                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];
@@ -36,7 +37,9 @@ namespace Fluxzy.Encoding.Tests
             var decodDin = decoder.Context.DynContent();
 
             Assert.Equal(input, decodedString, true);
-            Assert.True(encodDin.Select(s => s.ToString().ToLowerInvariant()).SequenceEqual(decodDin.Select(s => s.ToString().ToLowerInvariant())));
+
+            Assert.True(encodDin.Select(s => s.ToString().ToLowerInvariant())
+                                .SequenceEqual(decodDin.Select(s => s.ToString().ToLowerInvariant())));
         }
 
         [Fact]
@@ -45,10 +48,11 @@ namespace Fluxzy.Encoding.Tests
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
-            var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
-                memoryProvider : memoryProvider,  primitiveOperation : primitiveOperation);
+            var encoder = new HPackEncoder(new EncodingContext(memoryProvider),
+                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
+
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
-                memoryProvider : memoryProvider,  primitiveOperation: primitiveOperation);
+                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];
@@ -63,9 +67,10 @@ namespace Fluxzy.Encoding.Tests
             var encodDin = encoder.Context.DynContent();
             var decodDin = decoder.Context.DynContent();
 
-
             Assert.Equal(input, decodedString, true);
-            Assert.True(encodDin.Select(s => s.ToString().ToLowerInvariant()).SequenceEqual(decodDin.Select(s => s.ToString().ToLowerInvariant())));
+
+            Assert.True(encodDin.Select(s => s.ToString().ToLowerInvariant())
+                                .SequenceEqual(decodDin.Select(s => s.ToString().ToLowerInvariant())));
         }
 
         [Fact]
@@ -74,17 +79,18 @@ namespace Fluxzy.Encoding.Tests
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
-            var encoder = new HPackEncoder(new EncodingContext(memoryProvider), 
-                memoryProvider : memoryProvider,  primitiveOperation : primitiveOperation);
+            var encoder = new HPackEncoder(new EncodingContext(memoryProvider),
+                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
+
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
-                memoryProvider : memoryProvider,  primitiveOperation: primitiveOperation);
+                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
 
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];
 
             var input = Headers.Req001;
 
-            for (int i = 0; i < 2; i++)
+            for (var i = 0; i < 2; i++)
             {
                 var encoded = encoder.Encode(input.AsMemory(), encodingBuffer);
                 var decoded = decoder.Decode(encoded, decodingBuffer);
@@ -95,10 +101,10 @@ namespace Fluxzy.Encoding.Tests
                 var decodDin = decoder.Context.DynContent();
 
                 Assert.Equal(input, decodedString, true);
-                Assert.True(encodDin.Select(s => s.ToString().ToLowerInvariant()).SequenceEqual(decodDin.Select(s => s.ToString().ToLowerInvariant())));
 
+                Assert.True(encodDin.Select(s => s.ToString().ToLowerInvariant())
+                                    .SequenceEqual(decodDin.Select(s => s.ToString().ToLowerInvariant())));
             }
         }
-        
     }
 }

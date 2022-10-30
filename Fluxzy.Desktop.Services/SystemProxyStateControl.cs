@@ -8,30 +8,32 @@ namespace Fluxzy.Desktop.Services
 {
     public class SystemProxyStateControl : ObservableProvider<SystemProxyState>
     {
-        private FluxzySetting?  _fluxzySetting;
-        private ProxyState?  _proxyState;
+        private FluxzySetting? _fluxzySetting;
+        private ProxyState? _proxyState;
+
+        protected override BehaviorSubject<SystemProxyState> Subject { get; }
 
         public SystemProxyStateControl(IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<ProxyState> proxyStateObservableProvider)
         {
             var current = SystemProxyRegistration.GetSystemProxySetting();
-            Subject = new BehaviorSubject<SystemProxyState>(new SystemProxyState(current.BoundHost, current.ListenPort, current.Enabled));
 
-            fluxzySettingHolderObservable.Do(t => this._fluxzySetting = t.StartupSetting).Subscribe();
-            proxyStateObservableProvider.Do(t => this._proxyState = t).Subscribe(); 
+            Subject = new BehaviorSubject<SystemProxyState>(new SystemProxyState(current.BoundHost, current.ListenPort,
+                current.Enabled));
+
+            fluxzySettingHolderObservable.Do(t => _fluxzySetting = t.StartupSetting).Subscribe();
+            proxyStateObservableProvider.Do(t => _proxyState = t).Subscribe();
         }
-
-        protected override BehaviorSubject<SystemProxyState> Subject { get; }
 
         public void On()
         {
             if (_fluxzySetting == null)
                 return;
 
-            if (_proxyState == null 
-                || _proxyState.OnError 
+            if (_proxyState == null
+                || _proxyState.OnError
                 || !_proxyState.BoundConnections.Any())
-                return; 
+                return;
 
             var newSetting = SystemProxyRegistration.Register(_proxyState.BoundConnections.Select(
                 p => new IPEndPoint(IPAddress.Parse(p.Address), p.Port)), _fluxzySetting);
@@ -47,6 +49,5 @@ namespace Fluxzy.Desktop.Services
             var current = SystemProxyRegistration.GetSystemProxySetting();
             Subject.OnNext(new SystemProxyState(current.BoundHost, current.ListenPort, current.Enabled));
         }
-
     }
 }

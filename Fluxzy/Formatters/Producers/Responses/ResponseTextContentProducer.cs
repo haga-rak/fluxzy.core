@@ -9,7 +9,7 @@
             if (context.IsTextContent && !string.IsNullOrWhiteSpace(context.ResponseBodyText))
                 return new ResponseTextContentResult(ResultTitle);
 
-            return null; 
+            return null;
         }
     }
 

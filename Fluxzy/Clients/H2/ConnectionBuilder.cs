@@ -17,7 +17,7 @@ namespace Fluxzy.Clients.H2
         public static async Task<H2ConnectionPool> CreateH2(
             string hostName, 
             int port = 443,
-            H2StreamSetting setting = default,
+            H2StreamSetting? setting = default,
             CancellationToken token = default)
         {
             var tcpClient = new TcpClient();

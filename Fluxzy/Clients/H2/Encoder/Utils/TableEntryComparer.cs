@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace Fluxzy.Clients.H2.Encoder.Utils
 {
-    public class TableEntryComparer : IEqualityComparer<HeaderField> 
+    public class TableEntryComparer : IEqualityComparer<HeaderField>
     {
-        public static TableEntryComparer Default { get; } = new TableEntryComparer(); 
+        public static TableEntryComparer Default { get; } = new();
 
         public bool Equals(HeaderField x, HeaderField y)
         {
@@ -25,8 +25,9 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 {
                     Span<char> buffer1 = stackalloc char[obj.Name.Span.Length];
 
-                    Span<char> buffer2 = obj.Value.Span.Length < 1024 ? 
-                        stackalloc char[obj.Value.Span.Length] : heapBuffer = 
+                    var buffer2 = obj.Value.Span.Length < 1024
+                        ? stackalloc char[obj.Value.Span.Length]
+                        : heapBuffer =
                             ArrayPool<char>.Shared.Rent(obj.Value.Span.Length);
 
                     buffer2 = buffer2.Slice(0, obj.Value.Span.Length);
@@ -40,12 +41,8 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 finally
                 {
                     if (heapBuffer != null)
-                    {
                         ArrayPool<char>.Shared.Return(heapBuffer);
-                    }
                 }
-
-
             }
         }
     }

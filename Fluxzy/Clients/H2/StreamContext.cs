@@ -1,27 +1,7 @@
-﻿using Fluxzy.Clients.H2.Encoder.Utils;
-
-namespace Fluxzy.Clients.H2
+﻿namespace Fluxzy.Clients.H2
 {
     internal class StreamContext
     {
-        public StreamContext(
-            int connectionId,
-            Authority authority,
-            H2StreamSetting setting,
-            H2Logger logger,
-            IHeaderEncoder headerEncoder,
-            UpStreamChannel upStreamChannel, 
-            WindowSizeHolder overallWindowSizeHolder)
-        {
-            ConnectionId = connectionId;
-            Authority = authority;
-            Setting = setting;
-            Logger = logger;
-            HeaderEncoder = headerEncoder;
-            UpStreamChannel = upStreamChannel;
-            OverallWindowSizeHolder = overallWindowSizeHolder;
-        }
-
         public int ConnectionId { get; }
 
         public Authority Authority { get; }
@@ -35,5 +15,23 @@ namespace Fluxzy.Clients.H2
         public UpStreamChannel UpStreamChannel { get; }
 
         public WindowSizeHolder OverallWindowSizeHolder { get; }
+
+        public StreamContext(
+            int connectionId,
+            Authority authority,
+            H2StreamSetting setting,
+            H2Logger logger,
+            IHeaderEncoder headerEncoder,
+            UpStreamChannel upStreamChannel,
+            WindowSizeHolder overallWindowSizeHolder)
+        {
+            ConnectionId = connectionId;
+            Authority = authority;
+            Setting = setting;
+            Logger = logger;
+            HeaderEncoder = headerEncoder;
+            UpStreamChannel = upStreamChannel;
+            OverallWindowSizeHolder = overallWindowSizeHolder;
+        }
     }
 }

@@ -5,7 +5,6 @@ using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.Extensions.Configuration;
 
-
 namespace Fluxzy.Desktop.Services
 {
     public class FileManager : ObservableProvider<FileState>
@@ -13,32 +12,35 @@ namespace Fluxzy.Desktop.Services
         private readonly FxzyDirectoryPackager _directoryPackager;
         private readonly string _tempDirectory;
 
+        protected sealed override BehaviorSubject<FileState> Subject { get; }
+
+        public override IObservable<FileState> ProvidedObservable => Subject.AsObservable().DistinctUntilChanged();
+
         public FileManager(IConfiguration configuration, FxzyDirectoryPackager directoryPackager)
         {
             _directoryPackager = directoryPackager;
+
             _tempDirectory = configuration["UiSettings:CaptureTemp"]
                              ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                                  "Fluxzy.Desktop", "temp");
+
             _tempDirectory = Environment.ExpandEnvironmentVariables(_tempDirectory);
 
             Directory.CreateDirectory(_tempDirectory);
 
             Subject = new BehaviorSubject<FileState>(CreateNewFileState(_tempDirectory));
         }
-        
-        protected sealed override BehaviorSubject<FileState> Subject { get; }
-
-        public override IObservable<FileState> ProvidedObservable => Subject.AsObservable().DistinctUntilChanged();
 
         private static (Guid, string) GenerateNewDirectory(string tempDirectory)
         {
-            var id = Guid.NewGuid(); 
+            var id = Guid.NewGuid();
 
             var pathSuffix = $"capture-{DateTime.Now.ToString("yyyyMMddHHmmss")}-{id}";
 
             var fullPath = Path.Combine(tempDirectory, pathSuffix);
 
             Directory.CreateDirectory(fullPath);
+
             return (id, fullPath);
         }
 
@@ -46,9 +48,9 @@ namespace Fluxzy.Desktop.Services
         {
             var (_, fullPath) = GenerateNewDirectory(tempDirectory);
             var newFileState = new FileState(this, fullPath);
+
             return newFileState;
         }
-
 
         public Task New()
         {
@@ -56,7 +58,7 @@ namespace Fluxzy.Desktop.Services
 
             Subject.OnNext(newFileState);
 
-            return Task.CompletedTask; 
+            return Task.CompletedTask;
         }
 
         public async Task Open(string fileName)
@@ -71,7 +73,7 @@ namespace Fluxzy.Desktop.Services
 
             await _directoryPackager.Unpack(fileStream, directoryInfo.FullName);
 
-            var result = new FileState(this, workingDirectory, fileName); 
+            var result = new FileState(this, workingDirectory, fileName);
 
             Subject.OnNext(result);
         }
@@ -79,20 +81,20 @@ namespace Fluxzy.Desktop.Services
         public void SetUnsaved(bool state)
         {
             if (Subject.Value.Unsaved != state)
-                Subject.OnNext(Subject.Value.SetUnsaved(state)); 
+                Subject.OnNext(Subject.Value.SetUnsaved(state));
         }
 
         public async Task Save(TrunkState trunkState)
         {
-            var current = await ProvidedObservable.FirstAsync(); 
+            var current = await ProvidedObservable.FirstAsync();
 
             if (current.MappedFileFullPath == null)
                 throw new InvalidOperationException("No mapped filed");
 
             using var outStream = File.Create(current.MappedFileFullPath);
-            
-            await _directoryPackager.Pack(current.WorkingDirectory, outStream, 
-                trunkState.Exchanges.Select(e => e.ExchangeInfo), 
+
+            await _directoryPackager.Pack(current.WorkingDirectory, outStream,
+                trunkState.Exchanges.Select(e => e.ExchangeInfo),
                 trunkState.Connections.Select(c => c.ConnectionInfo));
 
             var nextState = current.SetUnsaved(false);
@@ -102,7 +104,7 @@ namespace Fluxzy.Desktop.Services
 
         public async Task SaveAs(TrunkState trunkState, string fileName)
         {
-            var current = await ProvidedObservable.FirstAsync(); 
+            var current = await ProvidedObservable.FirstAsync();
 
             if (current == null)
                 throw new InvalidOperationException("Current working directory/file is not set");
@@ -114,8 +116,8 @@ namespace Fluxzy.Desktop.Services
                 trunkState.Connections.Select(c => c.ConnectionInfo));
 
             var nextState = current
-                .SetFileName(fileName)
-                .SetUnsaved(false);
+                            .SetFileName(fileName)
+                            .SetUnsaved(false);
 
             Subject.OnNext(nextState);
         }
@@ -131,7 +133,6 @@ namespace Fluxzy.Desktop.Services
         Error = 0,
         Native = 1,
         Har = 5,
-        Saz = 50,
+        Saz = 50
     }
-
 }

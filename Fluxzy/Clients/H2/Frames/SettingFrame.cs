@@ -80,7 +80,6 @@ namespace Fluxzy.Clients.H2.Frames
         }
     }
 
-
     public enum SettingIdentifier : ushort
     {
         Undefined = 0,

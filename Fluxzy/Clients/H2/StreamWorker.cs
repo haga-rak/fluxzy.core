@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -25,7 +24,6 @@ namespace Fluxzy.Clients.H2
         private bool _disposed;
         private bool _firstBodyFragment = true;
 
-
         private Memory<byte> _headerBuffer;
 
         private bool _noBodyStream;
@@ -34,8 +32,19 @@ namespace Fluxzy.Clients.H2
 
         private int _totalHeaderReceived;
 
-        private int totalSendOnStream;
+        private int _totalSendOnStream;
 
+        public int StreamIdentifier { get; }
+
+        public byte StreamPriority { get; private set; }
+
+        public int StreamDependency { get; private set; }
+
+        public bool Exclusive { get; private set; }
+
+        public WindowSizeHolder RemoteWindowSize { get; }
+
+        public StreamPool Parent { get; }
 
         public StreamWorker(
             int streamIdentifier,
@@ -55,18 +64,6 @@ namespace Fluxzy.Clients.H2
 
             _pipeResponseBody = new Pipe(new PipeOptions(MemoryPool<byte>.Shared));
         }
-
-        public int StreamIdentifier { get; }
-
-        public byte StreamPriority { get; private set; }
-
-        public int StreamDependency { get; private set; }
-
-        public bool Exclusive { get; private set; }
-
-        public WindowSizeHolder RemoteWindowSize { get; }
-
-        public StreamPool Parent { get; }
 
         public void Dispose()
         {
@@ -233,13 +230,13 @@ namespace Fluxzy.Clients.H2
                     totalSent += dataFramePayloadLength;
                     _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
-
                     if (dataFramePayloadLength > 0)
                         NotifyStreamWindowUpdate(dataFramePayloadLength);
 
                     if (dataFramePayloadLength == 0 || endStream)
                         return;
 
+                    // This is for back pressure 
                     await writeTaskBody.DoneTask.ConfigureAwait(false);
                 }
         }
@@ -295,22 +292,21 @@ namespace Fluxzy.Clients.H2
                 _exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
                 var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
-                
+
                 _exchange.Response.Header = new ResponseHeader(charHeader, true);
 
                 _logger.TraceResponse(this, _exchange);
-                
 
                 if (DebugContext.InsertFluxzyMetricsOnResponseHeader)
                 {
                     var headerName = "echoes-h2-debug";
+
                     var headerValue = $"connectionId = {Parent.Context.ConnectionId} " +
                                       $"- streamId = {StreamIdentifier} - ";
 
                     _exchange.Response.Header.AddExtraHeaderFieldToLocalConnection(
                         new HeaderField(headerName, headerValue));
                 }
-
 
                 _logger.Trace(StreamIdentifier, "Releasing semaphore");
 
@@ -338,13 +334,12 @@ namespace Fluxzy.Clients.H2
             {
                 ArrayPool<char>.Shared.Return(byteArray);
             }
-
         }
 
         public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
         {
             SendWindowUpdate(Parent.Context.Setting.Local.WindowSize, StreamIdentifier);
-            
+
             try
             {
                 _logger.Trace(StreamIdentifier, "Before semaphore ");
@@ -357,11 +352,14 @@ namespace Fluxzy.Clients.H2
             catch (OperationCanceledException)
             {
                 _logger.Trace(StreamIdentifier, $"Received no header, cancelled by caller {StreamIdentifier}");
-                throw new IOException($"Received no header, cancelled by caller {StreamIdentifier} / {Parent.Context.ConnectionId} / {cp.IsDisposed}");
+
+                throw new IOException(
+                    $"Received no header, cancelled by caller {StreamIdentifier} / {Parent.Context.ConnectionId} / {cp.IsDisposed}");
             }
             catch (Exception)
             {
                 Parent.NotifyDispose(this);
+
                 throw;
             }
 
@@ -412,7 +410,7 @@ namespace Fluxzy.Clients.H2
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 3");
 
-            var cancelled = false; 
+            var cancelled = false;
 
             try
             {
@@ -420,9 +418,9 @@ namespace Fluxzy.Clients.H2
             }
             catch
             {
-                cancelled = true; 
+                cancelled = true;
             }
-           // var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);
+            // var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 4");
 
@@ -432,7 +430,6 @@ namespace Fluxzy.Clients.H2
             {
                 if (_exchange.Metrics.ResponseBodyEnd == default)
                     _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
-
 
                 _logger.Trace(_exchange, StreamIdentifier,
                     () => "End");
@@ -446,7 +443,7 @@ namespace Fluxzy.Clients.H2
 
                 // Give a chance for semaphores to released before disposed
 
-               // await Task.Yield();
+                // await Task.Yield();
 
                 _logger.TraceDeep(StreamIdentifier, () => "a - 6");
 
@@ -462,12 +459,12 @@ namespace Fluxzy.Clients.H2
                 //SendWindowUpdate(windowUpdateValue, StreamIdentifier);
                 SendWindowUpdate(windowUpdateValue, 0);
 
-            totalSendOnStream += dataSize;
+            _totalSendOnStream += dataSize;
 
-            if (totalSendOnStream > 1024 * 16)
+            if (_totalSendOnStream > 1024 * 16)
             {
-                SendWindowUpdate(totalSendOnStream, StreamIdentifier);
-                totalSendOnStream = 0;
+                SendWindowUpdate(_totalSendOnStream, StreamIdentifier);
+                _totalSendOnStream = 0;
             }
         }
 

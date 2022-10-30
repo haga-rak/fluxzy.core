@@ -7,13 +7,14 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
     public class HPackEncodingDynamicTable
     {
         private readonly Dictionary<int, HeaderField> _entries = new();
-        private readonly Dictionary<HeaderField, int> _reverseEntries = new(new TableEntryComparer()); // only used for evicting
+        private readonly Dictionary<HeaderField, int>
+            _reverseEntries = new(new TableEntryComparer()); // only used for evicting
 
         private int _currentMaxSize;
         private int _currentSize;
 
         private int _internalIndex = -1;
-        private int _oldestElementInternalIndex = 0;
+        private int _oldestElementInternalIndex;
 
         public HPackEncodingDynamicTable(int initialSize)
         {
@@ -22,7 +23,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
         public HeaderField[] GetContent()
         {
-            return _entries.Values.OrderBy(r => r.Name.ToString()).ToArray(); 
+            return _entries.Values.OrderBy(r => r.Name.ToString()).ToArray();
         }
 
         private int EvictUntil(int toBeRemovedSize)
@@ -35,12 +36,13 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                 if (!_entries.TryGetValue(i, out var tableEntry))
                 {
                     _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
+
                     return evictedSize;
                 }
 
                 var a = _entries.Remove(i);
                 var b = _reverseEntries.Remove(tableEntry);
-                
+
                 _currentSize -= tableEntry.Size;
                 evictedSize += tableEntry.Size;
             }
@@ -52,7 +54,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
         private int ConvertIndexFromInternal(int internalIndex)
         {
-            return ((_entries.Count) - (internalIndex - _oldestElementInternalIndex)) + 61;
+            return _entries.Count - (internalIndex - _oldestElementInternalIndex) + 61;
         }
 
         public void UpdateMaxSize(int newMaxSize)
@@ -60,15 +62,12 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             var tobeRemovedSize = _currentSize - newMaxSize;
 
             if (tobeRemovedSize > 0)
-            {
-                EvictUntil(tobeRemovedSize); 
-            }
+                EvictUntil(tobeRemovedSize);
 
             _currentMaxSize = newMaxSize;
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="entry"></param>
         /// <returns>Return new entry index</returns>
@@ -101,9 +100,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
             if (_entries.ContainsKey(_internalIndex) != _reverseEntries.ContainsKey(entry))
             {
-
             }
-
 
             _entries[_internalIndex] = entry;
             _reverseEntries[entry] = _internalIndex;
@@ -118,11 +115,13 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             if (_reverseEntries.TryGetValue(entry, out indexInternal))
             {
                 indexExternal = ConvertIndexFromInternal(indexInternal);
-                return true; 
+
+                return true;
             }
 
-            indexExternal = -1; 
-            return false; 
+            indexExternal = -1;
+
+            return false;
         }
     }
 }

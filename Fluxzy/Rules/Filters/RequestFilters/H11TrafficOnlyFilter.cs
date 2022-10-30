@@ -7,12 +7,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 {
     public class H11TrafficOnlyFilter : Filter
     {
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
-            IFilteringContext? filteringContext)
-        {
-            return exchange?.HttpVersion == "HTTP/1.1";
-        }
-
         public override Guid Identifier => $"{GetType().Name}{Inverted}".GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
@@ -22,5 +16,11 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override string ShortName => "h11";
 
         public override bool PreMadeFilter => true;
+
+        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
+        {
+            return exchange?.HttpVersion == "HTTP/1.1";
+        }
     }
 }

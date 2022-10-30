@@ -5,9 +5,27 @@ namespace Fluxzy.Desktop.Services.Models
 {
     public class FileState
     {
+        [TsIgnore]
+        [JsonIgnore]
+        public FileManager Owner { get; private init; }
+
+        public string Identifier { get; private init; }
+
+        public string WorkingDirectory { get; private init; }
+
+        public string? MappedFileFullPath { get; private init; }
+
+        public string? MappedFileName { get; private init; }
+
+        public bool Unsaved { get; private init; }
+
+        public DateTime LastModification { get; private init; } = DateTime.Now;
+
+        [JsonIgnore]
+        public FileContentOperationManager ContentOperation { get; private init; }
+
         private FileState()
         {
-
         }
 
         public FileState(FileManager owner, string workingDirectory)
@@ -23,14 +41,14 @@ namespace Fluxzy.Desktop.Services.Models
         {
             var fileInfo = new FileInfo(mappedFilePullPath);
             MappedFileFullPath = fileInfo.FullName;
-            MappedFileName = fileInfo.Name; 
+            MappedFileName = fileInfo.Name;
         }
 
         public FileState SetFileName(string newFileName)
         {
             var fileInfo = new FileInfo(newFileName);
 
-            return new FileState()
+            return new FileState
             {
                 Owner = Owner,
                 MappedFileName = fileInfo.Name,
@@ -39,13 +57,13 @@ namespace Fluxzy.Desktop.Services.Models
                 Identifier = Identifier,
                 LastModification = LastModification,
                 MappedFileFullPath = fileInfo.FullName,
-                WorkingDirectory = WorkingDirectory,
-            }; 
+                WorkingDirectory = WorkingDirectory
+            };
         }
 
         public FileState SetUnsaved(bool state)
         {
-            return new FileState()
+            return new FileState
             {
                 Owner = Owner,
                 MappedFileName = MappedFileName,
@@ -54,27 +72,8 @@ namespace Fluxzy.Desktop.Services.Models
                 Identifier = Identifier,
                 LastModification = LastModification,
                 MappedFileFullPath = MappedFileFullPath,
-                WorkingDirectory = WorkingDirectory,
-            }; 
+                WorkingDirectory = WorkingDirectory
+            };
         }
-
-        [TsIgnore]
-        [JsonIgnore]
-        public FileManager Owner { get; private init; }
-
-        public string Identifier { get; private init; }
-
-        public string WorkingDirectory { get; private init; }
-
-        public string? MappedFileFullPath { get; private init; }
-
-        public string ? MappedFileName { get; private init; }
-
-        public bool Unsaved { get; private init; }
-
-        public DateTime LastModification { get; private init; } = DateTime.Now;
-
-        [JsonIgnore]
-        public FileContentOperationManager ContentOperation { get; private init; }
     }
 }

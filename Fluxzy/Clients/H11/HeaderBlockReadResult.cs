@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Clients.H11
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+namespace Fluxzy.Clients.H11
 {
     public readonly struct HeaderBlockReadResult
     {
@@ -8,8 +10,8 @@
             TotalReadLength = totalReadLength;
         }
 
-        public int HeaderLength { get;  }
+        public int HeaderLength { get; }
 
-        public int TotalReadLength { get;  }
+        public int TotalReadLength { get; }
     }
 }

@@ -20,12 +20,12 @@ namespace Fluxzy.Desktop.Services.Rules
             new ChangeRequestMethodAction("GET"),
             new ChangeRequestPathAction("/"),
             new SkipSslTunnelingAction(),
-            new SetClientCertificateAction(new Certificate()
+            new SetClientCertificateAction(new Certificate
             {
                 RetrieveMode = CertificateRetrieveMode.FromPkcs12
             }),
-            new SpoofDnsAction(),
-        }; 
+            new SpoofDnsAction()
+        };
 
         public List<Action> GetDefaultActions()
         {

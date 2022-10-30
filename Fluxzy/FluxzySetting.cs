@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -14,11 +16,6 @@ namespace Fluxzy
 {
     public class FluxzySetting
     {
-        [JsonConstructor]
-        public FluxzySetting()
-        {
-        }
-
         /// <summary>
         ///     Proxy listen address
         /// </summary>
@@ -36,7 +33,7 @@ namespace Fluxzy
                                          .Select(s => $"[{s.EndPoint}]"));
             }
         }
-        
+
         /// <summary>
         ///     Verbose mode
         /// </summary>
@@ -49,13 +46,13 @@ namespace Fluxzy
         public int ConnectionPerHost { get; internal set; } = 8;
 
         /// <summary>
-        /// Ssl protocols for remote host connection
+        ///     Ssl protocols for remote host connection
         /// </summary>
-        public SslProtocols ServerProtocols { get; internal set; } = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
-        
+        public SslProtocols ServerProtocols { get; internal set; } =
+            SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
         /// <summary>
-        ///     The CA certificate 
+        ///     The CA certificate
         /// </summary>
         public Certificate CaCertificate { get; internal set; } = Certificate.UseDefault();
 
@@ -80,10 +77,8 @@ namespace Fluxzy
         /// </summary>
         public bool DisableCertificateCache { get; internal set; }
 
-
         public IReadOnlyCollection<string> ByPassHost { get; internal set; } =
             new List<string> { "localhost", "127.0.0.1" };
-
 
         /// <summary>
         ///     Max header length processed by the proxy
@@ -100,6 +95,11 @@ namespace Fluxzy
         /// </summary>
         public List<Rule> AlterationRules { get; set; } = new();
 
+        [JsonConstructor]
+        public FluxzySetting()
+        {
+        }
+
         /// <summary>
         ///     Set hosts that bypass the proxy
         /// </summary>
@@ -108,6 +108,7 @@ namespace Fluxzy
         public FluxzySetting SetByPassedHosts(params string[] hosts)
         {
             ByPassHost = new ReadOnlyCollection<string>(hosts.Where(h => !string.IsNullOrWhiteSpace(h)).ToList());
+
             return this;
         }
 
@@ -120,6 +121,7 @@ namespace Fluxzy
         public FluxzySetting SetArchivingPolicy(ArchivingPolicy archivingPolicy)
         {
             ArchivingPolicy = archivingPolicy ?? throw new ArgumentNullException(nameof(archivingPolicy));
+
             return this;
         }
 
@@ -164,7 +166,6 @@ namespace Fluxzy
             return AddBoundAddress(new IPEndPoint(address, port), @default);
         }
 
-
         public FluxzySetting SetBoundAddress(string boundAddress, int port)
         {
             if (!IPAddress.TryParse(boundAddress, out var address))
@@ -185,12 +186,14 @@ namespace Fluxzy
                 throw new ArgumentOutOfRangeException(nameof(connectionPerHost), "value should be between 1 and 64");
 
             ConnectionPerHost = connectionPerHost;
+
             return this;
         }
-        
+
         public FluxzySetting SetClientCertificateOnHost(string host, Certificate certificate)
         {
             AlterationRules.Add(new Rule(new SetClientCertificateAction(certificate), new HostFilter(host)));
+
             return this;
         }
 
@@ -203,12 +206,14 @@ namespace Fluxzy
         {
             AlterationRules.Add(new Rule(new SetClientCertificateAction(certificate),
                 new HostFilter(subDomain, StringSelectorOperation.EndsWith)));
+
             return this;
         }
-        
+
         public FluxzySetting SetServerProtocols(SslProtocols protocols)
         {
             ServerProtocols = protocols;
+
             return this;
         }
 
@@ -222,6 +227,7 @@ namespace Fluxzy
         public FluxzySetting SetAutoInstallCertificate(bool value)
         {
             AutoInstallCertificate = value;
+
             return this;
         }
 
@@ -247,6 +253,7 @@ namespace Fluxzy
         public FluxzySetting SetDisableCertificateCache(bool value)
         {
             DisableCertificateCache = value;
+
             return this;
         }
 
@@ -258,7 +265,7 @@ namespace Fluxzy
         {
             return new FluxzySetting
             {
-                ConnectionPerHost = 8,
+                ConnectionPerHost = 8
             }.SetBoundAddress("127.0.0.1", 44344);
         }
     }

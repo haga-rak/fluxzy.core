@@ -1,6 +1,5 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace Fluxzy.Tests
 
             using var clientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -29,7 +28,6 @@ namespace Fluxzy.Tests
 
             try
             {
-
                 using var response = await httpClient.SendAsync(requestMessage);
 
                 var responseBody = await response.Content.ReadAsStringAsync();
@@ -52,7 +50,7 @@ namespace Fluxzy.Tests
 
             using var clientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -63,11 +61,10 @@ namespace Fluxzy.Tests
             requestMessage.Headers.Add("x-lar-value", new string('v', 4096));
             requestMessage.Headers.Add("x-lar-value", new string('z', 4096));
 
-
             using var response = await httpClient.SendAsync(requestMessage);
 
-            var responseBody = await response.Content.ReadAsStringAsync(); 
-            
+            var responseBody = await response.Content.ReadAsStringAsync();
+
             Assert.True(!string.IsNullOrWhiteSpace(responseBody));
         }
 
@@ -83,11 +80,9 @@ namespace Fluxzy.Tests
 
         //    using var httpClient = new HttpClient(clientHandler);
 
-       
-
         //    var requestMessage = new HttpRequestMessage(HttpMethod.Get,
         //        $"https://sandbox.smartizy.com:4988/");
-            
+
         //    using var response = await httpClient.SendAsync(requestMessage);
 
         //    var responseBody = await response.Content.ReadAsStringAsync(); 

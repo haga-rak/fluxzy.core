@@ -20,12 +20,6 @@ namespace Fluxzy.Misc.Streams
 
         private long _nextChunkSize;
 
-        public ChunkedTransferReadStream(Stream innerStream, bool closeOnDone)
-        {
-            _innerStream = innerStream;
-            _closeOnDone = closeOnDone;
-        }
-
         public override bool CanRead => true;
 
         public override bool CanSeek => false;
@@ -37,14 +31,20 @@ namespace Fluxzy.Misc.Streams
         public override long Position
         {
             get => throw new InvalidOperationException();
+
             set => throw new InvalidOperationException();
+        }
+
+        public ChunkedTransferReadStream(Stream innerStream, bool closeOnDone)
+        {
+            _innerStream = innerStream;
+            _closeOnDone = closeOnDone;
         }
 
         public override void Flush()
         {
             throw new NotSupportedException();
         }
-
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
@@ -54,8 +54,6 @@ namespace Fluxzy.Misc.Streams
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
-
-
             // Read the length of the next block 
 
             if (_nextChunkSize == 0)
@@ -82,6 +80,7 @@ namespace Fluxzy.Misc.Streams
                 {
                     // Natural End of stream . Read the last double cr lf 
                     await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
+
                     return 0;
                 }
 
@@ -125,7 +124,6 @@ namespace Fluxzy.Misc.Streams
             if (_nextChunkSize == 0)
                 await _innerStream.ReadExactAsync(new Memory<byte>(_lengthHolderBytes, 0, 2), cancellationToken);
 
-
             return read;
         }
 
@@ -159,6 +157,7 @@ namespace Fluxzy.Misc.Streams
                 {
                     // Natural End of stream . Read the last double cr lf 
                     _innerStream.ReadExact(textBufferBytes.Slice(0, 3).Span);
+
                     return 0;
                 }
 

@@ -3,7 +3,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 
@@ -11,13 +10,11 @@ namespace Fluxzy.Clients.Mock
 {
     public class MockedConnectionPool : IHttpConnectionPool
     {
-        private readonly Authority _authority;
         private readonly PreMadeResponse _preMadeResponse;
-        private bool _complete; 
 
-        public MockedConnectionPool( Authority authority, PreMadeResponse preMadeResponse)
+        public MockedConnectionPool(Authority authority, PreMadeResponse preMadeResponse)
         {
-            _authority = authority;
+            Authority = authority;
             _preMadeResponse = preMadeResponse;
         }
 
@@ -26,13 +23,9 @@ namespace Fluxzy.Clients.Mock
             await Task.CompletedTask;
         }
 
-        public void Dispose()
-        {
-        }
+        public Authority Authority { get; }
 
-        public Authority Authority => _authority;
-
-        public bool Complete => _complete;
+        public bool Complete { get; private set; }
 
         public void Init()
         {
@@ -40,7 +33,7 @@ namespace Fluxzy.Clients.Mock
 
         public ValueTask<bool> CheckAlive()
         {
-            return new ValueTask<bool>(_complete); 
+            return new ValueTask<bool>(Complete);
         }
 
         public async ValueTask Send(Exchange exchange,
@@ -51,31 +44,27 @@ namespace Fluxzy.Clients.Mock
             exchange.Metrics.TotalSent = 0;
 
             if (exchange.Request.Body != null)
-                await exchange.Request.Body.DrainAsync();  // We empty request body stream 
+                await exchange.Request.Body.DrainAsync(); // We empty request body stream 
 
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
-            
+
             exchange.Response.Header = new ResponseHeader(
-                _preMadeResponse.GetFlatH11Header(_authority).AsMemory(), 
+                _preMadeResponse.GetFlatH11Header(Authority).AsMemory(),
                 exchange.Authority.Secure);
 
             exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
             exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
             exchange.Response.Body =
-                new MetricsStream(_preMadeResponse.ReadBody(_authority),
-                    () =>
-                    {
-                        exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
-                    },
-                    (length) =>
+                new MetricsStream(_preMadeResponse.ReadBody(Authority),
+                    () => { exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant(); },
+                    length =>
                     {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
                         exchange.ExchangeCompletionSource.SetResult(true);
-                      
                     },
-                    (exception) =>
+                    exception =>
                     {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.ExchangeCompletionSource.SetException(exception);
@@ -84,7 +73,11 @@ namespace Fluxzy.Clients.Mock
                 )
                 ;
 
-            _complete = true; 
+            Complete = true;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
