@@ -18,7 +18,7 @@ namespace Fluxzy.Rules.Actions
 
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
-        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             context.ClientCertificates ??= new X509Certificate2Collection();
             context.ClientCertificates.Add(ClientCertificate.GetCertificate());

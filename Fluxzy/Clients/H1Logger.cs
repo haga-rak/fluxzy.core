@@ -109,7 +109,7 @@ namespace Fluxzy.Clients
             Trace(exchangeId, sendMessage());
         }
 
-        public void Trace(Exchange exchange, string preMessage, Exception ex = null)
+        public void Trace(Exchange exchange, string preMessage, Exception? ex = null)
         {
             if (!_active)
                 return;

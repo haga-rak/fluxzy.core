@@ -15,7 +15,7 @@ namespace Fluxzy.Clients
     /// </summary>
     internal class H2Logger
     {
-        private static readonly string _directory;
+        private static readonly string? _directory;
 
         private static readonly string loggerPath = Environment.ExpandEnvironmentVariables(
             Environment.GetEnvironmentVariable("TracingDirectory")

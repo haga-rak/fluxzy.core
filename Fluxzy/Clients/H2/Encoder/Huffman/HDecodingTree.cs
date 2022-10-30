@@ -67,10 +67,10 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
             var node = RootNodes[data[0]];
 
             if (node.HasValue)
-                return node.Value;
+                return node.Value!;
 
             if (node.Match(data.Slice(1), out var result))
-                return result;
+                return result!;
 
             throw new InvalidOperationException("Decoding error. Dictionary could not resolve provided data");
         }

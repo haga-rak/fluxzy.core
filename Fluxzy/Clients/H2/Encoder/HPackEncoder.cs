@@ -63,10 +63,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
         private int GetEncodedLength(in HeaderField entry)
         {
-            int index;
-            var result = 0;
-
-            if (Context.TryGetEntry(entry.Name, entry.Value, out index))
+            if (Context.TryGetEntry(entry.Name, entry.Value, out var index))
             {
                 // Existing 
                 var length = _primitiveOperation.GetInt32Length(index, 7);

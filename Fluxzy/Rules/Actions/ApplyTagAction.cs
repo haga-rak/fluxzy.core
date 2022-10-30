@@ -13,7 +13,7 @@ namespace Fluxzy.Rules.Actions
 
         public Tag? Tag { get; set; }
 
-        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             if (Tag != null)
             {

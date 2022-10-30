@@ -15,7 +15,7 @@ namespace Fluxzy.Rules.Actions
 
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
-        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             context.RemoteHostIp = RemoteHostIp;
             context.RemoteHostPort = RemoteHostPort;
