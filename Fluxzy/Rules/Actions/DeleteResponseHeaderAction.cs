@@ -17,7 +17,7 @@ namespace Fluxzy.Rules.Actions
 
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
-        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             exchange.Response.Header?.AltDeleteHeader(HeaderName);
             return default;

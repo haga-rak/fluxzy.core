@@ -25,7 +25,7 @@ namespace Fluxzy.Rules.Actions
             HeaderValue = headerValue;
         }
 
-        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             exchange.Request.Header.AltAddHeader(
                 HeaderName,

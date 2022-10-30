@@ -8,11 +8,11 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 {
     public class ReplaceRequestBodyAction : Action
     {
-        public BodyContent Replacement { get; set; }
+        public BodyContent? Replacement { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             throw new System.NotImplementedException();
         }

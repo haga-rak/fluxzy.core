@@ -130,8 +130,6 @@ namespace Fluxzy.Clients.H11
 
                     var totalWriteInSequence = 0;
 
-                    var i = 0;
-
                     foreach (var sequence in readResult.Buffer)
                     {
                         var memory = sequence.Slice(0,

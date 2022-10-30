@@ -18,7 +18,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient; 
 
-        public override ValueTask Alter(ExchangeContext context, Exchange exchange, Connection connection)
+        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             context.PreMadeResponse = PreMadeResponse;
             return default;

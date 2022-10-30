@@ -25,9 +25,9 @@ namespace Fluxzy
         private IDownStreamConnectionProvider _downStreamConnectionProvider;
         private bool _halted;
         private Task? _loopTask;
-        private CancellationTokenSource? _proxyHaltTokenSource = new();
+        private CancellationTokenSource _proxyHaltTokenSource = new();
 
-        private ProxyOrchestrator? _proxyOrchestrator;
+        private ProxyOrchestrator _proxyOrchestrator;
         private bool _started;
 
         public ProxyExecutionContext ExecutionContext { get; }
@@ -187,19 +187,15 @@ namespace Fluxzy
 
             _halted = true;
 
-            Writer?.Dispose();
-            Writer = null;
+            Writer.Dispose();
 
-            _downStreamConnectionProvider?.Dispose(); // Do not handle new connection to proxy 
-            _downStreamConnectionProvider = null;
+            _downStreamConnectionProvider.Dispose(); // Do not handle new connection to proxy 
 
-            _proxyOrchestrator?.Dispose();
-            _proxyOrchestrator = null;
+            _proxyOrchestrator.Dispose();
 
-            _proxyHaltTokenSource?.Cancel();
+            _proxyHaltTokenSource.Cancel();
 
-            _proxyHaltTokenSource?.Dispose();
-            _proxyHaltTokenSource = null;
+            _proxyHaltTokenSource.Dispose();
 
             _disposed = true;
         }

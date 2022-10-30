@@ -32,9 +32,9 @@ namespace Fluxzy.Clients.H2.Encoder
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal HPackDecoder(
             DecodingContext decodingContext,
-            CodecSetting codecSetting = null,
-            ArrayPoolMemoryProvider<char> memoryProvider = null,
-            PrimitiveOperation primitiveOperation = null)
+            CodecSetting? codecSetting = null,
+            ArrayPoolMemoryProvider<char>? memoryProvider = null,
+            PrimitiveOperation? primitiveOperation = null)
         {
             Context = decodingContext;
 
