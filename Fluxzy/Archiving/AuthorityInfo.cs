@@ -7,16 +7,19 @@ namespace Fluxzy
 {
     public class AuthorityInfo
     {
-        [JsonConstructor]
-        public AuthorityInfo()
-        {
-        }
-
         public AuthorityInfo(Authority original)
         {
             HostName = original.HostName;
             Port = original.Port;
             Secure = original.Secure;
+        }
+
+        [JsonConstructor]
+        public AuthorityInfo(string hostName, int port, bool secure)
+        {
+            HostName = hostName;
+            Port = port;
+            Secure = secure;
         }
 
         public string HostName { get; set; }

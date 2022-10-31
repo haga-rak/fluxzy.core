@@ -37,8 +37,8 @@ namespace Fluxzy
 
                 using var stream = connectionInfofile.Open(FileMode.Open);
 
-                var connectionInfo = await JsonSerializer.DeserializeAsync<ConnectionInfo>(
-                    stream, GlobalArchiveOption.JsonSerializerOptions);
+                var connectionInfo = (await JsonSerializer.DeserializeAsync<ConnectionInfo>(
+                    stream, GlobalArchiveOption.JsonSerializerOptions))!;
 
                 connectionInfos[connectionId] = connectionInfo;
             }
