@@ -23,8 +23,6 @@ namespace Fluxzy.Clients.DotNetBridge
                 }
             }
 
-            var clAsk = message?.Content?.Headers.ContentLength;
-
             if (message.Content?.Headers != null)
             {
                 foreach (var header in message.Content.Headers)
