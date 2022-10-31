@@ -21,7 +21,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 
         public override bool Common { get; set; } = true;
 
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             if (exchange == null)

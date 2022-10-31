@@ -36,7 +36,7 @@ namespace Fluxzy.Core
         {
             var existingSetting = GetSystemProxySetting();
 
-            if (!existingSetting.Equals(_oldSetting))
+            if (_oldSetting != null && !existingSetting.Equals(_oldSetting))
                 _oldSetting = existingSetting;
 
             if (!_registerDone)
