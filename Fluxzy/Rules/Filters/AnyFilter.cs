@@ -24,7 +24,7 @@ namespace Fluxzy.Rules.Filters
             Locked = true
         };
 
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return true;

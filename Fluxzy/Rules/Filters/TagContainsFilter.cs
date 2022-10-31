@@ -15,7 +15,7 @@ namespace Fluxzy.Rules.Filters
             Tag = tag;
         }
 
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             if (exchange?.Tags == null || Tag == null)
