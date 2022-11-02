@@ -33,7 +33,7 @@ namespace Fluxzy.Rules.Filters
             Children = filters?.ToList() ?? new List<Filter>();
         }
 
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             foreach (var child in Children)

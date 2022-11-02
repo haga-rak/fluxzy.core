@@ -121,7 +121,7 @@ namespace Fluxzy.Clients
         public Exchange(
             IIdProvider idProvider,
             Authority authority,
-            ReadOnlyMemory<char> requestHeaderPlain, string httpVersion, DateTime receivedFromProxy)
+            ReadOnlyMemory<char> requestHeaderPlain, string?  httpVersion, DateTime receivedFromProxy)
         {
             Id = idProvider.NextExchangeId();
             Context = new ExchangeContext(authority);
@@ -131,7 +131,7 @@ namespace Fluxzy.Clients
             Metrics.ReceivedFromProxy = receivedFromProxy;
         }
 
-        public string HttpVersion { get; set; }
+        public string? HttpVersion { get; set; }
 
         public bool IsWebSocket => Request.Header.IsWebSocketRequest;
 

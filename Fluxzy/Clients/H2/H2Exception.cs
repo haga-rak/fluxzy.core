@@ -7,7 +7,7 @@ namespace Fluxzy.Clients.H2
 {
     public class H2Exception : Exception
     {
-        public H2Exception(string message, H2ErrorCode errorCode, Exception innerException = null) :
+        public H2Exception(string message, H2ErrorCode errorCode, Exception? innerException = null) :
             base(message, innerException)
         {
             ErrorCode = errorCode;

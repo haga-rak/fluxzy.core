@@ -17,7 +17,7 @@ namespace Fluxzy.Misc.Streams
 
         public override bool CanWrite => false;
 
-        private Stream Current
+        private Stream? Current
         {
             get
             {

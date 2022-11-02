@@ -56,7 +56,7 @@ namespace Fluxzy.Rules.Filters
 
         public virtual bool Common { get; set; } = false;
 
-        protected abstract bool InternalApply(IAuthority? authority, IExchange? exchange,
+        protected abstract bool InternalApply(IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext);
 
         public virtual bool Apply(IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
