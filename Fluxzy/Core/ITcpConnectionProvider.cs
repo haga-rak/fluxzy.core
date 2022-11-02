@@ -19,8 +19,9 @@ namespace Fluxzy.Core
             return new DefaultTcpConnection();
         }
         
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
+            return default;
         }
     }
 }

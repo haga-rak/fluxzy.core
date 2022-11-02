@@ -52,16 +52,16 @@ namespace Fluxzy.Clients.H2
             return connectionPool;
         }
 
-        public static async Task<Http11ConnectionPool> CreateH11(Authority authority,
+        public static Task<Http11ConnectionPool> CreateH11(Authority authority,
             CancellationToken token = default)
         {
             var connectionPool = new Http11ConnectionPool(authority,
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
-                ITimingProvider.Default, ProxyRuntimeSetting.Default, null);
+                ITimingProvider.Default, ProxyRuntimeSetting.Default, null!);
 
             connectionPool.Init();
 
-            return connectionPool;
+            return Task.FromResult(connectionPool);
         }
     }
 }
