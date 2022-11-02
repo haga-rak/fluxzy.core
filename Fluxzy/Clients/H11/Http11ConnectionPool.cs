@@ -155,10 +155,10 @@ namespace Fluxzy.Clients.H11
                                               // should close connection 
                                           }
 
-                                          await exchange.Connection.ReadStream.DisposeAsync();
+                                          await exchange.Connection.ReadStream!.DisposeAsync();
 
                                           if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
-                                              await exchange.Connection.WriteStream.DisposeAsync();
+                                              await exchange.Connection.WriteStream!.DisposeAsync();
                                       }, cancellationToken);
                 }
                 catch (Exception ex)

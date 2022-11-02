@@ -84,17 +84,10 @@ namespace Fluxzy.Clients
 
             connection.SslNegotiationStart = _timeProvider.Instant();
 
-            byte[] remoteCertificate = null; 
+            byte[]? remoteCertificate = null; 
 
 
-            var sslStream = new SslStream(newlyOpenedStream, false, (sender, certificate, chain, errors) =>
-            {
-                //remoteCertificate = certificate.Export(X509ContentType.Cert);
-
-               // File.WriteAllBytes("d:\\t.cer", remoteCertificate);
-
-                return errors == SslPolicyErrors.None;
-            });
+            var sslStream = new SslStream(newlyOpenedStream, false, (sender, certificate, chain, errors) => errors == SslPolicyErrors.None);
 
             Stream resultStream = sslStream; 
 

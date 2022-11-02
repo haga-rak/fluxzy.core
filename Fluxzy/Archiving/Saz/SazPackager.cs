@@ -154,12 +154,16 @@ namespace Fluxzy.Saz
                 WriteSessionContent(exchange, connectionInfo, sessionId, bodyLength, sessionStream);
             }
 
-            var response = zipArchive.CreateEntry($"raw/{sessionId.ToString(new string('0', maxNumberId))}_s.txt");
-
-            using (var responseStream = response.Open())
+            if (exchange.ResponseHeader != null)
             {
-                await WriteResponse(exchange.ResponseHeader, responseBodyPath, responseStream);
+                var response = zipArchive.CreateEntry($"raw/{sessionId.ToString(new string('0', maxNumberId))}_s.txt");
+
+                await using (var responseStream = response.Open())
+                {
+                    await WriteResponse(exchange.ResponseHeader, responseBodyPath, responseStream);
+                }
             }
+
         }
 
         private static void WriteSessionContent(

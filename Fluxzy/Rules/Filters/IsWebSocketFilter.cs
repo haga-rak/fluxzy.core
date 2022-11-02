@@ -19,7 +19,7 @@ namespace Fluxzy.Rules.Filters
 
         public override bool PreMadeFilter => true;
 
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return exchange?.IsWebSocket ?? false;

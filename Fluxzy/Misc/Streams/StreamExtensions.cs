@@ -160,8 +160,6 @@ namespace Fluxzy.Misc.Streams
             var currentIndex = 0;
             var remain = buffer.Length;
 
-            SslStream ssl;
-
             while (readen < buffer.Length)
             {
                 if (cancellationToken.IsCancellationRequested)

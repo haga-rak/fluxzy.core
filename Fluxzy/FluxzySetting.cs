@@ -52,12 +52,13 @@ namespace Fluxzy
             SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
         /// <summary>
-        ///     The CA certificate
+        ///     The CA certificate used for decryption 
         /// </summary>
         public Certificate CaCertificate { get; internal set; } = Certificate.UseDefault();
 
         /// <summary>
-        ///     The default certificate cache directory used by echoes proxy
+        ///     The default certificate cache directory. Setting this value helps improving performance because producing
+        ///     root certificate on the fly is expensive. 
         /// </summary>
 
         public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.echoes/cert-caches";

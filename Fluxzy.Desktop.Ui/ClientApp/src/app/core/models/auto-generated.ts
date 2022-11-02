@@ -548,7 +548,7 @@ export interface FullResponseAction extends Action
 }
 export interface ReplaceRequestBodyAction extends Action
 {
-	replacement: any;
+	replacement?: any;
 	actionScope: number;
 	defaultDescription: string;
 }
@@ -694,23 +694,23 @@ export interface ExchangeInfo
 {
 	id: number;
 	connectionId: number;
-	httpVersion: string;
 	requestHeader: RequestHeaderInfo;
 	responseHeader?: ResponseHeaderInfo;
 	metrics: ExchangeMetrics;
+	contentType?: string;
+	done: boolean;
+	pending: boolean;
+	httpVersion: string;
 	fullUrl: string;
 	knownAuthority: string;
 	method: string;
 	path: string;
-	contentType?: string;
-	done: boolean;
 	statusCode: number;
 	egressIp?: string;
 	comment?: string;
 	tags: Tag[];
 	isWebSocket: boolean;
 	webSocketMessages?: WsMessage[];
-	pending: boolean;
 }
 export interface RequestHeaderInfo
 {
