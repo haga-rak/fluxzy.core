@@ -99,38 +99,4 @@ namespace Fluxzy.Interop.Pcap
             await _packetQueue.DisposeAsync();
         }
     }
-
-
-    public static class FlagInterpreter
-    {
-//         /*
-//          * #define PCAP_IF_LOOPBACK				0x00000001	/* interface is loopback */
-// #define PCAP_IF_UP					0x00000002	/* interface is up */
-// #define PCAP_IF_RUNNING					0x00000004	/* interface is running */
-// #define PCAP_IF_WIRELESS				0x00000008	/* interface is wireless (*NOT* necessarily Wi-Fi!) */
-// #define PCAP_IF_CONNECTION_STATUS			0x00000030	/* connection status: */
-// #define PCAP_IF_CONNECTION_STATUS_UNKNOWN		0x00000000	/* unknown */
-// #define PCAP_IF_CONNECTION_STATUS_CONNECTED		0x00000010	/* connected */
-// #define PCAP_IF_CONNECTION_STATUS_DISCONNECTED		0x00000020	/* disconnected */
-// #define PCAP_IF_CONNECTION_STATUS_NOT_APPLICABLE	0x00000030	/* not applicable */
-//          */
-        
-        public static bool IsUp(this PcapDevice device)
-        {
-            return (((LibPcapLiveDevice) device).Flags & 0x00000002) > 0; 
-        }
-        public static bool IsConnected(this PcapDevice device)
-        {
-            return (((LibPcapLiveDevice) device).Flags & 0x00000010) > 0; 
-        }
-        public static bool IsRunning(this PcapDevice device)
-        {
-            return (((LibPcapLiveDevice) device).Flags & 0x00000004) > 0; 
-        }
-        
-        public static bool IsLoopback(this PcapDevice device)
-        {
-            return (((LibPcapLiveDevice) device).Flags & 0x00000001) > 0; 
-        }
-    }
 }
