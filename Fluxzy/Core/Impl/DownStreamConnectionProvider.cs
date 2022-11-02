@@ -56,7 +56,7 @@ namespace Fluxzy.Core
             }
         }
 
-        public IReadOnlyCollection<IPEndPoint>? ListenEndpoints { get; private set; } = Array.Empty<IPEndPoint>();
+        public IReadOnlyCollection<IPEndPoint> ListenEndpoints { get; private set; } = Array.Empty<IPEndPoint>();
 
         public IReadOnlyCollection<IPEndPoint> Init(CancellationToken token)
         {
