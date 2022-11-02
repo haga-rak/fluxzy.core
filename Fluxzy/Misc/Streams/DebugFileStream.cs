@@ -11,8 +11,8 @@ namespace Fluxzy.Misc.Streams
     public class DebugFileStream : Stream
     {
         private readonly Stream _innerStream;
-        private readonly FileStream _fileStreamIn;
-        private readonly FileStream _fileStreamOut;
+        private readonly FileStream? _fileStreamIn;
+        private readonly FileStream? _fileStreamOut;
 
         public DebugFileStream(string pathPrefix, Stream innerStream, bool? readOnly = null)
         {
@@ -71,7 +71,7 @@ namespace Fluxzy.Misc.Streams
             if (_fileStreamIn != null)
             {
                 await _fileStreamIn.WriteAsync(buffer.Slice(0, res), cancellationToken);
-                await _fileStreamIn.FlushAsync();
+                await _fileStreamIn.FlushAsync(cancellationToken);
             }
 
             return res;

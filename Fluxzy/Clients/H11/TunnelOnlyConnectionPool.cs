@@ -125,7 +125,7 @@ namespace Fluxzy.Clients.H11
             if (exchange.Request.Header.IsWebSocketRequest)
             {
                 var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
-                await exchange.Connection.WriteStream.WriteAsync(buffer, 0, headerLength, cancellationToken);
+                await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken);
             }
 
             try
@@ -133,10 +133,10 @@ namespace Fluxzy.Clients.H11
                 await using var remoteStream = exchange.Connection.WriteStream;
 
                 var copyTask = Task.WhenAll(
-                    localLink.ReadStream.CopyDetailed(remoteStream, buffer, copied =>
+                    localLink.ReadStream!.CopyDetailed(remoteStream!, buffer, copied =>
                             exchange.Metrics.TotalSent += copied
                         , cancellationToken).AsTask(),
-                    remoteStream.CopyDetailed(localLink.WriteStream, 1024 * 16, copied =>
+                    remoteStream!.CopyDetailed(localLink.WriteStream!, 1024 * 16, copied =>
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken).AsTask());
 

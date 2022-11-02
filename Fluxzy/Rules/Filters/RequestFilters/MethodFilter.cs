@@ -27,7 +27,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
                 yield return exchange.Method;
         }
 
-        protected override bool InternalApply(IAuthority? authority, IExchange? exchange,
+        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             CaseSensitive = false;
