@@ -13,7 +13,6 @@ namespace Fluxzy.Core.SystemProxySetup
             ByPassHosts = byPassHosts.OrderBy(h => h).ToList();
             Enabled = true; 
         }
-        
         public string BoundHost { get; } 
 
         public int ListenPort { get; set; } 
