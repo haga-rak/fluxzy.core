@@ -11,6 +11,8 @@ namespace Fluxzy.Rules
     {
         public Guid Identifier { get; set; } = Guid.NewGuid();
 
+        public string? Name { get; set; }
+
         public Filter Filter { get; set; }
 
         public Action Action { get; set; }
