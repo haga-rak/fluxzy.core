@@ -19,7 +19,8 @@ namespace Fluxzy
                 new IpAddressConverter(),
                 new PolymorphicConverter<Filter>(),
                 new PolymorphicConverter<Action>(),
-            }
+            },
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
     }
 }
