@@ -6,8 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
-using Fluxzy.Tests.Tools;
-using Fluxzy.Tests.Utils;
+using Fluxzy.Tests.Common;
 using Xunit;
 
 namespace Fluxzy.Tests

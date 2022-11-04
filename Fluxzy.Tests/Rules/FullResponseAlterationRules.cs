@@ -8,7 +8,7 @@ using Fluxzy.Clients.Mock;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters.RequestFilters;
-using Fluxzy.Tests.Tools;
+using Fluxzy.Tests.Common;
 using Xunit;
 
 namespace Fluxzy.Tests.Rules

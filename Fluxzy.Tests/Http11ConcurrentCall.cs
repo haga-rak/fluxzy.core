@@ -4,13 +4,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
-using Fluxzy.Tests.Utils;
+using Fluxzy.Tests.Common;
 using Xunit;
 
 namespace Fluxzy.Tests
 {
-    
-    public class Http11_ConcurrentCall
+
+    public class Http11ConcurrentCall
     {
         public async Task CallSimple(
             HttpClient httpClient, 
