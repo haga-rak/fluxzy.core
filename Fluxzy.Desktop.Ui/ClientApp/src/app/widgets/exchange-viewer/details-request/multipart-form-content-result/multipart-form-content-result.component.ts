@@ -22,12 +22,12 @@ export class MultipartFormContentResultComponent implements OnInit {
 
     public saveToFile(model : MultipartItem) : void {
 
-        this.systemCallService.requestFileOpen(model.fileName || model.name || 'multipart-content')
+        this.systemCallService.requestFileSave(model.fileName || model.name || 'multipart-content')
             .pipe(
-                switchMap(fileName => this.apiService.exchangeSaveMultipartContent(this.exchange.id, fileName, 
+                switchMap(fileName => this.apiService.exchangeSaveMultipartContent(this.exchange.id, fileName,
                     model)),
-                
-            ).subscribe() ; 
+
+            ).subscribe() ;
 
     }
 

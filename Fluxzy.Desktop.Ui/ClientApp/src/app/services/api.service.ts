@@ -16,7 +16,7 @@ import {
     of, delay, BehaviorSubject, pipe
 } from 'rxjs';
 import {
-    Action, AnyFilter, ArchiveMetaInformation, CommentUpdateModel,
+    Action, AnyFilter, ArchiveMetaInformation, Certificate, CertificateValidationResult, CommentUpdateModel,
     ConnectionInfo, ContextMenuAction,
     ExchangeBrowsingState,
     ExchangeState,
@@ -31,7 +31,7 @@ import {
     SaveFileMultipartActionModel,
     StoredFilter, Tag, TagGlobalApplyModel, TagUpdateModel,
     TrunkState,
-    UiState
+    UiState, ValidationError
 } from '../core/models/auto-generated';
 import {FilterHolder} from "../settings/manage-filters/manage-filters.component";
 import {IWithName} from "../core/models/model-extensions";
@@ -273,5 +273,9 @@ export class ApiService {
 
     public metaInfoApplyComment(model : CommentUpdateModel) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/meta-info/comment/`, model).pipe(take(1)) ;
+    }
+
+    public extendedControlCheckCertificate(certificate : Certificate) : Observable<CertificateValidationResult> {
+        return this.httpClient.post<CertificateValidationResult>(`api/extended-control/certificate/`, certificate).pipe(take(1)) ;
     }
 }

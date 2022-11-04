@@ -4,17 +4,17 @@ import { BrowserWindow, dialog, ipcMain,clipboard } from "electron";
 export const InstallSystemEvents = (win : BrowserWindow) : void => {
 
     ipcMain.on('copy-to-cliboard', (event, arg) => {
-        // 
+        //
         if (arg) {
-            clipboard.writeText(arg) ; 
+            clipboard.writeText(arg) ;
         }
 
-        event.returnValue = true ; 
-    }) ; 
+        event.returnValue = true ;
+    }) ;
 
 
     ipcMain.on('request-file-opening', (event, arg) => {
-        // 
+        //
         var result = dialog.showOpenDialogSync(win, {
             filters : [
                 {
@@ -35,12 +35,12 @@ export const InstallSystemEvents = (win : BrowserWindow) : void => {
             properties : ["openFile"]
         })
 
-        event.returnValue = !result || !result.length ? null : result[0] ; 
-    }) ; 
+        event.returnValue = !result || !result.length ? null : result[0] ;
+    }) ;
 
-    
+
     ipcMain.on('request-file-saving', function (event, arg) {
-        // 
+        //
         var result = dialog.showSaveDialogSync(win, {
             filters: [
                 {
@@ -54,27 +54,45 @@ export const InstallSystemEvents = (win : BrowserWindow) : void => {
         });
         event.returnValue = !result ? null : result;
     });
-    
+
     ipcMain.on('request-custom-file-saving', function (event, arg) {
-        // 
+        //
         var result = dialog.showSaveDialogSync(win, {
             title: "Fluxzy - Save",
             buttonLabel: "Save",
-            defaultPath : arg,        
+            defaultPath : arg,
             properties: ["showOverwriteConfirmation"]
         });
 
         event.returnValue = !result ? null : result;
     });
-    
+
+    ipcMain.on('request-custom-file-opening', function (event, name, extensions) {
+        //
+
+        let result = dialog.showOpenDialogSync(win, {
+            filters : [
+                {
+                    name : name,
+                    extensions : extensions.split(' ')
+                },
+            ],
+            title : "Fluxzy - File opening",
+            buttonLabel : "Open archive",
+            properties : ["openFile"]
+        })
+
+        event.returnValue = !result || !result.length ? null : result[0] ;
+    });
+
 
     ipcMain.on('show-confirm-dialog', function (event, arg) {
-        // 
+        //
         let options  = {
             buttons: ["Yes","No","Cancel"],
             message: arg
            }
-           
+
         var resultIndex = dialog.showMessageBoxSync(win, options) ;
 
         event.returnValue = resultIndex;

@@ -1,0 +1,82 @@
+<div class="row mb-3">
+    <div class="offset-2 col-sm-6">
+        <div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" [(ngModel)]="action.clientCertificate.retrieveMode" (ngModelChange)="cd.detectChanges()" id="computerStore"
+                [value]="'FromUserStoreSerialNumber'">
+                <label class="form-check-label" for="computerStore">
+                    From current use certificate store
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" [(ngModel)]="action.clientCertificate.retrieveMode"  (ngModelChange)="cd.detectChanges()" id="FromPkcs12"
+                [value]="'FromPkcs12'">
+                <label class="form-check-label" for="FromPkcs12">
+                    From PKCS#12 file (p12, pfx)
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="offset-2 col-sm-6">
+       <div *ngIf="action.clientCertificate.retrieveMode === 'FromUserStoreSerialNumber'">
+            <div class="form-floating">
+                <input type="text" [(ngModel)]="action.clientCertificate.serialNumber" class="form-control" />
+                <label>Certificate serial number</label>
+            </div>
+            <div class="p-1 text-danger" *ngIf="validationState['serialNumber']">
+               {{ validationState['serialNumber'] }}
+            </div>
+        </div>
+        <div *ngIf="action.clientCertificate.retrieveMode === 'FromPkcs12'">
+                <div style="margin-bottom: 16px">
+
+                    <span *ngIf="!action.clientCertificate.pkcs12File">
+                        <i>No file selected</i>
+                    </span>&nbsp;
+                    <span *ngIf="action.clientCertificate.pkcs12File">
+                        <strong> {{action.clientCertificate.pkcs12File}}</strong>
+                    </span>&nbsp;
+                    <span>
+                        <a href="javascript:;" (click)="selectFile()">Select file</a>
+                    </span>
+
+                    <div class="p-1 text-danger" *ngIf="validationState['pkcs12File']">
+                        {{ validationState['pkcs12File'] }}
+                    </div>
+                </div>
+                <div class="form-floating">
+                    <input type="password" [(ngModel)]="action.clientCertificate.pkcs12Password" class="form-control" />
+                    <label>Password</label>
+                </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="offset-2 col-sm-6">
+       <div>
+           <button class="btn btn-gray-800" (click)="checkCertificate()">Check certificate</button>
+
+           <div *ngIf="certificateValidationResult" style="margin-top: 16px;">
+
+               <div class="alert alert-success" *ngIf="certificateValidationResult.subjectName">
+                   <i class="fa fa-check-circle-o" aria-hidden="true"></i> Valid certificate <br/>
+                   <strong>
+                       {{ certificateValidationResult.subjectName }}
+                   </strong>
+               </div>
+
+               <div class="alert alert-danger" *ngIf="!certificateValidationResult.subjectName">
+                   <ul>
+                       <li *ngFor="let errorMessage of certificateValidationResult.errors">
+                           {{ errorMessage.message }}
+                       </li>
+                   </ul>
+               </div>
+           </div>
+
+        </div>
+    </div>
+</div>

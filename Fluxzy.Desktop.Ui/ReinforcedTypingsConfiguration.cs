@@ -81,6 +81,12 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<FluxzySetting>()
                 .ApplyGenericProperties();
 
+            builder.ExportAsInterface<Certificate>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<CertificateValidationResult>()
+                .ApplyGenericProperties();
+
             builder.ExportAsInterface<ExchangeState>()
                 .ApplyGenericProperties();
 
@@ -133,6 +139,10 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<SslInfo>()
+                .ApplyGenericProperties();
+
+
+            builder.ExportAsInterface<ValidationError>()
                 .ApplyGenericProperties();
         }
 
@@ -268,6 +278,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
+                .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -286,6 +297,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
+                .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
