@@ -15,7 +15,7 @@ namespace Fluxzy.Desktop.Services.Rules
             new UpdateResponseHeaderAction("", ""),
             new DeleteRequestHeaderAction(""),
             new DeleteResponseHeaderAction(""),
-            new ApplyCommentAction(),
+            new ApplyCommentAction(""),
             new ApplyTagAction(),
             new ChangeRequestMethodAction("GET"),
             new ChangeRequestPathAction("/"),

@@ -23,6 +23,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Rules\Filters\NewFolder\**" />
+	  <EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
+	  <None Remove="Rules\Filters\NewFolder\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
 		<PackageReference Include="SharpZipLib" Version="1.1.0" />
 		<PackageReference Include="System.IO.Pipelines" Version="6.0.2" />
@@ -44,10 +50,6 @@
 			<LastGenOutput>FileStore.Designer.cs</LastGenOutput>
 			<Generator>ResXFileCodeGenerator</Generator>
 		</EmbeddedResource>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Rules\Filters\NewFolder\" />
 	</ItemGroup>
 
 </Project>
