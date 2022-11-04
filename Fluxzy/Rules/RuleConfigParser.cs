@@ -4,21 +4,53 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using YamlDotNet.Serialization.NamingConventions;
 using YamlDotNet.Serialization;
+using System.Linq;
+using Fluxzy.Misc.Converters;
+using YamlDotNet.Serialization.TypeInspectors;
 
 namespace Fluxzy.Rules
 {
-    public class RuleConfigReader
+    internal class SortedTypeInspector : TypeInspectorSkeleton
     {
-        public Rule? TryGetRule(string yamlContent,
+        private readonly ITypeInspector _innerTypeInspector;
+
+        public SortedTypeInspector(ITypeInspector innerTypeInspector)
+        {
+            _innerTypeInspector = innerTypeInspector;
+        }
+
+        public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object container)
+        {
+            var properties = _innerTypeInspector.GetProperties(type, container);
+
+            return properties.OrderByDescending(x => x.Name == "typeKind");
+        }
+    }
+
+    public class RuleConfigParser
+    {
+        public string GetYamlFromRule(Rule rule)
+        {
+            var serializer = new SerializerBuilder()
+                             .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                             .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
+                             .WithTypeInspector(x => new SortedTypeInspector(x))
+                             .Build();
+            
+            return serializer.Serialize(graph : rule);
+        }
+
+        public Rule? TryGetRuleFromYaml(string yamlContent,
             out List<RuleConfigReaderError>? readErrors)
         {
             var deserializer = new DeserializerBuilder()
                                .WithNamingConvention(CamelCaseNamingConvention.Instance)
                                .Build();
-            
+
             using var stringReader = new StringReader(yamlContent);
 
             var rawObject = deserializer.Deserialize(stringReader);

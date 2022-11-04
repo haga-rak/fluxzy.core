@@ -13,8 +13,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string ShortName => "url";
 
-        public virtual string GenericName => "Filter by full url";
-
         public override bool Common { get; set; } = true;
 
         public FullUrlFilter(string pattern)
