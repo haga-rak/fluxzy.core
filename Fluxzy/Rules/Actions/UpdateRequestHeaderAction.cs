@@ -6,6 +6,9 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
+    /// <summary>
+    /// Update and existing request header 
+    /// </summary>
     public class UpdateRequestHeaderAction : Action
     {
         public UpdateRequestHeaderAction(string headerName, string headerValue)
