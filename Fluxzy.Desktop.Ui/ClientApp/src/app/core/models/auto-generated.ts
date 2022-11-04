@@ -444,9 +444,9 @@ export interface RuleContainer
 }
 export interface Certificate
 {
-	retrieveMode: number;
-	thumbPrint?: string;
-	pkcs12File?: number[];
+	retrieveMode: string;
+	serialNumber?: string;
+	pkcs12File?: string;
 	pkcs12Password?: string;
 }
 export interface Action extends PolymorphicObject
@@ -636,6 +636,11 @@ export interface FluxzySetting
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: Rule[];
 }
+export interface CertificateValidationResult
+{
+	subjectName?: string;
+	errors: ValidationError[];
+}
 export interface ExchangeState
 {
 	exchanges: ExchangeContainer[];
@@ -787,4 +792,8 @@ export interface SslInfo
 	cipherAlgorithm: number;
 	remoteCertificate?: number[];
 	localCertificate?: number[];
+}
+export interface ValidationError
+{
+	message: string;
 }

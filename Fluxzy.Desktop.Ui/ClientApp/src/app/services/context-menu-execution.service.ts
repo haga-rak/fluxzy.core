@@ -20,7 +20,7 @@ export class ContextMenuExecutionService {
 
         if (contextMenuAction.id === 'download-request-body') {
 
-            this.systemCallService.requestFileOpen(`exchange-request-${exchangeId}.data`)
+            this.systemCallService.requestFileSave(`exchange-request-${exchangeId}.data`)
                 .pipe(
                     filter(t => !!t),
                     switchMap(fileName => this.apiService.exchangeSaveRequestBody(exchangeId, fileName) ),
@@ -29,7 +29,7 @@ export class ContextMenuExecutionService {
 
         if (contextMenuAction.id === 'download-response-body') {
 
-            this.systemCallService.requestFileOpen(`exchange-response-${exchangeId}.data`)
+            this.systemCallService.requestFileSave(`exchange-response-${exchangeId}.data`)
                 .pipe(
                     filter(t => !!t),
                     switchMap(fileName => this.apiService.exchangeSaveResponseBody(exchangeId, fileName, true) ),

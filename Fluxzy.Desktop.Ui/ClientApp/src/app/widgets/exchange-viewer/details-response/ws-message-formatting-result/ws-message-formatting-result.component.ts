@@ -26,7 +26,7 @@ export class WsMessageFormattingResultComponent  implements OnInit {
     public saveWebSocketBody(message : WsMessage) : void {
         const suggestedName = `ws-${this.exchange.id}-${message.id}-${message.direction}.data`;
 
-        this.systemCallService.requestFileOpen(suggestedName)
+        this.systemCallService.requestFileSave(suggestedName)
             .pipe(
                 take(1),
                 filter(f => !!f),

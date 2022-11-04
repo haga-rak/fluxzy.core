@@ -15,16 +15,16 @@ namespace Fluxzy
         public CertificateRetrieveMode RetrieveMode { get; set; } = CertificateRetrieveMode.FluxzyDefault;
 
         /// <summary>
-        /// The certificate thumb print when location type is FromUserStoreByThumbPrint
+        /// The certificate thumb print when location type is FromUserStoreSerialNumber
         /// </summary>
         [JsonInclude]
-        public string? ThumbPrint { get; private set; }
+        public string? SerialNumber { get; private set; }
 
         /// <summary>
         /// The certificate file when location type is FromPkcs12
         /// </summary>
         [JsonInclude]
-        public byte []? Pkcs12File { get; private set; }
+        public string? Pkcs12File { get; private set; }
 
         /// <summary>
         /// The certificate password when location typ is FromPkcs12. Null with no password was set. 
@@ -37,12 +37,12 @@ namespace Fluxzy
         {
             return new Certificate()
             {
-                RetrieveMode = CertificateRetrieveMode.FromUserStoreByThumbPrint,
-                ThumbPrint = thumbPrint
+                RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
+                SerialNumber = thumbPrint
             };
         }
 
-        public static Certificate LoadFromPkcs12(byte [] pkcs12File, string pkcs12Password)
+        public static Certificate LoadFromPkcs12(string pkcs12File, string pkcs12Password)
         {
             return new Certificate()
             {
@@ -71,7 +71,7 @@ namespace Fluxzy
                 case CertificateRetrieveMode.FluxzyDefault:
                     return _cachedCertificate = new X509Certificate2(FileStore.Fluxzy, "echoes");
 
-                case CertificateRetrieveMode.FromUserStoreByThumbPrint:
+                case CertificateRetrieveMode.FromUserStoreSerialNumber:
                 {
                     using var store = new X509Store(StoreName.My,
                         StoreLocation.CurrentUser);
@@ -79,16 +79,16 @@ namespace Fluxzy
                     store.Open(OpenFlags.ReadOnly);
 
                     var certificate = store.Certificates.Find(X509FindType.FindByThumbprint,
-                            ThumbPrint, false)
+                            SerialNumber, false)
                         .OfType<X509Certificate2>()
                         .FirstOrDefault();
 
                     if (certificate == null)
-                        throw new FluxzyException($"Could not retrieve certificate with thumbprint `{ThumbPrint}`.");
+                        throw new FluxzyException($"Could not retrieve certificate with thumbprint `{SerialNumber}`.");
 
                     if (!certificate.HasPrivateKey)
                     {
-                        throw new FluxzyException($"Either certificate with thumbprint `{ThumbPrint}` does not contains private key " +
+                        throw new FluxzyException($"Either certificate with thumbprint `{SerialNumber}` does not contains private key " +
                                                   $"or current user does not have enough rights to read.");
 
                     }
