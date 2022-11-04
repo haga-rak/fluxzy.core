@@ -9,7 +9,7 @@ using System.Text.Json;
 using Fluxzy.Tests.Bins;
 using Xunit;
 
-namespace Fluxzy.Tests.Utils
+namespace Fluxzy.Tests.Common
 {
     public static class AssertHelpers
     {

@@ -3,17 +3,17 @@
 using System;
 using System.Security.Cryptography;
 
-namespace Fluxzy.Tests.Utils
+namespace Fluxzy.Tests.Common
 {
     public static class MockedBinaryUtilities
     {
-        public static byte [] GenerateRng(int seed, int size)
+        public static byte[] GenerateRng(int seed, int size)
         {
-            Random random = new Random(seed);  
+            Random random = new Random(seed);
             var buffer = new byte[size];
             random.NextBytes(buffer);
 
-            return buffer; 
+            return buffer;
         }
 
         public static string GetStringSha1Hash(Memory<byte> data)
@@ -24,10 +24,10 @@ namespace Fluxzy.Tests.Utils
 
             if (!sha.TryComputeHash(data.Span, destination, out _))
             {
-                throw new InvalidOperationException("destination provided to small"); 
+                throw new InvalidOperationException("destination provided to small");
             }
-            
-            return Convert.ToHexString(destination).Replace("-", String.Empty);
+
+            return Convert.ToHexString(destination).Replace("-", string.Empty);
         }
         public static string GetStringSha1HashBase64(Memory<byte> data)
         {
@@ -37,15 +37,15 @@ namespace Fluxzy.Tests.Utils
 
             if (!sha.TryComputeHash(data.Span, destination, out _))
             {
-                throw new InvalidOperationException("destination provided to small"); 
+                throw new InvalidOperationException("destination provided to small");
             }
-            
+
             return Convert.ToBase64String(destination);
         }
 
-        public static string GetStringSha256Hash(byte [] data)
+        public static string GetStringSha256Hash(byte[] data)
         {
-            return GetStringSha1Hash((Memory<byte>) data); 
+            return GetStringSha1Hash((Memory<byte>)data);
         }
     }
 }

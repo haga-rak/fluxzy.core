@@ -7,14 +7,13 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
-using Fluxzy.Tests.Tools;
-using Fluxzy.Tests.Utils;
+using Fluxzy.Tests.Common;
 using Xunit;
 using Header2 = fluxzy.sandbox.models.Header;
 
 namespace Fluxzy.Tests
 {
-    public class Http2_ConcurrentCall
+    public class Http2ConcurrentCall
     {
         public async Task CallSimple(
             HttpClient httpClient,
