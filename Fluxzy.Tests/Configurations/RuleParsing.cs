@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Configurations
     public class RuleParsing
     {
         [Fact]
-        public void Should_Parse_Basic_Rule()
+        public void Reading_Should_Parse_Basic_Rule()
         {
             var ruleConfigReader = new RuleConfigReader();
             var yamlContent = """
@@ -42,7 +42,7 @@ namespace Fluxzy.Tests.Configurations
         }
 
         [Fact]
-        public void Should_Fail_Resolve_Filter_Invalid_Type_Kind()
+        public void Reading_Should_Fail_Resolve_Filter_Invalid_Type_Kind()
         {
             var ruleConfigReader = new RuleConfigReader();
             var yamlContent = """
@@ -62,7 +62,7 @@ namespace Fluxzy.Tests.Configurations
         }
 
         [Fact]
-        public void Should_Fail_Resolve_Filter_No_Type_Kind()
+        public void Reading_Should_Fail_Resolve_Filter_No_Type_Kind()
         {
             var ruleConfigReader = new RuleConfigReader();
             var yamlContent = """
@@ -80,7 +80,7 @@ namespace Fluxzy.Tests.Configurations
         }
 
         [Fact]
-        public void Should_Parse_Extended_Type()
+        public void Reading_Should_Parse_Extended_Type()
         {
             var ruleConfigReader = new RuleConfigReader();
             var yamlContent = """
@@ -99,7 +99,6 @@ namespace Fluxzy.Tests.Configurations
 
             var rule = ruleConfigReader.TryGetRule(yamlContent, out var _)!;
 
-            var targetAction = (rule.Action as AddRequestHeaderAction)!;
             var filter = (rule.Filter as StatusCodeFilter)!;
 
             Assert.NotNull(rule);
@@ -113,6 +112,39 @@ namespace Fluxzy.Tests.Configurations
             Assert.Contains(filter.StatusCodes, c => c == 301);
             Assert.Contains(filter.StatusCodes, c => c == 302);
 
+        }
+
+        [Fact]
+        public void Reading_Should_Parse_Filter_Collection()
+        {
+            var ruleConfigReader = new RuleConfigReader();
+            var yamlContent = """
+                filter: 
+                  typeKind: FilterCollection        
+                  operation: and
+                  children:
+                    - typeKind: ContentTypeJsonFilter
+                      inverted: true
+                    - typeKind: ImageFilter  
+                action : 
+                  typeKind: AddRequestHeaderAction
+                  headerName: fluxzy
+                  headerValue: on
+                """;
+
+            var rule = ruleConfigReader.TryGetRule(yamlContent, out var _)!;
+
+            var filter = (rule.Filter as FilterCollection)!;
+
+            Assert.NotNull(rule);
+            Assert.NotNull(rule.Filter);
+            Assert.NotNull(rule.Action);
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
+            Assert.Equal(typeof(FilterCollection), filter.GetType());
+            Assert.Equal(2, filter.Children.Count);
+
+            Assert.True(filter.Children.First().Inverted);
+            Assert.False(filter.Children.Last().Inverted);
         }
 
     }
