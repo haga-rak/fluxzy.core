@@ -18,7 +18,7 @@ export class RequestBodyAnalysisResultComponent implements OnInit {
     ngOnInit(): void {}
 
     public saveToFile() : void {
-      this.systemCallService.requestFileOpen(this.model.preferredFileName)
+      this.systemCallService.requestFileSave(this.model.preferredFileName)
         .pipe(
           filter(t => !!t),
           switchMap(fileName => this.apiService.exchangeSaveRequestBody(this.exchange.id, fileName) ),

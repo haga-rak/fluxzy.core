@@ -10,8 +10,8 @@ import { ApiService } from '../../../../services/api.service';
     styleUrls: ['./response-body-summary-result.component.scss'],
 })
 export class ResponseBodySummaryResultComponent implements OnInit {
-  
-    @Input() public exchange : ExchangeInfo ; 
+
+    @Input() public exchange : ExchangeInfo ;
     @Input('formatter') public model: ResponseBodySummaryResult;
 
     constructor(private apiService : ApiService, private systemCallService : SystemCallService) {}
@@ -21,7 +21,7 @@ export class ResponseBodySummaryResultComponent implements OnInit {
     }
 
     public saveToFile(decode : boolean) : void {
-        this.systemCallService.requestFileOpen(this.model.preferredFileName)
+        this.systemCallService.requestFileSave(this.model.preferredFileName)
         .pipe(
           filter(t => !!t),
           switchMap(fileName => this.apiService.exchangeSaveResponseBody(this.exchange.id, fileName, decode)),
