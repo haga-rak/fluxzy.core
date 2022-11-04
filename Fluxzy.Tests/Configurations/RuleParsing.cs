@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
 using Xunit;
 
@@ -17,7 +14,7 @@ namespace Fluxzy.Tests.Configurations
         [Fact]
         public void Reading_Should_Parse_Basic_Rule()
         {
-            var ruleConfigReader = new RuleConfigReader();
+            var ruleConfigReader = new RuleConfigParser();
             var yamlContent = """
                 filter: 
                   typeKind: AnyFilter        
@@ -27,7 +24,7 @@ namespace Fluxzy.Tests.Configurations
                   headerValue: on
                 """;
 
-            var rule = ruleConfigReader.TryGetRule(yamlContent, out var _)!;
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
             var targetAction = (rule.Action as AddRequestHeaderAction)!; 
 
@@ -44,7 +41,7 @@ namespace Fluxzy.Tests.Configurations
         [Fact]
         public void Reading_Should_Fail_Resolve_Filter_Invalid_Type_Kind()
         {
-            var ruleConfigReader = new RuleConfigReader();
+            var ruleConfigReader = new RuleConfigParser();
             var yamlContent = """
                 filter: 
                   typeKind: NoMoreFilter        
@@ -54,7 +51,7 @@ namespace Fluxzy.Tests.Configurations
                   headerValue: on
                 """;
 
-            var rule = ruleConfigReader.TryGetRule(yamlContent, out var errorMessages)!;
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
             
             Assert.Null(rule);
             Assert.NotEmpty(errorMessages!);
@@ -62,9 +59,24 @@ namespace Fluxzy.Tests.Configurations
         }
 
         [Fact]
+        public void Reading_Should_Fail_No_Action()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+            var yamlContent = """
+                filter: 
+                  typeKind: AnyFilter       
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
+            
+            Assert.Null(rule);
+            Assert.NotEmpty(errorMessages!);
+        }
+
+        [Fact]
         public void Reading_Should_Fail_Resolve_Filter_No_Type_Kind()
         {
-            var ruleConfigReader = new RuleConfigReader();
+            var ruleConfigReader = new RuleConfigParser();
             var yamlContent = """
                 filter:       
                 action : 
@@ -73,16 +85,16 @@ namespace Fluxzy.Tests.Configurations
                   headerValue: on
                 """;
 
-            var rule = ruleConfigReader.TryGetRule(yamlContent, out var errorMessages)!;
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
             
             Assert.Null(rule);
             Assert.NotEmpty(errorMessages!);
         }
 
         [Fact]
-        public void Reading_Should_Parse_Extended_Type()
+        public void Reading_Should_Parse_List_Of_Int()
         {
-            var ruleConfigReader = new RuleConfigReader();
+            var ruleConfigReader = new RuleConfigParser();
             var yamlContent = """
                 filter: 
                   typeKind: StatusCodeFilter        
@@ -97,7 +109,7 @@ namespace Fluxzy.Tests.Configurations
                   headerValue: on
                 """;
 
-            var rule = ruleConfigReader.TryGetRule(yamlContent, out var _)!;
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
             var filter = (rule.Filter as StatusCodeFilter)!;
 
@@ -117,7 +129,7 @@ namespace Fluxzy.Tests.Configurations
         [Fact]
         public void Reading_Should_Parse_Filter_Collection()
         {
-            var ruleConfigReader = new RuleConfigReader();
+            var ruleConfigReader = new RuleConfigParser();
             var yamlContent = """
                 filter: 
                   typeKind: FilterCollection        
@@ -132,7 +144,7 @@ namespace Fluxzy.Tests.Configurations
                   headerValue: on
                 """;
 
-            var rule = ruleConfigReader.TryGetRule(yamlContent, out var _)!;
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
             var filter = (rule.Filter as FilterCollection)!;
 
@@ -142,12 +154,68 @@ namespace Fluxzy.Tests.Configurations
             Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
             Assert.Equal(typeof(FilterCollection), filter.GetType());
             Assert.Equal(2, filter.Children.Count);
+            Assert.Equal(SelectorCollectionOperation.And, filter.Operation);
+
+            Assert.True(filter.Children.First().Inverted);
+            Assert.False(filter.Children.Last().Inverted);
+        }
+        
+        [Theory]
+        [InlineData(SelectorCollectionOperation.And)]
+        [InlineData(SelectorCollectionOperation.Or)]
+        public void Reading_Should_Parse_Enum(SelectorCollectionOperation operation)
+        {
+            var ruleConfigReader = new RuleConfigParser();
+            var yamlContent = $"""
+                filter: 
+                  typeKind: FilterCollection        
+                  operation: {operation.ToString().ToLower()}
+                  children:
+                    - typeKind: ContentTypeJsonFilter
+                      inverted: true
+                    - typeKind: ImageFilter  
+                action : 
+                  typeKind: AddRequestHeaderAction
+                  headerName: fluxzy
+                  headerValue: on
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
+
+            var filter = (rule.Filter as FilterCollection)!;
+
+            Assert.NotNull(rule);
+            Assert.NotNull(rule.Filter);
+            Assert.NotNull(rule.Action);
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
+            Assert.Equal(typeof(FilterCollection), filter.GetType());
+            Assert.Equal(2, filter.Children.Count);
+            Assert.Equal(operation, filter.Operation);
 
             Assert.True(filter.Children.First().Inverted);
             Assert.False(filter.Children.Last().Inverted);
         }
 
+        [Fact]
+        public void Reading_And_Writing_Should_Preserve_Object()
+        {
+            var rule = new Rule(
+                new ApplyCommentAction("Another comment"),
+                new FullUrlFilter(".*", StringSelectorOperation.Regex)
+            );
+
+            var parser = new RuleConfigParser();
+
+            var yaml = parser.GetYamlFromRule(rule);
+
+            var outputRule = parser.TryGetRuleFromYaml(yaml, out _)!;
+
+
+            Assert.NotNull(outputRule);
+            Assert.Equal(rule.Action, outputRule.Action, new GreedyActionComparer());
+            Assert.Equal(rule.Filter, outputRule.Filter, new GreedyFilterComparer());
+
+        }
+
     }
-
-
 }

@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules
 {
@@ -19,6 +20,7 @@ namespace Fluxzy.Rules
 
         public int Order { get; set; }
 
+        [YamlIgnore]
         public bool InScope => Filter.FilterScope <= Action.ActionScope;
 
         public Rule(Action action, Filter filter)
