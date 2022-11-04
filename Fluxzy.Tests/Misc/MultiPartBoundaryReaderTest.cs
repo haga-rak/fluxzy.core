@@ -8,18 +8,17 @@ using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Tests.Tools;
-using Fluxzy.Tests.Utils;
+using Fluxzy.Tests.Common;
 using Xunit;
 
-namespace Fluxzy.Tests.Rules
+namespace Fluxzy.Tests.Misc
 {
-    public class MiscTests
+    public class MultiPartBoundaryReaderTest
     {
         [Theory]
         [InlineData("-a/", new int[] { 6 })]
-        [InlineData("-a/", new int[] { 6, 1024 * 1024 * 9 + 1, 12247})]
-        [InlineData("---------------------s4fs6d4fs3df13sf3sdf/", new int[] { 8192, 12247})]
+        [InlineData("-a/", new int[] { 6, 1024 * 1024 * 9 + 1, 12247 })]
+        [InlineData("---------------------s4fs6d4fs3df13sf3sdf/", new int[] { 8192, 12247 })]
         public void TestMultiPartReader(string boundary, int[] prefferedLength)
         {
             var exampleHeader =
@@ -88,7 +87,7 @@ namespace Fluxzy.Tests.Rules
             return inputContent.HashBae ?? string.Empty;
         }
 
-        public static IEnumerable<string> Write(string fileName, string boundary, string exampleHeader,   int [] preferedLengths)
+        public static IEnumerable<string> Write(string fileName, string boundary, string exampleHeader, int[] preferedLengths)
         {
             Random r = new Random(9);
 
@@ -99,7 +98,7 @@ namespace Fluxzy.Tests.Rules
                 var length = preferedLengths[index];
                 using RandomDataStream randomDataStream = new RandomDataStream(r.Next(), length, true);
 
-                yield return WriteContent(outStream, index + "" +exampleHeader, randomDataStream, boundary);
+                yield return WriteContent(outStream, index + "" + exampleHeader, randomDataStream, boundary);
             }
 
             outStream.Write(Encoding.ASCII.GetBytes("--" + boundary));

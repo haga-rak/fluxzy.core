@@ -3,11 +3,17 @@
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules.Actions
 {
     public class ApplyCommentAction : Action
     {
+        public ApplyCommentAction(string? comment)
+        {
+            Comment = comment;
+        }
+
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
         public string? Comment { get; set; }

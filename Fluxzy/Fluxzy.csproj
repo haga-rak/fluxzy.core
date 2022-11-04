@@ -23,11 +23,18 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Rules\Filters\NewFolder\**" />
+	  <EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
+	  <None Remove="Rules\Filters\NewFolder\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
 		<PackageReference Include="SharpZipLib" Version="1.1.0" />
 		<PackageReference Include="System.IO.Pipelines" Version="6.0.2" />
 		<PackageReference Include="System.Text.Json" Version="6.0.6" />
 		<PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+		<PackageReference Include="YamlDotNet" Version="12.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -43,10 +50,6 @@
 			<LastGenOutput>FileStore.Designer.cs</LastGenOutput>
 			<Generator>ResXFileCodeGenerator</Generator>
 		</EmbeddedResource>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Rules\Filters\NewFolder\" />
 	</ItemGroup>
 
 </Project>
