@@ -40,5 +40,29 @@ namespace Fluxzy.Misc.Converters
         }
     }
 
+    internal class BooleanConverter : JsonConverter<bool>
+    {
+        public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.True || reader.TokenType == JsonTokenType.False) {
+                return reader.GetBoolean(); 
+            }
+
+            var stringchar = reader.GetString();
+
+            if (bool.TryParse(stringchar, out var result)) {
+                return result; 
+            }
+
+            throw new JsonException($"Cannot parse {stringchar} to boolean"); 
+
+        }
+
+        public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)
+        {
+            writer.WriteBooleanValue(value);
+        }
+    }
+
 
 }

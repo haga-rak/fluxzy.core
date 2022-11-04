@@ -15,6 +15,7 @@ namespace Fluxzy
             Converters =
             {
                 new ReadonlyMemoryCharConverter(),
+                new BooleanConverter(),
                 new JsonStringEnumConverter(),
                 new IpAddressConverter(),
                 new PolymorphicConverter<Filter>(),
