@@ -15,11 +15,13 @@ namespace Fluxzy
             Converters =
             {
                 new ReadonlyMemoryCharConverter(),
+                new BooleanConverter(),
                 new JsonStringEnumConverter(),
                 new IpAddressConverter(),
                 new PolymorphicConverter<Filter>(),
                 new PolymorphicConverter<Action>(),
-            }
+            },
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
     }
 }

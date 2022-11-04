@@ -4,12 +4,12 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
-using Fluxzy.Tests.Utils;
+using Fluxzy.Tests.Common;
 using Xunit;
 
 namespace Fluxzy.Tests
 {
-    public class Http11_SingleCallUrl
+    public class Http11SingleCallUrl
     {
         [Fact]
         public async Task Get_IIS()

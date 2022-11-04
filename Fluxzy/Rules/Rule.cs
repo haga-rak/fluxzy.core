@@ -4,12 +4,16 @@ using System;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules
 {
     public class Rule
     {
+        [YamlIgnore]
         public Guid Identifier { get; set; } = Guid.NewGuid();
+
+        public string? Name { get; set; }
 
         public Filter Filter { get; set; }
 
@@ -17,6 +21,7 @@ namespace Fluxzy.Rules
 
         public int Order { get; set; }
 
+        [YamlIgnore]
         public bool InScope => Filter.FilterScope <= Action.ActionScope;
 
         public Rule(Action action, Filter filter)
@@ -34,6 +39,12 @@ namespace Fluxzy.Rules
                 return Action.Alter(context, exchange, connection);
 
             return default;
+        }
+
+
+        public override string ToString()
+        {
+            return $"Action : {Action.FriendlyName} / Filter : {Filter.FriendlyName}";
         }
     }
 }

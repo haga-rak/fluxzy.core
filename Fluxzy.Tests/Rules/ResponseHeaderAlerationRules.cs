@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters.RequestFilters;
-using Fluxzy.Tests.Tools;
+using Fluxzy.Tests.Common;
 using Xunit;
 
 namespace Fluxzy.Tests.Rules
