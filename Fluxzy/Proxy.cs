@@ -32,9 +32,7 @@ namespace Fluxzy
 
         public ProxyExecutionContext ExecutionContext { get; }
 
-        public RealtimeArchiveWriter Writer { get; private set; } = new EventOnlyArchiveWriter();
-
-        public IReadOnlyCollection<IPEndPoint> ListenAddresses => _downStreamConnectionProvider.ListenEndpoints;
+        public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
 
         internal FromIndexIdProvider IdProvider { get; }
 
@@ -104,11 +102,6 @@ namespace Fluxzy
             }
         }
 
-        public static Proxy Create(FluxzySetting startupSetting)
-        {
-            return new Proxy(startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache()));
-        }
-
         private async ValueTask MainLoop()
         {
             Writer.Init();
@@ -123,11 +116,11 @@ namespace Fluxzy
                 if (client == null)
                     break;
 
-                ProcessingConnection(client, ++taskId);
+                ProcessingConnection(client);
             }
         }
 
-        private async void ProcessingConnection(TcpClient client, int taskId)
+        private async void ProcessingConnection(TcpClient client)
         {
             Interlocked.Increment(ref _currentConcurrentCount);
 

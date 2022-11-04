@@ -11,6 +11,6 @@ namespace Fluxzy
 
         public static X509Certificate2 DefaultCertificate { get;  }
 
-        public static string DefaultSerialNumber => DefaultCertificate.SerialNumber;
+        public static string DefaultSerialNumber => DefaultCertificate.SerialNumber!;
     }
 }

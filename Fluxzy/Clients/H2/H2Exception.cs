@@ -22,7 +22,7 @@ namespace Fluxzy.Clients.H2
 
     public class ExchangeException : Exception
     {
-        public ExchangeException(string message, Exception innerException = null) :
+        public ExchangeException(string message, Exception? innerException = null) :
             base(message, innerException)
         {
 

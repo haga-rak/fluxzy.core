@@ -13,10 +13,9 @@ namespace Fluxzy.Clients
 {
     public abstract class Header
     {
-        protected List<HeaderField> _rawHeaderFields;
+        private readonly List<HeaderField> _rawHeaderFields;
 
-        protected ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields;
-        private readonly ReadOnlyMemory<char> _rawHeader;
+        private readonly ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields;
 
         public int HeaderLength { get; }
 
@@ -58,7 +57,6 @@ namespace Fluxzy.Clients
             ReadOnlyMemory<char> rawHeader,
             bool isSecure)
         {
-            _rawHeader = rawHeader;
             HeaderLength = rawHeader.Length;
 
             _rawHeaderFields = Http11Parser.Read(rawHeader, isSecure, true, false).ToList();
@@ -96,7 +94,7 @@ namespace Fluxzy.Clients
             var replaceHeaders = _rawHeaderFields.Where(r => r.Name.Span.Equals(name,
                 StringComparison.OrdinalIgnoreCase)).ToList();
 
-            var replaceItemsCount = _rawHeaderFields.RemoveAll(r => r.Name.Span.Equals(name,
+            _rawHeaderFields.RemoveAll(r => r.Name.Span.Equals(name,
                 StringComparison.OrdinalIgnoreCase));
 
             foreach (var replaceHeader in replaceHeaders)

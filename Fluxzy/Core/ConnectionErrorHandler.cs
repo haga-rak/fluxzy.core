@@ -25,11 +25,10 @@ namespace Fluxzy.Core
             Exception ex,
             Exchange exchange)
         {
-            if (ex is SocketException sex ||
-                ex is IOException ioEx ||
-                ex is H2Exception hEx ||
-                ex is AuthenticationException aEx
-               )
+            if (ex is SocketException ||
+                ex is IOException ||
+                ex is H2Exception ||
+                ex is AuthenticationException)
             {
                 var message = "Fluxzy close connection due to server connection errors.\r\n\r\n";
 

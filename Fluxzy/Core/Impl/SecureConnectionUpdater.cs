@@ -18,7 +18,7 @@ namespace Fluxzy.Core
             _certificateProvider = certificateProvider;
         }
 
-        private bool StartWithKeyWord(ReadOnlySpan<byte> buffer)
+        private static bool StartWithKeyWord(ReadOnlySpan<byte> buffer)
         {
             Span<char> bufferChar = stackalloc char[4];
             Encoding.ASCII.GetChars(buffer, bufferChar);
