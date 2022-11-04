@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -26,7 +28,7 @@ namespace Fluxzy.Tests.Configurations
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
-            var targetAction = (rule.Action as AddRequestHeaderAction)!; 
+            var targetAction = (rule.Action as AddRequestHeaderAction)!;
 
 
             Assert.NotNull(rule);
@@ -52,7 +54,7 @@ namespace Fluxzy.Tests.Configurations
                 """;
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
-            
+
             Assert.Null(rule);
             Assert.NotEmpty(errorMessages!);
             Assert.Contains(errorMessages!, r => r.Message.Contains("NoMoreFilter"));
@@ -68,7 +70,7 @@ namespace Fluxzy.Tests.Configurations
                 """;
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
-            
+
             Assert.Null(rule);
             Assert.NotEmpty(errorMessages!);
         }
@@ -86,7 +88,7 @@ namespace Fluxzy.Tests.Configurations
                 """;
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
-            
+
             Assert.Null(rule);
             Assert.NotEmpty(errorMessages!);
         }
@@ -123,7 +125,6 @@ namespace Fluxzy.Tests.Configurations
             Assert.Contains(filter.StatusCodes, c => c == 204);
             Assert.Contains(filter.StatusCodes, c => c == 301);
             Assert.Contains(filter.StatusCodes, c => c == 302);
-
         }
 
         [Fact]
@@ -159,7 +160,7 @@ namespace Fluxzy.Tests.Configurations
             Assert.True(filter.Children.First().Inverted);
             Assert.False(filter.Children.Last().Inverted);
         }
-        
+
         [Theory]
         [InlineData(SelectorCollectionOperation.And)]
         [InlineData(SelectorCollectionOperation.Or)]
@@ -169,7 +170,7 @@ namespace Fluxzy.Tests.Configurations
             var yamlContent = $"""
                 filter: 
                   typeKind: FilterCollection        
-                  operation: {operation.ToString().ToLower()}
+                  operation: { operation.ToString().ToLower()} 
                   children:
                     - typeKind: ContentTypeJsonFilter
                       inverted: true
@@ -178,7 +179,7 @@ namespace Fluxzy.Tests.Configurations
                   typeKind: AddRequestHeaderAction
                   headerName: fluxzy
                   headerValue: on
-                """;
+                """ ;
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
@@ -196,26 +197,58 @@ namespace Fluxzy.Tests.Configurations
             Assert.False(filter.Children.Last().Inverted);
         }
 
-        [Fact]
-        public void Reading_And_Writing_Should_Preserve_Object()
+        [Theory]
+        [MemberData(nameof(GetTestRules))]
+        public void Writing_And_Reading_Should_Preserve_Object(Rule rule)
         {
-            var rule = new Rule(
-                new ApplyCommentAction("Another comment"),
-                new FullUrlFilter(".*", StringSelectorOperation.Regex)
-            );
-
             var parser = new RuleConfigParser();
 
             var yaml = parser.GetYamlFromRule(rule);
 
             var outputRule = parser.TryGetRuleFromYaml(yaml, out _)!;
 
-
             Assert.NotNull(outputRule);
             Assert.Equal(rule.Action, outputRule.Action, new GreedyActionComparer());
             Assert.Equal(rule.Filter, outputRule.Filter, new GreedyFilterComparer());
-
         }
 
+        public static IEnumerable<object[]> GetTestRules()
+        {
+            yield return new object[] {
+                new Rule(
+                    new ApplyCommentAction("Another comment"),
+                    new FullUrlFilter(".*", StringSelectorOperation.Regex)
+                )
+            };
+
+            yield return new object[] {
+                new Rule(
+                    new ApplyTagAction {
+                        Tag = new Tag(Guid.NewGuid(), "Random value")
+                    },
+                    new AnyFilter()
+                )
+            };
+
+            yield return new object[] {
+                new Rule(
+                    new AddResponseHeaderAction("sdf", "sd"),
+                    new FilterCollection(new HasCommentFilter(), new RequestHeaderFilter("Coco",
+                        StringSelectorOperation.EndsWith, "Content-type"))
+                )
+            };
+
+            yield return new object[] {
+                new Rule(
+                    new SetClientCertificateAction(new Certificate {
+                        RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
+                        Pkcs12File = "A pkcs12file",
+                        Pkcs12Password = "A pkcs12 password",
+                        SerialNumber = "absdf465"
+                    }),
+                    new IpEgressFilter(IPAddress.Loopback.ToString(), StringSelectorOperation.Contains)
+                )
+            };
+        }
     }
 }

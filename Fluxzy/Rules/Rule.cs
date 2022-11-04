@@ -10,6 +10,7 @@ namespace Fluxzy.Rules
 {
     public class Rule
     {
+        [YamlIgnore]
         public Guid Identifier { get; set; } = Guid.NewGuid();
 
         public string? Name { get; set; }
@@ -38,6 +39,12 @@ namespace Fluxzy.Rules
                 return Action.Alter(context, exchange, connection);
 
             return default;
+        }
+
+
+        public override string ToString()
+        {
+            return $"Action : {Action.FriendlyName} / Filter : {Filter.FriendlyName}";
         }
     }
 }

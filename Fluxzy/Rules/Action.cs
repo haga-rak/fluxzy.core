@@ -17,6 +17,7 @@ namespace Fluxzy.Rules
         [YamlIgnore]
         public int ScopeId => (int) ActionScope;
 
+        [YamlIgnore]
         public virtual Guid Identifier { get; set; } = Guid.NewGuid();
 
         [YamlIgnore]
