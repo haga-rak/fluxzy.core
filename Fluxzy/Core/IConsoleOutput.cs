@@ -21,8 +21,8 @@ namespace Fluxzy.Core
 
         public void WriteLine(string str)
         {
-            _writer?.WriteLine(str);
-            _writer?.Flush();
+            _writer.WriteLine(str);
+            _writer.Flush();
         }
 
         public async Task WriteLineAsync(string str)

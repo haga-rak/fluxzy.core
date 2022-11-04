@@ -31,7 +31,7 @@ namespace Fluxzy.Misc
             {
                 Encoding.ASCII.GetBytes(inputChars, buffer);
 
-                Span<byte> md5Dest = stackalloc byte[16];;
+                Span<byte> md5Dest = stackalloc byte[16];
 
                 if (!md5.TryComputeHash(buffer, md5Dest, out _))
                     throw new InvalidOperationException("Something very bad happens");

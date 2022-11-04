@@ -64,7 +64,6 @@ namespace Fluxzy.Clients.H2
                 foreach (var item in list)
                 {
                     item.SetResult(null);
-                    ;
                 }
             }
         }

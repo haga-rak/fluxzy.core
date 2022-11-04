@@ -45,9 +45,7 @@ namespace Fluxzy.Interop.Pcap.Cli
                     //  await Task.Delay(1000);
                 }
             }
-
-
-            Console.WriteLine($"Terminé en {stopWatch.ElapsedMilliseconds} ms");
+            
             Console.ReadLine();
             GC.Collect();
             Console.WriteLine("GC done");

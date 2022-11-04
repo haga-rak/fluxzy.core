@@ -32,14 +32,12 @@ namespace Fluxzy.Utils
                                ?.Where(r => r.Name.Span.Equals("accept", StringComparison.OrdinalIgnoreCase))
                                .LastOrDefault();
 
-            if (acceptHeader != null) {
-                var firstAcceptValue = acceptHeader.Value.ToString().Split(new[] {",", ";"},
-                                                       StringSplitOptions.RemoveEmptyEntries)
-                                                   .FirstOrDefault();
+            var firstAcceptValue = acceptHeader?.Value.ToString().Split(new[] {",", ";"},
+                                                   StringSplitOptions.RemoveEmptyEntries)
+                                               .FirstOrDefault();
 
-                if (firstAcceptValue != null)
-                    return SolveSimplifiedContentType(firstAcceptValue);
-            }
+            if (firstAcceptValue != null)
+                return SolveSimplifiedContentType(firstAcceptValue);
 
             return null;
         }

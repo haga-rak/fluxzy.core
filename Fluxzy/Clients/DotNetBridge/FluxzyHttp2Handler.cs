@@ -20,7 +20,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
         private readonly IIdProvider _idProvider;
 
-        public FluxzyHttp2Handler(H2StreamSetting streamSetting = null)
+        public FluxzyHttp2Handler(H2StreamSetting? streamSetting = null)
         {
             _streamSetting = streamSetting ?? new H2StreamSetting();
             _idProvider = IIdProvider.FromZero;

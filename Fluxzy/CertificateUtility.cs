@@ -81,7 +81,7 @@ namespace Fluxzy
         {
             var certificate = startupSetting.CaCertificate.GetCertificate();
 
-            if (!IsCertificateInstalled(certificate.SerialNumber))
+            if (!IsCertificateInstalled(certificate.SerialNumber!))
                 InstallCertificate(certificate);
         }
     }

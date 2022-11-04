@@ -41,7 +41,7 @@ namespace Fluxzy
 
                 var lazyCertificate =
                     _certificateRepository.GetOrAdd(hostName, new Lazy<byte[]>(() =>
-                        _certCache.Load(_baseCertificate.SerialNumber, hostName, BuildCertificateForRootDomain), true));
+                        _certCache.Load(_baseCertificate.SerialNumber!, hostName, BuildCertificateForRootDomain), true));
 
                 var val = lazyCertificate.Value;
 

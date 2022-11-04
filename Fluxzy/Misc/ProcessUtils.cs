@@ -1,7 +1,6 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
-using System.Buffers;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -49,9 +48,9 @@ namespace Fluxzy.Misc
             if (process.HasExited) 
                 return Task.CompletedTask;
 
-            var tcs = new TaskCompletionSource<object>();
+            var tcs = new TaskCompletionSource<object?>();
             process.EnableRaisingEvents = true;
-            process.Exited += (sender, args) => tcs.TrySetResult(null);
+            process.Exited += (_, _) => tcs.TrySetResult(null);
             if (cancellationToken != default(CancellationToken))
                 cancellationToken.Register(() => tcs.SetCanceled());
 
