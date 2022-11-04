@@ -9,6 +9,7 @@ namespace Fluxzy
 {
     public class Certificate
     {
+
         private X509Certificate2? _cachedCertificate = null;
 
         [JsonInclude]
@@ -18,19 +19,19 @@ namespace Fluxzy
         /// The certificate thumb print when location type is FromUserStoreSerialNumber
         /// </summary>
         [JsonInclude]
-        public string? SerialNumber { get; private set; }
+        public string? SerialNumber { get; set; }
 
         /// <summary>
         /// The certificate file when location type is FromPkcs12
         /// </summary>
         [JsonInclude]
-        public string? Pkcs12File { get; private set; }
+        public string? Pkcs12File { get; set; }
 
         /// <summary>
         /// The certificate password when location typ is FromPkcs12. Null with no password was set. 
         /// </summary>
         [JsonInclude]
-        public string? Pkcs12Password { get; private set; }
+        public string? Pkcs12Password { get; set; }
         
 
         public static Certificate LoadFromUserStoreByThumbprint(string thumbPrint)
@@ -78,13 +79,13 @@ namespace Fluxzy
 
                     store.Open(OpenFlags.ReadOnly);
 
-                    var certificate = store.Certificates.Find(X509FindType.FindByThumbprint,
+                    var certificate = store.Certificates.Find(X509FindType.FindBySerialNumber,
                             SerialNumber, false)
                         .OfType<X509Certificate2>()
                         .FirstOrDefault();
 
                     if (certificate == null)
-                        throw new FluxzyException($"Could not retrieve certificate with thumbprint `{SerialNumber}`.");
+                        throw new FluxzyException($"Could not retrieve certificate with serialNumber `{SerialNumber}`.");
 
                     if (!certificate.HasPrivateKey)
                     {
@@ -101,6 +102,30 @@ namespace Fluxzy
                 default:
                     throw new ArgumentOutOfRangeException($"Unknown retrieve mode : {RetrieveMode}");
             }
+        }
+
+        protected bool Equals(Certificate other)
+        {
+            return RetrieveMode == other.RetrieveMode
+                   && SerialNumber == other.SerialNumber
+                   && Pkcs12File == other.Pkcs12File
+                   && Pkcs12Password == other.Pkcs12Password;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return Equals((Certificate)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine((int)RetrieveMode, SerialNumber, Pkcs12File, Pkcs12Password);
         }
     }
 }
