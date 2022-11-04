@@ -6,7 +6,7 @@ namespace Fluxzy
     {
         FluxzyDefault,
 
-        FromUserStoreByThumbPrint, 
+        FromUserStoreSerialNumber, 
 
         /// <summary>
         /// Typicaly pfx and p12 files
