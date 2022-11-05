@@ -42,11 +42,13 @@ namespace Fluxzy.Tests.Cli
                 var protocols = new[] { "http11", "http2" };
                 var withPcapStatus = new[] { false, true };
                 var directoryParams = new[] { false, true };
+                var withSimpleRules = new[] { false, true };
 
                 foreach (var protocol in protocols)
                 foreach (var withPcap in withPcapStatus)
                 foreach (var directoryParam in directoryParams)
-                    yield return new object[] { protocol, withPcap, directoryParam };
+                foreach (var withSimpleRule in withSimpleRules)
+                    yield return new object[] { protocol, withPcap, directoryParam, withSimpleRule };
             }
         }
 
@@ -83,7 +85,7 @@ namespace Fluxzy.Tests.Cli
 
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
-        public async Task Run_Cli_Output(string protocol, bool withPcap, bool outputDirectory)
+        public async Task Run_Cli_Output(string protocol, bool withPcap, bool outputDirectory, bool withSimpleRule)
         {
             // Arrange 
 
@@ -96,6 +98,24 @@ namespace Fluxzy.Tests.Cli
 
             if (withPcap)
                 commandLine += " -c";
+
+            if (withSimpleRule)
+            {
+                var ruleFile = $"rules.yml";
+
+                var yamlContent = """
+                rules:
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: AddRequestHeaderAction
+                      headerName: x-fluxzy
+                      headerValue: on
+                """;
+
+                File.WriteAllText(ruleFile, yamlContent);
+                commandLine += $" -r {ruleFile}";
+            }
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
             var requestBodyLength = 23632;
@@ -118,6 +138,7 @@ namespace Fluxzy.Tests.Cli
                 using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
 
                 bodyLength = response.Content.Headers.ContentLength ?? -1;
+                var responseContent = await response.Content.ReadAsStringAsync();
                 // Assert
                 await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
             }
@@ -156,8 +177,16 @@ namespace Fluxzy.Tests.Cli
                     t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
 
                 if (withPcap)
-                    Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).DrainAsync(disposeStream: true) >
-                                0);
+                    Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).DrainAsync(disposeStream: true) > 0);
+
+                if (withSimpleRule)
+                {
+                    var alterHeader =
+                        exchange.GetRequestHeaders().FirstOrDefault(t => t.Name.ToString() == "x-fluxzy"); 
+
+                    Assert.NotNull(alterHeader);
+                    Assert.Equal("on", alterHeader!.Value.ToString());
+                }
             }
 
             if (Directory.Exists(directoryName))
