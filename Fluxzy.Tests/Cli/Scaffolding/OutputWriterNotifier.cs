@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System.Collections.Generic;
 using System.IO;
@@ -20,19 +20,18 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             lock (_runningWait)
             {
                 if (!_runningWait.TryGetValue(regexPattern, out var completionSource))
-                {
-                    _runningWait[regexPattern] = completionSource = new TimeoutTaskCompletionSource<string>(timeoutSeconds, regexPattern);
-                }
+                    _runningWait[regexPattern] = completionSource =
+                        new TimeoutTaskCompletionSource<string>(timeoutSeconds, regexPattern);
 
                 return completionSource.CompletionSource.Task;
             }
         }
+
         public override void Write(string? value)
         {
             if (value != null)
-            {
-                lock (_runningWait) {
-
+                lock (_runningWait)
+                {
                     foreach (var (regexPattern, cancellableTaskSource)
                              in _runningWait.Where(v => !v.Value.CompletionSource.Task.IsCompleted))
                     {
@@ -46,11 +45,11 @@ namespace Fluxzy.Tests.Cli.Scaffolding
                         if (matchResult.Success && matchResult.Groups.Count > 1)
                         {
                             cancellableTaskSource.CompletionSource.TrySetResult(matchResult.Groups[1].Value);
+
                             break;
                         }
                     }
                 }
-            }
 
             base.Write(value);
         }
@@ -58,14 +57,12 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
             lock (_runningWait)
             {
                 foreach (var cancellableTaskSource in _runningWait.Values)
-                {
                     cancellableTaskSource.Dispose();
-                }
             }
-
         }
     }
 }

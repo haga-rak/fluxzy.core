@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.IO;
