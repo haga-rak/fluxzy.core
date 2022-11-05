@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Net;
@@ -9,24 +9,23 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     public class ProxiedHttpClient : IDisposable
     {
         private readonly HttpClientHandler _clientHandler;
-        private readonly HttpClient _client;
+
+        public HttpClient Client { get; }
 
         public ProxiedHttpClient(int port, string remoteHost = "127.0.0.1")
         {
-            _clientHandler = new HttpClientHandler()
+            _clientHandler = new HttpClientHandler
             {
                 Proxy = new WebProxy($"http://{remoteHost}:{port}")
             };
 
-            _client = new HttpClient(_clientHandler);
+            Client = new HttpClient(_clientHandler);
         }
-
-        public HttpClient Client => _client;
 
         public void Dispose()
         {
             _clientHandler.Dispose();
-            _client.Dispose();
+            Client.Dispose();
         }
     }
 }

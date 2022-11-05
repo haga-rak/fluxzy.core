@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Net;
 using Fluxzy.Rules;
@@ -8,6 +9,7 @@ using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
 using Xunit;
+using Rule = Fluxzy.Rules.Rule;
 
 namespace Fluxzy.Tests.Configurations
 {
@@ -58,6 +60,57 @@ namespace Fluxzy.Tests.Configurations
             Assert.Null(rule);
             Assert.NotEmpty(errorMessages!);
             Assert.Contains(errorMessages!, r => r.Message.Contains("NoMoreFilter"));
+        }
+
+        [Fact]
+        public void Reading_Should_Fail_InvalidYaml()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+            var yamlContent = """
+                fi lter 
+                    typeKi'nd: NoMoreFilter        
+                a ct'ion '
+                  ty'pe Kind: AddRequestHeaderAction
+                  he'ad erNa'me: fluxzy
+                  he'ad erValue: on
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
+
+            Assert.Null(rule);
+            Assert.NotEmpty(errorMessages!);
+        }
+
+        [Fact]
+        public void Reading_Should_Fail_InvalidYaml_Indent()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+
+            var yamlContent = """
+                filter: 
+                  typeKind: AnyFilter        
+                action : 
+                  typeKind: AddRequestHeaderAction
+                   headerName: fluxzy 
+                  headerValue: on
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
+
+            Assert.Null(rule);
+            Assert.NotEmpty(errorMessages!);
+        }
+
+        [Fact]
+        public void Reading_Should_Fail_InvalidYaml_EmptyFile()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+            var yamlContent = "";
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
+
+            Assert.Null(rule);
+            Assert.NotEmpty(errorMessages!);
         }
 
         [Fact]
@@ -197,9 +250,91 @@ namespace Fluxzy.Tests.Configurations
             Assert.False(filter.Children.Last().Inverted);
         }
 
+
+        [Fact]
+        public void Reading_Should_Parse_Basic_Rule_Set()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+            var yamlContent = """
+                rules:
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: AddRequestHeaderAction
+                      headerName: fluxzy
+                      headerValue: on
+                  - filter: 
+                      typeKind: StatusCodeRedirectionFilter        
+                    action : 
+                      typeKind: ApplyCommentAction
+                      comment: Go go go
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleSetFromYaml(yamlContent, out _)!.Rules.First();
+
+            var targetAction = (rule.Action as AddRequestHeaderAction)!;
+
+            Assert.NotNull(rule);
+            Assert.NotNull(rule.Filter);
+            Assert.NotNull(rule.Action);
+            Assert.Equal(AnyFilter.Default.Identifier, rule.Filter.Identifier);
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
+            Assert.Equal("fluxzy", targetAction.HeaderName);
+            Assert.Equal("on", targetAction.HeaderValue);
+        }
+
+        [Fact]
+        public void Reading_Should_Fail_Basic_Rule_Set()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+            var yamlContent = """
+                ruldes:
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: AddRequestHeaderAction
+                      headerName: fluxzy
+                      headerValue: on
+                  - filter: 
+                      typeKind: StatusCodeRedirectionFilter        
+                    action : 
+                      typeKind: ApplyCommentAction
+                      comment: Go go go
+                """;
+
+            var rules = ruleConfigReader.TryGetRuleSetFromYaml(yamlContent, out var errorMessages)?.Rules;
+
+            Assert.Null(rules);
+            Assert.NotEmpty(errorMessages!);
+        }
+
+        [Fact]
+        public void Reading_Should_Parse_Basic_Rule_Set_Multiple()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+            var yamlContent = """
+                rules:
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: AddRequestHeaderAction
+                      headerName: fluxzy
+                      headerValue: on
+                  - filter: 
+                      typeKind: StatusCodeRedirectionFilter        
+                    action : 
+                      typeKind: ApplyCommentAction
+                      comment: Go go go
+                """;
+
+            var rules = ruleConfigReader.TryGetRuleSetFromYaml(yamlContent, out _)!.Rules;
+
+            Assert.Equal(2, rules.Count);
+        }
+
         [Theory]
         [MemberData(nameof(GetTestRules))]
-        public void Writing_And_Reading_Should_Preserve_Object(Rule rule)
+        public void Writing_And_Reading_Rule_Should_Preserve_Object(Rule rule)
         {
             var parser = new RuleConfigParser();
 
@@ -208,8 +343,32 @@ namespace Fluxzy.Tests.Configurations
             var outputRule = parser.TryGetRuleFromYaml(yaml, out _)!;
 
             Assert.NotNull(outputRule);
+
             Assert.Equal(rule.Action, outputRule.Action, new GreedyActionComparer());
             Assert.Equal(rule.Filter, outputRule.Filter, new GreedyFilterComparer());
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestRuleSet))]
+        public void Writing_And_Reading_RuleSet_Should_Preserve_Object(RuleSet ruleSet)
+        {
+            var parser = new RuleConfigParser();
+
+            var yaml = parser.GetYamlFromRuleSet(ruleSet);
+
+            var outputRule = parser.TryGetRuleSetFromYaml(yaml, out _)!;
+
+            Assert.NotNull(outputRule);
+            Assert.Equal(ruleSet.Rules.Count, outputRule.Rules.Count);
+
+            for (var index = 0; index < ruleSet.Rules.Count; index++)
+            {
+                var originalRule = ruleSet.Rules[index];
+                var resultRule = outputRule.Rules[index];
+
+                Assert.Equal(originalRule.Action, resultRule.Action, new GreedyActionComparer());
+                Assert.Equal(originalRule.Filter, resultRule.Filter, new GreedyFilterComparer());
+            }
         }
 
         public static IEnumerable<object[]> GetTestRules()
@@ -250,5 +409,46 @@ namespace Fluxzy.Tests.Configurations
                 )
             };
         }
+
+        public static IEnumerable<object[]> GetTestRuleSet()
+        {
+            yield return new object[] {
+
+                new RuleSet(
+                        new Rule(
+                            new ApplyCommentAction("Another comment"),
+                            new FullUrlFilter(".*", StringSelectorOperation.Regex)
+                        ),
+                        new Rule(
+                            new ApplyTagAction {
+                                Tag = new Tag(Guid.NewGuid(), "Random value")
+                            },
+                            new AnyFilter()
+                        )
+                    )
+            };
+
+            yield return new object[] {
+
+                new RuleSet(
+                        new Rule(
+                            new AddResponseHeaderAction("sdf", "sd"),
+                            new FilterCollection(new HasCommentFilter(), new RequestHeaderFilter("Coco",
+                                StringSelectorOperation.EndsWith, "Content-type"))
+                        ),
+                        new Rule(
+                            new SetClientCertificateAction(new Certificate {
+                                RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
+                                Pkcs12File = "A pkcs12file",
+                                Pkcs12Password = "A pkcs12 password",
+                                SerialNumber = "absdf465"
+                            }),
+                            new IpEgressFilter(IPAddress.Loopback.ToString(), StringSelectorOperation.Contains)
+                        )
+                    )
+            };
+        }
+
+
     }
 }

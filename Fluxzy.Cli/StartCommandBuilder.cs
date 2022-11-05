@@ -8,6 +8,7 @@ using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
@@ -63,6 +64,7 @@ namespace Fluxzy.Cli
             command.AddOption(CreateNoCertCacheOption());
             command.AddOption(CreateCertificateFileOption());
             command.AddOption(CreateCertificatePasswordOption());
+            command.AddOption(CreateRuleFileOption());
 
 
             command.SetHandler(context => Run(context, cancellationToken));
@@ -84,6 +86,9 @@ namespace Fluxzy.Cli
             var noCertCache = invocationContext.Value<bool>("no-cert-cache");
             var certFile = invocationContext.Value<FileInfo>("cert-file");
             var certPassword = invocationContext.Value<string>("cert-password");
+            var ruleFile = invocationContext.Value<FileInfo>("rule-file");
+
+
             var invokeCancellationToken = invocationContext.GetCancellationToken();
 
             using var linkedTokenSource =
@@ -124,6 +129,11 @@ namespace Fluxzy.Cli
                     invocationContext.ExitCode = 1;
                     return;
                 }
+
+            if (ruleFile != null)
+            {
+                
+            }
 
             proxyStartUpSetting.SetArchivingPolicy(archivingPolicy);
             proxyStartUpSetting.SetAutoInstallCertificate(installCert);
@@ -355,6 +365,19 @@ namespace Fluxzy.Cli
                 "--cert-password",
                 "Set the password corresponding to the certfile");
 
+            option.Arity = ArgumentArity.ExactlyOne;
+
+            return option;
+        }
+
+
+        private static Option CreateRuleFileOption()
+        {
+            var option = new Option<FileInfo>(
+                "--rule",
+                "Use a fluxzy rule file");
+
+            option.AddAlias("-r");
             option.Arity = ArgumentArity.ExactlyOne;
 
             return option;
