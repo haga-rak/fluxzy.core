@@ -22,7 +22,7 @@ namespace Fluxzy.Tests.Common
         {
             var checkResult = await response.GetCheckResult(); 
 
-            foreach (var header in request.Headers)
+            foreach (var header in request.Headers.Where(h => h.Key != "fluxzy"))
             {
                 foreach (var headerValue in header.Value)
                 {
