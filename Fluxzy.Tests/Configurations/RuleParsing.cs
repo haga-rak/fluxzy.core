@@ -249,8 +249,7 @@ namespace Fluxzy.Tests.Configurations
             Assert.True(filter.Children.First().Inverted);
             Assert.False(filter.Children.Last().Inverted);
         }
-
-
+        
         [Fact]
         public void Reading_Should_Parse_Basic_Rule_Set()
         {

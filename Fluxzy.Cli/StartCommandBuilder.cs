@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
+using Fluxzy.Rules;
 using Fluxzy.Saz;
 
 namespace Fluxzy.Cli
@@ -129,10 +130,38 @@ namespace Fluxzy.Cli
                     invocationContext.ExitCode = 1;
                     return;
                 }
-
+            
             if (ruleFile != null)
             {
-                
+                try
+                {
+                    var ruleConfigParser = new RuleConfigParser();
+
+                    if (!ruleFile.Exists)
+                    {
+                        throw new FileNotFoundException($"File not found : {ruleFile.FullName}"); 
+                    }
+
+                    var ruleSet = ruleConfigParser.TryGetRuleSetFromYaml(File.ReadAllText(ruleFile.FullName),
+                        out var errors);
+
+                    if (ruleSet == null && errors!.Any())
+                    {
+                        throw new ArgumentException(string.Join("\r\n", errors.Select(s => s.Message))); 
+                    }
+
+                    if (ruleSet != null)
+                    {
+                        proxyStartUpSetting.AlterationRules.AddRange(ruleSet.Rules);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    invocationContext.BindingContext.Console.WriteLine($"Error while reading rule file : {ex.Message}");
+                    invocationContext.ExitCode = 1;
+                    return;
+                }
             }
 
             proxyStartUpSetting.SetArchivingPolicy(archivingPolicy);
@@ -374,8 +403,8 @@ namespace Fluxzy.Cli
         private static Option CreateRuleFileOption()
         {
             var option = new Option<FileInfo>(
-                "--rule",
-                "Use a fluxzy rule file");
+                "--rule-file",
+                "Use a fluxzy rule file. See more at : https://docs.fluxzy.io/concept/rule-file");
 
             option.AddAlias("-r");
             option.Arity = ArgumentArity.ExactlyOne;
