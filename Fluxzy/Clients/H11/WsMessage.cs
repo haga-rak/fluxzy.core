@@ -61,7 +61,12 @@ namespace Fluxzy.Clients.H11
             if (mask == 0)
                 return;
 
-            mask = RotateRight(mask, countIndex % 4 * 8);
+            mask = RotateLeft(mask, (countIndex % 4) * 8);
+
+            if (countIndex % 2 == 1)
+            {
+
+            }
 
             Span<byte> maskData = stackalloc byte[4];
 
@@ -115,6 +120,7 @@ namespace Fluxzy.Clients.H11
             {
                 await using var stream = outStream(Id);
                 var lengthShift = 0;
+                var totalWr = 0;
 
                 while (WrittenLength < wsFrame.PayloadLength)
                 {
@@ -144,9 +150,10 @@ namespace Fluxzy.Clients.H11
                                 memory.CopyTo(copyBuffer);
 
                                 ApplyXor(new Span<byte>(copyBuffer, 0, memory.Length),
-                                    wsFrame.MaskedPayload, lengthShift);
+                                    wsFrame.MaskedPayload, totalWr%4);
 
-                                lengthShift = (lengthShift + memory.Length) % 4;
+                                totalWr += memory.Length;
+                              //  lengthShift = (lengthShift + memory.Length) % 4;
 
                                 stream.Write(copyBuffer, 0, memory.Length);
                                 stream.Flush();
