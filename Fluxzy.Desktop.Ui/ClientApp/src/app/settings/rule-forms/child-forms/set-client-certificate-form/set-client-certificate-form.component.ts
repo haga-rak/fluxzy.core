@@ -1,6 +1,10 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component} from '@angular/core';
 import {ActionValidationTargetComponent} from "../../rule-edit/rule-edit.component";
-import {CertificateValidationResult, SetClientCertificateAction} from "../../../../core/models/auto-generated";
+import {
+    CertificateOnStore,
+    CertificateValidationResult,
+    SetClientCertificateAction
+} from "../../../../core/models/auto-generated";
 import {ApiService} from "../../../../services/api.service";
 import {DialogService} from "../../../../services/dialog.service";
 import {SystemCallService} from "../../../../core/services/system-call.service";
@@ -16,6 +20,7 @@ export class SetClientCertificateFormComponent extends ActionValidationTargetCom
     public validationState = {} ;
    // public retrieveModeType : string [] =  ['FromUserStoreSerialNumber', 'FromPkcs12'];
     private certificateValidationResult: CertificateValidationResult;
+    private existingCertificates : CertificateOnStore[] ;
 
 
 
@@ -25,6 +30,12 @@ export class SetClientCertificateFormComponent extends ActionValidationTargetCom
     }
 
     public actionInit(): void {
+        this.apiService.systemGetCertificates()
+            .pipe(
+                take(1),
+                tap(t => this.existingCertificates = t),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe();
     }
 
     public override validate(): string | null {
@@ -62,6 +73,9 @@ export class SetClientCertificateFormComponent extends ActionValidationTargetCom
     }
 
     public checkCertificate() : void {
+        this.certificateValidationResult = null ;
+        this.cd.detectChanges();
+
         this.apiService.extendedControlCheckCertificate(this.action.clientCertificate)
             .pipe(
                 tap(t => this.certificateValidationResult = t),
