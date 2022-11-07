@@ -22,7 +22,6 @@ namespace Fluxzy.Cli
     {
         private readonly string _instanceIdentifier;
 
-
         public readonly List<IDirectoryPackager> _packagers = new()
         {
             new FxzyDirectoryPackager(),
@@ -398,7 +397,6 @@ namespace Fluxzy.Cli
 
             return option;
         }
-
 
         private static Option CreateRuleFileOption()
         {
