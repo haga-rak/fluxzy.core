@@ -203,11 +203,16 @@ namespace Fluxzy.Clients
 
             var secureHeader = new RequestHeader(secureHeaderChars, true);
 
-            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
+            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength) {
+
+                var copyBuffer = new byte[blockReadResult.TotalReadLength - blockReadResult.HeaderLength];
+
+                Buffer.BlockCopy(buffer.Buffer, blockReadResult.HeaderLength, copyBuffer, 0, copyBuffer.Length);
+                
                 inStream = new CombinedReadonlyStream(false,
-                    new MemoryStream(buffer.Buffer, blockReadResult.HeaderLength,
-                        blockReadResult.TotalReadLength - blockReadResult.HeaderLength),
+                    new MemoryStream(copyBuffer),
                     inStream);
+            }
 
             var exchangeContext = new ExchangeContext(authority);
             await runTimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
