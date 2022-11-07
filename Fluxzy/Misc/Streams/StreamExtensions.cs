@@ -210,5 +210,11 @@ namespace Fluxzy.Misc.Streams
 
             return index;
         }
+
+        public static string ReadToEndGreedy(this Stream stream)
+        {
+            using var streamReader = new StreamReader(stream);
+            return streamReader.ReadToEnd();
+        }
     }
 }
