@@ -285,6 +285,7 @@ namespace Fluxzy.Tests.Cli
 
         [Theory]
         [InlineData(5)]
+        [InlineData(1024 * 64 * 161 )]
         [InlineData(125 * 1024 + 5)]
         public async Task Run_Cli_For_Web_Socket_Req_Res(int length)
         {
