@@ -8,6 +8,8 @@ namespace Fluxzy
 
         FromUserStoreSerialNumber, 
 
+        FromUserStoreThumbPrint, 
+
         /// <summary>
         /// Typicaly pfx and p12 files
         /// </summary>

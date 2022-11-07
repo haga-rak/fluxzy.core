@@ -72,6 +72,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddScoped<ContextMenuFilterProvider>();
             collection.AddScoped<ActionTemplateManager>();
             collection.AddScoped<CertificateValidator>();
+            collection.AddScoped<SystemService>();
 
             collection.AddTransient<FxzyDirectoryPackager>();
 

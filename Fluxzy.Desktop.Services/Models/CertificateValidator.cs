@@ -25,6 +25,8 @@ namespace Fluxzy.Desktop.Services.Models
 
                     using (var store = new X509Store(StoreLocation.CurrentUser))
                     {
+                        store.Open(OpenFlags.ReadOnly);
+
                         var foundItems = store.Certificates.Find(X509FindType.FindBySerialNumber,
                             originalCertificate.SerialNumber, false);
 
@@ -42,6 +44,43 @@ namespace Fluxzy.Desktop.Services.Models
                         {
                             validationErrors.Add(new ValidationError(
                                 $"Provided certificate {certificate.SubjectName} (SN: {originalCertificate.SerialNumber}) does not contains private key. " +
+                                "Private key is mandatory for this certificate."));
+
+                            return validationErrors;
+                        }
+                    }
+
+                    break;
+                case CertificateRetrieveMode.FromUserStoreThumbPrint:
+
+                    if (string.IsNullOrWhiteSpace(originalCertificate.ThumbPrint))
+                    {
+                        validationErrors.Add(new ValidationError("SerialNumber cannot be empty"));
+
+                        return validationErrors;
+                    }
+
+                    using (var store = new X509Store(StoreLocation.CurrentUser))
+                    {
+                        store.Open(OpenFlags.ReadOnly);
+
+                        var foundItems = store.Certificates.Find(X509FindType.FindByThumbprint,
+                            originalCertificate.ThumbPrint, false);
+
+                        if (!foundItems.Any())
+                        {
+                            validationErrors.Add(new ValidationError(
+                                $"Certificate with thumbprint “{originalCertificate.ThumbPrint}” was not found on current user store"));
+
+                            return validationErrors;
+                        }
+
+                        certificate = foundItems.First();
+
+                        if (!certificate.HasPrivateKey)
+                        {
+                            validationErrors.Add(new ValidationError(
+                                $"Provided certificate {certificate.SubjectName} (SN: {originalCertificate.ThumbPrint}) does not contains private key. " +
                                 "Private key is mandatory for this certificate."));
 
                             return validationErrors;

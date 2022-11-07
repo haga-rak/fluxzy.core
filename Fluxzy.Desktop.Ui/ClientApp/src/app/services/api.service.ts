@@ -16,22 +16,37 @@ import {
     of, delay, BehaviorSubject, pipe
 } from 'rxjs';
 import {
-    Action, AnyFilter, ArchiveMetaInformation, Certificate, CertificateValidationResult, CommentUpdateModel,
-    ConnectionInfo, ContextMenuAction,
+    Action,
+    AnyFilter,
+    ArchiveMetaInformation,
+    Certificate,
+    CertificateOnStore,
+    CertificateValidationResult,
+    CommentUpdateModel,
+    ConnectionInfo,
+    ContextMenuAction,
     ExchangeBrowsingState,
     ExchangeState,
     FileContentDelete,
     FileSaveViewModel,
     FileState,
-    Filter, FilterTemplate,
+    Filter,
+    FilterTemplate,
     FluxzySettingsHolder,
     FormatterContainerViewModel,
-    FormattingResult, ForwardMessage,
-    MultipartItem, Rule, RuleContainer,
+    FormattingResult,
+    ForwardMessage,
+    MultipartItem,
+    Rule,
+    RuleContainer,
     SaveFileMultipartActionModel,
-    StoredFilter, Tag, TagGlobalApplyModel, TagUpdateModel,
+    StoredFilter,
+    Tag,
+    TagGlobalApplyModel,
+    TagUpdateModel,
     TrunkState,
-    UiState, ValidationError
+    UiState,
+    ValidationError
 } from '../core/models/auto-generated';
 import {FilterHolder} from "../settings/manage-filters/manage-filters.component";
 import {IWithName} from "../core/models/model-extensions";
@@ -277,5 +292,9 @@ export class ApiService {
 
     public extendedControlCheckCertificate(certificate : Certificate) : Observable<CertificateValidationResult> {
         return this.httpClient.post<CertificateValidationResult>(`api/extended-control/certificate/`, certificate).pipe(take(1)) ;
+    }
+
+    public systemGetCertificates() : Observable<CertificateOnStore[]> {
+        return this.httpClient.get<CertificateOnStore[]>(`api/system/certificates`).pipe(take(1)) ;
     }
 }

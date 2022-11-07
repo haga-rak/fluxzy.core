@@ -138,7 +138,9 @@ namespace Fluxzy.Tests.Cli
                 using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
 
                 bodyLength = response.Content.Headers.ContentLength ?? -1;
-                var responseContent = await response.Content.ReadAsStringAsync();
+
+                await response.Content.ReadAsStringAsync();
+
                 // Assert
                 await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
             }
@@ -152,14 +154,11 @@ namespace Fluxzy.Tests.Cli
                 var exchanges = archiveReader.ReadAllExchanges().ToList();
                 var connections = archiveReader.ReadAllConnections().ToList();
 
-                var exchange = exchanges.FirstOrDefault();
-
-                if (exchange == null)
-                {
-                }
-
+                var exchange = exchanges.FirstOrDefault()!;
+                
                 var connection = connections.First();
 
+                Assert.NotNull(exchange);
                 Assert.Equal(0, await commandLineHost.ExitCode);
                 Assert.Single(exchanges);
                 Assert.Single(connections);
@@ -168,16 +167,16 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(connection.Id, exchange.ConnectionId);
 
                 Assert.Equal(requestBodyLength,
-                    await archiveReader.GetRequestBody(exchange.Id).DrainAsync(disposeStream: true));
+                    await archiveReader.GetRequestBody(exchange.Id)!.DrainAsync(disposeStream: true));
 
                 Assert.Equal(bodyLength,
-                    await archiveReader.GetResponseBody(exchange.Id).DrainAsync(disposeStream: true));
+                    await archiveReader.GetResponseBody(exchange.Id)!.DrainAsync(disposeStream: true));
 
                 Assert.Contains(exchange.RequestHeader.Headers,
                     t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
 
                 if (withPcap)
-                    Assert.True(await archiveReader.GetRawCaptureStream(connection.Id).DrainAsync(disposeStream: true) > 0);
+                    Assert.True(await archiveReader.GetRawCaptureStream(connection.Id)!.DrainAsync(disposeStream: true) > 0);
 
                 if (withSimpleRule)
                 {

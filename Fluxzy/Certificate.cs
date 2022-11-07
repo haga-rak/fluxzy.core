@@ -9,17 +9,22 @@ namespace Fluxzy
 {
     public class Certificate
     {
-
         private X509Certificate2? _cachedCertificate = null;
 
         [JsonInclude]
         public CertificateRetrieveMode RetrieveMode { get; set; } = CertificateRetrieveMode.FluxzyDefault;
 
         /// <summary>
-        /// The certificate thumb print when location type is FromUserStoreSerialNumber
+        /// The certificate serial number when location type is FromUserStoreSerialNumber
         /// </summary>
         [JsonInclude]
         public string? SerialNumber { get; set; }
+
+        /// <summary>
+        /// The certificate thumb print when location type is FromUserStoreSerialNumber
+        /// </summary>
+        [JsonInclude]
+        public string? ThumbPrint { get; set; }
 
         /// <summary>
         /// The certificate file when location type is FromPkcs12
@@ -38,8 +43,17 @@ namespace Fluxzy
         {
             return new Certificate()
             {
+                RetrieveMode = CertificateRetrieveMode.FromUserStoreThumbPrint,
+                ThumbPrint = thumbPrint
+            };
+        }
+
+        public static Certificate LoadFromUserStoreBySerialNumber(string serialNumber)
+        {
+            return new Certificate()
+            {
                 RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
-                SerialNumber = thumbPrint
+                SerialNumber = serialNumber
             };
         }
 
@@ -85,11 +99,36 @@ namespace Fluxzy
                         .FirstOrDefault();
 
                     if (certificate == null)
-                        throw new FluxzyException($"Could not retrieve certificate with serialNumber `{SerialNumber}`.");
+                        throw new FluxzyException($"Could not retrieve certificate with serial number `{SerialNumber}`.");
 
                     if (!certificate.HasPrivateKey)
                     {
-                        throw new FluxzyException($"Either certificate with thumbprint `{SerialNumber}` does not contains private key " +
+                        throw new FluxzyException($"Either certificate with serial number `{SerialNumber}` does not contains private key " +
+                                                  $"or current user does not have enough rights to read.");
+
+                    }
+
+                    return _cachedCertificate = certificate;
+                }
+
+                case CertificateRetrieveMode.FromUserStoreThumbPrint:
+                {
+                    using var store = new X509Store(StoreName.My,
+                        StoreLocation.CurrentUser);
+
+                    store.Open(OpenFlags.ReadOnly);
+
+                    var certificate = store.Certificates.Find(X509FindType.FindByThumbprint,
+                            ThumbPrint, false)
+                        .OfType<X509Certificate2>()
+                        .FirstOrDefault();
+
+                    if (certificate == null)
+                        throw new FluxzyException($"Could not retrieve certificate with thumbPrint `{ThumbPrint}`.");
+
+                    if (!certificate.HasPrivateKey)
+                    {
+                        throw new FluxzyException($"Either certificate with thumbprint `{ThumbPrint}` does not contains private key " +
                                                   $"or current user does not have enough rights to read.");
 
                     }
@@ -108,6 +147,7 @@ namespace Fluxzy
         {
             return RetrieveMode == other.RetrieveMode
                    && SerialNumber == other.SerialNumber
+                   && ThumbPrint == other.ThumbPrint
                    && Pkcs12File == other.Pkcs12File
                    && Pkcs12Password == other.Pkcs12Password;
         }
@@ -125,7 +165,7 @@ namespace Fluxzy
 
         public override int GetHashCode()
         {
-            return HashCode.Combine((int)RetrieveMode, SerialNumber, Pkcs12File, Pkcs12Password);
+            return HashCode.Combine((int)RetrieveMode, SerialNumber, ThumbPrint, Pkcs12File, Pkcs12Password);
         }
     }
 }
