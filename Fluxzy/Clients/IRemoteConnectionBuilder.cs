@@ -101,13 +101,6 @@ namespace Fluxzy.Clients
             if (context.ClientCertificates != null && context.ClientCertificates.Count > 0)
             {
                 authenticationOptions.ClientCertificates = context.ClientCertificates;
-
-                authenticationOptions.LocalCertificateSelectionCallback =
-                    (sender, host, certificates, certificate, issuers) =>
-                    {
-                        return certificates[0];
-                    };
-
             }
 
             await sslStream.AuthenticateAsClientAsync(authenticationOptions, token);
