@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
+using Fluxzy.Tests._Files;
 using Fluxzy.Tests.Cli.Scaffolding;
 using Fluxzy.Tests.Common;
 using Xunit;
@@ -82,16 +83,16 @@ namespace Fluxzy.Tests.Cli
             // Assert
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
         }
-        
-        //[Theory]
-        //[InlineData("http11")]
-        //[InlineData("http2")]
+
+        [Theory]
+        [InlineData("http2")]
         public async Task Run_Cli_With_ClientCertificate(string protocol)
         {
             // Arrange 
             var commandLine = "start -l 127.0.0.1/0";
             var ruleFile = $"rules.yml";
-            File.WriteAllBytes("cc.pfx", FileStore.Fluxzy); 
+
+            File.WriteAllBytes("cc.pfx", StorageContext.client_cert); 
 
             var yamlContent = """
                 rules:
@@ -101,9 +102,8 @@ namespace Fluxzy.Tests.Cli
                       typeKind: SetClientCertificateAction
                       clientCertificate: 
                         pkcs12File: cc.pfx
-                        pkcs12Password: echoes
+                        pkcs12Password: Multipass85/
                         retrieveMode: FromPkcs12
-                      headerValue: on
                 """;
 
             File.WriteAllText(ruleFile, yamlContent);
@@ -116,7 +116,7 @@ namespace Fluxzy.Tests.Cli
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
             var requestMessage =
-                //new HttpRequestMessage(HttpMethod.Get, $"https://client.badssl.com/");
+               // new HttpRequestMessage(HttpMethod.Get, $"https://client.badssl.com/");
                 new HttpRequestMessage(HttpMethod.Get, $"{TestConstants.GetHost(protocol)}/certificate");
             
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
@@ -124,7 +124,11 @@ namespace Fluxzy.Tests.Cli
             // Act 
             using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
 
+            var thumbPrint = await response.Content.ReadAsStringAsync();
+            var expectedThumbPrint = "960b00317d47d0d52d04a3a03b045e96bf3be3a3";
+
             Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(expectedThumbPrint, thumbPrint, StringComparer.OrdinalIgnoreCase);
         }
 
         [Theory]

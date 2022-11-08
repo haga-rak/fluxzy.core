@@ -34,4 +34,23 @@
     <ProjectReference Include="..\SubModules\Sandbox\fluxzy.sandbox.models\fluxzy.sandbox.models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="_Files\Certificates\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="_Files\StorageContext.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StorageContext.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="_Files\StorageContext.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>StorageContext.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
