@@ -1,6 +1,7 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
 using System.Net;
+using System.Security.Authentication;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Desktop.Services;
@@ -282,6 +283,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
                 .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
+                .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -301,6 +303,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
                 .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
+                .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)

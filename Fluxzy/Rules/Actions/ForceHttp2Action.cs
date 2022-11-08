@@ -11,7 +11,7 @@ namespace Fluxzy.Rules.Actions
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
         public override string DefaultDescription => $"Force using HTTP/2.0";
-
+        
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             // TODO avoid allocating new list here 

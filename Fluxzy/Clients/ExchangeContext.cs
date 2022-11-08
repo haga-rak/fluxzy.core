@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Clients.Mock;
 
@@ -43,6 +44,8 @@ namespace Fluxzy.Clients
 
         public List<SslApplicationProtocol>?  SslApplicationProtocols { get; set; }
 
+
+        public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
     }
 
     

@@ -93,9 +93,11 @@ namespace Fluxzy.Clients
             var authenticationOptions = new SslClientAuthenticationOptions()
             {
                 TargetHost = authority.HostName , 
-                EnabledSslProtocols = setting.ProxyTlsProtocols,
+                EnabledSslProtocols = context.ProxyTlsProtocols,
                 ApplicationProtocols = httpProtocols
             };
+
+            authenticationOptions.
 
             if (context.ClientCertificates != null && context.ClientCertificates.Count > 0)
             {
