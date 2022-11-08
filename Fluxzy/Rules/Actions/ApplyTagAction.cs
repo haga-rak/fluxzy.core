@@ -15,7 +15,7 @@ namespace Fluxzy.Rules.Actions
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
-            if (Tag != null)
+            if (Tag != null && exchange != null)
             {
                 exchange.Tags ??= new HashSet<Tag>();
                 exchange.Tags.Add(Tag);

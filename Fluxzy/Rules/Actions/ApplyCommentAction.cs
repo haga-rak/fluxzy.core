@@ -20,7 +20,9 @@ namespace Fluxzy.Rules.Actions
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
-            exchange.Comment = Comment;
+            if (exchange != null)
+                exchange.Comment = Comment;
+
             return default;
         }
 
