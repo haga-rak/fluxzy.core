@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Security.Authentication;
 using Fluxzy.Rules.Actions;
 using Action = Fluxzy.Rules.Action;
 
@@ -26,7 +27,8 @@ namespace Fluxzy.Desktop.Services.Rules
             }),
             new SpoofDnsAction(),
             new ForceHttp11Action(),
-            new ForceHttp2Action()
+            new ForceHttp2Action(),
+            new ForceTlsVersion(SslProtocols.Tls13)
         };
 
         public List<Action> GetDefaultActions()

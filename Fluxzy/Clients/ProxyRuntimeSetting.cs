@@ -21,12 +21,7 @@ namespace Fluxzy.Clients
         public ITcpConnectionProvider TcpConnectionProvider { get; } = ITcpConnectionProvider.Default;
 
         public RealtimeArchiveWriter ArchiveWriter { get; }
-
-        /// <summary>
-        ///     Protocols supported by the current proxy
-        /// </summary>
-        public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11;
-
+        
         /// <summary>
         ///     Process to validate the remote certificate
         /// </summary>
@@ -56,7 +51,6 @@ namespace Fluxzy.Clients
             TcpConnectionProvider = tcpConnectionProvider;
             ArchiveWriter = archiveWriter;
             IdProvider = idProvider;
-            ProxyTlsProtocols = startupSetting.ServerProtocols;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
         }
 

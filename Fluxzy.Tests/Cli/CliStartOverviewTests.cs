@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -133,7 +134,6 @@ namespace Fluxzy.Tests.Cli
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
             var requestMessage =
-               // new HttpRequestMessage(HttpMethod.Get, $"https://client.badssl.com/");
                 new HttpRequestMessage(HttpMethod.Get, $"{TestConstants.GetHost("http2")}/certificate");
             
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
