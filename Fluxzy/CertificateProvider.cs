@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -9,7 +10,7 @@ namespace Fluxzy
 {
     public class CertificateProvider : ICertificateProvider
     {
-        private readonly X509Certificate2 _baseCertificate;
+        private readonly X509Certificate2 _rootCertificate;
         private readonly ICertificateCache _certCache;
         private readonly ConcurrentDictionary<string, Lazy<byte[]>> _certificateRepository = new();
 
@@ -22,7 +23,7 @@ namespace Fluxzy
         {
             _certCache = certCache;
 
-            _baseCertificate =
+            _rootCertificate =
                 startupSetting.CaCertificate.GetCertificate();
 
             // Warming : Make RSA Threadsafe
@@ -41,7 +42,7 @@ namespace Fluxzy
 
                 var lazyCertificate =
                     _certificateRepository.GetOrAdd(hostName, new Lazy<byte[]>(() =>
-                        _certCache.Load(_baseCertificate.SerialNumber!, hostName, BuildCertificateForRootDomain), true));
+                        _certCache.Load(_rootCertificate.SerialNumber!, hostName, BuildCertificateForRootDomain), true));
 
                 var val = lazyCertificate.Value;
 
@@ -73,24 +74,22 @@ namespace Fluxzy
             var randomGenerator = new Random();
 
             var certificateRequest = new CertificateRequest(
-                $"CN=*.{rootDomain}, OU={rootDomain.ToUpperInvariant()}",
+                $"CN=*.{rootDomain}",
                 _rsaKeyEngine,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
 
-            certificateRequest.CertificateExtensions.Add(
-                new X509BasicConstraintsExtension(false, false, 0, false));
+            //certificateRequest.CertificateExtensions.Add(
+            //    new X509BasicConstraintsExtension(false, false, 0, false));
 
             certificateRequest.CertificateExtensions.Add(
                 new X509KeyUsageExtension(
                     X509KeyUsageFlags.DigitalSignature
                     | X509KeyUsageFlags.DataEncipherment
                     | X509KeyUsageFlags.KeyEncipherment
-                    | X509KeyUsageFlags.KeyCertSign
-                    | X509KeyUsageFlags.NonRepudiation
-                    | X509KeyUsageFlags.KeyAgreement
+                    //| X509KeyUsageFlags.KeyCertSign
                     ,
-                    false));
+                    true));
 
             var alternativeName = new SubjectAlternativeNameBuilder();
 
@@ -98,6 +97,7 @@ namespace Fluxzy
             alternativeName.AddDnsName($"*.{rootDomain}");
 
             certificateRequest.CertificateExtensions.Add(alternativeName.Build());
+            certificateRequest.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(_rootCertificate, false));
 
             certificateRequest.CertificateExtensions.Add(
                 new X509EnhancedKeyUsageExtension(
@@ -113,22 +113,50 @@ namespace Fluxzy
 
             // Sign the certificate according to parent 
 
-            var offSetEnd = new DateTimeOffset(_baseCertificate.NotAfter.AddSeconds(-1));
-            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(30));
+            var offSetEnd = new DateTimeOffset(_rootCertificate.NotAfter.AddSeconds(-1));
+            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(34));
 
             if (offSetEnd > offsetLimit) offSetEnd = offsetLimit;
 
             var buffer = new byte[16];
             randomGenerator.NextBytes(buffer);
 
-            using var cert = certificateRequest.Create(_baseCertificate,
-                new DateTimeOffset(_baseCertificate.NotBefore.AddSeconds(1)),
+            using var cert = certificateRequest.Create(_rootCertificate,
+                new DateTimeOffset(_rootCertificate.NotBefore.AddSeconds(1)),
                 offSetEnd,
                 buffer);
 
             using var privateKeyCertificate = cert.CopyWithPrivateKey(_rsaKeyEngine);
 
             return privateKeyCertificate.Export(X509ContentType.Pkcs12);
+        }
+    }
+
+    public class X509AuthorityKeyIdentifierExtension : X509Extension
+    {
+        private static Oid AuthorityKeyIdentifierOid => new Oid("2.5.29.35");
+        private static Oid SubjectKeyIdentifierOid => new Oid("2.5.29.14");
+
+        public X509AuthorityKeyIdentifierExtension(X509Certificate2 certificateAuthority, bool critical)
+            : base(AuthorityKeyIdentifierOid, EncodeExtension(certificateAuthority), critical)
+        {
+        }
+
+        private static byte[] EncodeExtension(X509Certificate2 certificateAuthority)
+        {
+            var subjectKeyIdentifier = certificateAuthority.Extensions.Cast<X509Extension>().FirstOrDefault(p => p.Oid?.Value == SubjectKeyIdentifierOid.Value);
+            if (subjectKeyIdentifier == null)
+                return null;
+            var rawData = subjectKeyIdentifier.RawData;
+            var segment = new ArraySegment<byte>(rawData, 2, rawData.Length - 2);
+            var authorityKeyIdentifier = new byte[segment.Count + 4];
+            // KeyID of the AuthorityKeyIdentifier
+            authorityKeyIdentifier[0] = 0x30;
+            authorityKeyIdentifier[1] = 0x16;
+            authorityKeyIdentifier[2] = 0x80;
+            authorityKeyIdentifier[3] = 0x14;
+            segment.CopyTo(authorityKeyIdentifier, 4);
+            return authorityKeyIdentifier;
         }
     }
 }
