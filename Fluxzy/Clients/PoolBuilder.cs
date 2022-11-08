@@ -25,7 +25,7 @@ namespace Fluxzy.Clients
             SslApplicationProtocol.Http11,
             SslApplicationProtocol.Http2
         };
-
+        
         private readonly RealtimeArchiveWriter _archiveWriter;
 
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
@@ -165,7 +165,7 @@ namespace Fluxzy.Clients
                 var openingResult =
                     await _remoteConnectionBuilder.OpenConnectionToRemote(
                         exchange.Authority, exchange.Context,
-                        AllProtocols, proxyRuntimeSetting, cancellationToken);
+                        exchange.Context.SslApplicationProtocols ?? AllProtocols, proxyRuntimeSetting, cancellationToken);
 
                 exchange.Connection = openingResult.Connection;
 

@@ -24,7 +24,9 @@ namespace Fluxzy.Desktop.Services.Rules
             {
                 RetrieveMode = CertificateRetrieveMode.FromPkcs12
             }),
-            new SpoofDnsAction()
+            new SpoofDnsAction(),
+            new ForceHttp11Action(),
+            new ForceHttp2Action()
         };
 
         public List<Action> GetDefaultActions()

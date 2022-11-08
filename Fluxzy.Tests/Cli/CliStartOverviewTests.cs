@@ -85,8 +85,9 @@ namespace Fluxzy.Tests.Cli
         }
 
         [Theory]
-        [InlineData("http2")]
-        public async Task Run_Cli_With_ClientCertificate(string protocol)
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task Run_Cli_With_ClientCertificate(bool forceH11)
         {
             // Arrange 
             var commandLine = "start -l 127.0.0.1/0";
@@ -106,7 +107,23 @@ namespace Fluxzy.Tests.Cli
                         retrieveMode: FromPkcs12
                 """;
 
-            File.WriteAllText(ruleFile, yamlContent);
+            var yamlContentForceHttp11 = """
+                rules:
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: SetClientCertificateAction
+                      clientCertificate: 
+                        pkcs12File: cc.pfx
+                        pkcs12Password: Multipass85/
+                        retrieveMode: FromPkcs12 
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: ForceHttp11Action
+                """;
+
+            File.WriteAllText(ruleFile, forceH11 ? yamlContentForceHttp11 : yamlContent);
 
             commandLine += $" -r {ruleFile}";
 
@@ -117,7 +134,7 @@ namespace Fluxzy.Tests.Cli
 
             var requestMessage =
                // new HttpRequestMessage(HttpMethod.Get, $"https://client.badssl.com/");
-                new HttpRequestMessage(HttpMethod.Get, $"{TestConstants.GetHost(protocol)}/certificate");
+                new HttpRequestMessage(HttpMethod.Get, $"{TestConstants.GetHost("http2")}/certificate");
             
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
 
