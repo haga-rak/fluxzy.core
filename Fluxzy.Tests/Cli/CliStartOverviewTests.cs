@@ -82,6 +82,50 @@ namespace Fluxzy.Tests.Cli
             // Assert
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
         }
+        
+        //[Theory]
+        //[InlineData("http11")]
+        //[InlineData("http2")]
+        public async Task Run_Cli_With_ClientCertificate(string protocol)
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0";
+            var ruleFile = $"rules.yml";
+            File.WriteAllBytes("cc.pfx", FileStore.Fluxzy); 
+
+            var yamlContent = """
+                rules:
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: SetClientCertificateAction
+                      clientCertificate: 
+                        pkcs12File: cc.pfx
+                        pkcs12Password: echoes
+                        retrieveMode: FromPkcs12
+                      headerValue: on
+                """;
+
+            File.WriteAllText(ruleFile, yamlContent);
+
+            commandLine += $" -r {ruleFile}";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+            var requestMessage =
+                //new HttpRequestMessage(HttpMethod.Get, $"https://client.badssl.com/");
+                new HttpRequestMessage(HttpMethod.Get, $"{TestConstants.GetHost(protocol)}/certificate");
+            
+            requestMessage.Headers.Add("X-Test-Header-256", "That value");
+
+            // Act 
+            using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+
+            Assert.True(response.IsSuccessStatusCode);
+        }
 
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
@@ -209,8 +253,6 @@ namespace Fluxzy.Tests.Cli
             var requestMessage = new HttpRequestMessage(HttpMethod.Post,
                 "https://registry.2befficient.io:40300/status/304");
 
-            //  requestMessage.Headers.Add("xxxx", new string('a', 1024 * 2));
-
             var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
             var content = await response.Content.ReadAsStringAsync();
 
@@ -285,8 +327,8 @@ namespace Fluxzy.Tests.Cli
 
         [Theory]
         [InlineData(5)]
-        [InlineData(1024 * 64 * 16 )]
         [InlineData(125 * 1024 + 5)]
+        [InlineData(1024 * 64 * 16)]
         public async Task Run_Cli_For_Web_Socket_Req_Res(int length)
         {
             var random = new Random(9);

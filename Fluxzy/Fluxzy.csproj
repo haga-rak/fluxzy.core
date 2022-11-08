@@ -48,7 +48,7 @@
 	<ItemGroup>
 		<EmbeddedResource Update="FileStore.resx">
 			<LastGenOutput>FileStore.Designer.cs</LastGenOutput>
-			<Generator>ResXFileCodeGenerator</Generator>
+			<Generator>PublicResXFileCodeGenerator</Generator>
 		</EmbeddedResource>
 	</ItemGroup>
 
