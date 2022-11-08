@@ -513,9 +513,30 @@ export interface DeleteResponseHeaderAction extends Action
 	actionScope: number;
 	defaultDescription: string;
 }
+export interface ForceHttp11Action extends Action
+{
+	actionScope: number;
+	defaultDescription: string;
+}
+export interface ForceHttp2Action extends Action
+{
+	actionScope: number;
+	defaultDescription: string;
+}
+export interface ForceTlsVersionAction extends Action
+{
+	sslProtocols: string;
+	actionScope: number;
+	defaultDescription: string;
+}
 export interface SetClientCertificateAction extends Action
 {
 	clientCertificate: Certificate;
+	actionScope: number;
+	defaultDescription: string;
+}
+export interface SkipRemoteCertificateValidationAction extends Action
+{
 	actionScope: number;
 	defaultDescription: string;
 }
@@ -630,7 +651,7 @@ export interface FluxzySetting
 	boundPointsDescription: string;
 	verbose: boolean;
 	connectionPerHost: number;
-	serverProtocols: number;
+	serverProtocols: string;
 	caCertificate: Certificate;
 	certificateCacheDirectory: string;
 	autoInstallCertificate: boolean;
@@ -786,7 +807,7 @@ export interface AuthorityInfo
 }
 export interface SslInfo
 {
-	sslProtocol: number;
+	sslProtocol: string;
 	remoteCertificateIssuer?: string;
 	remoteCertificateSubject?: string;
 	localCertificateSubject?: string;

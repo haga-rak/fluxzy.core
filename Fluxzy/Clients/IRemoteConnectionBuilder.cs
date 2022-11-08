@@ -83,10 +83,12 @@ namespace Fluxzy.Clients
 
             connection.SslNegotiationStart = _timeProvider.Instant();
 
-            byte[]? remoteCertificate = null; 
+            byte[]? remoteCertificate = null;
 
-
-            var sslStream = new SslStream(newlyOpenedStream, false, (sender, certificate, chain, errors) => errors == SslPolicyErrors.None);
+            var sslStream =
+                context.SkipRemoteCertificateValidation
+                    ? new SslStream(newlyOpenedStream, false, (_, _, _, errors) => true)
+                    : new SslStream(newlyOpenedStream, false);
 
             Stream resultStream = sslStream; 
 
@@ -96,8 +98,7 @@ namespace Fluxzy.Clients
                 EnabledSslProtocols = context.ProxyTlsProtocols,
                 ApplicationProtocols = httpProtocols
             };
-
-            authenticationOptions.
+            
 
             if (context.ClientCertificates != null && context.ClientCertificates.Count > 0)
             {
