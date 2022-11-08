@@ -41,7 +41,7 @@ namespace Fluxzy.Clients.H2
 
         private volatile bool _complete;
 
-        private CancellationTokenSource? _connectionCancellationTokenSource = new();
+        private CancellationTokenSource _connectionCancellationTokenSource = new();
 
         private bool _goAwayInitByRemote;
 
@@ -56,6 +56,7 @@ namespace Fluxzy.Clients.H2
         private WindowSizeHolder _overallWindowSizeHolder;
 
         private SemaphoreSlim? _writeSemaphore = new(1);
+        private readonly CancellationToken _connectionToken;
 
         public int Id { get; }
 
@@ -76,6 +77,7 @@ namespace Fluxzy.Clients.H2
             _connection = connection;
             _onConnectionFaulted = onConnectionFaulted;
             _logger = new H2Logger(Authority, Id);
+            _connectionToken = _connectionCancellationTokenSource.Token; 
 
             _overallWindowSizeHolder = new WindowSizeHolder(_logger, Setting.OverallWindowSize, 0);
 
@@ -113,8 +115,8 @@ namespace Fluxzy.Clients.H2
             _baseStream.Write(Preface);
             SettingHelper.WriteWelcomeSettings(_baseStream, Setting.Local, _logger);
 
-            _innerReadTask = InternalReadLoop(_connectionCancellationTokenSource!.Token);
-            _innerWriteRun = InternalWriteLoop(_connectionCancellationTokenSource!.Token);
+            _innerReadTask = InternalReadLoop(_connectionToken);
+            _innerWriteRun = InternalWriteLoop(_connectionToken);
         }
 
         public ValueTask<bool> CheckAlive()
