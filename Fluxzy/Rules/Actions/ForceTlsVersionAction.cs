@@ -7,15 +7,14 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class ForceTlsVersion : Action
+    public class ForceTlsVersionAction : Action
     {
-        public ForceTlsVersion(SslProtocols sslProtocols)
+        public ForceTlsVersionAction(SslProtocols sslProtocols)
         {
             SslProtocols = sslProtocols;
         }
 
         public SslProtocols SslProtocols { get; set; }
-
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 

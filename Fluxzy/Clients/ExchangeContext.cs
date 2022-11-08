@@ -46,6 +46,8 @@ namespace Fluxzy.Clients
 
 
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
+
+        public bool SkipRemoteCertificateValidation { get; set; } = false; 
     }
 
     

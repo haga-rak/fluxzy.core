@@ -252,7 +252,6 @@ namespace Fluxzy.Desktop.Ui
                                       .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)
                                                             && derivedType.IsClass).ToList();
 
-
             builder.ExportAsInterfaces(foundTypes, a => a.ApplyGenericPropertiesGeneric());
         }
         

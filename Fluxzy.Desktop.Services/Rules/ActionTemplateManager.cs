@@ -28,7 +28,8 @@ namespace Fluxzy.Desktop.Services.Rules
             new SpoofDnsAction(),
             new ForceHttp11Action(),
             new ForceHttp2Action(),
-            new ForceTlsVersion(SslProtocols.Tls13)
+            new ForceTlsVersionAction(SslProtocols.Tls12),
+            new SkipRemoteCertificateValidationAction(),
         };
 
         public List<Action> GetDefaultActions()
