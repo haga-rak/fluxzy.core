@@ -648,7 +648,7 @@ namespace Fluxzy.Clients.H2
 
             using var streamCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                 callerCancellationToken,
-                _connectionCancellationTokenSource.Token);
+                _connectionToken);
 
             var streamCancellationToken = streamCancellationTokenSource.Token;
 
@@ -658,7 +658,7 @@ namespace Fluxzy.Clients.H2
 
                 try
                 {
-                    if (Complete || _connectionCancellationTokenSource.Token.IsCancellationRequested)
+                    if (Complete || _connectionToken.IsCancellationRequested)
                         throw new ConnectionCloseException("This connection is already closed");
 
                     activeStream =
