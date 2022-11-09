@@ -14,6 +14,7 @@ using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Formatters.Producers.Responses;
 using Fluxzy.Misc.Converters;
+using Fluxzy.Misc.IpUtils;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 using Reinforced.Typings.Ast.TypeNames;
@@ -80,6 +81,9 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<FluxzySetting>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FluxzySettingViewModel>()
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<Certificate>()
@@ -239,6 +243,12 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<CertificateOnStore>()
                    .ApplyGenericProperties();
+
+            builder.ExportAsInterface<IPEndPoint>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<NetworkInterfaceInfo>()
+                   .ApplyGenericProperties();
         }
 
         private static void ConfigureFilters(ConfigurationBuilder builder)
@@ -283,6 +293,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
                 .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
+                .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -303,6 +314,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
                 .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
+                .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)

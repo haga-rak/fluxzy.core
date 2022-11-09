@@ -3,6 +3,7 @@
 
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Misc.IpUtils;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -11,7 +12,7 @@ namespace Fluxzy.Desktop.Services
     /// </summary>
     public class SystemService
     {
-        public List<CertificateOnStore> GetStoreCertificates()
+        public List<CertificateOnStore> GetStoreCertificates(bool caOnly)
         {
             var result = new List<CertificateOnStore>();
 
@@ -25,6 +26,9 @@ namespace Fluxzy.Desktop.Services
                 if (!certificate.HasPrivateKey)
                     continue;
 
+                if (caOnly && !certificate.IsCa())
+                    continue;
+                
                 result.Add(new CertificateOnStore(certificate.Thumbprint, certificate.SubjectName.Name.ToString()));
             }
 

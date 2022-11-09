@@ -19,9 +19,9 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpGet("certificates")]
-        public ActionResult<List<CertificateOnStore>> GetStoreCertificates()
+        public ActionResult<List<CertificateOnStore>> GetStoreCertificates([FromQuery] bool caOnly = false)
         {
-            return _systemService.GetStoreCertificates(); 
+            return _systemService.GetStoreCertificates(caOnly); 
         }
     }
 }

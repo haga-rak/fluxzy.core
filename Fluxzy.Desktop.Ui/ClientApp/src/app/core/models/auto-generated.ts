@@ -165,6 +165,17 @@ export interface CertificateOnStore
 	thumbPrint: string;
 	friendlyName: string;
 }
+export interface IPEndPoint
+{
+	addressFamily: number;
+	address: string;
+	port: number;
+}
+export interface NetworkInterfaceInfo
+{
+	ipAddress: string;
+	interfaceName: string;
+}
 export interface TemplateToolBarFilterModel
 {
 	quickFilters: Filter[];
@@ -608,7 +619,7 @@ export interface ProxyEndPoint
 }
 export interface ProxyBindPoint
 {
-	endPoint: any;
+	endPoint: IPEndPoint;
 	default: boolean;
 }
 export interface ArchivingPolicy
@@ -644,6 +655,7 @@ export interface FilteredExchangeState
 export interface FluxzySettingsHolder
 {
 	startupSetting: FluxzySetting;
+	viewModel?: FluxzySettingViewModel;
 }
 export interface FluxzySetting
 {
@@ -661,6 +673,12 @@ export interface FluxzySetting
 	maxHeaderLength: number;
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: Rule[];
+}
+export interface FluxzySettingViewModel
+{
+	port: number;
+	addresses: string[];
+	listenType: string;
 }
 export interface CertificateValidationResult
 {

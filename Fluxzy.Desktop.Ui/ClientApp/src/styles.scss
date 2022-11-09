@@ -159,7 +159,7 @@ pre > code {
     width: 90% !important;
 }
 .modal {
-    background: rgba(0, 0, 0, .4);
+    background: rgba(0, 0, 0, .25);
 }
 
 .modal-header {
@@ -303,4 +303,11 @@ a {
 a.auto-color {
     color: var(--bs-gray-300);
     text-decoration: none;
+}
+
+.dark-box {
+
+    background-color: var(--bs-gray-400);
+    padding: 16px;
+    border-radius:8px;
 }
