@@ -1,8 +1,10 @@
 ![Build status](https://github.com/haga-rak/fluxzy/actions/workflows/dotnet.yml/badge.svg)
 
 # fluxzy 
-fluxzy is an HTTP analyzer and debugger engine with powerful and flexible alteration system. 
-fluxzy is designed to deliver high end diagnosis and accurate performance measures. fluxzy targets .NET Standard 2.1, that means that it runs on any platform supporting this later. 
+fluxzy is a metric-centric cross-platform  HTTP analyzer, debugger, and alteration tool for HTTP/1.1, H2 and Websockets.
+
+You can use fluxzy on Windows, macOs and linux as a Desktop application, command line tool or as a .NET 2.1 standard library. 
+
 
 # fluxzy.cli (fxzy) 
 fxzy is a command line tool taking full advantage of the fluxzy engine, allowing you to a automate fluxzy features without writing any line of code. Run `fxzy --help` to get more information about this tool. 
