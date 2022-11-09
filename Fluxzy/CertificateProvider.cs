@@ -78,16 +78,12 @@ namespace Fluxzy
                 _rsaKeyEngine,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
-
-            //certificateRequest.CertificateExtensions.Add(
-            //    new X509BasicConstraintsExtension(false, false, 0, false));
-
+            
             certificateRequest.CertificateExtensions.Add(
                 new X509KeyUsageExtension(
                     X509KeyUsageFlags.DigitalSignature
                     | X509KeyUsageFlags.DataEncipherment
                     | X509KeyUsageFlags.KeyEncipherment
-                    //| X509KeyUsageFlags.KeyCertSign
                     ,
                     true));
 
