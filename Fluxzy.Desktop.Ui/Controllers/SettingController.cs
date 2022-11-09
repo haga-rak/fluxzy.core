@@ -3,6 +3,7 @@
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Misc.IpUtils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxzy.Desktop.Ui.Controllers
@@ -22,14 +23,27 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public async Task<ActionResult<FluxzySettingsHolder>> Get()
         {
             var settingsHolder = await _settingManager.ProvidedObservable.FirstAsync();
+
+            // Update view model 
+            settingsHolder.UpdateViewModel();
+
             return settingsHolder; 
         }
 
         [HttpPost]
         public async Task<ActionResult<bool>> Update(FluxzySettingsHolder model)
         {
+            model.UpdateModel();
             _settingManager.Update(model);
+
             return true; 
+        }
+        
+
+        [HttpGet("endpoint")]
+        public ActionResult<List<NetworkInterfaceInfo>> AvailableEndpoints()
+        {
+            return NetworkInterfaceInfoProvider.GetNetworkInterfaceInfos();
         }
     }
 }

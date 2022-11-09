@@ -1,7 +1,7 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System.Net;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Desktop.Services.Models
 {
@@ -20,83 +20,82 @@ namespace Fluxzy.Desktop.Services.Models
 
         private void SetupListenInterfaces(FluxzySetting setting)
         {
-            if (setting.BoundPoints.All(p => Equals(p.EndPoint.Address, IPAddress.IPv6Loopback) ||
-                                             Equals(p.EndPoint.Address, IPAddress.Loopback))
-                && setting.BoundPoints.Select(e => e.EndPoint.Port).Distinct().Count() == 1)
-            {
-                // Classic loop back configuration 
-                Port = setting.BoundPoints.Select(e => e.EndPoint.Port).First();
-                ListenType = ListenType.LocalHostOnly;
+            if (!setting.BoundPoints.Any()) {
+                Port = 44344;
+                Addresses = new List<IPAddress>() {
+                    IPAddress.Loopback
+                };
+                ListenType = ListenType.SelectiveAddress;
+                return; 
             }
-            else
-            {
-                if (setting.BoundPoints.Any(p => Equals(p.EndPoint.Address, IPAddress.Any)
-                                                 || Equals(p.EndPoint.Address, IPAddress.IPv6Any))
-                    && setting.BoundPoints.Select(e => e.EndPoint.Port).Distinct().Count() == 1)
-                {
-                    Port = setting.BoundPoints.Select(e => e.EndPoint.Port).First();
-                    ListenType = ListenType.AllInterfaces;
-                }
-                else
-                {
-                    ListenType = ListenType.SpecificInterface;
 
-                    foreach (var boundPoint in setting.BoundPoints.OrderBy(t => !t.Default))
-                    {
-                        SpecificAddresses.Add(boundPoint.EndPoint);
-                    }
-                }
+            Port = setting.BoundPoints.Select(s => s.EndPoint.Port)
+                          .GroupBy(p => p)
+                          .OrderByDescending(p => p.Count())
+                          .First().First();
+
+            if (setting.BoundPoints.Any(a => a.EndPoint.Address.Equals(IPAddress.Any))
+                || setting.BoundPoints.Any(a => a.EndPoint.Address.Equals(IPAddress.IPv6Any))) {
+
+                Addresses = new List<IPAddress>() {
+                    IPAddress.Any,
+                    IPAddress.IPv6Any,
+                };
+
+                ListenType = ListenType.AllInterfaces;
+                return; 
             }
+
+            Addresses = setting.BoundPoints.Select(s => s.EndPoint.Address)
+                               .Distinct().ToList();
+            ListenType = ListenType.SelectiveAddress;
         }
         
-        public void ViewModelToSetting(FluxzySetting target)
+        public void ApplyToSetting(FluxzySetting target)
         {
             target.BoundPoints.Clear();
 
-            switch (ListenType)
-            {
-                case ListenType.LocalHostOnly:
-                {
-                    target.BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(IPAddress.Loopback, Port), true));
-                    target.BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(IPAddress.IPv6Loopback, Port), false));
-                    break; 
-                }
-                case ListenType.AllInterfaces:
-                {
-                    target.BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(IPAddress.Any, Port), true));
-                    target.BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(IPAddress.IPv6Any, Port), false));
-                    break;
-                }
-                case ListenType.SpecificInterface:
-                {
-                    for (var index = 0; index < SpecificAddresses.Count; index++)
-                    {
-                        var endPoint = SpecificAddresses[index];
-                        target.BoundPoints.Add(new ProxyBindPoint(endPoint, index == 0));
-                    }
+            if (ListenType == ListenType.AllInterfaces) {
 
-                    break;
-                }
+                target.BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(
+                    IPAddress.Any, 44344), true));
+
+                target.BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(
+                    IPAddress.IPv6Any, 44344), false));
+
+                return;
+            }
+
+            if (!Addresses.Any()) {
+                target.BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(
+                    IPAddress.Loopback, 44344), true));
+
+                return; 
+            }
+
+            var first = true; 
+            foreach (var address in Addresses) {
+                
+                target.BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(address, Port), first));
+                first = false;
             }
         }
-
-        public ListenType ListenType { get; set; } = ListenType.LocalHostOnly; 
-
+        
         public int Port { get; set; }
 
-        public List<IPEndPoint> SpecificAddresses { get; set; } = new();
+        public List<IPAddress> Addresses { get; set; } = new(); 
+
+        public ListenType ListenType { get; set; }
 
         public void Update(FluxzySetting fluxzySetting)
         {
-            ViewModelToSetting(fluxzySetting);
+            ApplyToSetting(fluxzySetting);
         }
     }
 
-
     public enum ListenType
     {
-        LocalHostOnly = 1 , 
+        SelectiveAddress = 1, 
         AllInterfaces = 2, 
-        SpecificInterface = 3 
     }
 }

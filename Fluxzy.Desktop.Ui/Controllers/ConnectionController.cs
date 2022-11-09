@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Fluxzy.Formatters;
 using Fluxzy.Readers;
 using Microsoft.AspNetCore.Mvc;
 using System.Reactive.Linq;

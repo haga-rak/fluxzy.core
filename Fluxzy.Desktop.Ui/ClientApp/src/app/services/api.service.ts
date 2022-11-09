@@ -37,6 +37,7 @@ import {
     FormattingResult,
     ForwardMessage,
     MultipartItem,
+    NetworkInterfaceInfo,
     Rule,
     RuleContainer,
     SaveFileMultipartActionModel,
@@ -206,6 +207,11 @@ export class ApiService {
         return this.httpClient.get<FluxzySettingsHolder>(`api/setting`).pipe(take(1));
     }
 
+
+    public settingGetEndPoints() : Observable<NetworkInterfaceInfo[]> {
+        return this.httpClient.get<NetworkInterfaceInfo[]>(`api/setting/endpoint`).pipe(take(1));
+    }
+
     public settingUpdate(model : FluxzySettingsHolder) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/setting`, model).pipe(take(1));
     }
@@ -294,7 +300,7 @@ export class ApiService {
         return this.httpClient.post<CertificateValidationResult>(`api/extended-control/certificate/`, certificate).pipe(take(1)) ;
     }
 
-    public systemGetCertificates() : Observable<CertificateOnStore[]> {
-        return this.httpClient.get<CertificateOnStore[]>(`api/system/certificates`).pipe(take(1)) ;
+    public systemGetCertificates(caOnly : boolean = false) : Observable<CertificateOnStore[]> {
+        return this.httpClient.get<CertificateOnStore[]>(`api/system/certificates?caOnly=${caOnly}`).pipe(take(1)) ;
     }
 }

@@ -1,19 +1,29 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Newtonsoft.Json;
+
 namespace Fluxzy.Desktop.Services.Models
 {
     public class FluxzySettingsHolder
     {
-        public FluxzySettingsHolder()
-        {
-
-        }
-
-        public FluxzySettingsHolder(FluxzySetting startupSetting) : this()
+        [JsonConstructor]
+        public FluxzySettingsHolder(FluxzySetting startupSetting)
         {
             StartupSetting = startupSetting;
         }
 
-        public FluxzySetting StartupSetting { get; set; } = new();
+        public FluxzySetting StartupSetting { get;  }
+
+        public FluxzySettingViewModel? ViewModel { get; set; }
+
+        public void UpdateViewModel()
+        {
+            ViewModel = new FluxzySettingViewModel(StartupSetting); 
+        }
+
+        public void UpdateModel()
+        {
+            ViewModel?.ApplyToSetting(StartupSetting);
+        }
     }
 }
