@@ -6,10 +6,16 @@ import {
     ViewChild,
 } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { filter, tap } from 'rxjs';
-import {CertificateOnStore, FluxzySettingsHolder, NetworkInterfaceInfo} from '../../core/models/auto-generated';
+import {filter, map, Observable, pipe, switchMap, take, tap} from 'rxjs';
+import {
+    CertificateOnStore,
+    CertificateValidationResult,
+    FluxzySettingsHolder,
+    NetworkInterfaceInfo
+} from '../../core/models/auto-generated';
 import { MenuService } from '../../core/services/menu-service.service';
 import { ApiService } from '../../services/api.service';
+import {SystemCallService} from "../../core/services/system-call.service";
 
 @Component({
     selector: 'app-global-setting',
@@ -26,12 +32,14 @@ export class GlobalSettingComponent implements OnInit {
 
     public validationMessages : string [] ;
     private caStoreCertificates : CertificateOnStore[];
+    private certificateValidationResult : CertificateValidationResult ;
 
 
     constructor(
         public bsModalRef: BsModalRef,
         private apiService: ApiService,
-        private cd : ChangeDetectorRef
+        private cd : ChangeDetectorRef,
+        private systemCallService : SystemCallService
     ) {}
 
     ngOnInit(): void {
@@ -50,7 +58,8 @@ export class GlobalSettingComponent implements OnInit {
         this.apiService.systemGetCertificates(true)
             .pipe(
                 tap(t => this.caStoreCertificates = t),
-                tap(_ => this.cd.detectChanges())
+                tap(_ => this.cd.detectChanges()),
+                tap (_ => this.requestCertificateValidation())
             ).subscribe();
     }
 
@@ -72,7 +81,23 @@ export class GlobalSettingComponent implements OnInit {
         // console.log(this.settingsHolder.viewModel);
     }
 
-    public validate () : boolean {
+    public validateCertificate() : Observable<boolean> {
+        this.certificateValidationResult = null ;
+        return this.apiService
+            .extendedControlCheckCertificate(this.settingsHolder.startupSetting.caCertificate)
+            .pipe(
+                tap (t => this.certificateValidationResult = t),
+                tap (_ => this.cd.detectChanges()),
+                map(t => !!t.subjectName)
+            );
+    }
+
+    public requestCertificateValidation() : void {
+        this.validateCertificate()
+            .subscribe();
+    }
+
+    public syncValidation () : boolean {
         this.validationMessages = [];
 
         if (this.settingsHolder.viewModel.listenType === 'SelectiveAddress'
@@ -81,19 +106,29 @@ export class GlobalSettingComponent implements OnInit {
         }
 
         this.cd.detectChanges();
-
-
-
         return this.validationMessages.length === 0;
     }
 
-
     public save() : void {
-        if (!this.validate())
-            return;
+        let syncValidation = this.syncValidation() ;
 
-        // Update
+        this.validateCertificate()
+            .pipe(
+                map(t => t && syncValidation),
+                filter (t => t),
+                switchMap(t => this.apiService.settingUpdate(this.settingsHolder)),
+                tap(_ => this.bsModalRef.hide())
+            ).subscribe();
 
-        this.bsModalRef.hide();
+    }
+
+    public selectLocalCertificate() : void {
+        this.systemCallService.requestFileOpen('PKCS#12 file', ['p12', 'pfx'])
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                tap(t => this.settingsHolder.startupSetting.caCertificate.pkcs12File = t),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe();
     }
 }
