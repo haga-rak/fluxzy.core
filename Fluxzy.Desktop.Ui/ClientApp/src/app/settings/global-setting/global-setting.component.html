@@ -1,11 +1,10 @@
-
-  <div class="modal-header">
+<div class="modal-header">
     <h4 class="modal-title pull-left">Global settings</h4>
     <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
-      <span aria-hidden="true" class="visually-hidden">&times;</span>
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
-  </div>
-  <div class="modal-body" style="min-height: 600px">
+</div>
+<div class="modal-body" style="min-height: 600px">
     <div *ngIf="!settingsHolder">
         Loading settings ...
     </div>
@@ -14,31 +13,35 @@
         <div class="alert alert-danger" *ngIf="validationMessages && validationMessages.length">
             <ul>
                 <li *ngFor="let validationMessage of validationMessages">
-                   {{ validationMessage }}
+                    {{ validationMessage }}
                 </li>
             </ul>
         </div>
 
         <div class="dark-box shady-box" style="margin-bottom: 16px">
             <h4 style="border-bottom: 1px solid #555555">Proxy configuration</h4>
-<!--            <div>-->
-<!--                Specify on which interfaces fluxzy should listen for incoming HTTP connection.-->
-<!--            </div>-->
+            <!--            <div>-->
+            <!--                Specify on which interfaces fluxzy should listen for incoming HTTP connection.-->
+            <!--            </div>-->
             <div style="padding: 16px">
 
                 <div class="row">
 
                     <div class="col-8">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2"
-                                   [(ngModel)]="settingsHolder.viewModel.listenType" [value]="'AllInterfaces'" (ngModelChange)="cd.detectChanges()">
+                            <input class="form-check-input" type="radio" id="flexRadioDefault2"
+                                   name="zot"
+                                   [(ngModel)]="settingsHolder.viewModel.listenType" [value]="'AllInterfaces'"
+                                   (ngModelChange)="cd.detectChanges()">
                             <label class="form-check-label" for="flexRadioDefault2">
                                 Listen on all interfaces
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1"
-                                [(ngModel)]="settingsHolder.viewModel.listenType" [value]="'SelectiveAddress'" (ngModelChange)="cd.detectChanges()">
+                            <input class="form-check-input" type="radio" id="flexRadioDefault1"
+                                   name="zot"
+                                   [(ngModel)]="settingsHolder.viewModel.listenType" [value]="'SelectiveAddress'"
+                                   (ngModelChange)="cd.detectChanges()">
                             <label class="form-check-label" for="flexRadioDefault1">
                                 Listen on specific interfaces
                             </label>
@@ -50,11 +53,16 @@
                             <div *ngIf="networkInterfaceInfos" style="line-height : 36px">
                                 <ng-container *ngFor="let networkInterfaceInfo of networkInterfaceInfos">
 
-                                    <button class="btn" [ngClass]="{ 'btn-primary' : isInterfaceSelected(networkInterfaceInfo.ipAddress)}"
+                                    <button class="btn"
+                                            [ngClass]="{ 'btn-primary' : isInterfaceSelected(networkInterfaceInfo.ipAddress)}"
                                             (click)="selectInterface(networkInterfaceInfo.ipAddress)">
-                                        <i class="fa fa-check-square-o" aria-hidden="true" *ngIf=" isInterfaceSelected(networkInterfaceInfo.ipAddress)"></i>
-                                        <i class="fa fa-square-o" aria-hidden="true" *ngIf="! isInterfaceSelected(networkInterfaceInfo.ipAddress)"></i>
-                                        {{ networkInterfaceInfo.ipAddress}} ({{ networkInterfaceInfo.interfaceName }})
+                                        <i class="fa fa-check-square-o" aria-hidden="true"
+                                           *ngIf=" isInterfaceSelected(networkInterfaceInfo.ipAddress)"></i>
+                                        <i class="fa fa-square-o" aria-hidden="true"
+                                           *ngIf="! isInterfaceSelected(networkInterfaceInfo.ipAddress)"></i>
+                                        <span
+                                            [ngClass]="{ 'text-info' : !isInterfaceSelected(networkInterfaceInfo.ipAddress)}"> {{ networkInterfaceInfo.ipAddress}}
+                                            ({{ networkInterfaceInfo.interfaceName }})</span>
                                     </button>&nbsp;
                                 </ng-container>
 
@@ -63,9 +71,12 @@
                     </div>
 
                     <div class="col-4">
-                        <div  *ngIf="settingsHolder.viewModel.listenType !== 'SpecificInterface'">
+                        <div *ngIf="settingsHolder.viewModel.listenType !== 'SpecificInterface'">
+
+                            <small class="text-info">Fluxzy's port number</small>
                             <div class="form-floating mb-3">
-                                <input type="number" class="form-control" id="portNumber" [(ngModel)]="settingsHolder.viewModel.port"
+                                <input type="number" class="form-control" id="portNumber"
+                                       [(ngModel)]="settingsHolder.viewModel.port"
                                        min="1" max="65535">
                                 <label for="portNumber">Port number</label>
                             </div>
@@ -75,57 +86,114 @@
             </div>
         </div>
 
-        <div class="dark-box shady-box"  style="margin-bottom: 16px">
+        <div class="dark-box shady-box" style="margin-bottom: 16px">
             <h4 style="border-bottom: 1px solid #555555">Root CA configuration</h4>
-            <p>
+            <p class="text-info">
                 Select the root certificate to be used for decrypting the trafic
             </p>
             <div style="padding: 16px">
 
                 <div class="row">
-                    <div class="col-8">
+                    <div class="col-6">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault9"
-                                   [(ngModel)]="settingsHolder.startupSetting.caCertificate.retrieveMode" [value]="'FluxzyDefault'" (ngModelChange)="cd.detectChanges()">
+                            <input class="form-check-input" type="radio" id="flexRadioDefault9"
+                                   [(ngModel)]="settingsHolder.startupSetting.caCertificate.retrieveMode"
+                                   [value]="'FluxzyDefault'" (ngModelChange)="requestCertificateValidation()">
                             <label class="form-check-label" for="flexRadioDefault9">
                                 Use fluxzy's default embedded certificate
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault10"
-                                [(ngModel)]="settingsHolder.startupSetting.caCertificate.retrieveMode" [value]="'FromUserStoreThumbPrint'" (ngModelChange)="cd.detectChanges()">
+                            <input class="form-check-input" type="radio" id="flexRadioDefault10"
+                                   [(ngModel)]="settingsHolder.startupSetting.caCertificate.retrieveMode"
+                                   [value]="'FromUserStoreThumbPrint'" (ngModelChange)="requestCertificateValidation()">
                             <label class="form-check-label" for="flexRadioDefault10">
-                                From store
+                                From personal store
                             </label>
                         </div>
+
+                        <div
+                            *ngIf="settingsHolder.startupSetting.caCertificate.retrieveMode === 'FromUserStoreThumbPrint'"
+                            style="margin-left:36px">
+
+                            <div class="form-floating mb-3" *ngIf="caStoreCertificates">
+                                <select type="number" class="form-select"
+                                        [(ngModel)]="settingsHolder.startupSetting.caCertificate.thumbPrint">
+                                    <option *ngFor="let certificate of caStoreCertificates"
+                                            [value]="certificate.thumbPrint"> {{ certificate.friendlyName }}</option>
+                                </select>
+                                <label for="portNumber">Personal certificate</label>
+                            </div>
+
+                        </div>
+
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault11"
-                                [(ngModel)]="settingsHolder.startupSetting.caCertificate.retrieveMode" [value]="'FromPkcs12'" (ngModelChange)="cd.detectChanges()">
+                            <input class="form-check-input" type="radio" id="flexRadioDefault11"
+                                   [(ngModel)]="settingsHolder.startupSetting.caCertificate.retrieveMode"
+                                   [value]="'FromPkcs12'" (ngModelChange)="requestCertificateValidation()">
                             <label class="form-check-label" for="flexRadioDefault11">
                                 From PKCS#12 file (*.p12, *.pfx)
                             </label>
                         </div>
-                    </div>
-                    <div class="col-4">
-                        <div *ngIf="settingsHolder.startupSetting.caCertificate.retrieveMode === 'FromUserStoreThumbPrint'">
 
-                            <div class="form-floating mb-3" *ngIf="caStoreCertificates">
-                                <select type="number" class="form-select"  [(ngModel)]="settingsHolder.startupSetting.caCertificate.thumbPrint">
-                                    <option *ngFor="let certificate of caStoreCertificates" [value]="certificate.thumbPrint"> {{ certificate.friendlyName }}</option>
-                                </select>
-                                <label for="portNumber">Personal certificate</label>
+
+                        <div *ngIf="settingsHolder.startupSetting.caCertificate.retrieveMode === 'FromPkcs12'"
+                             style="margin-left:36px">
+
+                            <div style="margin-bottom: 16px">
+                                <strong
+                                    *ngIf="settingsHolder.startupSetting.caCertificate.pkcs12File">{{ settingsHolder.startupSetting.caCertificate.pkcs12File }}</strong>
+                                <strong *ngIf="!settingsHolder.startupSetting.caCertificate.pkcs12File">No file
+                                    selected</strong>
+                                <br/>
+                                <a href="javascript:;" (click)="selectLocalCertificate()">Select a file</a>
                             </div>
-                            <small>Only certificate with basic contraints CA and private key is selectable</small>
+
+                            <div class="form-floating mb-3"
+                                 *ngIf="caStoreCertificates && settingsHolder.startupSetting.caCertificate.pkcs12File">
+                                <input type="text" class="form-control"
+                                       [(ngModel)]="settingsHolder.startupSetting.caCertificate.pkcs12Password"
+                                       placeholder="Leave blank if any"/>
+                                <label for="portNumber">Password</label>
+                            </div>
 
                         </div>
+                    </div>
+                    <div class="col-6">
+
+                        <div *ngIf="certificateValidationResult">
+                            <div style="margin-bottom: 16px">
+                                &nbsp;
+                                <span class="float-end">
+                                    <a href="javascript:;" class="btn btn-secondary" (click)="requestCertificateValidation()">
+                                        <i class="fa fa-check" aria-hidden="true"></i>
+                                        Check certificate</a>
+                                </span>
+                            </div>
+                            <div class="alert alert-success" *ngIf="certificateValidationResult.subjectName">
+                                Current certificate : <br/>
+                                <strong>{{ certificateValidationResult.subjectName }}</strong>
+                            </div>
+
+                            <div class="alert alert-danger" *ngIf="certificateValidationResult.errors">
+                                An error occured while trying to load certificate :
+                                <ul>
+                                    <li *ngFor="let error of certificateValidationResult.errors">
+                                        {{ error.message }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+
                     </div>
                 </div>
             </div>
         </div>
 
     </div>
-  </div>
-  <div class="modal-footer">
+</div>
+<div class="modal-footer">
     <button class="btn btn-primary" (click)="save()">Save</button>
     <button class="btn btn-dark" (click)="bsModalRef.hide()">Close</button>
-  </div>
+</div>

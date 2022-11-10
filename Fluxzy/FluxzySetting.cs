@@ -54,7 +54,7 @@ namespace Fluxzy
         /// <summary>
         ///     The CA certificate used for decryption 
         /// </summary>
-        public Certificate CaCertificate { get; internal set; } = Certificate.UseDefault();
+        public Certificate CaCertificate { get; set; } = Certificate.UseDefault();
 
         /// <summary>
         ///     The default certificate cache directory. Setting this value helps improving performance because producing

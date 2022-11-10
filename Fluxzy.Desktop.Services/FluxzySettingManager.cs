@@ -33,7 +33,7 @@ namespace Fluxzy.Desktop.Services
             lock (_settingPath)
             {
                 using var outStream = File.Create(_settingPath);
-                JsonSerializer.Serialize(outStream, settingsHolder);
+                JsonSerializer.Serialize(outStream, settingsHolder, GlobalArchiveOption.JsonSerializerOptions);
             }
 
             _internalSubject.OnNext(settingsHolder);
@@ -49,7 +49,7 @@ namespace Fluxzy.Desktop.Services
             lock (_settingPath)
             {
                 using var inStream = File.OpenRead(_settingPath)!;
-                return (JsonSerializer.Deserialize<FluxzySettingsHolder>(inStream))!;
+                return (JsonSerializer.Deserialize<FluxzySettingsHolder>(inStream, GlobalArchiveOption.JsonSerializerOptions))!;
             }
         }
 

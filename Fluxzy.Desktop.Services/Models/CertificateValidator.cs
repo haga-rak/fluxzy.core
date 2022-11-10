@@ -14,6 +14,12 @@ namespace Fluxzy.Desktop.Services.Models
 
             switch (originalCertificate.RetrieveMode)
             {
+                case CertificateRetrieveMode.FluxzyDefault:
+                {
+                    certificate  = new X509Certificate2(FileStore.Fluxzy, "echoes");
+                    return validationErrors;
+                }
+
                 case CertificateRetrieveMode.FromUserStoreSerialNumber:
 
                     if (string.IsNullOrWhiteSpace(originalCertificate.SerialNumber))
