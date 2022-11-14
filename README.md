@@ -1,4 +1,3 @@
-![Build status](https://github.com/haga-rak/fluxzy/actions/workflows/dotnet.yml/badge.svg)
 
 # fluxzy 
 fluxzy is a metric-centric cross-platform  HTTP analyzer, debugger, and alteration tool for HTTP/1.1, H2 and Websockets.
