@@ -2,6 +2,9 @@
 
 namespace Fluxzy.Rules.Filters
 {
+    /// <summary>
+    /// Select exchanges that contain tag
+    /// </summary>
     public class HasTagFilter : Filter
     {
         protected override bool InternalApply(IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)

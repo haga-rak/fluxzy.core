@@ -7,10 +7,17 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
+
+    /// <summary>
+    /// Affect a tag to exchange. Tags are meta-information and do not alter the connection.
+    /// </summary>
     public class ApplyTagAction : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
+        /// <summary>
+        /// Tag value
+        /// </summary>
         public Tag? Tag { get; set; }
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)

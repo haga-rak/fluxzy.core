@@ -4,6 +4,9 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
+    /// <summary>
+    /// Select exchange according to request method.
+    /// </summary>
     public class MethodFilter : StringFilter
     {
         public override Guid Identifier => $"{Pattern}|{Operation}".GetMd5Guid();

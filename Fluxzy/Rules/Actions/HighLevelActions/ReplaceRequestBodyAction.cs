@@ -6,6 +6,9 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
+    /// <summary>
+    /// Replace a request body only 
+    /// </summary>
     public class ReplaceRequestBodyAction : Action
     {
         public BodyContent? Replacement { get; set; }

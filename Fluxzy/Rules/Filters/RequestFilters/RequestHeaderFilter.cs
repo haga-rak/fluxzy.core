@@ -7,6 +7,9 @@ using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
+    /// <summary>
+    /// Select exchange according to request header values.
+    /// </summary>
     public class RequestHeaderFilter : HeaderFilter
     {
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

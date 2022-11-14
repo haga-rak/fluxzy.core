@@ -7,6 +7,10 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
+    /// <summary>
+    /// Force the usage of a specific TLS version. Values can be chosen among : Tls, Tls11, Tls12, Tls13 (if .NET 6+), Ssl3, Ssl2.
+    /// Forcing the usage of a specific TLS version can break the exchange if the remote does not support the requested protocol.
+    /// </summary>
     public class ForceTlsVersionAction : Action
     {
         public ForceTlsVersionAction(SslProtocols sslProtocols)
@@ -14,6 +18,9 @@ namespace Fluxzy.Rules.Actions
             SslProtocols = sslProtocols;
         }
 
+        /// <summary>
+        /// SslProtocols : Values can be chosen among : Tls, Tls11, Tls12, Tls13 (if .NET 6+), Ssl3, Ssl2. 
+        /// </summary>
         public SslProtocols SslProtocols { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;

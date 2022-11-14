@@ -7,7 +7,8 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// Update and existing request header 
+    /// Update and existing request header. If the header does not exists in the original request, the header will be added.
+    /// <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
     /// </summary>
     public class UpdateRequestHeaderAction : Action
     {
@@ -17,8 +18,14 @@ namespace Fluxzy.Rules.Actions
             HeaderValue = headerValue;
         }
 
+        /// <summary>
+        /// Header name
+        /// </summary>
         public string HeaderName { get; set;  }
 
+        /// <summary>
+        /// Header value
+        /// </summary>
         public string HeaderValue { get; set;  }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;

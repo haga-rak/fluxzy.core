@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters
 {
+    /// <summary>
+    /// Select exchanges according to upstream ip address
+    /// </summary>
     public class IpEgressFilter : StringFilter
     {
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
