@@ -5,6 +5,9 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
+    /// <summary>
+    /// Select exchange that has request body. 
+    /// </summary>
     public class HasRequestBodyFilter : Filter
     {
         public override Guid Identifier => $"{GetType().Name}{Inverted}".GetMd5Guid();

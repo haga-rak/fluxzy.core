@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
+    /// <summary>
+    /// Select exchange according to HTTP status code
+    /// </summary>
     public class StatusCodeFilter : Filter
     {
         public List<int> StatusCodes { get; set; } = new();

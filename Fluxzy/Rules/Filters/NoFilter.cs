@@ -2,6 +2,9 @@
 
 namespace Fluxzy.Rules.Filters
 {
+    /// <summary>
+    /// Select nothing
+    /// </summary>
     public class NoFilter : Filter
     {
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;

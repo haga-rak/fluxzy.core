@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
+    /// <summary>
+    /// Filter according to full url (includes path and query)
+    /// </summary>
     public class FullUrlFilter : StringFilter
     {
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

@@ -6,10 +6,21 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
+
+    /// <summary>
+    /// Append a request header.
+    /// <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
+    /// </summary>
     public class AddRequestHeaderAction : Action
     {
+        /// <summary>
+        /// Header name 
+        /// </summary>
         public string HeaderName { get; set; }
 
+        /// <summary>
+        /// Header value
+        /// </summary>
         public string HeaderValue { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;

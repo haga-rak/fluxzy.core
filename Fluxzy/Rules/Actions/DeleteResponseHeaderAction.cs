@@ -6,6 +6,9 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
+    /// <summary>
+    /// Remove response headers. This actions remove <b>every</b> occurrence of the header from the response.
+    /// </summary>
     public class DeleteResponseHeaderAction : Action
     {
         public DeleteResponseHeaderAction(string headerName)
@@ -13,6 +16,9 @@ namespace Fluxzy.Rules.Actions
             HeaderName = headerName;
         }
 
+        /// <summary>
+        /// Header name
+        /// </summary>
         public string HeaderName { get; set;  }
 
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;

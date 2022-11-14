@@ -6,6 +6,12 @@ using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules.Filters
 {
+    /// <summary>
+    /// A filter collection is a combination of multiple filter with a merging operator (OR / AND).
+    /// <b>Specific consideration</b> A blank filter collection (no children) will always pass if operator is AND and will
+    /// always fail if operator is OR
+    /// 
+    /// </summary>
     public class FilterCollection : Filter
     {
         public List<Filter> Children { get; set; } = new();

@@ -5,6 +5,9 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
+    /// <summary>
+    /// Select HTTP/2.0 traffic only
+    /// </summary>
     public class H2TrafficOnlyFilter : Filter
     {
         public override Guid Identifier => $"{GetType().Name}{Inverted}".GetMd5Guid();

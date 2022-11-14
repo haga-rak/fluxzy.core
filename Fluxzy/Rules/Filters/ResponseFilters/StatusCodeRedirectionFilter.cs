@@ -3,6 +3,9 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
+    /// <summary>
+    /// Select exchange that http status code indicates a redirect (3XX)
+    /// </summary>
     public class StatusCodeRedirectionFilter : Filter
     {
         public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();

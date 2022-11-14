@@ -6,6 +6,10 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
+    /// <summary>
+    /// Append a response header.
+    /// <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
+    /// </summary>
     public class AddResponseHeaderAction : Action
     {
         public AddResponseHeaderAction(string headerName, string headerValue)
@@ -14,8 +18,14 @@ namespace Fluxzy.Rules.Actions
             HeaderValue = headerValue;
         }
 
+        /// <summary>
+        /// Header name
+        /// </summary>
         public string HeaderName { get; set;  }
 
+        /// <summary>
+        /// Header value
+        /// </summary>
         public string HeaderValue { get; set;  }
 
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;

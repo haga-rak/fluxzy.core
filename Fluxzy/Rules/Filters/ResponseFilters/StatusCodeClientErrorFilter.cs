@@ -3,6 +3,9 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
+    /// <summary>
+    /// Select exchange that response status code indicates a client error (4XX)
+    /// </summary>
     public class StatusCodeClientErrorFilter : Filter
     {
         public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();

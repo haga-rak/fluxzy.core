@@ -2,6 +2,9 @@
 
 namespace Fluxzy.Rules.Filters
 {
+    /// <summary>
+    /// Select exchange according to comment value
+    /// </summary>
     public class CommentSearchFilter : StringFilter
     {
         public override FilterScope FilterScope => FilterScope.OutOfScope;

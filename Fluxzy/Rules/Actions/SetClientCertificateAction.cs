@@ -7,6 +7,10 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
+    /// <summary>
+    /// Add a client certificate to the exchange. The client certificate can be retrieved from the default store (my) or from a PKCS#12 file (.p12, pfx)
+    /// The actual certificate is not stored in any static fluxzy settings and, therefore, must be available at runtime. 
+    /// </summary>
     public class SetClientCertificateAction : Action
     {
         public SetClientCertificateAction(Certificate clientCertificate)
@@ -14,6 +18,9 @@ namespace Fluxzy.Rules.Actions
             ClientCertificate = clientCertificate;
         }
 
+        /// <summary>
+        /// The certificate information
+        /// </summary>
         public Certificate ClientCertificate { get; set; }
 
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;

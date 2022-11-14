@@ -7,6 +7,9 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
+    /// <summary>
+    /// Mock completely a response.
+    /// </summary>
     public class FullResponseAction : Action
     {
         public FullResponseAction(PreMadeResponse preMadeResponse)
@@ -14,6 +17,9 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             PreMadeResponse = preMadeResponse;
         }
 
+        /// <summary>
+        /// The response 
+        /// </summary>
         public PreMadeResponse PreMadeResponse { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient; 

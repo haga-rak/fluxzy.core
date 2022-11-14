@@ -2,6 +2,9 @@
 
 namespace Fluxzy.Rules.Filters
 {
+    /// <summary>
+    /// Select exchange according to tag values
+    /// </summary>
     public class TagContainsFilter : Filter
     {
         public Tag? Tag { get; }

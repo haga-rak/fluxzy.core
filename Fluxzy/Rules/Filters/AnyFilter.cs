@@ -5,6 +5,9 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters
 {
+    /// <summary>
+    /// Select all request 
+    /// </summary>
     public class AnyFilter : Filter
     {
         public override Guid Identifier => $"{Inverted}A62052B4-516D-492E-93B3-2888CDA4E92D".GetMd5Guid();
