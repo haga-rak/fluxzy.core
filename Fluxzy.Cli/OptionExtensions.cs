@@ -13,7 +13,6 @@ namespace Fluxzy.Cli
         {
             return options.OfType<Option<T>>().First(t => t.Name == name);
         }
-
         public static T Value<T>(this InvocationContext context, string name)
         {
             var command = context.ParseResult.CommandResult.Command;
