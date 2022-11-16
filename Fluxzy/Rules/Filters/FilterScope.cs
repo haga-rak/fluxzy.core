@@ -10,7 +10,7 @@ namespace Fluxzy.Rules.Filters
     ///  - RequestHeaderReceivedFromClient : The moment when the full request header is parsed
     ///  - RequestBodyReceivedFromClient :  This timing is trigger only after the request body is sent to the upstream due to streaming
     ///  - ResponseHeaderReceivedFromRemote : The moment where fluxzy got the response header from the server
-    ///  - ResponseBodyReceivedFromRemote :  This timing is trigger only after the response body is sent to the downstream due to streaming
+    ///  - ResponseBodyReceivedFromRemote :  (Aka complete) This timing is trigger only after the response body is sent to the downstream due to streaming.
     ///  - OutOfScope : Indicates a filter that is not usable for live alteration. This kind of filter applies only for view filters in Fluxzy Desktop
     /// </summary>
     public enum FilterScope
