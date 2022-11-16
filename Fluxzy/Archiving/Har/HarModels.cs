@@ -7,6 +7,7 @@ using System.Net;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
 using Fluxzy.Formatters.Producers.Requests;
+using Fluxzy.Formatters.Producers.Responses;
 
 namespace Fluxzy.Archiving.Har
 {
@@ -71,10 +72,21 @@ namespace Fluxzy.Archiving.Har
             Value = value;
         }
         
-        public HarCookie(RequestCookie requestCookie, string name, string value)
+        public HarCookie(RequestCookie requestCookie)
         {
             Name = requestCookie.Name;
             Value = requestCookie.Value;
+        }
+
+        public HarCookie(SetCookieItem cookieItem)
+        {
+            Name = cookieItem.Name;
+            Value = cookieItem.Value;
+            Path = cookieItem.Path;
+            Domain = cookieItem.Domain;
+            Expires = cookieItem.Expired;
+            HttpOnly = cookieItem.HttpOnly;
+            Secure = cookieItem.Secure;
         }
 
         public string Name { get; set; }
