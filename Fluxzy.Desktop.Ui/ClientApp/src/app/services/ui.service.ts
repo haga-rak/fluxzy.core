@@ -103,7 +103,7 @@ export class UiStateService {
             .pipe(
                 filter((t) => !!t),
                 filter(t => !this.uiState.fileState.unsaved || this.menuService.confirm("This operation will discard changes made on current file. Do you wish to continue?") === ConfirmResult.Yes),
-                tap(t => this.dialogService.openWaitDialog("Packing file")),
+                tap(t => this.dialogService.openWaitDialog("Unpacking file")),
                 switchMap((fileName) =>
                     this.apiService.fileOpen(fileName)
                         .pipe(
