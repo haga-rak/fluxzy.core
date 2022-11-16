@@ -89,7 +89,8 @@ namespace Fluxzy
 
             try
             {
-                await _loopTask!.ConfigureAwait(false); // Wait for main loop to end
+                if (_loopTask != null)
+                    await _loopTask.ConfigureAwait(false); // Wait for main loop to end
 
                 var n = 100;
 
