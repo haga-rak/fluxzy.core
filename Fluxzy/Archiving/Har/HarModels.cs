@@ -11,7 +11,7 @@ namespace Fluxzy.Archiving.Har
 
     }
 
-    public class HarLog
+    public class HarModels
     {
         public string Version { get; set; } = "1.2";
 
