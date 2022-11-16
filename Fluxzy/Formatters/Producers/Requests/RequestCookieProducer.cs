@@ -25,27 +25,7 @@ namespace Fluxzy.Formatters.Producers.Requests
                 headers.Where(h =>
                     h.Name.Span.Equals("Cookie", StringComparison.OrdinalIgnoreCase));
 
-            var requestCookies = new List<RequestCookie>();
-
-            foreach (var headerValue in targetHeaders)
-            {
-                var cookieLines = headerValue.Value.ToString()
-                                             .Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries)
-                                             .Select(s => s.Trim());
-
-                foreach (var cookieLine in cookieLines)
-                {
-                    var cookieNameValueTab = cookieLine.Split('=');
-
-                    if (cookieNameValueTab.Length < 2)
-                        continue;
-
-                    var cookieName = HttpUtility.UrlDecode(cookieNameValueTab[0]);
-                    var cookieValue = HttpUtility.UrlDecode(string.Join("=", cookieNameValueTab.Skip(1)));
-
-                    requestCookies.Add(new RequestCookie(cookieName, cookieValue));
-                }
-            }
+            var requestCookies = CookieHelper.ReadRequestCookies(targetHeaders);
 
             return requestCookies.Any() ? new RequestCookieResult(ResultTitle, requestCookies) : null;
 
