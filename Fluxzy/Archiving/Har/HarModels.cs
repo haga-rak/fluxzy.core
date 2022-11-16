@@ -3,6 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Text.Json.Serialization;
+using Fluxzy.Clients;
+using Fluxzy.Formatters.Producers.Requests;
 
 namespace Fluxzy.Archiving.Har
 {
@@ -60,18 +64,32 @@ namespace Fluxzy.Archiving.Har
 
     public class HarCookie
     {
+        [JsonConstructor]
+        public HarCookie(string name, string value)
+        {
+            Name = name;
+            Value = value;
+        }
+        
+        public HarCookie(RequestCookie requestCookie, string name, string value)
+        {
+            Name = requestCookie.Name;
+            Value = requestCookie.Value;
+        }
+
         public string Name { get; set; }
+
         public string Value { get; set; }
 
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
-        public string Domain { get; set; }
+        public string? Domain { get; set; }
 
-        public DateTime Expires { get; set; }
+        public DateTime? Expires { get; set; }
 
-        public bool HttpOnly { get; set; }
+        public bool? HttpOnly { get; set; }
 
-        public bool Secure { get; set; }
+        public bool? Secure { get; set; }
 
         public string?  Comment { get; set; }
     }
@@ -153,13 +171,65 @@ namespace Fluxzy.Archiving.Har
 
     public class HarTimings
     {
-        public int Blocked { get; set; }
+        [JsonConstructor]
+        public HarTimings()
+        {
+
+        }
+
+        public HarTimings(ExchangeInfo exchangeInfo, ConnectionInfo connectionInfo)
+        {
+            if (exchangeInfo.Metrics.RetrievingPool != default) {
+
+                Blocked = (int) (exchangeInfo.Metrics.RetrievingPool - exchangeInfo.Metrics.ReceivedFromProxy)
+                    .TotalMilliseconds;
+            }
+
+            if (connectionInfo.DnsSolveEnd != default) {
+
+                Dns = (int)(connectionInfo.DnsSolveEnd - connectionInfo.DnsSolveStart)
+                    .TotalMilliseconds;
+            }
+
+            if (connectionInfo.SslNegotiationEnd != default) {
+
+                Ssl = (int)(connectionInfo.SslNegotiationEnd - connectionInfo.SslNegotiationStart)
+                    .TotalMilliseconds;
+            }
+
+            if (connectionInfo.TcpConnectionOpened != default) {
+                Connect = (int)(connectionInfo.TcpConnectionOpened - connectionInfo.TcpConnectionOpening)
+                    .TotalMilliseconds;
+            }
+
+            if (exchangeInfo.Metrics.RequestBodySent != default)
+            {
+                Send = (int)(exchangeInfo.Metrics.RequestBodySent - exchangeInfo.Metrics.RequestHeaderSending)
+                    .TotalMilliseconds;
+            }
+
+            if (exchangeInfo.Metrics.ResponseHeaderStart != default)
+            {
+                Wait = (int) (exchangeInfo.Metrics.ResponseHeaderStart - exchangeInfo.Metrics.RequestBodySent)
+                    .TotalMilliseconds;
+            }
+
+            if (exchangeInfo.Metrics.ResponseBodyEnd != default)
+            {
+                Receive = (int) (exchangeInfo.Metrics.ResponseBodyEnd - exchangeInfo.Metrics.ResponseHeaderEnd)
+                    .TotalMilliseconds;
+            }
+        }
+
+
+        public int Blocked { get; set; } = -1;
         public int Dns { get; set; }
         public int Connect { get; set; }
         public int Send { get; set; }
         public int Wait { get; set; }
         public int Receive { get; set; }
         public int Ssl { get; set; }
+
         public string? Comment { get; set; }
     }
 
