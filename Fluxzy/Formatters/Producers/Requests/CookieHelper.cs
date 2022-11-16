@@ -33,7 +33,7 @@ namespace Fluxzy.Formatters.Producers.Requests
             return requestCookies;
         }
 
-        public static List<SetCookieItem> ReadResponsCookies(IEnumerable<HeaderFieldInfo> cookieHeaders)
+        public static List<SetCookieItem> ReadResponseCookies(IEnumerable<HeaderFieldInfo> cookieHeaders)
         {
             var cookieItems = cookieHeaders.Select(s =>
             {
