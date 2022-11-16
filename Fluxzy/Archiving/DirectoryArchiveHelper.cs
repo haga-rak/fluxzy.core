@@ -1,5 +1,6 @@
 // Copyright © 2022 Haga RAKOTOHARIVELO
 
+using System.Collections.Generic;
 using System.IO;
 
 namespace Fluxzy
@@ -15,6 +16,23 @@ namespace Fluxzy
             if (fullDir != null)
                 Directory.CreateDirectory(fullDir.FullName);
         }
+
+        internal static IEnumerable<FileInfo> EnumerateExchangeFileCandidates(string baseDirectory)
+        {
+            var targetPath = Path.Combine(baseDirectory, "exchanges"); 
+            var directoryInfo = new DirectoryInfo(targetPath);
+
+            return directoryInfo.EnumerateFiles("ex-*.json"); 
+        }
+
+        internal static IEnumerable<FileInfo> EnumerateConnectionFileCandidates(string baseDirectory)
+        {
+            var targetPath = Path.Combine(baseDirectory, "connections"); 
+            var directoryInfo = new DirectoryInfo(targetPath);
+
+            return directoryInfo.EnumerateFiles("con-*.json"); 
+        }
+
 
         internal static string GetExchangePath(string baseDirectory, int exchangeId)
         {
