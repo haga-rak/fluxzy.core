@@ -82,11 +82,6 @@ namespace Fluxzy
             new List<string> { "localhost", "127.0.0.1" };
 
         /// <summary>
-        ///     Max header length processed by the proxy
-        /// </summary>
-        public int MaxHeaderLength { get; set; } = 16384;
-
-        /// <summary>
         ///     Archiving policy
         /// </summary>
         public ArchivingPolicy ArchivingPolicy { get; internal set; } = ArchivingPolicy.None;

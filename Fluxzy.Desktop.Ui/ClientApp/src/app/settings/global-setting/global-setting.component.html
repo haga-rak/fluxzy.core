@@ -6,6 +6,14 @@
 </div>
 <div class="modal-body" style="">
 
+    <div class="alert alert-danger" *ngIf="validationMessages && validationMessages.length">
+        <ul>
+            <li *ngFor="let validationMessage of validationMessages">
+                {{ validationMessage }}
+            </li>
+        </ul>
+    </div>
+
     <perfect-scrollbar style="height: 600px; padding:16px;"
                        [usePSClass]="true">
 
@@ -14,13 +22,6 @@
         </div>
         <div *ngIf="settingsHolder">
 
-            <div class="alert alert-danger" *ngIf="validationMessages && validationMessages.length">
-                <ul>
-                    <li *ngFor="let validationMessage of validationMessages">
-                        {{ validationMessage }}
-                    </li>
-                </ul>
-            </div>
 
             <div style="margin-bottom: 16px">
                 <h4 style="border-bottom: 1px solid #555555">Proxy configuration</h4>
