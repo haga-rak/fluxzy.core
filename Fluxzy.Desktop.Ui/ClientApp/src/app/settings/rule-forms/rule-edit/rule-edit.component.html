@@ -21,19 +21,7 @@
         </p>
 
         <div class="">
-            <h4>Action ({{action.friendlyName}})</h4>
-            <div class="shady-box rule-form-box" style="margin-bottom: 16px">
 
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="" style="padding: 16px">
-                            <app-rule-render [action]="action"  [validationSource]="validationSource"></app-rule-render>
-                            <p *ngIf="targets.length === 0">This action has no editable setting.</p>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
             <h4>Filter</h4>
             <div class="shady-box rule-form-box" style="">
                 <div class="row">
@@ -49,6 +37,20 @@
                         <a href="javascript:;" class="btn btn-gray-800" (click)="selectLocalFilter()">Select local filter</a>
                     </div>
                 </div>
+            </div>
+            <br/>
+            <h4>Action ({{action.friendlyName}})</h4>
+            <div class="shady-box rule-form-box">
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="" style="padding: 16px">
+                            <app-rule-render [action]="action"  [validationSource]="validationSource"></app-rule-render>
+                            <p *ngIf="targets.length === 0">This action has no editable setting.</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

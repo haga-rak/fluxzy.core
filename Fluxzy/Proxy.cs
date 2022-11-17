@@ -20,14 +20,14 @@ namespace Fluxzy
 {
     public class Proxy : IAsyncDisposable
     {
+        private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
+        private readonly CancellationTokenSource _proxyHaltTokenSource = new();
+
+        private readonly ProxyOrchestrator _proxyOrchestrator;
         private volatile int _currentConcurrentCount;
         private bool _disposed;
-        private IDownStreamConnectionProvider _downStreamConnectionProvider;
         private bool _halted;
         private Task? _loopTask;
-        private CancellationTokenSource _proxyHaltTokenSource = new();
-
-        private ProxyOrchestrator _proxyOrchestrator;
         private bool _started;
 
         public ProxyExecutionContext ExecutionContext { get; }
@@ -107,8 +107,6 @@ namespace Fluxzy
         {
             Writer.Init();
 
-            var taskId = 0;
-
             while (true)
             {
                 var client =
@@ -136,7 +134,7 @@ namespace Fluxzy
                     try
                     {
                         // already disposed
-                        if (_proxyHaltTokenSource == null)
+                        if (_proxyHaltTokenSource.IsCancellationRequested)
                             return;
 
                         await _proxyOrchestrator!.Operate(client, buffer, _proxyHaltTokenSource.Token)
