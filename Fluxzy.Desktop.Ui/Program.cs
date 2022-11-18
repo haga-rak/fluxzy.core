@@ -1,5 +1,6 @@
 using Fluxzy;
 using Fluxzy.Desktop.Services;
+using System;
 
 Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
 Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");

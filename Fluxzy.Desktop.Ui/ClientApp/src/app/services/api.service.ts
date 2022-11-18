@@ -13,7 +13,7 @@ import {
     switchAll,
     switchMap,
     catchError,
-    of, delay, BehaviorSubject, pipe
+    of, delay, BehaviorSubject, pipe, Subscription
 } from 'rxjs';
 import {
     Action,
@@ -59,6 +59,7 @@ import {IWithName} from "../core/models/model-extensions";
 export class ApiService {
     private forwardMessages$ = new Subject<ForwardMessage>();
     private loop$ = new BehaviorSubject<any>(null);
+    private _lastSub: Subscription;
 
     constructor(private httpClient: HttpClient)
     {
@@ -67,21 +68,40 @@ export class ApiService {
 
     public loopForwardMessage() : void {
 
-        this.loop$.asObservable()
+        if (this._lastSub) {
+            this._lastSub.unsubscribe();
+            this._lastSub = null ;
+        }
+
+        this._lastSub = this.forwardMessageConsume()
             .pipe(
-              //  tap(_ => console.log('triggered')),
-                switchMap(_ =>  this.forwardMessageConsume().
-                        pipe(
-                            catchError(err =>  of([]).pipe(delay(2000)))
-                        )
-                ),
+
+                take(1),
                 tap(messages => {
                     for (const message of messages) {
                         this.forwardMessages$.next(message);
                     }
                 }),
-                tap((_) => this.loop$.next(null))
+                finalize(() => {
+                    this.loopForwardMessage();
+                })
             ).subscribe();
+
+
+        // this.loop$.asObservable()
+        //     .pipe(
+        //         switchMap(_ =>  this.forwardMessageConsume().
+        //                 pipe(
+        //                     catchError(err =>  of([]).pipe(delay(2000)))
+        //                 )
+        //         ),
+        //         tap(messages => {
+        //             for (const message of messages) {
+        //                 this.forwardMessages$.next(message);
+        //             }
+        //         }),
+        //         tap((_) => this.loop$.next(null))
+        //     ).subscribe();
     }
 
 

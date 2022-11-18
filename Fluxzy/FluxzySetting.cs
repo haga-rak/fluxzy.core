@@ -19,6 +19,7 @@ namespace Fluxzy
         /// <summary>
         ///     Proxy listen address
         /// </summary>
+        [JsonInclude]
         public HashSet<ProxyBindPoint> BoundPoints { get; internal set; } = new();
 
         /// <summary>
@@ -74,9 +75,20 @@ namespace Fluxzy
         public bool CheckCertificateRevocation { get; internal set; } = true;
 
         /// <summary>
-        ///     Do not use certificate cache. Regen certificate whenever asked
+        ///     Do not use certificate cache. Regenerate certificate whenever asked
         /// </summary>
         public bool DisableCertificateCache { get; internal set; }
+
+        /// <summary>
+        /// True if fluxzy should capture raw packet matching exchanges
+        /// </summary>
+        public bool CaptureRawPacket { get; internal set; } = false; 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string? CaptureInterfaceName { get; internal set; }
+
 
         public IReadOnlyCollection<string> ByPassHost { get; internal set; } =
             new List<string> { "localhost", "127.0.0.1" };

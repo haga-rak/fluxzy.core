@@ -619,7 +619,7 @@ export interface ProxyEndPoint
 }
 export interface ProxyBindPoint
 {
-	endPoint: IPEndPoint;
+	endPoint: any;
 	default: boolean;
 }
 export interface ArchivingPolicy
@@ -669,6 +669,8 @@ export interface FluxzySetting
 	autoInstallCertificate: boolean;
 	checkCertificateRevocation: boolean;
 	disableCertificateCache: boolean;
+	captureRawPacket: boolean;
+	captureInterfaceName?: string;
 	byPassHost: string[];
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: Rule[];

@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Interop.Pcap;
 using Fluxzy.Rules;
 using Fluxzy.Writers;
 
@@ -14,6 +15,7 @@ namespace Fluxzy.Desktop.Services
         private readonly BehaviorSubject<ProxyState> _internalSubject;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null);
         private Proxy? _proxy;
+        private ITcpConnectionProvider?  _tcpConnectionProvider;
 
         public IObservable<RealtimeArchiveWriter?> WriterObservable { get; }
 
@@ -82,15 +84,22 @@ namespace Fluxzy.Desktop.Services
             {
                 await _proxy.DisposeAsync();
                 _proxy = null;
+                await _tcpConnectionProvider!.DisposeAsync();
+                _tcpConnectionProvider = null; 
             }
 
             IEnumerable<IPEndPoint> endPoints;
 
             try
             {
+                _tcpConnectionProvider =
+                    fluxzySetting.CaptureRawPacket
+                        ? new CapturedTcpConnectionProvider()
+                        : ITcpConnectionProvider.Default;
+
                 _proxy = new Proxy(fluxzySetting,
                     new CertificateProvider(fluxzySetting,
-                        new InMemoryCertificateCache()));
+                        new InMemoryCertificateCache()), _tcpConnectionProvider);
 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
                 _proxy.IdProvider.SetNextExchangeId(maxExchangeId);
@@ -115,6 +124,7 @@ namespace Fluxzy.Desktop.Services
                 {
                     _writerSubject.OnNext(null);
                     await _proxy.DisposeAsync();
+                    await _tcpConnectionProvider!.DisposeAsync();
                 }
 
                 return new ProxyState
