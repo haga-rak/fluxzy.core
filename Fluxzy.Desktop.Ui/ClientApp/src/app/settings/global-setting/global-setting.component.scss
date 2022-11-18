@@ -10,3 +10,23 @@
     padding: 16px;
     margin-bottom: 16px;
 }
+
+.list-group-item a {
+    color : var(--bs-gray-100);
+    text-decoration: none;
+}
+
+.fz-list-menu-item {
+    font-size : 14px;
+    margin-bottom:4px;
+}
+
+.fz-list-menu-item  a{
+    color : var(--bs-gray-300);
+    text-decoration: none;
+}
+
+.fz-list-menu-item-selected a {
+    color : var(--bs-gray-100);
+    text-decoration: underline;
+}

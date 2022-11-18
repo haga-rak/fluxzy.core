@@ -1,6 +1,8 @@
 import {
+    AfterViewInit,
     ChangeDetectorRef,
     Component,
+    ElementRef,
     OnInit,
     TemplateRef,
     ViewChild,
@@ -22,7 +24,7 @@ import {SystemCallService} from "../../core/services/system-call.service";
     templateUrl: './global-setting.component.html',
     styleUrls: ['./global-setting.component.scss'],
 })
-export class GlobalSettingComponent implements OnInit {
+export class GlobalSettingComponent implements OnInit, AfterViewInit  {
     public modalRef?: BsModalRef;
 
     public settingsHolder: FluxzySettingsHolder;
@@ -34,6 +36,10 @@ export class GlobalSettingComponent implements OnInit {
     private caStoreCertificates : CertificateOnStore[];
     private certificateValidationResult : CertificateValidationResult ;
 
+    public leftMenus : LeftMenu[] = [] ;
+
+    @ViewChild('bindingSection') bindingSection ;
+    @ViewChild('rootCaSection') rootCaSection ;
 
     constructor(
         public bsModalRef: BsModalRef,
@@ -42,11 +48,33 @@ export class GlobalSettingComponent implements OnInit {
         private systemCallService : SystemCallService
     ) {}
 
+    ngAfterViewInit(): void {
+        this.initViewRefs();
+
+        console.log(this.leftMenus);
+    }
+
+    private initViewRefs() {
+        this.leftMenus = [
+            {
+                targetRef: this.bindingSection,
+                label: "Binding"
+            },
+            {
+                targetRef: this.rootCaSection,
+                label: "Root CA configuration"
+            },
+        ];
+    }
+
     ngOnInit(): void {
         this.apiService
             .settingGet()
-            .pipe(tap((t) => (this.settingsHolder = t)))
-            .pipe(tap((t) => this.cd.detectChanges()))
+            .pipe(
+                tap((t) => (this.settingsHolder = t)),
+                tap((t) => this.cd.detectChanges()),
+                tap( _ => this.initViewRefs())
+                )
             .subscribe();
 
         this.apiService.settingGetEndPoints()
@@ -131,4 +159,15 @@ export class GlobalSettingComponent implements OnInit {
                 tap(_ => this.cd.detectChanges())
             ).subscribe();
     }
+
+    public scrollToElement(element : ElementRef) : void {
+        element.nativeElement.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+    }
+
+}
+
+
+interface LeftMenu {
+    targetRef : ElementRef ;
+    label : string;
 }
