@@ -670,7 +670,6 @@ export interface FluxzySetting
 	checkCertificateRevocation: boolean;
 	disableCertificateCache: boolean;
 	byPassHost: string[];
-	maxHeaderLength: number;
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: Rule[];
 }
