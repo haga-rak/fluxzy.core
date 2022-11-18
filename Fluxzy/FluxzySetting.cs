@@ -64,7 +64,7 @@ namespace Fluxzy
         public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.echoes/cert-caches";
 
         /// <summary>
-        ///     When set to true, echoes will automaticall install default certificate when starting.
+        ///     When set to true, echoes will automatically install default certificate when starting.
         /// </summary>
         public bool AutoInstallCertificate { get; internal set; } = true;
 

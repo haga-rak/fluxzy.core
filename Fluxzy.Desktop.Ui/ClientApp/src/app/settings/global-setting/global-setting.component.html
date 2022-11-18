@@ -26,18 +26,18 @@
         </div>
         <div class="col-9">
 
-            <perfect-scrollbar style="height: 600px; padding:16px;"
+            <perfect-scrollbar style="height: 600px; padding:16px;" #perfectScroll
                                [usePSClass]="true">
 
                 <div *ngIf="!settingsHolder">
                     Loading settings ...
                 </div>
-                <div *ngIf="settingsHolder"  #bindingSection>
+                <div *ngIf="settingsHolder">
 
 
                     <div style="margin-bottom: 16px">
                         <h4 style="border-bottom: 1px solid #555555">Binding configuration</h4>
-                        <div class="setting-content">
+                        <div class="setting-content"   #bindingSection>
                             <div class="row mb-3">
                                 <label for="portNumber" class="col-sm-3 col-form-label text-end">
                                     Port
@@ -247,6 +247,12 @@
 
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="border-bottom: 1px solid #555555">Raw packet capture</h4>
+                        <div class="setting-content" #rawPacket>
+
                         </div>
                     </div>
                 </div>
