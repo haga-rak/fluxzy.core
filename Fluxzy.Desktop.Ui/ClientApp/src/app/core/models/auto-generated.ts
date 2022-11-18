@@ -672,6 +672,7 @@ export interface FluxzySetting
 	captureRawPacket: boolean;
 	captureInterfaceName?: string;
 	byPassHost: string[];
+	byPassHostFlat: string;
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: Rule[];
 }
