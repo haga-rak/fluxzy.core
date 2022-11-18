@@ -5,6 +5,7 @@ using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Misc.IpUtils;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
@@ -31,14 +32,13 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<bool>> Update(FluxzySettingsHolder model)
+        public async Task<ActionResult<bool>> Update([ValidateNever] FluxzySettingsHolder model)
         {
             model.UpdateModel();
             _settingManager.Update(model);
 
             return true; 
         }
-        
 
         [HttpGet("endpoint")]
         public ActionResult<List<NetworkInterfaceInfo>> AvailableEndpoints()

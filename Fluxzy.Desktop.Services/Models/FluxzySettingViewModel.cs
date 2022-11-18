@@ -46,7 +46,7 @@ namespace Fluxzy.Desktop.Services.Models
                 return; 
             }
 
-            Addresses = setting.BoundPoints.Select(s => s.EndPoint.Address)
+            Addresses = setting.BoundPoints.Select(s => s.EndPoint.ToIpEndPoint().Address)
                                .Distinct().ToList();
             ListenType = ListenType.SelectiveAddress;
         }

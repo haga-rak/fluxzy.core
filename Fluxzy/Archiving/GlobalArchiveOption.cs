@@ -18,6 +18,7 @@ namespace Fluxzy
                 new BooleanConverter(),
                 new JsonStringEnumConverter(),
                 new IpAddressConverter(),
+                new IpEndPointConverter(),
                 new PolymorphicConverter<Filter>(),
                 new PolymorphicConverter<Action>(),
             },

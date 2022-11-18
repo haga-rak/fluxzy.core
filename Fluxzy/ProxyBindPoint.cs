@@ -2,11 +2,19 @@
 
 using System;
 using System.Net;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy
 {
     public class ProxyBindPoint : IEquatable<ProxyBindPoint>
     {
+        [JsonConstructor]
+        public ProxyBindPoint(FluxzyEndPoint endPoint, bool @default)
+        {
+            EndPoint = endPoint;
+            Default = @default;
+        }
+
         public ProxyBindPoint(IPEndPoint endPoint, bool @default)
         {
             EndPoint = endPoint;
@@ -16,7 +24,7 @@ namespace Fluxzy
         /// <summary>
         ///     Combination of an IP address and port number
         /// </summary>
-        public IPEndPoint EndPoint { get; }
+        public FluxzyEndPoint EndPoint { get; }
 
         /// <summary>
         ///     Whether this setting is the default bound address port. When true,
@@ -43,5 +51,70 @@ namespace Fluxzy
         {
             return HashCode.Combine(EndPoint, Default);
         }
+    }
+
+    public class FluxzyEndPoint : IEquatable<FluxzyEndPoint>
+    {
+        [JsonConstructor]
+        public FluxzyEndPoint(string address, int port)
+        {
+            Address = address;
+            Port = port;
+        }
+
+
+        public FluxzyEndPoint(IPEndPoint endPoint)
+            : this (endPoint.Address.ToString(), endPoint.Port)
+        {
+
+        }
+
+
+        public string Address { get; set; }
+
+        public int Port { get; set; }
+
+
+        public IPEndPoint ToIpEndPoint()
+        {
+            return new IPEndPoint(IPAddress.Parse(Address), Port); 
+        }
+
+        public static implicit operator IPEndPoint(FluxzyEndPoint d) => d.ToIpEndPoint();
+
+
+        public static implicit operator FluxzyEndPoint(IPEndPoint d) => new FluxzyEndPoint(d);
+
+
+        public bool Equals(FluxzyEndPoint? other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return Address == other.Address && Port == other.Port;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            if (obj.GetType() != this.GetType())
+                return false;
+
+            return Equals((FluxzyEndPoint)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Address, Port);
+        }
+
     }
 }
