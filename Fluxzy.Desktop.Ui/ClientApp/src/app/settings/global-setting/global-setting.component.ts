@@ -18,6 +18,7 @@ import {
 import { MenuService } from '../../core/services/menu-service.service';
 import { ApiService } from '../../services/api.service';
 import {SystemCallService} from "../../core/services/system-call.service";
+import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
 
 @Component({
     selector: 'app-global-setting',
@@ -40,6 +41,9 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
 
     @ViewChild('bindingSection') bindingSection ;
     @ViewChild('rootCaSection') rootCaSection ;
+    @ViewChild('rawPacket') rawPacket ;
+
+    @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
 
     constructor(
         public bsModalRef: BsModalRef,
@@ -63,6 +67,10 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
             {
                 targetRef: this.rootCaSection,
                 label: "Root CA configuration"
+            },
+            {
+                targetRef: this.rawPacket,
+                label: "Raw packet capture"
             },
         ];
     }
@@ -161,7 +169,12 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
     }
 
     public scrollToElement(element : ElementRef) : void {
-        element.nativeElement.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+        console.log(element)
+
+
+        let top  : number = element.nativeElement.offsetTop - 50
+        this.perfectScroll.directiveRef.scrollToY(top, 0);
+
     }
 
 }
