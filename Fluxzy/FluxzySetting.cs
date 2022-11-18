@@ -44,11 +44,14 @@ namespace Fluxzy
         ///     Number of concurrent connection per host maintained by the connection pool excluding websocket connections. Default
         ///     value is 8.
         /// </summary>
+        [JsonInclude]
         public int ConnectionPerHost { get; internal set; } = 8;
 
         /// <summary>
         ///     Ssl protocols for remote host connection
         /// </summary>
+
+        [JsonInclude]
         public SslProtocols ServerProtocols { get; internal set; } =
             SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
@@ -61,37 +64,57 @@ namespace Fluxzy
         ///     The default certificate cache directory. Setting this value helps improving performance because producing
         ///     root certificate on the fly is expensive. 
         /// </summary>
-
+        [JsonInclude]
         public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.echoes/cert-caches";
 
         /// <summary>
         ///     When set to true, echoes will automatically install default certificate when starting.
         /// </summary>
+        [JsonInclude]
         public bool AutoInstallCertificate { get; internal set; } = true;
 
         /// <summary>
         ///     Check whether server certificate is valid. Default value is true
         /// </summary>
+        [JsonInclude]
         public bool CheckCertificateRevocation { get; internal set; } = true;
 
         /// <summary>
         ///     Do not use certificate cache. Regenerate certificate whenever asked
         /// </summary>
+        [JsonInclude]
         public bool DisableCertificateCache { get; internal set; }
 
         /// <summary>
         /// True if fluxzy should capture raw packet matching exchanges
         /// </summary>
-        public bool CaptureRawPacket { get; internal set; } = false; 
+        [JsonInclude]
+        public bool CaptureRawPacket { get; internal set; } = false;
 
         /// <summary>
         /// 
         /// </summary>
+        [JsonInclude]
         public string? CaptureInterfaceName { get; internal set; }
 
 
-        public IReadOnlyCollection<string> ByPassHost { get; internal set; } =
-            new List<string> { "localhost", "127.0.0.1" };
+        /// <summary>
+        /// Hosts that by pass proxy 
+        /// </summary>
+        [JsonInclude]
+        public List<string> ByPassHost {
+            get
+            {
+                return ByPassHostFlat.Split(new[] { ";", ",", "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries)
+                                     .Distinct().ToList();
+            }
+        }
+
+
+
+        public string ByPassHostFlat { get; set; } = "localhost;127.0.0.1"; 
+
+
 
         /// <summary>
         ///     Archiving policy
@@ -115,7 +138,7 @@ namespace Fluxzy
         /// <returns></returns>
         public FluxzySetting SetByPassedHosts(params string[] hosts)
         {
-            ByPassHost = new ReadOnlyCollection<string>(hosts.Where(h => !string.IsNullOrWhiteSpace(h)).ToList());
+            ByPassHostFlat = string.Join(";", hosts.Distinct()); 
 
             return this;
         }
