@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
-using System.Security.Authentication;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Rules;
@@ -15,7 +14,7 @@ namespace Fluxzy.Clients
     internal class ProxyRuntimeSetting
     {
         private readonly FluxzySetting _startupSetting;
-        private readonly List<Rule> _effectiveRules;
+        private List<Rule>?  _effectiveRules;
 
         public static ProxyRuntimeSetting Default { get; } = new();
 
@@ -56,12 +55,18 @@ namespace Fluxzy.Clients
             IdProvider = idProvider;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
 
-            _effectiveRules = _startupSetting.FixedRules().Concat(_startupSetting.AlterationRules).ToList();
+           
         }
 
         public async ValueTask EnforceRules(ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
+
+            if (_effectiveRules == null)
+            {
+                _effectiveRules = _startupSetting.FixedRules().Concat(_startupSetting.AlterationRules).ToList();
+            }
+
             foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope))
                 await rule.Enforce(context, exchange, connection);
         }
