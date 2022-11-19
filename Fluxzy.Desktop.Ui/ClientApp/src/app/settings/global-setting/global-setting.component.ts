@@ -58,8 +58,6 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
 
     ngAfterViewInit(): void {
         this.initViewRefs();
-
-        console.log(this.leftMenus);
     }
 
     private initViewRefs() {
