@@ -57,11 +57,17 @@
                href="javascript:;" class="text-green" title="Capture is on. Clic to toggle off"><i
                 class="bi bi-play-circle-fill"></i></a>
             <a *ngIf="!uiState.systemProxyState.on" (click)="proxyOn()"
-               href="javascript:;" class="text-secondary" title="Capture is off. Clic to toggle on"><i
-                class="bi bi-stop-circle-fill"></i></a>
+               href="javascript:;" class="text-secondary" title="Capture is off. Clic to toggle on">
+               <i class="fa fa-stop-circle-o" aria-hidden="true"></i>
+            </a>
         </span>
         <strong *ngIf="uiState.proxyState.boundConnections.length > 0">
             {{uiState.proxyState.boundConnections[0].address}}:{{uiState.proxyState.boundConnections[0].port}}
         </strong>
+        <span *ngIf="uiState.proxyState.onError" class="text-danger"
+                [title]="uiState.proxyState.message">
+            &nbsp;
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </span>
     </span>
 </div>
