@@ -83,6 +83,19 @@ export const InstallSystemEvents = (win : BrowserWindow) : void => {
         })
 
         event.returnValue = !result || !result.length ? null : result[0] ;
+    })
+
+    ipcMain.on('request-custom-directory-opening', function (event, name, extensions) {
+        //
+
+        let result = dialog.showOpenDialogSync(win, {
+
+            title : "Fluxzy - Select directory",
+            buttonLabel : "Select directory",
+            properties : ["openDirectory"]
+        })
+
+        event.returnValue = !result || !result.length ? null : result[0] ;
     });
 
 

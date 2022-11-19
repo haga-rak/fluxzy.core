@@ -298,9 +298,15 @@
                                 <div class="col-sm-9">
 
                                     <div class="form-floating mb-3">
-                                        <input type="text" class="form-control" id="rootCaCacheDirectory"
+                                        <input type="text" class="form-control" id="rootCaCacheDirectory" readonly="readonly"
                                                [(ngModel)]="settingsHolder.startupSetting.certificateCacheDirectory">
                                         <label for="rootCaCacheDirectory">Directory</label>
+                                    </div>
+                                    <div>
+                                        <a href="javascript:;" class="btn btn-secondary"
+                                           (click)="selectDirectory()">
+                                            <i class="fa fa-folder-open-o" aria-hidden="true"></i>
+                                            Select directory</a>
                                     </div>
 
                                 </div>

@@ -73,6 +73,15 @@ var InstallSystemEvents = function (win) {
         });
         event.returnValue = !result || !result.length ? null : result[0];
     });
+    electron_1.ipcMain.on('request-custom-directory-opening', function (event, name, extensions) {
+        //
+        var result = electron_1.dialog.showOpenDialogSync(win, {
+            title: "Fluxzy - Select directory",
+            buttonLabel: "Select directory",
+            properties: ["openDirectory"]
+        });
+        event.returnValue = !result || !result.length ? null : result[0];
+    });
     electron_1.ipcMain.on('show-confirm-dialog', function (event, arg) {
         //
         var options = {
