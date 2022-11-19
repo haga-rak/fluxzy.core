@@ -18,8 +18,9 @@
         <div class="col-3">
             <div class="shady-box dark-box" style="height:100%" *ngIf="leftMenus.length > 0">
 
-                <div class="fz-list-menu-item" *ngFor="let leftMenu of leftMenus">
-                    <a href="javascript:;" (click)="scrollToElement(leftMenu.targetRef)">{{leftMenu.label}}</a>
+                <div class="fz-list-menu-item" *ngFor="let leftMenu of leftMenus"
+                     [ngClass]="{'fz-list-menu-item-selected': leftMenu === selectedLeftMenu}">
+                    <a href="javascript:;" (click)="scrollToElement(leftMenu)">{{leftMenu.label}}</a>
                 </div>
 
             </div>
@@ -37,7 +38,7 @@
 
                     <div style="margin-bottom: 16px">
                         <h4 style="border-bottom: 1px solid #555555">Binding configuration</h4>
-                        <div class="setting-content"   #bindingSection>
+                        <div class="setting-content" #bindingSection>
                             <div class="row mb-3">
                                 <label for="portNumber" class="col-sm-3 col-form-label text-end">
                                     Port
@@ -64,7 +65,8 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" id="flexRadioDefault2"
                                                name="zot"
-                                               [(ngModel)]="settingsHolder.viewModel.listenType" [value]="'AllInterfaces'"
+                                               [(ngModel)]="settingsHolder.viewModel.listenType"
+                                               [value]="'AllInterfaces'"
                                                (ngModelChange)="cd.detectChanges()">
                                         <label class="form-check-label" for="flexRadioDefault2">
                                             All
@@ -73,7 +75,8 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" id="flexRadioDefault1"
                                                name="zot"
-                                               [(ngModel)]="settingsHolder.viewModel.listenType" [value]="'SelectiveAddress'"
+                                               [(ngModel)]="settingsHolder.viewModel.listenType"
+                                               [value]="'SelectiveAddress'"
                                                (ngModelChange)="cd.detectChanges()">
                                         <label class="form-check-label" for="flexRadioDefault1">
                                             Specific interfaces
@@ -128,7 +131,8 @@
                     <div>
                         <h4 style="border-bottom: 1px solid #555555">Root Certificate Authority</h4>
                         <p class="text-info">
-                            Fluxzy uses the root certificate to generate remote host certificate on the fly. Only certificate
+                            Fluxzy uses the root certificate to generate remote host certificate on the fly. Only
+                            certificate
                             with private key and CA capabilities can be chosen.
                         </p>
                         <div class="setting-content" #rootCaSection>
@@ -142,7 +146,8 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" id="flexRadioDefault9"
                                                [(ngModel)]="settingsHolder.startupSetting.caCertificate.retrieveMode"
-                                               [value]="'FluxzyDefault'" (ngModelChange)="requestCertificateValidation()">
+                                               [value]="'FluxzyDefault'"
+                                               (ngModelChange)="requestCertificateValidation()">
                                         <label class="form-check-label" for="flexRadioDefault9">
                                             Use fluxzy's default embedded certificate
                                         </label>
@@ -187,7 +192,7 @@
 
                             <div class="row mb-3"
                                  *ngIf="settingsHolder.startupSetting.caCertificate.retrieveMode === 'FromPkcs12'">
-                                <label  class="col-sm-3 col-form-label text-end">
+                                <label class="col-sm-3 col-form-label text-end">
                                     Choose a PKCS#12 compatible file
                                 </label>
                                 <div class="col-sm-9">
@@ -195,12 +200,15 @@
                                         <div style="margin-bottom: 16px">
 
                                             <a href="javascript:;" class="btn btn-secondary"
-                                               (click)="selectLocalCertificate()"><i class="fa fa-file" aria-hidden="true"></i>
+                                               (click)="selectLocalCertificate()"><i class="fa fa-file"
+                                                                                     aria-hidden="true"></i>
                                                 &nbsp;Select a file</a>
                                             <br/><br/>
                                             <strong
                                                 *ngIf="settingsHolder.startupSetting.caCertificate.pkcs12File">{{ settingsHolder.startupSetting.caCertificate.pkcs12File }}</strong>
-                                            <small class="text-info" *ngIf="!settingsHolder.startupSetting.caCertificate.pkcs12File">No file
+                                            <small class="text-info"
+                                                   *ngIf="!settingsHolder.startupSetting.caCertificate.pkcs12File">No
+                                                file
                                                 selected</small>
                                         </div>
 
@@ -222,7 +230,8 @@
                                 <div class="col-sm-9">
                                     <div>
 
-                                        <div class="alert alert-success" *ngIf="certificateValidationResult.subjectName">
+                                        <div class="alert alert-success"
+                                             *ngIf="certificateValidationResult.subjectName">
                                             <div class="alert-heading">
                                                 <i class="fa fa-check-circle text-success"></i>&nbsp;
                                                 <span class="text-info">Current certificate </span>
@@ -245,7 +254,8 @@
                                     <div class="">
                                 <span>
                                     <a href="javascript:;" class="btn btn-secondary"
-                                       (click)="requestCertificateValidation()"><i class="fa fa-refresh" aria-hidden="true"></i>
+                                       (click)="requestCertificateValidation()"><i class="fa fa-refresh"
+                                                                                   aria-hidden="true"></i>
                                         Re-verify certificate</a>
                                 </span>
                                     </div>
@@ -261,14 +271,64 @@
                             <div class="row mb-3">
                                 <label class="col-sm-3 col-form-label text-end">
                                     <small class="text-info">
-                                        You  need elevated privilege to use this feature
+                                        You need elevated privilege to use this feature
                                     </small>
                                 </label>
                                 <div class="col-sm-9">
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" [(ngModel)]="settingsHolder.startupSetting.captureRawPacket">
-                                        <label class="form-check-label" for="flexSwitchCheckChecked"> Enable raw capture</label>
+                                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked"
+                                               [(ngModel)]="settingsHolder.startupSetting.captureRawPacket">
+                                        <label class="form-check-label" for="flexSwitchCheckChecked"> Enable raw
+                                            capture</label>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="border-bottom: 1px solid #555555">SSL decryption</h4>
+                        <div class="setting-content" #skipSsl>
+
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label text-end">
+                                    &nbsp;
+                                </label>
+                                <div class="col-sm-9">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="disableDecryption"
+                                               [(ngModel)]="settingsHolder.startupSetting.globalSkipSslDecryption"
+                                                (ngModelChange)="cd.detectChanges()"/>
+                                        <label class="form-check-label" for="disableDecryption">
+                                            Disable decryption
+                                        </label>
+                                        <div style="margin-top: 16px">
+
+                                        <span class="text-info"
+                                              *ngIf="settingsHolder.startupSetting.globalSkipSslDecryption">
+                                            SSL decryption is disabled. Any rules affecting decryption is ignored.
+                                        </span>
+                                            <span class="text-info"
+                                                  *ngIf="!settingsHolder.startupSetting.globalSkipSslDecryption">
+                                            You can set <a href="javascript:;">rules</a> to disable/enable decryption per host.
+                                        </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="border-bottom: 1px solid #555555">Client certificates</h4>
+                        <div class="setting-content" #clientCertificate>
+
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label text-end">
+                                    &nbsp;
+                                </label>
+                                <div class="col-sm-9">
+                                       <span class="text-info">
+                                            Add <a href="javascript:;">rule</a> to set client certificate
+                                        </span>
                                 </div>
                             </div>
                         </div>
@@ -279,7 +339,6 @@
         </div>
 
     </div>
-
 
 
 </div>

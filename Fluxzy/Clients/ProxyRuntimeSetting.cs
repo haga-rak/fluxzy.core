@@ -1,10 +1,12 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
 
@@ -13,6 +15,7 @@ namespace Fluxzy.Clients
     internal class ProxyRuntimeSetting
     {
         private readonly FluxzySetting _startupSetting;
+        private readonly List<Rule> _effectiveRules;
 
         public static ProxyRuntimeSetting Default { get; } = new();
 
@@ -52,16 +55,14 @@ namespace Fluxzy.Clients
             ArchiveWriter = archiveWriter;
             IdProvider = idProvider;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
+
+            _effectiveRules = _startupSetting.FixedRules().Concat(_startupSetting.AlterationRules).ToList();
         }
 
         public async ValueTask EnforceRules(ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
-            //if (exchange == null)
-            //    return; 
-
-            foreach (var rule in
-                     _startupSetting.AlterationRules.Where(a => a.Action.ActionScope == filterScope))
+            foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope))
                 await rule.Enforce(context, exchange, connection);
         }
     }
