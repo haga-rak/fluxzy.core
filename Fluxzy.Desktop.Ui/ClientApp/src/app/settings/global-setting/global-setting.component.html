@@ -265,6 +265,49 @@
                         </div>
                     </div>
                     <div>
+                        <h4 style="border-bottom: 1px solid #555555">Root Certificate Cache</h4>
+                        <div class="setting-content" #rootCertificateCache>
+
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label text-end">
+                                    <small class="text-info">
+
+                                    </small>
+                                </label>
+                                <div class="col-sm-9">
+
+                                    <div style="margin-bottom: 8px">
+                                        <span class="text-info">
+                                            Computing certificate private key is expensive, caching certificate helps improve capturing performance.
+                                        </span>
+                                    </div>
+
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="rootCaCacheEnabled"
+                                               [(ngModel)]="settingsHolder.startupSetting.disableCertificateCache">
+                                        <label class="form-check-label" for="rootCaCacheEnabled"> Disable certificate cache</label>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label text-end">
+                                    Cache location
+                                </label>
+                                <div class="col-sm-9">
+
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="rootCaCacheDirectory"
+                                               [(ngModel)]="settingsHolder.startupSetting.certificateCacheDirectory">
+                                        <label for="rootCaCacheDirectory">Directory</label>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
                         <h4 style="border-bottom: 1px solid #555555">Raw packet capture</h4>
                         <div class="setting-content" #rawPacket>
 
@@ -301,7 +344,7 @@
                                         <label class="form-check-label" for="disableDecryption">
                                             Disable decryption
                                         </label>
-                                        <div style="margin-top: 16px">
+                                        <div style="margin-top: 8px">
 
                                         <span class="text-info"
                                               *ngIf="settingsHolder.startupSetting.globalSkipSslDecryption">
