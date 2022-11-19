@@ -33,4 +33,14 @@ export class SystemCallService {
         }
         return of(null);
     }
+
+    public requestDirectoryOpen(name : string): Observable<string | null> {
+
+        if (this.electronService.isElectron) {
+            let res = this.electronService.ipcRenderer.sendSync('request-custom-directory-opening', name, null) as string;
+            return of(res);
+        }
+
+        return of(null);
+    }
 }

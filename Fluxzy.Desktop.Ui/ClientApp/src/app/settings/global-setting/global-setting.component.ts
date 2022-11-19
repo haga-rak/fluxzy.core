@@ -45,6 +45,7 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
     @ViewChild('rawPacket') rawPacket ;
     @ViewChild('skipSsl') skipSsl ;
     @ViewChild('clientCertificate') clientCertificate ;
+    @ViewChild('rootCertificateCache') rootCertificateCache ;
 
     @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
 
@@ -70,6 +71,10 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
             {
                 targetRef: this.rootCaSection,
                 label: "Root CA configuration"
+            },
+            {
+                targetRef: this.rootCertificateCache,
+                label: "Root CA cache"
             },
             {
                 targetRef: this.rawPacket,
@@ -191,6 +196,16 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
 
     }
 
+    public selectDirectory() : void {
+        this.systemCallService.requestDirectoryOpen(this.settingsHolder.startupSetting.certificateCacheDirectory)
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                tap (t => this.settingsHolder.startupSetting.certificateCacheDirectory = t),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe() ;
+        ;
+    }
 }
 
 
