@@ -52,8 +52,7 @@ namespace Fluxzy
         /// </summary>
 
         [JsonInclude]
-        public SslProtocols ServerProtocols { get; internal set; } =
-            SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+        public SslProtocols ServerProtocols { get; internal set; } = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
         /// <summary>
         ///     The CA certificate used for decryption 
@@ -126,10 +125,27 @@ namespace Fluxzy
         /// </summary>
         public List<Rule> AlterationRules { get; set; } = new();
 
+
+        /// <summary>
+        /// Skip SSL decryption for any exchanges. This setting cannot be overriden by rules 
+        /// </summary>
+        public bool GlobalSkipSslDecryption { get; set; } = false; 
+
+
+
         [JsonConstructor]
         public FluxzySetting()
         {
         }
+
+        internal IEnumerable<Rule> FixedRules()
+        {
+            if (GlobalSkipSslDecryption) {
+                yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default); 
+            }
+        }
+
+
 
         /// <summary>
         ///     Set hosts that bypass the proxy
@@ -157,7 +173,7 @@ namespace Fluxzy
         }
 
         /// <summary>
-        ///     Add hosts that echoes should not decrypt
+        ///     Add hosts that fluxzy should not decrypt
         /// </summary>
         /// <param name="hosts"></param>
         /// <returns></returns>

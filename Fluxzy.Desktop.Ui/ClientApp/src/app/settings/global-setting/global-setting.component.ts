@@ -38,10 +38,13 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
     private certificateValidationResult : CertificateValidationResult ;
 
     public leftMenus : LeftMenu[] = [] ;
+    public selectedLeftMenu  : LeftMenu | null = null ;
 
     @ViewChild('bindingSection') bindingSection ;
     @ViewChild('rootCaSection') rootCaSection ;
     @ViewChild('rawPacket') rawPacket ;
+    @ViewChild('skipSsl') skipSsl ;
+    @ViewChild('clientCertificate') clientCertificate ;
 
     @ViewChild('perfectScroll') perfectScroll: PerfectScrollbarComponent;
 
@@ -71,6 +74,14 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
             {
                 targetRef: this.rawPacket,
                 label: "Raw packet capture"
+            },
+            {
+                targetRef: this.skipSsl,
+                label: "SSL decryption"
+            },
+            {
+                targetRef: this.clientCertificate,
+                label: "Client certificates"
             },
         ];
     }
@@ -168,12 +179,15 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
             ).subscribe();
     }
 
-    public scrollToElement(element : ElementRef) : void {
-        console.log(element)
+    public scrollToElement(leftMenu : LeftMenu) : void {
 
+        this.selectedLeftMenu = leftMenu;
+
+        const element = leftMenu.targetRef ;
 
         let top  : number = element.nativeElement.offsetTop - 50
         this.perfectScroll.directiveRef.scrollToY(top, 0);
+        this.cd.detectChanges();
 
     }
 
