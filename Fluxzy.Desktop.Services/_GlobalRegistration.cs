@@ -92,6 +92,7 @@ namespace Fluxzy.Desktop.Services
             serviceCollection.AddScoped<SaveFileMultipartAction>();
             serviceCollection.AddScoped<SaveResponseBodyAction>();
             serviceCollection.AddScoped<SaveWebSocketBodyAction>();
+            serviceCollection.AddScoped<SaveRawCaptureAction>();
 
             return serviceCollection;
         }

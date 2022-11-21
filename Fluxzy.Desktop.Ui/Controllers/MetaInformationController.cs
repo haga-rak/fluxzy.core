@@ -146,5 +146,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             return true;
         }
+
     }
 }

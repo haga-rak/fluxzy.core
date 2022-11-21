@@ -65,6 +65,11 @@ namespace Fluxzy
         {
             return Path.Combine(baseDirectory, "contents", $"res-{exchangeId}.data");
         }
+        
+        internal static string GetCapturePath(string baseDirectory, int connectionId)
+        {
+            return Path.Combine(baseDirectory, "captures", $"{connectionId}.pcap");
+        }
 
         internal static string GetConnectionPath(string baseDirectory, int connectionId)
         {

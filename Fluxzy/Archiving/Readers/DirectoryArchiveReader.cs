@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
+using Fluxzy.Clients;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -140,6 +141,12 @@ namespace Fluxzy.Readers
         {
             var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentResponsePath(_baseDirectory, exchangeId));
 
+            return fileInfo.Exists && fileInfo.Length > 0;
+        }
+
+        public bool HasCapture(int connectionId)
+        {
+            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetCapturePath(_baseDirectory, connectionId));
             return fileInfo.Exists && fileInfo.Length > 0;
         }
 

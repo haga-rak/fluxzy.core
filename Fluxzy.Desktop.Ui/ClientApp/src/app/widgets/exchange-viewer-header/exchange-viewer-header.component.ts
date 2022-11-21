@@ -4,6 +4,7 @@ import {StatusBarService} from "../../services/status-bar.service";
 import {DialogService} from "../../services/dialog.service";
 import {filter, switchMap, take, tap} from 'rxjs';
 import {ApiService} from "../../services/api.service";
+import {SystemCallService} from "../../core/services/system-call.service";
 
 @Component({
     selector: 'app-exchange-viewer-header',
@@ -13,12 +14,13 @@ import {ApiService} from "../../services/api.service";
 export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     public tabs: string [] = ['Content', 'Connectivity', 'Performance', 'MetaInformation'];
     public currentTab: string = 'Content';
+    public hasRawCapture : boolean ;
 
     public context: { currentTab: string } = {currentTab: 'Content'}
 
     @Input() public exchange: ExchangeInfo;
 
-    constructor(private statusBarService : StatusBarService, private dialogService : DialogService, private apiService : ApiService) {
+    constructor(private statusBarService : StatusBarService, private dialogService : DialogService, private apiService : ApiService, private systemCallService : SystemCallService) {
 
     }
 
@@ -26,6 +28,11 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
+        this.apiService.connectionHasRawCapture(this.exchange.connectionId)
+            .pipe(
+                take(1),
+                tap(hasRawCapture => this.hasRawCapture = hasRawCapture)
+            ).subscribe();
     }
 
     public tag(): void {
@@ -54,4 +61,14 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
             ).subscribe();
 
     }
+
+    public downloadRawCapture() : void {
+        this.systemCallService.requestFileSave( `connection-${this.exchange.connectionId}.cap`)
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(t => this.apiService.connectionGetRawCapture(this.exchange.connectionId, t)),
+            ).subscribe();
+    }
+
 }

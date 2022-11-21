@@ -21,6 +21,6 @@
     <span class="float-end">
         <a href="javascript:;" class="btn btn-secondary" (click)="tag()">Tag <span *ngIf="exchange.tags.length">({{ exchange.tags.length }})</span></a>&nbsp;
         <a href="javascript:;" class="btn btn-secondary" (click)="comment()">Comment  <span *ngIf="exchange.comment">(1)</span></a>&nbsp;
-        <a href="javascript:;" class="btn btn-secondary">Download connection dump</a>
+        <button href="javascript:;" class="btn btn-secondary" (click)="downloadRawCapture()" [disabled]="!hasRawCapture" >Download connection dump</button>
     </span>
 </div>
