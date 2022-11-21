@@ -29,5 +29,7 @@ namespace Fluxzy.Readers
         Stream? GetResponseBody(int exchangeId);
 
         bool HasResponseBody(int exchangeId);
+
+        bool HasCapture(int connectionId); 
     }
 }

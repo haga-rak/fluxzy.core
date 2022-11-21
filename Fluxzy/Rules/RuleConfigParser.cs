@@ -22,10 +22,9 @@ namespace Fluxzy.Rules
             _innerTypeInspector = innerTypeInspector;
         }
 
-        public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object container)
+        public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
         {
             var properties = _innerTypeInspector.GetProperties(type, container);
-
             return properties.OrderByDescending(x => x.Name == "typeKind");
         }
     }

@@ -323,4 +323,14 @@ export class ApiService {
     public systemGetCertificates(caOnly : boolean = false) : Observable<CertificateOnStore[]> {
         return this.httpClient.get<CertificateOnStore[]>(`api/system/certificates?caOnly=${caOnly}`).pipe(take(1)) ;
     }
+
+    public connectionHasRawCapture(connectionId : number) : Observable<boolean> {
+        return this.httpClient.get<boolean>(`api/connection/${connectionId}/capture/check`).pipe(take(1)) ;
+    }
+
+    public connectionGetRawCapture(connectionId : number, fileName : string) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/connection/${connectionId}/capture/save`, {
+            fileName : fileName
+        }).pipe(take(1)) ;
+    }
 }
