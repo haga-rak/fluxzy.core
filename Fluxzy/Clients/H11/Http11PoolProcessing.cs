@@ -43,6 +43,7 @@ namespace Fluxzy.Clients.H11
 
             exchange.Metrics.TotalSent += headerLength;
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
+            exchange.Metrics.RequestHeaderLength = headerLength;
 
             // Sending request body 
 
