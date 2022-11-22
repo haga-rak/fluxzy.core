@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Fluxzy.Har;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Fluxzy.Formatters;
+using Fluxzy.Readers;
 
 namespace Fluxzy.Archiving.Har
 {
@@ -53,18 +56,26 @@ namespace Fluxzy.Archiving.Har
                                               return null;
                                           }
                                       })
-                                      .Where(e => e != null).OfType<ConnectionInfo>(); 
-            
+                                      .Where(e => e != null).OfType<ConnectionInfo>();
 
             return Pack(directory, outputStream, exchanges, connections); 
-
         }
 
         public Task Pack(string directory, Stream outputStream, 
             IEnumerable<ExchangeInfo> exchangeInfos, IEnumerable<ConnectionInfo> connectionInfos)
         {
+            // TODO : to be injected 
+            var formatSettings = new FormatSettings(); 
 
-            throw new NotImplementedException(); 
+            var directoryArchiveReader = new DirectoryArchiveReader(directory);
+
+            var serializeModel = new HarSerializeModel(directoryArchiveReader, exchangeInfos,
+                connectionInfos.ToDictionary(t => t.Id, t => t), formatSettings);
+
+            JsonSerializer.Serialize(outputStream, serializeModel, 
+                GlobalArchiveOption.HttpArchiveSerializerOptions);
+
+            return Task.CompletedTask;
         }
     }
 }

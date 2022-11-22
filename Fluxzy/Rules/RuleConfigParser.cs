@@ -151,7 +151,7 @@ namespace Fluxzy.Rules
 
         private static Rule? InternalTryGetRuleFromYaml(out List<RuleConfigReaderError> readErrors, object? rawObject)
         {
-            var flatJson = JsonSerializer.Serialize(rawObject, GlobalArchiveOption.JsonSerializerOptions);
+            var flatJson = JsonSerializer.Serialize(rawObject, GlobalArchiveOption.DefaultSerializerOptions);
 
             readErrors = new List<RuleConfigReaderError>();
 
@@ -162,7 +162,7 @@ namespace Fluxzy.Rules
 
             try
             {
-                rule = JsonSerializer.Deserialize<Rule?>(flatJson, GlobalArchiveOption.JsonSerializerOptions);
+                rule = JsonSerializer.Deserialize<Rule?>(flatJson, GlobalArchiveOption.DefaultSerializerOptions);
             }
             catch (Exception e)
             {

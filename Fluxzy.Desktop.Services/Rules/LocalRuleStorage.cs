@@ -34,7 +34,7 @@ namespace Fluxzy.Desktop.Services.Rules
             foreach (var fileInfo in _filterDirectory.EnumerateFiles("*.rule.json"))
             {
                 using var stream = fileInfo.OpenRead();
-                rules.Add(JsonSerializer.Deserialize<RuleContainer>(stream, GlobalArchiveOption.JsonSerializerOptions)!);
+                rules.Add(JsonSerializer.Deserialize<RuleContainer>(stream, GlobalArchiveOption.DefaultSerializerOptions)!);
             }
 
             rules = rules.OrderBy(r => r.Rule.Order).ToList();
@@ -78,7 +78,7 @@ namespace Fluxzy.Desktop.Services.Rules
             foreach (var rule in rules)
             {
                 using var stream = File.Create(GetRulePath(rule.Rule));
-                JsonSerializer.Serialize(stream, rule, GlobalArchiveOption.JsonSerializerOptions);
+                JsonSerializer.Serialize(stream, rule, GlobalArchiveOption.DefaultSerializerOptions);
             }
 
             return Task.CompletedTask;
