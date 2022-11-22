@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
-using Fluxzy.Clients;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.Requests;
@@ -17,32 +16,20 @@ using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 
-namespace Fluxzy.Archiving.Har
+namespace Fluxzy.Har
 {
-    public class HarModel
+    public class HarSerializeModel
     {
-
-    }
-    
-    public class HarModels
-    {
-        [JsonConstructor]
-        public HarModels()
+        public HarSerializeModel(IArchiveReader archiveReader, 
+            IEnumerable<ExchangeInfo> exchanges,
+            Dictionary<int, ConnectionInfo> connections,
+            FormatSettings formatSettings)
         {
-
-        }
-
-        public HarModels(IArchiveReader archiveReader, FormatSettings formatSettings)
-        {
-            var exchanges = archiveReader.ReadAllExchanges();
-            var connections = archiveReader.ReadAllConnections().ToDictionary(t => t.Id, t => t);
-            
             Entries = exchanges.Select(s => new HarEntry(s, 
                 connections.ContainsKey(s.ConnectionId) ? connections[s.ConnectionId] : null, 
                 archiveReader, 
                 formatSettings)).ToList();
         }
-
         
         public string Version { get; set; } = "1.2";
         
@@ -85,10 +72,8 @@ namespace Fluxzy.Archiving.Har
             Timings = new HarTimings(exchangeInfo, connectionInfo);
             Cache = new HarCache();
 
-            Request = new HarEntryRequest(producerContext, formatSettings); 
-
-
-
+            Request = new HarEntryRequest(producerContext, formatSettings);
+            Response = new HarEntryResponse(producerContext, formatSettings); 
         }
         
         public DateTime StartDateTime { get; set; }
@@ -105,6 +90,7 @@ namespace Fluxzy.Archiving.Har
 
         public HarEntryRequest Request { get;  }
 
+        public HarEntryResponse Response { get;  }
 
         public string ? Comment { get; set; }
     }
@@ -156,6 +142,54 @@ namespace Fluxzy.Archiving.Har
 
         public string ? Comment { get; }
     }
+
+
+    public class HarEntryResponse
+    {
+        public HarEntryResponse(ProducerContext producerContext, FormatSettings formatSettings)
+        {
+            Status = producerContext.Exchange.StatusCode;
+            StatusText = ((HttpStatusCode)Status).ToString();
+            HttpVersion = producerContext.Exchange.HttpVersion;
+
+            var responseHeaders = producerContext.Exchange.GetResponseHeaders()?.ToList();
+
+            if (responseHeaders != null)
+            {
+                Cookies = HttpHelper.ReadResponseCookies(responseHeaders)
+                                    .Select(c => new HarCookie(c)).ToList();
+
+                Headers = responseHeaders.Select(r => new HarHeader(r)).ToList(); 
+            }
+
+            RedirectURL = producerContext.Exchange.FullUrl;
+            HeaderSize = producerContext.Exchange.Metrics.ResponseHeaderLength;
+            BodySize = producerContext.ArchiveReader.GetResponseBodyLength(producerContext.Exchange.Id);
+
+            Content = new HarContent(producerContext, formatSettings);
+        }
+
+        public int Status { get;  }
+
+        public string StatusText { get;  } 
+
+        public string ? HttpVersion { get;  }
+
+        public List<HarCookie> Cookies { get; } = new();
+
+        public List<HarHeader> Headers { get; } = new(); 
+
+        public HarContent Content { get;  }
+
+        public string? RedirectURL { get;  }
+
+        public int HeaderSize { get;  }  
+
+        public long BodySize { get;  } 
+
+        public string ? Comment { get; set; }
+    }
+
 
     public class HarCookie
     {
@@ -263,7 +297,7 @@ namespace Fluxzy.Archiving.Har
                         else
                         {
                             Text = Convert.ToBase64String(content);
-                            Comment = "Content-Encoding : Base64"; 
+                            Comment = "base64"; 
                         }
                     }
                 }
@@ -343,9 +377,37 @@ namespace Fluxzy.Archiving.Har
     
     public class HarContent
     {
+        public HarContent(ProducerContext producerContext, FormatSettings formatSettings)
+        {
+            var exchangeInfo = producerContext.Exchange;
+            Size  = producerContext.ArchiveReader.GetResponseBodyLength(exchangeInfo.Id);
+            Compressing = Size;
+            MimeType = producerContext.Exchange.GetResponseHeaderValue("content-type") ?? "application/octet-stream";
+
+            if (Size < formatSettings.HarLimitMaxBodyLength)
+            {
+                var responseBuffer = ArrayPool<byte>.Shared.Rent((int) Size);
+
+                var textContext = producerContext.IsTextContent; 
+
+                if (textContext)
+                {
+                    Text = producerContext.ResponseBodyText ?? string.Empty; 
+                }
+                else
+                {
+                    if (!producerContext.ResponseBody.IsEmpty)
+                    {
+                        Text = Convert.ToBase64String(producerContext.ResponseBody.Span);
+                        Encoding = "base64";
+                    }
+                }
+            }
+        }
+
         public long Size { get; set; }
 
-        public int Compressing { get; set; }
+        public long Compressing { get; set; }
 
         public string MimeType { get; set; }
 

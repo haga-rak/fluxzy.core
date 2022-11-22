@@ -29,7 +29,7 @@ namespace Fluxzy.Readers
             using var metaStream = File.Open(metaPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream,
-                GlobalArchiveOption.JsonSerializerOptions)!;
+                GlobalArchiveOption.DefaultSerializerOptions)!;
         }
 
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
@@ -39,7 +39,7 @@ namespace Fluxzy.Readers
             return exchangeDirectory.EnumerateFiles("*.json", SearchOption.AllDirectories)
                                     .Select(f =>
                                         JsonSerializer.Deserialize<ExchangeInfo>(
-                                            File.ReadAllText(f.FullName), GlobalArchiveOption.JsonSerializerOptions))
+                                            File.ReadAllText(f.FullName), GlobalArchiveOption.DefaultSerializerOptions))
                                     .Where(t => t != null)
                                     .Select(t => t!);
         }
@@ -52,7 +52,7 @@ namespace Fluxzy.Readers
                 return null;
 
             return JsonSerializer.Deserialize<ExchangeInfo>(File.ReadAllText(exchangePath),
-                GlobalArchiveOption.JsonSerializerOptions);
+                GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public IEnumerable<ConnectionInfo> ReadAllConnections()
@@ -62,7 +62,7 @@ namespace Fluxzy.Readers
             return connectionDirectory.EnumerateFiles("*.json", SearchOption.AllDirectories)
                                       .Select(f =>
                                           JsonSerializer.Deserialize<ConnectionInfo>(
-                                              File.ReadAllText(f.FullName), GlobalArchiveOption.JsonSerializerOptions))
+                                              File.ReadAllText(f.FullName), GlobalArchiveOption.DefaultSerializerOptions))
                                       .Where(t => t != null)
                                       .Select(t => t!);
         }
@@ -75,7 +75,7 @@ namespace Fluxzy.Readers
                 return null;
 
             return JsonSerializer.Deserialize<ConnectionInfo>(File.ReadAllText(connectionPath),
-                GlobalArchiveOption.JsonSerializerOptions);
+                GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public Stream? GetRawCaptureStream(int connectionId)
@@ -115,7 +115,7 @@ namespace Fluxzy.Readers
             var fileInfo = new FileInfo(responseBodyPath);
 
             if (!fileInfo.Exists)
-                return -1;
+                return 0;
 
             return fileInfo.Length;
         }
