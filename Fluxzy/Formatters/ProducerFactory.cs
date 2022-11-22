@@ -33,12 +33,12 @@ namespace Fluxzy.Formatters
             new WsMessageProducer()
         };
         private readonly IArchiveReaderProvider _archiveReaderProvider;
-        private readonly ProducerSettings _producerSettings;
+        private readonly FormatSettings _formatSettings;
 
-        public ProducerFactory(IArchiveReaderProvider archiveReaderProvider, ProducerSettings producerSettings)
+        public ProducerFactory(IArchiveReaderProvider archiveReaderProvider, FormatSettings formatSettings)
         {
             _archiveReaderProvider = archiveReaderProvider;
-            _producerSettings = producerSettings;
+            _formatSettings = formatSettings;
         }
 
         public async Task<ProducerContext?> GetProducerContext(int exchangeId)
@@ -53,7 +53,7 @@ namespace Fluxzy.Formatters
             if (exchangeInfo == null)
                 return null;
 
-            return new ProducerContext(exchangeInfo, archiveReader, _producerSettings);
+            return new ProducerContext(exchangeInfo, archiveReader, _formatSettings);
         }
 
         public IEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId,

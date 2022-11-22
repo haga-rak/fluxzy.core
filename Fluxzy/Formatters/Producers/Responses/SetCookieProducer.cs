@@ -21,7 +21,7 @@ namespace Fluxzy.Formatters.Producers.Responses
             if (cookieHeaders == null)
                 return null;
 
-            var cookieItems = CookieHelper.ReadResponseCookies(cookieHeaders);
+            var cookieItems = HttpHelper.ReadResponseCookies(cookieHeaders);
 
             return !cookieItems.Any() ? null : new SetCookieResult(ResultTitle, cookieItems);
         }
