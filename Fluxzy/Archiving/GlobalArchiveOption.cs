@@ -8,7 +8,7 @@ namespace Fluxzy
 {
     public static class GlobalArchiveOption
     {
-        public static JsonSerializerOptions JsonSerializerOptions { get;  } = new()
+        public static JsonSerializerOptions DefaultSerializerOptions { get;  } = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
@@ -22,6 +22,18 @@ namespace Fluxzy
                 new PolymorphicConverter<Action>(),
             },
             NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
+        
+        public static JsonSerializerOptions HttpArchiveSerializerOptions { get;  } = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false,
+            Converters =
+            {
+                new ReadonlyMemoryCharConverter(),
+                new BooleanConverter(),
+                new JsonStringEnumConverter(),
+            }
         };
     }
 }
