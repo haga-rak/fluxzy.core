@@ -18,11 +18,7 @@ namespace Fluxzy.Formatters.Producers.Requests
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
                 return null;
 
-            var res = HttpUtility.ParseQueryString(uri.Query);
-
-            var items = res.AllKeys.SelectMany(k => res.GetValues(k)?.Select(v => new QueryStringItem(k, v)))
-                           .Where(t => t != null)
-                           .ToList();
+            var items = HttpHelper.GetQueryStrings(uri);
 
             return !items.Any() ? null : new QueryStringResult(ResultTitle, items);
         }
