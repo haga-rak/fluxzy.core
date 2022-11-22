@@ -249,6 +249,7 @@ namespace Fluxzy.Clients.H2
         internal void ReceiveHeaderFragmentFromConnection(ref HeadersFrame headerFrame)
         {
             _exchange.Metrics.TotalReceived += headerFrame.BodyLength;
+            _exchange.Metrics.ResponseHeaderLength += headerFrame.BodyLength;
 
             if (_exchange.Metrics.ResponseHeaderStart == default)
                 _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
@@ -275,6 +276,7 @@ namespace Fluxzy.Clients.H2
         internal void ReceiveHeaderFragmentFromConnection(ref ContinuationFrame continuationFrame)
         {
             _exchange.Metrics.TotalReceived += continuationFrame.BodyLength;
+            _exchange.Metrics.ResponseHeaderLength += continuationFrame.BodyLength;
             ReceiveHeaderFragmentFromConnection(continuationFrame.Data, continuationFrame.EndHeaders);
         }
         //internal void ReceiveHeaderFragmentFromConnection(int bodyLength, bool endHeader, ReadOnlyMemory<byte> data)

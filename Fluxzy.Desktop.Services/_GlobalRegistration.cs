@@ -76,7 +76,7 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddTransient<FxzyDirectoryPackager>();
 
-            collection.AddTransient<ProducerSettings>(); // TODO move to hard settings 
+            collection.AddTransient<FormatSettings>(); // TODO move to hard settings 
 
             collection.AddFluxzyProducers();
 
