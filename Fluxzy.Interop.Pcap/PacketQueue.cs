@@ -29,7 +29,7 @@ namespace Fluxzy.Interop.Pcap
             return queue.Subscribe(outFileName);
         }
 
-        public async Task Unsubscribe(IConnectionSubscription subscription)
+        public async ValueTask Unsubscribe(IConnectionSubscription subscription)
         {
             if (_captureChannels.TryRemove(subscription.Key, out var queue))
             {

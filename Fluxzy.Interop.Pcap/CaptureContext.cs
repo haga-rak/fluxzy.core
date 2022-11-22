@@ -47,9 +47,9 @@ namespace Fluxzy.Interop.Pcap
             return _packetQueue.Subscribe(outFileName, remoteAddress, remotePort, localPort);
         } 
 
-        public void Unsubscribe(IConnectionSubscription subscription)
+        public ValueTask Unsubscribe(IConnectionSubscription subscription)
         {
-            _packetQueue.Unsubscribe(subscription);
+            return _packetQueue.Unsubscribe(subscription);
         } 
 
         private void Start()

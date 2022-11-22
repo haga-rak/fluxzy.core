@@ -73,7 +73,7 @@ namespace Fluxzy.Interop.Pcap
                 var disposable = _subscription;
                 _subscription = null;
 
-                _captureContext.Unsubscribe(disposable);
+                await _captureContext.Unsubscribe(disposable);
 
                 // 
                 await disposable.DisposeAsync();
