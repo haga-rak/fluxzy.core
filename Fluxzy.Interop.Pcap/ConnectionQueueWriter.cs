@@ -21,7 +21,7 @@ namespace Fluxzy.Interop.Pcap
         {
             Key = key;
             _channel = channel;
-            
+
             _captureDeviceWriter = new CaptureFileWriterDevice(outFileName, FileMode.Create);
             _captureDeviceWriter.Open();
             _token = _tokenSource.Token;
@@ -49,8 +49,10 @@ namespace Fluxzy.Interop.Pcap
             try
             {
                 await foreach (var capture in _channel.ReadAllAsync(_token))
+                {
                     if (!_token.IsCancellationRequested)
                         _captureDeviceWriter?.Write(capture);
+                }
             }
             catch (OperationCanceledException)
             {

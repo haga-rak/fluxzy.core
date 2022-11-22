@@ -68,6 +68,7 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
                 take(1),
                 filter(t => !!t),
                 switchMap(t => this.apiService.connectionGetRawCapture(this.exchange.connectionId, t)),
+                tap(_ => this.statusBarService.addMessage("Raw capture downloaded"))
             ).subscribe();
     }
 
