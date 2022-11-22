@@ -118,6 +118,9 @@ namespace Fluxzy.Clients.H11
                 );
             }
 
+            exchange.Metrics.TotalReceived += headerBlockDetectResult.HeaderLength;
+            exchange.Metrics.ResponseHeaderLength = headerBlockDetectResult.HeaderLength;
+
             if (exchange.Response.Header.ChunkedBody)
                 bodyStream = new ChunkedTransferReadStream(bodyStream, shouldCloseConnection);
 
