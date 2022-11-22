@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 {
-    foreach (var converter in GlobalArchiveOption.JsonSerializerOptions.Converters)
+    foreach (var converter in GlobalArchiveOption.DefaultSerializerOptions.Converters)
         options.JsonSerializerOptions.Converters.Add(converter);
 });
 
@@ -19,7 +19,7 @@ builder.Services.AddFluxzyDesktopServices();
 
 builder.Services.AddSignalR().AddJsonProtocol(
     options =>
-        options.PayloadSerializerOptions = GlobalArchiveOption.JsonSerializerOptions
+        options.PayloadSerializerOptions = GlobalArchiveOption.DefaultSerializerOptions
 );
 
 var app = builder.Build();

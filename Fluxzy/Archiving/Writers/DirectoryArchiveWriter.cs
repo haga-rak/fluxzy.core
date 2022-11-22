@@ -43,7 +43,7 @@ namespace Fluxzy.Writers
                 return;
 
             using var fileStream = File.Create(_archiveMetaInformationPath);
-            JsonSerializer.Serialize(fileStream, _archiveMetaInformation, GlobalArchiveOption.JsonSerializerOptions);
+            JsonSerializer.Serialize(fileStream, _archiveMetaInformation, GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public override void UpdateTags(IEnumerable<Tag> tags)
@@ -62,7 +62,7 @@ namespace Fluxzy.Writers
 
             using (var fileStream = File.Create(exchangePath))
             {
-                JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.JsonSerializerOptions);
+                JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.DefaultSerializerOptions);
             }
 
             if (exchangeInfo.Tags?.Any() ?? false)
@@ -84,7 +84,7 @@ namespace Fluxzy.Writers
             DirectoryArchiveHelper.CreateDirectory(connectionPath);
 
             using var fileStream = File.Create(connectionPath);
-            JsonSerializer.Serialize(fileStream, connectionInfo, GlobalArchiveOption.JsonSerializerOptions);
+            JsonSerializer.Serialize(fileStream, connectionInfo, GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public override Stream CreateRequestBodyStream(int exchangeId)

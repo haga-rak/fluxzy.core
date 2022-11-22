@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Fluxzy.Archiving.Har;
 using Fluxzy.Saz;
 
 namespace Fluxzy
@@ -49,7 +50,8 @@ namespace Fluxzy
             = new ReadOnlyCollection<IDirectoryPackager>(new List<IDirectoryPackager>
             {
                 new FxzyDirectoryPackager(),
-                new SazPackager()
+                new SazPackager(),
+                new HttpArchiveFormatPackager()
             });
 
         public IDirectoryPackager InferPackagerFromFileName(string fileName)

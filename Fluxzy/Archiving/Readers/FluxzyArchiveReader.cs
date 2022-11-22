@@ -28,7 +28,7 @@ namespace Fluxzy.Readers
             using var metaStream = metaEntry.Open();
 
             return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream,
-                GlobalArchiveOption.JsonSerializerOptions)!;
+                GlobalArchiveOption.DefaultSerializerOptions)!;
         }
 
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
@@ -42,7 +42,7 @@ namespace Fluxzy.Readers
 
                                return JsonSerializer.Deserialize<ExchangeInfo>(
                                    stream,
-                                   GlobalArchiveOption.JsonSerializerOptions);
+                                   GlobalArchiveOption.DefaultSerializerOptions);
                            })
                            .Where(t => t != null)
                            .Select(t => t!);
@@ -60,7 +60,7 @@ namespace Fluxzy.Readers
 
             return JsonSerializer.Deserialize<ExchangeInfo>(
                 stream,
-                GlobalArchiveOption.JsonSerializerOptions);
+                GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public IEnumerable<ConnectionInfo> ReadAllConnections()
@@ -74,7 +74,7 @@ namespace Fluxzy.Readers
 
                                return JsonSerializer.Deserialize<ConnectionInfo>(
                                    stream,
-                                   GlobalArchiveOption.JsonSerializerOptions);
+                                   GlobalArchiveOption.DefaultSerializerOptions);
                            })
                            .Where(t => t != null)
                            .Select(t => t!);
@@ -92,7 +92,7 @@ namespace Fluxzy.Readers
 
             return JsonSerializer.Deserialize<ConnectionInfo>(
                 stream,
-                GlobalArchiveOption.JsonSerializerOptions);
+                GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public Stream? GetRawCaptureStream(int connectionId)
@@ -134,7 +134,7 @@ namespace Fluxzy.Readers
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
             if (entry == null)
-                return -1;
+                return 0;
 
             return entry.Length;
         }
