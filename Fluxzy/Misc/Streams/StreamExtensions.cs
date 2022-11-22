@@ -65,6 +65,21 @@ namespace Fluxzy.Misc.Streams
 
             return memoryStream.ToArray();
         }
+        
+        public static long FillArray(this Stream stream, byte[] destinationArray)
+        {
+            var memoryStream = new MemoryStream(destinationArray);
+            var read = 0;
+            var totalRead = 0L;
+
+            while ((read = stream.Read(destinationArray, 0, destinationArray.Length)) > 0)
+            {
+                memoryStream.Write(destinationArray, 0, read);
+                totalRead += read; 
+            }
+
+            return totalRead;
+        }
 
         public static async ValueTask<long> CopyDetailed(this Stream source,
             Stream destination,

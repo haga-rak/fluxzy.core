@@ -25,7 +25,7 @@ namespace Fluxzy.Formatters.Producers.Requests
                 headers.Where(h =>
                     h.Name.Span.Equals("Cookie", StringComparison.OrdinalIgnoreCase));
 
-            var requestCookies = CookieHelper.ReadRequestCookies(targetHeaders);
+            var requestCookies = HttpHelper.ReadRequestCookies(targetHeaders);
 
             return requestCookies.Any() ? new RequestCookieResult(ResultTitle, requestCookies) : null;
 
