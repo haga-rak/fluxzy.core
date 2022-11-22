@@ -87,6 +87,8 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
                 label: "Client certificates"
             },
         ];
+
+        this.selectedLeftMenu = this.leftMenus[0];
     }
 
     ngOnInit(): void {
