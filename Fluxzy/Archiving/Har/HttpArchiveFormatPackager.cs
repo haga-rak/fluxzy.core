@@ -62,7 +62,8 @@ namespace Fluxzy.Archiving.Har
         }
 
         public Task Pack(string directory, Stream outputStream, 
-            IEnumerable<ExchangeInfo> exchangeInfos, IEnumerable<ConnectionInfo> connectionInfos)
+            IEnumerable<ExchangeInfo> exchangeInfos,
+            IEnumerable<ConnectionInfo> connectionInfos)
         {
             // TODO : to be injected 
             var formatSettings = new FormatSettings(); 

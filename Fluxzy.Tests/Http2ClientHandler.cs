@@ -291,6 +291,7 @@ namespace Fluxzy.Tests
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             Assert.Equal((HttpStatusCode)304, response.StatusCode);
+            Assert.Equal(string.Empty, contentText);
         }
     }
 }

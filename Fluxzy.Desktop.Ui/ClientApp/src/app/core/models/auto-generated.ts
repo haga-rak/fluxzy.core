@@ -794,6 +794,8 @@ export interface ExchangeMetrics
 	errorInstant: Date;
 	totalSent: number;
 	totalReceived: number;
+	requestHeaderLength: number;
+	responseHeaderLength: number;
 	localPort: number;
 	localAddress?: string;
 }
