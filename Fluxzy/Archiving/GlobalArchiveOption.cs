@@ -29,6 +29,7 @@ namespace Fluxzy
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Converters =
             {
                 new ReadonlyMemoryCharConverter(),

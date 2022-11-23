@@ -18,9 +18,19 @@ using Fluxzy.Readers;
 
 namespace Fluxzy.Har
 {
-    public class HarSerializeModel
+    public class HarSerializeRootModel
     {
-        public HarSerializeModel(IArchiveReader archiveReader, 
+        public HarSerializeRootModel(HarLogModel log)
+        {
+            Log = log;
+        }
+
+        public HarLogModel Log { get;  }
+    }
+
+    public class HarLogModel
+    {
+        public HarLogModel(IArchiveReader archiveReader, 
             IEnumerable<ExchangeInfo> exchanges,
             Dictionary<int, ConnectionInfo> connections,
             FormatSettings formatSettings)
@@ -370,9 +380,9 @@ namespace Fluxzy.Har
 
     public class HarCache
     {
-        public HarBeforeAfterRequest BeforeRequest { get; set; }
+        public HarBeforeAfterRequest? BeforeRequest { get; set; }
         
-        public HarBeforeAfterRequest AfterRequest { get; set; }
+        public HarBeforeAfterRequest? AfterRequest { get; set; }
     }
     
     public class HarContent
@@ -438,7 +448,7 @@ namespace Fluxzy.Har
         {
             if (exchangeInfo.Metrics.RetrievingPool != default) {
 
-                Blocked = (int) (exchangeInfo.Metrics.RetrievingPool - exchangeInfo.Metrics.ReceivedFromProxy)
+                Blocked = (exchangeInfo.Metrics.RetrievingPool - exchangeInfo.Metrics.ReceivedFromProxy)
                     .TotalMilliseconds;
             }
 
@@ -448,33 +458,33 @@ namespace Fluxzy.Har
                 if (connectionInfo.DnsSolveEnd != default)
                 {
 
-                    Dns = (int)(connectionInfo.DnsSolveEnd - connectionInfo.DnsSolveStart)
+                    Dns = (connectionInfo.DnsSolveEnd - connectionInfo.DnsSolveStart)
                         .TotalMilliseconds;
                 }
 
                 if (connectionInfo.SslNegotiationEnd != default)
                 {
 
-                    Ssl = (int)(connectionInfo.SslNegotiationEnd - connectionInfo.SslNegotiationStart)
+                    Ssl = (connectionInfo.SslNegotiationEnd - connectionInfo.SslNegotiationStart)
                         .TotalMilliseconds;
                 }
 
                 if (connectionInfo.TcpConnectionOpened != default)
                 {
-                    Connect = (int)(connectionInfo.TcpConnectionOpened - connectionInfo.TcpConnectionOpening)
+                    Connect = (connectionInfo.TcpConnectionOpened - connectionInfo.TcpConnectionOpening)
                         .TotalMilliseconds;
                 }
             }
 
             if (exchangeInfo.Metrics.RequestBodySent != default)
             {
-                Send = (int)(exchangeInfo.Metrics.RequestBodySent - exchangeInfo.Metrics.RequestHeaderSending)
+                Send = (exchangeInfo.Metrics.RequestBodySent - exchangeInfo.Metrics.RequestHeaderSending)
                     .TotalMilliseconds;
             }
 
             if (exchangeInfo.Metrics.ResponseHeaderStart != default)
             {
-                Wait = (int) (exchangeInfo.Metrics.ResponseHeaderStart - exchangeInfo.Metrics.RequestBodySent)
+                Wait = (exchangeInfo.Metrics.ResponseHeaderStart - exchangeInfo.Metrics.RequestBodySent)
                     .TotalMilliseconds;
             }
 
@@ -486,13 +496,13 @@ namespace Fluxzy.Har
         }
 
 
-        public int Blocked { get;  } = -1;
-        public int Dns { get;  }
-        public int Connect { get;  }
-        public int Send { get;  }
-        public int Wait { get;  }
-        public int Receive { get;  }
-        public int Ssl { get;  }
+        public double Blocked { get;  } = -1;
+        public double Dns { get;  }
+        public double Connect { get;  }
+        public double Send { get;  }
+        public double Wait { get;  }
+        public double Receive { get;  }
+        public double Ssl { get;  }
 
         public string? Comment { get; set; }
     }

@@ -56,6 +56,8 @@ namespace Fluxzy.Clients.H11
                 exchange.Metrics.TotalSent += totalBodySize;
             }
 
+            exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+
             _logger.Trace(exchange.Id, () => "Body sent");
 
             // Waiting for header block 
