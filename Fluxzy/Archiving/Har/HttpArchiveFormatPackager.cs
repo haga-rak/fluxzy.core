@@ -27,7 +27,7 @@ namespace Fluxzy.Archiving.Har
                                               using var stream = fileInfo.Open(FileMode.Open, FileAccess.Read,
                                                   FileShare.ReadWrite);
 
-                                              var current = JsonSerializer.Deserialize<ExchangeInfo>(stream);
+                                              var current = JsonSerializer.Deserialize<ExchangeInfo>(stream, GlobalArchiveOption.DefaultSerializerOptions);
                                               return current;
                                           }
                                           catch {
@@ -46,7 +46,7 @@ namespace Fluxzy.Archiving.Har
                                               using var stream = fileInfo.Open(FileMode.Open, FileAccess.Read,
                                                   FileShare.ReadWrite);
 
-                                              var current = JsonSerializer.Deserialize<ConnectionInfo>(stream);
+                                              var current = JsonSerializer.Deserialize<ConnectionInfo>(stream, GlobalArchiveOption.DefaultSerializerOptions);
                                               return current;
                                           }
                                           catch {
@@ -70,10 +70,10 @@ namespace Fluxzy.Archiving.Har
 
             var directoryArchiveReader = new DirectoryArchiveReader(directory);
 
-            var serializeModel = new HarSerializeModel(directoryArchiveReader, exchangeInfos,
+            var harLogModel = new HarLogModel(directoryArchiveReader, exchangeInfos,
                 connectionInfos.ToDictionary(t => t.Id, t => t), formatSettings);
 
-            JsonSerializer.Serialize(outputStream, serializeModel, 
+            JsonSerializer.Serialize(outputStream, new HarSerializeRootModel(harLogModel), 
                 GlobalArchiveOption.HttpArchiveSerializerOptions);
 
             return Task.CompletedTask;
