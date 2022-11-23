@@ -22,7 +22,7 @@ namespace Fluxzy
             var targetPath = Path.Combine(baseDirectory, "exchanges"); 
             var directoryInfo = new DirectoryInfo(targetPath);
 
-            return directoryInfo.EnumerateFiles("ex-*.json"); 
+            return directoryInfo.EnumerateFiles("ex-*.json", SearchOption.AllDirectories);
         }
 
         internal static IEnumerable<FileInfo> EnumerateConnectionFileCandidates(string baseDirectory)
@@ -30,7 +30,7 @@ namespace Fluxzy
             var targetPath = Path.Combine(baseDirectory, "connections"); 
             var directoryInfo = new DirectoryInfo(targetPath);
 
-            return directoryInfo.EnumerateFiles("con-*.json"); 
+            return directoryInfo.EnumerateFiles("con-*.json", SearchOption.AllDirectories);
         }
 
 
