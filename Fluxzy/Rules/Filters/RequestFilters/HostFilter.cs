@@ -31,8 +31,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
         {
-            if (exchange != null)
-                yield return exchange.KnownAuthority;
+            yield return authority.HostName;
         }
     }
 }
