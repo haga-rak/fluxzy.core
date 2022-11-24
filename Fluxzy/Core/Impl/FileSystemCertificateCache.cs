@@ -52,6 +52,7 @@ namespace Fluxzy.Core
     public class InMemoryCertificateCache: ICertificateCache
     {
         private readonly ConcurrentDictionary<string, byte[]> _repository = new(); 
+
         public byte[] Load(
             string baseCertificatSerialNumber, 
             string rootDomain, Func<string, byte[]> certificateGeneratoringProcess)

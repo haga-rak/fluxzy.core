@@ -12,7 +12,7 @@ namespace Fluxzy
         public static void ExportToPem(this X509Certificate cert, Stream stream)
         {
             using var streamWriter = new StreamWriter(stream, Encoding.ASCII, 1024 * 8, true);
-
+            
             streamWriter.NewLine = "\r\n";
             streamWriter.WriteLine("-----BEGIN CERTIFICATE-----");
 

@@ -26,7 +26,7 @@ namespace Fluxzy
             _rootCertificate =
                 startupSetting.CaCertificate.GetCertificate();
 
-            // Warming : Make RSA Threadsafe
+            // Warming : pre uild certicate 
             BuildCertificateForRootDomain("domain.com");
         }
 
