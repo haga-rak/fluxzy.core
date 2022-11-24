@@ -10,7 +10,8 @@ using Fluxzy.Readers;
 
 namespace Fluxzy.Archiving.Har
 {
-    public class HttpArchiveFormatPackager : IDirectoryPackager
+    [PackagerInformation("har", "HAR 1.2 archive format", ".har")]
+    public class HttpArchivePackager : IDirectoryPackager
     {
         public bool ShouldApplyTo(string fileName)
         {

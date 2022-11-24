@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.Requests;
@@ -75,8 +76,8 @@ namespace Fluxzy.Har
                 Time = (int)(exchangeInfo.Metrics.ResponseBodyEnd - exchangeInfo.Metrics.ReceivedFromProxy).TotalMilliseconds;
             }
 
+            ExchangeId = exchangeInfo.Id; 
             StartDateTime = exchangeInfo.Metrics.ReceivedFromProxy;
-
             ServerIpAddress = connectionInfo?.RemoteAddress?.ToString();
             Connection = connectionInfo?.Id.ToString();
             Timings = new HarTimings(exchangeInfo, connectionInfo);
@@ -85,7 +86,10 @@ namespace Fluxzy.Har
             Request = new HarEntryRequest(producerContext, formatSettings);
             Response = new HarEntryResponse(producerContext, formatSettings); 
         }
-        
+
+        [JsonPropertyName("_exchangeId")]
+        public int ExchangeId { get;  }
+
         public DateTime StartDateTime { get; set; }
 
         public int Time { get; } = 0; 
@@ -291,9 +295,9 @@ namespace Fluxzy.Har
             {
                 var destBuffer = ArrayPool<byte>.Shared.Rent((int) requestLength);
 
-                try
-                {
-                    var length = archiveReader.GetRequestBody(exchangeInfo.Id)?.FillArray(destBuffer);
+                try {
+                    using var requestBodyStream = archiveReader.GetRequestBody(exchangeInfo.Id); 
+                    var length = requestBodyStream?.FillArray(destBuffer);
 
                     if (length != null)
                     {
@@ -396,8 +400,7 @@ namespace Fluxzy.Har
 
             if (Size < formatSettings.HarLimitMaxBodyLength)
             {
-                var responseBuffer = ArrayPool<byte>.Shared.Rent((int) Size);
-
+                
                 var textContext = producerContext.IsTextContent; 
 
                 if (textContext)

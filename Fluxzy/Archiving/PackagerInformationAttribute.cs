@@ -51,7 +51,7 @@ namespace Fluxzy
             {
                 new FxzyDirectoryPackager(),
                 new SazPackager(),
-                new HttpArchiveFormatPackager()
+                new HttpArchivePackager()
             });
 
         public IDirectoryPackager InferPackagerFromFileName(string fileName)
