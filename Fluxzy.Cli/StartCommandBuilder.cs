@@ -27,7 +27,7 @@ namespace Fluxzy.Cli
         {
             new FxzyDirectoryPackager(),
             new SazPackager(),
-            new HttpArchiveFormatPackager()
+            new HttpArchivePackager()
         };
 
         private DirectoryInfo _tempDumpDirectory;

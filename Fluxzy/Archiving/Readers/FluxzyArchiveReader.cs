@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Fluxzy.Clients;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -16,6 +15,11 @@ namespace Fluxzy.Readers
         public FluxzyArchiveReader(string filePath)
         {
             _zipFile = ZipFile.OpenRead(filePath);
+        }
+        
+        public FluxzyArchiveReader(Stream stream)
+        {
+            _zipFile = new ZipArchive(stream, ZipArchiveMode.Read);
         }
 
         public ArchiveMetaInformation ReadMetaInformation()
