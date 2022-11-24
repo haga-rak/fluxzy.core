@@ -50,7 +50,7 @@ namespace Fluxzy.Tests.Misc
 
                     using var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-                    using HashedStream stream = new HashedStream(readStream.GetSlicedStream(
+                    using var stream = new HashedStream(readStream.GetSlicedStream(
                         res.OffSet, res.Length), true);
 
                     int drainCount = stream.Drain();
@@ -72,9 +72,9 @@ namespace Fluxzy.Tests.Misc
         }
     }
 
-    public class MultiPartTestCaseBuilder
+    class MultiPartTestCaseBuilder
     {
-        public static string WriteContent(Stream output, string header, RandomDataStream inputContent, string boundary)
+        private static string WriteContent(Stream output, string header, RandomDataStream inputContent, string boundary)
         {
             var fullHeader = "--" + boundary + "\r\n" + header + "\r\n";
 

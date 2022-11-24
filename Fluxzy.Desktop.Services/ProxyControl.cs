@@ -97,9 +97,9 @@ namespace Fluxzy.Desktop.Services
                         ? new CapturedTcpConnectionProvider()
                         : ITcpConnectionProvider.Default;
 
-                _proxy = new Proxy(fluxzySetting,
-                    new CertificateProvider(fluxzySetting,
-                        new InMemoryCertificateCache()), _tcpConnectionProvider);
+                _proxy = new Proxy(fluxzySetting, 
+                    new CertificateProvider(fluxzySetting, new InMemoryCertificateCache()),
+                    _tcpConnectionProvider);
 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
                 _proxy.IdProvider.SetNextExchangeId(maxExchangeId);

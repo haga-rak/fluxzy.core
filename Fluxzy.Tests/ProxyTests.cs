@@ -350,7 +350,6 @@ namespace Fluxzy.Tests
                 .CreateDefault()
                 .SetBoundAddress(bindHost, 0);
 
-
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
 

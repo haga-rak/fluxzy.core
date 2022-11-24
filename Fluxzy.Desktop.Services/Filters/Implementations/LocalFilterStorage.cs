@@ -46,7 +46,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
             {
                 using var stream = filterFile.Open(FileMode.Open, FileAccess.Read);
 
-                var filter = JsonSerializer.Deserialize<Filter>(stream, GlobalArchiveOption.JsonSerializerOptions);
+                var filter = JsonSerializer.Deserialize<Filter>(stream, GlobalArchiveOption.DefaultSerializerOptions);
 
                 if (filter != null)
                     yield return filter;
@@ -77,7 +77,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
 
             if (File.Exists(fullPath))
             {
-                filter = JsonSerializer.Deserialize<Filter>(fullPath, GlobalArchiveOption.JsonSerializerOptions);
+                filter = JsonSerializer.Deserialize<Filter>(fullPath, GlobalArchiveOption.DefaultSerializerOptions);
                 return true;
             }
 
@@ -90,7 +90,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
             var fullPath = GetFullPath(updatedContent.Identifier);
 
             using var outStream = File.Create(fullPath);
-            JsonSerializer.Serialize(outStream, updatedContent, options : GlobalArchiveOption.JsonSerializerOptions);
+            JsonSerializer.Serialize(outStream, updatedContent, options : GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public void AddOrUpdate(Guid filterId, Filter updatedContent)
@@ -98,7 +98,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
             var fullPath = GetFullPath(filterId);
 
             using var outStream = File.Create(fullPath);
-            JsonSerializer.Serialize(outStream, updatedContent, GlobalArchiveOption.JsonSerializerOptions);
+            JsonSerializer.Serialize(outStream, updatedContent, GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public void Patch(IEnumerable<Filter> filters)

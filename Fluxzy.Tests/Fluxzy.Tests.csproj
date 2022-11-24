@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <Folder Include="_Files\Certificates\" />
+    <Folder Include="_Files\Outputs\" />
   </ItemGroup>
 
   <ItemGroup>
