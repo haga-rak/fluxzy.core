@@ -12,6 +12,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
@@ -25,7 +26,8 @@ namespace Fluxzy.Cli
         public readonly List<IDirectoryPackager> _packagers = new()
         {
             new FxzyDirectoryPackager(),
-            new SazPackager()
+            new SazPackager(),
+            new HttpArchivePackager()
         };
 
         private DirectoryInfo _tempDumpDirectory;

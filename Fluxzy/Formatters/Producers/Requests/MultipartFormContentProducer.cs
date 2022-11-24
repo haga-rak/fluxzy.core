@@ -50,9 +50,8 @@ namespace Fluxzy.Formatters.Producers.Requests
                 {
                     var array = stream.GetSlicedStream(item.Offset, item.Length)
                                       .ToArrayGreedy();
-
-                    ArrayTextUtilities.IsText(array);
-                    item.StringValue = Encoding.UTF8.GetString(array); 
+                    
+                    item.StringValue = ArrayTextUtilities.IsText(array) ? Encoding.UTF8.GetString(array) : string.Empty; 
                 }
             }
 

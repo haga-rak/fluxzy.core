@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Fluxzy.Clients;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -17,6 +16,11 @@ namespace Fluxzy.Readers
         {
             _zipFile = ZipFile.OpenRead(filePath);
         }
+        
+        public FluxzyArchiveReader(Stream stream)
+        {
+            _zipFile = new ZipArchive(stream, ZipArchiveMode.Read);
+        }
 
         public ArchiveMetaInformation ReadMetaInformation()
         {
@@ -28,7 +32,7 @@ namespace Fluxzy.Readers
             using var metaStream = metaEntry.Open();
 
             return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream,
-                GlobalArchiveOption.JsonSerializerOptions)!;
+                GlobalArchiveOption.DefaultSerializerOptions)!;
         }
 
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
@@ -42,7 +46,7 @@ namespace Fluxzy.Readers
 
                                return JsonSerializer.Deserialize<ExchangeInfo>(
                                    stream,
-                                   GlobalArchiveOption.JsonSerializerOptions);
+                                   GlobalArchiveOption.DefaultSerializerOptions);
                            })
                            .Where(t => t != null)
                            .Select(t => t!);
@@ -60,7 +64,7 @@ namespace Fluxzy.Readers
 
             return JsonSerializer.Deserialize<ExchangeInfo>(
                 stream,
-                GlobalArchiveOption.JsonSerializerOptions);
+                GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public IEnumerable<ConnectionInfo> ReadAllConnections()
@@ -74,7 +78,7 @@ namespace Fluxzy.Readers
 
                                return JsonSerializer.Deserialize<ConnectionInfo>(
                                    stream,
-                                   GlobalArchiveOption.JsonSerializerOptions);
+                                   GlobalArchiveOption.DefaultSerializerOptions);
                            })
                            .Where(t => t != null)
                            .Select(t => t!);
@@ -92,7 +96,7 @@ namespace Fluxzy.Readers
 
             return JsonSerializer.Deserialize<ConnectionInfo>(
                 stream,
-                GlobalArchiveOption.JsonSerializerOptions);
+                GlobalArchiveOption.DefaultSerializerOptions);
         }
 
         public Stream? GetRawCaptureStream(int connectionId)
@@ -115,6 +119,28 @@ namespace Fluxzy.Readers
                 return null;
 
             return entry.Open();
+        }
+
+        public long GetRequestBodyLength(int exchangeId)
+        {
+            var path = DirectoryArchiveHelper.GetContentRequestPath(string.Empty, exchangeId).Replace("\\", "/");
+            var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
+
+            if (entry == null)
+                return -1;
+
+            return entry.Length;
+        }
+
+        public long GetResponseBodyLength(int exchangeId)
+        {
+            var path = DirectoryArchiveHelper.GetContentResponsePath(string.Empty, exchangeId).Replace("\\", "/");
+            var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
+
+            if (entry == null)
+                return 0;
+
+            return entry.Length;
         }
 
         public Stream? GetRequestWebsocketContent(int exchangeId, int messageId)

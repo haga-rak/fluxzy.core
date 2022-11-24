@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Fluxzy.Formatters.Producers.Requests;
 
 namespace Fluxzy.Formatters.Producers.Responses
 {
@@ -20,13 +21,7 @@ namespace Fluxzy.Formatters.Producers.Responses
             if (cookieHeaders == null)
                 return null;
 
-            var cookieItems = cookieHeaders.Select(s =>
-            {
-                if (SetCookieItem.TryParse(s.Value.ToString(), out var cookie))
-                    return cookie;
-
-                return null;
-            }).Where(s => s != null).OfType<SetCookieItem>().ToList();
+            var cookieItems = HttpHelper.ReadResponseCookies(cookieHeaders);
 
             return !cookieItems.Any() ? null : new SetCookieResult(ResultTitle, cookieItems);
         }

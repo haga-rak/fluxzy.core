@@ -20,7 +20,7 @@ namespace Fluxzy.Formatters
 
         public IArchiveReader ArchiveReader { get; }
 
-        public ProducerSettings Settings { get; }
+        public FormatSettings Settings { get; }
 
         public long RequestBodyLength { get; }
 
@@ -45,7 +45,7 @@ namespace Fluxzy.Formatters
         public ProducerContext(
             ExchangeInfo exchange,
             IArchiveReader archiveReader,
-            ProducerSettings settings)
+            FormatSettings settings)
         {
             Exchange = exchange;
             ArchiveReader = archiveReader;

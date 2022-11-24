@@ -7,7 +7,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
-using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -441,7 +440,6 @@ namespace Fluxzy.Tests.Cli
                                         .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        //[Fact]
         public async Task Run_Cli_Aggressive_Request_Response()
         {
             // Arrange 

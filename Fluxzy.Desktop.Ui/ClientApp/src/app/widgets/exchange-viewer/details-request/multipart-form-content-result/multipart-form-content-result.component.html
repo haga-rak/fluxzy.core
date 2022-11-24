@@ -1,4 +1,8 @@
-
+<div class="">
+    <span class="float-end">
+        {{ model.items.length }} item(s) found
+    </span>
+</div>
 <table class="summary-table" *ngFor="let multipartItem of model.items" style="margin-bottom: 20px">
     <tr *ngIf="multipartItem.name" >
         <th>Name</th>

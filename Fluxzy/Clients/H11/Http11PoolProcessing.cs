@@ -43,6 +43,7 @@ namespace Fluxzy.Clients.H11
 
             exchange.Metrics.TotalSent += headerLength;
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
+            exchange.Metrics.RequestHeaderLength = headerLength;
 
             // Sending request body 
 
@@ -54,6 +55,8 @@ namespace Fluxzy.Clients.H11
 
                 exchange.Metrics.TotalSent += totalBodySize;
             }
+
+            exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 
             _logger.Trace(exchange.Id, () => "Body sent");
 
@@ -116,6 +119,9 @@ namespace Fluxzy.Clients.H11
                     exchange.Connection.ReadStream!
                 );
             }
+
+            exchange.Metrics.TotalReceived += headerBlockDetectResult.HeaderLength;
+            exchange.Metrics.ResponseHeaderLength = headerBlockDetectResult.HeaderLength;
 
             if (exchange.Response.Header.ChunkedBody)
                 bodyStream = new ChunkedTransferReadStream(bodyStream, shouldCloseConnection);

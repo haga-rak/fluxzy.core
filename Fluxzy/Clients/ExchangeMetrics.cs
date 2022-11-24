@@ -36,6 +36,10 @@ namespace Fluxzy.Clients
 
         public long TotalReceived { get; set; }
 
+        public int RequestHeaderLength { get; set; }
+        
+        public int ResponseHeaderLength { get; set; }
+
         public int LocalPort { get; set; }
 
         public string? LocalAddress { get; set; }
