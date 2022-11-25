@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
-import {filter, finalize, map, Observable, Subject, switchMap, take, tap} from 'rxjs';
+import {BehaviorSubject, delay, filter, finalize, map, Observable, Subject, switchMap, take, tap} from 'rxjs';
 import {Action, CommentUpdateModel, Filter, Rule, Tag, TagGlobalApplyModel} from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter-edit.component';
@@ -276,19 +276,27 @@ export class DialogService {
         return subject.asObservable().pipe(take(1));;
     }
 
-    public openWaitDialog(message : string) : void {
+    public openWaitDialog(message : string) : Observable<any> {
+        const completeListener = new BehaviorSubject<any | null>(null) ;
+        const observableResult = completeListener.asObservable().pipe(
+            filter (t => !!t),
+            delay(500) // TODO : this delay is necessary to avoid a bug in the modal service for early calling close
+        );
+
         const config: ModalOptions = {
             class: 'little-down modal-dialog-small',
             initialState: {
                 message,
+                completeListener
             },
             ignoreBackdropClick : true
         };
-
         this.waitModalRef = this.modalService.show(
             WaitDialogComponent,
             config
         );
+
+        return observableResult;
     }
 
     public closeWaitDialog() : void {

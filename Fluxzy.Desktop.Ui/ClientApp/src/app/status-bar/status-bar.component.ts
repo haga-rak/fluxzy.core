@@ -71,7 +71,7 @@ export class StatusBarComponent implements OnInit {
     }
 
     public decryptTrigger() : void {
-        this.dialogService.openWaitDialog("Its me its me");
+        this.dialogService.openWaitDialog("Its me its me").subscribe();
 
     }
 
