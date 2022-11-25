@@ -65,6 +65,8 @@ namespace Fluxzy.Writers
                 JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.DefaultSerializerOptions);
             }
 
+            
+
             if (exchangeInfo.Tags?.Any() ?? false)
             {
                 var modified = false;

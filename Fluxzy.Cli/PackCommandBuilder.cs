@@ -34,7 +34,7 @@ namespace Fluxzy.Cli
 
                 using var outputFileStream = outputFile.Create();
 
-                await packager.Pack(directory.FullName, outputFileStream); 
+                await packager.Pack(directory.FullName, outputFileStream, null); 
 
             }, inputDirectoryArgument, outputFileArgument, outputFileFormatOption);
 

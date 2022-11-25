@@ -3,14 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Fluxzy
 {
     [PackagerInformation("fluxzy", "The fluxzy archive format", ".fxzy", ".fzy", ".fluxzy")]
-    public class FxzyDirectoryPackager : IDirectoryPackager
+    public class FxzyDirectoryPackager : DirectoryPackager
     {
-        public bool ShouldApplyTo(string fileName)
+        public override bool ShouldApplyTo(string fileName)
         {
             return
                 fileName.EndsWith(".fxzy", StringComparison.CurrentCultureIgnoreCase) ||
@@ -19,46 +20,16 @@ namespace Fluxzy
                 fileName.EndsWith(".fluxzy.zip", StringComparison.CurrentCultureIgnoreCase);
         }
 
-        public async Task Pack(string directory, Stream outputStream)
+        public override async Task Pack(string directory, Stream outputStream, HashSet<int>? exchangeIds)
         {
-            await ZipHelper.Compress(new DirectoryInfo(directory),
-                outputStream, fileInfo =>
-                {
-                    if (fileInfo.Length == 0) {
-                        return false;
-                    }
-
-                    if (fileInfo.Name.EndsWith(".data")
-                        || fileInfo.Name.EndsWith(".json")
-                        || fileInfo.Name.EndsWith(".pcap"))
-                        return true;
-
-                    return true;
-                });
-        }
-
-        public async Task Pack(string directory, Stream outputStream,
-            IEnumerable<ExchangeInfo> exchangeInfos,
-            IEnumerable<ConnectionInfo> connectionInfos)
-        {
-            var fileInfos = new List<FileInfo>();
+            var baseDirectory = new DirectoryInfo(directory);
             
-            foreach (var exchangeInfo in exchangeInfos)
-            {
-                fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetExchangePath(directory, exchangeInfo)));
-                fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetContentRequestPath(directory, exchangeInfo)));
-                fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetContentResponsePath(directory, exchangeInfo)));
-            }
+            var packableFiles = 
+                GetPackableFileInfos(baseDirectory, exchangeIds);
 
-            foreach (var connectionInfo in connectionInfos)
-                fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetConnectionPath(directory, connectionInfo)));
-
-            fileInfos.Add(new FileInfo(DirectoryArchiveHelper.GetMetaPath(directory)));
-
-            await ZipHelper.CompressWithFileInfos(new DirectoryInfo(directory), outputStream, fileInfos);
-
+            await ZipHelper.CompressWithFileInfos(baseDirectory, outputStream, packableFiles.Select(s => s.File));
         }
-
+        
         public async Task Unpack(Stream inputStream, string directoryOutput)
         {
             await ZipHelper.Decompress(inputStream, new DirectoryInfo(directoryOutput));
