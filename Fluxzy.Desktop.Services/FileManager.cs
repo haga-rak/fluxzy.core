@@ -3,6 +3,7 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Har;
 using Microsoft.Extensions.Configuration;
 
 namespace Fluxzy.Desktop.Services
@@ -121,18 +122,49 @@ namespace Fluxzy.Desktop.Services
 
             Subject.OnNext(nextState);
         }
-
-        public Task Export(Stream outStream, FluxzyFileType fileType)
+        
+        public async Task<bool> ExportHttpArchive(HarExportRequest exportRequest)
         {
-            throw new NotImplementedException();
+            var current = await ProvidedObservable.FirstAsync();
+            var harArchive = new HttpArchivePackager(exportRequest.SaveSetting);
+
+            // read exchanges 
+
+            
+
+            
+
+            using var stream = File.Create(exportRequest.FileName);
+
+
+            
+
+            
+
+            harArchive.Pack(current.WorkingDirectory, stream, TODO); 
         }
     }
 
     public enum FluxzyFileType
     {
-        Error = 0,
-        Native = 1,
         Har = 5,
         Saz = 50
+    }
+
+
+    public class HarExportRequest
+    {
+        public HarExportRequest(string fileName, HttpArchiveSavingSetting saveSetting, List<int> exchangeIds)
+        {
+            FileName = fileName;
+            SaveSetting = saveSetting;
+            ExchangeIds = exchangeIds;
+        }
+
+        public string FileName { get;  }
+
+        public HttpArchiveSavingSetting SaveSetting { get;  }
+
+        public List<int> ExchangeIds { get; }
     }
 }

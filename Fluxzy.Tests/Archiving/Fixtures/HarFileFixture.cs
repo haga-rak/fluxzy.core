@@ -26,7 +26,6 @@ namespace Fluxzy.Tests.Archiving.Fixtures
                 zipArchive.ExtractToDirectory(_tempDirectory);
             }
 
-
             var directoryReader = new DirectoryArchiveReader(_tempDirectory);
 
             Exchanges = directoryReader.ReadAllExchanges().ToList();
@@ -34,7 +33,7 @@ namespace Fluxzy.Tests.Archiving.Fixtures
             var httpArchivePackager = new HttpArchivePackager();
             using var memoryStream = new MemoryStream();
 
-            httpArchivePackager.Pack(_tempDirectory, memoryStream).GetAwaiter().GetResult();
+            httpArchivePackager.Pack(_tempDirectory, memoryStream, null).GetAwaiter().GetResult();
 
             memoryStream.Seek(0, SeekOrigin.Begin);
             

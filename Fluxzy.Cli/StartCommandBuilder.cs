@@ -23,7 +23,7 @@ namespace Fluxzy.Cli
     {
         private readonly string _instanceIdentifier;
 
-        public readonly List<IDirectoryPackager> _packagers = new()
+        public readonly List<DirectoryPackager> _packagers = new()
         {
             new FxzyDirectoryPackager(),
             new SazPackager(),
@@ -423,7 +423,7 @@ namespace Fluxzy.Cli
                     "Could not infer file format from output extension. Currently supported extension are : fxzy, har and saz");
 
             await using var outStream = File.Create(outFileName);
-            await packager.Pack(dInfo.FullName, outStream);
+            await packager.Pack(dInfo.FullName, outStream, null);
         }
     }
 }
