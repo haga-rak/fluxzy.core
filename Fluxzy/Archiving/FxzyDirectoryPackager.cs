@@ -24,7 +24,7 @@ namespace Fluxzy
         {
             var baseDirectory = new DirectoryInfo(directory);
             
-            var packableFiles = 
+            var packableFiles =
                 GetPackableFileInfos(baseDirectory, exchangeIds);
 
             await ZipHelper.CompressWithFileInfos(baseDirectory, outputStream, packableFiles.Select(s => s.File));

@@ -7,6 +7,12 @@ namespace Fluxzy
 {
     public class ExchangeIdentifiersInfo
     {
+        public ExchangeIdentifiersInfo(int connectionId, int id)
+        {
+            ConnectionId = connectionId;
+            Id = id;
+        }
+
         [JsonPropertyOrder(-10)]
         public int ConnectionId { get; }
 
