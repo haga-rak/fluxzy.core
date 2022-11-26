@@ -61,6 +61,16 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 label : 'Export',
+                submenu : [
+                    {
+                        label : 'Export to HAR',
+                        id : 'export-to-har',
+                    },
+                    {
+                        label : 'Export to SAZ',
+                        id : 'export-to-saz',
+                    },
+                ]
             },
             {
                 type :  'separator'

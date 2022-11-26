@@ -153,6 +153,12 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<ValidationError>()
                 .ApplyGenericProperties();
+            
+            builder.ExportAsInterface<HarExportRequest>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<SazExportRequest>()
+                .ApplyGenericProperties();
         }
 
 
