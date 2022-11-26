@@ -164,6 +164,29 @@ export class UiStateService {
                 ).subscribe();
         });
 
+        this.menuService.registerMenuEvent('export-to-har', () => {
+
+            this.dialogService.openHarExportSettingDialog()
+                .pipe(
+                    take(1),
+                    filter(t => !!t),
+                    switchMap(saveSetting => {
+                        return  this.systemCallService.requestFileSave("export.har")
+                            .pipe(
+                                take(1),
+                                filter(t => !!t),
+                                map(t => { return {saveSetting, fileName : t} } )
+                            )
+                    }),
+                    filter(t => !!t.fileName),
+                    switchMap(t => this.apiService.fileExportHar({
+                        fileName : t.fileName,
+                        saveSetting : t.saveSetting,
+                        exchangeIds: null
+                    }))
+                ).subscribe();
+        });
+
     }
 
     public getUiState(): Observable<UiState> {
