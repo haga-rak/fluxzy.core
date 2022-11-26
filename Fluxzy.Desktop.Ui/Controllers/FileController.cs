@@ -50,5 +50,17 @@ namespace Fluxzy.Desktop.Ui.Controllers
             await _fileManager.SaveAs(trunkState, model.FileName);
             return await _uiStateManager.GetUiState();
         }
+
+        [HttpPost("export/har")]
+        public async Task<ActionResult<bool>> ExportHar(HarExportRequest model)
+        {
+            return await _fileManager.ExportHttpArchive(model);
+        }
+
+        [HttpPost("export/saz")]
+        public async Task<ActionResult<bool>> ExportSaz(SazExportRequest model)
+        {
+            return await _fileManager.ExportSaz(model);
+        }
     }
 }

@@ -27,6 +27,7 @@ import {
     ExchangeSelectionService,
 } from './exchange-selection.service';
 import {DialogService} from "./dialog.service";
+import {SystemCallService} from "../core/services/system-call.service";
 
 @Injectable({
     providedIn: 'root',
@@ -42,9 +43,10 @@ export class UiStateService {
         private apiService: ApiService,
         private selectionService: ExchangeSelectionService,
         private exchangeContentService: ExchangeContentService,
-        private dialogService : DialogService
+        private dialogService : DialogService,
+        private systemCallService : SystemCallService
     ) {
-        this.refreshUiState();
+        this.initializeUiState();
 
         this.apiService.registerEvent('UiState', (state: UiState) => {
             this.uiState$.next(state);
@@ -88,7 +90,7 @@ export class UiStateService {
         });
     }
 
-    private refreshUiState(): void {
+    private initializeUiState(): void {
         this.httpClient
             .get<UiState>(`api/ui/state`)
             .pipe(
@@ -148,7 +150,20 @@ export class UiStateService {
                 .pipe(
                     tap(trunkState => this.exchangeContentService.update(trunkState))
                 ).subscribe();
+        })
+
+        this.menuService.registerMenuEvent('export-to-saz', () => {
+            this.systemCallService.requestFileSave("export.saz")
+                .pipe(
+                    take(1),
+                    filter(t => !!t),
+                    switchMap(fileName => this.apiService.fileExportSaz({
+                        fileName,
+                        exchangeIds: null
+                    }))
+                ).subscribe();
         });
+
     }
 
     public getUiState(): Observable<UiState> {

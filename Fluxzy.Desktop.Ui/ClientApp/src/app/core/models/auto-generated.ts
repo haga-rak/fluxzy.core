@@ -683,6 +683,12 @@ export interface FluxzySettingViewModel
 	addresses: string[];
 	listenType: string;
 }
+export interface HttpArchiveSavingSetting
+{
+	default: HttpArchiveSavingSetting;
+	policy: string;
+	harLimitMaxBodyLength: number;
+}
 export interface CertificateValidationResult
 {
 	subjectName?: string;
@@ -744,8 +750,8 @@ export interface Tag
 }
 export interface ExchangeInfo
 {
-	id: number;
 	connectionId: number;
+	id: number;
 	requestHeader: RequestHeaderInfo;
 	responseHeader?: ResponseHeaderInfo;
 	metrics: ExchangeMetrics;
@@ -845,4 +851,15 @@ export interface SslInfo
 export interface ValidationError
 {
 	message: string;
+}
+export interface HarExportRequest
+{
+	fileName: string;
+	saveSetting: HttpArchiveSavingSetting;
+	exchangeIds?: number[];
+}
+export interface SazExportRequest
+{
+	fileName: string;
+	exchangeIds?: number[];
 }
