@@ -9,43 +9,38 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using Fluxzy.Misc;
 
 namespace Fluxzy.Saz
 {
     [PackagerInformation("saz", "saz archive format", ".saz")]
-    public class SazPackager : IDirectoryPackager
+    public class SazPackager : DirectoryPackager
     {
-        public bool ShouldApplyTo(string fileName)
+        public override bool ShouldApplyTo(string fileName)
         {
             return fileName.EndsWith(".saz", StringComparison.CurrentCultureIgnoreCase);
         }
-
-        public async Task Pack(string directory, Stream outputStream)
+        
+        public override async Task Pack(string directory, Stream outputStream, HashSet<int>? exchangeIds)
         {
-            var directoryInfo = new DirectoryInfo(directory);
+            var baseDirectory = new DirectoryInfo(directory);
 
-            if (!directoryInfo.Exists)
+            if (!baseDirectory.Exists)
                 throw new InvalidOperationException("Directory does not exists");
+            
+            var packableFiles = GetPackableFileInfos(baseDirectory, exchangeIds).ToList();
 
-            var connectionInfos = await IDirectoryPackager.ReadConnectionInfos(directoryInfo);
+            var connectionInfos = ReadConnections(packableFiles).ToDictionary(t => t.Id, t => t);
 
             var sessionId = 0;
 
-            var exchanges = await IDirectoryPackager
-                                  .ReadExchanges(directoryInfo)
-                                  .ToListAsync();
+            var exchanges = ReadExchanges(packableFiles).ToList(); 
 
             using var zipArchive = new ZipArchive(outputStream, ZipArchiveMode.Create);
             var max = (int)Math.Ceiling(Math.Log10(exchanges.Count));
 
-            foreach (var exchangeInfo in exchanges)
-            {
-                var requestPayloadPath =
-                    Path.Combine(directoryInfo.FullName, "contents", $"req-{exchangeInfo.Id}.data");
-
-                var responsePayloadPath =
-                    Path.Combine(directoryInfo.FullName, "contents", $"res-{exchangeInfo.Id}.data");
+            foreach (var exchangeInfo in exchanges) {
+                var requestPayloadPath = DirectoryArchiveHelper.GetContentRequestPath(baseDirectory.FullName, exchangeInfo.Id);
+                var responsePayloadPath = DirectoryArchiveHelper.GetContentResponsePath(baseDirectory.FullName, exchangeInfo.Id);
 
                 if (!connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo))
                     continue;
@@ -53,12 +48,6 @@ namespace Fluxzy.Saz
                 await DumpExchange(zipArchive, ++sessionId, exchangeInfo, connectionInfo, max,
                     requestPayloadPath, responsePayloadPath);
             }
-        }
-
-        public Task Pack(string directory, Stream outputStream, IEnumerable<ExchangeInfo> exchangeInfos,
-            IEnumerable<ConnectionInfo> connectionInfos)
-        {
-            throw new NotImplementedException();
         }
 
         private static async Task WriteRequest(

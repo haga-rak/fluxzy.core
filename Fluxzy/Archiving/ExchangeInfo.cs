@@ -8,9 +8,11 @@ namespace Fluxzy
 {
     public class ExchangeInfo : IExchange
     {
-        public int Id { get; }
-
+        [JsonPropertyOrder(-10)]
         public int ConnectionId { get; }
+        
+        [JsonPropertyOrder(-9)]
+        public int Id { get; }
 
         public RequestHeaderInfo RequestHeader { get; }
 

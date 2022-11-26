@@ -11,7 +11,7 @@ using Fluxzy.Readers;
 namespace Fluxzy.Har
 {
     [PackagerInformation("har", "HAR 1.2 archive format", ".har")]
-    public class HttpArchivePackager : IDirectoryPackager
+    public class HttpArchivePackager : DirectoryPackager
     {
         private readonly HttpArchiveSavingSetting _savingSetting;
 
@@ -20,64 +20,23 @@ namespace Fluxzy.Har
             _savingSetting = savingSetting ?? HttpArchiveSavingSetting.Default;
         }
 
-        public bool ShouldApplyTo(string fileName)
+        public override bool ShouldApplyTo(string fileName)
         {
             return fileName.EndsWith(".har", StringComparison.CurrentCultureIgnoreCase);
         }
 
-        public Task Pack(string directory, Stream outputStream)
+        public override Task Pack(string directory, Stream outputStream, HashSet<int>? exchangeIds)
         {
-            var exchanges =
-                DirectoryArchiveHelper.EnumerateExchangeFileCandidates(directory)
-                                      .Select(fileInfo =>
-                                      {
-                                          try
-                                          {
-                                              using var stream = fileInfo.Open(FileMode.Open, FileAccess.Read,
-                                                  FileShare.ReadWrite);
+            var baseDirectory = new DirectoryInfo(directory);
+            var packableFiles = GetPackableFileInfos(baseDirectory, exchangeIds).ToList();
 
-                                              var current = JsonSerializer.Deserialize<ExchangeInfo>(stream,
-                                                  GlobalArchiveOption.DefaultSerializerOptions);
+            var exchanges = ReadExchanges(packableFiles);
+            var connections = ReadConnections(packableFiles);
 
-                                              return current;
-                                          }
-                                          catch
-                                          {
-                                              // We suppress all reading warning here caused by potential pending reads 
-                                              // TODO : think of a better way 
-
-                                              return null;
-                                          }
-                                      }).Where(e => e != null).OfType<ExchangeInfo>();
-
-            var connections =
-                DirectoryArchiveHelper.EnumerateConnectionFileCandidates(directory)
-                                      .Select(fileInfo =>
-                                      {
-                                          try
-                                          {
-                                              using var stream = fileInfo.Open(FileMode.Open, FileAccess.Read,
-                                                  FileShare.ReadWrite);
-
-                                              var current = JsonSerializer.Deserialize<ConnectionInfo>(stream,
-                                                  GlobalArchiveOption.DefaultSerializerOptions);
-
-                                              return current;
-                                          }
-                                          catch
-                                          {
-                                              // We suppress all reading warning here caused by potential pending reads 
-                                              // TODO : think of a better way 
-
-                                              return null;
-                                          }
-                                      })
-                                      .Where(e => e != null).OfType<ConnectionInfo>();
-
-            return Pack(directory, outputStream, exchanges, connections);
+            return InternalPack(directory, outputStream, exchanges, connections);
         }
 
-        public Task Pack(string directory, Stream outputStream,
+        private Task InternalPack(string directory, Stream outputStream,
             IEnumerable<ExchangeInfo> exchangeInfos,
             IEnumerable<ConnectionInfo> connectionInfos)
         {

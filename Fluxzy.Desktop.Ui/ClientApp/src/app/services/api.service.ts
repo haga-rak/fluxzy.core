@@ -35,12 +35,12 @@ import {
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult,
-    ForwardMessage,
+    ForwardMessage, HarExportRequest,
     MultipartItem,
     NetworkInterfaceInfo,
     Rule,
     RuleContainer,
-    SaveFileMultipartActionModel,
+    SaveFileMultipartActionModel, SazExportRequest,
     StoredFilter,
     Tag,
     TagGlobalApplyModel,
@@ -158,6 +158,20 @@ export class ApiService {
     }
     public fileSaveAs(model : FileSaveViewModel) : Observable<UiState> {
         return this.httpClient.post<UiState>(`api/file/save-as`, model)
+            .pipe(
+                take(1)
+            );
+    }
+
+    public fileExportHar(exportRequest : HarExportRequest) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/file/export/har`, exportRequest)
+            .pipe(
+                take(1)
+            );
+    }
+
+    public fileExportSaz(exportRequest : SazExportRequest) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/file/export/saz`, exportRequest)
             .pipe(
                 take(1)
             );

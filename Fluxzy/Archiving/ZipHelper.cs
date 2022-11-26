@@ -29,7 +29,7 @@ namespace Fluxzy
             Func<FileInfo, bool> policy)
         {
             if (!directoryInfo.Exists)
-                throw new InvalidOperationException($"Directory {directoryInfo.FullName} does not exists");
+                throw new ArgumentException($"Directory {directoryInfo.FullName} does not exists");
 
             await using var zipStream = new ZipOutputStream(output);
 
@@ -39,7 +39,7 @@ namespace Fluxzy
         }
         
         public static async Task CompressWithFileInfos(DirectoryInfo directoryInfo, 
-            Stream output, IReadOnlyCollection<FileInfo> fileInfos)
+            Stream output, IEnumerable<FileInfo> fileInfos)
         {
             if (!directoryInfo.Exists)
                 throw new InvalidOperationException($"Directory {directoryInfo.FullName} does not exists");
@@ -93,7 +93,7 @@ namespace Fluxzy
 
         private static async Task InternaCompressDirectoryWithFileInfos(
             DirectoryInfo directoryInfo, ZipOutputStream zipStream,
-            IReadOnlyCollection<FileInfo> fileInfos)
+            IEnumerable<FileInfo> fileInfos)
         {
             var directoryName = directoryInfo.FullName; 
 
