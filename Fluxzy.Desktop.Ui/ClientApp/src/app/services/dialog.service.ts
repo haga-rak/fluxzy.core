@@ -1,7 +1,15 @@
 import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import {BehaviorSubject, delay, filter, finalize, map, Observable, Subject, switchMap, take, tap} from 'rxjs';
-import {Action, CommentUpdateModel, Filter, Rule, Tag, TagGlobalApplyModel} from '../core/models/auto-generated';
+import {
+    Action,
+    CommentUpdateModel,
+    Filter,
+    HttpArchiveSavingSetting,
+    Rule,
+    Tag,
+    TagGlobalApplyModel
+} from '../core/models/auto-generated';
 import { MenuService } from '../core/services/menu-service.service';
 import { FilterEditComponent } from '../settings/filter-forms/filter-edit/filter-edit.component';
 import { GlobalSettingComponent } from '../settings/global-setting/global-setting.component';
@@ -15,6 +23,7 @@ import {CreateTagComponent} from "../settings/tags/create-tag/create-tag.compone
 import {WaitDialogComponent} from "../shared/wait-dialog/wait-dialog.component";
 import {CommentApplyComponent} from "../shared/comment-apply/comment-apply.component";
 import {TagApplyComponent} from "../shared/tag-apply/tag-apply.component";
+import {HarExportSettingComponent} from "../shared/har-export-setting/har-export-setting.component";
 
 @Injectable({
     providedIn: 'root',
@@ -269,6 +278,27 @@ export class DialogService {
 
         this.bsModalRef = this.modalService.show(
             CreateTagComponent,
+            config
+        );
+
+        this.bsModalRef.content.closeBtnName = 'Close';
+        return subject.asObservable().pipe(take(1));;
+    }
+
+    public openHarExportSettingDialog() : Observable<HttpArchiveSavingSetting | null> {
+        const subject = new Subject<HttpArchiveSavingSetting | null>() ;
+        const callBack = (f : HttpArchiveSavingSetting | null) => {  subject.next(f); subject.complete()};
+
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                callBack,
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.bsModalRef = this.modalService.show(
+            HarExportSettingComponent,
             config
         );
 

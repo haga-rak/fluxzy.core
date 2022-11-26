@@ -36,7 +36,7 @@ namespace Fluxzy
     public static class AttributeExtensions
     {
         public static PackagerInformationAttribute GetInfo<T>(this T element)
-            where T : IDirectoryPackager
+            where T : DirectoryPackager
         {
             return element.GetType().GetCustomAttribute<PackagerInformationAttribute>();
         }
@@ -46,15 +46,15 @@ namespace Fluxzy
     {
         public static PackagerRegistry Instance { get; } = new();
 
-        public IReadOnlyCollection<IDirectoryPackager> Packagers { get; }
-            = new ReadOnlyCollection<IDirectoryPackager>(new List<IDirectoryPackager>
+        public IReadOnlyCollection<DirectoryPackager> Packagers { get; }
+            = new ReadOnlyCollection<DirectoryPackager>(new List<DirectoryPackager>
             {
                 new FxzyDirectoryPackager(),
                 new SazPackager(),
                 new HttpArchivePackager()
             });
 
-        public IDirectoryPackager InferPackagerFromFileName(string fileName)
+        public DirectoryPackager InferPackagerFromFileName(string fileName)
         {
             if (!Packagers.Any())
                 throw new InvalidOperationException("No packager was registered yet");
@@ -72,7 +72,7 @@ namespace Fluxzy
             return Packagers.First();
         }
 
-        public IDirectoryPackager GetPackageOrDefault(string name)
+        public DirectoryPackager GetPackageOrDefault(string name)
         {
             if (!Packagers.Any())
                 throw new InvalidOperationException("No packager was registered yet");

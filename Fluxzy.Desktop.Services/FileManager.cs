@@ -3,6 +3,8 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Har;
+using Fluxzy.Saz;
 using Microsoft.Extensions.Configuration;
 
 namespace Fluxzy.Desktop.Services
@@ -93,9 +95,9 @@ namespace Fluxzy.Desktop.Services
 
             using var outStream = File.Create(current.MappedFileFullPath);
 
-            await _directoryPackager.Pack(current.WorkingDirectory, outStream,
-                trunkState.Exchanges.Select(e => e.ExchangeInfo),
-                trunkState.Connections.Select(c => c.ConnectionInfo));
+            var exchangeIds = trunkState.Exchanges.Select(s => s.Id).ToHashSet();
+
+            await _directoryPackager.Pack(current.WorkingDirectory, outStream, exchangeIds);
 
             var nextState = current.SetUnsaved(false);
 
@@ -111,9 +113,9 @@ namespace Fluxzy.Desktop.Services
 
             using var outStream = File.Create(fileName);
 
-            await _directoryPackager.Pack(current.WorkingDirectory, outStream,
-                trunkState.Exchanges.Select(e => e.ExchangeInfo),
-                trunkState.Connections.Select(c => c.ConnectionInfo));
+            var exchangeIds = trunkState.Exchanges.Select(s => s.Id).ToHashSet(); 
+
+            await _directoryPackager.Pack(current.WorkingDirectory, outStream, exchangeIds);
 
             var nextState = current
                             .SetFileName(fileName)
@@ -121,18 +123,57 @@ namespace Fluxzy.Desktop.Services
 
             Subject.OnNext(nextState);
         }
-
-        public Task Export(Stream outStream, FluxzyFileType fileType)
+        
+        public async Task<bool> ExportHttpArchive(HarExportRequest exportRequest)
         {
-            throw new NotImplementedException();
+            var current = await ProvidedObservable.FirstAsync();
+            var exchangeIds = exportRequest.ExchangeIds?.ToHashSet();
+
+            await using var stream = File.Create(exportRequest.FileName);
+            var harArchive = new HttpArchivePackager(exportRequest.SaveSetting);
+            await harArchive.Pack(current.WorkingDirectory, stream, exchangeIds);
+
+            return true; 
+        }
+
+        public async Task<bool> ExportSaz(SazExportRequest exportRequest)
+        {
+            var current = await ProvidedObservable.FirstAsync();
+            var exchangeIds = exportRequest.ExchangeIds?.ToHashSet();
+            await using var stream = File.Create(exportRequest.FileName);
+            
+            var sazPackager = new SazPackager();
+            await sazPackager.Pack(current.WorkingDirectory, stream, exchangeIds);
+            return true; 
         }
     }
 
-    public enum FluxzyFileType
+    public class HarExportRequest
     {
-        Error = 0,
-        Native = 1,
-        Har = 5,
-        Saz = 50
+        public HarExportRequest(string fileName, HttpArchiveSavingSetting saveSetting, List<int>? exchangeIds)
+        {
+            FileName = fileName;
+            SaveSetting = saveSetting;
+            ExchangeIds = exchangeIds;
+        }
+
+        public string FileName { get;  }
+
+        public HttpArchiveSavingSetting SaveSetting { get;  }
+
+        public List<int>? ExchangeIds { get; }
+    }
+
+    public class SazExportRequest
+    {
+        public SazExportRequest(string fileName, List<int>? exchangeIds)
+        {
+            FileName = fileName;
+            ExchangeIds = exchangeIds;
+        }
+
+        public string FileName { get;  }
+
+        public List<int>?  ExchangeIds { get;  }
     }
 }

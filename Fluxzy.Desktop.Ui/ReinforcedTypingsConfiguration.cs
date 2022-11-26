@@ -13,6 +13,7 @@ using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Formatters.Producers.Responses;
+using Fluxzy.Har;
 using Fluxzy.Misc.Converters;
 using Fluxzy.Misc.IpUtils;
 using Fluxzy.Rules;
@@ -86,6 +87,9 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<FluxzySettingViewModel>()
                 .ApplyGenericProperties();
 
+            builder.ExportAsInterface<HttpArchiveSavingSetting>()
+                .ApplyGenericProperties();
+
             builder.ExportAsInterface<Certificate>()
                 .ApplyGenericProperties();
 
@@ -148,6 +152,12 @@ namespace Fluxzy.Desktop.Ui
 
 
             builder.ExportAsInterface<ValidationError>()
+                .ApplyGenericProperties();
+            
+            builder.ExportAsInterface<HarExportRequest>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<SazExportRequest>()
                 .ApplyGenericProperties();
         }
 
@@ -294,6 +304,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
                 .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
+                .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -315,6 +326,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
                 .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
+                .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
