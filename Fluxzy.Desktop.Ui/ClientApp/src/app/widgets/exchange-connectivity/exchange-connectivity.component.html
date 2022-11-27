@@ -15,58 +15,60 @@
             <tr>
                 <th>Hostname</th>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="'-/-'"  /> 
+                    <input type="text" class="form-control form-connectivity" readonly [value]="'-/-'"  />
                 </td>
                 <td> <input type="text" class="form-control form-connectivity" readonly [value]="connection.authority.hostName"  /> </td>
             </tr>
             <tr>
                 <th>IP</th>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.localAddress"  /> 
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.localAddress"  />
                 </td>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.remoteAddress"  /> 
-                   
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.remoteAddress"  />
+
                 </td>
             </tr>
             <tr>
                 <th>Port</th>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.localPort"  /> 
-                    
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.localPort"  />
+
                 </td>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.authority.port"  /> 
-                    
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.authority.port"  />
+
 
                 </td>
             </tr>
             <tr>
                 <th>Certificate</th>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="'-/-'"  /> 
-                    
+                    <input type="text" *ngIf="!connection.sslInfo.localCertificateSubject" class="form-control form-connectivity" readonly [value]="'-/-'"  />
+                    <input type="text" *ngIf="connection.sslInfo.localCertificateSubject" class="form-control form-connectivity" readonly [value]="connection.sslInfo.localCertificateSubject"  />
+
                 </td>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.remoteCertificateSubject"  /> 
-                   
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.remoteCertificateSubject"  />
+
                 </td>
             </tr>
             <tr>
                 <th>Issuer</th>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="'-/-'"  /> 
-                    
+                    <input type="text" *ngIf="!connection.sslInfo.localCertificateIssuer" class="form-control form-connectivity" readonly [value]="'-/-'"  />
+                    <input type="text" *ngIf="connection.sslInfo.localCertificateIssuer" class="form-control form-connectivity" readonly [value]="connection.sslInfo.localCertificateIssuer"  />
+
                 </td>
                 <td>
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.remoteCertificateIssuer"  /> 
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.remoteCertificateIssuer"  />
                 </td>
             </tr>
             <tr>
                 <th>&nbsp;</th>
                 <td>
                     &nbsp;
-                    
+
                 </td>
                 <td>
                     &nbsp;
@@ -75,31 +77,32 @@
             <tr>
                 <th>SSL protocol</th>
                 <td colspan="2" class="text-center">
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.sslProtocol"  /> 
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.sslProtocol"  />
                 </td>
             </tr>
             <tr>
                 <th>Cipher</th>
                 <td colspan="2" class="text-center">
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.cipherAlgorithm"  /> 
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.cipherAlgorithm"  />
                 </td>
             </tr>
             <tr>
                 <th>Hash</th>
                 <td colspan="2" class="text-center">
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.hashAlgorithm"  /> 
+                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.hashAlgorithm"  />
                 </td>
             </tr>
             <tr>
                 <th>Alpn</th>
                 <td colspan="2" class="text-center">
-                    <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.negotiatedApplicationProtocol"  /> 
+                    <input type="text" *ngIf="connection.sslInfo.negotiatedApplicationProtocol" class="form-control form-connectivity" readonly [value]="connection.sslInfo.negotiatedApplicationProtocol"  />
+                    <input type="text" *ngIf="!connection.sslInfo.negotiatedApplicationProtocol" class="form-control form-connectivity" readonly [value]="'not set'"  />
                 </td>
             </tr>
         </table>
 
 
     </div>
-    
+
 </div>
 
