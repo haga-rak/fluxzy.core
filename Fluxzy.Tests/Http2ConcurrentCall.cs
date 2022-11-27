@@ -91,8 +91,10 @@ namespace Fluxzy.Tests
         ///     The goal of this test is to challenge the dynamic table content
         /// </summary>
         /// <returns></returns>
-        [Fact]
-        public async Task Post_Dynamic_Table_Evict_Simple_Large_Object()
+        [Theory]
+        [InlineData(1)]
+        [InlineData(16394)]
+        public async Task Post_Dynamic_Table_Evict_Simple_Large_Object(int bodyLength)
         {
             using var handler = new FluxzyHttp2Handler();
 
@@ -108,7 +110,7 @@ namespace Fluxzy.Tests
                     new Random(index % 2).NextBytes(buffer);
 
                     return CallSimple(
-                        h, 16394,
+                        h, bodyLength,
                         524288, new NameValueCollection
                         {
                             { "Cookie", Convert.ToBase64String(buffer) }
