@@ -153,8 +153,9 @@ namespace Fluxzy.Tests.Cli
         {
             // Arrange 
 
-            var directoryName = $"{Guid.NewGuid()}/{protocol}-{withPcap}-{outputDirectory}";
-            var fileName = $"{Guid.NewGuid()}/{protocol}-{withPcap}-{outputDirectory}.fxzy";
+            var rootDir = Guid.NewGuid().ToString(); 
+            var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}";
+            var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}.fxzy";
 
             var commandLine = "start -l 127.0.0.1/0";
 
@@ -254,6 +255,9 @@ namespace Fluxzy.Tests.Cli
 
             if (Directory.Exists(directoryName))
                 Directory.Delete(directoryName, true);
+            
+            if (Directory.Exists(rootDir))
+                Directory.Delete(rootDir, true);
 
             if (File.Exists(fileName))
                 File.Delete(fileName);
