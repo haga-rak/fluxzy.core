@@ -85,6 +85,12 @@ namespace Fluxzy.Core
 
                             shouldClose = exchange.ShouldClose();
 
+                            
+                            // Prepare request 
+
+                            
+
+
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);

@@ -32,6 +32,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap.Cli", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pcap", "Pcap", "{AA4E8234-B9D8-4327-8E98-471CE95CEB2C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fluxzy.Extensions", "Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{37905BB6-10F2-4752-8AE6-92A95FCDB705}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37905BB6-10F2-4752-8AE6-92A95FCDB705}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37905BB6-10F2-4752-8AE6-92A95FCDB705}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
