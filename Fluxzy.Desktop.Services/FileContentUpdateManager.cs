@@ -45,7 +45,7 @@ namespace Fluxzy.Desktop.Services
 
             _currentContentOperationManager.AddOrUpdate(exchangeInfo);
             
-            if (_viewFilter?.Filter == null || _viewFilter.Filter.Apply(null, exchangeInfo, null))
+            if (_viewFilter == null || _viewFilter.Apply(null, exchangeInfo, null))
             {
                 _forwardMessageManager.Send(exchangeInfo);
             }
