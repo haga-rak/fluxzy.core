@@ -663,6 +663,8 @@ export interface FileState
 export interface ViewFilter
 {
 	filter: Filter;
+	sourceFilter: Filter;
+	empty: boolean;
 }
 export interface ToolBarFilter
 {

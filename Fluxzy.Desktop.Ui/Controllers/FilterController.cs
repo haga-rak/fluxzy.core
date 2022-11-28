@@ -53,5 +53,17 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             return true;
         }
+        
+        [HttpDelete("apply/source")]
+        public ActionResult<bool> ApplyResetSourceFilterToView(
+            [FromServices] ActiveViewFilterManager activeViewFilterManager,
+            [FromServices]
+            TemplateToolBarFilterProvider filterProvider)
+        {
+            activeViewFilterManager.UpdateSourceFilter(AnyFilter.Default);
+            filterProvider.SetNewFilter(AnyFilter.Default);
+
+            return true;
+        }
     }
 }
