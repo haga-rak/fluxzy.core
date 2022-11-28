@@ -82,4 +82,20 @@ export class FilterHeaderViewComponent implements OnInit {
                 tap(t => this.selectFilter(t))
             ).subscribe() ;
     }
+
+    public isSourceFilterEmpty() : boolean {
+        return this.uiState.viewFilter.sourceFilter.typeKind === 'AnyFilter';
+    }
+
+    public isSourceAgentSelect(filter: Filter) : boolean {
+        return this.uiState.viewFilter.sourceFilter.identifier === filter.identifier;
+    }
+
+    public resetSourceFilter() : void {
+        this.apiService.filterApplyResetSource().subscribe() ;
+    }
+
+    public applySourceFilter(filter: Filter) : void {
+        this.apiService.filterApplySource(filter).subscribe() ;
+    }
 }

@@ -6,7 +6,16 @@
             View per source ({{uiState.templateToolBarFilterModel.agentFilters.length}})
         </button>
         <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
-            <li role="menuitem" *ngFor="let agentFilter of uiState.templateToolBarFilterModel.agentFilters"><a class="dropdown-item" href="javascript:;">{{ agentFilter.friendlyName }}</a></li>
+            <li role="menuitem">
+                <a class="dropdown-item" href="javascript:;" (click)=" resetSourceFilter()">
+                    <i class="fa fa-check" *ngIf="isSourceFilterEmpty()"></i>
+                All sources</a>
+            </li>
+            <li class="divider dropdown-divider"></li>
+            <li role="menuitem" *ngFor="let agentFilter of uiState.templateToolBarFilterModel.agentFilters">
+                <a class="dropdown-item" href="javascript:;" (click)="applySourceFilter(agentFilter)">
+                    <i class="fa fa-check" *ngIf="isSourceAgentSelect(agentFilter)"></i>
+                    {{ agentFilter.friendlyName }}</a></li>
         </ul>
     </div>
 </div>
