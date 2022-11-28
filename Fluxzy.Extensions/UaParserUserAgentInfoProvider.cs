@@ -12,17 +12,17 @@ namespace Fluxzy.Extensions
     {
         private static readonly Parser Parser = Parser.GetDefault(); 
         
-        public string GetFriendlyName(ulong id, string rawUserAgentValue)
+        public string GetFriendlyName(int id, string rawUserAgentValue)
         {
             var clientInfo = Parser.Parse(rawUserAgentValue);
 
             if (string.IsNullOrWhiteSpace(clientInfo.UA.Major))
-                return $"{clientInfo.UA.Family} (#{GetShortFromLong(id):X})"; 
+                return $"{clientInfo.UA.Family} (#{GetForcedShort(id):X})"; 
             
-            return $"{clientInfo.UA.Family} {clientInfo.UA.Major} (#{GetShortFromLong(id):X})";
+            return $"{clientInfo.UA.Family} {clientInfo.UA.Major} (#{GetForcedShort(id):X})";
         }
 
-        private static short GetShortFromLong(ulong l)
+        private static short GetForcedShort(int l)
         {
             unchecked
             {
