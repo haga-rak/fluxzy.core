@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
+using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
@@ -85,11 +86,16 @@ namespace Fluxzy.Core
 
                             shouldClose = exchange.ShouldClose();
 
-                            
-                            // Prepare request 
+                            if (_proxyRuntimeSetting.UserAgentProvider != null) {
+                                var userAgentValue = exchange.GetRequestHeaderValue("User-Agent"); 
 
+                                // Solve user agent 
+                                
+                                exchange.Agent = Agent.Create(userAgentValue ?? string.Empty,
+                                    ((IPEndPoint) client.Client.LocalEndPoint).Address,
+                                    _proxyRuntimeSetting.UserAgentProvider);
+                            }
                             
-
 
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
