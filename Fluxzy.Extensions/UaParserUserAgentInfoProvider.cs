@@ -17,9 +17,17 @@ namespace Fluxzy.Extensions
             var clientInfo = Parser.Parse(rawUserAgentValue);
 
             if (string.IsNullOrWhiteSpace(clientInfo.UA.Major))
-                return $"{clientInfo.UA.Family} #{id:X}"; 
+                return $"{clientInfo.UA.Family} (#{GetShortFromLong(id):X})"; 
             
-            return $"{clientInfo.UA.Family} {clientInfo.UA.Major} #{id:X}";
+            return $"{clientInfo.UA.Family} {clientInfo.UA.Major} (#{GetShortFromLong(id):X})";
+        }
+
+        private static short GetShortFromLong(ulong l)
+        {
+            unchecked
+            {
+                return (short)l;
+            }
         }
     }
 }
