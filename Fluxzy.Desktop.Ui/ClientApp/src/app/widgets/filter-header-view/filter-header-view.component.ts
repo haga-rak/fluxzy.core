@@ -4,6 +4,7 @@ import {UiStateService} from "../../services/ui.service";
 import {tap, filter, switchMap, take} from "rxjs";
 import {Filter, UiState} from "../../core/models/auto-generated";
 import {ApiService} from "../../services/api.service";
+import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
 
 @Component({
     selector: 'app-filter-header-view',
@@ -13,6 +14,8 @@ import {ApiService} from "../../services/api.service";
 export class FilterHeaderViewComponent implements OnInit {
     private uiState: UiState;
     private selectedFilter : Filter | null ;
+
+    public  SourceAgentIconFunc = SourceAgentIconFunc;
 
     constructor(private dialogService : DialogService, private uiStateService : UiStateService, private apiService: ApiService) {}
 
