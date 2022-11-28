@@ -282,6 +282,83 @@ namespace Fluxzy.Tests.Cli
 
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
         }
+        
+        [Theory]
+        [InlineData("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36", "Chrome 107")]
+        [InlineData("Bad User Agent", "Other")]
+        public async Task Run_Cli_And_Validate_User_Agent(string userAgent, string expectedFriendlyName)
+        {
+            // Arrange 
+            var directory = nameof(Run_Cli_And_Validate_User_Agent);
+            var commandLine = $"start -l 127.0.0.1/0 -d {directory} --parse-ua";
+            
+            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine)) {
+
+                using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                    "https://registry.2befficient.io:40300/status/200");
+
+                requestMessage.Headers.Add("User-Agent", userAgent);
+
+                var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+                await response.Content.ReadAsStringAsync();
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+
+            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory))
+            {
+                var exchanges = archiveReader.ReadAllExchanges().ToList();
+                archiveReader.ReadAllConnections().ToList();
+
+                var exchange = exchanges.FirstOrDefault()!;
+
+                Assert.NotNull(exchange);
+                Assert.NotNull(exchange.Agent);
+                Assert.Equal(expectedFriendlyName, exchange.Agent!.FriendlyName);
+            }
+
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, true);
+        }
+        
+        [Fact]
+        public async Task Run_Cli_And_Validate_User_Absence()
+        {
+            // Arrange 
+            var directory = nameof(Run_Cli_And_Validate_User_Agent);
+            var commandLine = $"start -l 127.0.0.1/0 -d {directory}";
+            
+            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine)) {
+
+                using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                    "https://registry.2befficient.io:40300/status/200");
+
+                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36");
+
+                var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+                await response.Content.ReadAsStringAsync();
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+
+            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory))
+            {
+                var exchanges = archiveReader.ReadAllExchanges().ToList();
+                archiveReader.ReadAllConnections().ToList();
+
+                var exchange = exchanges.FirstOrDefault()!;
+
+                Assert.NotNull(exchange);
+                Assert.Null(exchange.Agent);
+            }
+
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, true);
+        }
 
         [Fact]
         public async Task Run_Cli_For_Web_Socket_Tests()

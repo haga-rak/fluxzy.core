@@ -15,6 +15,10 @@ namespace Fluxzy.Extensions
         public string GetFriendlyName(string rawUserAgentValue)
         {
             var clientInfo = Parser.Parse(rawUserAgentValue);
+
+            if (string.IsNullOrWhiteSpace(clientInfo.UA.Major))
+                return clientInfo.UA.Family; 
+            
             return $"{clientInfo.UA.Family} {clientInfo.UA.Major}";
         }
     }

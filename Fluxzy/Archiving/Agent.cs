@@ -47,5 +47,7 @@ namespace Fluxzy
 
             return new Agent(id, userAgentInfoProvider.GetFriendlyName(userAgentValue));
         }
+
+        
     }
 }
