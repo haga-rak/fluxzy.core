@@ -737,6 +737,7 @@ export interface TrunkState
 {
 	exchanges: ExchangeContainer[];
 	connections: ConnectionContainer[];
+	agents: any[];
 	maxExchangeId: number;
 	maxConnectionId: number;
 	exchangesIndexer: { [key:number]: number };

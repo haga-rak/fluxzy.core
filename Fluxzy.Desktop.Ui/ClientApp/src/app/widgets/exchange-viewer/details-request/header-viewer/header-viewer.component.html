@@ -4,6 +4,10 @@
     <perfect-scrollbar [usePSClass]="true"  style="max-height: calc(100vh - 0px);">
 
         <table class="summary-table" style="margin-bottom: 20px;">
+            <tr *ngIf="exchange.agent && exchange.agent.friendlyName">
+                <th>Origin</th>
+                <td><span style="font-weight: 600">{{ exchange.agent.friendlyName }}</span></td>
+            </tr>
             <tr>
                 <th>Method</th>
                 <td>{{ exchange.method }}</td>
@@ -12,31 +16,31 @@
                 <th>Full url</th>
                 <td>
                     <span [title]="exchange.fullUrl ">
-                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(exchange.fullUrl)"> 
+                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(exchange.fullUrl)">
                             <span class="material-icons" style="font-size:10px !important">content_copy</span>
                         </a> {{ exchange.fullUrl }}
                     </span>
                     <br/>
-                     
+
                 </td>
             </tr>
             <tr>
                 <th>Path</th>
                 <td>
                     <span [title]="exchange.path ">
-                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(exchange.path)"> 
+                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(exchange.path)">
                             <span class="material-icons" style="font-size:10px !important">content_copy</span>
                         </a> {{ exchange.path }}
                     </span>
                     <br/>
-                    <!-- <small>                        
-                        <a title="Copy to clipboard" href="javascript:;" class="btn btn-sm btn-primary" (click)="setClipboard(exchange.fullUrl)"> 
+                    <!-- <small>
+                        <a title="Copy to clipboard" href="javascript:;" class="btn btn-sm btn-primary" (click)="setClipboard(exchange.fullUrl)">
                             <span class="material-icons" style="font-size:10px !important">content_copy</span>
-                        </a> 
-                            &nbsp; 
+                        </a>
+                            &nbsp;
                         <a title="Copy to clipboard" href="javascript:;" class="btn btn-sm btn-primary"  (click)="setClipboard(exchange.path)"> Copy path only</a>
                     </small> -->
-                     
+
                 </td>
             </tr>
             <tr>
@@ -48,23 +52,23 @@
                 <td>{{ exchange.httpVersion }}</td>
             </tr>
         </table>
-    
-    
+
+
         <table class="summary-table">
             <tr *ngFor="let header of exchange.requestHeader.headers  | sort:'name'" >
                 <ng-container *ngIf="!header.name.startsWith(':') && header.forwarded">
-    
+
                     <th>{{ header.name }}</th>
                     <td>
-                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(header.value)"> 
+                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(header.value)">
                             <span class="material-icons" style="font-size:10px !important">content_copy</span></a>
                         {{ header.value }}</td>
                 </ng-container>
             </tr>
         </table>
-    
+
     </perfect-scrollbar>
-    
+
 </div>
 
 
