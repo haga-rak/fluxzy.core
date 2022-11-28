@@ -8,13 +8,13 @@ namespace Fluxzy
 {
     public class Agent
     {
-        public Agent(ulong id, string friendlyName)
+        public Agent(int id, string friendlyName)
         {
             Id = id;
             FriendlyName = friendlyName;
         }
 
-        public ulong Id { get;  }
+        public int Id { get;  }
 
         public string FriendlyName { get;  }
 
@@ -47,11 +47,15 @@ namespace Fluxzy
             return new Agent(id, userAgentInfoProvider.GetFriendlyName(id, userAgentValue));
         }
 
-        public static ulong CreateId(string userAgentValue, IPAddress localAddress)
+        public static int CreateId(string userAgentValue, IPAddress localAddress)
         {
             var id = HashUtility.GetLongHash(userAgentValue);
             id ^= (ulong) localAddress.GetHashCode(); // WARNING: IPAddress GetHashCode is not stable
-            return id;
+
+            unchecked
+            {
+                return (int) id;
+            }
         }
     }
 }
