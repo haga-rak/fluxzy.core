@@ -30,7 +30,7 @@
 
             Agents = agents.OrderBy(r => r.FriendlyName).ToList(); 
         }
-
+        
 
         public TrunkState(
             IEnumerable<ExchangeContainer> internalExchanges,
