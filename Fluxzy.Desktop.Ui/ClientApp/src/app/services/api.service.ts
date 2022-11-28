@@ -271,7 +271,7 @@ export class ApiService {
     }
 
     public filterApplyToview(filter: Filter) : Observable<boolean> {
-        return this.httpClient.post<boolean>(`api/filter/apply-to-view`, filter).pipe(take(1));
+        return this.httpClient.post<boolean>(`api/filter/apply/regular`, filter).pipe(take(1));
     }
 
     public contextMenuGetActions(exchangeId : number) : Observable<ContextMenuAction[]> {
