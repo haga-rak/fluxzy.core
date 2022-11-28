@@ -61,8 +61,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
             TemplateToolBarFilterProvider filterProvider)
         {
             activeViewFilterManager.UpdateSourceFilter(AnyFilter.Default);
-            filterProvider.SetNewFilter(AnyFilter.Default);
-
             return true;
         }
     }
