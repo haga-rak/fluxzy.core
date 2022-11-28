@@ -6,20 +6,37 @@ export interface ExchangeStyle {
     textClass : string []
 }
 
+export const SourceAgentIconFunc = (friendlyName : string) : string [] => {
+    let result = [] ;
+
+    if (friendlyName.startsWith('Chrome')){
+        return ['fa', 'fa-chrome'];
+    }
+
+    if (friendlyName.startsWith('Edge')){
+        return ['fa', 'fa-edge'];
+    }
+
+    if (friendlyName.startsWith('Mozilla') || friendlyName.startsWith('Firefox')){
+        return ['fa', 'fa-firefox'];
+    }
+
+    if (friendlyName.startsWith('Safari')){
+        return ['fa', 'fa-safari'];
+    }
+
+    return ['fa', 'fa-globe'];
+}
 
 export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
 
-
     if (!exchangeInfo || !exchangeInfo.responseHeader || !exchangeInfo.responseHeader.statusCode){
-
         if (exchangeInfo.pending){
-
             return   {
                 iconClass : ["fa",  "fa-spinner", "fa-spin", "fa-fw"],
                 textClass : ["text-teal", "bold"]
             };
         }
-
 
         return   {
             iconClass : ["bi",  "bi-exclamation-triangle-fill"],
