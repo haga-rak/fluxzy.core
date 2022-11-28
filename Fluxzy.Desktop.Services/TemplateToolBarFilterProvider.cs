@@ -14,11 +14,12 @@ namespace Fluxzy.Desktop.Services
             new(new TemplateToolBarFilterModel(new() , new()));
         
         public TemplateToolBarFilterProvider(ToolBarFilterProvider toolBarFilterProvider, 
-            IObservable<TrunkState> trunkState)
+            IObservable<DynamicStatistic> dynamicStatistic)
         {
             _defaultFilterSet = toolBarFilterProvider.GetDefault().Select(t => t.Filter.Identifier).ToHashSet();
-            trunkState
-                .Select(ts => ts.Agents.Select(s => new AgentFilter(s)).OfType<Filter>().ToList())
+            
+            dynamicStatistic
+                .Select(ts => ts.Agents.OrderBy(a => a.FriendlyName).Select(s => new AgentFilter(s)).OfType<Filter>().ToList())
                 .Do(filters =>
                     Subject.OnNext(new TemplateToolBarFilterModel(Subject.Value.LastUsedFilters, filters)))
                 .Subscribe(); 
