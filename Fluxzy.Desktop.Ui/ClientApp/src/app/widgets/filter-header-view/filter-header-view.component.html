@@ -1,9 +1,18 @@
 <!-- <span>Filters</span> : &nbsp; &nbsp; -->
-<div class="btn-group" role="group" *ngIf="uiState && uiState.templateToolBarFilterModel.agentFilters.length > 0">
+<div class="btn-group" role="group" *ngIf="uiState && uiState.templateToolBarFilterModel.agentFilters.length > 1">
     <div class="btn-group" role="group" dropdown>
         <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
             aria-expanded="false" dropdownToggle>
-            View per source ({{uiState.templateToolBarFilterModel.agentFilters.length}})
+
+            <span style="white-space: nowrap">
+                <span *ngIf="uiState.viewFilter.sourceFilter.typeKind === 'AnyFilter'">
+                    View per source ({{uiState.templateToolBarFilterModel.agentFilters.length}})
+                </span>
+                <span class="limit-lengthd" *ngIf="uiState.viewFilter.sourceFilter.typeKind !== 'AnyFilter'">
+                    {{uiState.viewFilter.sourceFilter.friendlyName}}
+                </span>
+            </span>
+
         </button>
         <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
             <li role="menuitem">
