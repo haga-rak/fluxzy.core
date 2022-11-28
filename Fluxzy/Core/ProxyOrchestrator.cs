@@ -320,35 +320,6 @@ namespace Fluxzy.Core
 
                         try
                         {
-                            if (_archiveWriter != null &&
-                                !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
-                            {
-                                //await _archiveWriter.Update(
-                                //    exchange,
-                                //    ArchiveUpdateType.AfterResponse,
-                                //    CancellationToken.None
-                                //);
-
-                                //var ext = exchange;
-
-                                //// TODO
-                                //var _ = exchange.Complete.ContinueWith(async t =>
-                                //{
-                                //    try
-                                //    {
-                                //        await _archiveWriter.Update(
-                                //            ext,
-                                //            ArchiveUpdateType.Complete,
-                                //            CancellationToken.None
-                                //        );
-                                //    }
-                                //    catch (Exception ex)
-                                //    {
-
-                                //    }
-                                //}, callerTokenSource.Token);
-                            }
-
                             // Read the nex HTTP message 
                             exchange = await _exchangeBuilder.ReadExchange(
                                 localConnection.ReadStream,
