@@ -30,15 +30,37 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return AnyFilter.Default;
         }
 
-        [HttpPost("apply-to-view")]
+        [HttpPost("apply/regular")]
         public ActionResult<bool> ApplyToView(Filter filter,
             [FromServices] ActiveViewFilterManager activeViewFilterManager,
             [FromServices]
             TemplateToolBarFilterProvider filterProvider)
         {
-            activeViewFilterManager.Update(new ViewFilter(filter));
+            activeViewFilterManager.UpdateViewFilter(filter);
             filterProvider.SetNewFilter(filter);
 
+            return true;
+        }
+        
+        [HttpPost("apply/source")]
+        public ActionResult<bool> ApplySourceFilterToView(Filter filter,
+            [FromServices] ActiveViewFilterManager activeViewFilterManager,
+            [FromServices]
+            TemplateToolBarFilterProvider filterProvider)
+        {
+            activeViewFilterManager.UpdateSourceFilter(filter);
+            filterProvider.SetNewFilter(filter);
+
+            return true;
+        }
+        
+        [HttpDelete("apply/source")]
+        public ActionResult<bool> ApplyResetSourceFilterToView(
+            [FromServices] ActiveViewFilterManager activeViewFilterManager,
+            [FromServices]
+            TemplateToolBarFilterProvider filterProvider)
+        {
+            activeViewFilterManager.UpdateSourceFilter(AnyFilter.Default);
             return true;
         }
     }

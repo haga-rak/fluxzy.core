@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core;
+using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Tests.Common;
 using Fluxzy.Writers;
@@ -27,63 +28,57 @@ namespace Fluxzy.Tests
         {
             await using var proxy = new AddHocProxy(1, 10);
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
             using var httpClient = new HttpClient(clientHandler, false);
 
             await Task.WhenAll(Enumerable.Repeat(httpClient, 10)
-                .Select(Receiving_Multiple_Repeating_Header_Value_Call));
+                                         .Select(Receiving_Multiple_Repeating_Header_Value_Call));
 
             await proxy.WaitUntilDone();
         }
-        
+
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call(HttpClient httpClient)
         {
-            int repeatCount = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 50 : 10;
-            var hosts = new[]
-            {
-                TestConstants.Http2Host, 
+            var repeatCount = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 50 : 10;
+            var hosts = new[] {
+                TestConstants.Http2Host,
                 "https://httpmill.smartizy.com:5001"
             };
-            var random = new Random(9); 
+            var random = new Random(9);
 
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
-                .Select(async client =>
-                {
-                    var host = hosts[random.Next(0, hosts.Length)]; 
+                                  .Select(async client =>
+                                  {
+                                      var host = hosts[random.Next(0, hosts.Length)];
 
-                    var response = await client.GetAsync($"{host}/headers-random-repeat");
-                    var text = await response.Content.ReadAsStringAsync();
-                    Header2[] items;
+                                      var response = await client.GetAsync($"{host}/headers-random-repeat");
+                                      var text = await response.Content.ReadAsStringAsync();
+                                      Header2[] items;
 
-                    try
-                    {
+                                      try {
+                                          items = JsonSerializer.Deserialize<Header2[]>(text
+                                              , new JsonSerializerOptions {
+                                                  PropertyNameCaseInsensitive = true
+                                              })!;
+                                      }
+                                      catch (JsonException jex) {
+                                          throw new Exception("Text :" + text, jex);
+                                      }
 
-                        items = JsonSerializer.Deserialize<Header2[]>(text
-                            , new JsonSerializerOptions()
-                            {
-                                PropertyNameCaseInsensitive = true
-                            })!;
-                    }
-                    catch (JsonException jex)
-                    {
-                        throw new Exception("Text :" + text, jex);
-                    }
+                                      var mustBeTrue =
+                                          items.All(i => response.Headers.Any(
+                                              t => t.Key == i.Name
+                                                   && t.Value.Contains(i.Value)));
 
-                    var mustBeTrue =
-                        items.All(i => response.Headers.Any(
-                            t => t.Key == i.Name
-                                 && t.Value.Contains(i.Value)));
+                                      var missing = items.Where(i => !response.Headers.Any(
+                                          t => t.Key == i.Name
+                                               && t.Value.Contains(i.Value))).ToList();
 
-                    var missing = items.Where(i => !response.Headers.Any(
-                        t => t.Key == i.Name
-                             && t.Value.Contains(i.Value))).ToList();
-
-                    Assert.True(mustBeTrue);
-                });
+                                      Assert.True(mustBeTrue);
+                                  });
 
             await Task.WhenAll(tasks);
         }
@@ -95,9 +90,8 @@ namespace Fluxzy.Tests
         {
             await using var proxy = new AddHocProxy(1, 10);
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -113,9 +107,9 @@ namespace Fluxzy.Tests
 
             using var response = await httpClient.SendAsync(requestMessage);
 
-            await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response); 
+            await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
 
-            await proxy.WaitUntilDone(); 
+            await proxy.WaitUntilDone();
         }
 
         [Theory]
@@ -125,9 +119,8 @@ namespace Fluxzy.Tests
         {
             await using var proxy = new AddHocProxy(1, 10);
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -136,16 +129,16 @@ namespace Fluxzy.Tests
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/content-produce/{bodySize}/{bodySize}");
-            
+
             using var response = await httpClient.SendAsync(requestMessage);
 
             var stream = await response.Content.ReadAsStreamAsync();
 
-            var length = await stream.DrainAsync(); 
+            var length = await stream.DrainAsync();
 
             Assert.Equal(bodySize, length);
 
-            await proxy.WaitUntilDone(); 
+            await proxy.WaitUntilDone();
         }
 
 
@@ -155,21 +148,20 @@ namespace Fluxzy.Tests
         {
             await using var proxy = new AddHocProxy(1, 10);
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js");
+                "https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js");
 
             using var response = await httpClient.SendAsync(requestMessage);
 
             await response.Content.ReadAsStringAsync();
 
-            await proxy.WaitUntilDone(); 
+            await proxy.WaitUntilDone();
         }
 
         [Theory]
@@ -177,22 +169,21 @@ namespace Fluxzy.Tests
         [InlineData(TestConstants.Http2Host)]
         public async Task Proxy_MultipleRequest(string host)
         {
-            int concurrentCount = 15; 
+            var concurrentCount = 15;
 
             await using var proxy = new AddHocProxy(concurrentCount, 10);
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
 
             await Task.WhenAll(Enumerable.Range(0, concurrentCount)
-                .Select(
-                (index) => PerformRequest(host, index, httpClient))); 
+                                         .Select(
+                                             index => PerformRequest(host, index, httpClient)));
 
-            await proxy.WaitUntilDone(); 
+            await proxy.WaitUntilDone();
         }
 
         private static async Task PerformRequest(string host, int i, HttpClient httpClient)
@@ -218,16 +209,16 @@ namespace Fluxzy.Tests
 
             await using var proxy = new AddHocProxy(1, 10);
 
-            using ClientWebSocket ws = new()
-            {
-                Options = { Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}") }
-            }; 
-            
+            using ClientWebSocket ws = new() {
+                Options = {Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")}
+            };
+
             var uri = new Uri($"{TestConstants.WssHost}/websocket");
+            
             Memory<byte> buffer = new byte[4096];
 
             await ws.ConnectAsync(uri, CancellationToken.None);
-            await ws.ReceiveAsync(buffer, CancellationToken.None); 
+            await ws.ReceiveAsync(buffer, CancellationToken.None);
 
             var hash = Convert.ToBase64String(SHA1.HashData(message));
 
@@ -251,10 +242,10 @@ namespace Fluxzy.Tests
                                  .CreateDefault()
                                  .SetBoundAddress(bindHost, 0);
 
-            var (httpClient, proxy) = CreateTestContext(bindHost,  timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
+            var (httpClient, proxy) = CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
+                out var cancellationTokenSource);
 
             try {
-
                 var response = await httpClient.GetAsync("https://sandbox.smartizy.com/protocol",
                     cancellationTokenSource.Token);
 
@@ -281,11 +272,12 @@ namespace Fluxzy.Tests
                                  .CreateDefault()
                                  .SetBoundAddress(bindHost, 0);
 
-            var (httpClient, proxy) = CreateTestContext(bindHost,  timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
+            var (httpClient, proxy) = CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
+                out var cancellationTokenSource);
 
             try {
-
-                var response = await httpClient.GetAsync("https://particuliers.societegenerale.fr/staticfiles/Resources/stylesheets/index_pri_20220921192127.min.css",
+                var response = await httpClient.GetAsync(
+                    "https://particuliers.societegenerale.fr/staticfiles/Resources/stylesheets/index_pri_20220921192127.min.css",
                     cancellationTokenSource.Token);
 
                 var responseString = await response.Content.ReadAsStringAsync(
@@ -309,18 +301,18 @@ namespace Fluxzy.Tests
             TaskCompletionSource<Exchange> requestReceived, FluxzySetting startupSetting,
             out CancellationTokenSource cancellationTokenSource)
         {
-
             cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
 
             cancellationTokenSource.Token.Register(() =>
             {
-                if (!requestReceived.Task.IsCompleted) {
+                if (!requestReceived.Task.IsCompleted)
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
-                }
             });
 
             var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+                new CertificateProvider(startupSetting,
+                    new FileSystemCertificateCache(startupSetting)),
+                userAgentProvider: new UaParserUserAgentInfoProvider());
 
             proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
             {
@@ -328,10 +320,9 @@ namespace Fluxzy.Tests
                     requestReceived.TrySetResult(args.Original);
             };
 
-           var endPoint =  proxy.Run().First();
+            var endPoint = proxy.Run().First();
 
-            var messageHandler = new HttpClientHandler()
-            {
+            var messageHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
             };
 
@@ -344,11 +335,11 @@ namespace Fluxzy.Tests
         public async Task Test_GetThrough_H1_Plain()
         {
             var bindHost = "127.0.0.1";
-            var timeoutSeconds = 500; 
+            var timeoutSeconds = 500;
 
             var startupSetting = FluxzySetting
-                .CreateDefault()
-                .SetBoundAddress(bindHost, 0);
+                                 .CreateDefault()
+                                 .SetBoundAddress(bindHost, 0);
 
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -356,15 +347,14 @@ namespace Fluxzy.Tests
             cancellationTokenSource.Token.Register(() =>
             {
                 if (!requestReceived.Task.IsCompleted)
-                {
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
-                }
             });
-            
-            await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
 
-            proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
+            await using var proxy = new Proxy(startupSetting,
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                userAgentProvider: new UaParserUserAgentInfoProvider());
+
+            proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
             {
                 if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
@@ -372,8 +362,7 @@ namespace Fluxzy.Tests
 
             var endPoint = proxy.Run().First();
 
-            var messageHandler = new HttpClientHandler()
-            {
+            var messageHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
             };
 
@@ -383,21 +372,20 @@ namespace Fluxzy.Tests
                 cancellationTokenSource.Token);
 
             var responseString = await response.Content.ReadAsStringAsync(
-                cancellationTokenSource.Token); 
-            
+                cancellationTokenSource.Token);
+
             await requestReceived.Task;
-            
         }
 
         [Fact]
         public async Task Test_GetThrough_H2()
         {
             var bindHost = "127.0.0.1";
-            var timeoutSeconds = 500; 
+            var timeoutSeconds = 500;
 
             var startupSetting = FluxzySetting
-                .CreateDefault()
-                .SetBoundAddress(bindHost, 0);
+                                 .CreateDefault()
+                                 .SetBoundAddress(bindHost, 0);
 
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -405,15 +393,14 @@ namespace Fluxzy.Tests
             cancellationTokenSource.Token.Register(() =>
             {
                 if (!requestReceived.Task.IsCompleted)
-                {
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
-                }
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                userAgentProvider: new UaParserUserAgentInfoProvider());
 
-            proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
+            proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
             {
                 if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
@@ -422,8 +409,7 @@ namespace Fluxzy.Tests
             var endPoint = proxy.Run().First();
 
 
-            var messageHandler = new HttpClientHandler()
-            {
+            var messageHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
             };
 
@@ -433,24 +419,24 @@ namespace Fluxzy.Tests
                 cancellationTokenSource.Token);
 
             var responseString = await response.Content.ReadAsStringAsync(
-                cancellationTokenSource.Token); 
+                cancellationTokenSource.Token);
 
             Assert.Equal("HTTP/2", responseString);
 
             await requestReceived.Task;
         }
-        
+
 
         [Fact]
         public async Task Test_GetThrough_Blind_Tunnel()
         {
             var bindHost = "127.0.0.1";
-            var timeoutSeconds = 500; 
+            var timeoutSeconds = 500;
 
             var startupSetting = FluxzySetting
-                .CreateDefault()
-                .SetSkipGlobalSslDecryption(true)
-                .SetBoundAddress(bindHost, 0);
+                                 .CreateDefault()
+                                 .SetSkipGlobalSslDecryption(true)
+                                 .SetBoundAddress(bindHost, 0);
 
 
             var requestReceived = new TaskCompletionSource<Exchange>();
@@ -459,15 +445,14 @@ namespace Fluxzy.Tests
             cancellationTokenSource.Token.Register(() =>
             {
                 if (!requestReceived.Task.IsCompleted)
-                {
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
-                }
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                userAgentProvider: new UaParserUserAgentInfoProvider());
 
-            proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
+            proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
             {
                 if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
@@ -475,8 +460,7 @@ namespace Fluxzy.Tests
 
             var endPoint = proxy.Run().First();
 
-            var messageHandler = new HttpClientHandler()
-            {
+            var messageHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
             };
 
@@ -486,26 +470,21 @@ namespace Fluxzy.Tests
                 cancellationTokenSource.Token);
 
             var responseString = await response.Content.ReadAsStringAsync(
-                cancellationTokenSource.Token); 
+                cancellationTokenSource.Token);
 
             Assert.Equal("HTTP/1.1", responseString);
-
-            //await requestReceived.Task;
-            
         }
-        
-        
-        
+
+
         [Fact]
         public async Task Test_GetThrough_Post()
         {
             var bindHost = "127.0.0.1";
-            var timeoutSeconds = 500; 
+            var timeoutSeconds = 500;
 
             var startupSetting = FluxzySetting
-                .CreateDefault()
-                .SetBoundAddress(bindHost, 0);
-
+                                 .CreateDefault()
+                                 .SetBoundAddress(bindHost, 0);
 
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -513,15 +492,14 @@ namespace Fluxzy.Tests
             cancellationTokenSource.Token.Register(() =>
             {
                 if (!requestReceived.Task.IsCompleted)
-                {
                     requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
-                }
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)));
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                userAgentProvider: new UaParserUserAgentInfoProvider());
 
-            proxy.Writer.ExchangeUpdated += delegate (object? sender, ExchangeUpdateEventArgs args)
+            proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
             {
                 if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
                     requestReceived.TrySetResult(args.Original);
@@ -529,19 +507,18 @@ namespace Fluxzy.Tests
 
             var endPoint = proxy.Run().First();
 
-            var messageHandler = new HttpClientHandler()
-            {
+            var messageHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
             };
 
             var httpClient = new HttpClient(messageHandler);
 
-            var response = await httpClient.PostAsync("https://sandbox.smartizy.com/content-control/sha256", 
+            var response = await httpClient.PostAsync("https://sandbox.smartizy.com/content-control/sha256",
                 new StringContent("random posted string", Encoding.UTF8),
                 cancellationTokenSource.Token);
 
             var responseString = await response.Content.ReadAsStringAsync(
-                cancellationTokenSource.Token); 
+                cancellationTokenSource.Token);
 
             Assert.True(response.IsSuccessStatusCode);
 
@@ -558,26 +535,26 @@ namespace Fluxzy.Tests
                                  .CreateDefault()
                                  .SetBoundAddress(bindHost, 0);
 
-            var (httpClient, proxy) = CreateTestContext(bindHost,  timeoutSeconds, requestReceived, startupSetting, out var cancellationTokenSource);
+            var (httpClient, proxy) = CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
+                out var cancellationTokenSource);
 
             try {
                 var longSuffix = new string('a', 17 * 1024);
-                var response = await httpClient.GetAsync("https://sandbox.smartizy.com:5001/protocol?query=" + longSuffix,
+                var response = await httpClient.GetAsync(
+                    "https://sandbox.smartizy.com:5001/protocol?query=" + longSuffix,
                     cancellationTokenSource.Token);
 
-               await response.Content.ReadAsStringAsync(
+                await response.Content.ReadAsStringAsync(
                     cancellationTokenSource.Token);
 
-                Assert.Equal((HttpStatusCode)528, response.StatusCode);
+                Assert.Equal((HttpStatusCode) 528, response.StatusCode);
 
                 await requestReceived.Task;
             }
-            finally
-            {
+            finally {
                 httpClient.Dispose();
                 await proxy.DisposeAsync();
             }
         }
-
     }
 }

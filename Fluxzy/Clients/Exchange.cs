@@ -163,6 +163,8 @@ namespace Fluxzy.Clients
             return Response.Header?.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
+        public Agent? Agent { get; set; }
+
         public static Exchange CreateUntrackedExchange(
             IIdProvider idProvider, ExchangeContext context, Authority authority,
             ReadOnlyMemory<char> requestHeaderPlain, Stream requestBody, ReadOnlyMemory<char> responseHeader,

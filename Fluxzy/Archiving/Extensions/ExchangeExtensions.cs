@@ -9,12 +9,22 @@ namespace Fluxzy.Extensions
 {
     public static class ExchangeExtensions
     {
-        public static string? GetResponseHeaderValue(this ExchangeInfo exchangeInfo, string headerName)
+        public static string? GetRequestHeaderValue(this IExchange exchangeInfo, string headerName)
         {
-            if (exchangeInfo.ResponseHeader?.Headers == null)
-                return null;
+            var contentTypeHeader = exchangeInfo.GetRequestHeaders().LastOrDefault(h =>
+                h.Name.Span.Equals(headerName, StringComparison.OrdinalIgnoreCase));
 
-            var contentTypeHeader = exchangeInfo.ResponseHeader.Headers.LastOrDefault(h =>
+            return contentTypeHeader?.Value.ToString();
+        }
+        
+        public static string? GetResponseHeaderValue(this IExchange exchangeInfo, string headerName)
+        {
+            var headers = exchangeInfo.GetResponseHeaders();
+
+            if (headers == null)
+                return null; 
+
+            var contentTypeHeader = headers.LastOrDefault(h =>
                 h.Name.Span.Equals(headerName, StringComparison.OrdinalIgnoreCase));
 
             return contentTypeHeader?.Value.ToString();

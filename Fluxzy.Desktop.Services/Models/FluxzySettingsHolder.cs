@@ -1,6 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Desktop.Services.Models
 {

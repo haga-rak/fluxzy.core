@@ -1,0 +1,8 @@
+
+.limit-length {
+    display:block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
+}

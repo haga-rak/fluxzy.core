@@ -14,13 +14,16 @@ namespace Fluxzy.Desktop.Services.Models
             }
         };
 
-        public TemplateToolBarFilterModel(List<Filter> lastUsedFilters)
+        public TemplateToolBarFilterModel(List<Filter> lastUsedFilters, List<Filter> agentFilters)
         {
             LastUsedFilters = lastUsedFilters;
+            AgentFilters = agentFilters;
         }
 
         public List<Filter> QuickFilters => DefaultQuickFilters;
 
         public List<Filter> LastUsedFilters { get; }
+
+        public List<Filter> AgentFilters { get;  }
     }
 }

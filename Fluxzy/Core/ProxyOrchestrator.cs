@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
+using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Filters;
@@ -84,6 +85,17 @@ namespace Fluxzy.Core
                             // Check whether the local browser ask for a connection close 
 
                             shouldClose = exchange.ShouldClose();
+
+                            if (_proxyRuntimeSetting.UserAgentProvider != null) {
+                                var userAgentValue = exchange.GetRequestHeaderValue("User-Agent"); 
+
+                                // Solve user agent 
+                                
+                                exchange.Agent = Agent.Create(userAgentValue ?? string.Empty,
+                                    ((IPEndPoint) client.Client.LocalEndPoint).Address,
+                                    _proxyRuntimeSetting.UserAgentProvider);
+                            }
+                            
 
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
@@ -320,35 +332,6 @@ namespace Fluxzy.Core
 
                         try
                         {
-                            if (_archiveWriter != null &&
-                                !exchange.Method.Equals("connect", StringComparison.OrdinalIgnoreCase))
-                            {
-                                //await _archiveWriter.Update(
-                                //    exchange,
-                                //    ArchiveUpdateType.AfterResponse,
-                                //    CancellationToken.None
-                                //);
-
-                                //var ext = exchange;
-
-                                //// TODO
-                                //var _ = exchange.Complete.ContinueWith(async t =>
-                                //{
-                                //    try
-                                //    {
-                                //        await _archiveWriter.Update(
-                                //            ext,
-                                //            ArchiveUpdateType.Complete,
-                                //            CancellationToken.None
-                                //        );
-                                //    }
-                                //    catch (Exception ex)
-                                //    {
-
-                                //    }
-                                //}, callerTokenSource.Token);
-                            }
-
                             // Read the nex HTTP message 
                             exchange = await _exchangeBuilder.ReadExchange(
                                 localConnection.ReadStream,
