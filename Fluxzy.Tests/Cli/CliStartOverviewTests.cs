@@ -316,7 +316,7 @@ namespace Fluxzy.Tests.Cli
 
                 Assert.NotNull(exchange);
                 Assert.NotNull(exchange.Agent);
-                Assert.Equal(expectedFriendlyName, exchange.Agent!.FriendlyName);
+                Assert.StartsWith(expectedFriendlyName, exchange.Agent!.FriendlyName);
             }
 
             if (Directory.Exists(directory))
