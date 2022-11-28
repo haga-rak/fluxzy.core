@@ -12,6 +12,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Fluxzy.Extensions;
 using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Rules;
@@ -67,6 +68,7 @@ namespace Fluxzy.Cli
             command.AddOption(CreateCertificateFileOption());
             command.AddOption(CreateCertificatePasswordOption());
             command.AddOption(CreateRuleFileOption());
+            command.AddOption(CreateUaParsingOption());
 
 
             command.SetHandler(context => Run(context, cancellationToken));
@@ -89,6 +91,7 @@ namespace Fluxzy.Cli
             var certFile = invocationContext.Value<FileInfo>("cert-file");
             var certPassword = invocationContext.Value<string>("cert-password");
             var ruleFile = invocationContext.Value<FileInfo>("rule-file");
+            var parseUserAgent = invocationContext.Value<bool>("parse-ua");
 
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
@@ -175,12 +178,14 @@ namespace Fluxzy.Cli
 
             proxyStartUpSetting.CaptureRawPacket = includeTcpDump;
 
+            var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
+
             await using (var tcpConnectionProvider =
                          proxyStartUpSetting.CaptureRawPacket
                        ? new CapturedTcpConnectionProvider()
                        : ITcpConnectionProvider.Default)
             {
-                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider))
+                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider, uaParserProvider))
                 {
                     var endPoints = proxy.Run();
 
@@ -188,7 +193,6 @@ namespace Fluxzy.Cli
                     
                     invocationContext.BindingContext.Console
                                      .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
-                    
 
                     if (registerAsSystemProxy)
                     {
@@ -373,6 +377,19 @@ namespace Fluxzy.Cli
             var option = new Option<bool>(
                 "--no-cert-cache",
                 "Don't cache generated certificate on file system");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
+
+        private static Option CreateUaParsingOption()
+        {
+            var option = new Option<bool>(
+                "--parse-ua",
+                "Parse user agent");
 
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;

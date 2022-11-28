@@ -32,16 +32,8 @@ namespace Fluxzy
         IEnumerable<HeaderFieldInfo> GetRequestHeaders();
 
         IEnumerable<HeaderFieldInfo>? GetResponseHeaders();
-
-        //AgentInfo?  AgentInfo { get; }
+        
+        Agent ? Agent { get;  }
     }
-
-    //public class AgentInfo
-    //{
-    //    public string ? OsName { get; set; }
-
-    //    public string ? AgentName { get; set; }
-
-    //    public string ? AgentVersion { get; set; }
-    //}
+    
 }

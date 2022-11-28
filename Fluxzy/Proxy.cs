@@ -43,7 +43,8 @@ namespace Fluxzy
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider,
-            ITcpConnectionProvider? tcpConnectionProvider = null
+            ITcpConnectionProvider? tcpConnectionProvider = null,
+            IUserAgentInfoProvider? userAgentProvider = null
         )
         {
             var tcpConnectionProvider1 = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
@@ -72,7 +73,7 @@ namespace Fluxzy
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
 
             var runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
-                Writer, IdProvider);
+                Writer, IdProvider, userAgentProvider);
 
             _proxyOrchestrator = new ProxyOrchestrator(runTimeSetting,
                 new ExchangeBuilder(secureConnectionManager, IdProvider), poolBuilder);

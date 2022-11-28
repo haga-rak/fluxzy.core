@@ -27,6 +27,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<ForwardMessageManager>();
             collection.AddSingleton<IRuleStorage, LocalRuleStorage>();
             collection.AddSingleton<ActiveRuleManager>();
+            collection.AddSingleton<FileDynamicStatsManager>();
 
             collection.AddSingleton
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
@@ -52,6 +53,9 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton
                 (s => s.GetRequiredService<FilteredExchangeManager>().ProvidedObservable);
+            
+            collection.AddSingleton
+                (s => s.GetRequiredService<FileDynamicStatsManager>().ProvidedObservable);
 
             collection.AddSingleton
                 (s => s.GetRequiredService<ActiveRuleManager>().ActiveRules);
@@ -61,7 +65,7 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton
                 (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));
-
+            
             collection.AddSingleton
             (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
                    .Select(t => t.Observable).Switch());

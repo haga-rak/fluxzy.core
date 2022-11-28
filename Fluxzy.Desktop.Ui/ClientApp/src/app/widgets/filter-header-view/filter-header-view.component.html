@@ -1,13 +1,32 @@
 <!-- <span>Filters</span> : &nbsp; &nbsp; -->
-<div class="btn-group" role="group">
+<div class="btn-group" role="group" *ngIf="uiState && uiState.templateToolBarFilterModel.agentFilters.length > 1">
     <div class="btn-group" role="group" dropdown>
         <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
             aria-expanded="false" dropdownToggle>
-            View exchanges
+
+            <span style="white-space: nowrap">
+                <span *ngIf="uiState.viewFilter.sourceFilter.typeKind === 'AnyFilter'">
+                    View per source ({{uiState.templateToolBarFilterModel.agentFilters.length}})
+                </span>
+                <span class="limit-lengthd" *ngIf="uiState.viewFilter.sourceFilter.typeKind !== 'AnyFilter'">
+                    {{uiState.viewFilter.sourceFilter.friendlyName}}
+                </span>
+            </span>
+
         </button>
-        <ul class="dropdown-menu bg-light text-primary" *dropdownMenu aria-labelledby="btnGroupDrop851">
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;">View exchanges</a></li>
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;">View connections</a></li>
+        <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
+            <li role="menuitem">
+                <a class="dropdown-item" href="javascript:;" (click)=" resetSourceFilter()">
+                    <i class="fa fa-check" *ngIf="isSourceFilterEmpty()"></i>
+                All sources</a>
+            </li>
+            <li class="divider dropdown-divider"></li>
+            <li role="menuitem" *ngFor="let agentFilter of uiState.templateToolBarFilterModel.agentFilters">
+                <a class="dropdown-item" href="javascript:;" (click)="applySourceFilter(agentFilter)"
+                        [ngClass]="{'text-info' : !isSourceAgentSelect(agentFilter)}">
+<!--                    <i class="fa fa-check" *ngIf="isSourceAgentSelect(agentFilter)"></i>-->
+                    <i   [ngClass]="SourceAgentIconFunc(agentFilter.friendlyName)"></i>
+                    {{ agentFilter.friendlyName }}</a></li>
         </ul>
     </div>
 </div>

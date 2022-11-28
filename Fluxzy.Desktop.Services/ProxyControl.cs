@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Extensions;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Rules;
 using Fluxzy.Writers;
@@ -99,7 +100,7 @@ namespace Fluxzy.Desktop.Services
 
                 _proxy = new Proxy(fluxzySetting, 
                     new CertificateProvider(fluxzySetting, new InMemoryCertificateCache()),
-                    _tcpConnectionProvider);
+                    _tcpConnectionProvider, new UaParserUserAgentInfoProvider());
 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
                 _proxy.IdProvider.SetNextExchangeId(maxExchangeId);

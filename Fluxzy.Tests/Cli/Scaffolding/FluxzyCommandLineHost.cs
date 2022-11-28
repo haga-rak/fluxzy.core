@@ -54,5 +54,10 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         }
 
         public Task<int> ExitCode => _runningProxyTask;
+
+        public static Task<ProxyInstance> CreateAndRun(string commandLine)
+        {
+            return new FluxzyCommandLineHost(commandLine).Run();
+        }
     }
 }
