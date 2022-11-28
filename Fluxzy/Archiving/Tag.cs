@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
+using Fluxzy.Clients;
 
 namespace Fluxzy
 {

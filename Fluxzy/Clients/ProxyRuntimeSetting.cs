@@ -36,9 +36,12 @@ namespace Fluxzy.Clients
         public int TimeOutSecondsUnusedConnection { get; set; } = 4;
 
         public IIdProvider IdProvider { get; set; } = new FromIndexIdProvider(0, 0);
+        
+        public IUserAgentInfoProvider?  UserAgentProvider { get; } 
 
         private ProxyRuntimeSetting()
         {
+            
         }
 
         public ProxyRuntimeSetting(
@@ -46,13 +49,15 @@ namespace Fluxzy.Clients
             ProxyExecutionContext executionContext,
             ITcpConnectionProvider tcpConnectionProvider,
             RealtimeArchiveWriter archiveWriter,
-            IIdProvider idProvider)
+            IIdProvider idProvider, 
+            IUserAgentInfoProvider? userAgentProvider)
         {
             _startupSetting = startupSetting;
             ExecutionContext = executionContext;
             TcpConnectionProvider = tcpConnectionProvider;
             ArchiveWriter = archiveWriter;
             IdProvider = idProvider;
+            UserAgentProvider = userAgentProvider;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
 
            

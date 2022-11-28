@@ -32,6 +32,7 @@ namespace Fluxzy
             HttpVersion = exchange.HttpVersion;
             ConnectionId = exchange.Connection?.Id ?? 0;
             Metrics = exchange.Metrics;
+            Agent = exchange.Agent;
 
             ResponseHeader = exchange.Response?.Header == null
                 ? default
@@ -50,7 +51,7 @@ namespace Fluxzy
         public ExchangeInfo(int id, int connectionId, string httpVersion,
             RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader,
             ExchangeMetrics metrics, string egressIp, bool pending, string? comment, HashSet<Tag>? tags,
-            bool isWebSocket, List<WsMessage> webSocketMessages)
+            bool isWebSocket, List<WsMessage> webSocketMessages, Agent? agent)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -63,6 +64,7 @@ namespace Fluxzy
             Comment = comment;
             IsWebSocket = isWebSocket;
             WebSocketMessages = webSocketMessages;
+            Agent = agent;
             Tags = tags ?? new HashSet<Tag>();
         }
 
@@ -86,6 +88,7 @@ namespace Fluxzy
             return ResponseHeader?.Headers;
         }
 
+
         public int StatusCode => ResponseHeader?.StatusCode ?? 0;
 
         public string? EgressIp { get; }
@@ -97,6 +100,7 @@ namespace Fluxzy
         public bool IsWebSocket { get; }
 
         public List<WsMessage>? WebSocketMessages { get; }
+        public Agent? Agent { get; }
     }
 
     public class BodyContent
