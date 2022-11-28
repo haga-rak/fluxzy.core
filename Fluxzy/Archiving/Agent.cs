@@ -44,7 +44,7 @@ namespace Fluxzy
         {
             var id = CreateId(userAgentValue, localAddress);
 
-            return new Agent(id, userAgentInfoProvider.GetFriendlyName(id? userAgentValue));
+            return new Agent(id, userAgentInfoProvider.GetFriendlyName(id, userAgentValue));
         }
 
         public static ulong CreateId(string userAgentValue, IPAddress localAddress)
