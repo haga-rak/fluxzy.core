@@ -2,12 +2,12 @@
 
 using Fluxzy.Formatters;
 using System.Collections.Immutable;
+using System.Text.Json.Serialization;
 using Fluxzy.Extensions;
 using Fluxzy.Readers;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
-using Newtonsoft.Json;
 using Fluxzy.Utils;
 
 namespace Fluxzy.Desktop.Services

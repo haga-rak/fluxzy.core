@@ -45,7 +45,8 @@ namespace Fluxzy.Desktop.Services.Filters
                 new HasCommentFilter(),
                 new HasTagFilter(),
                 new CommentSearchFilter(string.Empty),
-                new TagContainsFilter(null)
+                new TagContainsFilter(null),
+                new AgentLabelFilter(""),
             };
 
             return res;
