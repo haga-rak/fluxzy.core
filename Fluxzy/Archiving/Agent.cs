@@ -42,12 +42,16 @@ namespace Fluxzy
             IPAddress localAddress, 
             IUserAgentInfoProvider userAgentInfoProvider)
         {
-            var id = HashUtility.GetLongHash(userAgentValue);
-            id ^= (ulong) localAddress.GetHashCode(); // WARNING: IPAddress GetHashCode is not stable
+            var id = CreateId(userAgentValue, localAddress);
 
-            return new Agent(id, userAgentInfoProvider.GetFriendlyName(userAgentValue));
+            return new Agent(id, userAgentInfoProvider.GetFriendlyName(id? userAgentValue));
         }
 
-        
+        public static ulong CreateId(string userAgentValue, IPAddress localAddress)
+        {
+            var id = HashUtility.GetLongHash(userAgentValue);
+            id ^= (ulong) localAddress.GetHashCode(); // WARNING: IPAddress GetHashCode is not stable
+            return id;
+        }
     }
 }

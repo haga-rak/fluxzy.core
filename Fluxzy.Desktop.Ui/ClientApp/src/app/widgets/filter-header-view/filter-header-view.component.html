@@ -1,13 +1,12 @@
 <!-- <span>Filters</span> : &nbsp; &nbsp; -->
-<div class="btn-group" role="group">
+<div class="btn-group" role="group" *ngIf="uiState && uiState.templateToolBarFilterModel.agentFilters.length > 0">
     <div class="btn-group" role="group" dropdown>
         <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
             aria-expanded="false" dropdownToggle>
-            View exchanges
+            View per source
         </button>
-        <ul class="dropdown-menu bg-light text-primary" *dropdownMenu aria-labelledby="btnGroupDrop851">
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;">View exchanges</a></li>
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;">View connections</a></li>
+        <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
+            <li role="menuitem" *ngFor="let agentFilter of uiState.templateToolBarFilterModel.agentFilters"><a class="dropdown-item" href="javascript:;">{{ agentFilter.friendlyName }}</a></li>
         </ul>
     </div>
 </div>

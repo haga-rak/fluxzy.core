@@ -12,14 +12,14 @@ namespace Fluxzy.Extensions
     {
         private static readonly Parser Parser = Parser.GetDefault(); 
         
-        public string GetFriendlyName(string rawUserAgentValue)
+        public string GetFriendlyName(ulong id, string rawUserAgentValue)
         {
             var clientInfo = Parser.Parse(rawUserAgentValue);
 
             if (string.IsNullOrWhiteSpace(clientInfo.UA.Major))
-                return clientInfo.UA.Family; 
+                return $"{clientInfo.UA.Family} #{id:X}"; 
             
-            return $"{clientInfo.UA.Family} {clientInfo.UA.Major}";
+            return $"{clientInfo.UA.Family} {clientInfo.UA.Major} #{id:X}";
         }
     }
 }

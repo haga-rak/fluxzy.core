@@ -1,6 +1,8 @@
-﻿using System.Reactive.Subjects;
+﻿using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -9,12 +11,17 @@ namespace Fluxzy.Desktop.Services
         private readonly HashSet<Guid> _defaultFilterSet;
 
         protected override BehaviorSubject<TemplateToolBarFilterModel> Subject { get; } =
-            new(
-                new TemplateToolBarFilterModel(new() , new()));
-
-        public TemplateToolBarFilterProvider(ToolBarFilterProvider toolBarFilterProvider, IObservable<TrunkState> trunkState)
+            new(new TemplateToolBarFilterModel(new() , new()));
+        
+        public TemplateToolBarFilterProvider(ToolBarFilterProvider toolBarFilterProvider, 
+            IObservable<TrunkState> trunkState)
         {
             _defaultFilterSet = toolBarFilterProvider.GetDefault().Select(t => t.Filter.Identifier).ToHashSet();
+            trunkState
+                .Select(ts => ts.Agents.Select(s => new AgentFilter(s)).OfType<Filter>().ToList())
+                .Do(filters =>
+                    Subject.OnNext(new TemplateToolBarFilterModel(Subject.Value.LastUsedFilters, filters)))
+                .Subscribe(); 
         }
 
         public void SetNewFilter(Filter setFilter)
@@ -23,6 +30,7 @@ namespace Fluxzy.Desktop.Services
                 return;
 
             var lastUsedFilters = Subject.Value.LastUsedFilters;
+            var agentFilters = Subject.Value.AgentFilters; 
 
             lastUsedFilters.RemoveAll(f => f.Identifier == setFilter.Identifier);
 
@@ -31,7 +39,7 @@ namespace Fluxzy.Desktop.Services
             while (lastUsedFilters.Count > 5)
                 lastUsedFilters.RemoveAt(lastUsedFilters.Count - 1);
 
-            Subject.OnNext(new TemplateToolBarFilterModel(lastUsedFilters));
+            Subject.OnNext(new TemplateToolBarFilterModel(lastUsedFilters, agentFilters));
         }
     }
 }

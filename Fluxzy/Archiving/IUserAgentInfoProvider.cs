@@ -5,14 +5,14 @@ namespace Fluxzy
 {
     public interface IUserAgentInfoProvider
     {
-        string GetFriendlyName(string rawUserAgentValue); 
+        string GetFriendlyName(ulong id, string rawUserAgentValue); 
     }
     
 
     
     public class DefaultUserAgentInfoProvider : IUserAgentInfoProvider
     {
-        public string GetFriendlyName(string rawUserAgentValue)
+        public string GetFriendlyName(ulong id, string rawUserAgentValue)
         {
             return rawUserAgentValue;
         }
