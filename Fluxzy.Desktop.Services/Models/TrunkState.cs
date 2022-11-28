@@ -1,9 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
-using Reinforced.Typings.Attributes;
-
-namespace Fluxzy.Desktop.Services.Models
+﻿namespace Fluxzy.Desktop.Services.Models
 {
     public class TrunkState
     {
@@ -13,12 +8,17 @@ namespace Fluxzy.Desktop.Services.Models
         {
             Exchanges = internalExchanges;
             Connections = internalConnections;
+            var agents =  new HashSet<Agent>();
 
             for (int index = 0; index < Exchanges.Count; index++)
             {
                 var exchange = Exchanges[index];
                 ExchangesIndexer[exchange.Id] = index;
                 MaxExchangeId = exchange.Id;
+
+                if (exchange.ExchangeInfo.Agent != null) {
+                    agents.Add(exchange.ExchangeInfo.Agent);
+                }
             }
 
             for (var index = 0; index < Connections.Count; index++)
@@ -27,7 +27,10 @@ namespace Fluxzy.Desktop.Services.Models
                 ConnectionsIndexer[connection.Id] = index;
                 MaxConnectionId = connection.Id;
             }
+
+            Agents = agents.OrderBy(r => r.FriendlyName).ToList(); 
         }
+
 
         public TrunkState(
             IEnumerable<ExchangeContainer> internalExchanges,
@@ -40,7 +43,8 @@ namespace Fluxzy.Desktop.Services.Models
 
 
         public List<ConnectionContainer> Connections { get; }
-
+        
+        public List<Agent> Agents { get; set; }
 
         public int MaxExchangeId { get;  }
 

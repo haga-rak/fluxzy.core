@@ -10,12 +10,11 @@ namespace Fluxzy.Desktop.Services
 
         protected override BehaviorSubject<TemplateToolBarFilterModel> Subject { get; } =
             new(
-                new TemplateToolBarFilterModel(new List<Filter>()));
+                new TemplateToolBarFilterModel(new() , new()));
 
-        public TemplateToolBarFilterProvider(ToolBarFilterProvider toolBarFilterProvider)
+        public TemplateToolBarFilterProvider(ToolBarFilterProvider toolBarFilterProvider, IObservable<TrunkState> trunkState)
         {
             _defaultFilterSet = toolBarFilterProvider.GetDefault().Select(t => t.Filter.Identifier).ToHashSet();
-            ;
         }
 
         public void SetNewFilter(Filter setFilter)
