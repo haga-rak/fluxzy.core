@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
+using Fluxzy.Misc.ResizableBuffers;
 using System;
 using System.Buffers;
 using System.IO;
@@ -24,30 +25,87 @@ namespace Fluxzy.Misc
         /// <summary>
         /// The used length inside the buffer 
         /// </summary>
-        private readonly int _bufferLength;
+        private int _bufferLength;
 
         public SearchStream(Stream innerStream, ReadOnlyMemory<byte> searchPattern)
         {
             _innerStream = innerStream;
             _searchPattern = searchPattern;
-            _rawBuffer = ArrayPool<byte>.Shared.Rent(searchPattern.Length * 2);
+            _rawBuffer = ArrayPool<byte>.Shared.Rent(searchPattern.Length * 2 + 2);
             _bufferOffset = 0L;
             _bufferLength = 0; 
         }
 
-        public StreamSearchResult? Result { get; } = null;
+        public StreamSearchResult? Result { get; private set;  } = null;
 
         private void AddNewSequence(ReadOnlyMemory<byte> data)
         {
-            var remainingSpace = _searchPattern.Length - _bufferLength;
+            if (Result != null)
+                return;
 
-            while (remainingSpace < data.Length)
+            Span<byte> fixedBuffer = _rawBuffer;
+
+            var remainingSpace = fixedBuffer.Length - _bufferLength;
+
+            if (remainingSpace < data.Length)
             {
+                // Copy remaining space 
 
 
+                // Copy data to buffer
+                data.Span.Slice(0, remainingSpace).CopyTo(fixedBuffer.Slice(_bufferLength));
+                
+                data = data.Slice(remainingSpace);
+                _bufferLength += remainingSpace;
 
+                // Check for match 
 
+                var matchingIndex =
+                    fixedBuffer.Slice(0, _bufferLength)
+                    .IndexOf(_searchPattern.Span);
+
+                if (matchingIndex >= 0)
+                {
+                    Result = new StreamSearchResult(_bufferOffset + matchingIndex);
+
+                    // No need to process further we have a match 
+                    return; 
+                }
+
+                var offsetDivision = fixedBuffer.Length / 2 + 1;
+                var shiftedLength = fixedBuffer.Length - offsetDivision;
+
+                // Copy shifted length to offset 0 
+                fixedBuffer.Slice(offsetDivision, shiftedLength)
+                    .CopyTo(fixedBuffer);
+
+                // Update bufferOffset 
+
+                _bufferOffset += (fixedBuffer.Length - shiftedLength);
+
+                // update buffer length 
+                _bufferLength = shiftedLength;
+
+                // Recursive call
+                AddNewSequence(data); // TODO : update whole block to iterative 
+
+                return;
             }
+            else
+            {
+                data.Span.CopyTo(fixedBuffer.Slice(_bufferLength));
+                _bufferLength += data.Length;
+
+                var matchingIndex =
+                    fixedBuffer.Slice(0, _bufferLength)
+                               .IndexOf(_searchPattern.Span);
+
+                if (matchingIndex >= 0)
+                {
+                    Result = new StreamSearchResult(_bufferOffset + matchingIndex);
+                }
+            }
+
         }
 
 
@@ -62,7 +120,12 @@ namespace Fluxzy.Misc
 
             if (read > 0)
             {
-
+                AddNewSequence(buffer.AsMemory(offset, read));
+            }
+            else
+            {
+                if (Result == null)
+                    Result = new StreamSearchResult(-1);
             }
 
             return read; 
@@ -111,6 +174,11 @@ namespace Fluxzy.Misc
 
     public class StreamSearchResult
     {
+        public StreamSearchResult(long offsetFound)
+        {
+            OffsetFound = offsetFound;
+        }
+
         public long OffsetFound { get; }
     }
 }
