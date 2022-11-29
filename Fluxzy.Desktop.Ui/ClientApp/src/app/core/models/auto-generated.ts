@@ -757,6 +757,7 @@ export interface ContextMenuAction
 	label?: string;
 	isDivider: boolean;
 	filter?: Filter;
+	sourceFilter?: Filter;
 }
 export interface FileContentDelete
 {

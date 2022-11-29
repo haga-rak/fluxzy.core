@@ -40,7 +40,9 @@ export class ContextMenuExecutionService {
             return this.apiService.filterApplyToview(contextMenuAction.filter);
         }
 
-
+        if (contextMenuAction.sourceFilter) {
+            return this.apiService.filterApplySource(contextMenuAction.sourceFilter);
+        }
 
         return of (null) ;
     }
