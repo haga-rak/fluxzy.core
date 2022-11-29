@@ -29,6 +29,9 @@ namespace Fluxzy.Misc
 
         public SearchStream(Stream innerStream, ReadOnlyMemory<byte> searchPattern)
         {
+            if (searchPattern.IsEmpty)
+                throw new ArgumentException("cannot be empty", nameof(searchPattern));
+
             _innerStream = innerStream;
             _searchPattern = searchPattern;
             _rawBuffer = ArrayPool<byte>.Shared.Rent(searchPattern.Length * 2 + 2);
@@ -50,7 +53,6 @@ namespace Fluxzy.Misc
             if (remainingSpace < data.Length)
             {
                 // Copy remaining space 
-
 
                 // Copy data to buffer
                 data.Span.Slice(0, remainingSpace).CopyTo(fixedBuffer.Slice(_bufferLength));
@@ -107,7 +109,6 @@ namespace Fluxzy.Misc
             }
 
         }
-
 
         public override void Flush()
         {
