@@ -1,0 +1,14 @@
+.result-link  {
+    text-decoration: none;
+    color: var(--bs-gray-200);
+    max-width: 100%;
+    overflow: hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    display:inline-block;
+}
+
+.result-link:hover {
+    color: var(--bs-gray-100);
+    text-decoration: underline;
+}

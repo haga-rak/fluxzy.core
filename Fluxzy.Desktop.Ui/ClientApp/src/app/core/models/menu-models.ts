@@ -139,7 +139,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         submenu : [
             {
                 id : 'capture',
-                label : 'Deflect trafic',
+                label : 'Record traffic',
                 checked : true,
                 type : 'checkbox',
                 accelerator : 'F5',
