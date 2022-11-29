@@ -1,7 +1,7 @@
 <div class="modal-header">
     <h4 class="modal-title pull-left">
         <span *ngIf="selectMode">Select a custom filter</span>
-        <span *ngIf="!selectMode">Manage advanced filters</span>
+        <span *ngIf="!selectMode">Computer saved filters</span>
 
     </h4>
     <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="close()">
@@ -10,6 +10,9 @@
   </div>
   <div class="modal-body" style="min-height: 400px">
     <div>
+        <p class="text-info">
+            Computer filters are reusabled filters stored on the current user disk. You can view and edit them here.
+        </p>
         <p *ngIf="!filterHolders">
             Loading filters
         </p>
