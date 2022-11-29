@@ -4,6 +4,8 @@ using Fluxzy.Misc.ResizableBuffers;
 using System;
 using System.Buffers;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Fluxzy.Misc
 {
@@ -41,11 +43,8 @@ namespace Fluxzy.Misc
 
         public StreamSearchResult? Result { get; private set;  } = null;
 
-        private void AddNewSequence(ReadOnlyMemory<byte> data)
+        private StreamSearchResult? AddNewSequence(ReadOnlyMemory<byte> data)
         {
-            if (Result != null)
-                return;
-
             Span<byte> fixedBuffer = _rawBuffer;
 
             var remainingSpace = fixedBuffer.Length - _bufferLength;
@@ -68,10 +67,7 @@ namespace Fluxzy.Misc
 
                 if (matchingIndex >= 0)
                 {
-                    Result = new StreamSearchResult(_bufferOffset + matchingIndex);
-
-                    // No need to process further we have a match 
-                    return; 
+                    return new StreamSearchResult(_bufferOffset + matchingIndex);
                 }
 
                 var offsetDivision = fixedBuffer.Length / 2 + 1;
@@ -89,9 +85,8 @@ namespace Fluxzy.Misc
                 _bufferLength = shiftedLength;
 
                 // Recursive call
-                AddNewSequence(data); // TODO : update whole block to iterative 
-
-                return;
+                return AddNewSequence(data); // TODO : update whole block to iterative 
+                
             }
             else
             {
@@ -104,10 +99,11 @@ namespace Fluxzy.Misc
 
                 if (matchingIndex >= 0)
                 {
-                    Result = new StreamSearchResult(_bufferOffset + matchingIndex);
+                    return new StreamSearchResult(_bufferOffset + matchingIndex);
                 }
             }
 
+            return null; 
         }
 
         public override void Flush()
@@ -121,16 +117,30 @@ namespace Fluxzy.Misc
 
             if (read > 0)
             {
-                AddNewSequence(buffer.AsMemory(offset, read));
+                Result = AddNewSequence(buffer.AsMemory(offset, read));
             }
             else
             {
-                if (Result == null)
-                    Result = new StreamSearchResult(-1);
+                Result ??= StreamSearchResult.NotFound;
             }
 
             return read; 
-            
+        }
+
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            var read = await _innerStream.ReadAsync(buffer, cancellationToken);
+
+            if (read > 0)
+            {
+                Result = AddNewSequence(buffer.Slice(0, read));
+            }
+            else
+            {
+                Result ??= StreamSearchResult.NotFound;
+            }
+
+            return read;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -181,5 +191,9 @@ namespace Fluxzy.Misc
         }
 
         public long OffsetFound { get; }
+
+        public static StreamSearchResult NotFound => new StreamSearchResult(-1);
+
+
     }
 }
