@@ -37,7 +37,6 @@
     "@angular/platform-browser-dynamic": "^14.2.8",
     "@angular/router": "^14.2.8",
     "@fontsource/roboto": "4.5.7",
-    "@microsoft/signalr": "6.0.8",
     "@ng-icons/ionicons": "22.3.0",
     "angular-font-awesome": "3.1.2",
     "angular-split": "13.2.0",
