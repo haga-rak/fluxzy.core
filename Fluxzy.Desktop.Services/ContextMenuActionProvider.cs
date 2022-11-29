@@ -2,7 +2,9 @@
 
 using Fluxzy.Formatters;
 using System.Collections.Immutable;
+using System.Reactive.Linq;
 using System.Text.Json.Serialization;
+using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Extensions;
 using Fluxzy.Readers;
 using Fluxzy.Rules.Filters;
@@ -16,11 +18,16 @@ namespace Fluxzy.Desktop.Services
     {
         private readonly IArchiveReaderProvider _archiveReaderProvider;
         private readonly ContextMenuFilterProvider _contextMenuFilterProvider;
+        private readonly IObservable<ViewFilter> _viewFilterObservable;
 
-        public ContextMenuActionProvider(IArchiveReaderProvider archiveReaderProvider, ContextMenuFilterProvider contextMenuFilterProvider)
+        public ContextMenuActionProvider(
+            IArchiveReaderProvider archiveReaderProvider, 
+            ContextMenuFilterProvider contextMenuFilterProvider, 
+            IObservable<ViewFilter> viewFilterObservable)
         {
             _archiveReaderProvider = archiveReaderProvider;
             _contextMenuFilterProvider = contextMenuFilterProvider;
+            _viewFilterObservable = viewFilterObservable;
         }
 
         public async Task<ImmutableList<ContextMenuAction>?> GetActions(int exchangeId)
@@ -33,16 +40,31 @@ namespace Fluxzy.Desktop.Services
             if (exchange == null)
                 return ImmutableList.Create<ContextMenuAction>(); 
 
-            actions.Add(new ContextMenuAction("delete", "Delete exchange"));
+            actions.Add(ContextMenuAction.CreateInstance("delete", "Delete exchange"));
 
-            // Adding filters 
+            // Adding source (agent) filters 
+
+            if (exchange.Agent != null)
+            {
+                var viewFilter = await _viewFilterObservable.FirstAsync();
+
+                if (!(viewFilter.SourceFilter is AgentFilter agentFilter)
+                    || agentFilter.Agent?.Id != exchange.Agent.Id)
+                {
+                    var appliedAgentFilter = new AgentFilter(exchange.Agent);
+                    actions.Add(ContextMenuAction.CreateFromSourceFilter(appliedAgentFilter));
+                    actions.Add(ContextMenuAction.GetDivider());
+                }
+            }
+
+            // Adding other filters
 
             var filterActions = _contextMenuFilterProvider.GetFilters(exchange, archiveReader).ToList();
 
             if (filterActions.Any()) {
 
                 actions.Add(ContextMenuAction.GetDivider());
-                actions.AddRange(filterActions.Select(f => new ContextMenuAction(f)));
+                actions.AddRange(filterActions.Select(f => ContextMenuAction.CreateInstance(f)));
             }
 
             var downloadActions = GetDownloadActions(exchange, archiveReader).ToList();
@@ -53,16 +75,18 @@ namespace Fluxzy.Desktop.Services
                 actions.AddRange(downloadActions);
             }
 
+
+
             return actions.ToImmutableList(); 
         }
 
         private IEnumerable<ContextMenuAction> GetDownloadActions(ExchangeInfo exchange, IArchiveReader archiveReader)
         {
             if (archiveReader.HasRequestBody(exchange.Id))
-                yield return new ContextMenuAction("download-request-body", "Save request body"); 
+                yield return ContextMenuAction.CreateInstance("download-request-body", "Save request body"); 
 
             if (archiveReader.HasResponseBody(exchange.Id))
-                yield return new ContextMenuAction("download-response-body", "Save response body"); 
+                yield return ContextMenuAction.CreateInstance("download-response-body", "Save response body"); 
         }
         
     }
@@ -124,14 +148,25 @@ namespace Fluxzy.Desktop.Services
 
     public class ContextMenuAction
     {
-        public ContextMenuAction(string ? id, string? label)
+        private ContextMenuAction()
+        {
+
+        }
+
+        private ContextMenuAction(string ? id, string? label)
         {
             Id = id; 
             Label = label;
             IsDivider = false;
 
         }
-        public ContextMenuAction(Filter filter)
+
+        public static ContextMenuAction CreateInstance(string? id, string? label)
+        {
+            return new ContextMenuAction(id, label);
+        }
+
+        private ContextMenuAction(Filter filter)
         {
             Id = filter.Identifier.ToString(); 
             Label = $"Filter : “{filter.FriendlyName}”";
@@ -139,7 +174,22 @@ namespace Fluxzy.Desktop.Services
             Filter = filter;
         }
 
-        [JsonConstructor]
+        public static ContextMenuAction CreateInstance(Filter filter)
+        {
+            return new ContextMenuAction(filter);
+        }
+
+        public static ContextMenuAction CreateFromSourceFilter(AgentFilter filter)
+        {
+            var result = new ContextMenuAction(filter.Identifier.ToString(),
+                $"Source : “{filter.Agent!.FriendlyName}”")
+            {
+                SourceFilter = filter
+            };
+
+            return result; 
+        }
+        
         public ContextMenuAction(string ? id, string? label, bool isDivider)
         {
             Id = id; 
@@ -155,6 +205,12 @@ namespace Fluxzy.Desktop.Services
 
         public Filter ? Filter { get; set;  }
 
+        public Filter ? SourceFilter { get; init;  }
+
         public static ContextMenuAction GetDivider() => new(null, null, true);
+
+
+
+
     }
 }
