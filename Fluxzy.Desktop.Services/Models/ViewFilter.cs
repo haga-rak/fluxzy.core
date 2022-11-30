@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Readers;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Desktop.Services.Models
@@ -27,8 +28,9 @@ namespace Fluxzy.Desktop.Services.Models
 
         public bool Empty => _effectiveFilter is AnyFilter;
 
-        public bool Apply(IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
+        public bool Apply(IAuthority authority, ExchangeInfo exchange,IArchiveReader archiveReader)
         {
+            var filteringContext = new ExchangeInfoFilteringContext(archiveReader, exchange.Id); 
             return _effectiveFilter.Apply(authority, exchange, filteringContext);
         }
     }
