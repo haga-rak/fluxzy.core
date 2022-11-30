@@ -29,33 +29,51 @@ namespace Fluxzy.Misc.Streams
 
         public static int Drain(this Stream stream, int bufferSize = 16 * 1024, bool disposeStream = false)
         {
-            var buffer = new byte[bufferSize];
-            int read;
-            var total = 0;
+            // TODO improve perf with stackalloc when bufferSize is small than an arbitrary threshold
 
-            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
-                total += read;
+            var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
-            if (disposeStream)
-                stream.Dispose();
+            try
+            {
+                int read;
+                var total = 0;
 
-            return total;
+                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    total += read;
+
+                if (disposeStream)
+                    stream.Dispose();
+
+                return total;
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
 
         public static async ValueTask<int> DrainAsync(this Stream stream, int bufferSize = 16 * 1024,
             bool disposeStream = false)
         {
-            var buffer = new byte[bufferSize];
-            int read;
-            var total = 0;
+            var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
-            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                total += read;
+            try
+            {
+                int read;
+                var total = 0;
 
-            if (disposeStream)
-                await stream.DisposeAsync();
+                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    total += read;
 
-            return total;
+                if (disposeStream)
+                    await stream.DisposeAsync();
+
+                return total;
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
 
         public static byte[] ToArrayGreedy(this Stream stream)
