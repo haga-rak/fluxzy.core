@@ -5,6 +5,7 @@ using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Extensions;
 using Fluxzy.Interop.Pcap;
+using Fluxzy.Readers;
 using Fluxzy.Rules;
 using Fluxzy.Writers;
 
@@ -27,6 +28,7 @@ namespace Fluxzy.Desktop.Services
             IObservable<FileContentOperationManager> contentObservable,
             IObservable<ViewFilter> viewFilter,
             IObservable<List<Rule>> activeRuleObservable,
+            IObservable<IArchiveReader> archiveReaderObservable,
             FileContentUpdateManager fileContentUpdateManager)
         {
             _fileContentUpdateManager = fileContentUpdateManager;
@@ -66,8 +68,7 @@ namespace Fluxzy.Desktop.Services
                             observer.OnCompleted();
                         }))
                 .Switch()
-                .Do(proxyState =>
-                    _internalSubject.OnNext(proxyState)).Subscribe();
+                .Do(proxyState => _internalSubject.OnNext(proxyState)).Subscribe();
 
             Subject = _internalSubject;
             WriterObservable = _writerSubject.AsObservable();
@@ -75,7 +76,11 @@ namespace Fluxzy.Desktop.Services
             viewFilter
                 .Do(v => { })
                 .Subscribe();
+
+            archiveReaderObservable.Do(a => ArchiveReader = a).Subscribe();
         }
+
+        public IArchiveReader? ArchiveReader { get; private set; }
 
         private async Task<ProxyState> ReloadProxy(
             FluxzySetting fluxzySetting,
@@ -109,7 +114,7 @@ namespace Fluxzy.Desktop.Services
 
                 _proxy.Writer.ExchangeUpdated += delegate(object? _, ExchangeUpdateEventArgs args)
                 {
-                    _fileContentUpdateManager.AddOrUpdate(args.ExchangeInfo);
+                    _fileContentUpdateManager.AddOrUpdate(args.ExchangeInfo, ArchiveReader!);
                 };
 
                 _proxy.Writer.ConnectionUpdated += delegate(object? _, ConnectionUpdateEventArgs args)
