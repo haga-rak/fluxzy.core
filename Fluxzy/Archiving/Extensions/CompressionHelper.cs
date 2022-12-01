@@ -9,20 +9,39 @@ namespace Fluxzy.Extensions
 {
     public static class CompressionHelper
     {
-        public static byte[]? ReadContent(
+        public static byte[]? ReadResponseBodyContent(
             ExchangeInfo exchangeInfo,
             Stream responseBodyInStream, int maximumLength, out CompressionInfo compressionInfo)
         {
             // Check for chunked body 
+            var workStream = GetDecodedContentStream(exchangeInfo, responseBodyInStream, out var compressionType);
+
+            compressionInfo = new CompressionInfo
+            {
+                CompressionName = compressionType.ToString()
+            };
+
+            try
+            {
+                return workStream.ReadMaxLengthOrNull(maximumLength);
+            }
+            finally
+            {
+                workStream.Dispose();
+            }
+        }
+        
+        public static Stream GetDecodedContentStream(ExchangeInfo exchangeInfo, Stream responseBodyInStream,
+            out CompressionType compressionType)
+        {
             var workStream = responseBodyInStream;
 
             if (exchangeInfo.IsChunkedTransferEncoded())
                 workStream = new ChunkedTransferReadStream(workStream, false);
 
-            var compressionType = exchangeInfo.GetCompressionType();
+            compressionType = exchangeInfo.GetCompressionType();
 
-            switch (compressionType)
-            {
+            switch (compressionType) {
                 case CompressionType.None:
                     break;
                 case CompressionType.Gzip:
@@ -43,19 +62,7 @@ namespace Fluxzy.Extensions
                     break;
             }
 
-            compressionInfo = new CompressionInfo
-            {
-                CompressionName = compressionType.ToString()
-            };
-
-            try
-            {
-                return workStream.ReadMaxLengthOrNull(maximumLength);
-            }
-            finally
-            {
-                workStream.Dispose();
-            }
+            return workStream;
         }
     }
 
