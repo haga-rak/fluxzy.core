@@ -179,6 +179,7 @@ namespace Fluxzy.Misc
         protected override void Dispose(bool disposing)
         {
             ArrayPool<byte>.Shared.Return(_rawBuffer);
+            _innerStream.Dispose();
             base.Dispose(disposing);
         }
     }   
