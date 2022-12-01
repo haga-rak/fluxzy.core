@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
-using Fluxzy.Misc.ResizableBuffers;
 using System;
 using System.Buffers;
 using System.IO;
