@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
+using Fluxzy.Extensions;
 using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
 using YamlDotNet.Serialization;
@@ -131,7 +132,6 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
                     using var stream = filteringContext.Reader.GetRequestBody(exchangeInfo.Id)!;
                     var caseSensitive = CaseSensitive; 
                     
-                    
                     if (SearchOnStream(bodyLength, stream, caseSensitive))
                         return true;
                 }
@@ -147,9 +147,12 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
                 {
                     var bodyLength = filteringContext.Reader.GetResponseBodyLength(exchangeInfo.Id);
                     using var stream = filteringContext.Reader.GetResponseBody(exchangeInfo.Id)!;
+
+                    var decodedStream = CompressionHelper.GetDecodedContentStream(exchangeInfo, stream, out _); 
+                    
                     var caseSensitive = CaseSensitive;
 
-                    if (SearchOnStream(bodyLength, stream, caseSensitive))
+                    if (SearchOnStream(bodyLength, decodedStream, caseSensitive))
                         return true;
                 }
                 catch (IOException)
@@ -163,7 +166,7 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
 
         private bool SearchOnStream(long bodyLength, Stream stream, bool caseSensitive)
         {
-            if (bodyLength > 1024 * 512)
+            if (!stream.CanSeek || bodyLength > 1024 * 512)
             {
                 var patternBuffer = GetPatternBuffer();
 
