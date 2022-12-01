@@ -1,11 +1,17 @@
 ﻿using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
+using Fluxzy.Rules.Filters.ViewOnlyFilters;
 
 namespace Fluxzy.Desktop.Services.Models
 {
     public class TemplateToolBarFilterModel
     {
         private static readonly List<Filter> DefaultQuickFilters = new List<Filter> {
+            new SearchTextFilter("") {
+                Description = "Find text", 
+                SearchInResponseBody = true, 
+                SearchInRequestBody = true
+            },
             new PathFilter("", StringSelectorOperation.Contains) {
                 Description = "Fitler by url"
             },
