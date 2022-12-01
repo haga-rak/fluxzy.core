@@ -170,6 +170,10 @@ namespace Fluxzy.Clients
                 receivedFromProxy);
         }
 
+        /// <summary>
+        /// Get performance metrics as header field
+        /// </summary>
+        /// <returns></returns>
         public HeaderField GetMetricsSummaryAsHeader()
         {
             var collection = new NameValueCollection();

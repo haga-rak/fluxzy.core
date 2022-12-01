@@ -1,6 +1,5 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;

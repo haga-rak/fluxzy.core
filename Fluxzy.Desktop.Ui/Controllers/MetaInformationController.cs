@@ -20,7 +20,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
         public record TagGlobalApplyModel(int[] ExchangeIds, Guid[] TagIdentifiers);
 
-
         public record CommentUpdateModel(string Comment, int[] ExchangeIds);
 
         public MetaInformationController(IArchiveReaderProvider archiveReaderProvider,
