@@ -7,13 +7,9 @@ namespace Fluxzy.Rules.Filters
 {
     public interface IFilteringContext
     {
+        IArchiveReader Reader { get;  }
+        
         bool HasRequestBody { get; }
-
-        Stream? OpenRequestBody();
-
-        bool HasResponseBody { get; }
-
-        Stream? OpenResponseBody();
     }
 
     public class ExchangeInfoFilteringContext : IFilteringContext
@@ -29,16 +25,6 @@ namespace Fluxzy.Rules.Filters
 
         public bool HasRequestBody => _reader.HasRequestBody(_exchangeId);
 
-        public Stream? OpenRequestBody()
-        {
-            return _reader.GetRequestBody(_exchangeId);
-        }
-
-        public bool HasResponseBody => _reader.HasResponseBody(_exchangeId);
-
-        public Stream? OpenResponseBody()
-        {
-            return _reader.GetResponseBody(_exchangeId);
-        }
+        public IArchiveReader Reader => _reader;
     }
 }

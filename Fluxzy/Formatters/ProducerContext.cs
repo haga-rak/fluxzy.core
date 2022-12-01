@@ -73,7 +73,7 @@ namespace Fluxzy.Formatters
             {
                 ResponseBodyLength = responseBodyStream.Length;
 
-                ResponseBodyContent = CompressionHelper.ReadContent(exchange, responseBodyStream,
+                ResponseBodyContent = CompressionHelper.ReadResponseBodyContent(exchange, responseBodyStream,
                     settings.MaximumRenderableBodyLength,
                     out var compressionInfo);
 

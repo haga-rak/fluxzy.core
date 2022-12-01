@@ -5,7 +5,10 @@ using System.IO;
 
 namespace Fluxzy.Misc.Streams
 {
-    public class MockedWriteStream : Stream
+    /// <summary>
+    /// A stream that does nothing when written to.
+    /// </summary>
+    public class EmptyWriteStream : Stream
     {
         public override void Flush()
         {

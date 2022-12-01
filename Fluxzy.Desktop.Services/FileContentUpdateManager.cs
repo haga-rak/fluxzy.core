@@ -3,6 +3,7 @@
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Readers;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -38,19 +39,19 @@ namespace Fluxzy.Desktop.Services
             _forwardMessageManager.Send(connectionInfo);
         }
 
-        public void AddOrUpdate(ExchangeInfo exchangeInfo)
+        public void AddOrUpdate(ExchangeInfo exchangeInfo, IArchiveReader archiveReader)
         {
             if (_currentContentOperationManager == null)
                 return;
 
             _currentContentOperationManager.AddOrUpdate(exchangeInfo);
             
-            if (_viewFilter == null || _viewFilter.Apply(null, exchangeInfo, null))
+            if (_viewFilter == null || _viewFilter.Apply(null, exchangeInfo, archiveReader))
             {
                 _forwardMessageManager.Send(exchangeInfo);
             }
 
-            _filteredExchangeManager.OnExchangeAdded(exchangeInfo);
+            _filteredExchangeManager.OnExchangeAdded(exchangeInfo, archiveReader);
         }
     }
 }

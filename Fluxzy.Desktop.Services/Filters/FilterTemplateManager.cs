@@ -1,6 +1,7 @@
 ﻿using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
+using Fluxzy.Rules.Filters.ViewOnlyFilters;
 
 namespace Fluxzy.Desktop.Services.Filters
 {
@@ -47,6 +48,7 @@ namespace Fluxzy.Desktop.Services.Filters
                 new CommentSearchFilter(string.Empty),
                 new TagContainsFilter(null),
                 new AgentLabelFilter(""),
+                new SearchTextFilter("")
             };
 
             return res;

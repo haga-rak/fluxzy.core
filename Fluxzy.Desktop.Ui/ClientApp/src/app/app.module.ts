@@ -92,6 +92,7 @@ import { TagApplyComponent } from './shared/tag-apply/tag-apply.component';
 import { CommentSearchFilterFormComponent } from './settings/filter-forms/child-forms/comment-search-filter-form/comment-search-filter-form.component';
 import { SetClientCertificateFormComponent } from './settings/rule-forms/child-forms/set-client-certificate-form/set-client-certificate-form.component';
 import { HarExportSettingComponent } from './shared/har-export-setting/har-export-setting.component';
+import { SearchTextFilterFormComponent } from './settings/filter-forms/child-forms/search-text-filter-form/search-text-filter-form.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -170,6 +171,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         CommentSearchFilterFormComponent,
         SetClientCertificateFormComponent,
         HarExportSettingComponent,
+        SearchTextFilterFormComponent,
 
 
     ],
