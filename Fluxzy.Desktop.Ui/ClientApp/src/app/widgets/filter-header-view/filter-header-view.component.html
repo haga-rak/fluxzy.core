@@ -3,7 +3,6 @@
     <div class="btn-group" role="group" dropdown>
         <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
             aria-expanded="false" dropdownToggle>
-
             <span style="white-space: nowrap">
                 <span *ngIf="uiState.viewFilter.sourceFilter.typeKind === 'AnyFilter'">
                     View per source ({{uiState.templateToolBarFilterModel.agentFilters.length}})
@@ -12,7 +11,6 @@
                     {{uiState.viewFilter.sourceFilter.friendlyName}}
                 </span>
             </span>
-
         </button>
         <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
             <li role="menuitem">
@@ -68,8 +66,8 @@
             </ng-container>
 
             <li class="divider dropdown-divider"></li>
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="createCustomFilter()">Choose a filter from template</a></li>
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="openManagedFilters()">Load or create filter (on computer)</a></li>
+            <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="createCustomFilter()">Other filters</a></li>
+            <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="openManagedFilters()">Load saved filter (from computer)</a></li>
         </ul>
     </div>
 </div>

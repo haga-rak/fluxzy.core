@@ -40,8 +40,7 @@ namespace Fluxzy.Desktop.Services
                                         var filteredIds =
                                             trunkState.Exchanges
                                                       .Where(e => viewFilter.Apply(null!, e.ExchangeInfo,
-                                                          new ExchangeInfoFilteringContext(archiveReader,
-                                                              e.ExchangeInfo.Id)))
+                                                          archiveReader))
                                                       .Select(e => e.Id);
 
                                         return new FilteredExchangeState(filteredIds);
@@ -56,14 +55,14 @@ namespace Fluxzy.Desktop.Services
                                 .Subscribe();
         }
 
-        public void OnExchangeAdded(ExchangeInfo exchange)
+        public void OnExchangeAdded(ExchangeInfo exchange, IArchiveReader archiveReader)
         {
             var viewFilter = _activeViewFilterManager.Current;
             var filteredExchangeState = Subject.Value;
 
             if (filteredExchangeState != null)
             {
-                var passFilter = viewFilter.Apply(null, exchange, null);
+                var passFilter = viewFilter.Apply(null, exchange, archiveReader);
 
                 if (passFilter)
                     filteredExchangeState.Exchanges.Add(exchange.Id);

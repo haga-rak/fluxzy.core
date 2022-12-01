@@ -20,7 +20,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
         public record TagGlobalApplyModel(int[] ExchangeIds, Guid[] TagIdentifiers);
 
-
         public record CommentUpdateModel(string Comment, int[] ExchangeIds);
 
         public MetaInformationController(IArchiveReaderProvider archiveReaderProvider,
@@ -99,7 +98,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
                 exchange!.Tags.Add(tag);
                 archiveWriter.Update(exchange, CancellationToken.None);
 
-                _fileContentUpdateManager.AddOrUpdate(exchange);
+                _fileContentUpdateManager.AddOrUpdate(exchange, archiveReader);
             }
 
             return true;
@@ -124,7 +123,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
                 archiveWriter.Update(exchange, CancellationToken.None);
 
-                _fileContentUpdateManager.AddOrUpdate(exchange);
+                _fileContentUpdateManager.AddOrUpdate(exchange, archiveReader);
             }
 
             return true;
@@ -141,7 +140,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
                 exchange!.Comment = comment.Comment;
                 archiveWriter.Update(exchange, CancellationToken.None);
 
-                _fileContentUpdateManager.AddOrUpdate(exchange);
+                _fileContentUpdateManager.AddOrUpdate(exchange, archiveReader);
             }
 
             return true;

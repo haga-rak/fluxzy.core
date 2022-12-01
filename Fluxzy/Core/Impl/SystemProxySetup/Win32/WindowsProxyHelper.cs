@@ -8,6 +8,7 @@ namespace Fluxzy.Core.SystemProxySetup.Win32
     {
         [DllImport("wininet.dll")]
         private static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
+        
         private const int InternetOptionSettingsChanged = 39;
         private const int InternetOptionRefresh = 37;
 

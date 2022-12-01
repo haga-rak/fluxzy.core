@@ -68,10 +68,9 @@ namespace Fluxzy.Encoding.Tests
 
             int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
             int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
-
+            
             Assert.Equal(offsetRead, offsetWrite);
             Assert.Equal(readValue, writeValue);
-            
         }
 
         [Fact]
@@ -167,9 +166,7 @@ namespace Fluxzy.Encoding.Tests
 
                 int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
                 int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
-
-               // buffer.Clear();
-
+                
                 Assert.Equal(offsetRead, offsetWrite);
                 Assert.Equal(readValue, writeValue);
             }

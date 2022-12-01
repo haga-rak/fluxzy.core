@@ -25,12 +25,7 @@ namespace Fluxzy.Clients
         ///     The remote authority
         /// </summary>
         public Authority Authority { get; }
-
-        ///// <summary>
-        ///// state indicating if proxy shouldn't try to decrypt 
-        ///// </summary>
-        //public bool TunneledOnly { get; set; }
-
+        
         /// <summary>
         ///     Contains the request sent from the proxy to the remote server
         /// </summary>
@@ -175,6 +170,10 @@ namespace Fluxzy.Clients
                 receivedFromProxy);
         }
 
+        /// <summary>
+        /// Get performance metrics as header field
+        /// </summary>
+        /// <returns></returns>
         public HeaderField GetMetricsSummaryAsHeader()
         {
             var collection = new NameValueCollection();

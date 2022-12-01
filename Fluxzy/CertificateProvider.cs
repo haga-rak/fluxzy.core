@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -8,6 +7,9 @@ using Fluxzy.Core;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// This implementation of ICertificateProvier is based on System.Security.Cryptography
+    /// </summary>
     public class CertificateProvider : ICertificateProvider
     {
         private readonly X509Certificate2 _rootCertificate;
@@ -30,8 +32,7 @@ namespace Fluxzy
             BuildCertificateForRootDomain("domain.com");
         }
 
-        public X509Certificate2
-            GetCertificate(string hostName)
+        public X509Certificate2 GetCertificate(string hostName)
         {
             hostName = GetRootDomain(hostName);
 
