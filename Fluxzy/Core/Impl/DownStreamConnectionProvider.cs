@@ -41,7 +41,7 @@ namespace Fluxzy.Core
                 var asyncState = await
                     _pendingClientConnections.Reader.ReadAsync(_token);
 
-                var listener = (TcpListener)asyncState.AsyncState;
+                var listener = (TcpListener) asyncState.AsyncState;
 
                 var tcpClient = listener.EndAcceptTcpClient(asyncState);
 

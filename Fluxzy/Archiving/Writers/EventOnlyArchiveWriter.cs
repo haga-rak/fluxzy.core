@@ -22,22 +22,22 @@ namespace Fluxzy.Writers
 
         public override Stream CreateRequestBodyStream(int exchangeId)
         {
-            return new MockedWriteStream();
+            return new EmptyWriteStream();
         }
 
         public override Stream CreateResponseBodyStream(int exchangeId)
         {
-            return new MockedWriteStream();
+            return new EmptyWriteStream();
         }
 
         public override Stream CreateWebSocketRequestContent(int exchangeId, int messageId)
         {
-            return new MockedWriteStream();
+            return new EmptyWriteStream();
         }
 
         public override Stream CreateWebSocketResponseContent(int exchangeId, int messageId)
         {
-            return new MockedWriteStream();
+            return new EmptyWriteStream();
         }
     }
 }

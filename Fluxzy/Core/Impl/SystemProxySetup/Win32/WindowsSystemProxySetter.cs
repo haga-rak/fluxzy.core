@@ -12,6 +12,4 @@
             return WindowsProxyHelper.GetSetting();
         }
     }
-
-
 }
