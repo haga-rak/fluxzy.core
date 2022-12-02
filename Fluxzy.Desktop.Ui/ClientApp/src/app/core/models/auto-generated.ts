@@ -627,6 +627,16 @@ export interface ReplaceRequestBodyAction extends Action
 	actionScope: number;
 	defaultDescription: string;
 }
+export interface LastOpenFileState
+{
+	items: LastOpenFileItem[];
+}
+export interface LastOpenFileItem
+{
+	fullPath: string;
+	fileName: string;
+	creationDate: Date;
+}
 export interface UiState
 {
 	id: string;
@@ -638,6 +648,7 @@ export interface UiState
 	activeRules: Rule[];
 	toolBarFilters: ToolBarFilter[];
 	settingsHolder: FluxzySettingsHolder;
+	lastOpenFileState: LastOpenFileState;
 }
 export interface ForwardMessage
 {
