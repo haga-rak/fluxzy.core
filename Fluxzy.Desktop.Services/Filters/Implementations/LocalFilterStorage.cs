@@ -15,6 +15,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
         public LocalFilterStorage()
         {
             var basePath = Environment.ExpandEnvironmentVariables("%appdata%/fluxzy/filters");
+
             Directory.CreateDirectory(basePath);
             _filterDirectory = new DirectoryInfo(basePath);
 

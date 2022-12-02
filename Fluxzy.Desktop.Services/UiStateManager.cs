@@ -3,6 +3,7 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Rules;
 
 namespace Fluxzy.Desktop.Services
@@ -22,6 +23,7 @@ namespace Fluxzy.Desktop.Services
             IObservable<ViewFilter> viewFilter,
             IObservable<TemplateToolBarFilterModel> templateToolBarFilterModel,
             IObservable<List<Rule>> activeRulesObservable,
+            IObservable<LastOpenFileState> lastOpenFileStateObservable,
             ForwardMessageManager forwardMessageManager,
             ToolBarFilterProvider toolBarFilterProvider)
         {
@@ -32,14 +34,15 @@ namespace Fluxzy.Desktop.Services
                 viewFilter,
                 templateToolBarFilterModel,
                 activeRulesObservable,
-                (f, p, s, sp, v, tt, aro) =>
+                lastOpenFileStateObservable,
+                (f, p, s, sp, v, tt, aro, lop) =>
                 {
                     var defaultToolBarFilters = toolBarFilterProvider.GetDefault().ToList();
 
                     return new UiState(f, p,
                         s, sp,
                         v, defaultToolBarFilters,
-                        tt, aro);
+                        tt, aro, lop);
                 });
 
             Observable = _stateObservable
@@ -48,7 +51,7 @@ namespace Fluxzy.Desktop.Services
                          .Select(s => s!);
 
             _state
-                .Throttle(TimeSpan.FromMilliseconds(10))
+                .Throttle(TimeSpan.FromMilliseconds(10)) // There are many case where multiple changes may occur in a short time
                 .Do(uiState => _stateObservable.OnNext(uiState))
                 .Do(uiState => forwardMessageManager.Send(uiState))
                 .Subscribe();
