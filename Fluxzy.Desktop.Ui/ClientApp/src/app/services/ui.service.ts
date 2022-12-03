@@ -117,6 +117,7 @@ export class UiStateService {
             )
             .subscribe();
 
+
         // New file
         this.menuService
             .getNextOpenFile()
