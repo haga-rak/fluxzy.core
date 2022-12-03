@@ -5,6 +5,7 @@ using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Ui.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Reactive.Linq;
+using Fluxzy.Desktop.Services.Ui;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
@@ -29,9 +30,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("open")]
-        public async Task<ActionResult<UiState>> Open(FileOpeningViewModel model)
+        public async Task<ActionResult<UiState>> Open(FileOpeningViewModel model, [FromServices] LastOpenFileManager lastOpenFileManager)
         {
             await _fileManager.Open(model.FileName);
+            lastOpenFileManager.Add(model.FileName);
             return await _uiStateManager.GetUiState();
         }
 
@@ -44,10 +46,11 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("save-as")]
-        public async Task<ActionResult<UiState>> SaveAs(FileSaveViewModel model, [FromServices] IObservable<TrunkState> trunkStateObservable)
+        public async Task<ActionResult<UiState>> SaveAs(FileSaveViewModel model, [FromServices] IObservable<TrunkState> trunkStateObservable, [FromServices] LastOpenFileManager lastOpenFileManager)
         {
             var trunkState = await trunkStateObservable.FirstAsync();
             await _fileManager.SaveAs(trunkState, model.FileName);
+            lastOpenFileManager.Add(model.FileName);
             return await _uiStateManager.GetUiState();
         }
 

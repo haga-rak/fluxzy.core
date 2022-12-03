@@ -18,7 +18,7 @@ namespace Fluxzy.Desktop.Services.Ui
         {
             var basePath = Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy Desktop");
             Directory.CreateDirectory(basePath);
-            _filePath = Path.Combine(basePath, "last-open-files.json");
+            _filePath = Path.Combine(basePath, "settings.last-open-files.json");
             
             var subject = new BehaviorSubject<LastOpenFileState>(InternalGet());
 
@@ -42,10 +42,9 @@ namespace Fluxzy.Desktop.Services.Ui
         {
             var fileInfo = new FileInfo(filePath);
             var list = Subject.Value.Items.ToList();
-            
-            if (list.Any(i => i.FullPath == fileInfo.FullName))
-                return; 
-            
+
+            list.RemoveAll(i => i.FullPath == fileInfo.FullName);
+
             list.Insert(0, new LastOpenFileItem(fileInfo));
             
             while (list.Count > MaxFileOpenHistoryCount)
