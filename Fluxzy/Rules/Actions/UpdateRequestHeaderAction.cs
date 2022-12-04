@@ -2,12 +2,14 @@
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Clients.Headers;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
     /// Update and existing request header. If the header does not exists in the original request, the header will be added.
+    /// Use {{previous}} keyword to refer to the original value of the header.
     /// <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
     /// </summary>
     public class UpdateRequestHeaderAction : Action
@@ -32,8 +34,7 @@ namespace Fluxzy.Rules.Actions
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
-            exchange.Request.Header.AltReplaceHeaders(
-                HeaderName, HeaderValue);
+            context.RequestHeaderAlterations.Add(new HeaderAlterationReplace(HeaderName, HeaderValue));
 
             return default;
         }
