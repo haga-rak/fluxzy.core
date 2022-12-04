@@ -578,6 +578,11 @@ export interface ForceTlsVersionAction extends Action
 	actionScope: number;
 	defaultDescription: string;
 }
+export interface RemoveCacheAction extends Action
+{
+	actionScope: number;
+	defaultDescription: string;
+}
 export interface SetClientCertificateAction extends Action
 {
 	clientCertificate: Certificate;
