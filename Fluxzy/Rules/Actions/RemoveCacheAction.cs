@@ -22,9 +22,14 @@ namespace Fluxzy.Rules.Actions
             context.RequestHeaderAlterations.Add(new HeaderAlterationDelete("if-modified-since"));
             context.RequestHeaderAlterations.Add(new HeaderAlterationDelete("etag"));
             
-            context.ResponseHeaderAlterations.Add(new HeaderAlterationReplace("Cache-Control", "no-cache, no-store, must-revalidate"));
-            context.ResponseHeaderAlterations.Add(new HeaderAlterationReplace("Pragma", "no-cache"));
-            context.ResponseHeaderAlterations.Add(new HeaderAlterationReplace("Expires", "0"));
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationDelete("Cache-Control"));
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationDelete("Pragma"));
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationDelete("Expires"));
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationDelete("etag"));
+            
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd("Cache-Control", "no-cache, no-store, must-revalidate"));
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd("Pragma", "no-cache"));
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd("Expires", "0"));
             
             return default; 
         }
