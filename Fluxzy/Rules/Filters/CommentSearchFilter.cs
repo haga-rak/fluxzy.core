@@ -5,6 +5,9 @@ namespace Fluxzy.Rules.Filters
     /// <summary>
     /// Select exchange according to comment value
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange having a particular comment."
+    )]
     public class CommentSearchFilter : StringFilter
     {
         public override FilterScope FilterScope => FilterScope.OutOfScope;
@@ -14,6 +17,7 @@ namespace Fluxzy.Rules.Filters
         public CommentSearchFilter(string pattern)
             : base(pattern, StringSelectorOperation.Contains)
         {
+            
         }
 
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)

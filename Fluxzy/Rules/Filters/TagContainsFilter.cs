@@ -5,6 +5,9 @@ namespace Fluxzy.Rules.Filters
     /// <summary>
     /// Select exchange according to tag values
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange having tags matching specified condition."
+    )]
     public class TagContainsFilter : Filter
     {
         public Tag? Tag { get; }

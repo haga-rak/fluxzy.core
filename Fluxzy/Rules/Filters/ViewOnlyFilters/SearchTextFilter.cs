@@ -15,6 +15,11 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
     /// Perform a global filter on any part of exchange (header, body).
     /// This is a view filter only 
     /// </summary>
+
+    [FilterMetaData(
+        LongDescription = "Find exchanges having a text pattern. <u>Note:</u> " +
+                          "This performs byte block search for large/unknow length body disabling case sensitivity feature."
+    )]
     public class SearchTextFilter : Filter
     {
         [JsonIgnore]

@@ -8,6 +8,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Select exchange that has request body. 
     /// </summary>
+
+    [FilterMetaData(
+        LongDescription = "Select request having body."
+    )]
     public class HasRequestBodyFilter : Filter
     {
         public override Guid Identifier => $"{GetType().Name}{Inverted}".GetMd5Guid();

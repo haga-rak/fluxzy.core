@@ -8,6 +8,12 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Filter according to full url (includes path and query)
     /// </summary>
+
+    [FilterMetaData(
+        LongDescription = "Select exchange to full url (scheme, FQDN, path and query).",
+        QuickReachFilter = true,
+        QuickReachFilterOrder = 0
+    )]
     public class FullUrlFilter : StringFilter
     {
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

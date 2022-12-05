@@ -6,6 +6,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Filter by agent 
     /// </summary>
+
+    [FilterMetaData(
+        LongDescription = "Select exchange according to configured source agent (user agent or process)."
+    )]
     public class AgentFilter : Filter
     {
         public AgentFilter(Agent? agent)

@@ -8,6 +8,9 @@ namespace Fluxzy.Rules.Filters
     /// <summary>
     /// Select exchanges that are websocket communication
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select websocket exchange."
+    )]
     public class IsWebSocketFilter : Filter
     {
         public override Guid Identifier => $"{Inverted}{GetType()}".GetMd5Guid();

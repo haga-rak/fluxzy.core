@@ -6,6 +6,9 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Select exchange according to url path. Path includes query string if any. 
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange according to url path. Path includes query string if any."
+    )]
     public class PathFilter : StringFilter
     {
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

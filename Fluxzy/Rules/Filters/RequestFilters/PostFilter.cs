@@ -5,6 +5,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Select POST only url 
     /// </summary>
+
+    [FilterMetaData(
+        LongDescription = "Select POST (request method) only exchanges."
+    )]
     public class PostFilter : MethodFilter
     {
         public override string GenericName => "POST only";

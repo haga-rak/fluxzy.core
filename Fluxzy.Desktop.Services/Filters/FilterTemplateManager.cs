@@ -7,6 +7,7 @@ namespace Fluxzy.Desktop.Services.Filters
 {
     public class FilterTemplateManager
     {
+        // TODO load this by reflection
         public List<FilterTemplate> ReadAvailableTemplates()
         {
             var res = new List<FilterTemplate>
