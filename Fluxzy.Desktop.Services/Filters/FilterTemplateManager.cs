@@ -73,11 +73,12 @@ namespace Fluxzy.Desktop.Services.Filters
     {
         public static object GetDefault(Type t)
         {
-            return typeof(ReflectionHelper).GetMethod(nameof(GetDefaultGeneric))!
-                                        .MakeGenericMethod(t).Invoke(null, null)!;
+            return typeof(ReflectionHelper)
+                   .GetMethod(nameof(GetDefaultGeneric), BindingFlags.Static | BindingFlags.Public)!
+                   .MakeGenericMethod(t).Invoke(null, null)!;
         }
 
-        private static T? GetDefaultGeneric<T>()
+        public static T? GetDefaultGeneric<T>()
         {
             return default(T);
         }
