@@ -1,13 +1,12 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
-using Fluxzy.Misc.ResizableBuffers;
 using System;
 using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Misc
+namespace Fluxzy.Misc.Streams
 {
     /// <summary>
     /// Search byte sequence in a stream for relatively small input.
@@ -38,10 +37,10 @@ namespace Fluxzy.Misc
             _searchPattern = searchPattern;
             _rawBuffer = ArrayPool<byte>.Shared.Rent(searchPattern.Length * 2 + 2);
             _bufferOffset = 0L;
-            _bufferLength = 0; 
+            _bufferLength = 0;
         }
 
-        public StreamSearchResult? Result { get; private set;  } = null;
+        public StreamSearchResult? Result { get; private set; } = null;
 
         private StreamSearchResult? AddNewSequence(ReadOnlyMemory<byte> data)
         {
@@ -55,7 +54,7 @@ namespace Fluxzy.Misc
 
                 // Copy data to buffer
                 data.Span.Slice(0, remainingSpace).CopyTo(fixedBuffer.Slice(_bufferLength));
-                
+
                 data = data.Slice(remainingSpace);
                 _bufferLength += remainingSpace;
 
@@ -79,14 +78,14 @@ namespace Fluxzy.Misc
 
                 // Update bufferOffset 
 
-                _bufferOffset += (fixedBuffer.Length - shiftedLength);
+                _bufferOffset += fixedBuffer.Length - shiftedLength;
 
                 // update buffer length 
                 _bufferLength = shiftedLength;
 
                 // Recursive call
                 return AddNewSequence(data); // TODO : update whole block to iterative 
-                
+
             }
             else
             {
@@ -103,7 +102,7 @@ namespace Fluxzy.Misc
                 }
             }
 
-            return null; 
+            return null;
         }
 
         public override void Flush()
@@ -124,7 +123,7 @@ namespace Fluxzy.Misc
                 Result ??= StreamSearchResult.NotFound;
             }
 
-            return read; 
+            return read;
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
@@ -148,7 +147,7 @@ namespace Fluxzy.Misc
             // We let Seekable to be true to let stream user request for length.
             // it's a common practice to define Seekable = true when Length is available 
 
-            throw new NotSupportedException(); 
+            throw new NotSupportedException();
         }
 
         public override void SetLength(long value)
@@ -165,7 +164,7 @@ namespace Fluxzy.Misc
 
         public override bool CanSeek => _innerStream.CanSeek;
 
-        public override bool CanWrite => false; 
+        public override bool CanWrite => false;
 
         public override long Length => _innerStream.Length;
 
@@ -182,7 +181,7 @@ namespace Fluxzy.Misc
             _innerStream.Dispose();
             base.Dispose(disposing);
         }
-    }   
+    }
 
     public class StreamSearchResult
     {
