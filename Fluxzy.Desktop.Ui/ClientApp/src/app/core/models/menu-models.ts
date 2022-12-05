@@ -41,6 +41,12 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 accelerator: process.platform === 'darwin' ? 'Cmd+O' : 'Ctrl+O',
             },
             {
+                id : 'open-recent',
+                label : 'Open recent',
+                enabled : false,
+                submenu : []
+            },
+            {
                 type :  'separator'
             },
             {
