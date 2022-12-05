@@ -101,6 +101,13 @@ namespace Fluxzy.Core
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);
 
+                            // Run header alteration 
+
+                            foreach (var requestHeaderAlteration in exchange.Context.RequestHeaderAlterations)
+                            {
+                                requestHeaderAlteration.Apply(exchange.Request.Header);
+                            }
+
                             IHttpConnectionPool connectionPool;
 
                             try
@@ -188,15 +195,21 @@ namespace Fluxzy.Core
                                     // without specifying a content-length or transfer-encoding chunked.
                                     // In case content-length is not present, we force transfer-encoding chunked 
                                     // in order to inform HTTP/1.1 receiver of the content body end
+                                
                                     exchange.Response.Header.ForceTransferChunked();
-
-                                // Writing the received header to downstream
+                                
+                                foreach (var responseHeaderAlteration in exchange.Context.ResponseHeaderAlterations)
+                                {
+                                    responseHeaderAlteration.Apply(exchange.Response.Header);
+                                }
+                                
+                                 // Writing the received header to downstream
 
                                 if (DebugContext.InsertFluxzyMetricsOnResponseHeader)
-                                    exchange.Response.Header.AddExtraHeaderFieldToLocalConnection(
+                                    exchange.Response.Header?.AddExtraHeaderFieldToLocalConnection(
                                         exchange.GetMetricsSummaryAsHeader());
 
-                                var responseHeaderLength = exchange.Response.Header.WriteHttp11(buffer, true, true);
+                                var responseHeaderLength = exchange.Response.Header!.WriteHttp11(buffer, true, true);
 
                                 if (_archiveWriter != null)
                                 {

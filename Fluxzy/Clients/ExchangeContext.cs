@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 
 namespace Fluxzy.Clients
@@ -43,12 +44,13 @@ namespace Fluxzy.Clients
 
 
         public List<SslApplicationProtocol>?  SslApplicationProtocols { get; set; }
-
-
+        
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
 
-        public bool SkipRemoteCertificateValidation { get; set; } = false; 
-    }
+        public bool SkipRemoteCertificateValidation { get; set; } = false;
 
-    
+        public List<HeaderAlteration> RequestHeaderAlterations { get; } = new(); 
+        
+        public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new(); 
+    }
 }
