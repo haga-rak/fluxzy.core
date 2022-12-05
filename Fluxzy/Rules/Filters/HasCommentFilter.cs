@@ -6,6 +6,9 @@ namespace Fluxzy.Rules.Filters
     /// <summary>
     /// Select exchanges that contain comment
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange having comment."
+    )]
     public class HasCommentFilter : Filter
     {
         public override FilterScope FilterScope => FilterScope.OutOfScope;

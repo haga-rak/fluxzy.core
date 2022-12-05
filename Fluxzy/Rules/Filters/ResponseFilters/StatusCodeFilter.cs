@@ -8,6 +8,9 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     /// <summary>
     /// Select exchange according to HTTP status code
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchanges according to HTTP status code."
+    )]
     public class StatusCodeFilter : Filter
     {
         public List<int> StatusCodes { get; set; } = new();
@@ -33,4 +36,6 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             return StatusCodes.Contains(exchange.StatusCode);
         }
     }
+
+    
 }

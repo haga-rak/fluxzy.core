@@ -8,6 +8,12 @@ namespace Fluxzy.Rules.Filters
     /// <summary>
     /// Select all request 
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select all exchanges",
+        DoNotHistorize = true, 
+        ToolBarFilter = true, 
+        ToolBarFilterOrder = 0
+        )]
     public class AnyFilter : Filter
     {
         public override Guid Identifier => $"{Inverted}A62052B4-516D-492E-93B3-2888CDA4E92D".GetMd5Guid();

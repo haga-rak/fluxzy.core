@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
+    [FilterMetaData(
+        LongDescription = "Select exchange according to configured source agent (user agent or process) with a regular string search."
+    )]
     public class AgentLabelFilter : StringFilter
     {
         public AgentLabelFilter(string pattern)
