@@ -11,6 +11,19 @@ namespace Fluxzy.Desktop.Ui.Controllers
     [ApiController]
     public class FilterController : ControllerBase
     {
+        
+        [HttpGet("{typeKind}")]
+        public ActionResult<string> GetFilterDescription(string typeKind, [FromServices] FilterTemplateManager templateManager)
+        {
+            if (templateManager.TryGetDescription(typeKind, out var longDescription))
+            {
+                return longDescription; 
+            }
+
+            return NotFound();
+        }
+
+
         [HttpPost("validate")]
         public ActionResult<Filter> Validate(Filter filter)
         {

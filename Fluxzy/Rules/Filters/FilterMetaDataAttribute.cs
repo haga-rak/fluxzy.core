@@ -7,7 +7,6 @@ namespace Fluxzy.Rules.Filters
 {
     public class FilterMetaDataAttribute : Attribute
     {
-
         public FilterMetaDataAttribute(string? longDescription = null)
         {
             LongDescription = longDescription;
