@@ -8,6 +8,9 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     /// <summary>
     /// Select exchange that HTTP status code indicates a successful request (2XX)
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange that HTTP status code indicates a successful request (2XX)."
+    )]
     public class StatusCodeSuccessFilter : Filter
     {
         public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();

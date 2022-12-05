@@ -49,7 +49,9 @@
                         <div *ngFor="let filterTemplate of filteredFilterTemplates" class="col-md-4 button-container">
                             <a href="javascript:;" (click)="select(filterTemplate.filter)"
                                [title]="filterTemplate.label"
-                               class="result-link text-white">{{filterTemplate.label}}
+                               class="result-link text-white">
+                                <span class="text-teal" *ngIf="!filterTemplate.filter.preMadeFilter"><i class="fa fa-cog" aria-hidden="true"></i></span>
+                                {{filterTemplate.label}}
                                 <span class="text-info">({{filterTemplate.group}})</span>
                             </a>
                         </div>

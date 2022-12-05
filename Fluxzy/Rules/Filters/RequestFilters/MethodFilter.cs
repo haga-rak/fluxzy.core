@@ -7,6 +7,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Select exchange according to request method.
     /// </summary>
+
+    [FilterMetaData(
+        LongDescription = "Select exchange according to request method."
+    )]
     public class MethodFilter : StringFilter
     {
         public override Guid Identifier => $"{Pattern}|{Operation}".GetMd5Guid();
