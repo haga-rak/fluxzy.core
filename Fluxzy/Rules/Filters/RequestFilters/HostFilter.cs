@@ -6,6 +6,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Select exchange according to host. The host is taken from the Host header (HTTP/1.1) or the :authority header (H2).
     /// </summary>
+
+    [FilterMetaData(
+        LongDescription = "Select exchange according to hostname (excluding port). To select authority (combination of host:port), use <goto>AuthorityFilter</goto>."
+    )]
     public class HostFilter : StringFilter
     {
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;

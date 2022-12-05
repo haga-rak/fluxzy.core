@@ -6,6 +6,9 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     /// <summary>
     /// Select exchange that http status code indicates a redirect (3XX)
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange that HTTP status code indicates a redirect (3XX)."
+    )]
     public class StatusCodeRedirectionFilter : Filter
     {
         public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();

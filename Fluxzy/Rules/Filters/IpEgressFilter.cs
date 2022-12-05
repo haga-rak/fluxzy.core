@@ -8,6 +8,9 @@ namespace Fluxzy.Rules.Filters
     /// <summary>
     /// Select exchanges according to upstream ip address
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange according to upstream IP address. Full IP notation is used from IPv6."
+    )]
     public class IpEgressFilter : StringFilter
     {
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;

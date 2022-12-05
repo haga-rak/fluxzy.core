@@ -10,6 +10,9 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Select exchange according to request header values.
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange according to request header values."
+    )]
     public class RequestHeaderFilter : HeaderFilter
     {
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;

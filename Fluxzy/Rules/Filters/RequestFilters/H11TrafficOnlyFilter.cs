@@ -8,6 +8,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     /// <summary>
     /// Select HTTP/1.1 traffic only
     /// </summary>
+
+    [FilterMetaData(
+        LongDescription = "Select HTTP/1.1 exchanges only."
+    )]
     public class H11TrafficOnlyFilter : Filter
     {
         public override Guid Identifier => $"{GetType().Name}{Inverted}".GetMd5Guid();

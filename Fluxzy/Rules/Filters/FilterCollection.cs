@@ -12,6 +12,10 @@ namespace Fluxzy.Rules.Filters
     /// always fail if operator is OR
     /// 
     /// </summary>
+    /// 
+    [FilterMetaData(
+        LongDescription = "FilterCollection is combination of multiple filter with a merging operator (OR / AND)."
+    )]
     public class FilterCollection : Filter
     {
         public List<Filter> Children { get; set; } = new();

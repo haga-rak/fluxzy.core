@@ -6,6 +6,9 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     /// <summary>
     /// Select exchange that response status code indicates a server error (5XX)
     /// </summary>
+    [FilterMetaData(
+        LongDescription = "Select exchange that HTTP status code indicates a server/intermediary error (5XX)."
+    )]
     public class StatusCodeServerErrorFilter : Filter
     {
         public override Guid Identifier => (GetType().Name + Inverted).GetMd5Guid();
