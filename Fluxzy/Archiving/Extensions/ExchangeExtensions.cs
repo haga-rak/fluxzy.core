@@ -1,14 +1,23 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Extensions
 {
     public static class ExchangeExtensions
     {
+        
+        public static IEnumerable<HeaderFieldInfo> Find(this IEnumerable<HeaderFieldInfo> headers, string headerName)
+        {
+            return headers.Where(h =>
+                h.Name.Span.Equals(headerName, StringComparison.OrdinalIgnoreCase));
+        }
+
         public static string? GetRequestHeaderValue(this IExchange exchangeInfo, string headerName)
         {
             var contentTypeHeader = exchangeInfo.GetRequestHeaders().LastOrDefault(h =>
