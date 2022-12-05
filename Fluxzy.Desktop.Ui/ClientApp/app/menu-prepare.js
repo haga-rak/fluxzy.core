@@ -27,6 +27,10 @@ var menuClickEventHandler = function (menuItem, browserWindow, event) {
         menuId: menuItem.id,
         checked: menuItem.checked
     };
+    if (menuItem["category"])
+        payload.category = menuItem["category"];
+    if (menuItem["payload"])
+        payload.payload = menuItem["payload"];
     browserWindow.webContents.send('application-menu-event', payload);
     return false;
 };

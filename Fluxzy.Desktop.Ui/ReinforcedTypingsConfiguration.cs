@@ -1,10 +1,12 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
 using System.Net;
+using System.Reflection;
 using System.Security.Authentication;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Desktop.Services;
+using Fluxzy.Desktop.Services.Attributes;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
@@ -44,7 +46,8 @@ namespace Fluxzy.Desktop.Ui
             ConfigureViewModels(builder);
             ConfigureProducers(builder);
             ConfigureFilters(builder); 
-            ConfigureRules(builder); 
+            ConfigureRules(builder);
+            ConfigureExportableType(builder); 
 
             // UI objects
 
@@ -289,6 +292,16 @@ namespace Fluxzy.Desktop.Ui
                                                  && derivedType.IsClass).ToList();
 
             builder.ExportAsInterfaces(foundTypes, a => a.ApplyGenericPropertiesGeneric());
+        }
+
+        private static void ConfigureExportableType(ConfigurationBuilder builder)
+        {
+            var mainAssembly = typeof(ExportableAttribute).Assembly;
+
+            var exportableTypes = mainAssembly.GetTypes()
+                        .Where(t => t.GetCustomAttribute<ExportableAttribute>() != null)
+                        .ToList();
+            builder.ExportAsInterfaces(exportableTypes, a => a.ApplyGenericPropertiesGeneric());
         }
     }
 
