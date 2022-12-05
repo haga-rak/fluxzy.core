@@ -23,7 +23,6 @@ export class MenuService {
 
     private callBacks: { [menuId: string]: () => void } = {}
 
-
     constructor(private electronService: ElectronService, private apiService: ApiService) {
     }
 
@@ -49,6 +48,11 @@ export class MenuService {
                 filter(e => e.menuId === 'open'),
                 map(e => this.electronService.ipcRenderer.sendSync('request-file-opening', null) as string),
                 tap(t => this.nextOpenFile$.next(t)),
+            ).subscribe();
+
+            this.applicationMenuEvents$.pipe(
+                filter(f => f.category === 'recent-menu' && !!f.payload),
+                tap(t => this.nextOpenFile$.next(t.payload)),
             ).subscribe();
 
             this.applicationMenuEvents$.pipe(
@@ -80,6 +84,7 @@ export class MenuService {
                 filter(m => !!this.callBacks[m.menuId]),
                 tap(m => this.callBacks[m.menuId]())
             ).subscribe();
+
         }
     }
 
@@ -98,7 +103,6 @@ export class MenuService {
     public registerMenuEvent(menuId: string, callback: () => void): void {
         this.callBacks[menuId] = callback;
     }
-
 
     public getNextOpenFile(): Observable<string> {
         return this.nextOpenFile$.asObservable();
@@ -142,7 +146,33 @@ export class MenuService {
             FindMenu(menus, (menu) => menu.id === 'save').enabled = uiState.fileState.unsaved && !!uiState.fileState.mappedFileName;
         }
 
+        // Handling recent files
+        const recentMenu = FindMenu(menus, (menu) => menu.id === 'open-recent') ;
+
+        if (uiState.lastOpenFileState.items.length) {
+            recentMenu.submenu = [];
+            recentMenu.enabled = true;
+
+            for (let lastOpenFile of uiState.lastOpenFileState.items) {
+                recentMenu.submenu.push({
+                    label: lastOpenFile.fileName,
+                    toolTip : lastOpenFile.fullPath,
+                    category : 'recent-menu',
+                    payload : lastOpenFile.fullPath
+                } as any);
+            }
+        }
+        else{
+            recentMenu.submenu = [];
+            recentMenu.enabled = false;
+        }
+
         this.electronService.ipcRenderer.sendSync('install-menu-bar', this._currentMenu);
+    }
+
+
+    private updateRecentFiles() : void {
+
     }
 
 

@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Readers;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -24,7 +23,7 @@ namespace Fluxzy.Desktop.Services
 
             var trunkStateObservable = fileStateObservable.Select(fileState =>
                 Observable.FromAsync(
-                    async () => { return await fileState.ContentOperation.Observable.FirstAsync(); })
+                    async () => await fileState.ContentOperation.Observable.FirstAsync())
             ).Concat();
 
             trunkStateObservable.CombineLatest(

@@ -30,6 +30,7 @@ namespace Fluxzy.Desktop.Services.Rules
             new ForceHttp2Action(),
             new ForceTlsVersionAction(SslProtocols.Tls12),
             new SkipRemoteCertificateValidationAction(),
+            new RemoveCacheAction(),
         };
 
         public List<Action> GetDefaultActions()

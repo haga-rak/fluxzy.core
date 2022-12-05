@@ -3,6 +3,7 @@ using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
+using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Readers;
@@ -28,6 +29,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<IRuleStorage, LocalRuleStorage>();
             collection.AddSingleton<ActiveRuleManager>();
             collection.AddSingleton<FileDynamicStatsManager>();
+            collection.AddSingleton<LastOpenFileManager>();
 
             collection.AddSingleton
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
@@ -56,6 +58,9 @@ namespace Fluxzy.Desktop.Services
             
             collection.AddSingleton
                 (s => s.GetRequiredService<FileDynamicStatsManager>().ProvidedObservable);
+            
+            collection.AddSingleton
+                (s => s.GetRequiredService<LastOpenFileManager>().ProvidedObservable);
 
             collection.AddSingleton
                 (s => s.GetRequiredService<ActiveRuleManager>().ActiveRules);

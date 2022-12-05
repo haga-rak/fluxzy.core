@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Clients.Headers;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
@@ -25,7 +26,7 @@ namespace Fluxzy.Rules.Actions
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
-            exchange.Request.Header.AltDeleteHeader(HeaderName);
+            context.RequestHeaderAlterations.Add(new HeaderAlterationDelete(HeaderName));
             return default;
         }
 
