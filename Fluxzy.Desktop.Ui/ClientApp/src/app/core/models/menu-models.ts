@@ -145,7 +145,15 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         submenu : [
             {
                 id : 'capture',
-                label : 'Record traffic',
+                label : 'Start record traffic',
+                checked : true,
+                type : 'checkbox',
+                accelerator : 'F5',
+                icon : '',
+            },
+            {
+                id : 'capture-with-filter',
+                label : 'Start record traffic with source filter',
                 checked : true,
                 type : 'checkbox',
                 accelerator : 'F5',

@@ -44,6 +44,8 @@ namespace Fluxzy.Desktop.Services
 
             // Adding source (agent) filters 
 
+            var permanentFilter = false; 
+
             if (exchange.Agent != null)
             {
                 var viewFilter = await _viewFilterObservable.FirstAsync();
@@ -53,9 +55,20 @@ namespace Fluxzy.Desktop.Services
                 {
                     var appliedAgentFilter = new AgentFilter(exchange.Agent);
                     actions.Add(ContextMenuAction.CreateFromSourceFilter(appliedAgentFilter));
-                    actions.Add(ContextMenuAction.GetDivider());
+                    permanentFilter = true; 
                 }
             }
+
+            if (exchange.ConnectionId > 0)
+            {
+                actions.Add(ContextMenuAction.CreateInstance(new ConnectionFilter(exchange.ConnectionId)));
+            }
+            
+
+            if (permanentFilter)
+                actions.Add(ContextMenuAction.GetDivider());
+
+            
 
             // Adding other filters
 

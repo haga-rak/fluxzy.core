@@ -25,7 +25,7 @@ namespace Fluxzy.Desktop.Services.Filters
                                             derivedType.GetCustomAttribute<FilterMetaDataAttribute>()!))
                                         .ToList();
 
-            foreach (var item in TypeFilters)
+            foreach (var item in TypeFilters.Where(t => !t.MetaData.NotSelectable))
             {
                 var filter = CreateFilter(item);
                 Instances[item.Type] = filter;
