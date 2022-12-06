@@ -12,6 +12,9 @@ namespace Fluxzy.Rules.Actions
     /// Use {{previous}} keyword to refer to the original value of the header.
     /// <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
     /// </summary>
+    [ActionMetadata("Update and existing request header. If the header does not exists in the original request, the header will be added. <br/>" +
+                    "Use {{previous}} keyword to refer to the original value of the header. <br/>" +
+                    "<strong>Note</strong> Headers that alter the connection behaviour will be ignored.")]
     public class UpdateRequestHeaderAction : Action
     {
         public UpdateRequestHeaderAction(string headerName, string headerValue)

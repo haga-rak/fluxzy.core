@@ -12,6 +12,7 @@ namespace Fluxzy.Rules.Actions
     /// Append a request header.
     /// <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
     /// </summary>
+    [ActionMetadata("Append a request header.")]
     public class AddRequestHeaderAction : Action
     {
         /// <summary>

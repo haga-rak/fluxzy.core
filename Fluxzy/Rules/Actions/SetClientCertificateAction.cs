@@ -11,6 +11,8 @@ namespace Fluxzy.Rules.Actions
     /// Add a client certificate to the exchange. The client certificate can be retrieved from the default store (my) or from a PKCS#12 file (.p12, pfx)
     /// The actual certificate is not stored in any static fluxzy settings and, therefore, must be available at runtime. 
     /// </summary>
+    [ActionMetadata("Add a client certificate to the exchange. The client certificate can be retrieved from the default store (my) or from a PKCS#12 file (.p12, pfx). <br/>" +
+                    "The actual certificate is not stored in any static fluxzy settings and, therefore, must be available at runtime. ")]
     public class SetClientCertificateAction : Action
     {
         public SetClientCertificateAction(Certificate clientCertificate)

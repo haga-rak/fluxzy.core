@@ -10,6 +10,8 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     /// Fix statically the remote ip, remote port used for the targeted exchange. 
     /// </summary>
+    [ActionMetadata("Fix statically the remote ip, remote port used for the targeted exchange.")]
+
     public class SpoofDnsAction : Action
     {
         /// <summary>

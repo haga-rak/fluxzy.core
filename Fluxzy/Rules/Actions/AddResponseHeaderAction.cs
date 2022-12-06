@@ -11,6 +11,7 @@ namespace Fluxzy.Rules.Actions
     /// Append a response header.
     /// <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
     /// </summary>
+    [ActionMetadata("Append a response header.")]
     public class AddResponseHeaderAction : Action
     {
         public AddResponseHeaderAction(string headerName, string headerValue)

@@ -9,6 +9,7 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     /// Force the connection between fluxzy and remote to be HTTP/1.1. This value is enforced by ALPN settings on TLS.
     /// </summary>
+    [ActionMetadata("Force the connection between fluxzy and remote to be HTTP/1.1. This value is enforced by ALPN settings on TLS.")]
     public class ForceHttp11Action : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;

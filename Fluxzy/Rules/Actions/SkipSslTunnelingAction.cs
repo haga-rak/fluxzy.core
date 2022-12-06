@@ -7,9 +7,10 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// Tells fluxzy not to decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope
+    /// Instruct fluxzy not to decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope
     /// in order to make this action effective. 
     /// </summary>
+    [ActionMetadata("Instruct fluxzy not to decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope in order to make this action effective. ")]
     public class SkipSslTunnelingAction : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
