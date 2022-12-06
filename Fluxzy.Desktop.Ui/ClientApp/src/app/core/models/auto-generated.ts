@@ -181,6 +181,10 @@ export interface Agent
 	id: number;
 	friendlyName: string;
 }
+export interface DescriptionInfo
+{
+	description: string;
+}
 export interface TemplateToolBarFilterModel
 {
 	quickFilters: Filter[];

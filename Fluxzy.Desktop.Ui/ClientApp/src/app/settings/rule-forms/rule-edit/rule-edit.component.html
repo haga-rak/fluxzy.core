@@ -45,6 +45,9 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="" style="padding: 16px">
+
+                            <div class="alert alert-info" *ngIf="longDescription" [innerHTML]="longDescription"></div>
+
                             <app-rule-render [action]="action"  [validationSource]="validationSource"></app-rule-render>
                             <p *ngIf="targets.length === 0">This action has no editable setting.</p>
                         </div>

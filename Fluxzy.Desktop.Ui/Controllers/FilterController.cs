@@ -11,7 +11,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
     [ApiController]
     public class FilterController : ControllerBase
     {
-        [HttpGet("{typeKind}")]
+        [HttpGet("description/{typeKind}")]
         public ActionResult<string> GetFilterDescription(string typeKind, [FromServices] FilterTemplateManager templateManager)
         {
             if (templateManager.TryGetDescription(typeKind, out var longDescription))
