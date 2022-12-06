@@ -14,7 +14,7 @@ namespace Fluxzy.Writers
 
         public abstract void UpdateTags(IEnumerable<Tag> tags);
 
-        public abstract void Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
+        public abstract bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken);
 
         public abstract void Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
 
@@ -60,7 +60,8 @@ namespace Fluxzy.Writers
         {
             var exchangeInfo = new ExchangeInfo(exchange);
 
-            Update(exchangeInfo, cancellationToken);
+            if (!Update(exchangeInfo, cancellationToken))
+                return; // DO NOT  fire update event when save filter is on
 
             // fire event 
             if (ExchangeUpdated != null)

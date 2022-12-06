@@ -33,36 +33,11 @@ export class DialogService {
     waitModalRef?: BsModalRef;
     constructor(
         private modalService: BsModalService,
-        private menuService: MenuService,
         private apiService : ApiService
     ) {
     }
 
     public init(): void {
-
-      this.menuService
-      .getApplicationMenuEvents()
-      .pipe(
-          filter((t) => t.menuId === 'global-settings'),
-          tap((t) => this.openGlobalSettings())
-      )
-      .subscribe();
-
-      this.menuService
-      .getApplicationMenuEvents()
-      .pipe(
-          filter((t) => t.menuId === 'manage-filters'),
-          tap((t) => this.openManageFilters(false))
-      )
-      .subscribe();
-
-      this.menuService
-      .getApplicationMenuEvents()
-      .pipe(
-          filter((t) => t.menuId === 'manage-rules'),
-          tap((t) => this.openManageRules())
-      )
-      .subscribe();
     }
 
     public openGlobalSettings(): void {

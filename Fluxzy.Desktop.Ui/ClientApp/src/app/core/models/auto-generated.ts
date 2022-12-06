@@ -767,6 +767,7 @@ export interface FluxzySetting
 	byPassHostFlat: string;
 	archivingPolicy: ArchivingPolicy;
 	alterationRules: Rule[];
+	saveFilter?: Filter;
 	globalSkipSslDecryption: boolean;
 }
 export interface FluxzySettingViewModel

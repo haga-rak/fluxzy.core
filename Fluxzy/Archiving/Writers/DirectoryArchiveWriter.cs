@@ -6,20 +6,23 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Writers
 {
     public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {
         private readonly string _baseDirectory;
+        private readonly Filter? _saveFilter;
         private readonly string _captureDirectory;
         private readonly string _contentDirectory;
         private readonly ArchiveMetaInformation _archiveMetaInformation = new();
         private readonly string _archiveMetaInformationPath;
 
-        public DirectoryArchiveWriter(string baseDirectory)
+        public DirectoryArchiveWriter(string baseDirectory, Filter ? saveFilter)
         {
             _baseDirectory = baseDirectory;
+            _saveFilter = saveFilter;
             _contentDirectory = Path.Combine(baseDirectory, "contents");
             _captureDirectory = Path.Combine(baseDirectory, "captures");
             _archiveMetaInformationPath = DirectoryArchiveHelper.GetMetaPath(baseDirectory);
@@ -54,8 +57,11 @@ namespace Fluxzy.Writers
             UpdateMeta();
         }
 
-        public override void Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
+            if (_saveFilter != null && !_saveFilter.Apply(null, exchangeInfo, null))
+                return false;
+
             var exchangePath = DirectoryArchiveHelper.GetExchangePath(_baseDirectory, exchangeInfo);
 
             DirectoryArchiveHelper.CreateDirectory(exchangePath);
@@ -64,8 +70,6 @@ namespace Fluxzy.Writers
             {
                 JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.DefaultSerializerOptions);
             }
-
-            
 
             if (exchangeInfo.Tags?.Any() ?? false)
             {
@@ -77,6 +81,8 @@ namespace Fluxzy.Writers
                 if (modified)
                     UpdateMeta();
             }
+
+            return true; 
         }
 
         public override void Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
