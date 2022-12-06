@@ -265,6 +265,9 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<Agent>()
                    .ApplyGenericProperties();
+
+            builder.ExportAsInterface<DescriptionInfo>()
+                   .ApplyGenericProperties();
         }
 
         private static void ConfigureFilters(ConfigurationBuilder builder)

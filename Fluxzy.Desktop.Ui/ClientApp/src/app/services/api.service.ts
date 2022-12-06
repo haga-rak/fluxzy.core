@@ -23,7 +23,7 @@ import {
     CertificateValidationResult,
     CommentUpdateModel,
     ConnectionInfo,
-    ContextMenuAction,
+    ContextMenuAction, DescriptionInfo,
     ExchangeBrowsingState,
     ExchangeState,
     FileContentDelete,
@@ -353,5 +353,9 @@ export class ApiService {
         return this.httpClient.post<boolean>(`api/connection/${connectionId}/capture/save`, {
             fileName : fileName
         }).pipe(take(1)) ;
+    }
+
+    public actionLongDescription(typeKind : string) : Observable<DescriptionInfo>{
+            return this.httpClient.get<DescriptionInfo>(`api/action/description/${typeKind}`).pipe(take(1)) ;
     }
 }

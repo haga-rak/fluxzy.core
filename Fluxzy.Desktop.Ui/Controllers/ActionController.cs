@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using Fluxzy.Desktop.Services.Rules;
+using Fluxzy.Desktop.Ui.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxzy.Desktop.Ui.Controllers
@@ -9,13 +10,12 @@ namespace Fluxzy.Desktop.Ui.Controllers
     [ApiController]
     public class ActionController : ControllerBase
     {
-
-        [HttpGet("{typeKind}")]
-        public ActionResult<string> GetFilterDescription(string typeKind, [FromServices] ActionTemplateManager templateManager)
+        [HttpGet("description/{typeKind}")]
+        public ActionResult<DescriptionInfo> GetFilterDescription(string typeKind, [FromServices] ActionTemplateManager templateManager)
         {
             if (templateManager.TryGetDescription(typeKind, out var longDescription))
             {
-                return longDescription;
+                return new DescriptionInfo(longDescription);
             }
 
             return NotFound();

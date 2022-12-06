@@ -23,6 +23,7 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
     public callBack :  (rule : Rule | null) => void ;
 
     public isEdit : boolean;
+    public longDescription: string;
 
 
     constructor(
@@ -40,7 +41,11 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
     }
 
     ngOnInit(): void {
-
+        this.apiService.actionLongDescription(this.action.typeKind)
+            .pipe(
+                tap(t => this.longDescription = t.description),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe();
     }
 
     public register(target: ActionValidationTargetComponent<Action>): void {
