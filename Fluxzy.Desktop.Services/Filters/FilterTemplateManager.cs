@@ -1,5 +1,6 @@
-﻿using System.Reflection;
-using System.Text;
+﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+
+using System.Reflection;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Desktop.Services.Filters
@@ -8,18 +9,21 @@ namespace Fluxzy.Desktop.Services.Filters
     {
         private static readonly List<TypeFilter> TypeFilters;
         private static readonly List<Filter> DefaultTemplates = new();
-        private static readonly Dictionary<Type, Filter> Instances = new(); 
-        private static readonly Dictionary<string, FilterMetaDataAttribute> DescriptionMapping = new(); 
+        private static readonly Dictionary<Type, Filter> Instances = new();
+        private static readonly Dictionary<string, FilterMetaDataAttribute> DescriptionMapping = new();
+
         static FilterTemplateManager()
         {
             TypeFilters = typeof(Filter).Assembly.GetTypes()
-                                     .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)
-                                                           && derivedType.IsClass
-                                                           && !derivedType.IsAbstract)
-                                     .Where(derivedType => derivedType.GetCustomAttribute<FilterMetaDataAttribute>() != null)
-                                     // TODO : update this suboptimal double call of GetCustomAttribute
-                                     .Select(derivedType => new TypeFilter(derivedType, derivedType.GetCustomAttribute<FilterMetaDataAttribute>()!))
-                                     .ToList();
+                                        .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)
+                                                              && derivedType.IsClass
+                                                              && !derivedType.IsAbstract)
+                                        .Where(derivedType =>
+                                            derivedType.GetCustomAttribute<FilterMetaDataAttribute>() != null)
+                                        // TODO : update this suboptimal double call of GetCustomAttribute
+                                        .Select(derivedType => new TypeFilter(derivedType,
+                                            derivedType.GetCustomAttribute<FilterMetaDataAttribute>()!))
+                                        .ToList();
 
             foreach (var item in TypeFilters)
             {
@@ -40,13 +44,11 @@ namespace Fluxzy.Desktop.Services.Filters
             var arguments = new List<object>();
 
             foreach (var argument in constructor.GetParameters())
-            {
                 arguments.Add(argument.ParameterType == typeof(string)
                     ? string.Empty
                     : ReflectionHelper.GetDefault(argument.ParameterType));
-            }
 
-            var filter = (Filter) constructor.Invoke(arguments.ToArray());
+            var filter = (Filter)constructor.Invoke(arguments.ToArray());
 
             return filter;
         }
@@ -64,27 +66,29 @@ namespace Fluxzy.Desktop.Services.Filters
             if (DescriptionMapping.TryGetValue(typeKind, out var metaData))
             {
                 longDescription = metaData.LongDescription ?? string.Empty;
+
                 return true;
             }
 
             longDescription = string.Empty;
+
             return false;
         }
 
-        class TypeFilter
+        private class TypeFilter
         {
+            public Type Type { get; }
+
+            public FilterMetaDataAttribute MetaData { get; }
+
             public TypeFilter(Type type, FilterMetaDataAttribute metaData)
             {
                 Type = type;
                 MetaData = metaData;
             }
-
-            public Type Type { get; }
-
-            public FilterMetaDataAttribute MetaData { get; }
         }
     }
-    
+
     internal static class ReflectionHelper
     {
         public static object GetDefault(Type t)
@@ -96,8 +100,7 @@ namespace Fluxzy.Desktop.Services.Filters
 
         public static T? GetDefaultGeneric<T>()
         {
-            return default(T);
+            return default;
         }
-
     }
 }
