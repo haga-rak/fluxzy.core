@@ -70,7 +70,14 @@ export class MenuService {
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'capture'),
                 switchMap(t => {
-                    return t.checked ? this.apiService.proxyOff() : this.apiService.proxyOn()
+                    return  this.apiService.proxyOn()
+                })
+            ).subscribe();
+
+            this.applicationMenuEvents$.pipe(
+                filter(e => e.menuId === 'halt-capture'),
+                switchMap(t => {
+                    return  this.apiService.proxyOff()
                 })
             ).subscribe();
 
@@ -125,9 +132,12 @@ export class MenuService {
         // Handling start/stop listening
         {
             let captureMenu = FindMenu(menus, (menu) => menu.id === 'capture');
+            let captureWithFilter = FindMenu(menus, (menu) => menu.id === 'capture-with-filter');
+            let haltCapture = FindMenu(menus, (menu) => menu.id === 'halt-capture');
 
-            captureMenu.enabled = !(uiState.proxyState?.onError ?? true);
-            captureMenu.checked = captureMenu.enabled && (uiState.systemProxyState?.on ?? false);
+            captureMenu.enabled = (!(uiState.proxyState?.onError ?? true)) && !(uiState.systemProxyState?.on ?? false);
+            captureWithFilter.enabled = (!(uiState.proxyState?.onError ?? true)) && !(uiState.systemProxyState?.on ?? false);
+            haltCapture.enabled =  (!(uiState.proxyState?.onError ?? true)) && (uiState.systemProxyState?.on ?? false);
         }
 
         // Delete status

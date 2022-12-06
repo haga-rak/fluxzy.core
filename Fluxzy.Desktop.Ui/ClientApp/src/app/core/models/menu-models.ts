@@ -145,18 +145,20 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         submenu : [
             {
                 id : 'capture',
-                label : 'Start record traffic',
-                checked : true,
-                type : 'checkbox',
+                label : 'Start recording',
                 accelerator : 'F5',
                 icon : '',
             },
             {
                 id : 'capture-with-filter',
-                label : 'Start record traffic with source filter',
-                checked : true,
-                type : 'checkbox',
-                accelerator : 'F5',
+                label : 'Start record with source filter',
+                accelerator : 'Ctrl+F5',
+                icon : '',
+            },
+            {
+                id : 'halt-capture',
+                label : 'Stop recording',
+                accelerator : 'Shift+F5',
                 icon : '',
             },
         ]
