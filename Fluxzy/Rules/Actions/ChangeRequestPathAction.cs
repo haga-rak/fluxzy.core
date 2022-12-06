@@ -11,6 +11,7 @@ namespace Fluxzy.Rules.Actions
     /// Change request uri path. This action alters only the path of the request.
     /// Please refer to TODO : need an action that redirects the full path 
     /// </summary>
+    [ActionMetadata("Change request uri path. This action alters only the path of the request.")]
     public class ChangeRequestPathAction : Action
     {
         public ChangeRequestPathAction(string newPath)

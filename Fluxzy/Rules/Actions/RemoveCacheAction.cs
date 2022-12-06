@@ -8,8 +8,9 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// This action removes all cache directive from request header 
+    /// This action removes all cache directive from request header and response.  
     /// </summary>
+    [ActionMetadata("Remove all cache directive from request and response header.")]
     public class RemoveCacheAction : Action
     {
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;

@@ -7,8 +7,10 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// Skip validating remote certicate. 
+    /// Skip validating remote certificate. 
     /// </summary>
+    [ActionMetadata(" Skip validating remote certificate.")]
+
     public class SkipRemoteCertificateValidationAction : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;

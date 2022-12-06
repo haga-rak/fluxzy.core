@@ -10,6 +10,7 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     /// Change the method of a request.
     /// </summary>
+    [ActionMetadata("Alter the method of an exchange.")]
     public class ChangeRequestMethodAction : Action
     {
         public ChangeRequestMethodAction(string newMethod)

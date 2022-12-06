@@ -11,6 +11,8 @@ namespace Fluxzy.Rules.Actions
     /// Force the usage of a specific TLS version. Values can be chosen among : Tls, Tls11, Tls12, Tls13 (if .NET 6+), Ssl3, Ssl2.
     /// Forcing the usage of a specific TLS version can break the exchange if the remote does not support the requested protocol.
     /// </summary>
+    [ActionMetadata("Force the usage of a specific TLS version. Values can be chosen among : Tls, Tls11, Tls12, Tls13 (if .NET 6+), Ssl3, Ssl2. <br/>" +
+                    "Forcing the usage of a specific TLS version can break the exchange if the remote does not support the requested protocol.\r\n    /// </summary>")]
     public class ForceTlsVersionAction : Action
     {
         public ForceTlsVersionAction(SslProtocols sslProtocols)

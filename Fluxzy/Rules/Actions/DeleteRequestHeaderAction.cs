@@ -10,6 +10,7 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     /// Remove request headers. This actions remove <b>every</b> occurrence of the header from the request
     /// </summary>
+    [ActionMetadata("Remove request headers. This actions remove <b>every</b> occurrence of the header from the request.")]
     public class DeleteRequestHeaderAction : Action
     {
         public DeleteRequestHeaderAction(string headerName)

@@ -11,6 +11,7 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     /// Affect a tag to exchange. Tags are meta-information and do not alter the connection.
     /// </summary>
+    [ActionMetadata("Affect a tag to exchange. Tags are meta-information and do not alter the connection.")]
     public class ApplyTagAction : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
