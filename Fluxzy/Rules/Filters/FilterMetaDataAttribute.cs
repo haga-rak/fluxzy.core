@@ -42,5 +42,11 @@ namespace Fluxzy.Rules.Filters
         /// </summary>
         public bool DoNotHistorize { get; init; }
 
+        /// <summary>
+        /// Indicates that the targeted filter cannot be selected from filter management UIs.
+        /// (Implicit filter)
+        /// </summary>
+        public bool NotSelectable { get; init; }
+
     }
 }
