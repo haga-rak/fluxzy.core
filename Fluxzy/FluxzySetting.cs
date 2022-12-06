@@ -124,8 +124,13 @@ namespace Fluxzy
         ///     Global alteration rules
         /// </summary>
         public List<Rule> AlterationRules { get; set; } = new();
-
-
+        
+        /// <summary>
+        /// Specify a filter which trigger save to directory when passed.
+        /// When this filter is null, any exchanges will be saved. 
+        /// </summary>
+        public Filter?  SaveFilter { get; set; }
+        
         /// <summary>
         /// Skip SSL decryption for any exchanges. This setting cannot be overriden by rules 
         /// </summary>

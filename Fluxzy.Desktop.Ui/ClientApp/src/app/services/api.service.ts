@@ -183,6 +183,13 @@ export class ApiService {
             );
     }
 
+    public proxyOnWithSettings(saveFilter : Filter) : Observable<UiState> {
+        return this.httpClient.post<UiState>(`api/proxy/on/with-settings`, saveFilter)
+            .pipe(
+                take(1)
+            );
+    }
+
     public proxyOff() : Observable<UiState> {
         return this.httpClient.post<UiState>(`api/proxy/off`, null)
             .pipe(

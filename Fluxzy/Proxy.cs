@@ -60,7 +60,7 @@ namespace Fluxzy
                 && StartupSetting.ArchivingPolicy.Directory != null)
             {
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
-                Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory);
+                Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory, StartupSetting.SaveFilter);
             }
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)

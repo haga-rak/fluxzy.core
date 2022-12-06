@@ -12,8 +12,9 @@ namespace Fluxzy.Writers
 
         }
 
-        public override void Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
+            return true;
         }
 
         public override void Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)

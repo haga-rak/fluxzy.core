@@ -6,6 +6,7 @@ import {ExchangeSelectionService} from '../../services/exchange-selection.servic
 import {UiState} from '../models/auto-generated';
 import {FindMenu, GlobalMenuItems} from '../models/menu-models';
 import {ElectronService} from './electron/electron.service';
+import {DialogService} from "../../services/dialog.service";
 
 @Injectable({
     providedIn: 'root'
@@ -23,7 +24,7 @@ export class MenuService {
 
     private callBacks: { [menuId: string]: () => void } = {}
 
-    constructor(private electronService: ElectronService, private apiService: ApiService) {
+    constructor(private electronService: ElectronService, private apiService: ApiService, private dialogService : DialogService) {
     }
 
     public getApplicationMenuEvents(): Observable<IApplicationMenuEvent> {
@@ -75,6 +76,15 @@ export class MenuService {
             ).subscribe();
 
             this.applicationMenuEvents$.pipe(
+                filter(e => e.menuId === 'capture-with-filter'),
+                switchMap(t => this.dialogService.openFilterCreate()),
+                filter (f => !!f),
+                switchMap(f => {
+                    return  this.apiService.proxyOnWithSettings(f)
+                })
+            ).subscribe();
+
+            this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'halt-capture'),
                 switchMap(t => {
                     return  this.apiService.proxyOff()
@@ -91,6 +101,28 @@ export class MenuService {
                 filter(m => !!this.callBacks[m.menuId]),
                 tap(m => this.callBacks[m.menuId]())
             ).subscribe();
+
+            this.applicationMenuEvents$
+                .pipe(
+                    filter((t) => t.menuId === 'global-settings'),
+                    tap((t) => this.dialogService.openGlobalSettings())
+                )
+                .subscribe();
+
+            this.applicationMenuEvents$
+                .pipe(
+                    filter((t) => t.menuId === 'manage-filters'),
+                    tap((t) => this.dialogService.openManageFilters(false))
+                )
+                .subscribe();
+
+
+            this.applicationMenuEvents$
+                .pipe(
+                    filter((t) => t.menuId === 'manage-rules'),
+                    tap((t) => this.dialogService.openManageRules())
+                )
+                .subscribe();
 
         }
     }
