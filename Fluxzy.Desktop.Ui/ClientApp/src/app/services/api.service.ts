@@ -82,17 +82,22 @@ export class ApiService {
                         this.forwardMessages$.next(message);
                     }
                 }),
-                finalize(() => {
-                    // Run a messagebox here
-
+                catchError(err => {
                     const result = this.electronService.showBackendFailureDialog('Fluxzy backend cannot be reached!');
 
                     if (result === BackFailureDialog.Retry) {
                         this.loopForwardMessage();
                     }
+
                     if (result === BackFailureDialog.Close) {
                         this.electronService.exit();
                     }
+
+                    return of(null) ;
+                }),
+                tap(t => this.loopForwardMessage()),
+                finalize(() => {
+                    // Run a messagebox here
                 })
             ).subscribe();
     }
