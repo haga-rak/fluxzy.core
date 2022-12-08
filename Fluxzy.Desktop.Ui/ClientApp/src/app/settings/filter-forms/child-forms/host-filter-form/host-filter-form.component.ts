@@ -16,7 +16,8 @@ import {StringFilterFormComponent} from "../string-filter-form/string-filter-for
 })
 export class HostFilterFormComponent  extends StringFilterFormComponent<HostFilter> {
     constructor(cd : ChangeDetectorRef) {
-        super(cd);
+        super();
+        this.initDependencies(cd);
     }
 
     getFieldName(): string | null {

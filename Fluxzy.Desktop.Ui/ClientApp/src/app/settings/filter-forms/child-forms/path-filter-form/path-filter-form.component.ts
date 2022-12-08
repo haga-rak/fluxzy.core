@@ -9,7 +9,8 @@ import {FullUrlFilter, PathFilter} from "../../../../core/models/auto-generated"
 })
 export class PathFilterFormComponent extends StringFilterFormComponent<PathFilter> {
     constructor(cd : ChangeDetectorRef) {
-        super(cd);
+        super();
+        this.initDependencies(cd);
     }
 
     getFieldName(): string | null {

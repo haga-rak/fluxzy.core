@@ -10,7 +10,8 @@ import {StringFilterFormComponent} from "../string-filter-form/string-filter-for
 })
 export class FullUrlFilterFormComponent extends StringFilterFormComponent<FullUrlFilter> {
     constructor(cd : ChangeDetectorRef) {
-        super(cd);
+        super();
+        this.initDependencies(cd);
     }
 
     getFieldName(): string | null {
