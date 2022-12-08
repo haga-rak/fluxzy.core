@@ -3,7 +3,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
-using Fluxzy.Extensions;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Readers;
 using Fluxzy.Rules;
