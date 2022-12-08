@@ -74,7 +74,6 @@ var InstallSystemEvents = function (win) {
         event.returnValue = !result || !result.length ? null : result[0];
     });
     electron_1.ipcMain.on('request-custom-directory-opening', function (event, name, extensions) {
-        //
         var result = electron_1.dialog.showOpenDialogSync(win, {
             title: "Fluxzy - Select directory",
             buttonLabel: "Select directory",
@@ -90,6 +89,18 @@ var InstallSystemEvents = function (win) {
         };
         var resultIndex = electron_1.dialog.showMessageBoxSync(win, options);
         event.returnValue = resultIndex;
+    });
+    electron_1.ipcMain.on('dialog-backend-failure', function (event, arg) {
+        //
+        var options = {
+            buttons: ["Retry", "Exit"],
+            message: arg
+        };
+        var resultIndex = electron_1.dialog.showMessageBoxSync(win, options);
+        event.returnValue = resultIndex;
+    });
+    electron_1.ipcMain.on('exit', function (event, arg) {
+        electron_1.app.quit();
     });
 };
 exports.InstallSystemEvents = InstallSystemEvents;
