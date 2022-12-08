@@ -122,7 +122,8 @@
               "proxyConfig": "proxy.conf.js"
             },
             "production": {
-              "browserTarget": "angular-electron:build:production"
+              "browserTarget": "angular-electron:build:production",
+                "proxyConfig": "proxy.conf.js"
             },
             "web": {
               "browserTarget": "angular-electron:build:web",
