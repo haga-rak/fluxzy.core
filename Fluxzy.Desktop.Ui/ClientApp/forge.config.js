@@ -1,3 +1,7 @@
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+
+
 module.exports = {
     packagerConfig: {
         ignore: [
@@ -18,6 +22,11 @@ module.exports = {
         win32metadata: {
             CompanyName: "Smartizy",
             ProductName: "Fluxzy",
+        }
+    },
+    hooks : {
+        prePackage : async (forgeConfig, platform, arch) => {
+        //    await exec('npm run build:prod');
         }
     },
     rebuildConfig: {},
