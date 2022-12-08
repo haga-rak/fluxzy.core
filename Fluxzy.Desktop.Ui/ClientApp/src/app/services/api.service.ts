@@ -56,7 +56,6 @@ import {ElectronService} from "../core/services";
 @Injectable({
   providedIn: 'root'
 })
-// This service is responsible of delivering http service towards the .NET web service
 export class ApiService {
     private forwardMessages$ = new Subject<ForwardMessage>();
     private loop$ = new BehaviorSubject<any>(null);
