@@ -9,6 +9,7 @@
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <RootNamespace>Fluxzy.Desktop.Ui</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
+	<AssemblyName>fluxzyd</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
