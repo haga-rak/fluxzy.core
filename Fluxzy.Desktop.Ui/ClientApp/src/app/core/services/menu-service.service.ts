@@ -226,3 +226,8 @@ export enum ConfirmResult {
     No,
     Cancel
 }
+
+export enum BackFailureDialog {
+    Retry = 0,
+    Close = 1
+}

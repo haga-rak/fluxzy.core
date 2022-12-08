@@ -50,6 +50,8 @@ import {
 } from '../core/models/auto-generated';
 import {FilterHolder} from "../settings/manage-filters/manage-filters.component";
 import {IWithName} from "../core/models/model-extensions";
+import {BackFailureDialog} from "../core/services/menu-service.service";
+import {ElectronService} from "../core/services";
 
 @Injectable({
   providedIn: 'root'
@@ -60,7 +62,7 @@ export class ApiService {
     private loop$ = new BehaviorSubject<any>(null);
     private _lastSub: Subscription;
 
-    constructor(private httpClient: HttpClient)
+    constructor(private httpClient: HttpClient, private electronService : ElectronService)
     {
         this.loopForwardMessage();
     }
@@ -74,7 +76,6 @@ export class ApiService {
 
         this._lastSub = this.forwardMessageConsume()
             .pipe(
-
                 take(1),
                 tap(messages => {
                     for (const message of messages) {
@@ -82,25 +83,18 @@ export class ApiService {
                     }
                 }),
                 finalize(() => {
-                    this.loopForwardMessage();
+                    // Run a messagebox here
+
+                    const result = this.electronService.showBackendFailureDialog('Fluxzy backend cannot be reached!');
+
+                    if (result === BackFailureDialog.Retry) {
+                        this.loopForwardMessage();
+                    }
+                    if (result === BackFailureDialog.Close) {
+                        this.electronService.exit();
+                    }
                 })
             ).subscribe();
-
-
-        // this.loop$.asObservable()
-        //     .pipe(
-        //         switchMap(_ =>  this.forwardMessageConsume().
-        //                 pipe(
-        //                     catchError(err =>  of([]).pipe(delay(2000)))
-        //                 )
-        //         ),
-        //         tap(messages => {
-        //             for (const message of messages) {
-        //                 this.forwardMessages$.next(message);
-        //             }
-        //         }),
-        //         tap((_) => this.loop$.next(null))
-        //     ).subscribe();
     }
 
 

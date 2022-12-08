@@ -1,42 +1,42 @@
-import { BrowserWindow, dialog, ipcMain,clipboard } from "electron";
+import {BrowserWindow, dialog, ipcMain, clipboard, app} from "electron";
 
 
-export const InstallSystemEvents = (win : BrowserWindow) : void => {
+export const InstallSystemEvents = (win: BrowserWindow): void => {
 
     ipcMain.on('copy-to-cliboard', (event, arg) => {
         //
         if (arg) {
-            clipboard.writeText(arg) ;
+            clipboard.writeText(arg);
         }
 
-        event.returnValue = true ;
-    }) ;
+        event.returnValue = true;
+    });
 
 
     ipcMain.on('request-file-opening', (event, arg) => {
         //
         var result = dialog.showOpenDialogSync(win, {
-            filters : [
+            filters: [
                 {
-                    name : "Fluxzy file",
-                    extensions : ["fxzy", "fzy", "fluxzy"]
+                    name: "Fluxzy file",
+                    extensions: ["fxzy", "fzy", "fluxzy"]
                 },
                 {
-                    name : "Saz file",
-                    extensions : ["saz"]
+                    name: "Saz file",
+                    extensions: ["saz"]
                 },
                 {
-                    name : "Har file",
-                    extensions : ["har"]
+                    name: "Har file",
+                    extensions: ["har"]
                 },
             ],
-            title : "Fluxzy - File opening",
-            buttonLabel : "Open archive",
-            properties : ["openFile"]
+            title: "Fluxzy - File opening",
+            buttonLabel: "Open archive",
+            properties: ["openFile"]
         })
 
-        event.returnValue = !result || !result.length ? null : result[0] ;
-    }) ;
+        event.returnValue = !result || !result.length ? null : result[0];
+    });
 
 
     ipcMain.on('request-file-saving', function (event, arg) {
@@ -60,7 +60,7 @@ export const InstallSystemEvents = (win : BrowserWindow) : void => {
         var result = dialog.showSaveDialogSync(win, {
             title: "Fluxzy - Save",
             buttonLabel: "Save",
-            defaultPath : arg,
+            defaultPath: arg,
             properties: ["showOverwriteConfirmation"]
         });
 
@@ -71,44 +71,56 @@ export const InstallSystemEvents = (win : BrowserWindow) : void => {
         //
 
         let result = dialog.showOpenDialogSync(win, {
-            filters : [
+            filters: [
                 {
-                    name : name,
-                    extensions : extensions.split(' ')
+                    name: name,
+                    extensions: extensions.split(' ')
                 },
             ],
-            title : "Fluxzy - File opening",
-            buttonLabel : "Open archive",
-            properties : ["openFile"]
+            title: "Fluxzy - File opening",
+            buttonLabel: "Open archive",
+            properties: ["openFile"]
         })
 
-        event.returnValue = !result || !result.length ? null : result[0] ;
+        event.returnValue = !result || !result.length ? null : result[0];
     })
 
     ipcMain.on('request-custom-directory-opening', function (event, name, extensions) {
-        //
-
         let result = dialog.showOpenDialogSync(win, {
-
-            title : "Fluxzy - Select directory",
-            buttonLabel : "Select directory",
-            properties : ["openDirectory"]
+            title: "Fluxzy - Select directory",
+            buttonLabel: "Select directory",
+            properties: ["openDirectory"]
         })
 
-        event.returnValue = !result || !result.length ? null : result[0] ;
+        event.returnValue = !result || !result.length ? null : result[0];
     });
-
 
     ipcMain.on('show-confirm-dialog', function (event, arg) {
         //
-        let options  = {
-            buttons: ["Yes","No","Cancel"],
+        let options = {
+            buttons: ["Yes", "No", "Cancel"],
             message: arg
-           }
+        }
 
-        var resultIndex = dialog.showMessageBoxSync(win, options) ;
+        const resultIndex = dialog.showMessageBoxSync(win, options);
 
         event.returnValue = resultIndex;
     });
+
+    ipcMain.on('dialog-backend-failure', function (event, arg) {
+        //
+        let options = {
+            buttons: ["Retry", "Exit"],
+            message: arg
+        }
+
+        const resultIndex = dialog.showMessageBoxSync(win, options);
+        event.returnValue = resultIndex;
+    });
+
+    ipcMain.on('exit', function (event, arg) {
+        app.quit();
+    });
+
 
 }
