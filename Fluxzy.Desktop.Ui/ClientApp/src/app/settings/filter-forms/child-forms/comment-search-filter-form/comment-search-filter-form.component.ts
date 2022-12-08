@@ -9,7 +9,8 @@ import {CommentSearchFilter, HostFilter} from "../../../../core/models/auto-gene
 })
 export class CommentSearchFilterFormComponent  extends StringFilterFormComponent<CommentSearchFilter> {
     constructor(cd : ChangeDetectorRef) {
-        super(cd);
+        super();
+        this.initDependencies(cd);
     }
 
     getFieldName(): string | null {

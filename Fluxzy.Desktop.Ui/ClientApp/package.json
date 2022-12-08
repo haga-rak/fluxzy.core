@@ -8,6 +8,7 @@
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "ng": "ng",
+    "start:webstorm": "npm-run-all -p electron:serve ng:serve",
     "start": "electron-forge start",
     "ng:serve": "ng serve -c web",
     "build": "npm run electron:serve-tsc && ng build --base-href ./",

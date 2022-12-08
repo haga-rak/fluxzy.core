@@ -139,7 +139,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ManageFiltersComponent,
         FilterEditComponent,
         MethodFilterFormComponent,
-        //StringFilterFormComponent,
+        StringFilterFormComponent,
         HostFilterFormComponent,
         FilterCollectionFormComponent,
         FilterPreCreateComponent,
