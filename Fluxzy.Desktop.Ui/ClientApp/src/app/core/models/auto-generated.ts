@@ -228,6 +228,7 @@ export interface Filter extends PolymorphicObject
 {
 	identifier: string;
 	filterScope: number;
+	genericName: string;
 	shortName?: string;
 	preMadeFilter: boolean;
 	description?: string;

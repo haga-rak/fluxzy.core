@@ -19,7 +19,7 @@ export class StatusBarComponent implements OnInit {
     public exchangeState: ExchangeState;
     public fileState: FileState;
     public uiState: UiState;
-    private statusMessage: string;
+    public statusMessage: string;
 
     constructor(
         private exchangeManagementService: ExchangeManagementService,

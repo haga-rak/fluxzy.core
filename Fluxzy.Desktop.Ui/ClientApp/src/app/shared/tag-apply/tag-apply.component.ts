@@ -14,7 +14,7 @@ import { DialogService } from '../../services/dialog.service';
 export class TagApplyComponent implements OnInit {
     public model: TagGlobalApplyModel;
     private readonly callBack: (f: (TagGlobalApplyModel | null)) => void;
-    private tags: Tag[];
+    public tags: Tag[];
 
     constructor(
         public bsModalRef: BsModalRef,

@@ -17,7 +17,7 @@ namespace Fluxzy.Rules.Filters
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public virtual string GenericName => "Websocket";
+        public override string GenericName => "Websocket";
 
         public override string? ShortName => "ws";
 

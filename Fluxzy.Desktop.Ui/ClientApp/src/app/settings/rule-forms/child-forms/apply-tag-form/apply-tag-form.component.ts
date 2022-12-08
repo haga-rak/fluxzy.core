@@ -12,9 +12,9 @@ import { DialogService } from '../../../../services/dialog.service';
 })
 export class ApplyTagFormComponent extends ActionValidationTargetComponent<ApplyTagAction> {
     public validationState = {} ;
-    private currentTags: Tag[];
+    public currentTags: Tag[];
 
-    private selectedTagId : string | null = null ;
+    public selectedTagId : string | null = null ;
 
     constructor(private cd : ChangeDetectorRef, private apiService : ApiService, private dialogService : DialogService) {
         super();
