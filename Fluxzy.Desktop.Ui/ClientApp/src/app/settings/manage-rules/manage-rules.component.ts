@@ -13,7 +13,7 @@ import {StatusBarService} from "../../services/status-bar.service";
     styleUrls: ['./manage-rules.component.scss']
 })
 export class ManageRulesComponent implements OnInit {
-    private ruleContainers: RuleContainer[];
+    public ruleContainers: RuleContainer[];
 
     constructor(public bsModalRef: BsModalRef, public options: ModalOptions, private apiService : ApiService, private cd : ChangeDetectorRef,
                 private dialogService : DialogService, private statusBarService : StatusBarService) {

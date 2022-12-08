@@ -20,7 +20,7 @@ namespace Fluxzy.Rules.Filters
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 
-        public virtual string GenericName => "Any";
+        public override string GenericName => "Any";
 
         public override string ShortName => "any";
 

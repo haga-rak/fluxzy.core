@@ -34,8 +34,8 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
     public networkInterfaceInfos: NetworkInterfaceInfo[];
 
     public validationMessages : string [] ;
-    private caStoreCertificates : CertificateOnStore[];
-    private certificateValidationResult : CertificateValidationResult ;
+    public caStoreCertificates : CertificateOnStore[];
+    public certificateValidationResult : CertificateValidationResult ;
 
     public leftMenus : LeftMenu[] = [] ;
     public selectedLeftMenu  : LeftMenu | null = null ;
@@ -52,7 +52,7 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
     constructor(
         public bsModalRef: BsModalRef,
         private apiService: ApiService,
-        private cd : ChangeDetectorRef,
+        public cd : ChangeDetectorRef,
         private systemCallService : SystemCallService
     ) {}
 

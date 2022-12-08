@@ -51,7 +51,7 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
 
         public override string ShortName => "q";
 
-        public virtual string GenericName => "Find text";
+        public override string GenericName => "Find text";
 
         private byte[] GetPatternBuffer()
         {
