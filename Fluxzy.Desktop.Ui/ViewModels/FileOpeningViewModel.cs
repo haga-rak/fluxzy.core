@@ -1,6 +1,4 @@
-﻿using Fluxzy.Formatters.Producers.ProducerActions;
-
-namespace Fluxzy.Desktop.Ui.ViewModels
+﻿namespace Fluxzy.Desktop.Ui.ViewModels
 {
     public class FileOpeningViewModel
     {
