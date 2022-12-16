@@ -19,6 +19,8 @@ namespace Fluxzy.Rules.Actions
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
+            // TODO : reuse the same HeaderAlteration instance here instead of allocating new ones each call
+        
             context.RequestHeaderAlterations.Add(new HeaderAlterationDelete("if-none-match"));
             context.RequestHeaderAlterations.Add(new HeaderAlterationDelete("if-modified-since"));
             context.RequestHeaderAlterations.Add(new HeaderAlterationDelete("etag"));
