@@ -10,7 +10,7 @@
 		<Authors>Haga Rakotoharivelo</Authors>
 		<Description>HTTP analyzer and debugger engine, designed to deliver high end diagnosis and accurate performance measures.</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<LangVersion>default</LangVersion>
+		<LangVersion>10</LangVersion>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
