@@ -9,7 +9,7 @@
       //"commandLineArgs": "start -sp -o f.fxzy -c"
       // "commandLineArgs": "cert check sdf"
       //"commandLineArgs": "start -sp -l 127.0.0.1/0"
-      "commandLineArgs": "start -sp -o coco.har"
+      "commandLineArgs": "start -l 127.0.0.1/44355 "
     }
   }
 }

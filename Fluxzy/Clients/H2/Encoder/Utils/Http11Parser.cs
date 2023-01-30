@@ -282,6 +282,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 entries.Where(c =>
                     c.Name.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)
                 ).Select(s => s.Value), "; ".AsSpan(), cookieBuffer);
+            
 
             if (!cookieValue.IsEmpty)
             {
