@@ -10,6 +10,7 @@ import {spawn} from "child_process";
 function runFrontEnd() : void {
 
     let win: BrowserWindow = null;
+
     const args = process.argv.slice(1),
         serve = args.some(val => val === '--serve');
 
@@ -108,20 +109,34 @@ function launchFluxzyDaemonOrDie() : void {
     let exeName = process.platform === "win32"? "fluxzyd.exe" : "fluxzyd";
     let backendPath:string = `resources/app/.publish/${exeName}`;
     let backendDirectory:string = `resources/app/.publish`;
+    let pid : string = `${process.pid}`;
 
     // Check if port is already busy
     // If so exit
     // Else launch backend and wait for port to be ready
 
-    spawn(backendPath, ['--urls', 'http://localhost:5198'], {
-        detached: true
+    let fluxzydProc = spawn(backendPath, ['--urls', 'http://localhost:5198', '--desktop', '--fluxzyw-pid', pid], {
+        detached: true,
     });
 
-    function CheckPort() {
-        const net = require('net');
-        const client = new net.Socket();
-        client.connect(5198, 'localhost');
-    }
+    let stopAnalyze = false;
+
+    fluxzydProc.stdout.on('data', line => {
+        if (stopAnalyze)
+            return;
+
+        if (line.toString().indexOf('FLUXZY_LISTENING') >= 0) {
+            stopAnalyze = true;
+        }
+        if (line.toString().indexOf('FLUXZY_PORT_ERROR') >= 0) {
+            process.exit();
+        }
+    });
+
+    fluxzydProc.on('exit', function (code) {
+        process.exit();
+    });
+
 }
 
 let args = process.argv.join(" ");
