@@ -1,8 +1,14 @@
+using System.Net.Sockets;
 using Fluxzy;
 using Fluxzy.Desktop.Services;
+using Fluxzy.Desktop.Ui.Runtime;
 
 Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
 Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
+
+var haltTokenSource = new CancellationTokenSource(); 
+
+AppControl.PrepareForRun(args, haltTokenSource, out var isDesktop);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,4 +47,27 @@ var activeRuleManages = app.Services.GetRequiredService<ActiveRuleManager>();
 await globalFileManager.New();
 await activeRuleManages.InitRules();
 
-app.Run();
+try {
+    await app.StartAsync(haltTokenSource.Token);
+
+    if (isDesktop) {
+        Console.Out.WriteLine("FLUXZY_LISTENING");
+        Console.Out.Flush();
+    }
+}
+catch (Exception ex) {
+    var socketException = ex.FindException(e => e is SocketException sex && sex.NativeErrorCode == 10048); 
+    
+    if (socketException == null)
+        throw;
+
+    if (isDesktop)
+    {
+        Console.Out.WriteLine("FLUXZY_PORT_ERROR");
+        Console.Out.Flush();
+    }
+
+    return;
+}
+
+await app.WaitForShutdownAsync(haltTokenSource.Token); 
