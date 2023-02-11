@@ -11,8 +11,11 @@ function runFrontEnd() : void {
 
     let win: BrowserWindow = null;
 
-    const args = process.argv.slice(1),
-        serve = args.some(val => val === '--serve');
+    const commandLineArgs = process.argv.slice(1),
+        serve = commandLineArgs.some(val => val === '--serve');
+
+    let args = process.argv.join(" ");
+    let isProduction = args.indexOf("--serve") === -1;
 
     function createWindow(): BrowserWindow {
 
@@ -55,7 +58,6 @@ function runFrontEnd() : void {
             }));
         }
 
-
         // Emitted when the window is closed.
         win.on('closed', () => {
             // Dereference the window object, usually you would store window
@@ -64,10 +66,18 @@ function runFrontEnd() : void {
             win = null;
         });
 
-
         InstallMenuBar();
         InstallSystemEvents(win);
 
+        if (isProduction) {
+            launchFluxzyDaemonOrDie((success : boolean) => {
+                if (success) {
+                    // Backend launched successfully
+                } else {
+                    app.exit(0)
+                }
+            });
+        }
 
         return win;
     }
@@ -77,7 +87,9 @@ function runFrontEnd() : void {
         // initialization and is ready to create browser windows.
         // Some APIs can only be used after this event occurs.
         // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
-        app.on('ready', () => setTimeout(createWindow, 400));
+        app.on('ready', () => setTimeout(() => {
+            return createWindow();
+        }, 400));
 
         // Quit when all windows are closed.
         app.on('window-all-closed', () => {
@@ -103,12 +115,11 @@ function runFrontEnd() : void {
     ;
 }
 
-function launchFluxzyDaemonOrDie() : void {
+function launchFluxzyDaemonOrDie(backedLaunchCallback : (success : boolean) => void) : void {
     // Launch and wait for backend to be ready
 
     let exeName = process.platform === "win32"? "fluxzyd.exe" : "fluxzyd";
     let backendPath:string = `resources/app/.publish/${exeName}`;
-    let backendDirectory:string = `resources/app/.publish`;
     let pid : string = `${process.pid}`;
 
     // Check if port is already busy
@@ -127,30 +138,19 @@ function launchFluxzyDaemonOrDie() : void {
 
         if (line.toString().indexOf('FLUXZY_LISTENING') >= 0) {
             stopAnalyze = true;
+            backedLaunchCallback(true);
         }
         if (line.toString().indexOf('FLUXZY_PORT_ERROR') >= 0) {
-            process.exit();
+            backedLaunchCallback(false);
         }
     });
 
     fluxzydProc.on('exit', function (code) {
-        process.exit();
+        backedLaunchCallback(false);
     });
-
 }
 
-let args = process.argv.join(" ");
-let isProduction = args.indexOf("--serve") === -1;
-
-if (isProduction) {
-    launchFluxzyDaemonOrDie() ;
-    runFrontEnd();
-}
-else{
-    runFrontEnd();
-}
-
-
+runFrontEnd();;
 
 
 
