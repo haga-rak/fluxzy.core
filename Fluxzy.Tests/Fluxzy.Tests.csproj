@@ -14,13 +14,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" />
 
   <ItemGroup>
-    <None Remove="Files\Headers\Req001.txt" />
-    <None Remove="Files\Headers\Resp001.txt" />
+    <None Remove="Files\Headers\Req001.txt.bin" />
+    <None Remove="Files\Headers\Resp001.txt.bin" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Files\Headers\Req001.txt" />
-    <EmbeddedResource Include="Files\Headers\Resp001.txt" />
+    <EmbeddedResource Include="Files\Headers\Req001.txt.bin" />
+    <EmbeddedResource Include="Files\Headers\Resp001.txt.bin" />
   </ItemGroup>
 
   <ItemGroup>
