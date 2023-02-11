@@ -259,31 +259,13 @@ namespace Fluxzy.Clients.H2
 
             ReceiveHeaderFragmentFromConnection(headerFrame.Data, headerFrame.EndHeaders);
         }
-
-        //internal void ReceiveHeaderFragmentFromConnection(
-        //    int bodyLength, bool endStream, bool endHeader, ReadOnlyMemory<byte> data)
-        //{
-        //    _exchange.Metrics.TotalReceived += bodyLength;
-
-        //    if (_exchange.Metrics.ResponseHeaderStart == default)
-        //        _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
-
-        //    if (endStream)
-        //        _noBodyStream = true;
-        //    ReceiveHeaderFragmentFromConnection(data, endHeader);
-        //}
-
+        
         internal void ReceiveHeaderFragmentFromConnection(ref ContinuationFrame continuationFrame)
         {
             _exchange.Metrics.TotalReceived += continuationFrame.BodyLength;
             _exchange.Metrics.ResponseHeaderLength += continuationFrame.BodyLength;
             ReceiveHeaderFragmentFromConnection(continuationFrame.Data, continuationFrame.EndHeaders);
         }
-        //internal void ReceiveHeaderFragmentFromConnection(int bodyLength, bool endHeader, ReadOnlyMemory<byte> data)
-        //{
-        //    _exchange.Metrics.TotalReceived += bodyLength;
-        //    ReceiveHeaderFragmentFromConnection(data, endHeader);
-        //}
 
         private void ReceiveHeaderFragmentFromConnection(ReadOnlyMemory<byte> buffer,
             bool lastHeaderFragment)

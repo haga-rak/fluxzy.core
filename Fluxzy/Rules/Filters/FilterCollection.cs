@@ -31,7 +31,7 @@ namespace Fluxzy.Rules.Filters
 
         public string? ExplicitShortName { get; set; }
 
-        public virtual string GenericName => "Filter collection";
+        public override string GenericName => "Filter collection";
 
         [JsonConstructor]
         public FilterCollection()

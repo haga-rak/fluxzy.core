@@ -56,7 +56,6 @@ import {ElectronService} from "../core/services";
 @Injectable({
   providedIn: 'root'
 })
-// This service is responsible of delivering http service towards the .NET web service
 export class ApiService {
     private forwardMessages$ = new Subject<ForwardMessage>();
     private loop$ = new BehaviorSubject<any>(null);
@@ -82,17 +81,25 @@ export class ApiService {
                         this.forwardMessages$.next(message);
                     }
                 }),
-                finalize(() => {
-                    // Run a messagebox here
-
+                catchError(err => {
                     const result = this.electronService.showBackendFailureDialog('Fluxzy backend cannot be reached!');
 
                     if (result === BackFailureDialog.Retry) {
-                        this.loopForwardMessage();
+                     //   this.loopForwardMessage();
+                        return of (0);
                     }
+
                     if (result === BackFailureDialog.Close) {
-                        this.electronService.exit();
                     }
+
+                    return of(1) ;
+                }),
+                tap(t => {
+                    if (t !== 1)
+                        this.loopForwardMessage();
+                }),
+                finalize(() => {
+                    // Run a messagebox here
                 })
             ).subscribe();
     }

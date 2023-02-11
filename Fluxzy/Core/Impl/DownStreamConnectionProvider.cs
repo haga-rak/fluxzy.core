@@ -69,7 +69,7 @@ namespace Fluxzy.Core
                 {
                     listener.Start(1000);
 
-                    boundEndPoints.Add((IPEndPoint)listener.LocalEndpoint);
+                    boundEndPoints.Add((IPEndPoint) listener.LocalEndpoint);
 
                     var listenerCopy = listener;
 
@@ -82,8 +82,8 @@ namespace Fluxzy.Core
                 catch (SocketException sex)
                 {
                     throw new Exception("Impossible port : " +
-                                        $"{((IPEndPoint)listener.LocalEndpoint).Address} - " +
-                                        $"{((IPEndPoint)listener.LocalEndpoint).Port}  - \r\n"
+                                        $"{((IPEndPoint) listener.LocalEndpoint).Address} - " +
+                                        $"{((IPEndPoint) listener.LocalEndpoint).Port}  - \r\n"
                                         + sex, sex);
                 }
 

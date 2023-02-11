@@ -9,7 +9,8 @@ import {FullUrlFilter} from "../../../../core/models/auto-generated";
 })
 export class IpEgressFilterFormComponent extends StringFilterFormComponent<FullUrlFilter> {
     constructor(cd : ChangeDetectorRef) {
-        super(cd);
+        super();
+        this.initDependencies(cd);
     }
 
     getFieldName(): string | null {

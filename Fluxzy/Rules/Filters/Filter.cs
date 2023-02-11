@@ -25,6 +25,9 @@ namespace Fluxzy.Rules.Filters
         [YamlIgnore]
         public virtual bool PreMadeFilter { get; } = false;
 
+        [YamlIgnore]
+        public virtual string GenericName => string.Empty;
+
         public bool Locked { get; set; }
 
         [YamlIgnore]
