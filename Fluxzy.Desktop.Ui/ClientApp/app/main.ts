@@ -18,21 +18,15 @@ function runFrontEnd() : void {
     let isProduction = args.indexOf("--serve") === -1;
 
     function createWindow(): BrowserWindow {
-
         const electronScreen = screen;
-        const size = electronScreen.getPrimaryDisplay().workAreaSize;
-
-        const width = size.width * 0.8;
-        const height = size.height * 0.8;
-        const x = (size.width - width) / 2;
-        const y = (size.height - height) / 2;
+        const primaryDisplay = electronScreen.getPrimaryDisplay();
 
         // Create the browser window.
         win = new BrowserWindow({
-            x: x,
-            y: y,
-            width: width,
-            height: height,
+            x: 0,
+            y: 0,
+            width: 1280,
+            height: 800,
             frame: true,
             webPreferences: {
                 nodeIntegration: true,
@@ -40,6 +34,8 @@ function runFrontEnd() : void {
                 contextIsolation: false,  // false if you want to run e2e test with Spectron
             },
         });
+
+        win.center();
 
         if (serve) {
             const debug = require('electron-debug');
