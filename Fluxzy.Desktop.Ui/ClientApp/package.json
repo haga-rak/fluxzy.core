@@ -27,7 +27,7 @@
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "lint": "ng lint",
     "fluxzyd:build": "dotnet publish --self-contained --runtime win-x64 -c Release -o .publish  ../Fluxzy.Desktop.Ui.csproj",
-    "package": "npm run fluxzyd:build && npm run build:prod && electron-forge package",
+    "package-win": "npm run fluxzyd:build && npm run build:prod && electron-forge package",
     "make": "electron-forge make"
   },
   "dependencies": {
