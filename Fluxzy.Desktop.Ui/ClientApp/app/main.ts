@@ -22,12 +22,17 @@ function runFrontEnd() : void {
         const electronScreen = screen;
         const size = electronScreen.getPrimaryDisplay().workAreaSize;
 
+        const width = size.width * 0.8;
+        const height = size.height * 0.8;
+        const x = (size.width - width) / 2;
+        const y = (size.height - height) / 2;
+
         // Create the browser window.
         win = new BrowserWindow({
-            x: 100,
-            y: 100,
-            width: 1400,
-            height: 900,
+            x: x,
+            y: y,
+            width: width,
+            height: height,
             frame: true,
             webPreferences: {
                 nodeIntegration: true,
