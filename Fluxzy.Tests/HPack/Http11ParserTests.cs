@@ -20,7 +20,7 @@ namespace Fluxzy.Tests.HPack
             var headerBlocks = Http11Parser.Read(header.AsMemory()).ToList();
             var result = Http11Parser.Write(headerBlocks, resultBuffer).ToString();
 
-            Assert.Equal(result, header, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(header, result, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace Fluxzy.Tests.HPack
             var headerBlocks = Http11Parser.Read(header.AsMemory()).ToList();
             var result = Http11Parser.Write(headerBlocks, resultBuffer).ToString();
 
-            Assert.Equal(result, header, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(header, result , StringComparer.OrdinalIgnoreCase);
         }
     }
 }
