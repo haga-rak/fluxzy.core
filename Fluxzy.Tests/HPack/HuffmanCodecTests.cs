@@ -2,7 +2,7 @@ using System;
 using Fluxzy.Clients.H2.Encoder;
 using Xunit;
 
-namespace Fluxzy.Encoding.Tests
+namespace Fluxzy.Tests.HPack
 {
     public class HuffmanCodecTests
     {
@@ -16,10 +16,10 @@ namespace Fluxzy.Encoding.Tests
             var minLength = 20;
             var maxLength = 40;
 
-            var testBuffer = new byte[maxLength]; 
+            var testBuffer = new byte[maxLength];
             Span<byte> bufferEncoded = stackalloc byte[2048];
             Span<byte> bufferDecoded = stackalloc byte[2048];
-            
+
             var codec = new HuffmanCodec();
 
             for (int i = 0; i < testCount; i++)
@@ -28,7 +28,7 @@ namespace Fluxzy.Encoding.Tests
                     minLength, maxLength, r);
 
                 if (i < 5)
-                    continue; 
+                    continue;
 
                 var provisionalLength = codec.GetEncodedLength(input.Span);
 
@@ -47,7 +47,7 @@ namespace Fluxzy.Encoding.Tests
         public void Encoding_Decoding_With_Simple_Input()
         {
             var testCount = 100_000;
-            
+
             Span<byte> bufferEncoded = stackalloc byte[2048];
             Span<byte> bufferDecoded = stackalloc byte[2048];
 
@@ -81,7 +81,7 @@ namespace Fluxzy.Encoding.Tests
 
             var codec = new HuffmanCodec();
 
-            var input = new Memory<byte>(System.Text.Encoding.ASCII.GetBytes(inputString)); 
+            var input = new Memory<byte>(System.Text.Encoding.ASCII.GetBytes(inputString));
 
             var encoded = codec.Encode(input.Span, bufferEncoded);
             var decoded = codec.Decode(encoded, bufferDecoded);
@@ -94,8 +94,8 @@ namespace Fluxzy.Encoding.Tests
         [Fact]
         public void Encoding_Decoding_WithSpecificString()
         {
-            Span<byte> encoded = stackalloc byte[] { 185,88,211,63,255 };
-            
+            Span<byte> encoded = stackalloc byte[] { 185, 88, 211, 63, 255 };
+
             Span<byte> bufferDecoded = stackalloc byte[2048];
 
             var codec = new HuffmanCodec();
@@ -108,7 +108,7 @@ namespace Fluxzy.Encoding.Tests
     {
         private static readonly byte[] FastString = System.Text.Encoding.ASCII.GetBytes("ABCDEFJHIJKLMNOPQRSTUVWXYZ");
 
-        public static Memory<byte> GenerateRandomInput(byte [] buffer, int min, int max, Random random)
+        public static Memory<byte> GenerateRandomInput(byte[] buffer, int min, int max, Random random)
         {
             var size = random.Next(min, max);
             random.NextBytes(new Span<byte>(buffer, 0, size));
