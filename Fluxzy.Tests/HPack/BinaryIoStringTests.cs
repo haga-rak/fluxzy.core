@@ -3,7 +3,7 @@ using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Xunit;
 
-namespace Fluxzy.Encoding.Tests
+namespace Fluxzy.Tests.HPack
 {
     public class BinaryIoStringTests
     {
