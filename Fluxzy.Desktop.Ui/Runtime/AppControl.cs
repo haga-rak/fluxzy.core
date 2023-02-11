@@ -11,10 +11,7 @@ namespace Fluxzy.Desktop.Ui.Runtime
             isDesktop = false; 
             
             var runningInDesktop = commandLineArgs.Any(s => s.Equals("--desktop", StringComparison.OrdinalIgnoreCase));
-
-            File.WriteAllText("c:\\pid.txt", string.Join(" | ", commandLineArgs));
-            File.WriteAllText("c:\\currentdir.txt", Environment.CurrentDirectory);
-
+            
             if (!runningInDesktop)
                 return;
 
