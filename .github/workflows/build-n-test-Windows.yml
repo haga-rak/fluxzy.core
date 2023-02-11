@@ -23,8 +23,8 @@ jobs:
     - name : Add package nuget source
       run: dotnet nuget add source --username haga-rak --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/haga-rak/index.json"
     - name: Restore dependencies
-      run: dotnet restore fluxzy
+      run: dotnet restore Fluxzy
     - name: Build
-      run: dotnet build fluxzy --no-restore
+      run: dotnet build Fluxzy --no-restore
     - name: Test
       run: dotnet test Fluxzy.Tests -e EnableDumpStackTraceOn502=true
