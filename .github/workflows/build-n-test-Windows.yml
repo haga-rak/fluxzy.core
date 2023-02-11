@@ -21,7 +21,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name : Remove previous package source
-      run: dotnet nuget remove source github
+      run: dotnet nuget remove source github || true
     - name : Add package nuget source
       run: dotnet nuget add source --username haga-rak --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/haga-rak/index.json"
     - name: Restore dependencies of tests
