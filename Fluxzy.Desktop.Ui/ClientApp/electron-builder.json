@@ -20,7 +20,7 @@
     }
   ],
   "win": {
-    "icon": "dist/assets/icons",
+    "icon": ".assets/icon",
     "target": [
       "portable"
     ]

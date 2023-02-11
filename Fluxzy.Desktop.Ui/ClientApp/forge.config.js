@@ -22,7 +22,8 @@ module.exports = {
         win32metadata: {
             CompanyName: "Smartizy",
             ProductName: "Fluxzy",
-        }
+        },
+        icon: '.assets/icon'
     },
     hooks : {
         prePackage : async (forgeConfig, platform, arch) => {
