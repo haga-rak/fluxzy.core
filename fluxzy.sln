@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Cli", "Fluxzy.Cli\Fl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests", "Fluxzy.Tests\Fluxzy.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SubModules", "SubModules", "{78CCD077-82E0-44B1-AF2F-D4C640C25907}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Services", "Fluxzy.Desktop.Services\Fluxzy.Desktop.Services.csproj", "{A6E1E399-F217-4D00-8341-228E6F4839AD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4199FBC2-2541-4076-ADCD-217778E07BAB}"
@@ -24,15 +22,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CAD5F2E1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Ui", "Fluxzy.Desktop.Ui\Fluxzy.Desktop.Ui.csproj", "{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fluxzy.sandbox.models", "SubModules\Sandbox\fluxzy.sandbox.models\fluxzy.sandbox.models.csproj", "{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap", "Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj", "{9BA601E9-8E97-43D3-B562-B9B0E46E3036}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap.Cli", "Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj", "{37905BB6-10F2-4752-8AE6-92A95FCDB705}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pcap", "Pcap", "{AA4E8234-B9D8-4327-8E98-471CE95CEB2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fluxzy.Extensions", "Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Extensions", "Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,10 +60,6 @@ Global
 		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -87,7 +79,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{05C4473E-AAB1-4E21-AF36-5F7FA81572B9} = {CAD5F2E1-227B-43AD-AFF9-1311097038D6}
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE} = {CAD5F2E1-227B-43AD-AFF9-1311097038D6}
-		{018D49F8-7DEB-45BE-8032-2DFEA0DC62FE} = {78CCD077-82E0-44B1-AF2F-D4C640C25907}
 		{9BA601E9-8E97-43D3-B562-B9B0E46E3036} = {AA4E8234-B9D8-4327-8E98-471CE95CEB2C}
 		{37905BB6-10F2-4752-8AE6-92A95FCDB705} = {AA4E8234-B9D8-4327-8E98-471CE95CEB2C}
 	EndGlobalSection

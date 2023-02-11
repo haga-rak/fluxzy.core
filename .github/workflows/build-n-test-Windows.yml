@@ -20,9 +20,11 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
+    - name: Restore dependencies of tests
+      run: dotnet restore Fluxzy.Tests
     - name: Restore dependencies
-      run: dotnet restore fluxzy
+      run: dotnet restore Fluxzy
     - name: Build
-      run: dotnet build fluxzy --no-restore
+      run: dotnet build Fluxzy --no-restore
     - name: Test
       run: dotnet test Fluxzy.Tests -e EnableDumpStackTraceOn502=true

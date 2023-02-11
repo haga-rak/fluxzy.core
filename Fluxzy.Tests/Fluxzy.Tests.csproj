@@ -14,6 +14,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" />
 
   <ItemGroup>
+    <PackageReference Include="fluxzy.sandbox.models" Version="1.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="System.Threading.AccessControl" Version="6.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -32,7 +33,6 @@
     <ProjectReference Include="..\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
-    <ProjectReference Include="..\SubModules\Sandbox\fluxzy.sandbox.models\fluxzy.sandbox.models.csproj" />
   </ItemGroup>
 
   <ItemGroup>
