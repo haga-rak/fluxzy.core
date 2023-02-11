@@ -1,47 +1,34 @@
-<app-context-menu></app-context-menu>
-<div class="" style="width: 100%; height: 100%">
+<div class="wait-message" [hidden]="uiState">
+    <div class="text-center">
+        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i><span class="wait-app-name">fluxzy</span> is loading
+    </div>
+</div>
 
-    <as-split direction="horizontal"  unit="percent"  style="height:100%;">
-        <as-split-area [size]="50" style="height: 100%;" >
+<div [hidden]="!uiState">
+    <app-context-menu></app-context-menu>
+    <div class="" style="width: 100%; height: 100%">
 
-            <div class="block-left-parent" #objectPane style="">
-                <div class="title-box">
-                    <!-- <div class="title-box-inside">
+        <as-split direction="horizontal"  unit="percent"  style="height:100%;">
+            <as-split-area [size]="50" style="height: 100%;" >
 
-                        <a href="javascript:;" class="btn btn-outline-light" style="font-size: 18px">
-                            <i class="bi bi-play-circle-fill"></i>
-                        </a>
-                        &nbsp;
-                        <a href="javascript:;" class="btn btn-outline-danger" style="font-size: 18px">
-                            <i class="bi bi-record-circle-fill"></i>
-                        </a>
-                    </div> -->
-                    <div class="filter-header">
-                        <app-filter-header-view></app-filter-header-view>
+                <div class="block-left-parent" #objectPane style="">
+                    <div class="title-box">
+                        <div class="filter-header">
+                            <app-filter-header-view></app-filter-header-view>
+                        </div>
+                    </div>
+                    <div class="block-left" >
+                        <div class="filter-pane shady-box" style="padding: 8px; margin-left: 5px;">
+                            <app-exchange-table-view style="height:100vh"></app-exchange-table-view>
+                        </div>
                     </div>
                 </div>
-                <div class="block-left" >
-                    <!-- <div class="right-vert-bar">
 
-                        <app-toggle [materialIcon]="'http'" [label]="'Objects'">
+            </as-split-area>
+            <as-split-area [size]="50">
 
-                        </app-toggle>
-                        <app-toggle [materialIcon]="'dvr'" [label]="'Hosts'">
-
-                        </app-toggle>
-                    </div> -->
-
-                    <div class="filter-pane shady-box" style="padding: 8px; margin-left: 5px;">
-                        <app-exchange-table-view style="height:100vh"></app-exchange-table-view>
-                    </div>
-                </div>
-            </div>
-
-        </as-split-area>
-        <as-split-area [size]="50">
-
-            <div class="block-right">
-                <div class="middle-content">
+                <div class="block-right">
+                    <div class="middle-content">
                         <!-- <p>{{selectedExchange.id}}</p> -->
                         <app-exchange-viewer-header *ngIf="selectedExchange" [exchange]="selectedExchange" style="width:100%"></app-exchange-viewer-header>
                         <div *ngIf="!selectedExchange"  style="width:100%; height: 100%; display: flex; align-items: center;text-align: center" >
@@ -55,16 +42,13 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
                 </div>
-            </div>
 
-        </as-split-area>
-      </as-split>
+            </as-split-area>
+        </as-split>
 
+    </div>
+    <app-status-bar></app-status-bar>
 </div>
 
-<app-status-bar></app-status-bar>
-
-<!-- modal components-->
-
-<!-- <app-global-setting></app-global-setting> -->
