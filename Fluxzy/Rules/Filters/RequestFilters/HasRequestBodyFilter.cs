@@ -18,7 +18,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override FilterScope FilterScope => FilterScope.ResponseBodyReceivedFromRemote;
 
-        public virtual string GenericName => "Has Request body";
+        public override string GenericName => "Has Request body";
 
         public override string ShortName => "req body.";
 

@@ -202,6 +202,13 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 type :  'separator'
             },
             {
+                label : 'Dev tools',
+                role : 'toggleDevTools'
+            },
+            {
+                type :  'separator'
+            },
+            {
                 label : 'About',
             },
         ]

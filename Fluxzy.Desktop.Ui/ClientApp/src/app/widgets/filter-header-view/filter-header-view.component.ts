@@ -12,8 +12,8 @@ import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
     styleUrls: ['./filter-header-view.component.scss'],
 })
 export class FilterHeaderViewComponent implements OnInit {
-    private uiState: UiState;
-    private selectedFilter : Filter | null ;
+    public uiState: UiState;
+    public selectedFilter : Filter | null ;
 
     public  SourceAgentIconFunc = SourceAgentIconFunc;
 

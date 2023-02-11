@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import {LOCALE_ID, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
+import {HttpClientModule, HttpClient, HTTP_INTERCEPTORS} from '@angular/common/http';
 import { CoreModule } from './core/core.module';
 
 // NG Translate
@@ -93,6 +93,7 @@ import { CommentSearchFilterFormComponent } from './settings/filter-forms/child-
 import { SetClientCertificateFormComponent } from './settings/rule-forms/child-forms/set-client-certificate-form/set-client-certificate-form.component';
 import { HarExportSettingComponent } from './shared/har-export-setting/har-export-setting.component';
 import { SearchTextFilterFormComponent } from './settings/filter-forms/child-forms/search-text-filter-form/search-text-filter-form.component';
+import {BackendInterceptor} from "./core/backend.interceptor";
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -139,6 +140,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ManageFiltersComponent,
         FilterEditComponent,
         MethodFilterFormComponent,
+        StringFilterFormComponent,
         HostFilterFormComponent,
         FilterCollectionFormComponent,
         FilterPreCreateComponent,
@@ -215,6 +217,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         },
         { provide: LOCALE_ID, useValue: "en-US" },
         { provide: LOCALE_ID, useValue: "fr-FR" },
+        { provide: HTTP_INTERCEPTORS, useClass: BackendInterceptor, multi: true },
     ],
     bootstrap: [AppComponent],
     entryComponents : [GlobalSettingComponent, ManageFiltersComponent,FilterEditComponent,

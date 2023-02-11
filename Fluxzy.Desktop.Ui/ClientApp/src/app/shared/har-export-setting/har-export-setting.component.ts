@@ -17,7 +17,7 @@ export class HarExportSettingComponent implements OnInit {
 
     constructor(public bsModalRef: BsModalRef,
                 public options: ModalOptions,
-                private cd: ChangeDetectorRef) {
+                public cd: ChangeDetectorRef) {
         this.callBack = this.options.initialState.callBack as (f : HttpArchiveSavingSetting | null) => void ;
     }
 

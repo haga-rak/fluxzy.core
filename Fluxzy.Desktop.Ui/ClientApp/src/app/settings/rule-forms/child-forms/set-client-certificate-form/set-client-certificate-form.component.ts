@@ -18,13 +18,10 @@ import { filter, take, tap } from 'rxjs';
 })
 export class SetClientCertificateFormComponent extends ActionValidationTargetComponent<SetClientCertificateAction> {
     public validationState = {} ;
-   // public retrieveModeType : string [] =  ['FromUserStoreSerialNumber', 'FromPkcs12'];
-    private certificateValidationResult: CertificateValidationResult;
-    private existingCertificates : CertificateOnStore[] ;
+    public certificateValidationResult: CertificateValidationResult;
+    public existingCertificates : CertificateOnStore[] ;
 
-
-
-    constructor(private cd : ChangeDetectorRef, private apiService : ApiService, private dialogService : DialogService,
+    constructor(public cd : ChangeDetectorRef, private apiService : ApiService, private dialogService : DialogService,
                 private systemCallService : SystemCallService) {
         super();
     }
