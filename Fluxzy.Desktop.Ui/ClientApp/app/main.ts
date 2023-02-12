@@ -44,6 +44,7 @@ function runFrontEnd() : void {
 
             require('electron-reloader')(module);
             win.loadURL('http://localhost:4200');
+            win.show();
         } else {
             // Path when running electron executable
             let pathIndex = './index.html';
@@ -76,7 +77,7 @@ function runFrontEnd() : void {
             launchFluxzyDaemonOrDie(commandLineArgs,(success : boolean, busyPort: boolean) => {
                 if (success) {
                     // Backend launched successfully
-                    win.show()
+                    win.show();
                 } else {
                     if (busyPort) {
                         dialog.showErrorBox("Fluxzy", "An instance is already running");
