@@ -1,4 +1,4 @@
-name: Build and tests Linux
+name: Build and tests
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
   os_matrix:
     strategy:
       matrix:
-        ostype: [self-hosted]
+        ostype: ['self-hosted']
         osversion: [Linux, Windows]
         
     runs-on: ${{ matrix.os }}
