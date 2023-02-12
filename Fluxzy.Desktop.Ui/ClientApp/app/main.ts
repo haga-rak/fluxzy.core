@@ -1,4 +1,4 @@
-import {app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, MenuItemConstructorOptions} from 'electron';
+import {app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, MenuItemConstructorOptions, dialog} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as url from 'url';
@@ -26,8 +26,9 @@ function runFrontEnd() : void {
             x: 0,
             y: 0,
             width: 1280,
-            height: 800,
+            height: 840,
             frame: true,
+            show : false,
             webPreferences: {
                 nodeIntegration: true,
                 allowRunningInsecureContent: (serve) ? true : false,
@@ -71,10 +72,14 @@ function runFrontEnd() : void {
         InstallSystemEvents(win);
 
         if (isProduction) {
-            launchFluxzyDaemonOrDie((success : boolean) => {
+            launchFluxzyDaemonOrDie((success : boolean, busyPort: boolean) => {
                 if (success) {
                     // Backend launched successfully
+                    win.show()
                 } else {
+                    if (busyPort) {
+                        dialog.showErrorBox("Fluxzy", "An instance is already running");
+                    }
                     app.exit(0)
                 }
             });
@@ -116,7 +121,7 @@ function runFrontEnd() : void {
     ;
 }
 
-function launchFluxzyDaemonOrDie(backedLaunchCallback : (success : boolean) => void) : void {
+function launchFluxzyDaemonOrDie(backedLaunchCallback : (success : boolean, busyPort : boolean) => void) : void {
     // Launch and wait for backend to be ready
 
     let exeName = process.platform === "win32"? "fluxzyd.exe" : "fluxzyd";
@@ -139,15 +144,15 @@ function launchFluxzyDaemonOrDie(backedLaunchCallback : (success : boolean) => v
 
         if (line.toString().indexOf('FLUXZY_LISTENING') >= 0) {
             stopAnalyze = true;
-            backedLaunchCallback(true);
+            backedLaunchCallback(true, false);
         }
         if (line.toString().indexOf('FLUXZY_PORT_ERROR') >= 0) {
-            backedLaunchCallback(false);
+            backedLaunchCallback(false, true);
         }
     });
 
     fluxzydProc.on('exit', function (code) {
-        backedLaunchCallback(false);
+        backedLaunchCallback(false, false);
     });
 }
 
