@@ -1,7 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Cli;
@@ -18,7 +17,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         private readonly OutputWriterNotifier _standardOutput;
         private readonly OutputWriterNotifier _standardError;
         private Task<int> _runningProxyTask;
-        private readonly TextWriter _oldOutput;
+        private readonly OutputConsole _outputConsole;
 
         public FluxzyCommandLineHost(string commandLine, ITestOutputHelper?  outputHelper = null)
             : this(commandLine.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries))
@@ -36,17 +35,14 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _standardOutput = new OutputWriterNotifier();
             _standardError = new OutputWriterNotifier();
 
-            _oldOutput = Console.Out; 
-
-            Console.SetOut(_standardOutput);
-            Console.SetError(_standardError);
+            _outputConsole = new OutputConsole(_standardOutput, _standardError);
         }
 
         public async Task<ProxyInstance> Run()
         {
             
             var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$");
-            _runningProxyTask = FluxzyStartup.Run(_commandLineArgs, _cancellationToken);
+            _runningProxyTask = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken);
 
             var port = int.Parse(await waitForPortTask);
 

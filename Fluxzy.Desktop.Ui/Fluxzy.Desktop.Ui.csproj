@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+	<Version>0.2.1</Version>  
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <SpaRoot>ClientApp\</SpaRoot>
@@ -10,6 +11,7 @@
     <RootNamespace>Fluxzy.Desktop.Ui</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
 	<AssemblyName>fluxzyd</AssemblyName>
+	<Copyright>Copyright 2022 Haga Rakotoharivelo</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

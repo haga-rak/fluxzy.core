@@ -1,7 +1,12 @@
 using System.Net.Sockets;
+using System.Reflection;
 using Fluxzy;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Ui.Runtime;
+
+var version = Assembly.GetExecutingAssembly().GetName().Version!;
+
+Environment.SetEnvironmentVariable("FluxzyVersion", $"{version.Major}.{version.Minor}.{version.Build}");
 
 Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
 Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
