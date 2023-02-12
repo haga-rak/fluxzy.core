@@ -1,0 +1,39 @@
+name: Build and tests Linux
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  os_matrix:
+    strategy:
+      matrix:
+        ostype: [self-hosted]
+        osversion: [Linux, Windows]
+        
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        token: ${{ secrets.ACCESS_TOKEN || github.token }}
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies of tests
+      run: dotnet restore Fluxzy.Tests
+    - name: Restore dependencies
+      run: dotnet restore Fluxzy
+    - name: Build
+      run: dotnet build Fluxzy --no-restore
+    - name: Test
+      run: dotnet test Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      if: always()
+      with:
+        trx_files: "TestResults/**/*.trx"
