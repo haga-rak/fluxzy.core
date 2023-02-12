@@ -3,7 +3,7 @@ import {filter, map, Observable, Subject, tap, switchMap, of} from 'rxjs';
 import {IApplicationMenuEvent} from '../../../../app/menu-prepare';
 import {ApiService} from '../../services/api.service';
 import {ExchangeSelectionService} from '../../services/exchange-selection.service';
-import {UiState} from '../models/auto-generated';
+import {FileOpeningRequestViewModel, UiState} from '../models/auto-generated';
 import {FindMenu, GlobalMenuItems} from '../models/menu-models';
 import {ElectronService} from './electron/electron.service';
 import {DialogService} from "../../services/dialog.service";
@@ -116,7 +116,6 @@ export class MenuService {
                 )
                 .subscribe();
 
-
             this.applicationMenuEvents$
                 .pipe(
                     filter((t) => t.menuId === 'manage-rules'),
@@ -124,6 +123,13 @@ export class MenuService {
                 )
                 .subscribe();
 
+            this.apiService.registerEvent('FileOpeningRequestViewModel', (viewModel : FileOpeningRequestViewModel) => {
+                if (viewModel.fileName){
+                    this.nextOpenFile$.next(viewModel.fileName);
+                    this.electronService.ipcRenderer.send('win.restore', null);
+
+                }
+            });
         }
     }
 

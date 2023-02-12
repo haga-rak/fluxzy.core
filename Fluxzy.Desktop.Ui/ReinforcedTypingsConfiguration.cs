@@ -167,10 +167,13 @@ namespace Fluxzy.Desktop.Ui
 
         private static void ConfigureViewModels(ConfigurationBuilder builder)
         {
-
+            builder.ExportAsInterface<FileOpeningRequestViewModel>()
+                   .ApplyGenericProperties();
+            
             builder.ExportAsInterface<FileSaveViewModel>()
                    .ApplyGenericProperties();
         }
+        
         private static void ConfigureProducers(ConfigurationBuilder builder)
         {
             builder.ExportAsInterface<ExchangeContextInfo>()

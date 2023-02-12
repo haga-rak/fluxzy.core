@@ -37,6 +37,14 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return await _uiStateManager.GetUiState();
         }
 
+        [HttpPost("opening-request")]
+        public ActionResult<bool> OpeningRequest(FileOpeningRequestViewModel model, 
+            [FromServices] ForwardMessageManager forwardMessageManager)
+        {
+            forwardMessageManager.Send(model);
+            return true; 
+        }
+
         [HttpPost("save")]
         public async Task<ActionResult<UiState>> Save([FromServices] IObservable<TrunkState> trunkStateObservable)
         {

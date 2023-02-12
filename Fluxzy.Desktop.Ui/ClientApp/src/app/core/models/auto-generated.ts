@@ -6,6 +6,10 @@ export interface PolymorphicObject
 {
 	typeKind: string;
 }
+export interface FileOpeningRequestViewModel
+{
+	fileName: string;
+}
 export interface FileSaveViewModel
 {
 	fileName: string;
