@@ -12,7 +12,7 @@ namespace Fluxzy.Cli
 {
     public class FluxzyStartup
     {
-        public static async Task<int> Run(string [] args, CancellationToken token)
+        public static async Task<int> Run(string [] args, OutputConsole ? outputConsole, CancellationToken token)
         {
             var rootCommand = new RootCommand("Advanced HTTP capture tool");
             var instanceIdentifier = Guid.NewGuid().ToString();
@@ -46,7 +46,10 @@ namespace Fluxzy.Cli
             
             try
             {
-                var exitCode =  await final.InvokeAsync(args);
+                var exitCode = outputConsole == null ? 
+                    await final.InvokeAsync(args) :
+                    await final.InvokeAsync(args, outputConsole); 
+                
                 return exitCode; 
             }
             catch (Exception ex)
@@ -55,5 +58,24 @@ namespace Fluxzy.Cli
                 return 1;
             }
         }
+    }
+
+    public class OutputConsole : IConsole
+    {
+        public OutputConsole(IStandardStreamWriter @out, IStandardStreamWriter error)
+        {
+            Out = @out;
+            Error = error;
+        }
+
+        public IStandardStreamWriter Out { get; }
+
+        public bool IsOutputRedirected => false;
+
+        public IStandardStreamWriter Error { get; }
+
+        public bool IsErrorRedirected => false;
+
+        public bool IsInputRedirected => false;
     }
 }

@@ -1,6 +1,7 @@
 // Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System.Collections.Generic;
+using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Tests.Cli.Scaffolding
 {
-    public class OutputWriterNotifier : TextWriter
+    public class OutputWriterNotifier : TextWriter, IStandardStreamWriter
     {
         private readonly Dictionary<string, TimeoutTaskCompletionSource<string>> _runningWait = new();
 

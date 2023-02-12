@@ -15,7 +15,7 @@ namespace Fluxzy.Cli
             //Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts", "casalemedia.com");
             // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
 
-            var exitCode = await FluxzyStartup.Run(args, CancellationToken.None);
+            var exitCode = await FluxzyStartup.Run(args, null, CancellationToken.None);
 
             return exitCode;
         }
