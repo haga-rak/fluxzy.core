@@ -61,41 +61,22 @@ namespace Fluxzy.Tests.Files {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à GET /static/Resources/stylesheets/index_pri_20201013141424.min.css HTTP/1.1
-        ///Host: particuliers.societegenerale.fr
-        ///sec-ch-ua: &quot;Chromium&quot;;v=&quot;92&quot;, &quot; Not A;Brand&quot;;v=&quot;99&quot;, &quot;Google Chrome&quot;;v=&quot;92&quot;
-        ///sec-ch-ua-mobile: ?0
-        ///User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36
-        ///Accept: text/css,*/*;q=0.1
-        ///Sec-Fetch-Site: same-origin
-        ///Sec-Fetch-Mode: no-cors
-        ///Sec-Fetch-Dest: style
-        ///Referer: https://particuliers.societegenerale.fr/com/icd-web/cb [le reste de la chaîne a été tronqué]&quot;;.
+        ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
-        internal static string Req001 {
+        internal static byte[] Req001 {
             get {
-                return ResourceManager.GetString("Req001", resourceCulture);
+                object obj = ResourceManager.GetObject("Req001", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à HTTP/1.1 200 OK
-        ///Last-Modified: Tue, 08 Sep 2020 12:44:13 GMT
-        ///Accept-Ranges: bytes
-        ///Vary: Accept-Encoding
-        ///Cache-Control: max-age=5184000
-        ///Content-Type: text/css
-        ///Content-Encoding: gzip
-        ///Date: Thu, 25 Nov 2021 09:38:46 GMT
-        ///Expires: Mon, 24 Jan 2022 08:54:01 GMT
-        ///Age: 2686
-        ///Content-Length: 59544
-        ///
-        ///.
+        ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
-        internal static string Resp001 {
+        internal static byte[] Resp001 {
             get {
-                return ResourceManager.GetString("Resp001", resourceCulture);
+                object obj = ResourceManager.GetObject("Resp001", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

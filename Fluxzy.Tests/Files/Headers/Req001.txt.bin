@@ -1,4 +1,4 @@
-﻿GET /static/Resources/stylesheets/index_pri_20201013141424.min.css HTTP/1.1
+GET /static/Resources/stylesheets/index_pri_20201013141424.min.css HTTP/1.1
 Host: particuliers.societegenerale.fr
 sec-ch-ua: "Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"
 sec-ch-ua-mobile: ?0

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Tests.Files;
 using Xunit;
@@ -13,7 +14,7 @@ namespace Fluxzy.Tests.HPack
         [Fact]
         public void Parse_Unparse_Request_Header()
         {
-            var header = Headers.Req001;
+            var header = new UTF8Encoding(false).GetString(Headers.Req001);
 
             Span<char> resultBuffer = stackalloc char[MaxHeaderLength];
 
@@ -26,7 +27,7 @@ namespace Fluxzy.Tests.HPack
         [Fact]
         public void Parse_Unparse_Response_Header()
         {
-            var header = Headers.Resp001;
+            var header = new UTF8Encoding(false).GetString(Headers.Resp001);
 
             Span<char> resultBuffer = stackalloc char[MaxHeaderLength];
 
