@@ -45,7 +45,7 @@ jobs:
   publish-test-results:
     name: "Publish Tests Results"
     needs: build-and-test
-    runs-on: 'self-hosted'
+    runs-on: 'Linux'
     permissions:
       checks: write
 
