@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Fluxzy.Clients.H2.Encoder.Utils;
@@ -26,7 +27,7 @@ namespace Fluxzy.Tests.HPack
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];
 
-            var input = Headers.Req001;
+            var input = new UTF8Encoding(false).GetString(Headers.Req001);
 
             var encoded = encoder.Encode(input.AsMemory(), encodingBuffer);
             var decoded = decoder.Decode(encoded, decodingBuffer);
@@ -57,7 +58,7 @@ namespace Fluxzy.Tests.HPack
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];
 
-            var input = Headers.Resp001;
+            var input = new UTF8Encoding(false).GetString(Headers.Resp001);
 
             var encoded = encoder.Encode(input.AsMemory(), encodingBuffer);
             var decoded = decoder.Decode(encoded, decodingBuffer);
@@ -88,7 +89,7 @@ namespace Fluxzy.Tests.HPack
             Span<byte> encodingBuffer = stackalloc byte[1024 * 4];
             Span<char> decodingBuffer = stackalloc char[1024 * 4];
 
-            var input = Headers.Req001;
+            var input = new UTF8Encoding(false).GetString(Headers.Req001);
 
             for (var i = 0; i < 2; i++)
             {
