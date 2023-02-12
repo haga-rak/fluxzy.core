@@ -1,4 +1,4 @@
-name: Build and tests
+name: CI
 
 on:
   push:
@@ -10,8 +10,8 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        ostype: ['self-hosted']
         osversion: [Linux, Windows]
+        ostype: ['self-hosted']
         
     runs-on: ${{ matrix.osversion }}
 
