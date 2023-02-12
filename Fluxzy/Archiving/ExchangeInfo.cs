@@ -100,6 +100,7 @@ namespace Fluxzy
         public bool IsWebSocket { get; }
 
         public List<WsMessage>? WebSocketMessages { get; }
+        
         public Agent? Agent { get; }
     }
 
