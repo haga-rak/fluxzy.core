@@ -13,7 +13,7 @@ jobs:
         ostype: ['self-hosted']
         osversion: [Linux, Windows]
         
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.osversion }}
 
     steps:
     - uses: actions/checkout@v3
