@@ -44,7 +44,17 @@ var activeRuleManages = app.Services.GetRequiredService<ActiveRuleManager>();
 //await globalFileManager.Off();
 
 // await globalFileManager.Open(@"../Samples/boot.fxzy");
-await globalFileManager.New();
+
+if (CommandLineUtility.TryGetArgsValue(args, "--file", out var fileName) && 
+    fileName != null)
+{
+    await globalFileManager.Open(fileName);
+}
+else
+{
+    await globalFileManager.New();
+}
+
 await activeRuleManages.InitRules();
 
 try {
