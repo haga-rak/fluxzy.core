@@ -1,8 +1,8 @@
-import {app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, MenuItemConstructorOptions, dialog} from 'electron';
+import {app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, MenuItemConstructorOptions, dialog, net} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as url from 'url';
-import {InstallMenuBar} from './menu-prepare';
+import {InstallMenuBar, InstallRestoreEvent} from './menu-prepare';
 import {InstallSystemEvents} from './system-events';
 import {spawn} from "child_process";
 
@@ -70,6 +70,7 @@ function runFrontEnd() : void {
 
         InstallMenuBar();
         InstallSystemEvents(win);
+        InstallRestoreEvent(win);
 
         if (isProduction) {
             launchFluxzyDaemonOrDie(commandLineArgs,(success : boolean, busyPort: boolean) => {
@@ -154,10 +155,8 @@ function launchFluxzyDaemonOrDie(commandLineArgs : string [] , backedLaunchCallb
             backedLaunchCallback(true, false);
         }
         if (line.toString().indexOf('FLUXZY_PORT_ERROR') >= 0) {
-
             if (hasFile){
-                // Contact fluxzyd to open file
-
+                // Silent death if it's a file opening request
                 backedLaunchCallback(false, false);
             }
             else{

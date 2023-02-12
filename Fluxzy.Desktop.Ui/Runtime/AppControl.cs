@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using System.Text;
+using Fluxzy.Desktop.Ui.ViewModels;
 
 namespace Fluxzy.Desktop.Ui.Runtime
 {
@@ -56,5 +58,29 @@ namespace Fluxzy.Desktop.Ui.Runtime
                 }
             }); 
         }
+
+
+        public static async Task AnnounceFileOpeningRequest(string fileName)
+        {
+            using var httpClient = new HttpClient(new HttpClientHandler()
+            {
+                UseProxy = false,
+                
+            });
+
+            httpClient.Timeout = TimeSpan.FromSeconds(10);
+
+            var payload = new FileOpeningRequestViewModel(fileName);
+
+            var payloadString = System.Text.Json.JsonSerializer.Serialize(payload,
+                GlobalArchiveOption.DefaultSerializerOptions);
+
+            using var res = await httpClient.PostAsync("http://localhost:5198/api/file/opening-request",
+                new StringContent(payloadString, Encoding.UTF8, "application/json"));
+
+
+
+        }
+        
     }
 }

@@ -13,7 +13,7 @@ export class MenuComponent implements OnInit {
 
     }
     @HostListener('document:click', ['$event'])
-    clickout(event): void {
+    public clickout(event): void {
         if (!this.eRef.nativeElement.contains(event.target)) {
             this.menuVisibility = {};
         }

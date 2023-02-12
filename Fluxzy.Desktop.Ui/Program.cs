@@ -39,26 +39,23 @@ app.MapControllerRoute(
 
 app.MapFallbackToFile("index.html");
 
-var globalFileManager = app.Services.GetRequiredService<FileManager>();
-var activeRuleManages = app.Services.GetRequiredService<ActiveRuleManager>();
-//await globalFileManager.Off();
-
-// await globalFileManager.Open(@"../Samples/boot.fxzy");
-
-if (CommandLineUtility.TryGetArgsValue(args, "--file", out var fileName) && 
-    fileName != null)
-{
-    await globalFileManager.Open(fileName);
-}
-else
-{
-    await globalFileManager.New();
-}
-
-await activeRuleManages.InitRules();
-
 try {
     await app.StartAsync(haltTokenSource.Token);
+
+    var globalFileManager = app.Services.GetRequiredService<FileManager>();
+    var activeRuleManages = app.Services.GetRequiredService<ActiveRuleManager>();
+
+    if (CommandLineUtility.TryGetArgsValue(args, "--file", out var fileName) &&
+        fileName != null)
+    {
+        await globalFileManager.Open(fileName);
+    }
+    else
+    {
+        await globalFileManager.New();
+    }
+
+    await activeRuleManages.InitRules();
 
     if (isDesktop) {
         Console.Out.WriteLine("FLUXZY_LISTENING");
@@ -73,8 +70,18 @@ catch (Exception ex) {
 
     if (isDesktop)
     {
+        
         Console.Out.WriteLine("FLUXZY_PORT_ERROR");
         Console.Out.Flush();
+
+        if (CommandLineUtility.TryGetArgsValue(args, "--file", out var fileName) &&
+            fileName != null)
+        {
+            await AppControl.AnnounceFileOpeningRequest(fileName);
+        }
+        
+        // This is a classic port error. 
+        
     }
 
     return;

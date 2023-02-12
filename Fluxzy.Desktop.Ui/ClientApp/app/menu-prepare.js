@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.InstallMenuBar = void 0;
+exports.InstallRestoreEvent = exports.InstallMenuBar = void 0;
 var electron_1 = require("electron");
 var InstallMenuBar = function () {
     electron_1.ipcMain.on('install-menu-bar', function (event, arg) {
@@ -18,6 +18,16 @@ var InstallMenuBar = function () {
     });
 };
 exports.InstallMenuBar = InstallMenuBar;
+var InstallRestoreEvent = function (win) {
+    electron_1.ipcMain.on('win.restore', function (event, arg) {
+        var focusedWin = electron_1.BrowserWindow.getFocusedWindow();
+        if (focusedWin) {
+            focusedWin.restore();
+        }
+        event.returnValue = '';
+    });
+};
+exports.InstallRestoreEvent = InstallRestoreEvent;
 var menuClickEventHandler = function (menuItem, browserWindow, event) {
     if (menuItem.type === 'checkbox') {
         menuItem.checked = !menuItem.checked;

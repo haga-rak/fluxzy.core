@@ -26,6 +26,18 @@ export const InstallMenuBar = () : void => {
     }) ;
 }
 
+export const InstallRestoreEvent = (win: BrowserWindow) : void => {
+    ipcMain.on('win.restore', (event, arg) => {
+        const focusedWin = BrowserWindow.getFocusedWindow();
+
+        if (focusedWin) {
+            focusedWin.restore();
+        }
+
+        event.returnValue = '';
+    }) ;
+}
+
 const menuClickEventHandler = (menuItem : MenuItem, browserWindow : BrowserWindow, event : KeyboardEvent ) : boolean => {
 
     if (menuItem.type === 'checkbox') {
@@ -51,7 +63,7 @@ const menuClickEventHandler = (menuItem : MenuItem, browserWindow : BrowserWindo
 
 const InstallEvents = (menuConstructorOptions : MenuItemConstructorOptions []) : void => {
 
-    for (var item of menuConstructorOptions) {
+    for (let item of menuConstructorOptions) {
         item.click = menuClickEventHandler
 
         const subMenus = item.submenu as MenuItemConstructorOptions [];
