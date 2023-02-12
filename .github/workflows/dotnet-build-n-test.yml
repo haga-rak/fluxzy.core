@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  os_matrix:
+  build-and-test:
     strategy:
       matrix:
         ostype: ['self-hosted']
@@ -36,8 +36,36 @@ jobs:
       run: dotnet build Fluxzy --no-restore
     - name: Test
       run: dotnet test Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+    - name: Upload Test Results
       if: always()
+      uses: actions/upload-artifact@v2
       with:
-        trx_files: "TestResults/**/*.trx"
+        name: Test Results (${{ matrix.osversion }})
+        path: ./TestResults/Fluxzy/fluxzytests.trx
+  publish-test-results:
+    name: "Publish Tests Results"
+    needs: build-and-test
+    runs-on: 'self-hosted'
+    permissions:
+      checks: write
+
+      # only needed unless run with comment_mode: off
+      pull-requests: write
+
+      # only needed for private repository
+      contents: read
+
+      # only needed for private repository
+      issues: read
+    if: always()
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          trx_files: "artifacts/**/*.trx"
