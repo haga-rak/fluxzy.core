@@ -72,7 +72,7 @@ function runFrontEnd() : void {
         InstallSystemEvents(win);
 
         if (isProduction) {
-            launchFluxzyDaemonOrDie((success : boolean, busyPort: boolean) => {
+            launchFluxzyDaemonOrDie(commandLineArgs,(success : boolean, busyPort: boolean) => {
                 if (success) {
                     // Backend launched successfully
                     win.show()
@@ -121,18 +121,25 @@ function runFrontEnd() : void {
     ;
 }
 
-function launchFluxzyDaemonOrDie(backedLaunchCallback : (success : boolean, busyPort : boolean) => void) : void {
+function launchFluxzyDaemonOrDie(commandLineArgs : string [] , backedLaunchCallback : (success : boolean, busyPort : boolean) => void) : void {
     // Launch and wait for backend to be ready
-
-    let exeName = process.platform === "win32"? "fluxzyd.exe" : "fluxzyd";
-    let backendPath:string = `resources/app/.publish/${exeName}`;
-    let pid : string = `${process.pid}`;
+    const exeName = process.platform === "win32"? "fluxzyd.exe" : "fluxzyd";
+    const backendPath:string = `resources/app/.publish/${exeName}`;
+    const pid : string = `${process.pid}`;
 
     // Check if port is already busy
     // If so exit
     // Else launch backend and wait for port to be ready
+    let fluxzydArgs = ['--urls', 'http://localhost:5198', '--desktop', '--fluxzyw-pid', pid];
+    let hasFile = false;
 
-    let fluxzydProc = spawn(backendPath, ['--urls', 'http://localhost:5198', '--desktop', '--fluxzyw-pid', pid], {
+    if (commandLineArgs.length) {
+        fluxzydArgs.push('--file');
+        fluxzydArgs.push(commandLineArgs[0]);
+        hasFile = true;
+    }
+
+    let fluxzydProc = spawn(backendPath, fluxzydArgs, {
         detached: true,
     });
 
@@ -147,7 +154,17 @@ function launchFluxzyDaemonOrDie(backedLaunchCallback : (success : boolean, busy
             backedLaunchCallback(true, false);
         }
         if (line.toString().indexOf('FLUXZY_PORT_ERROR') >= 0) {
-            backedLaunchCallback(false, true);
+
+            if (hasFile){
+                // Contact fluxzyd to open file
+
+                backedLaunchCallback(false, false);
+            }
+            else{
+                // Warn of a dual instance
+                backedLaunchCallback(false, true);
+            }
+
         }
     });
 
