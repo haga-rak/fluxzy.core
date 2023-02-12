@@ -1,6 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
@@ -15,8 +16,13 @@ namespace Fluxzy.Rules.Actions
                     "The actual certificate is not stored in any static fluxzy settings and, therefore, must be available at runtime. ")]
     public class SetClientCertificateAction : Action
     {
-        public SetClientCertificateAction(Certificate clientCertificate)
+        public SetClientCertificateAction(Certificate?  clientCertificate)
         {
+            clientCertificate ??= new Certificate()
+            {
+                RetrieveMode = CertificateRetrieveMode.FromPkcs12
+            }; 
+            
             ClientCertificate = clientCertificate;
         }
 
@@ -29,8 +35,12 @@ namespace Fluxzy.Rules.Actions
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
-            context.ClientCertificates ??= new X509Certificate2Collection();
-            context.ClientCertificates.Add(ClientCertificate.GetCertificate());
+            if (ClientCertificate != null)
+            {
+                context.ClientCertificates ??= new X509Certificate2Collection();
+                context.ClientCertificates.Add(ClientCertificate.GetCertificate());
+            }
+
             return default;
         }
 
