@@ -252,6 +252,44 @@ namespace Fluxzy.Tests.Cli
                 );
             // await Task.Delay(30 * 1000);
         }
+
+
+        [Fact]
+        public async Task Run_Post_Plain_Http()
+        {
+            // Arrange 
+            var directory = nameof(Run_Post_Plain_Http);
+            var commandLine = $"start -l 127.0.0.1/0 -d {directory}";
+
+            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine))
+            {
+                using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+                var requestMessage =
+                    new HttpRequestMessage(HttpMethod.Post, 
+                        $"{TestConstants.GetHost("plainhttp11")}/global-health-check");
+
+                requestMessage.Content = new ByteArrayContent("ABCD"u8.ToArray());
+
+                var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+                await response.Content.ReadAsStringAsync();
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+
+            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory))
+            {
+                var exchanges = archiveReader.ReadAllExchanges().ToList();
+                archiveReader.ReadAllConnections().ToList();
+
+                var exchange = exchanges.FirstOrDefault()!;
+
+                Assert.NotNull(exchange);
+                Assert.Null(exchange.Agent);
+            }
+
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, true);
+        }
     }
 
     public static class AggressiveCallProducer
