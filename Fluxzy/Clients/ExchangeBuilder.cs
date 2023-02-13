@@ -103,7 +103,7 @@ namespace Fluxzy.Clients
                 return null;
 
             var plainHeaderChars = new char[blockReadResult.HeaderLength];
-
+            
             Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
                 plainHeaderChars);
 
@@ -158,6 +158,20 @@ namespace Fluxzy.Clients
                     (authority,
                         authenticateResult.InStream,
                         authenticateResult.OutStream, exchange, false);
+            }
+
+            var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
+
+            if (remainder > 0)
+            {
+                var extraBlock = new byte[remainder];
+
+                buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder)
+                      .CopyTo(extraBlock);
+
+                plainStream = new RecomposedStream(
+                    new CombinedReadonlyStream(true, new MemoryStream(extraBlock), plainStream),
+                    plainStream);
             }
 
             // Plain request 
