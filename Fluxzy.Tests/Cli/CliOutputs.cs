@@ -137,7 +137,7 @@ namespace Fluxzy.Tests.Cli
         {
             get
             {
-                var protocols = new[] { "http11", "http2" };
+                var protocols = new[] { "http11", "http2", "plainhttp11" };
                 var withPcapStatus = new[] { false, true };
                 var directoryParams = new[] { false, true };
                 var withSimpleRules = new[] { false, true };
