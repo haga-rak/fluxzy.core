@@ -16,7 +16,6 @@ namespace Fluxzy.Tests.Cli
 {
     public class CliOutputs
     {
-
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
         public async Task Run_Cli_Output(string protocol, bool withPcap, bool outputDirectory, bool withSimpleRule)

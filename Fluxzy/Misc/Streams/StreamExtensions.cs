@@ -211,7 +211,6 @@ namespace Fluxzy.Misc.Streams
             return true;
         }
 
-
         public static bool ReadExact(this Stream origin, Span<byte> buffer)
         {
             var readen = 0;
