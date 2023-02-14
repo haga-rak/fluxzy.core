@@ -65,7 +65,8 @@ namespace Fluxzy.Utils.Curl
                     "-x", $"{_configuration.Host}:{_configuration.Port}", // define proxy
                     "--insecure", // avoid checking certificate
                     "-H", "Accept:", // remove accept 
-                    "-H", "User-Agent:" // remove user agent 
+                    "-H", "User-Agent:", // remove user agent 
+                    "-H", "Content-Type:", // remove default content-type
                 }.Concat(Args)
                      .ToList();
             }

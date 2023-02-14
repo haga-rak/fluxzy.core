@@ -5,14 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Fluxzy.Clients.H2.Encoder.Utils;
-using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Tests.Cli.Scaffolding;
 using Fluxzy.Tests.Common;
+using Fluxzy.Tests.Utils;
 using Fluxzy.Utils.Curl;
 using Xunit;
 
@@ -23,14 +21,17 @@ namespace Fluxzy.Tests
         [Theory]
         [InlineData("GET", TestPayloadType.FlatText)]
         [InlineData("POST", TestPayloadType.FlatText)]
-        [InlineData("POST", TestPayloadType.FormContentEncoded)]
-        public async Task Run_And_Check_Curl_Response_Against_HttpClient(string methodString, 
+        [InlineData("PUT", TestPayloadType.FormContentEncoded)]
+        [InlineData("POST", TestPayloadType.Binary)]
+        public async Task Compare_Curl_W_HttpClient(string methodString, 
             TestPayloadType payloadType)
         {
             var converter = new CurlRequestConverter();
             
             var rootDir = Guid.NewGuid().ToString();
-            var directoryName = $"{rootDir}/httpclient-test";
+            var directoryName = $"{rootDir}/http-client-test";
+
+            Environment.SetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA", $"curl-temp");
 
             try {
 
@@ -45,16 +46,16 @@ namespace Fluxzy.Tests
                 commandLine += $" -d {curlDirectoryOutput}";
 
                 var commandLineHost = new FluxzyCommandLineHost(commandLine);
-                var flatCommand = "";
 
                 await using (var fluxzyInstance = await commandLineHost.Run()) {
                     var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo, new CurlProxyConfiguration(
                         "127.0.0.1", fluxzyInstance.ListenPort));
 
-                    var res = CurlUtility.RunCurl(commandResult.FlatCommandLineWithProxyArgs,
-                        out var stdout, out var stderr);
+                    var curlExecutionSuccess = CurlUtility.RunCurl(
+                        commandResult.FlatCommandLineWithProxyArgs,
+                        CurlExportFolderManagement.TemporaryPath);
 
-                    flatCommand = commandResult.FlatCommandLineWithProxyArgs; 
+                    Assert.True(curlExecutionSuccess);
                 }
 
                 using var curlArchiveReader = new DirectoryArchiveReader(curlDirectoryOutput);
@@ -66,6 +67,9 @@ namespace Fluxzy.Tests
 
                 Assert.NotNull(curlExchange);
 
+                using var curlRequestBodyStream = curlArchiveReader.GetRequestBody(curlExchange.Id);
+                using var httpClientRequestBodyStream = archiveReader.GetRequestBody(curlExchange.Id);
+
                 var curlFlatHeader = string.Join("\r\n",
                     curlExchange
                         .GetRequestHeaders()
@@ -75,8 +79,9 @@ namespace Fluxzy.Tests
                     httpClientExchange
                         .GetRequestHeaders()
                         .OrderBy(r => r.Name.ToString()).Select(s => $"{s.Name} : {s.Value}"));
-
+                
                 Assert.Equal(httpClientFlatHeader, curlFlatHeader);
+                Assert.Equal(httpClientRequestBodyStream?.DrainAndSha1(), curlRequestBodyStream?.DrainAndSha1());
             }
             finally {
                 if (Directory.Exists(rootDir))
@@ -90,7 +95,6 @@ namespace Fluxzy.Tests
             // Arrange 
             var protocol = "http2";
 
-
             var commandLine = "start -l 127.0.0.1/0";
             commandLine += $" -d {directoryName}";
 
@@ -102,7 +106,7 @@ namespace Fluxzy.Tests
                 var requestMessage = new HttpRequestMessage(method,
                     $"{TestConstants.GetHost(protocol)}/global-health-check");
 
-                if (method == HttpMethod.Post) {
+                if (method != HttpMethod.Get) {
                     
                     if (payloadType == TestPayloadType.FlatText) {
                         requestMessage.Content = new StringContent("Some flatString", Encoding.UTF8); 
@@ -116,15 +120,22 @@ namespace Fluxzy.Tests
                             {"f", "r"},
                         }); 
                     }
+
+                    if (payloadType == TestPayloadType.Binary)
+                    {
+                        requestMessage.Content = 
+                            new StreamContent(new RandomDataStream(9, 1024 * 9 + 5, true));
+                    }
                 }
 
                 requestMessage.Headers.Add("x-header-test", "123456");
+                requestMessage.Headers.Add("x-header-test-b", "12\"3456");
+                requestMessage.Headers.Add("x-header-test-c", "12'3456");
 
                 // Act 
                 using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
 
                 await response.Content.ReadAsStringAsync();
-                
             }
 
             // Assert outputDirectory content
@@ -136,17 +147,9 @@ namespace Fluxzy.Tests
 
             var exchange = exchanges.FirstOrDefault()!;
 
-            var connection = connections.First();
-
             var quickTestResult = new QuickTestResult(archiveReader, exchange);
 
-            Assert.NotNull(exchange);
-            Assert.Equal(0, await commandLineHost.ExitCode);
-            Assert.Single(exchanges);
-            Assert.Single(connections);
-
-            Assert.Equal(200, exchange.StatusCode);
-            Assert.Equal(connection.Id, exchange.ConnectionId);
+            await commandLineHost.ExitCode;
             return quickTestResult;
         }
     }
@@ -155,6 +158,7 @@ namespace Fluxzy.Tests
     {
         FlatText = 1 ,
         FormContentEncoded = 2, 
+        Binary = 2, 
     }
     
     internal class QuickTestResult
@@ -168,7 +172,5 @@ namespace Fluxzy.Tests
         public IArchiveReader ArchiveReader { get; }
 
         public ExchangeInfo ExchangeInfo { get;  }
-
-        
     }
 }

@@ -73,15 +73,14 @@ namespace Fluxzy.Utils.Curl
 
         private void AddBinaryPayload(CurlCommandResult result, Stream requestBodyStream)
         {
-            var fullPostPath = Path.Combine(CurlExportSetting.CurlPostDataTempPath,
-                $"{result.Id}.bin");
+            var fullPostPath = CurlExportFolderManagement.GetTemporaryPathFor(result.Id);
 
             using var fileStream = File.Create(fullPostPath);
 
             requestBodyStream.CopyTo(fileStream);
 
             result.PostDataPath = fullPostPath;
-            result.AddOption("--data-binary", fullPostPath);
+            result.AddOption("--data-binary", $"@{new FileInfo(fullPostPath).Name}");
         }
     }
 }
