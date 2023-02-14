@@ -41,7 +41,7 @@ namespace Fluxzy.Utils.Curl
                 result.AddOption("--header", $"{requestHeader.Name}: {requestHeader.Value}");
             }
 
-            var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
+            using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
 
             if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length > 0)
             {
