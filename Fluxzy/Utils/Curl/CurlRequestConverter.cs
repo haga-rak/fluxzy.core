@@ -33,6 +33,9 @@ namespace Fluxzy.Utils.Curl
             foreach (var requestHeader in exchange.GetRequestHeaders())
             {
                 if (!requestHeader.Forwarded)
+                    continue;
+
+                if (requestHeader.Name.Span.StartsWith(":"))
                     continue; 
                 
                 result.AddOption("--header", $"{requestHeader.Name}: {requestHeader.Value}");
