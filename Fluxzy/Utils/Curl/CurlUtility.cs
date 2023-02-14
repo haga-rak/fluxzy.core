@@ -2,6 +2,7 @@
 // 
 
 using System.Diagnostics;
+using System.IO;
 
 namespace Fluxzy.Utils.Curl
 {
@@ -26,7 +27,7 @@ namespace Fluxzy.Utils.Curl
             return process.ExitCode == 0;
         }
 
-        public static bool RunCurl(string args, out string stdout, out string stdErr)
+        public static bool RunCurl(string args, string? workDirectory)
         {
             var process = new Process
             {
@@ -37,17 +38,18 @@ namespace Fluxzy.Utils.Curl
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
-                    RedirectStandardError = true,
+                    RedirectStandardError = true
                 }
             };
 
-            
-            process.Start();
+            if (workDirectory != null)
+                process.StartInfo.WorkingDirectory = new DirectoryInfo(workDirectory).FullName; 
 
-            stdout = process.StandardOutput.ReadToEnd();
-            stdErr = process.StandardError.ReadToEnd();
-            
+
+            process.Start();
             process.WaitForExit();
+
+            var er = process.StandardError.ReadToEnd();
 
             return process.ExitCode == 0;
         }
