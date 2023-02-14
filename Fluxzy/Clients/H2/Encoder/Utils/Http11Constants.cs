@@ -90,7 +90,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         public static readonly ReadOnlyMemory<char> ConnectionVerb = "connection".AsMemory();
         public static readonly ReadOnlyMemory<char> UpgradeVerb = "upgrade".AsMemory();
         public static readonly ReadOnlyMemory<char> ContentLength = "content-length".AsMemory();
-        public static readonly ReadOnlyMemory<char> TransfertEncodingVerb = "transfer-encoding".AsMemory();
+        public static readonly ReadOnlyMemory<char> TransferEncodingVerb = "transfer-encoding".AsMemory();
         public static readonly ReadOnlyMemory<char> KeepAliveVerb = "keep-alive".AsMemory();
         public static readonly ReadOnlyMemory<char> ProxyAuthenticate = "proxy-authenticate".AsMemory();
         public static readonly ReadOnlyMemory<char> Trailer = "trailer".AsMemory();

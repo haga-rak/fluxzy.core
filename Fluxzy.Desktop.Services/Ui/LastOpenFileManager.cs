@@ -16,7 +16,7 @@ namespace Fluxzy.Desktop.Services.Ui
 
         public LastOpenFileManager()
         {
-            var basePath = Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy Desktop");
+            var basePath = Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy.Desktop");
             Directory.CreateDirectory(basePath);
             _filePath = Path.Combine(basePath, "settings.last-open-files.json");
             
