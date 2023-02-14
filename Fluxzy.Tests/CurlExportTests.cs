@@ -45,6 +45,7 @@ namespace Fluxzy.Tests
                 commandLine += $" -d {curlDirectoryOutput}";
 
                 var commandLineHost = new FluxzyCommandLineHost(commandLine);
+                var flatCommand = "";
 
                 await using (var fluxzyInstance = await commandLineHost.Run()) {
                     var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo, new CurlProxyConfiguration(
@@ -52,6 +53,8 @@ namespace Fluxzy.Tests
 
                     var res = CurlUtility.RunCurl(commandResult.FlatCommandLineWithProxyArgs,
                         out var stdout, out var stderr);
+
+                    flatCommand = commandResult.FlatCommandLineWithProxyArgs; 
                 }
 
                 using var curlArchiveReader = new DirectoryArchiveReader(curlDirectoryOutput);
