@@ -13,8 +13,9 @@
     </div>
 
     <div *ngIf="context.currentTab === 'Content'" echange-viewer [exchange]="exchange" style="height : calc(100% - 52px)"></div>
-    <div *ngIf="context.currentTab === 'Connectivity'" echange-connectivity [exchange]="exchange"  [connectionId]="exchange.connectionId" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Connection'" echange-connectivity [exchange]="exchange"  [connectionId]="exchange.connectionId" style="height : calc(100% - 52px)"></div>
     <div *ngIf="context.currentTab === 'Performance'" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Tools'"  exchange-tools [exchange]="exchange" style="height : calc(100% - 52px)"></div>
 
 </div>
 <div class="exchange-viewer-main-status">

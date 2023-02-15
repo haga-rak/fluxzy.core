@@ -7,6 +7,7 @@ using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Readers;
+using Fluxzy.Utils.Curl;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Fluxzy.Desktop.Services
@@ -82,6 +83,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddScoped<ActionTemplateManager>();
             collection.AddScoped<CertificateValidator>();
             collection.AddScoped<SystemService>();
+            collection.AddScoped<CurlRequestConverter>();
 
             collection.AddTransient<FxzyDirectoryPackager>();
 

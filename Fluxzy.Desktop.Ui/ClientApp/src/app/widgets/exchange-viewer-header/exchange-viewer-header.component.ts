@@ -12,7 +12,7 @@ import {SystemCallService} from "../../core/services/system-call.service";
     styleUrls: ['./exchange-viewer-header.component.scss']
 })
 export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
-    public tabs: string [] = ['Content', 'Connectivity', 'Performance', 'MetaInformation'];
+    public tabs: string [] = ['Content', 'Connection', 'Tools', 'Performance', 'MetaInformation'];
     public currentTab: string = 'Content';
     public hasRawCapture : boolean ;
 

@@ -242,7 +242,7 @@ namespace Fluxzy.Tests
                                  .CreateDefault()
                                  .SetBoundAddress(bindHost, 0);
 
-            var (httpClient, proxy) = CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
+            var (httpClient, proxy) = InlineTestContextBuilder.CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
                 out var cancellationTokenSource);
 
             try {
@@ -272,7 +272,7 @@ namespace Fluxzy.Tests
                                  .CreateDefault()
                                  .SetBoundAddress(bindHost, 0);
 
-            var (httpClient, proxy) = CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
+            var (httpClient, proxy) = InlineTestContextBuilder.CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
                 out var cancellationTokenSource);
 
             try {
@@ -295,40 +295,6 @@ namespace Fluxzy.Tests
                 httpClient.Dispose();
                 await proxy.DisposeAsync();
             }
-        }
-
-        private static (HttpClient, Proxy p) CreateTestContext(string bindHost, int timeoutSeconds,
-            TaskCompletionSource<Exchange> requestReceived, FluxzySetting startupSetting,
-            out CancellationTokenSource cancellationTokenSource)
-        {
-            cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
-
-            cancellationTokenSource.Token.Register(() =>
-            {
-                if (!requestReceived.Task.IsCompleted)
-                    requestReceived.SetException(new Exception("Response not received under {timeoutSeconds} seconds"));
-            });
-
-            var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting,
-                    new FileSystemCertificateCache(startupSetting)),
-                userAgentProvider: new UaParserUserAgentInfoProvider());
-
-            proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
-            {
-                if (args.UpdateType == ArchiveUpdateType.AfterResponseHeader)
-                    requestReceived.TrySetResult(args.Original);
-            };
-
-            var endPoint = proxy.Run().First();
-
-            var messageHandler = new HttpClientHandler {
-                Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
-            };
-
-            var httpClient = new HttpClient(messageHandler);
-
-            return (httpClient, proxy);
         }
 
         [Fact]
@@ -535,7 +501,7 @@ namespace Fluxzy.Tests
                                  .CreateDefault()
                                  .SetBoundAddress(bindHost, 0);
 
-            var (httpClient, proxy) = CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
+            var (httpClient, proxy) = InlineTestContextBuilder.CreateTestContext(bindHost, timeoutSeconds, requestReceived, startupSetting,
                 out var cancellationTokenSource);
 
             try {
