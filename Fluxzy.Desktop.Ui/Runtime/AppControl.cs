@@ -65,7 +65,7 @@ namespace Fluxzy.Desktop.Ui.Runtime
             using var httpClient = new HttpClient(new HttpClientHandler()
             {
                 UseProxy = false,
-                
+
             });
 
             httpClient.Timeout = TimeSpan.FromSeconds(10);

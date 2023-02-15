@@ -11,6 +11,14 @@ Environment.SetEnvironmentVariable("FluxzyVersion", $"{version.Major}.{version.M
 Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
 Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
 
+if (Environment.GetEnvironmentVariable("appdata") == null)
+{
+    // For Linux and OSX environment this EV is missing, so we need to set it manually 
+    // to XDG_DATA_HOME
+    
+    Environment.SetEnvironmentVariable("appdata", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+}
+
 var haltTokenSource = new CancellationTokenSource(); 
 
 AppControl.PrepareForRun(args, haltTokenSource, out var isDesktop);
@@ -74,7 +82,6 @@ catch (Exception ex) {
 
     if (isDesktop)
     {
-        
         Console.Out.WriteLine("FLUXZY_PORT_ERROR");
         Console.Out.Flush();
 

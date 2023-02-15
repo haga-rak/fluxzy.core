@@ -64,7 +64,7 @@ namespace Fluxzy.Clients
             _lookupFields = _rawHeaderFields
                 .ToLookup(t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
 
-            ChunkedBody = _lookupFields[Http11Constants.TransfertEncodingVerb]
+            ChunkedBody = _lookupFields[Http11Constants.TransferEncodingVerb]
                 .Any(t => t.Value.Span.Equals("chunked", StringComparison.OrdinalIgnoreCase));
 
             var contentLength = -1L;
