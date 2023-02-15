@@ -23,6 +23,7 @@ namespace Fluxzy.Tests
         [InlineData("POST", TestPayloadType.FlatText)]
         [InlineData("PUT", TestPayloadType.FormContentEncoded)]
         [InlineData("POST", TestPayloadType.Binary)]
+        [InlineData("POST", TestPayloadType.BinarySmall)]
         public async Task Compare_Curl_W_HttpClient(string methodString, 
             TestPayloadType payloadType)
         {
@@ -126,6 +127,11 @@ namespace Fluxzy.Tests
                         requestMessage.Content = 
                             new StreamContent(new RandomDataStream(9, 1024 * 9 + 5, true));
                     }
+                    if (payloadType == TestPayloadType.BinarySmall)
+                    {
+                        requestMessage.Content = 
+                            new StreamContent(new RandomDataStream(9, 1024  + 5, true));
+                    }
                 }
 
                 requestMessage.Headers.Add("x-header-test", "123456");
@@ -158,7 +164,8 @@ namespace Fluxzy.Tests
     {
         FlatText = 1 ,
         FormContentEncoded = 2, 
-        Binary = 2, 
+        Binary = 3, 
+        BinarySmall = 4, 
     }
     
     internal class QuickTestResult
