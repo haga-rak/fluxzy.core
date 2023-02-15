@@ -110,7 +110,18 @@ namespace Fluxzy.Tests.Cli
                     t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
 
                 if (withPcap)
-                    Assert.True(await archiveReader.GetRawCaptureStream(connection.Id)!.DrainAsync(disposeStream: true) > 0);
+                {
+                    var rawCapStream = archiveReader.GetRawCaptureStream(connection.Id);
+
+                    if (rawCapStream == null)
+                    {
+
+                    }
+
+                    
+                    Assert.True(await rawCapStream!.DrainAsync(disposeStream: true) > 0);
+                }
+                    
 
                 if (withSimpleRule)
                 {
