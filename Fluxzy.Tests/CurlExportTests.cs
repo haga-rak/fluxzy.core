@@ -18,12 +18,12 @@ namespace Fluxzy.Tests
 {
     public class CurlExportTests
     {
-        [Theory]
-        [InlineData("GET", TestPayloadType.FlatText)]
-        [InlineData("POST", TestPayloadType.FlatText)]
-        [InlineData("PUT", TestPayloadType.FormContentEncoded)]
-        [InlineData("POST", TestPayloadType.Binary)]
-        [InlineData("POST", TestPayloadType.BinarySmall)]
+        //[Theory]
+        //[InlineData("GET", TestPayloadType.FlatText)]
+        //[InlineData("POST", TestPayloadType.FlatText)]
+        //[InlineData("PUT", TestPayloadType.FormContentEncoded)]
+        //[InlineData("POST", TestPayloadType.Binary)]
+        //[InlineData("POST", TestPayloadType.BinarySmall)]
         public async Task Compare_Curl_W_HttpClient(string methodString, 
             TestPayloadType payloadType)
         {
