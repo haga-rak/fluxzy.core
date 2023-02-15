@@ -20,6 +20,7 @@ using Fluxzy.Misc.Converters;
 using Fluxzy.Misc.IpUtils;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Utils.Curl;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Attributes;
 using Reinforced.Typings.Fluent;
@@ -270,6 +271,9 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<DescriptionInfo>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<CurlCommandResult>()
                    .ApplyGenericProperties();
         }
 

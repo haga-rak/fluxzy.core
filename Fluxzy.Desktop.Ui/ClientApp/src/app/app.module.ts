@@ -94,6 +94,7 @@ import { SetClientCertificateFormComponent } from './settings/rule-forms/child-f
 import { HarExportSettingComponent } from './shared/har-export-setting/har-export-setting.component';
 import { SearchTextFilterFormComponent } from './settings/filter-forms/child-forms/search-text-filter-form/search-text-filter-form.component';
 import {BackendInterceptor} from "./core/backend.interceptor";
+import { ExchangeToolsComponent } from './widgets/exchange-tools/exchange-tools.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -174,6 +175,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         SetClientCertificateFormComponent,
         HarExportSettingComponent,
         SearchTextFilterFormComponent,
+        ExchangeToolsComponent,
 
 
     ],
