@@ -7,7 +7,7 @@ using Fluxzy.Readers;
 
 namespace Fluxzy.Utils.Curl
 {
-    internal class CurlRequestConverter
+    public class CurlRequestConverter
     {
         public CurlRequestConverter()
         {
@@ -15,7 +15,8 @@ namespace Fluxzy.Utils.Curl
 
         public CurlCommandResult BuildCurlRequest(
             IArchiveReader archiveReader, 
-            ExchangeInfo exchange, CurlProxyConfiguration? configuration)
+            ExchangeInfo exchange,
+            CurlProxyConfiguration? configuration)
         {
             var result = new CurlCommandResult(configuration); 
             var fullUrl = exchange.FullUrl;
@@ -52,7 +53,7 @@ namespace Fluxzy.Utils.Curl
                 }
                 else
                 {
-                    Span<byte> buffer = stackalloc byte[(int) requestBodyStream.Length];
+                    byte [] buffer = new byte[(int) requestBodyStream.Length];
 
                     requestBodyStream.ReadExact(buffer);
 
@@ -63,7 +64,7 @@ namespace Fluxzy.Utils.Curl
                     }
                     else
                     {
-                        AddBinaryPayload(result, requestBodyStream);
+                        AddBinaryPayload(result, new MemoryStream(buffer));
                     }
                 }
             }
@@ -79,8 +80,8 @@ namespace Fluxzy.Utils.Curl
 
             requestBodyStream.CopyTo(fileStream);
 
-            result.PostDataPath = fullPostPath;
-            result.AddOption("--data-binary", $"@{new FileInfo(fullPostPath).Name}");
+            result.FileName = new FileInfo(fullPostPath).Name;
+            result.AddOption("--data-binary", $"@{result.FileName}");
         }
     }
 }
