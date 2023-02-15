@@ -23,7 +23,7 @@ import {
     CertificateValidationResult,
     CommentUpdateModel,
     ConnectionInfo,
-    ContextMenuAction, DescriptionInfo,
+    ContextMenuAction, CurlCommandResult, DescriptionInfo,
     ExchangeBrowsingState,
     ExchangeState,
     FileContentDelete,
@@ -212,8 +212,18 @@ export class ApiService {
             );
     }
 
+    public exchangeGetCurlCommandResult(exchangeId: number) : Observable<CurlCommandResult> {
+        return this.httpClient.get<CurlCommandResult>(`api/exchange/${exchangeId}/curl`).pipe(take(1));
+    }
+
     public exchangeSaveRequestBody(exchangeId: number, fileName : string) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/save-request-body`, {
+            fileName : fileName
+        }).pipe(take(1));
+    }
+
+    public exchangeSaveCurlPayload(exchangeId: number, fileId : string, fileName : string) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/save-curl-payload/${fileId}`, {
             fileName : fileName
         }).pipe(take(1));
     }

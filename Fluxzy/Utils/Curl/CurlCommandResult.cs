@@ -30,7 +30,7 @@ namespace Fluxzy.Utils.Curl
         
         public List<string> Args { get; set; } = new();
 
-        public string? PostDataPath { get; set; }
+        public string? FileName { get; set; }
 
         public string FlatCommandLineArgs
         {

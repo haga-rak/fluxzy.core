@@ -189,6 +189,15 @@ export interface DescriptionInfo
 {
 	description: string;
 }
+export interface CurlCommandResult
+{
+	id: string;
+	args: string[];
+	fileName?: string;
+	flatCommandLineArgs: string;
+	flatCommandLineWithProxyArgs: string;
+	argsWithProxy: string[];
+}
 export interface TemplateToolBarFilterModel
 {
 	quickFilters: Filter[];
