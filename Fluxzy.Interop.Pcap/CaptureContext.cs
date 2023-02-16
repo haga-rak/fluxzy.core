@@ -33,7 +33,7 @@ namespace Fluxzy.Interop.Pcap
                                               .First();
             
             _physicalLocalAddress = _captureDevice.MacAddress;
-
+            
             Start();
         }
 
@@ -77,6 +77,7 @@ namespace Fluxzy.Interop.Pcap
         private void OnCaptureDeviceOnPacketArrival(object sender, PacketCapture capture)
         {
             var rawPacket = capture.GetPacket();
+            
             var ethernetPacket = (EthernetPacket) rawPacket.GetPacket();
             
             _packetQueue.Enqueue(rawPacket, ethernetPacket, _physicalLocalAddress);
