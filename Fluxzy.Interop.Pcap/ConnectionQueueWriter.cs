@@ -9,6 +9,7 @@ namespace Fluxzy.Interop.Pcap
     internal class ConnectionQueueWriter : IConnectionSubscription
     {
         private readonly ChannelReader<RawCapture> _channel;
+        private readonly string _outFileName;
         private readonly Task _runningWriteTask;
         private readonly CancellationToken _token;
         private readonly CancellationTokenSource _tokenSource = new();
@@ -21,8 +22,9 @@ namespace Fluxzy.Interop.Pcap
         {
             Key = key;
             _channel = channel;
+            _outFileName = outFileName;
 
-            _captureDeviceWriter = new CaptureFileWriterDevice(outFileName, FileMode.Create);
+            _captureDeviceWriter = new CaptureFileWriterDevice(outFileName, FileMode.CreateNew);
             _captureDeviceWriter.Open();
             _token = _tokenSource.Token;
             _runningWriteTask = Start();
@@ -84,10 +86,14 @@ namespace Fluxzy.Interop.Pcap
 
         private void DisposeCapture()
         {
-            if (_captureDeviceWriter?.Opened ?? false)
-                _captureDeviceWriter.StopCapture();
-
+            
+            _captureDeviceWriter?.StopCapture();
+            
             _captureDeviceWriter?.Dispose();
+
+            File.AppendAllText(_outFileName, "sd");
+            
+            
             _captureDeviceWriter = null;
         }
     }

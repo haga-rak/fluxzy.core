@@ -18,13 +18,14 @@ namespace Fluxzy.Tests.Cli
     {
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
-        public async Task Run_Cli_Output(string protocol, bool withPcap, bool outputDirectory, bool withSimpleRule)
+        public async Task Run_Cli_Output(string protocol,
+            bool withPcap, bool outputDirectory, bool withSimpleRule)
         {
             // Arrange 
 
-            var rootDir = Guid.NewGuid().ToString();
-            var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}";
-            var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}.fxzy";
+            var rootDir = "ab0" + Guid.NewGuid().ToString();
+            var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}";
+            var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}.fxzy";
 
             var commandLine = "start -l 127.0.0.1/0";
 
@@ -111,15 +112,22 @@ namespace Fluxzy.Tests.Cli
 
                 if (withPcap)
                 {
-                    var rawCapStream = archiveReader.GetRawCaptureStream(connection.Id);
-
-                    if (rawCapStream == null)
+                    try
                     {
+                        var rawCapStream = archiveReader.GetRawCaptureStream(connection.Id);
+
+                        if (rawCapStream == null)
+                        {
+
+                        }
+
+                        Assert.True(await rawCapStream!.DrainAsync(disposeStream: true) > 0);
 
                     }
-
-                    
-                    Assert.True(await rawCapStream!.DrainAsync(disposeStream: true) > 0);
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"{directoryName} found", ex);
+                    }
                 }
                     
 
