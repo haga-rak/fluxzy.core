@@ -23,7 +23,7 @@ namespace Fluxzy.Tests.Cli
         {
             // Arrange 
 
-            var rootDir = "ab0" + Guid.NewGuid().ToString();
+            var rootDir = "ab0" + Guid.NewGuid();
             var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}";
             var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}.fxzy";
 

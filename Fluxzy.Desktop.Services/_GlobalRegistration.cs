@@ -84,6 +84,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddScoped<CertificateValidator>();
             collection.AddScoped<SystemService>();
             collection.AddScoped<CurlRequestConverter>();
+            collection.AddSingleton<CurlExportFolderManagement>(_ => new CurlExportFolderManagement());
 
             collection.AddTransient<FxzyDirectoryPackager>();
 

@@ -9,32 +9,44 @@ namespace Fluxzy.Utils.Curl
     /// <summary>
     /// TODO : inject this class instead of ugly singleton
     /// </summary>
-    public static class CurlExportFolderManagement
+    public class CurlExportFolderManagement
     {
-        static CurlExportFolderManagement()
+        public CurlExportFolderManagement(string?  temporaryPath = null)
         {
-            TemporaryPath = Environment.GetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA")
-                                   ?? "%appdata%/Fluxzy/Curl/Temp";
+            if (temporaryPath == null)
+            {
+                temporaryPath = Environment.GetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA")
+                                ?? "%appdata%/Fluxzy/Curl/Temp";
+                temporaryPath = Environment.ExpandEnvironmentVariables(temporaryPath);
+            }
 
-            TemporaryPath = Environment.ExpandEnvironmentVariables(TemporaryPath);
-
+            TemporaryPath = temporaryPath;
             Directory.CreateDirectory(TemporaryPath);
         }
+        
+        //{
+        //    TemporaryPath = Environment.GetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA")
+        //                           ?? "%appdata%/Fluxzy/Curl/Temp";
 
-        public static string TemporaryPath { get; internal set; }
+        //    TemporaryPath = Environment.ExpandEnvironmentVariables(TemporaryPath);
 
-        public static string GetTemporaryPathFor(Guid fileId)
+        //    Directory.CreateDirectory(TemporaryPath);
+        //}
+
+        public string TemporaryPath { get; internal set; }
+
+        public string GetTemporaryPathFor(Guid fileId)
         {
             return Path.Combine(TemporaryPath, $"temp-payload-{fileId}.bin"); 
         }
 
-        public static Stream?  GetTemporaryFileStream(Guid fileId)
+        public Stream?  GetTemporaryFileStream(Guid fileId)
         {
             return File.Open(GetTemporaryPathFor(fileId), FileMode.OpenOrCreate,
                 FileAccess.Read, FileShare.Read);
         }
 
-        public static async Task<bool> SaveTo(Guid fileId, string destinationPath)
+        public async Task<bool> SaveTo(Guid fileId, string destinationPath)
         {
             var tempPath = GetTemporaryPathFor(fileId);
 
