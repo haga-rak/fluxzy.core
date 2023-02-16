@@ -15,17 +15,24 @@ namespace Fluxzy.Interop.Pcap
         private readonly CancellationTokenSource _tokenSource = new();
         private readonly TimeSpan _writeBufferTimeout = TimeSpan.FromSeconds(5);
 
-        private CaptureFileWriterDevice? _captureDeviceWriter;
+        // private CaptureFileWriterDevice? _captureDeviceWriter;
         private bool _disposed;
+        private readonly CustomCaptureWriter _writer;
 
-        public ConnectionQueueWriter(long key, ChannelReader<RawCapture> channel, string outFileName)
+        public ConnectionQueueWriter(long key, ChannelReader<RawCapture> channel, string outFileName,TimestampResolution resolution)
         {
             Key = key;
             _channel = channel;
             _outFileName = outFileName;
+            
+            using (var deviceWriter = new CaptureFileWriterDevice(outFileName, FileMode.Create))
+            {
+                // Writing file header
+                deviceWriter.Open();
+            }
+            
+            _writer = new CustomCaptureWriter(_outFileName, resolution);
 
-            _captureDeviceWriter = new CaptureFileWriterDevice(outFileName, FileMode.CreateNew);
-            _captureDeviceWriter.Open();
             _token = _tokenSource.Token;
             _runningWriteTask = Start();
         }
@@ -50,10 +57,12 @@ namespace Fluxzy.Interop.Pcap
         {
             try
             {
-                await foreach (var capture in _channel.ReadAllAsync(_token))
+                await foreach (var capture in _channel.ReadAllAsync(CancellationToken.None))
                 {
-                    if (!_token.IsCancellationRequested)
-                        _captureDeviceWriter?.Write(capture);
+                    if (true)
+                    {
+                        _writer.Write(capture);
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -86,15 +95,9 @@ namespace Fluxzy.Interop.Pcap
 
         private void DisposeCapture()
         {
-            
-            _captureDeviceWriter?.StopCapture();
-            
-            _captureDeviceWriter?.Dispose();
+            _writer.Dispose();
 
-            File.AppendAllText(_outFileName, "sd");
-            
-            
-            _captureDeviceWriter = null;
+            // File.AppendAllText(_outFileName, "sd");
         }
     }
 }
