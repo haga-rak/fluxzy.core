@@ -25,12 +25,6 @@ namespace Fluxzy.Interop.Pcap
             _channel = channel;
             _outFileName = outFileName;
             
-            using (var deviceWriter = new CaptureFileWriterDevice(outFileName, FileMode.Create))
-            {
-                // Writing file header
-                deviceWriter.Open();
-            }
-            
             _writer = new CustomCaptureWriter(_outFileName, resolution);
 
             _token = _tokenSource.Token;

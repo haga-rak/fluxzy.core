@@ -26,7 +26,8 @@ namespace Fluxzy.Interop.Pcap
             _isShortTimeVal = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             _headerLength = GetPreHeaderHeaderLength() + sizeof(long);
             _unit = _resolution == TimestampResolution.Nanosecond ? 1e9M : 1e6M;
-            _fileStream = File.Open(_outFile, FileMode.Append, FileAccess.Write, FileShare.Read);
+            _fileStream = File.Open(_outFile, FileMode.Create, FileAccess.Write, FileShare.Read);
+            _fileStream.Write(PcapFileHeaderBuilder.Buffer);
         }
 
         public void Write(RawCapture rawCapture)
@@ -96,6 +97,30 @@ namespace Fluxzy.Interop.Pcap
         public void Dispose()
         {
             _fileStream.Dispose();
+        }
+    }
+
+
+    internal static class PcapFileHeaderBuilder
+    {
+        public static byte[] Buffer { get;  }
+
+        static PcapFileHeaderBuilder()
+        {
+            var tempFile = Environment.GetEnvironmentVariable("FLUXZY_BASE_DIR")
+                           ?? "%appdata%/fluxzy/pcap/header";
+
+            Directory.CreateDirectory(tempFile);
+
+            var tempFileName = Path.Combine(tempFile, "header.pcap");
+
+            using (var deviceWriter = new CaptureFileWriterDevice(tempFileName, FileMode.Create))
+            {
+                // Writing file header
+                deviceWriter.Open();
+            }
+
+            Buffer = File.ReadAllBytes(tempFileName);
         }
     }
 }
