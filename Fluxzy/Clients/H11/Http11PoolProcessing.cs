@@ -80,7 +80,7 @@ namespace Fluxzy.Clients.H11
 
             var shouldCloseConnection =
                 exchange.Response.Header.ConnectionCloseRequest
-                || exchange.Response.Header.ChunkedBody; // Chunked body response always en with connection close 
+                ; //|| exchange.Response.Header.ChunkedBody; // Chunked body response always en with connection close 
 
             if (!exchange.Response.Header.HasResponseBody())
             {
