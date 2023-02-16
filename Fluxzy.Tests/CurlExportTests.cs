@@ -53,13 +53,14 @@ namespace Fluxzy.Tests
                     var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo, new CurlProxyConfiguration(
                         "127.0.0.1", fluxzyInstance.ListenPort));
 
-                    return;
+               
                     
                     var curlExecutionSuccess = CurlUtility.RunCurl(
                         commandResult.FlatCommandLineWithProxyArgs,
                         CurlExportFolderManagement.TemporaryPath);
 
                     Assert.True(curlExecutionSuccess);
+                    return;
                 }
                 
                 using var curlArchiveReader = new DirectoryArchiveReader(curlDirectoryOutput);
