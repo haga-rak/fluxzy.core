@@ -9,8 +9,11 @@ namespace Fluxzy.Utils.Curl
 {
     public class CurlRequestConverter
     {
-        public CurlRequestConverter()
+        private readonly CurlExportFolderManagement _folderManager;
+
+        public CurlRequestConverter(CurlExportFolderManagement folderManager)
         {
+            _folderManager = folderManager;
         }
 
         public CurlCommandResult BuildCurlRequest(
@@ -74,7 +77,7 @@ namespace Fluxzy.Utils.Curl
 
         private void AddBinaryPayload(CurlCommandResult result, Stream requestBodyStream)
         {
-            var fullPostPath = CurlExportFolderManagement.GetTemporaryPathFor(result.Id);
+            var fullPostPath = _folderManager.GetTemporaryPathFor(result.Id);
 
             using var fileStream = File.Create(fullPostPath);
 

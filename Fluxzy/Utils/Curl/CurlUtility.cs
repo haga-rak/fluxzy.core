@@ -3,6 +3,8 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
+using Fluxzy.Misc;
 
 namespace Fluxzy.Utils.Curl
 {
@@ -27,7 +29,7 @@ namespace Fluxzy.Utils.Curl
             return process.ExitCode == 0;
         }
 
-        public static bool RunCurl(string args, string? workDirectory)
+        public static async Task<bool> RunCurl(string args, string? workDirectory)
         {
             var process = new Process
             {
@@ -46,7 +48,8 @@ namespace Fluxzy.Utils.Curl
                 process.StartInfo.WorkingDirectory = new DirectoryInfo(workDirectory).FullName; 
             
             process.Start();
-            process.WaitForExit();
+            
+            await process.WaitForExitAsync();
 
             return process.ExitCode == 0;
         }

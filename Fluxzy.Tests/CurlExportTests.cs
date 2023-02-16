@@ -27,12 +27,11 @@ namespace Fluxzy.Tests
         public async Task Compare_Curl_W_HttpClient(string methodString, 
             TestPayloadType payloadType)
         {
-            var converter = new CurlRequestConverter();
-            
             var rootDir = $"{nameof(Compare_Curl_W_HttpClient)}{Guid.NewGuid()}";
             var directoryName = $"{rootDir}/http-client-test";
-
-            Environment.SetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA", $"curl-temp");
+            var tempPath = $"{rootDir}/curl-temp";
+            var folderManagement = new CurlExportFolderManagement(tempPath);
+            var converter = new CurlRequestConverter(folderManagement);
 
             try {
 
@@ -46,21 +45,17 @@ namespace Fluxzy.Tests
                 var commandLine = "start -l 127.0.0.1/0";
                 commandLine += $" -d {curlDirectoryOutput}";
                 
-                
                 var commandLineHost = new FluxzyCommandLineHost(commandLine);
                 
                 await using (var fluxzyInstance = await commandLineHost.Run()) {
                     var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo, new CurlProxyConfiguration(
                         "127.0.0.1", fluxzyInstance.ListenPort));
 
-               
-                    
-                    var curlExecutionSuccess = CurlUtility.RunCurl(
+                    var curlExecutionSuccess = await CurlUtility.RunCurl(
                         commandResult.FlatCommandLineWithProxyArgs,
-                        CurlExportFolderManagement.TemporaryPath);
-
+                        folderManagement.TemporaryPath);
+                    
                     Assert.True(curlExecutionSuccess);
-                    return;
                 }
                 
                 using var curlArchiveReader = new DirectoryArchiveReader(curlDirectoryOutput);
@@ -72,9 +67,8 @@ namespace Fluxzy.Tests
 
                 Assert.NotNull(curlExchange);
 
-
-                using var curlRequestBodyStream = curlArchiveReader.GetRequestBody(curlExchange.Id);
-                using var httpClientRequestBodyStream = archiveReader.GetRequestBody(curlExchange.Id);
+                await using var curlRequestBodyStream = curlArchiveReader.GetRequestBody(curlExchange.Id);
+                await using var httpClientRequestBodyStream = archiveReader.GetRequestBody(curlExchange.Id);
 
                 var curlFlatHeader = string.Join("\r\n",
                     curlExchange
@@ -154,7 +148,6 @@ namespace Fluxzy.Tests
             IArchiveReader archiveReader = new DirectoryArchiveReader(directoryName);
 
             var exchanges = archiveReader.ReadAllExchanges().ToList();
-            var connections = archiveReader.ReadAllConnections().ToList();
 
             var exchange = exchanges.FirstOrDefault()!;
 

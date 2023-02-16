@@ -87,9 +87,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public async Task<ActionResult<bool>> SaveCurlPayload(
             int exchangeId, 
             Guid fileId,
-            [FromBody] SaveFileViewModel body)
+            [FromBody] SaveFileViewModel body,
+            [FromServices] CurlExportFolderManagement curlExportFolderManagement)
         {
-            return await CurlExportFolderManagement.SaveTo(fileId, body.FileName);
+            return await curlExportFolderManagement.SaveTo(fileId, body.FileName);
         }
     }
 }
