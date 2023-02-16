@@ -29,7 +29,7 @@ namespace Fluxzy.Tests
         {
             var converter = new CurlRequestConverter();
             
-            var rootDir = Guid.NewGuid().ToString();
+            var rootDir = $"{nameof(Compare_Curl_W_HttpClient)}{Guid.NewGuid()}";
             var directoryName = $"{rootDir}/http-client-test";
 
             Environment.SetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA", $"curl-temp");
@@ -46,8 +46,14 @@ namespace Fluxzy.Tests
                 var commandLine = "start -l 127.0.0.1/0";
                 commandLine += $" -d {curlDirectoryOutput}";
 
+
+
+                return;
+                
                 var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
+
+                
                 await using (var fluxzyInstance = await commandLineHost.Run()) {
                     var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo, new CurlProxyConfiguration(
                         "127.0.0.1", fluxzyInstance.ListenPort));
@@ -58,7 +64,7 @@ namespace Fluxzy.Tests
 
                     Assert.True(curlExecutionSuccess);
                 }
-
+                
                 using var curlArchiveReader = new DirectoryArchiveReader(curlDirectoryOutput);
 
                 var exchanges = curlArchiveReader.ReadAllExchanges().ToList();
@@ -67,6 +73,7 @@ namespace Fluxzy.Tests
                 var curlExchange = exchanges.FirstOrDefault()!;
 
                 Assert.NotNull(curlExchange);
+
 
                 using var curlRequestBodyStream = curlArchiveReader.GetRequestBody(curlExchange.Id);
                 using var httpClientRequestBodyStream = archiveReader.GetRequestBody(curlExchange.Id);

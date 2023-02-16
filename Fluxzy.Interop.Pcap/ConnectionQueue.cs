@@ -37,6 +37,7 @@ namespace Fluxzy.Interop.Pcap
 
             if (!_subscribed && _totalPackedReceived > LimitPacketNoSubscribe)
                 return false; // No subscriber on packet we leave
+            
             return _captureChannel.Writer.TryWrite(rawCapture); 
         }
         
@@ -52,6 +53,7 @@ namespace Fluxzy.Interop.Pcap
             if (_writer != null)
             {
                 await _writer.DisposeAsync();
+          
                 _writer = null;
             }
         }

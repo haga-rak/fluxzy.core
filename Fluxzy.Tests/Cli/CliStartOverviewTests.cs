@@ -191,7 +191,7 @@ namespace Fluxzy.Tests.Cli
         public async Task Run_Cli_And_Validate_User_Absence()
         {
             // Arrange 
-            var directory = nameof(Run_Cli_And_Validate_User_Agent);
+            var directory = nameof(Run_Cli_And_Validate_User_Absence);
             var commandLine = $"start -l 127.0.0.1/0 -d {directory}";
             
             await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine)) {

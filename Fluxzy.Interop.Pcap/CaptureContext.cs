@@ -56,7 +56,7 @@ namespace Fluxzy.Interop.Pcap
         {
             _captureDevice.Open();
             _captureDevice.Filter = $"tcp";
-            _captureDevice.OnPacketArrival += OnCaptureDeviceOnOnPacketArrival;
+            _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
             _captureDevice.StartCapture();
         }
 
@@ -67,22 +67,18 @@ namespace Fluxzy.Interop.Pcap
 
             _halted = true;
 
-            _captureDevice.OnPacketArrival -= OnCaptureDeviceOnOnPacketArrival;
+            _captureDevice.OnPacketArrival -= OnCaptureDeviceOnPacketArrival;
 
-            if (_captureDevice.Opened)
-                _captureDevice.StopCapture();
+            _captureDevice.StopCapture();
         }
 
-        private void OnCaptureDeviceOnOnPacketArrival(object sender, PacketCapture capture)
+        private void OnCaptureDeviceOnPacketArrival(object sender, PacketCapture capture)
         {
             var rawPacket = capture.GetPacket();
             var ethernetPacket = (EthernetPacket) rawPacket.GetPacket();
-
-            // SE REFERER à la date
             
             _packetQueue.Enqueue(rawPacket, ethernetPacket, _physicalLocalAddress);
         }
-        
 
         public async ValueTask DisposeAsync()
         {
