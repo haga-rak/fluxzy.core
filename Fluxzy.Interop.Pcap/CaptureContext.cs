@@ -2,6 +2,7 @@
 
 using System.Net;
 using System.Net.NetworkInformation;
+using Fluxzy.Interop.Pcap.FastParsing;
 using PacketDotNet;
 using SharpPcap;
 using SharpPcap.LibPcap;
@@ -80,6 +81,7 @@ namespace Fluxzy.Interop.Pcap
             
             var ethernetPacket = (EthernetPacket) rawPacket.GetPacket();
             
+
             _packetQueue.Enqueue(rawPacket, ethernetPacket, _physicalLocalAddress);
         }
 
