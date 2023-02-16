@@ -45,19 +45,16 @@ namespace Fluxzy.Tests
 
                 var commandLine = "start -l 127.0.0.1/0";
                 commandLine += $" -d {curlDirectoryOutput}";
-
-
-
-                return;
+                
                 
                 var commandLineHost = new FluxzyCommandLineHost(commandLine);
-
-
                 
                 await using (var fluxzyInstance = await commandLineHost.Run()) {
                     var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo, new CurlProxyConfiguration(
                         "127.0.0.1", fluxzyInstance.ListenPort));
 
+                    return;
+                    
                     var curlExecutionSuccess = CurlUtility.RunCurl(
                         commandResult.FlatCommandLineWithProxyArgs,
                         CurlExportFolderManagement.TemporaryPath);

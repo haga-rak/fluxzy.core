@@ -37,19 +37,16 @@ namespace Fluxzy.Utils.Curl
                     Arguments = args,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
+                    RedirectStandardOutput = false,
+                    RedirectStandardError = false
                 }
             };
 
             if (workDirectory != null)
                 process.StartInfo.WorkingDirectory = new DirectoryInfo(workDirectory).FullName; 
-
-
+            
             process.Start();
             process.WaitForExit();
-
-            var er = process.StandardError.ReadToEnd();
 
             return process.ExitCode == 0;
         }
