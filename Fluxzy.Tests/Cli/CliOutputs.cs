@@ -24,6 +24,7 @@ namespace Fluxzy.Tests.Cli
             // Arrange 
 
             var rootDir = "ab0" + Guid.NewGuid();
+           // var rootDir = "d:\\aaa-test";
             var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}";
             var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}.fxzy";
 
@@ -74,10 +75,12 @@ namespace Fluxzy.Tests.Cli
 
                 bodyLength = response.Content.Headers.ContentLength ?? -1;
 
-                await response.Content.ReadAsStringAsync();
+                var res = await response.Content.ReadAsStringAsync();
 
                 // Assert
                 await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
+
+                //await Task.Delay(1000);
             }
 
             // Assert outputDirectory content
@@ -115,12 +118,7 @@ namespace Fluxzy.Tests.Cli
                     try
                     {
                         var rawCapStream = archiveReader.GetRawCaptureStream(connection.Id);
-
-                        if (rawCapStream == null)
-                        {
-
-                        }
-
+                        
                         Assert.True(await rawCapStream!.DrainAsync(disposeStream: true) > 0);
 
                     }

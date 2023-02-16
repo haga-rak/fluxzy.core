@@ -14,7 +14,7 @@ namespace Fluxzy.Interop.Pcap
 
         private bool _halted;
         private readonly PhysicalAddress _physicalLocalAddress;
-        private readonly PacketQueue _packetQueue = new();
+        private PacketQueue _packetQueue;
         private bool _disposed;
 
         public CaptureContext(IPAddress?  localAddress = null)
@@ -55,9 +55,11 @@ namespace Fluxzy.Interop.Pcap
         private void Start()
         {
             _captureDevice.Open();
+            _packetQueue = new PacketQueue(_captureDevice.TimestampResolution);
             _captureDevice.Filter = $"tcp";
             _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
             _captureDevice.StartCapture();
+            
         }
 
         public void Stop()

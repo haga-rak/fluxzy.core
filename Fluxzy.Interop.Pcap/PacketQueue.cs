@@ -13,8 +13,14 @@ namespace Fluxzy.Interop.Pcap
     /// </summary>
     public class PacketQueue : IAsyncDisposable
     {
+        private readonly TimestampResolution _timestampResolution;
         private readonly HashSet<Authority> _allowedAuthorityKeys = new();
-        private readonly ConcurrentDictionary<long, ConnectionQueue> _captureChannels = new(); 
+        private readonly ConcurrentDictionary<long, ConnectionQueue> _captureChannels = new();
+
+        public PacketQueue(TimestampResolution timestampResolution)
+        {
+            _timestampResolution = timestampResolution;
+        }
 
         public void Include(IPAddress remoteAddress, int remotePort)
         {
@@ -25,7 +31,7 @@ namespace Fluxzy.Interop.Pcap
         public IConnectionSubscription Subscribe(string outFileName, IPAddress remoteAddress, int remotePort, int localPort)
         {
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
-            var queue = _captureChannels.GetOrAdd(connectionKey, (ck) => new ConnectionQueue(ck));
+            var queue = _captureChannels.GetOrAdd(connectionKey, (ck) => new ConnectionQueue(ck, _timestampResolution));
             return queue.Subscribe(outFileName);
         }
 
@@ -61,7 +67,7 @@ namespace Fluxzy.Interop.Pcap
 
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
 
-            var queue = _captureChannels.GetOrAdd(connectionKey, (ck => new ConnectionQueue(ck)));
+            var queue = _captureChannels.GetOrAdd(connectionKey, (ck => new ConnectionQueue(ck, _timestampResolution)));
 
             if (!queue.Post(rawCapture))
             {

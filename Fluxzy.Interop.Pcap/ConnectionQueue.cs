@@ -7,6 +7,7 @@ namespace Fluxzy.Interop.Pcap
 {
     internal class ConnectionQueue : IAsyncDisposable
     {
+        private readonly TimestampResolution _resolution;
         private static readonly int LimitPacketNoSubscribe = 10; 
         private readonly Channel<RawCapture> _captureChannel = Channel.CreateUnbounded<RawCapture>();
         private int _totalPackedReceived;
@@ -16,8 +17,9 @@ namespace Fluxzy.Interop.Pcap
 
         public long Key { get; }
 
-        public ConnectionQueue(long key)
+        public ConnectionQueue(long key, TimestampResolution resolution)
         {
+            _resolution = resolution;
             Key = key;
         }
 
@@ -28,7 +30,7 @@ namespace Fluxzy.Interop.Pcap
 
             _subscribed = true;
 
-            return _writer = new ConnectionQueueWriter(Key, _captureChannel.Reader, outFileName);
+            return _writer = new ConnectionQueueWriter(Key, _captureChannel.Reader, outFileName, _resolution);
         }
 
         public bool Post(RawCapture rawCapture)
