@@ -1,66 +1,115 @@
 ﻿// Copyright © 2023 Haga RAKOTOHARIVELO
 
+using System.Buffers;
 using SharpPcap;
 using System.Runtime.InteropServices;
 using SharpPcap.LibPcap;
-using YamlDotNet.Core.Tokens;
-using System.Buffers.Binary;
 
 namespace Fluxzy.Interop.Pcap
 {
-    internal class CustomCaptureWriter : IDisposable
+    internal class CustomCaptureWriter : IDisposable, IConnectionSubscription
     {
-        private readonly string _outFile;
-        private readonly TimestampResolution _resolution;
+        private readonly object _locker = new object();
+        
         private readonly bool _isOsx;
         private readonly int _headerLength;
-        private readonly decimal _unit;
-        private readonly FileStream _fileStream;
         private readonly bool _isShortTimeVal;
+        
+        private  Stream _waitStream;
+        private  byte[]? _waitBuffer;
 
-        public CustomCaptureWriter(string outFile, TimestampResolution resolution)
+        public CustomCaptureWriter(long key)
         {
-            _outFile = outFile;
-            _resolution = resolution;
+            Key = key;
             _isOsx = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
             _isShortTimeVal = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             _headerLength = GetPreHeaderHeaderLength() + sizeof(long);
-            _unit = _resolution == TimestampResolution.Nanosecond ? 1e9M : 1e6M;
-            _fileStream = File.Open(_outFile, FileMode.Create, FileAccess.Write, FileShare.Read);
-            _fileStream.Write(PcapFileHeaderBuilder.Buffer);
+
+            // TODO put _waitBuffer length into config file / env variable
+            
+            _waitBuffer = ArrayPool<byte>.Shared.Rent(65536); 
+            _waitStream = new MemoryStream(_waitBuffer);
         }
 
-        public void Write(RawCapture rawCapture)
+        public bool Registered => _waitStream is FileStream; 
+
+        public bool Faulted { get; private set; }
+
+        public void Flush()
         {
-            var data = rawCapture.Data;
+            _waitStream.Flush();
+        }
+
+        public void Register(string outFileName)
+        {
+            if (_waitBuffer == null)
+                throw new InvalidOperationException("Already registered!"); 
             
-            var timeValMicroseconds =  rawCapture.Timeval.MicroSeconds; 
-            var timeValSeconds =  rawCapture.Timeval.Seconds;
-            
+            var fileStream = File.Open(outFileName, FileMode.Create, FileAccess.Write, FileShare.Read);
+            fileStream.Write(PcapFileHeaderBuilder.Buffer);
+
+            lock (_locker) {
+                
+                _waitStream.Seek(0, SeekOrigin.Begin);
+                fileStream.Write(_waitBuffer, 0, (int) _waitStream.Position); // We copy content to buffer 
+
+                ArrayPool<byte>.Shared.Return(_waitBuffer);
+                _waitBuffer = null; 
+                
+                _waitStream = fileStream;
+            }
+        }
+        
+
+        public void Write(ReadOnlySpan<byte> data, PosixTimeval timeVal)
+        {
+            try {
+                
+                // We are dumping on file so no need to lock or whatsoever
+                if (_waitStream is FileStream fileStream)
+                {
+                    InternalWrite(data, timeVal, fileStream);
+                    return;
+                }
+
+
+                // Check for buffer overflow here 
+                // waitstream need to be protected 
+                lock (_locker)
+                    InternalWrite(data, timeVal, _waitStream);
+            }
+            catch {
+                Faulted = true;
+
+                throw; 
+            }
+        }
+
+        private void InternalWrite(ReadOnlySpan<byte> data, PosixTimeval timeVal, Stream destination)
+        {
+            var timeValMicroseconds = timeVal.MicroSeconds;
+            var timeValSeconds = timeVal.Seconds;
+
             // Building header 
 
             Span<byte> headerBuffer = stackalloc byte[_headerLength];
-            Span<byte> original = headerBuffer; 
-            
+            Span<byte> original = headerBuffer;
 
-            if (_isShortTimeVal)
-            {
+
+            if (_isShortTimeVal) {
                 BitConverter.TryWriteBytes(headerBuffer, (int) timeValSeconds);
-                headerBuffer = headerBuffer.Slice(4); 
+                headerBuffer = headerBuffer.Slice(4);
                 BitConverter.TryWriteBytes(headerBuffer, (uint) timeValMicroseconds);
                 headerBuffer = headerBuffer.Slice(4);
             }
-            else
-            {
-                if (_isOsx)
-                {
+            else {
+                if (_isOsx) {
                     BitConverter.TryWriteBytes(headerBuffer, (long) timeValSeconds);
                     headerBuffer = headerBuffer.Slice(8);
-                    BitConverter.TryWriteBytes(headerBuffer, (uint)timeValMicroseconds);
+                    BitConverter.TryWriteBytes(headerBuffer, (uint) timeValMicroseconds);
                     headerBuffer = headerBuffer.Slice(4);
                 }
-                else
-                {
+                else {
                     BitConverter.TryWriteBytes(headerBuffer, (long) timeValSeconds);
                     headerBuffer = headerBuffer.Slice(8);
                     BitConverter.TryWriteBytes(headerBuffer, (ulong) timeValMicroseconds);
@@ -70,13 +119,14 @@ namespace Fluxzy.Interop.Pcap
 
             BitConverter.TryWriteBytes(headerBuffer, (uint) data.Length);
             headerBuffer = headerBuffer.Slice(4);
-            
+
             BitConverter.TryWriteBytes(headerBuffer, (uint) data.Length);
 
-            _fileStream.Write(original);
-            _fileStream.Write(data);
+         
+            destination.Write(original);
+            destination.Write(data);
         }
-
+        
         private int GetPreHeaderHeaderLength()
         {
             if (_isShortTimeVal)
@@ -87,17 +137,29 @@ namespace Fluxzy.Interop.Pcap
 
             return 16; 
         }
-        
-
-        private void WriteHeader()
-        {
-
-        }
 
         public void Dispose()
         {
-            _fileStream.Dispose();
+
+            lock (_locker)
+            {
+                if (_waitBuffer != null) {
+                    ArrayPool<byte>.Shared.Return(_waitBuffer);
+                    _waitBuffer = null;
+                }
+                
+                _waitStream?.Dispose();
+
+            }
         }
+
+        public ValueTask DisposeAsync()
+        {
+            Dispose();
+            return default;
+        }
+
+        public long Key { get; }
     }
 
 
