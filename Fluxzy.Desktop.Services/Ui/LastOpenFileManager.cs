@@ -63,7 +63,7 @@ namespace Fluxzy.Desktop.Services.Ui
         }
 
     }
-    
+
 
     [Exportable]
     public class LastOpenFileState

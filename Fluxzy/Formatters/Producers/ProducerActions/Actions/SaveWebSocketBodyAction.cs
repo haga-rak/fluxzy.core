@@ -22,8 +22,7 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
             var archiverReader = await _archiveReaderProvider.Get();
 
             if (archiverReader == null)
-                return false; 
-
+                return false;
 
             if (direction == WsMessageDirection.Sent) {
                 using var stream =

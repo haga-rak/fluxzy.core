@@ -1,5 +1,6 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Readers;
@@ -39,6 +40,14 @@ namespace Fluxzy.Desktop.Ui.Controllers
             [FromServices] SaveRawCaptureAction saveRawCaptureAction, [FromBody] SaveFileViewModel body)
         {
             return await saveRawCaptureAction.Do(connectionId, body.FileName);
+        }
+        
+        [HttpPost("{connectionId}/capture/open")]
+        public async Task<ActionResult<bool>> OpenCapture(int connectionId,
+            [FromServices] FileExecutionManager fileExecutionManager)
+        {
+            var archiveReader = await _archiveReaderObservable.FirstAsync();
+            return await fileExecutionManager.OpenPcap(connectionId, archiveReader); 
         }
     }
 }

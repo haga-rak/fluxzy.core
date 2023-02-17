@@ -5,23 +5,43 @@
             <a class="btn" [class]="{'btn-primary' : tab === context.currentTab,
             'btn-gray-900' : tab !== context.currentTab
               }"
-                (click)="context.currentTab = tab"
-                href="javascript:;">
+               (click)="context.currentTab = tab"
+               href="javascript:;">
                 {{tab}}
             </a>&nbsp;
         </ng-container>
     </div>
 
-    <div *ngIf="context.currentTab === 'Content'" echange-viewer [exchange]="exchange" style="height : calc(100% - 52px)"></div>
-    <div *ngIf="context.currentTab === 'Connection'" echange-connectivity [exchange]="exchange"  [connectionId]="exchange.connectionId" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Content'" echange-viewer [exchange]="exchange"
+         style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Connection'" echange-connectivity [exchange]="exchange"
+         [connectionId]="exchange.connectionId" style="height : calc(100% - 52px)"></div>
     <div *ngIf="context.currentTab === 'Performance'" style="height : calc(100% - 52px)"></div>
-    <div *ngIf="context.currentTab === 'Tools'"  exchange-tools [exchange]="exchange" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Tools'" exchange-tools [exchange]="exchange"
+         style="height : calc(100% - 52px)"></div>
 
 </div>
 <div class="exchange-viewer-main-status">
-    <span class="float-end">
-        <a href="javascript:;" class="btn btn-secondary" (click)="tag()">Tag <span *ngIf="exchange.tags.length">({{ exchange.tags.length }})</span></a>&nbsp;
-        <a href="javascript:;" class="btn btn-secondary" (click)="comment()">Comment  <span *ngIf="exchange.comment">(1)</span></a>&nbsp;
-        <button href="javascript:;" class="btn btn-secondary" (click)="downloadRawCapture()" [disabled]="!hasRawCapture" >Download connection dump</button>
+
+    <div class="dropdown" dropdown [dropup]="true">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
+                aria-expanded="false" dropdownToggle>
+            Raw network capture
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" *dropdownMenu>
+            <li><a class="dropdown-item" href="javascript:;" (click)="downloadRawCapture()">Save to file (.pcap)</a></li>
+            <li><a class="dropdown-item" href="javascript:;" (click)="openRawCapture()">Open in default viewer</a></li>
+        </ul>
+
+        <span class="float-end" >
+        <a href="javascript:;" class="btn btn-secondary" (click)="tag()">Tag <span
+            *ngIf="exchange.tags.length">({{ exchange.tags.length }})</span></a>&nbsp;
+        <a href="javascript:;" class="btn btn-secondary" (click)="comment()">Comment  <span
+            *ngIf="exchange.comment">(1)</span></a>&nbsp;
+
     </span>
+
+    </div>
+
+
 </div>
