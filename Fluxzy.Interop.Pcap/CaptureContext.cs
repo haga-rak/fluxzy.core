@@ -145,11 +145,11 @@ namespace Fluxzy.Interop.Pcap
             }
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             if (_disposed)
             {
-                return;
+                return default;
             }
 
             _disposed = true;
@@ -158,6 +158,8 @@ namespace Fluxzy.Interop.Pcap
 
             _captureDevice.Dispose();
             _packetQueue.Dispose();
+
+            return default; 
         }
     }
 }
