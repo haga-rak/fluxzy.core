@@ -373,6 +373,10 @@ export class ApiService {
         }).pipe(take(1)) ;
     }
 
+    public connectionOpenRawCapture(connectionId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/connection/${connectionId}/capture/open`, null).pipe(take(1)) ;
+    }
+
     public actionLongDescription(typeKind : string) : Observable<DescriptionInfo>{
             return this.httpClient.get<DescriptionInfo>(`api/action/description/${typeKind}`).pipe(take(1)) ;
     }
