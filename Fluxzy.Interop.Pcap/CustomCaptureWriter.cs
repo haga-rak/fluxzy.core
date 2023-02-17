@@ -172,7 +172,7 @@ namespace Fluxzy.Interop.Pcap
         static PcapFileHeaderBuilder()
         {
             var tempFile = Environment.GetEnvironmentVariable("FLUXZY_BASE_DIR")
-                           ?? "%appdata%/fluxzy/pcap/header";
+                           ?? Environment.ExpandEnvironmentVariables("%appdata%/fluxzy/pcap/header");
 
             Directory.CreateDirectory(tempFile);
 
