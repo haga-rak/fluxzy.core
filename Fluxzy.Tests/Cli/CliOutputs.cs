@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
@@ -128,7 +127,6 @@ namespace Fluxzy.Tests.Cli
                         throw new Exception($"{directoryName} found", ex);
                     }
                 }
-                    
 
                 if (withSimpleRule)
                 {
@@ -151,51 +149,6 @@ namespace Fluxzy.Tests.Cli
         }
 
 
-
-       // [Fact]
-        public async Task RunSingleTestPcap()
-        {
-            // Arrange 
-            var protocol = "plainhttp11";
-            var withPcap = true;
-            var outputDirectory = true;
-            var withSimpleRule = false;
-
-            var rootDir = "d:\\wc";
-            
-            var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}";
-            var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}.fxzy";
-
-            var commandLine = "start -l 127.0.0.1/0";
-
-            commandLine += outputDirectory ? $" -d {directoryName}" : $" -o {fileName}";
-            commandLine += " -c";
-            
-            var commandLineHost = new FluxzyCommandLineHost(commandLine);
-            var requestBodyLength = 23632;
-            var bodyLength = 0L;
-
-            await using var fluxzyInstance = await commandLineHost.Run();
-
-            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
-
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post,
-                $"{TestConstants.GetHost(protocol)}/global-health-check");
-
-            requestMessage.Content = new StringContent(new string('z', 1560), Encoding.UTF8, "text/plain");
-            requestMessage.Headers.Add("X-Test-Header-256", "That value");
-
-            // Act 
-            using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
-
-            bodyLength = response.Content.Headers.ContentLength ?? -1;
-
-            var res = await response.Content.ReadAsStringAsync();
-
-           // using var response2 = await proxiedHttpClient.Client.SendAsync(requestMessage2);
-
-           //Console.WriteLine("yo");
-        }
 
         public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt
         {

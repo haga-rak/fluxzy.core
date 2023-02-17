@@ -21,8 +21,8 @@
                 <strong>Note: </strong> In order to use this curl command, you need to
             download the file <a (click)="saveCurlPayload(curlResult.fileName)" class="text-white" href="javascript:;">{{ curlResult.fileName }}</a> to the working directory.
         </div>
-        <pre class="viewer-textarea" *ngIf="!passThroughProxy" style="width: 100%; height: 100%" readonly>curl {{ curlResult.flatCommandLineArgs }}</pre>
-        <pre class="viewer-textarea" *ngIf="passThroughProxy" style="width: 100%; height: 100%" readonly>curl {{ curlResult.flatCommandLineWithProxyArgs }}</pre>
+        <pre class="viewer-textarea short-pre" *ngIf="!passThroughProxy" style="width: 100%; height: 100%" readonly>curl {{ curlResult.flatCommandLineArgs }}</pre>
+        <pre class="viewer-textarea short-pre" *ngIf="passThroughProxy" style="width: 100%; height: 100%" readonly>curl {{ curlResult.flatCommandLineWithProxyArgs }}</pre>
     </div>
 
 </div>
