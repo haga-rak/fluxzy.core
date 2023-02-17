@@ -127,7 +127,6 @@ namespace Fluxzy.Tests.Cli
                         throw new Exception($"{directoryName} found", ex);
                     }
                 }
-                    
 
                 if (withSimpleRule)
                 {

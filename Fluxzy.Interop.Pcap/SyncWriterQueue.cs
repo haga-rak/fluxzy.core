@@ -24,6 +24,13 @@ namespace Fluxzy.Interop.Pcap
             return _writers.TryRemove(key, out writer);
         }
 
+        public void FlushAll()
+        {
+            foreach (var writer in _writers.Values)
+            {
+                writer.Flush();
+            }
+        }
 
         public void Dispose()
         {

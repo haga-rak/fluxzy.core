@@ -75,7 +75,8 @@ namespace Fluxzy.Interop.Pcap
 
                 await _captureContext.Unsubscribe(disposable);
 
-                // 
+                // We should wait few instant before disposing the writer 
+                
                 await disposable.DisposeAsync();
             }
         }

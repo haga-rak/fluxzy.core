@@ -9,7 +9,7 @@ namespace Fluxzy.Interop.Pcap
 {
     internal class CustomCaptureWriter : IDisposable, IConnectionSubscription
     {
-        private readonly object _locker = new object();
+        private readonly object _locker = new();
         
         private readonly bool _isOsx;
         private readonly int _headerLength;
@@ -27,17 +27,16 @@ namespace Fluxzy.Interop.Pcap
 
             // TODO put _waitBuffer length into config file / env variable
             
-            _waitBuffer = ArrayPool<byte>.Shared.Rent(65536); 
+            _waitBuffer = ArrayPool<byte>.Shared.Rent(8 * 1024); 
             _waitStream = new MemoryStream(_waitBuffer);
         }
-
-        public bool Registered => _waitStream is FileStream; 
 
         public bool Faulted { get; private set; }
 
         public void Flush()
         {
-            _waitStream.Flush();
+            if (_waitStream is FileStream fileStream)
+                _waitStream.Flush();
         }
 
         public void Register(string outFileName)
@@ -46,6 +45,7 @@ namespace Fluxzy.Interop.Pcap
                 throw new InvalidOperationException("Already registered!"); 
             
             var fileStream = File.Open(outFileName, FileMode.Create, FileAccess.Write, FileShare.Read);
+        
             fileStream.Write(PcapFileHeaderBuilder.Buffer);
 
             lock (_locker) {
@@ -57,11 +57,13 @@ namespace Fluxzy.Interop.Pcap
                 _waitStream = fileStream;
             }
         }
-        
 
         public void Write(ReadOnlySpan<byte> data, PosixTimeval timeVal)
         {
             try {
+
+                if (Faulted)
+                    return; 
                 
                 // We are dumping on file so no need to lock or whatsoever
                 if (_waitStream is FileStream fileStream)
@@ -69,8 +71,7 @@ namespace Fluxzy.Interop.Pcap
                     InternalWrite(data, timeVal, fileStream);
                     return;
                 }
-
-
+                
                 // Check for buffer overflow here 
                 // waitstream need to be protected 
                 lock (_locker)
@@ -78,6 +79,9 @@ namespace Fluxzy.Interop.Pcap
             }
             catch {
                 Faulted = true;
+
+                // Free the memory when disposed
+                Dispose();
 
                 throw; 
             }
