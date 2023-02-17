@@ -21,7 +21,7 @@ namespace Fluxzy.Tests.Cli
             var outputDirectory = true;
             var withSimpleRule = false;
 
-            var rootDir = "d:\\wc";
+            var rootDir = nameof(RunSingleTestPcap);
 
             var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}";
             var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}.fxzy";
