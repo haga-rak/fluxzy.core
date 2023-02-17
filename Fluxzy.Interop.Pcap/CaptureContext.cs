@@ -1,7 +1,7 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
+using System.Collections.Concurrent;
 using System.Net;
-using System.Net.NetworkInformation;
 using Fluxzy.Interop.Pcap.FastParsing;
 using PacketDotNet;
 using SharpPcap;
@@ -14,9 +14,11 @@ namespace Fluxzy.Interop.Pcap
         private readonly PcapDevice _captureDevice;
 
         private bool _halted;
-        private readonly PhysicalAddress _physicalLocalAddress;
-        private PacketQueue _packetQueue;
+        private SyncWriterQueue _packetQueue;
         private bool _disposed;
+        private readonly long _physicalAddressLong;
+        
+        private readonly ConcurrentDictionary<long, object?> _knownAuthorities = new();
 
         public CaptureContext(IPAddress?  localAddress = null)
         {
@@ -33,34 +35,40 @@ namespace Fluxzy.Interop.Pcap
                                               .ThenByDescending(d => d.Interface.GatewayAddresses.Any(g => !g.IsIPv6LinkLocal))
                                               .First();
             
-            _physicalLocalAddress = _captureDevice.MacAddress;
-            
+            _physicalAddressLong = NetUtility.MacToLong(_captureDevice.MacAddress.GetAddressBytes());
+
             Start();
         }
 
         public void Include(IPAddress remoteAddress, int remotePort)
         {
-            _packetQueue.Include(remoteAddress, remotePort);
+            _knownAuthorities.TryAdd(PacketKeyBuilder.GetAuthorityKey(remoteAddress, remotePort), null);
         }
 
-        public IConnectionSubscription Subscribe(string outFileName, IPAddress remoteAddress, int remotePort, int localPort)
+        public IConnectionSubscription Subscribe(string outFileName, 
+            IPAddress remoteAddress, int remotePort, int localPort)
         {
-            return _packetQueue.Subscribe(outFileName, remoteAddress, remotePort, localPort);
+            var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
+            
+            var writer = _packetQueue.GetOrAdd(connectionKey);
+            writer.Register(outFileName);
+
+            return writer;
         } 
 
         public ValueTask Unsubscribe(IConnectionSubscription subscription)
         {
-            return _packetQueue.Unsubscribe(subscription);
+            _packetQueue.TryRemove(subscription.Key, out _);
+            return default; 
         } 
 
         private void Start()
         {
-            _captureDevice.Open();
-            _packetQueue = new PacketQueue(_captureDevice.TimestampResolution);
-            _captureDevice.Filter = $"tcp";
             _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
+            _captureDevice.Open();
+            _packetQueue = new SyncWriterQueue();
+            _captureDevice.Filter = $"tcp";
             _captureDevice.StartCapture();
-            
         }
 
         public void Stop()
@@ -70,19 +78,64 @@ namespace Fluxzy.Interop.Pcap
 
             _halted = true;
 
-            _captureDevice.OnPacketArrival -= OnCaptureDeviceOnPacketArrival;
-
             _captureDevice.StopCapture();
+            _captureDevice.OnPacketArrival -= OnCaptureDeviceOnPacketArrival;
         }
 
         private void OnCaptureDeviceOnPacketArrival(object sender, PacketCapture capture)
         {
-            var rawPacket = capture.GetPacket();
+            var ethernetPacketInfo = new EthernetPacketInfo();
             
-            var ethernetPacket = (EthernetPacket) rawPacket.GetPacket();
-            
+            var indexedPackedData = capture.Data;
 
-            _packetQueue.Enqueue(rawPacket, ethernetPacket, _physicalLocalAddress);
+            if (!RawPacketParser.TryParseEthernet(ref ethernetPacketInfo, indexedPackedData, out var ethernetHeaderLength))
+                return;  // Invalid Ethernet packet
+            
+            if (ethernetPacketInfo.DestinationMac != _physicalAddressLong &&
+                ethernetPacketInfo.SourceMac != _physicalAddressLong)
+                return; // Unknown mac address or not Ethernet II, we don't handle this now
+
+            if (!ethernetPacketInfo.IsIPv4 && !ethernetPacketInfo.IsIPv6) 
+                return; // We consider only IP packet 
+
+            indexedPackedData = indexedPackedData.Slice(ethernetHeaderLength);
+
+            var ipPacketInfo = new IpPacketInfo();
+
+            if (!RawPacketParser.TryParseIp(ref ipPacketInfo, indexedPackedData))
+                return;  // Invalid IP packet here 
+
+            if (!ipPacketInfo.IsTcp)
+                return; // TCP packet only, update need here for H3
+            
+            indexedPackedData = indexedPackedData.Slice(ipPacketInfo.HeaderLength);
+
+            var tcpPacketInfo = new TcpPacketInfo(); 
+
+            if (!RawPacketParser.TryParseTcp(ref tcpPacketInfo, indexedPackedData))
+                return;  // Not a valid TCP packet
+
+            // This should be true 
+            
+            var consumed = indexedPackedData.Length == ipPacketInfo.PayloadLength;
+            var sentPacket = ethernetPacketInfo.SourceMac == _physicalAddressLong;
+
+            
+            var remoteAddr = sentPacket ? ipPacketInfo.DestinationIp : ipPacketInfo.SourceIp;
+            var remotePort = sentPacket ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
+            var localPort = !sentPacket ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
+
+
+            var authorityKey = PacketKeyBuilder.GetAuthorityKey(remoteAddr, remotePort);
+
+            // Check if included authority 
+            if (!_knownAuthorities.ContainsKey(authorityKey))
+                return; // No one registered for this 
+
+            var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddr);
+            var writer = _packetQueue.GetOrAdd(connectionKey);
+
+            writer.Write(capture.Data, capture.Header.Timeval);
         }
 
         public async ValueTask DisposeAsync()
@@ -97,7 +150,7 @@ namespace Fluxzy.Interop.Pcap
             Stop();
 
             _captureDevice.Dispose();
-            await _packetQueue.DisposeAsync();
+            _packetQueue.Dispose();
         }
     }
 }
