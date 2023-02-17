@@ -32,7 +32,7 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
                 if (stream == null)
                     return false;
 
-                using var outStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var outStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 await stream.CopyToAsync(outStream);
                 return true; 

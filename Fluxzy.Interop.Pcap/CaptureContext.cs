@@ -133,7 +133,16 @@ namespace Fluxzy.Interop.Pcap
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddr);
             var writer = _packetQueue.GetOrAdd(connectionKey);
 
-            writer.Write(capture.Data, capture.Header.Timeval);
+            if (writer.Faulted)
+                return;
+
+            try {
+                writer.Write(capture.Data, capture.Header.Timeval);
+            }
+            catch {
+                // We ignore any write error here to not break the capture
+
+            }
         }
 
         public async ValueTask DisposeAsync()

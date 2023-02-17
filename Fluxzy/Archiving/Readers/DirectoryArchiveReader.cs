@@ -85,7 +85,7 @@ namespace Fluxzy.Readers
             if (!File.Exists(capturePath))
                 return null;
 
-            return File.Open(capturePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return File.Open(capturePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         public Stream? GetRequestBody(int exchangeId)
@@ -95,7 +95,7 @@ namespace Fluxzy.Readers
             if (!File.Exists(requestBodyPath))
                 return null;
 
-            return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         public long GetRequestBodyLength(int exchangeId)
@@ -128,7 +128,7 @@ namespace Fluxzy.Readers
             if (!File.Exists(requestBodyPath))
                 return null;
 
-            return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         public Stream? GetResponseWebsocketContent(int exchangeId, int messageId)
@@ -139,7 +139,7 @@ namespace Fluxzy.Readers
             if (!File.Exists(responseBodyPath))
                 return null;
 
-            return File.Open(responseBodyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return File.Open(responseBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         public bool HasRequestBody(int exchangeId)
@@ -156,7 +156,7 @@ namespace Fluxzy.Readers
             if (!File.Exists(requestContentPath))
                 return null;
 
-            return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         public bool HasResponseBody(int exchangeId)
