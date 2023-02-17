@@ -31,6 +31,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<ActiveRuleManager>();
             collection.AddSingleton<FileDynamicStatsManager>();
             collection.AddSingleton<LastOpenFileManager>();
+            
 
             collection.AddSingleton
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
@@ -85,6 +86,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddScoped<SystemService>();
             collection.AddScoped<CurlRequestConverter>();
             collection.AddSingleton<CurlExportFolderManagement>(_ => new CurlExportFolderManagement());
+            collection.AddScoped<FileExecutionManager>();
 
             collection.AddTransient<FxzyDirectoryPackager>();
 

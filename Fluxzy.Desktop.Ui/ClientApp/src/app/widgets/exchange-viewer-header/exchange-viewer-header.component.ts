@@ -12,7 +12,7 @@ import {SystemCallService} from "../../core/services/system-call.service";
     styleUrls: ['./exchange-viewer-header.component.scss']
 })
 export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
-    public tabs: string [] = ['Content', 'Connection', 'Tools', 'Performance', 'MetaInformation'];
+    public tabs: string [] = ['Content', 'Connection',  'Metrics', 'Tools','MetaInformation'];
     public currentTab: string = 'Content';
     public hasRawCapture : boolean ;
 
@@ -69,6 +69,15 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
                 filter(t => !!t),
                 switchMap(t => this.apiService.connectionGetRawCapture(this.exchange.connectionId, t)),
                 tap(_ => this.statusBarService.addMessage("Raw capture downloaded"))
+            ).subscribe();
+    }
+
+    public openRawCapture() : void {
+        this.apiService.connectionOpenRawCapture(this.exchange.connectionId)
+            .pipe(
+                take(1),
+                filter(t =>  !t),
+                tap(_ => this.statusBarService.addMessage("Raw capture opening failed"))
             ).subscribe();
     }
 
