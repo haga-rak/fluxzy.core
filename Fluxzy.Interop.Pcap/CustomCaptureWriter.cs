@@ -49,10 +49,8 @@ namespace Fluxzy.Interop.Pcap
             fileStream.Write(PcapFileHeaderBuilder.Buffer);
 
             lock (_locker) {
-                
-                _waitStream.Seek(0, SeekOrigin.Begin);
                 fileStream.Write(_waitBuffer, 0, (int) _waitStream.Position); // We copy content to buffer 
-
+                
                 ArrayPool<byte>.Shared.Return(_waitBuffer);
                 _waitBuffer = null; 
                 

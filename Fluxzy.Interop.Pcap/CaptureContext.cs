@@ -3,7 +3,6 @@
 using System.Collections.Concurrent;
 using System.Net;
 using Fluxzy.Interop.Pcap.FastParsing;
-using PacketDotNet;
 using SharpPcap;
 using SharpPcap.LibPcap;
 
@@ -65,7 +64,8 @@ namespace Fluxzy.Interop.Pcap
         private void Start()
         {
             _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
-            _captureDevice.Open();
+            _captureDevice.Open(DeviceModes.MaxResponsiveness);
+            //_captureDevice.Open();
             _packetQueue = new SyncWriterQueue();
             _captureDevice.Filter = $"tcp";
             _captureDevice.StartCapture();
@@ -119,12 +119,10 @@ namespace Fluxzy.Interop.Pcap
             
             var consumed = indexedPackedData.Length == ipPacketInfo.PayloadLength;
             var sentPacket = ethernetPacketInfo.SourceMac == _physicalAddressLong;
-
             
             var remoteAddr = sentPacket ? ipPacketInfo.DestinationIp : ipPacketInfo.SourceIp;
             var remotePort = sentPacket ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
             var localPort = !sentPacket ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
-
 
             var authorityKey = PacketKeyBuilder.GetAuthorityKey(remoteAddr, remotePort);
 
