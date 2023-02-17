@@ -22,8 +22,7 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
             var archiverReader = await _archiveReaderProvider.Get();
 
             if (archiverReader == null)
-                return false; 
-
+                return false;
 
             if (direction == WsMessageDirection.Sent) {
                 using var stream =
@@ -32,7 +31,7 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
                 if (stream == null)
                     return false;
 
-                using var outStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var outStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 await stream.CopyToAsync(outStream);
                 return true; 
