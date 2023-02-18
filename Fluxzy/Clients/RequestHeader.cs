@@ -38,7 +38,14 @@ namespace Fluxzy.Clients
 
         public string GetFullUrl()
         {
-            return $"{Scheme}://{Authority}{Path}";
+            var stringPath = Path.ToString();
+
+            if (Uri.TryCreate(Path.ToString(), UriKind.Absolute, out _))
+            {
+                return stringPath;
+            }
+
+            return $"{Scheme}://{Authority}{stringPath}";
         }
 
         protected override int WriteHeaderLine(Span<byte> buffer)
