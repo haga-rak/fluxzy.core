@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Readers;
@@ -52,7 +53,7 @@ namespace Fluxzy.Tests
                         "127.0.0.1", fluxzyInstance.ListenPort));
 
                     var curlExecutionSuccess = await CurlUtility.RunCurl(
-                        commandResult.FlatCommandLineWithProxyArgs,
+                        commandResult.GetProcessCompatibleArgs(),
                         folderManagement.TemporaryPath);
                     
                     Assert.True(curlExecutionSuccess);

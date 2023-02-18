@@ -13,7 +13,9 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
 
     @Input() public exchange: ExchangeInfo | null;
     public curlResult: CurlCommandResult| null;
-    public passThroughProxy = true;
+
+    public index : number = 1 ;
+    public values : string [] = ['','','',''] ;
 
     constructor(private apiService: ApiService, public cd : ChangeDetectorRef, private systemCallService: SystemCallService) {
 
@@ -27,16 +29,48 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
         this.refresh();
     }
 
+    public hasFlag(flag : number) : boolean {
+        return (this.index & flag) > 0;
+    }
+
+    public changeProxy() {
+        if (this.index & 1) {
+            this.index &= ~(1);
+        }
+        else{
+            this.index |= 1;
+        }
+
+        this.cd.detectChanges();
+    }
+
+    public changeEnvironment() {
+        if (this.index & 2) {
+            this.index &= ~(2);
+        }
+        else{
+            this.index |= 2;
+        }
+
+        this.cd.detectChanges();
+    }
+
     private refresh() {
         this.apiService.exchangeGetCurlCommandResult(this.exchange.id)
             .pipe(
                 tap(t => this.curlResult = t),
+                tap(t => {
+                    this.values[0] = this.curlResult.flatCmdArgs
+                    this.values[1] = this.curlResult.flatCmdArgsWithProxy
+                    this.values[2] = this.curlResult.flatBashArgs
+                    this.values[3] = this.curlResult.flatBashArgsWithProxy
+                }),
                 tap(_ => this.cd.detectChanges())
             ).subscribe();
     }
 
     public copyToClipboard() {
-        this.systemCallService.setClipBoard(this.passThroughProxy ? this.curlResult.flatCommandLineWithProxyArgs : this.curlResult.flatCommandLineArgs);
+        this.systemCallService.setClipBoard(this.values[this.index]) ;
     }
 
     public saveCurlPayload(fileName : string) {

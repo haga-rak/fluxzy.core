@@ -11,8 +11,15 @@
         <div style="margin-bottom: 8px">
             &nbsp;
             <span  class="pull-right">
-                <a class="text-white"  *ngIf="!passThroughProxy" (click)="passThroughProxy = !passThroughProxy; cd.detectChanges()" href="javascript:;">With proxy pass</a>
-                <a class="text-white" *ngIf="passThroughProxy" (click)="passThroughProxy = !passThroughProxy; cd.detectChanges()"  href="javascript:;">Without proxy pass</a>
+                <a class="text-white"  (click)=" changeProxy()" href="javascript:;">
+                    <span *ngIf="hasFlag(1)">With proxy (click to switch)</span>
+                    <span *ngIf="!hasFlag(1)">Without proxy (click to switch)</span>
+                </a>
+                |
+                <a class="text-white"  (click)=" changeEnvironment()" href="javascript:;">
+                    <span *ngIf="!hasFlag(2)">CMD (switch to Bash)</span>
+                    <span *ngIf="hasFlag(2)">Bash (switch to CMD)</span>
+                </a>
                 |
                 <a class="text-white" href="javascript:;" (click)="copyToClipboard()">Copy to clipboard</a>
             </span>
@@ -21,8 +28,7 @@
                 <strong>Note: </strong> In order to use this curl command, you need to
             download the file <a (click)="saveCurlPayload(curlResult.fileName)" class="text-white" href="javascript:;">{{ curlResult.fileName }}</a> to the working directory.
         </div>
-        <pre class="viewer-textarea short-pre" *ngIf="!passThroughProxy" style="width: 100%; height: 100%" readonly>curl {{ curlResult.flatCommandLineArgs }}</pre>
-        <pre class="viewer-textarea short-pre" *ngIf="passThroughProxy" style="width: 100%; height: 100%" readonly>curl {{ curlResult.flatCommandLineWithProxyArgs }}</pre>
+        <pre class="viewer-textarea short-pre"  style="width: 100%; height: 100%" readonly>{{ values[index] }}</pre>
     </div>
 
 </div>
