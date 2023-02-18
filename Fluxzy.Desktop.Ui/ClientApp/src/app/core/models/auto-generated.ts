@@ -192,11 +192,12 @@ export interface DescriptionInfo
 export interface CurlCommandResult
 {
 	id: string;
-	args: string[];
+	args: any[];
 	fileName?: string;
-	flatCommandLineArgs: string;
-	flatCommandLineWithProxyArgs: string;
-	argsWithProxy: string[];
+	flatCmdArgs: string;
+	flatBashArgs: string;
+	flatCmdArgsWithProxy: string;
+	flatBashArgsWithProxy: string;
 }
 export interface TemplateToolBarFilterModel
 {
