@@ -9,9 +9,9 @@ namespace Fluxzy.Utils.Curl
 {
     public class CurlCommandResult
     {
-        private readonly CurlProxyConfiguration? _configuration;
+        private readonly IRunningProxyConfiguration? _configuration;
 
-        public CurlCommandResult(CurlProxyConfiguration? configuration)
+        public CurlCommandResult(IRunningProxyConfiguration? configuration)
         {
             _configuration = configuration;
         }

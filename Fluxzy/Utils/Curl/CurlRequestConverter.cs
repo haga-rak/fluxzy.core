@@ -19,7 +19,7 @@ namespace Fluxzy.Utils.Curl
         public CurlCommandResult BuildCurlRequest(
             IArchiveReader archiveReader, 
             ExchangeInfo exchange,
-            CurlProxyConfiguration? configuration)
+            IRunningProxyConfiguration? configuration)
         {
             var result = new CurlCommandResult(configuration); 
             var fullUrl = exchange.FullUrl;

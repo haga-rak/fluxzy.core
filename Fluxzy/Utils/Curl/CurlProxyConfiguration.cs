@@ -2,7 +2,7 @@
 
 namespace Fluxzy.Utils.Curl
 {
-    public class CurlProxyConfiguration
+    public class CurlProxyConfiguration : IRunningProxyConfiguration
     {
         public CurlProxyConfiguration(string host, int port)
         {
@@ -14,4 +14,5 @@ namespace Fluxzy.Utils.Curl
 
         public int Port { get; }
     }
+    
 }
