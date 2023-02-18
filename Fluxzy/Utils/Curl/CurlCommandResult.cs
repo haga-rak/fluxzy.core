@@ -44,8 +44,7 @@ namespace Fluxzy.Utils.Curl
         {
             return FlatCmdArgsWithProxy
                    .Substring("curl ".Length)
-                   .Replace(" ^\r\n  ", " ")
-                   .Replace("^\\^\"", "\"\"");
+                   .Replace(" ^\r\n  ", " ") ;
         }
 
         private string BuildArgs(bool withProxy, CommandLineVariant variant)
@@ -136,7 +135,7 @@ namespace Fluxzy.Utils.Curl
         public static string Sanitize(this string args, CommandLineVariant variant )
         {
             if (variant == CommandLineVariant.Cmd)
-                return args.Replace("\"", "^\\^\""); 
+                return args.Replace("\"", "\"\""); 
 
             return args.Replace("'", "'\\''"); 
         }
