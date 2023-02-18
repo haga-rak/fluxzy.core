@@ -66,7 +66,7 @@ namespace Fluxzy
                 if (!policy(fileInfo))
                     continue;
 
-                await using var fsInput = fileInfo.OpenRead();
+                await using var fsInput = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite); 
 
                 if (fsInput.Length == 0)
                     continue;
@@ -104,7 +104,7 @@ namespace Fluxzy
                     if (!fileInfo.Exists)
                         continue;
 
-                    await using var fsInput = fileInfo.OpenRead();
+                    await using var fsInput = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                     if (fsInput.Length == 0)
                         continue; 
@@ -115,6 +115,11 @@ namespace Fluxzy
                     {
                         DateTime = fileInfo.LastWriteTime
                     };
+
+                    if (fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase))
+                    {
+                        newEntry.CompressionMethod = CompressionMethod.Stored;
+                    }
 
                     zipStream.PutNextEntry(newEntry);
                     await fsInput.CopyToAsync(zipStream);
