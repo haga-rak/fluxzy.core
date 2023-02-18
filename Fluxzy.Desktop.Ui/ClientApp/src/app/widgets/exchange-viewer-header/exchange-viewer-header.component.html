@@ -21,17 +21,10 @@
          style="height : calc(100% - 52px)"></div>
 
 </div>
-<div class="exchange-viewer-main-status">
+<div class="exchange-viewer-main-status" *ngIf="exchange">
 
-    <div class="dropdown" dropdown [dropup]="true">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
-                aria-expanded="false" dropdownToggle>
-            Raw network capture
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" *dropdownMenu>
-            <li><a class="dropdown-item" href="javascript:;" (click)="downloadRawCapture()">Save to file (.pcap)</a></li>
-            <li><a class="dropdown-item" href="javascript:;" (click)="openRawCapture()">Open in default viewer</a></li>
-        </ul>
+    <div >
+        <span class="lead" >Exchange <strong class="text-white">#{{ exchange.id }}</strong></span>
 
         <span class="float-end" >
         <a href="javascript:;" class="btn btn-secondary" (click)="tag()">Tag <span
