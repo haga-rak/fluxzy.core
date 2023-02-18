@@ -5,35 +5,48 @@
     </div>
 
     <div class="" *ngIf="curlResult" style="width : 100%">
-
         <div>
+            <h4>Copy cURL command</h4>
+            <div style="margin-bottom: 12px;">
+                <div class="alert alert-warning" *ngIf="curlResult.fileName">
+                    <strong class="text-warning">Note </strong> This request contains binary or large payload. In order to use this curl command, you need to
+                    download the file <a (click)="saveCurlPayload(curlResult.fileName)" class="text-white" href="javascript:;">{{ curlResult.fileName }}</a> to the working directory.
+                </div>
 
-            <h4>Export as curl</h4>
+                <div  style=" line-height: 32px">
+                    <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[0])" title="copy to clipboard" href="javascript:;">
+                        <span>cmd</span>
+                    </a>&nbsp;
+                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[2])" title="copy to clipboard"  href="javascript:;">
+                        <span>bash</span>
+                    </a>&nbsp;
+                    <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[1])" title="copy to clipboard"  href="javascript:;">
+                        <span>cmd (with proxy)</span>
+                    </a>&nbsp;
+                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[3])" title="copy to clipboard"  href="javascript:;">
+                        <span>bash (with proxy)</span>
+                    </a>&nbsp;
+                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[2])" title="a postman compatible curl command"  href="javascript:;">
+                        <span>postman</span>
+                    </a>&nbsp;
+                 </div>
+            </div>
         </div>
 
         <div>
-            <div style="margin-bottom: 12px">
-                &nbsp;
-                <span  class="pull-right">
-                <a class="btn btn-gray-800 btn-sm"  (click)=" changeProxy()" href="javascript:;">
-                    <span *ngIf="hasFlag(1)">With proxy (click to switch)</span>
-                    <span *ngIf="!hasFlag(1)">Without proxy (click to switch)</span>
-                </a>
-                &nbsp;
-                <a class="btn btn-gray-800 btn-sm"  (click)=" changeEnvironment()" href="javascript:;">
-                    <span *ngIf="!hasFlag(2)">CMD (switch to Bash)</span>
-                    <span *ngIf="hasFlag(2)">Bash (switch to CMD)</span>
-                </a>
-                &nbsp;
-                <a class="btn btn-gray-800 btn-sm"  href="javascript:;" (click)="copyToClipboard()">Copy to clipboard</a>
-            </span>
+            <h4>Replay request</h4>
+            <div>
+                <div style="margin-bottom: 12px;">
+                    <div  style=" line-height: 32px">
+                        <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[0])" href="javascript:;">
+                            <span>replay request</span>
+                        </a>&nbsp;
+                        <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[0])" href="javascript:;">
+                            <span>edit and replay request</span>
+                        </a>&nbsp;
+                    </div>
+                </div>
             </div>
-            <div class="alert alert-warning" *ngIf="curlResult.fileName">
-                <strong class="text-warning">Note </strong> This request contains binary or large payload. In order to use this curl command, you need to
-                download the file <a (click)="saveCurlPayload(curlResult.fileName)" class="text-white" href="javascript:;">{{ curlResult.fileName }}</a> to the working directory.
-            </div>
-            <textarea readonly="readonly" class="viewer-textarea short-pre"  style="width: 100%; max-height: 250px; height: 250px" readonly>{{ values[index] }}</textarea>
         </div>
-
     </div>
 </div>
