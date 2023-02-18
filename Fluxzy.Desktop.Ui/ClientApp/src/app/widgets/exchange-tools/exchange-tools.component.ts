@@ -69,8 +69,8 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
             ).subscribe();
     }
 
-    public copyToClipboard() {
-        this.systemCallService.setClipBoard(this.values[this.index]) ;
+    public copyToClipboard(text : string) {
+        this.systemCallService.setClipBoard(text ) ;
     }
 
     public saveCurlPayload(fileName : string) {
