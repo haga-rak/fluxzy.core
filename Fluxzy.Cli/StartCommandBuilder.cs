@@ -15,6 +15,7 @@ using Fluxzy.Core;
 using Fluxzy.Extensions;
 using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
+using Fluxzy.NativeOp;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
 
@@ -179,6 +180,7 @@ namespace Fluxzy.Cli
             proxyStartUpSetting.CaptureRawPacket = includeTcpDump;
 
             var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
+            var systemProxyManager = new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
             await using (var tcpConnectionProvider =
                          proxyStartUpSetting.CaptureRawPacket
@@ -194,7 +196,7 @@ namespace Fluxzy.Cli
 
                     if (registerAsSystemProxy)
                     {
-                        var setting = SystemProxyRegistration.Register(endPoints, proxyStartUpSetting);
+                        var setting = systemProxyManager.Register(endPoints, proxyStartUpSetting);
                         invocationContext.Console.Out.WriteLine(
                             $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
                     }
@@ -212,7 +214,7 @@ namespace Fluxzy.Cli
                     {
                         if (registerAsSystemProxy)
                         {
-                            SystemProxyRegistration.UnRegister();
+                            systemProxyManager.UnRegister();
                             invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
                         }
                     }

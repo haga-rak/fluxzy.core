@@ -30,8 +30,6 @@ namespace Fluxzy.Cli
                         .UseHelp()
                         .UseEnvironmentVariableDirective()
                         .UseParseDirective()
-                        //.UseSuggestDirective()
-                        //.RegisterWithDotnetSuggest()
                         .UseTypoCorrections()
                         .UseParseErrorReporting()
                         .CancelOnProcessTermination()

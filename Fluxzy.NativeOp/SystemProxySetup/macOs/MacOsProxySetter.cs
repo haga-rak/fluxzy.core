@@ -1,9 +1,10 @@
-﻿using Fluxzy.Misc;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fluxzy.Core.Proxy;
+using Fluxzy.Misc;
 
-namespace Fluxzy.Core.SystemProxySetup.macOs
+namespace Fluxzy.NativeOp.SystemProxySetup.macOs
 {
     internal class MacOsProxySetter : ISystemProxySetter
     {

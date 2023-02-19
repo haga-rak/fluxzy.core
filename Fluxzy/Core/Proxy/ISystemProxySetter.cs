@@ -1,6 +1,6 @@
-﻿namespace Fluxzy.Core.SystemProxySetup
+﻿namespace Fluxzy.Core.Proxy
 {
-    internal interface ISystemProxySetter
+    public interface ISystemProxySetter
     {
         void ApplySetting(SystemProxySetting value);
 
