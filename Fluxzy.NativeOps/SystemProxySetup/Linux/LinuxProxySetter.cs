@@ -1,6 +1,6 @@
 ﻿using Fluxzy.Core.Proxy;
 
-namespace Fluxzy.NativeOp.SystemProxySetup.Linux
+namespace Fluxzy.NativeOps.SystemProxySetup.Linux
 {
     internal class LinuxProxySetter : ISystemProxySetter
     {

@@ -8,7 +8,7 @@ using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
-using Fluxzy.NativeOp;
+using Fluxzy.NativeOps;
 using Fluxzy.Readers;
 using Fluxzy.Utils;
 using Fluxzy.Utils.Curl;

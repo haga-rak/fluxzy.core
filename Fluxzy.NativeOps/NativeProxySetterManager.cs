@@ -1,11 +1,11 @@
 using System;
 using System.Runtime.InteropServices;
 using Fluxzy.Core.Proxy;
-using Fluxzy.NativeOp.SystemProxySetup.Linux;
-using Fluxzy.NativeOp.SystemProxySetup.macOs;
-using Fluxzy.NativeOp.SystemProxySetup.Win32;
+using Fluxzy.NativeOps.SystemProxySetup.Linux;
+using Fluxzy.NativeOps.SystemProxySetup.macOs;
+using Fluxzy.NativeOps.SystemProxySetup.Win32;
 
-namespace Fluxzy.NativeOp
+namespace Fluxzy.NativeOps
 {
     public class NativeProxySetterManager : ISystemProxySetterManager
     {
