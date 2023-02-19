@@ -40,9 +40,9 @@ namespace Fluxzy.Clients
         {
             var stringPath = Path.ToString();
 
-            if (Uri.TryCreate(Path.ToString(), UriKind.Absolute, out _))
+            if (Uri.TryCreate(Path.ToString(), UriKind.Absolute, out var uri) && uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
-                return stringPath;
+                return stringPath; 
             }
 
             return $"{Scheme}://{Authority}{stringPath}";
