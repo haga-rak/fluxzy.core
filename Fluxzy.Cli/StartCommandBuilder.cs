@@ -15,7 +15,7 @@ using Fluxzy.Core;
 using Fluxzy.Extensions;
 using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
-using Fluxzy.NativeOp;
+using Fluxzy.NativeOps;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
 

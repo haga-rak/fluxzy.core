@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pcap", "Pcap", "{AA4E8234-B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Extensions", "Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fluxzy.NativeOp", "Fluxzy.NativeOp\Fluxzy.NativeOp.csproj", "{8F6BF776-859D-45A4-9CDB-DC9A895E7845}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fluxzy.NativeOps", "Fluxzy.NativeOps\Fluxzy.NativeOps.csproj", "{8F6BF776-859D-45A4-9CDB-DC9A895E7845}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

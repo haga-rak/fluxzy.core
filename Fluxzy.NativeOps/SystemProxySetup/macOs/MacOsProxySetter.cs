@@ -4,7 +4,7 @@ using System.Linq;
 using Fluxzy.Core.Proxy;
 using Fluxzy.Misc;
 
-namespace Fluxzy.NativeOp.SystemProxySetup.macOs
+namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 {
     internal class MacOsProxySetter : ISystemProxySetter
     {

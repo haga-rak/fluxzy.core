@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Fluxzy.Core.Proxy;
 
-namespace Fluxzy.NativeOp.SystemProxySetup.Linux
+namespace Fluxzy.NativeOps.SystemProxySetup.Linux
 {
     /// <summary>
     /// Update system proxy setting by editing HTTPS_PROXY global variable
