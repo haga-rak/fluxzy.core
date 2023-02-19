@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using Fluxzy.Core.Proxy;
 using Fluxzy.NativeOps.SystemProxySetup.Linux;
 using Fluxzy.NativeOps.SystemProxySetup.macOs;
-using Fluxzy.NativeOps.SystemProxySetup.Win32;
+using Fluxzy.NativeOps.SystemProxySetup.Win;
 
 namespace Fluxzy.NativeOps
 {
@@ -23,4 +23,8 @@ namespace Fluxzy.NativeOps
              throw new NotSupportedException("This platform is not supported");
         }
     }
+}
+
+namespace Fluxzy.NativeOp.SystemProxySetup.Win32
+{
 }
