@@ -2,37 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
-using Fluxzy.Core.SystemProxySetup;
-using Fluxzy.Core.SystemProxySetup.Linux;
-using Fluxzy.Core.SystemProxySetup.macOs;
-using Fluxzy.Core.SystemProxySetup.Win32;
+using Fluxzy.Core.Proxy;
 
 namespace Fluxzy.Core
 {
     /// <summary>
     ///     System proxy management is static because related to OS management.
     /// </summary>
-    public static class SystemProxyRegistration
+    public class SystemProxyRegistrationManager
     {
-        private static readonly ISystemProxySetter _systemProxySetter;
-        private static SystemProxySetting? _oldSetting;
-        private static SystemProxySetting? _currentSetting;
-        private static bool _registerDone;
+        private readonly ISystemProxySetter _systemProxySetter;
+        private SystemProxySetting? _oldSetting;
+        private SystemProxySetting? _currentSetting;
+        private bool _registerDone;
 
-        static SystemProxyRegistration()
+        public  SystemProxyRegistrationManager(ISystemProxySetter systemProxySetter)
         {
-            _systemProxySetter = SolveSetter();
+            _systemProxySetter = systemProxySetter;
         }
 
-        public static SystemProxySetting? Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
+        public  SystemProxySetting? Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
         {
             return Register(endPoints.OrderByDescending(t => Equals(t.Address, IPAddress.Loopback)
                                                              || t.Address.Equals(IPAddress.IPv6Loopback)).First(),
                 fluxzySetting.ByPassHost.ToArray());
         }
 
-        public static SystemProxySetting Register(IPEndPoint endPoint, params string[] byPassHosts)
+        public SystemProxySetting Register(IPEndPoint endPoint, params string[] byPassHosts)
         {
             var existingSetting = GetSystemProxySetting();
 
@@ -58,14 +54,14 @@ namespace Fluxzy.Core
             return _currentSetting;
         }
 
-        public static SystemProxySetting GetSystemProxySetting()
+        public SystemProxySetting GetSystemProxySetting()
         {
             var existingSetting = _systemProxySetter.ReadSetting();
 
             return existingSetting;
         }
 
-        public static void UnRegister()
+        public void UnRegister()
         {
             if (_oldSetting != null)
             {
@@ -93,7 +89,7 @@ namespace Fluxzy.Core
             }
         }
 
-        private static IPAddress GetConnectableIpAddr(IPAddress address)
+        private IPAddress GetConnectableIpAddr(IPAddress address)
         {
             if (address == null)
                 return IPAddress.Loopback;
@@ -107,21 +103,7 @@ namespace Fluxzy.Core
             return address;
         }
 
-        private static ISystemProxySetter SolveSetter()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return new WindowsSystemProxySetter();
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return new LinuxProxySetter();
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return new MacOsProxySetter();
-
-            throw new NotImplementedException();
-        }
-
-        private static void ProxyUnregisterOnAppdomainExit()
+        private void ProxyUnregisterOnAppdomainExit()
         {
             AppDomain.CurrentDomain.ProcessExit += delegate { UnRegister(); };
         }

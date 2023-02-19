@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
     <ProjectReference Include="..\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj" />
+    <ProjectReference Include="..\Fluxzy.NativeOp\Fluxzy.NativeOp.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
   </ItemGroup>
 

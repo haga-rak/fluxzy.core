@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Fluxzy.Core.SystemProxySetup
+namespace Fluxzy.Core.Proxy
 {
     public class SystemProxySetting : IEquatable<SystemProxySetting>
     {
@@ -46,6 +46,11 @@ namespace Fluxzy.Core.SystemProxySetup
 
             return Equals((SystemProxySetting)obj);
         }
+        
+        /// <summary>
+        /// This is used to store specif OS related proxy format
+        /// </summary>
+        public string ? RawSetting { get; set; }
 
         public override int GetHashCode()
         {

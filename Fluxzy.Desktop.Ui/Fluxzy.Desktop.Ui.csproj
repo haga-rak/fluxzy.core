@@ -12,6 +12,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	<AssemblyName>fluxzyd</AssemblyName>
 	<Copyright>Copyright 2022 Haga Rakotoharivelo</Copyright>
+    <RtForceTargetFramework>net6.0</RtForceTargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

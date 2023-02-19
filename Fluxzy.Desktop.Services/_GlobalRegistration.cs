@@ -1,4 +1,6 @@
 ﻿using System.Reactive.Linq;
+using Fluxzy.Core;
+using Fluxzy.Core.Proxy;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
@@ -6,6 +8,7 @@ using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
+using Fluxzy.NativeOp;
 using Fluxzy.Readers;
 using Fluxzy.Utils;
 using Fluxzy.Utils.Curl;
@@ -90,6 +93,10 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<CurlExportFolderManagement>(_ => new CurlExportFolderManagement());
             collection.AddScoped<FileExecutionManager>();
             collection.AddScoped<IRunningProxyProvider, RunningProxyProvider>();
+            
+            collection.AddSingleton<ISystemProxySetterManager, NativeProxySetterManager>(); // TODO, replace here with pipe call 
+            collection.AddSingleton<ISystemProxySetter>((i) => i.GetRequiredService<ISystemProxySetterManager>().Get()); 
+            collection.AddSingleton<SystemProxyRegistrationManager>();
 
             collection.AddTransient<FxzyDirectoryPackager>();
 
