@@ -37,8 +37,75 @@ namespace Fluxzy.Misc
 
             return process.ExitCode == 0  ? stringBuilder.ToString() : null;
         }
-    }
 
+        public static async Task<ProcessRunResult> QuickRun(string commandName, string args)
+        {
+            // Run process and return process run result 
+            
+            var processStartInfo = new ProcessStartInfo(commandName, args)
+            {
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            
+            var process = Process.Start(processStartInfo);
+            
+            if (process == null)
+                throw new InvalidOperationException("Unable to start process " + commandName + " " + args);
+            
+            var standardOutputReading =  process.StandardOutput.ReadToEndAsync();
+            var standardErrorReading = process.StandardError.ReadToEndAsync();
+            
+            var standardOutput = await standardOutputReading;
+            var standardError = await standardErrorReading;
+
+            await process.WaitForExitAsync();
+            
+            return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
+        }
+
+        public static Task<ProcessRunResult> QuickRun(string fullCommand)
+        {
+            var commandTab = fullCommand.Split(' ');
+
+            if (commandTab.Length == 1)
+                return QuickRun(fullCommand, string.Empty); 
+            
+            
+            var commandName = fullCommand.Split(' ')[0];
+            var args = fullCommand.Substring(commandName.Length + 1);
+
+            return QuickRun(commandName, args); 
+        }
+
+        public static bool IsCommandAvailable(string commandName)
+        {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = commandName,
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            try {
+
+                process.Start();
+                process.WaitForExit(100);
+            }
+            catch {
+                // ignore further error 
+                return false; 
+            }
+
+            return true; 
+        }
+    }
 
     internal static class ProcessExtensions
     {
@@ -56,5 +123,23 @@ namespace Fluxzy.Misc
 
             return process.HasExited ? Task.CompletedTask : tcs.Task;
         }
+    }
+
+
+    public class ProcessRunResult
+    {
+        public ProcessRunResult(string? standardErrorMessage, string? standardOutputMessage, int? exitCode)
+        {
+            StandardErrorMessage = standardErrorMessage;
+            StandardOutputMessage = standardOutputMessage;
+            ExitCode = exitCode;
+        }
+        
+        public int?  ExitCode { get;  }
+
+        public string ? StandardErrorMessage { get;  }
+        
+        public string ? StandardOutputMessage { get;  }
+        
     }
 }

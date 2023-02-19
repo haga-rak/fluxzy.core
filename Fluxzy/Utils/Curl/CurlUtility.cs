@@ -10,25 +10,6 @@ namespace Fluxzy.Utils.Curl
 {
     public static class CurlUtility
     {
-        public static bool IsCurlInstalled()
-        {
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "curl",
-                    Arguments = "--version",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            process.Start();
-            process.WaitForExit();
-
-            return process.ExitCode == 0;
-        }
-
         public static async Task<bool> RunCurl(string args, string? workDirectory)
         {
             using var process = new Process

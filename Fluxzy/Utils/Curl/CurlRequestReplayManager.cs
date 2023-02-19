@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Haga RAKOTOHARIVELO
 
 using System.Threading.Tasks;
+using Fluxzy.Misc;
 using Fluxzy.Readers;
 
 namespace Fluxzy.Utils.Curl
@@ -24,7 +25,7 @@ namespace Fluxzy.Utils.Curl
 
             var args = curlCommandResult.GetProcessCompatibleArgs();
 
-            if (!CurlUtility.IsCurlInstalled())
+            if (!ProcessUtils.IsCommandAvailable("curl"))
                 return false;
 
             try
