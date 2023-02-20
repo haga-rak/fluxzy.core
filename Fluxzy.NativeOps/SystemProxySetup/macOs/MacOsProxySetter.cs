@@ -46,8 +46,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
                 
             }
 
-
-            return null; 
+            throw new NotImplementedException();
         }
 
         private static bool TryReadProxySetting(

@@ -22,9 +22,9 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Win
                 if (registry == null)
                     throw new InvalidOperationException("Unable to access system registry"); ;
 
-                var proxyEnabled = (int)registry.GetValue("ProxyEnable", 0) == 1;
-                var proxyOverride = (string)registry.GetValue("ProxyOverride", string.Empty);
-                var proxyServer = (string)registry.GetValue("ProxyServer", string.Empty);
+                var proxyEnabled = (int) registry.GetValue("ProxyEnable", 0)! == 1;
+                var proxyOverride = (string) registry.GetValue("ProxyOverride", string.Empty)!;
+                var proxyServer = (string) registry.GetValue("ProxyServer", string.Empty)!;
 
                 var proxyOverrideList = proxyOverride.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
                 var proxyServerTab = proxyServer.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);

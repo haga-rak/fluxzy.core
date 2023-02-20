@@ -5,7 +5,7 @@ using System.CommandLine;
 using System.IO;
 using System.Linq;
 
-namespace Fluxzy.Cli
+namespace Fluxzy.Cli.Commands
 {
     public class PackCommandBuilder
     {

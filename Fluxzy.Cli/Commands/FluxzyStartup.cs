@@ -8,7 +8,7 @@ using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Cli
+namespace Fluxzy.Cli.Commands
 {
     public class FluxzyStartup
     {
@@ -56,24 +56,5 @@ namespace Fluxzy.Cli
                 return 1;
             }
         }
-    }
-
-    public class OutputConsole : IConsole
-    {
-        public OutputConsole(IStandardStreamWriter @out, IStandardStreamWriter error)
-        {
-            Out = @out;
-            Error = error;
-        }
-
-        public IStandardStreamWriter Out { get; }
-
-        public bool IsOutputRedirected => false;
-
-        public IStandardStreamWriter Error { get; }
-
-        public bool IsErrorRedirected => false;
-
-        public bool IsInputRedirected => false;
     }
 }
