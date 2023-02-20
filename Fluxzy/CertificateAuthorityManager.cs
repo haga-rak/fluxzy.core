@@ -4,11 +4,11 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Fluxzy
 {
-    public class CertificateUtility
+    public class CertificateAuthorityManager : ICertificateAuthorityManager
     {
-        internal static readonly string DefaultTempPath;
+        private readonly string DefaultTempPath;
 
-        static CertificateUtility()
+        public CertificateAuthorityManager()
         {
             DefaultTempPath =
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Fluxzy", "Temp");
@@ -21,9 +21,9 @@ namespace Fluxzy
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static void DumpDefaultCertificate(Stream stream)
+        public void DumpDefaultCertificate(Stream stream)
         {
-            FluxzySecurity.DefaultCertificate.ExportToPem(stream);
+            FluxzySecurity.BuiltinCertificate.ExportToPem(stream);
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Fluxzy
         /// </summary>
         /// <param name="certificateSerialNumber"></param>
         /// <returns></returns>
-        public static bool IsCertificateInstalled(string certificateSerialNumber)
+        public bool IsCertificateInstalled(string certificateSerialNumber)
         {
             using var store = new X509Store(StoreName.Root);
 
@@ -41,12 +41,12 @@ namespace Fluxzy
             return certificates.Count > 0;
         }
 
-        public static bool IsDefaultCertificateInstalled()
+        public bool IsDefaultCertificateInstalled()
         {
             return IsCertificateInstalled(FluxzySecurity.DefaultSerialNumber);
         }
 
-        public static bool RemoveCertificate(string serialNumber)
+        public bool RemoveCertificate(string serialNumber)
         {
             using var store = new X509Store(StoreName.Root);
 
@@ -63,7 +63,7 @@ namespace Fluxzy
             return true;
         }
 
-        public static void InstallCertificate(X509Certificate2 certificate)
+        public void InstallCertificate(X509Certificate2 certificate)
         {
             using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
             using var store = new X509Store(StoreName.Root);
@@ -72,12 +72,12 @@ namespace Fluxzy
             store.Add(newCertificate);
         }
 
-        public static void InstallDefaultCertificate()
+        public void InstallDefaultCertificate()
         {
-            InstallCertificate(FluxzySecurity.DefaultCertificate);
+            InstallCertificate(FluxzySecurity.BuiltinCertificate);
         }
 
-        public static void CheckAndInstallCertificate(FluxzySetting startupSetting)
+        public void CheckAndInstallCertificate(FluxzySetting startupSetting)
         {
             var certificate = startupSetting.CaCertificate.GetCertificate();
 
