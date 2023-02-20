@@ -38,7 +38,7 @@ namespace Fluxzy.Misc
             return process.ExitCode == 0  ? stringBuilder.ToString() : null;
         }
 
-        public static async Task<ProcessRunResult> QuickRun(string commandName, string args)
+        public static async Task<ProcessRunResult> QuickRunAsync(string commandName, string args)
         {
             // Run process and return process run result 
             
@@ -65,8 +65,47 @@ namespace Fluxzy.Misc
             
             return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
         }
+        
+        public static ProcessRunResult QuickRun(string commandName, string args)
+        {
+            // Run process and return process run result 
+            
+            var processStartInfo = new ProcessStartInfo(commandName, args)
+            {
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            
+            var process = Process.Start(processStartInfo);
+            
+            if (process == null)
+                throw new InvalidOperationException("Unable to start process " + commandName + " " + args);
+            
+            var standardOutput =  process.StandardOutput.ReadToEnd();
+            var standardError = process.StandardError.ReadToEnd();
 
-        public static Task<ProcessRunResult> QuickRun(string fullCommand)
+            process.WaitForExit();
+            
+            return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
+        }
+
+        public static Task<ProcessRunResult> QuickRunAsync(string fullCommand)
+        {
+            var commandTab = fullCommand.Split(' ');
+
+            if (commandTab.Length == 1)
+                return QuickRunAsync(fullCommand, string.Empty); 
+            
+            
+            var commandName = fullCommand.Split(' ')[0];
+            var args = fullCommand.Substring(commandName.Length + 1);
+
+            return QuickRunAsync(commandName, args); 
+        }
+        
+        public static ProcessRunResult QuickRun(string fullCommand)
         {
             var commandTab = fullCommand.Split(' ');
 

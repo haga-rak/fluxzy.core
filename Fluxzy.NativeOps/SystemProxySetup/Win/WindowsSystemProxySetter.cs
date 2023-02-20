@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.Win

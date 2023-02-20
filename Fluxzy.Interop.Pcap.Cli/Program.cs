@@ -9,6 +9,9 @@ namespace Fluxzy.Interop.Pcap.Cli
     {
         private static async Task Main(string[] args)
         {
+
+            var res = System.Text.Json.JsonSerializer.Deserialize<string>("'hello'"); 
+            
             var loopBack = IPAddress.Loopback;
             var none = IPAddress.None;
             var any = IPAddress.Any;
