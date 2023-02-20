@@ -3,7 +3,7 @@
 using System.CommandLine;
 using System.CommandLine.Binding;
 
-namespace Fluxzy.Cli
+namespace Fluxzy.Cli.Commands
 {
     public class ConsoleBinder : BinderBase<IConsole>
     {

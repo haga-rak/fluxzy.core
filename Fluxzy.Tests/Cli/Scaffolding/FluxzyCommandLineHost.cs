@@ -1,9 +1,10 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright ï¿½ 2022 Haga Rakotoharivelo
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Cli;
+using Fluxzy.Cli.Commands;
 using Xunit.Abstractions;
 
 namespace Fluxzy.Tests.Cli.Scaffolding

@@ -43,7 +43,7 @@ namespace Fluxzy
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider,
-            ICertificateAuthorityManager certificateAuthorityManager,
+            CertificateAuthorityManager certificateAuthorityManager,
             ITcpConnectionProvider? tcpConnectionProvider = null,
             IUserAgentInfoProvider? userAgentProvider = null
         )

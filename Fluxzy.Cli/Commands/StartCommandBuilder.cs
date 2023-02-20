@@ -8,7 +8,6 @@ using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
@@ -19,7 +18,7 @@ using Fluxzy.NativeOps;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
 
-namespace Fluxzy.Cli
+namespace Fluxzy.Cli.Commands
 {
     public class StartCommandBuilder
     {
@@ -187,7 +186,7 @@ namespace Fluxzy.Cli
                        ? new CapturedTcpConnectionProvider()
                        : ITcpConnectionProvider.Default)
             {
-                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, new CertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider))
+                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider))
                 {
                     var endPoints = proxy.Run();
                     

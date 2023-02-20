@@ -5,7 +5,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
 
-namespace Fluxzy.Cli
+namespace Fluxzy.Cli.Commands
 {
     public static class OptionExtensions
     {

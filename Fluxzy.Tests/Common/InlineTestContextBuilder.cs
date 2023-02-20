@@ -27,7 +27,7 @@ namespace Fluxzy.Tests.Common
 
             var proxy = new Proxy(startupSetting,
                 new CertificateProvider(startupSetting,
-                    new FileSystemCertificateCache(startupSetting)), new CertificateAuthorityManager(),
+                    new FileSystemCertificateCache(startupSetting)), new DefaultCertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 
             proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)

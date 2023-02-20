@@ -11,6 +11,6 @@ namespace Fluxzy
 
         public static X509Certificate2 BuiltinCertificate { get;  }
 
-        public static string DefaultSerialNumber => BuiltinCertificate.SerialNumber!;
+        public static string DefaultThumbPrint => BuiltinCertificate.Thumbprint!;
     }
 }

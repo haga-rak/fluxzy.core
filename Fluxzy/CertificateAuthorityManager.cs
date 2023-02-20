@@ -1,27 +1,18 @@
-﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace Fluxzy
 {
-    public class CertificateAuthorityManager : ICertificateAuthorityManager
+    public abstract class CertificateAuthorityManager
     {
-        private readonly string DefaultTempPath;
-
-        public CertificateAuthorityManager()
-        {
-            DefaultTempPath =
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Fluxzy", "Temp");
-
-            Directory.CreateDirectory(DefaultTempPath);
-        }
-
         /// <summary>
         ///     Write the default CA Certificate without private key
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public void DumpDefaultCertificate(Stream stream)
+        public virtual void DumpDefaultCertificate(Stream stream)
         {
             FluxzySecurity.BuiltinCertificate.ExportToPem(stream);
         }
@@ -31,58 +22,46 @@ namespace Fluxzy
         /// </summary>
         /// <param name="certificateSerialNumber"></param>
         /// <returns></returns>
-        public bool IsCertificateInstalled(string certificateSerialNumber)
+        public abstract bool IsCertificateInstalled(string certificateSerialNumber);
+
+        /// <summary>
+        /// Check if the default certificate is installed 
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool IsDefaultCertificateInstalled()
         {
-            using var store = new X509Store(StoreName.Root);
-
-            store.Open(OpenFlags.ReadOnly);
-
-            var certificates = store.Certificates.Find(X509FindType.FindBySerialNumber, certificateSerialNumber, false);
-            return certificates.Count > 0;
+            return IsCertificateInstalled(FluxzySecurity.DefaultThumbPrint);
+        }
+        
+        public abstract ValueTask<bool>  RemoveCertificate(string thumbPrint);
+        
+        public abstract ValueTask<bool> InstallCertificate(X509Certificate2 certificate);
+       
+        public virtual ValueTask<bool> InstallDefaultCertificate()
+        {
+            return InstallCertificate(FluxzySecurity.BuiltinCertificate);
         }
 
-        public bool IsDefaultCertificateInstalled()
-        {
-            return IsCertificateInstalled(FluxzySecurity.DefaultSerialNumber);
-        }
-
-        public bool RemoveCertificate(string serialNumber)
-        {
-            using var store = new X509Store(StoreName.Root);
-
-            store.Open(OpenFlags.ReadWrite);
-
-            foreach (var certificate in store.Certificates.Find(X509FindType.FindBySerialNumber, serialNumber, false))
-                try {
-                    store.Remove(certificate);
-                }
-                catch (Exception) {
-                    return false;
-                }
-
-            return true;
-        }
-
-        public void InstallCertificate(X509Certificate2 certificate)
-        {
-            using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
-            using var store = new X509Store(StoreName.Root);
-
-            store.Open(OpenFlags.ReadWrite);
-            store.Add(newCertificate);
-        }
-
-        public void InstallDefaultCertificate()
-        {
-            InstallCertificate(FluxzySecurity.BuiltinCertificate);
-        }
-
-        public void CheckAndInstallCertificate(FluxzySetting startupSetting)
+        public virtual void CheckAndInstallCertificate(FluxzySetting startupSetting)
         {
             var certificate = startupSetting.CaCertificate.GetCertificate();
 
-            if (!IsCertificateInstalled(certificate.SerialNumber!))
+            if (!IsCertificateInstalled(certificate.Thumbprint!))
                 InstallCertificate(certificate);
         }
+
+        public abstract IEnumerable<CaCertificateInfo> EnumerateRootCertificates();
+    }
+
+    public class CaCertificateInfo
+    {
+        public CaCertificateInfo(string thumbPrint, string subject)
+        {
+            ThumbPrint = thumbPrint;
+            Subject = subject;
+        }
+
+        public string ThumbPrint { get;  }
+        public string Subject { get; }
     }
 }
