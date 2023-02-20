@@ -33,6 +33,11 @@ namespace Fluxzy.Core.Proxy
                                                 ByPassHosts.SequenceEqual(other.ByPassHosts);
         }
 
+        /// <summary>
+        /// This is used to store specif OS related proxy format
+        /// </summary>
+        public Dictionary<string, object> PrivateValues { get; } = new(); 
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) 
@@ -46,11 +51,6 @@ namespace Fluxzy.Core.Proxy
 
             return Equals((SystemProxySetting)obj);
         }
-        
-        /// <summary>
-        /// This is used to store specif OS related proxy format
-        /// </summary>
-        public string ? RawSetting { get; set; }
 
         public override int GetHashCode()
         {

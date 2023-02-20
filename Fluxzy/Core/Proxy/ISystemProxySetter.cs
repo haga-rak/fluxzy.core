@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Core.Proxy
+﻿using System.Threading.Tasks;
+
+namespace Fluxzy.Core.Proxy
 {
     public interface ISystemProxySetter
     {

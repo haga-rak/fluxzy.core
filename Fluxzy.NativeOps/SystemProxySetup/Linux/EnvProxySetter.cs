@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.Linux
@@ -15,14 +16,15 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
             if (value.ListenPort < 0 || string.IsNullOrEmpty(value.BoundHost)) {
                 // Clear env variable 
                 
+                // TODO : Find other ways to set variable, this is working only for Windows 
+                
                 Environment.SetEnvironmentVariable("http_proxy", "", EnvironmentVariableTarget.User);
                 Environment.SetEnvironmentVariable("https_proxy", "", EnvironmentVariableTarget.User);
                 Environment.SetEnvironmentVariable("no_proxy", "", EnvironmentVariableTarget.User);
                 
-                return; 
             }
             
-            var word = $"{value.BoundHost}:{value.ListenPort}";
+            var word = $"http://{value.BoundHost}:{value.ListenPort}";
             var noProxy = string.Join(",", value.ByPassHosts);
             
             Environment.SetEnvironmentVariable("https_proxy", word, EnvironmentVariableTarget.User);
