@@ -24,7 +24,3 @@ namespace Fluxzy.NativeOps
         }
     }
 }
-
-namespace Fluxzy.NativeOp.SystemProxySetup.Win32
-{
-}

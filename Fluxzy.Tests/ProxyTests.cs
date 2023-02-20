@@ -317,7 +317,8 @@ namespace Fluxzy.Tests
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting))
+                , new CertificateAuthorityManager() ,
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 
             proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
@@ -363,7 +364,7 @@ namespace Fluxzy.Tests
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)), new CertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 
             proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
@@ -415,7 +416,7 @@ namespace Fluxzy.Tests
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)), new CertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 
             proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)
@@ -462,7 +463,7 @@ namespace Fluxzy.Tests
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)), new CertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 
             proxy.Writer.ExchangeUpdated += delegate(object? sender, ExchangeUpdateEventArgs args)

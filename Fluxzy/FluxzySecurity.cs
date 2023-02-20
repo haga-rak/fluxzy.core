@@ -6,11 +6,11 @@ namespace Fluxzy
     {
         static FluxzySecurity()
         {
-            DefaultCertificate = new X509Certificate2(FileStore.Fluxzy, "echoes");
+            BuiltinCertificate = new X509Certificate2(FileStore.Fluxzy, "echoes");
         }
 
-        public static X509Certificate2 DefaultCertificate { get;  }
+        public static X509Certificate2 BuiltinCertificate { get;  }
 
-        public static string DefaultSerialNumber => DefaultCertificate.SerialNumber!;
+        public static string DefaultSerialNumber => BuiltinCertificate.SerialNumber!;
     }
 }

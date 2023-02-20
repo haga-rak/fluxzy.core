@@ -39,7 +39,9 @@ namespace Fluxzy.Cli
             exportCommand.SetHandler(async fileInfo =>
             {
                 await using var stream = fileInfo.Create();
-                CertificateUtility.DumpDefaultCertificate(stream);
+                var certificateManager = new CertificateAuthorityManager(); 
+                
+                certificateManager.DumpDefaultCertificate(stream);
             }, argumentFileInfo);
 
             return exportCommand;
@@ -61,7 +63,8 @@ namespace Fluxzy.Cli
             exportCommand.SetHandler(async fileInfo =>
             {
                 var certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
-                CertificateUtility.InstallCertificate(certificate);
+                var certificateManager = new CertificateAuthorityManager(); 
+                certificateManager.InstallCertificate(certificate);
             }, argumentFileInfo);
 
             return exportCommand;
@@ -85,12 +88,13 @@ namespace Fluxzy.Cli
 
             exportCommand.SetHandler(async (fileInfo, console) =>
             {
-                var certificate = FluxzySecurity.DefaultCertificate;
+                var certificate = FluxzySecurity.BuiltinCertificate;
+                var certificateManager = new CertificateAuthorityManager();
 
                 if (fileInfo != null)
                     certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
 
-                if (CertificateUtility.IsCertificateInstalled(certificate.SerialNumber))
+                if (certificateManager.IsCertificateInstalled(certificate.SerialNumber))
                     // ReSharper disable once LocalizableElement
                     console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 else

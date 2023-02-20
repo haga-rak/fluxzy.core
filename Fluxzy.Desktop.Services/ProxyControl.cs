@@ -104,7 +104,7 @@ namespace Fluxzy.Desktop.Services
                         : ITcpConnectionProvider.Default;
 
                 _proxy = new Proxy(fluxzySetting, 
-                    new CertificateProvider(fluxzySetting, new InMemoryCertificateCache()),
+                    new CertificateProvider(fluxzySetting, new InMemoryCertificateCache()), new CertificateAuthorityManager(),
                     _tcpConnectionProvider, new UaParserUserAgentInfoProvider());
 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);

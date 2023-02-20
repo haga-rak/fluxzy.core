@@ -187,7 +187,7 @@ namespace Fluxzy.Cli
                        ? new CapturedTcpConnectionProvider()
                        : ITcpConnectionProvider.Default)
             {
-                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, tcpConnectionProvider, uaParserProvider))
+                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, new CertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider))
                 {
                     var endPoints = proxy.Run();
                     

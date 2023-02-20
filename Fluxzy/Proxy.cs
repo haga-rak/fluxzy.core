@@ -43,6 +43,7 @@ namespace Fluxzy
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider,
+            ICertificateAuthorityManager certificateAuthorityManager,
             ITcpConnectionProvider? tcpConnectionProvider = null,
             IUserAgentInfoProvider? userAgentProvider = null
         )
@@ -81,7 +82,7 @@ namespace Fluxzy
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
                                                          t.Filter is AnyFilter)
                 && StartupSetting.AutoInstallCertificate)
-                CertificateUtility.CheckAndInstallCertificate(startupSetting);
+                certificateAuthorityManager.CheckAndInstallCertificate(startupSetting);
         }
 
         public async ValueTask DisposeAsync()
