@@ -10,15 +10,15 @@ namespace Fluxzy
         /// <summary>
         ///     Check whether a certificate is installed as root certificate
         /// </summary>
-        /// <param name="certificateSerialNumber"></param>
+        /// <param name="certificateThumbPrint"></param>
         /// <returns></returns>
-        public override bool IsCertificateInstalled(string certificateSerialNumber)
+        public override bool IsCertificateInstalled(string certificateThumbPrint)
         {
             using var store = new X509Store(StoreName.Root);
 
             store.Open(OpenFlags.ReadOnly);
 
-            var certificates = store.Certificates.Find(X509FindType.FindBySerialNumber, certificateSerialNumber, false);
+            var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, certificateThumbPrint, false);
             return certificates.Count > 0;
         }
 

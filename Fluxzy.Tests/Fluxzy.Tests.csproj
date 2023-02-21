@@ -16,6 +16,9 @@
   <ItemGroup>
     <None Remove="Files\Headers\Req001.txt.bin" />
     <None Remove="Files\Headers\Resp001.txt.bin" />
+    <None Update="_Files\Certificates\fluxzytest.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

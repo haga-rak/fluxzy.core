@@ -154,7 +154,9 @@ namespace Fluxzy.Misc
                     FileName = commandName,
                     Arguments = "--version",
                     UseShellExecute = false,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    RedirectStandardError = true, 
+                    RedirectStandardOutput = true
                 }
             };
 

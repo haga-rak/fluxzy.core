@@ -20,9 +20,9 @@ namespace Fluxzy
         /// <summary>
         ///     Check whether a certificate is installed as root certificate
         /// </summary>
-        /// <param name="certificateSerialNumber"></param>
+        /// <param name="certificateThumbPrint"></param>
         /// <returns></returns>
-        public abstract bool IsCertificateInstalled(string certificateSerialNumber);
+        public abstract bool IsCertificateInstalled(string certificateThumbPrint);
 
         /// <summary>
         /// Check if the default certificate is installed 
