@@ -21,6 +21,7 @@ namespace Fluxzy.Cli.Commands
             command.AddCommand(BuildCheckCommand());
             command.AddCommand(BuildInstallCommand());
             command.AddCommand(BuildRemoveCommand());
+            command.AddCommand( BuildListCommand());
 
             return command;
         }
@@ -143,8 +144,6 @@ namespace Fluxzy.Cli.Commands
                 Arity = ArgumentArity.ExactlyOne
             };
 
-            argumentFileInfo.SetDefaultValue("Embedded certificate");
-
             exportCommand.AddArgument(argumentFileInfo);
 
             exportCommand.SetHandler(async (thumbPrint, console) =>
@@ -153,6 +152,24 @@ namespace Fluxzy.Cli.Commands
                 await certificateManager.RemoveCertificate(thumbPrint);
 
             }, argumentFileInfo, new ConsoleBinder());
+
+            return exportCommand;
+        }
+        
+        private static Command BuildListCommand()
+        {
+            var exportCommand = new Command("list", "List all root certificates");
+
+            exportCommand.SetHandler(async (console) =>
+            {
+                var certificateManager = new DefaultCertificateAuthorityManager();
+                
+                foreach (var certificate in certificateManager.EnumerateRootCertificates())
+                {
+                    console.Out.WriteLine($"{certificate.ThumbPrint}\t{certificate.Subject}");
+                }
+
+            },  new ConsoleBinder());
 
             return exportCommand;
         }
