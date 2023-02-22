@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Misc;
-using NotImplementedException = System.NotImplementedException;
 
 namespace Fluxzy.Cli.System
 {
@@ -64,7 +63,7 @@ namespace Fluxzy.Cli.System
                 // We are using pkexec for linux 
                 
                 var result = await ProcessUtils.QuickRunAsync("pkexec",  
-                    $"{_currentBinaryFullPath} install",
+                    $"\"{_currentBinaryFullPath}\" install",
                     new MemoryStream(buffer, 0, (int) memoryStream.Position ));
 
                 return result.ExitCode == 0; 
@@ -74,7 +73,7 @@ namespace Fluxzy.Cli.System
                 // We are using runas for windows 
                 
                 var result = await ProcessUtils.QuickRunAsync("runas",  
-                    $"/user:Administrator {_currentBinaryFullPath} install",
+                    $"/user:Administrateur dotnet run \"{_currentBinaryFullPath}\" install",
                     new MemoryStream(buffer, 0, (int) memoryStream.Position ));
 
                 return result.ExitCode == 0; 

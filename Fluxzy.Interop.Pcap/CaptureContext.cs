@@ -13,7 +13,7 @@ namespace Fluxzy.Interop.Pcap
         private readonly PcapDevice _captureDevice;
 
         private bool _halted;
-        private SyncWriterQueue _packetQueue;
+        private SyncWriterQueue? _packetQueue;
         private bool _disposed;
         private readonly long _physicalAddressLong;
         
@@ -23,7 +23,9 @@ namespace Fluxzy.Interop.Pcap
         {
             var localAddress1 = localAddress ?? IpUtility.GetDefaultRouteV4Address();
 
-            //targetItem
+            // TODO: use a better heuristic to select the capture device
+            // TODO: demand the interface name as parameter
+
             _captureDevice = CaptureDeviceList.Instance.OfType<PcapDevice>()
                                               .Where(l => !l.IsLoopback())
                                               .OrderByDescending(l => l.IsUp())
@@ -47,17 +49,23 @@ namespace Fluxzy.Interop.Pcap
         public long Subscribe(string outFileName,
             IPAddress remoteAddress, int remotePort, int localPort)
         {
+            if (_packetQueue == null)
+                throw new InvalidOperationException("Not started yet");
+
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
             
             var writer = _packetQueue.GetOrAdd(connectionKey);
             writer.Register(outFileName);
 
-            return writer;
+            return writer.Key;
         } 
 
         public ValueTask Unsubscribe(long subscription)
         {
-            _packetQueue.TryRemove(subscription.Key, out _);
+            if (_packetQueue == null)
+                throw new InvalidOperationException("Not started yet");
+
+            _packetQueue.TryRemove(subscription, out _);
             return default; 
         } 
 

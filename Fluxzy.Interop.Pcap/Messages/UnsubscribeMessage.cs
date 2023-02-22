@@ -21,4 +21,20 @@ public readonly struct UnsubscribeMessage
     {
         writer.Write(Key);
     }
+
+    public bool Equals(UnsubscribeMessage other)
+    {
+        return Key == other.Key;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is UnsubscribeMessage other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return Key.GetHashCode();
+    }
+
 }
