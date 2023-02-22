@@ -8,7 +8,7 @@ using SharpPcap.LibPcap;
 
 namespace Fluxzy.Interop.Pcap
 {
-    public class CaptureContext : IAsyncDisposable
+    public class CaptureContext : IAsyncDisposable, ICaptureContext
     {
         private readonly PcapDevice _captureDevice;
 
@@ -44,7 +44,7 @@ namespace Fluxzy.Interop.Pcap
             _knownAuthorities.TryAdd(PacketKeyBuilder.GetAuthorityKey(remoteAddress, remotePort), null);
         }
 
-        public IConnectionSubscription Subscribe(string outFileName, 
+        public long Subscribe(string outFileName,
             IPAddress remoteAddress, int remotePort, int localPort)
         {
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
@@ -55,7 +55,7 @@ namespace Fluxzy.Interop.Pcap
             return writer;
         } 
 
-        public ValueTask Unsubscribe(IConnectionSubscription subscription)
+        public ValueTask Unsubscribe(long subscription)
         {
             _packetQueue.TryRemove(subscription.Key, out _);
             return default; 
