@@ -16,8 +16,6 @@ namespace Fluxzy.Interop.Pcap.Cli
             var token = cancellationTokenSource.Token; 
             var parentProcess = Process.GetProcessById(processId);
 
-            
-
             await parentProcess.WaitForExitAsync(cancellationTokenSource.Token); 
             Console.ReadLine();
 

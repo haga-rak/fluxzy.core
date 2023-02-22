@@ -5,7 +5,7 @@ using Fluxzy.NativeOps.SystemProxySetup.Linux;
 using Fluxzy.NativeOps.SystemProxySetup.macOs;
 using Fluxzy.NativeOps.SystemProxySetup.Win;
 
-namespace Fluxzy.NativeOps
+namespace Fluxzy.NativeOps.SystemProxySetup
 {
     public class NativeProxySetterManager : ISystemProxySetterManager
     {

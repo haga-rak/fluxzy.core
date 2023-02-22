@@ -15,6 +15,7 @@ using Fluxzy.Extensions;
 using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.NativeOps;
+using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
 

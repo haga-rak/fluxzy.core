@@ -16,7 +16,7 @@ namespace Fluxzy.Interop.Pcap
 
         private bool _disposed = false;
         private IPEndPoint?  _localEndPoint;
-        private IConnectionSubscription?  _subscription;
+        private long  _subscription;
 
         public CapturableTcpConnection(CaptureContext captureContext, string outTraceFileName)
         {
@@ -68,17 +68,12 @@ namespace Fluxzy.Interop.Pcap
 
             _innerTcpClient.Dispose();
 
-            if (_subscription != null )
+            if (_subscription != 0 )
             {
-                var disposable = _subscription;
-                _subscription = null;
-
-                await _captureContext.Unsubscribe(disposable);
+                await _captureContext.Unsubscribe(_subscription);
 
                 // We should wait few instant before disposing the writer 
                 // to ensure that all packets are written to the file
-                
-                await disposable.DisposeAsync();
             }
         }
     }

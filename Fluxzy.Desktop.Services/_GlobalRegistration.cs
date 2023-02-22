@@ -9,6 +9,7 @@ using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.NativeOps;
+using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Readers;
 using Fluxzy.Utils;
 using Fluxzy.Utils.Curl;

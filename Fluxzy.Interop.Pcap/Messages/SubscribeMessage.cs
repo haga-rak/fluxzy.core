@@ -41,4 +41,20 @@ public readonly struct SubscribeMessage
         writer.Write(LocalPort);
         writer.Write(OutFileName);
     }
+
+    public bool Equals(SubscribeMessage other)
+    {
+        return RemoteAddress.Equals(other.RemoteAddress) && RemotePort == other.RemotePort && LocalPort == other.LocalPort && OutFileName == other.OutFileName;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SubscribeMessage other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(RemoteAddress, RemotePort, LocalPort, OutFileName);
+    }
+
 }

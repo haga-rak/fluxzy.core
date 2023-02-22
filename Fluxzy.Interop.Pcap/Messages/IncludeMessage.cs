@@ -31,4 +31,20 @@ public readonly struct IncludeMessage
         writer.Write(RemoteAddress.ToString());
         writer.Write(RemotePort);
     }
+
+    public bool Equals(IncludeMessage other)
+    {
+        return RemotePort == other.RemotePort && RemoteAddress.Equals(other.RemoteAddress);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is IncludeMessage other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(RemotePort, RemoteAddress);
+    }
+
 }
