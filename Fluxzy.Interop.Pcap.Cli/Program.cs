@@ -1,58 +1,27 @@
 ﻿using System.Diagnostics;
-using System.Net;
-using System.Net.Security;
-using System.Text;
 
 namespace Fluxzy.Interop.Pcap.Cli
 {
     internal class Program
     {
-        private static async Task Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
-
-            var res = System.Text.Json.JsonSerializer.Deserialize<string>("'hello'"); 
-            
-            var loopBack = IPAddress.Loopback;
-            var none = IPAddress.None;
-            var any = IPAddress.Any;
-
-            var mapToV4 = any.MapToIPv4();
-
-
-            var _total = 0L;
-            var totalLength = 20 * 1024 * 1024;
-            var url = $"https://sandbox.smartizy.com/content-produce/{totalLength}/{totalLength}";
-            var host = "sandbox.smartizy.com";
-            
-            await using (var captureContext = new CaptureContext())
-            await using (var tcpClient = new CapturableTcpConnection(captureContext, "gogo2.pcap")) {
-                var remoteIp = (await Dns.GetHostAddressesAsync(host)).First();
-
-                await tcpClient.ConnectAsync(remoteIp, 443);
-                
-                await using (var sslStream = new SslStream(tcpClient.GetStream(), false)) {
-                    await sslStream.AuthenticateAsClientAsync(host);
-
-                    var httpRequest =
-                        $"GET {url} HTTP/1.1\r\n" +
-                        $"Host: {host}\r\n" +
-                        "Connection: close\r\n" +
-                        "\r\n";
-
-                    sslStream.Write(Encoding.UTF8.GetBytes(httpRequest));
-
-                    //await Task.Delay(1000);
-
-                    _total = await sslStream.Drain();
-
-                    //  await Task.Delay(1000);
-                }
+            if (args.Length < 2 ) {
+                Console.WriteLine("Usage : command pipeName pid");
+                return 1; 
             }
+            var pipeName = args[0];
+            var processId = int.Parse(args[1]);
+            var cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token; 
+            var parentProcess = Process.GetProcessById(processId);
+
             
+
+            await parentProcess.WaitForExitAsync(cancellationTokenSource.Token); 
             Console.ReadLine();
-            GC.Collect();
-            Console.WriteLine("GC done");
-            Console.ReadLine();
+
+            return 0;
         }
     }
 

@@ -3,7 +3,7 @@ using System.Net;
 
 namespace Fluxzy.Interop.Pcap.FastParsing
 {
-    internal class RawPacketParser
+    internal static class RawPacketParser
     {
         public static bool TryParseEthernet(ref EthernetPacketInfo info, 
             ReadOnlySpan<byte> data, out int length)
