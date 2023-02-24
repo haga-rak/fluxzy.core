@@ -15,7 +15,6 @@ namespace Fluxzy.Interop.Pcap.Cli
 
             var mapToV4 = any.MapToIPv4();
 
-
             var _total = 0L;
             var totalLength = 20 * 1024 * 1024;
             var url = $"https://sandbox.smartizy.com/content-produce/{totalLength}/{totalLength}";
