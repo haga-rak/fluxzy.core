@@ -216,6 +216,10 @@ export class ApiService {
         return this.httpClient.get<CurlCommandResult>(`api/exchange/${exchangeId}/curl`).pipe(take(1));
     }
 
+    public exchangeReplay(exchangeId: number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/replay`, null).pipe(take(1));
+    }
+
     public exchangeSaveRequestBody(exchangeId: number, fileName : string) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/save-request-body`, {
             fileName : fileName

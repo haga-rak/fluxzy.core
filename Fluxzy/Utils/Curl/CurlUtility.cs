@@ -10,7 +10,7 @@ namespace Fluxzy.Utils.Curl
 {
     public static class CurlUtility
     {
-        public static bool CheckCurlIsInstalled()
+        public static bool IsCurlInstalled()
         {
             var process = new Process
             {
@@ -31,7 +31,7 @@ namespace Fluxzy.Utils.Curl
 
         public static async Task<bool> RunCurl(string args, string? workDirectory)
         {
-            var process = new Process
+            using var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -51,7 +51,8 @@ namespace Fluxzy.Utils.Curl
             
             await process.WaitForExitAsync();
 
-            return process.ExitCode == 0;
+            return process.ExitCode == 0 
+                   || process.ExitCode == 23; //curl exit 23 when  stdout close early even the command succeed
         }
     }
 }

@@ -42,7 +42,15 @@ namespace Fluxzy
 
         public string GetFullUrl()
         {
-            return $"{Scheme}://{Authority}{Path}";
+            var stringPath = Path.ToString(); 
+
+            if (Uri.TryCreate(Path.ToString(), UriKind.Absolute, out var uri) && uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                return stringPath; 
+            }
+
+
+            return $"{Scheme}://{Authority}{stringPath}";
         }
     }
 }

@@ -80,4 +80,7 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}
 	EndGlobalSection
+	GlobalSection(RiderSharedRunConfigurations) = postSolution
+		File = Fluxzy.Desktop.Ui\ClientApp\.run\Angular CLI Server.run.xml
+	EndGlobalSection
 EndGlobal

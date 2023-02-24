@@ -6,6 +6,23 @@
 
     <div *ngIf="connection" style="width:100%">
 
+        <div style="margin-bottom: 10px">
+            <span class="lead">
+                Underlying connection <strong class="text-white">#{{ connection.id }}</strong></span>
+
+
+            <div class="dropdown float-end small" dropdown [dropup]="false">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
+                        aria-expanded="false" dropdownToggle>
+                    Raw network capture
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" *dropdownMenu>
+                    <li><a class="dropdown-item" href="javascript:;" (click)="downloadRawCapture()">Save to file (.pcap)</a></li>
+                    <li><a class="dropdown-item" href="javascript:;" (click)="openRawCapture()">Open in default viewer</a></li>
+                </ul>
+
+            </div>
+        </div>
         <table style="width:  100%" class="connectivity-table">
             <tr>
                 <th style="min-width: 120px;visibility: hidden;"></th>
@@ -92,11 +109,17 @@
                     <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.hashAlgorithm"  />
                 </td>
             </tr>
-            <tr>
+            <tr *ngIf="connection.sslInfo">
                 <th>Alpn</th>
                 <td colspan="2" class="text-center">
                     <input type="text" *ngIf="connection.sslInfo.negotiatedApplicationProtocol" class="form-control form-connectivity" readonly [value]="connection.sslInfo.negotiatedApplicationProtocol"  />
-                    <input type="text" *ngIf="!connection.sslInfo.negotiatedApplicationProtocol" class="form-control form-connectivity" readonly [value]="'not set'"  />
+                    <input type="text" *ngIf="!connection.sslInfo.negotiatedApplicationProtocol" class="form-control form-connectivity" readonly [value]="'-'"  />
+                </td>
+            </tr>
+            <tr  *ngIf="connection.sslInfo">
+                <th>Http version</th>
+                <td colspan="2" class="text-center">
+                    <input type="text" *ngIf="connection.httpVersion" class="form-control form-connectivity" readonly [value]="connection.httpVersion"  />
                 </td>
             </tr>
         </table>
