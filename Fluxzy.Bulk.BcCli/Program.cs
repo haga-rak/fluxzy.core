@@ -46,20 +46,11 @@ namespace Fluxzy.Bulk.BcCli
 
             using var nssWriter = new NssLogWriter("ssl.txt");
             
-            var cl = new FluxzyTlsClient(crypto, SslProtocols.Tls13);
+            var cl = new FluxzyTlsClient(crypto, SslProtocols.Tls12);
 
             var protocol = new FluxzyClientProtocol(stream, nssWriter); 
 
             protocol.Connect(cl);
-
-            // protocol.PlainSecurityParameters.TrafficSecretClient.
-
-            var clientRandom = protocol.PlainSecurityParameters.ClientRandom; 
-            var masterSecret = crypto.MasterSecret;
-
-
-            if (masterSecret != null)
-                nssWriter.Write(NssLogWriter.CLIENT_RANDOM, clientRandom, masterSecret);
             
             stream = protocol.Stream; 
 

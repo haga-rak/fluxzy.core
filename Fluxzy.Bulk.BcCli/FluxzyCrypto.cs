@@ -12,7 +12,6 @@ namespace Fluxzy.Bulk.BcCli
         public FluxzyCrypto(SecureRandom sr)
             : base(sr)
         {
-            
         }
         
         public override TlsSecret AdoptSecret(TlsSecret secret)
@@ -20,6 +19,9 @@ namespace Fluxzy.Bulk.BcCli
             var resultSecret =  base.AdoptSecret(secret);
 
             MasterSecret  = secret.ExtractKeySilently();
+            
+            //_writter.Write(NssLogWriter.CLIENT_RANDOM, PlainSecurityParameters.ClientRandom,
+            //    PlainSecurityParameters.TrafficSecretClient.ExtractKeySilently());
 
             return resultSecret; 
         }
