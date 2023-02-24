@@ -1,12 +1,9 @@
 ﻿using System.Net;
-using System.Reflection.Metadata;
 using System.Security.Authentication;
 using System.Text;
 using Fluxzy.Interop.Pcap;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls;
-using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Fluxzy.Bulk.BcCli
 {
@@ -32,6 +29,8 @@ namespace Fluxzy.Bulk.BcCli
             var ipAdress = (await Dns.GetHostAddressesAsync(uri.Host)).First();
 
             var endPoint = await connection.ConnectAsync(ipAdress, uri.Port);
+
+            //ProtocolName.Http_2_Tls
 
             var entireRequest = $"GET {uri.PathAndQuery} HTTP/1.1\r\n" +
                                 $"Host: {uri.Host}\r\n" +
@@ -71,10 +70,7 @@ namespace Fluxzy.Bulk.BcCli
 
                 await Task.Delay(2000);
             }
-            
         }
-
-       
     }
 
     // Need class to handle certificate auth

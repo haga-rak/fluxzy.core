@@ -15,11 +15,23 @@ namespace Fluxzy.Bulk.BcCli
             : base(crypto)
         {
             _sslProtocols = sslProtocols;
+           
         }
 
         public override TlsAuthentication GetAuthentication()
         {
             return new FluxzyTlsAuthentication(); 
+        }
+
+        protected override IList<ProtocolName> GetProtocolNames()
+        {
+            var names = base.GetProtocolNames();
+
+            if (names == null) {
+                return new List<ProtocolName>() {ProtocolName.Http_2_Tls}; 
+            }
+
+            return names; 
         }
 
         protected override ProtocolVersion[] GetSupportedVersions()
