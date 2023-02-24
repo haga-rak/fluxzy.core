@@ -31,13 +31,14 @@ namespace Fluxzy.Bulk.BcCli
 
 
                 _logWritter.Write(NssLogWriter.CLIENT_TRAFFIC_SECRET_0, PlainSecurityParameters.ClientRandom,
-                    PlainSecurityParameters.TrafficSecretClient.Extract());
+                    PlainSecurityParameters.TrafficSecretClient.ExtractKeySilently());
 
                 _logWritter.Write(NssLogWriter.SERVER_TRAFFIC_SECRET_0, PlainSecurityParameters.ClientRandom,
-                    PlainSecurityParameters.TrafficSecretServer.Extract());
+                    PlainSecurityParameters.TrafficSecretServer.ExtractKeySilently());
                 
+                if (PlainSecurityParameters.ExporterMasterSecret != null)
                 _logWritter.Write(NssLogWriter.EXPORTER_SECRET, PlainSecurityParameters.ClientRandom,
-                    PlainSecurityParameters.MasterSecret.Extract());
+                    PlainSecurityParameters.ExporterMasterSecret.ExtractKeySilently());
             }
             
             
@@ -53,10 +54,10 @@ namespace Fluxzy.Bulk.BcCli
             _localSecret = PlainSecurityParameters.TrafficSecretClient; 
 
             _logWritter.Write(NssLogWriter.CLIENT_HANDSHAKE_TRAFFIC_SECRET, PlainSecurityParameters.ClientRandom,
-                PlainSecurityParameters.TrafficSecretClient.Extract());
+                PlainSecurityParameters.TrafficSecretClient.ExtractKeySilently());
             
             _logWritter.Write(NssLogWriter.SERVER_HANDSHAKE_TRAFFIC_SECRET, PlainSecurityParameters.ClientRandom,
-                PlainSecurityParameters.TrafficSecretServer.Extract());
+                PlainSecurityParameters.TrafficSecretServer.ExtractKeySilently());
         }
     }
 }
