@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Security;
 using System.Security.Authentication;
 using System.Text;
 using Fluxzy.Interop.Pcap;
@@ -45,7 +46,7 @@ namespace Fluxzy.Bulk.BcCli
 
             using var nssWriter = new NssLogWriter("ssl.txt");
             
-            var cl = new FluxzyTlsClient(crypto, SslProtocols.Tls12);
+            var cl = new FluxzyTlsClient(crypto, SslProtocols.Tls12, new[] { SslApplicationProtocol.Http11, });
 
             var protocol = new FluxzyClientProtocol(stream, nssWriter); 
 
