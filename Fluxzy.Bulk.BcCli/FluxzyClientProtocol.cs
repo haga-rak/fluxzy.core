@@ -15,6 +15,7 @@ namespace Fluxzy.Bulk.BcCli
             : base(stream)
         {
             _logWritter = logWritter;
+            
         }
 
         public SecurityParameters PlainSecurityParameters => Context.SecurityParameters;
