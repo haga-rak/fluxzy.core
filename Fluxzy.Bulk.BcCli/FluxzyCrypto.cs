@@ -18,10 +18,8 @@ namespace Fluxzy.Bulk.BcCli
         public override TlsSecret AdoptSecret(TlsSecret secret)
         {
             var resultSecret =  base.AdoptSecret(secret);
-            
-            var data = secret.Extract();
-            MasterSecret = new byte[data.Length];
-            data.CopyTo(MasterSecret, 0);
+
+            MasterSecret  = secret.ExtractKeySilently();
 
             return resultSecret; 
         }
