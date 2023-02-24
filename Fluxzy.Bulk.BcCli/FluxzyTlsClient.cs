@@ -1,6 +1,7 @@
 ﻿// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
+using System.Net.Security;
 using System.Security.Authentication;
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
@@ -10,12 +11,14 @@ namespace Fluxzy.Bulk.BcCli
     class FluxzyTlsClient : DefaultTlsClient
     {
         private readonly SslProtocols _sslProtocols;
+        private readonly SslApplicationProtocol[] _applicationProtocols;
 
-        public FluxzyTlsClient(TlsCrypto crypto, SslProtocols sslProtocols)
+        public FluxzyTlsClient(TlsCrypto crypto, SslProtocols sslProtocols, 
+             SslApplicationProtocol [] applicationProtocols)
             : base(crypto)
         {
             _sslProtocols = sslProtocols;
-           
+            _applicationProtocols = applicationProtocols;
         }
 
         public override TlsAuthentication GetAuthentication()
@@ -25,13 +28,22 @@ namespace Fluxzy.Bulk.BcCli
 
         protected override IList<ProtocolName> GetProtocolNames()
         {
-            var names = base.GetProtocolNames();
+            var result = new List<ProtocolName>();
 
-            if (names == null) {
-                return new List<ProtocolName>() {ProtocolName.Http_2_Tls}; 
+            if (!_applicationProtocols.Any()) {
+                return base.GetProtocolNames();
             }
 
-            return names; 
+            foreach (var applicationProtocol in _applicationProtocols) {
+                
+                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http11.Protocol))
+                    result.Add(ProtocolName.Http_1_1);
+                
+                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http2.Protocol))
+                    result.Add(ProtocolName.Http_2_Tls);
+            }
+            
+            return result; 
         }
 
         protected override ProtocolVersion[] GetSupportedVersions()
