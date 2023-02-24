@@ -1,10 +1,10 @@
 ﻿// Copyright © 2022 Haga Rakotoharivelo
 
-using System.Reactive.Linq;
 using Fluxzy.Clients.H11;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
+using Fluxzy.Utils;
 using Fluxzy.Utils.Curl;
 using Microsoft.AspNetCore.Mvc;
 
@@ -66,6 +66,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             [FromServices] CurlRequestConverter converter,
             [FromServices] IArchiveReaderProvider archiveReaderProvider,
             [FromServices] IObservable<ProxyState> proxyStateProvider,
+            [FromServices] IRunningProxyProvider runningProxyProvider,
             int exchangeId)
         {
             var archiveReader = (await archiveReaderProvider.Get())!;
@@ -74,14 +75,11 @@ namespace Fluxzy.Desktop.Ui.Controllers
             if (exchangeInfo == null)
                 return new NotFoundObjectResult(exchangeId);
 
-            var proxyState = await proxyStateProvider.FirstAsync();
-
-            var request = converter.BuildCurlRequest(archiveReader, exchangeInfo, new CurlProxyConfiguration(
-                "127.0.0.1", proxyState.BoundConnections.First().Port));
+            var config = await runningProxyProvider.GetConfiguration();
+            var request = converter.BuildCurlRequest(archiveReader, exchangeInfo, config);
 
             return request; 
         }
-
 
         [HttpPost("{exchangeId}/save-curl-payload/{fileId}")]
         public async Task<ActionResult<bool>> SaveCurlPayload(
@@ -91,6 +89,22 @@ namespace Fluxzy.Desktop.Ui.Controllers
             [FromServices] CurlExportFolderManagement curlExportFolderManagement)
         {
             return await curlExportFolderManagement.SaveTo(fileId, body.FileName);
+        }
+
+        [HttpPost("{exchangeId}/replay")]
+        public async Task<ActionResult<bool>> Replay(
+            int exchangeId, 
+            [FromServices] IRequestReplayManager requestReplayManager,
+            [FromServices] IArchiveReaderProvider archiveReaderProvider 
+            )
+        {
+            var archiveReader = await archiveReaderProvider.Get();
+            var exchangeInfo = archiveReader!.ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                return new NotFoundObjectResult(exchangeId);
+
+            return await requestReplayManager.Replay(archiveReader, exchangeInfo);
         }
     }
 }

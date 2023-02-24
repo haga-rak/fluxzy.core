@@ -1,28 +1,52 @@
+<div class="view-box" style="height:100%">
 
-<h4>Export as curl</h4>
-
-<div class="" *ngIf="!curlResult">
-    Loading curl command ...
-</div>
-
-<div class="" *ngIf="curlResult">
-
-    <div>
-        <div style="margin-bottom: 8px">
-            &nbsp;
-            <span  class="pull-right">
-                <a class="text-white"  *ngIf="!passThroughProxy" (click)="passThroughProxy = !passThroughProxy; cd.detectChanges()" href="javascript:;">With proxy pass</a>
-                <a class="text-white" *ngIf="passThroughProxy" (click)="passThroughProxy = !passThroughProxy; cd.detectChanges()"  href="javascript:;">Without proxy pass</a>
-                |
-                <a class="text-white" href="javascript:;" (click)="copyToClipboard()">Copy to clipboard</a>
-            </span>
-        </div>
-        <div class="alert alert-warning">
-                <strong>Note: </strong> In order to use this curl command, you need to
-            download the file <a (click)="saveCurlPayload(curlResult.fileName)" class="text-white" href="javascript:;">{{ curlResult.fileName }}</a> to the working directory.
-        </div>
-        <pre class="viewer-textarea short-pre" *ngIf="!passThroughProxy" style="width: 100%; height: 100%" readonly>curl {{ curlResult.flatCommandLineArgs }}</pre>
-        <pre class="viewer-textarea short-pre" *ngIf="passThroughProxy" style="width: 100%; height: 100%" readonly>curl {{ curlResult.flatCommandLineWithProxyArgs }}</pre>
+    <div class="" *ngIf="!curlResult">
+        Loading curl command ...
     </div>
 
+    <div class="" *ngIf="curlResult" style="width : 100%">
+        <div>
+            <h4>Copy cURL command</h4>
+            <div style="margin-bottom: 12px;">
+                <div class="alert alert-warning" *ngIf="curlResult.fileName">
+                    <strong class="text-warning">Note </strong> This request contains binary or large payload. In order to use this curl command, you need to
+                    download the file <a (click)="saveCurlPayload(curlResult.fileName)" class="text-white" href="javascript:;">{{ curlResult.fileName }}</a> to the working directory.
+                </div>
+
+                <div  style=" line-height: 32px">
+                    <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[0])" title="copy to clipboard" href="javascript:;">
+                        <span>cmd</span>
+                    </a>&nbsp;
+                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[2])" title="copy to clipboard"  href="javascript:;">
+                        <span>bash</span>
+                    </a>&nbsp;
+                    <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[1])" title="copy to clipboard"  href="javascript:;">
+                        <span>cmd (with proxy)</span>
+                    </a>&nbsp;
+                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[3])" title="copy to clipboard"  href="javascript:;">
+                        <span>bash (with proxy)</span>
+                    </a>&nbsp;
+                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[2])" title="a postman compatible curl command"  href="javascript:;">
+                        <span>postman</span>
+                    </a>&nbsp;
+                 </div>
+            </div>
+        </div>
+
+        <div>
+            <h4>Replay request</h4>
+            <div>
+                <div style="margin-bottom: 12px;">
+                    <div  style=" line-height: 32px">
+                        <a class="btn btn-gray-800 btn-sm"  (click)=" replay()" href="javascript:;" title="Re-run request in fluxzy">
+                            <span>replay request</span>
+                        </a>&nbsp;
+                        <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[0])" href="javascript:;">
+                            <span>edit and replay request</span>
+                        </a>&nbsp;
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

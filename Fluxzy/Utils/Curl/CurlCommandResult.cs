@@ -3,82 +3,141 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Fluxzy.Utils.Curl
 {
     public class CurlCommandResult
     {
-        private readonly CurlProxyConfiguration? _configuration;
+        private readonly IRunningProxyConfiguration? _configuration;
 
-        public CurlCommandResult(CurlProxyConfiguration? configuration)
+        public CurlCommandResult(IRunningProxyConfiguration? configuration)
         {
             _configuration = configuration;
         }
 
         public void AddOption(string optionName, string optionValue)
         {
-            Args.Add(optionName);
-            Args.Add(optionValue);
+            Args.Add(new CommandLineOption(optionName, optionValue)); 
         }
         
         public void AddArgument(string arg)
         {
-            Args.Add(arg);
+            Args.Add(new CommandLineArgument(arg)); 
         }
 
         public Guid Id { get; set; } = Guid.NewGuid();
         
-        public List<string> Args { get; set; } = new();
+        public List<ICommandLineItem> Args { get; set; } = new();
 
         public string? FileName { get; set; }
 
-        public string FlatCommandLineArgs
+        public string FlatCmdArgs => BuildArgs(false, CommandLineVariant.Cmd);
+        
+        public string FlatBashArgs => BuildArgs(false, CommandLineVariant.Bash);
+
+        public string FlatCmdArgsWithProxy => BuildArgs(true, CommandLineVariant.Cmd);
+        
+        public string FlatBashArgsWithProxy => BuildArgs(true, CommandLineVariant.Bash);
+
+        public string GetProcessCompatibleArgs()
         {
-            get
-            {
-                return
-                    string.Join(" ", Args.Select(x =>
-                        x.StartsWith("-") && !x.Contains("\"") ?
-                            $"{x}" : $"\"{x.Sanitize()}\""));
-            }
+            return FlatCmdArgsWithProxy
+                   .Substring("curl ".Length)
+                   .Replace(" ^\r\n  ", " ") ;
         }
 
-        public string FlatCommandLineWithProxyArgs
+        private string BuildArgs(bool withProxy, CommandLineVariant variant)
         {
-            get
+            var list = new List<ICommandLineItem>();
+            
+            list.Add(Args.OfType<CommandLineArgument>().First());
+
+            if (withProxy && _configuration != null)
             {
-                return 
-                    string.Join(" ", ArgsWithProxy.Select(x =>
-                        x.StartsWith("-") && !x.Contains("\"") ? 
-                            $"{x}": $"\"{x.Sanitize()}\""));
+                list.Add(new CommandLineOption("-x", $"{_configuration.Host}:{_configuration.Port}"));
+                list.Add(new CommandLineOption("--insecure"));
+                list.Add(new CommandLineOption("-H", "Accept:"));
+                list.Add(new CommandLineOption("-H", "User-Agent:"));
+                list.Add(new CommandLineOption("-H", "Content-Type:"));
             }
+
+            list.AddRange(Args.OfType<CommandLineOption>());
+
+            var res = string.Join(variant == CommandLineVariant.Cmd ? " ^\r\n  " : " \\\n  ",
+                list.Select(x => x.ToCommandLine(variant)));
+
+            return "curl " +  res;
+        }
+    }
+
+    public class CommandLineOption : ICommandLineItem
+    {
+        public CommandLineOption(string name)
+            : this (name, null)
+        {
+
         }
 
-        public List<string> ArgsWithProxy
+        public CommandLineOption(string name, string? value)
         {
-            get
-            {
-                if (_configuration == null)
-                    return Args.ToList();
-                
-                return new[] {
-                    "-x", $"{_configuration.Host}:{_configuration.Port}", // define proxy
-                    "--insecure", // avoid checking certificate
-                    "-H", "Accept:", // remove accept 
-                    "-H", "User-Agent:", // remove user agent 
-                    "-H", "Content-Type:", // remove default content-type
-                }.Concat(Args)
-                     .ToList();
-            }
+            Name = name;
+            Value = value;
         }
+
+        public string Name { get;  }
+
+        public string?  Value { get;  }
+
+        public string ToCommandLine(CommandLineVariant variant)
+        {
+            if (variant == CommandLineVariant.Cmd)
+            {
+                return Value == null ? $"{Name}" : $"{Name} \"{Value.Sanitize(CommandLineVariant.Cmd)}\"";
+            }
+
+            return Value == null ? $"{Name}" : $"{Name} '{Value.Sanitize(CommandLineVariant.Bash)}'";
+        }
+    }
+    
+    public class CommandLineArgument : ICommandLineItem
+    {
+        public CommandLineArgument(string value)
+        {
+            Value = value;
+        }
+
+        public string Value { get;  }
+
+        public string ToCommandLine(CommandLineVariant variant)
+        {
+            if (variant == CommandLineVariant.Cmd)
+                return $"\"{Value.Sanitize(CommandLineVariant.Cmd)}\"";
+
+            return $"'{Value.Sanitize(CommandLineVariant.Bash)}'";
+        }
+    }
+
+    public interface ICommandLineItem
+    {
+        string ToCommandLine(CommandLineVariant variant);
+    }
+
+    public enum CommandLineVariant
+    {
+        Cmd = 1,
+        Bash
     }
 
 
     internal static class ProcessArgsSanitizer
     {
-        public static string Sanitize(this string args)
+        public static string Sanitize(this string args, CommandLineVariant variant )
         {
-            return args.Replace("\"", "\"\""); 
+            if (variant == CommandLineVariant.Cmd)
+                return args.Replace("\"", "\"\""); 
+
+            return args.Replace("'", "'\\''"); 
         }
     }
 }

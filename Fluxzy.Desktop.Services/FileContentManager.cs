@@ -44,8 +44,6 @@ namespace Fluxzy.Desktop.Services
                 ExchangeInfo? exchange;
 
                 try {
-
-
                     using var stream = fileInfo.OpenRead();
                     exchange = JsonSerializer.Deserialize<ExchangeInfo>(stream, GlobalArchiveOption.DefaultSerializerOptions);
                 }

@@ -19,7 +19,7 @@ namespace Fluxzy.Utils.Curl
         public CurlCommandResult BuildCurlRequest(
             IArchiveReader archiveReader, 
             ExchangeInfo exchange,
-            CurlProxyConfiguration? configuration)
+            IRunningProxyConfiguration? configuration)
         {
             var result = new CurlCommandResult(configuration); 
             var fullUrl = exchange.FullUrl;
@@ -30,7 +30,8 @@ namespace Fluxzy.Utils.Curl
 
             var method = exchange.Method;
 
-            result.AddOption("-X", method.ToUpper());
+            if (!method.Equals("GET", StringComparison.OrdinalIgnoreCase))
+                result.AddOption("-X", method.ToUpper());
 
             // Setting up headers 
 
@@ -42,7 +43,7 @@ namespace Fluxzy.Utils.Curl
                 if (requestHeader.Name.Span.StartsWith(":"))
                     continue; 
                 
-                result.AddOption("--header", $"{requestHeader.Name}: {requestHeader.Value}");
+                result.AddOption("-H", $"{requestHeader.Name}: {requestHeader.Value}");
             }
 
             using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);

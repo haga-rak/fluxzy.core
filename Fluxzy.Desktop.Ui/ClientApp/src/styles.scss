@@ -81,6 +81,41 @@ html, body {
     color : $green;
 }
 
+.text-gray-100 {
+    color : $gray-100;
+}
+
+.text-gray-200 {
+    color : $gray-200;
+}
+
+.text-gray-300 {
+    color : $gray-300;
+}
+
+.text-gray-400 {
+    color : $gray-400;
+}
+.text-gray-500 {
+    color : $gray-500;
+}
+
+.text-gray-600 {
+    color : $gray-600;
+}
+
+.text-gray-700 {
+    color : $gray-700;
+}
+
+.text-gray-800 {
+    color : $gray-800;
+}
+
+.text-gray-900 {
+    color : $gray-900;
+}
+
 .viewer-textarea {
     color: var(--bs-gray-100);
     background:  var(--bs-gray-700);
@@ -129,6 +164,7 @@ html, body {
     padding: 12px;
     flex-grow : 4;
     display : flex;
+    overflow: hidden;
 }
 
 pre {
