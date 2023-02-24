@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using Fluxzy.Interop.Pcap;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls;
-using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -46,15 +44,9 @@ namespace Fluxzy.Bulk.BcCli
 
             var cl = new FluxzyTlsClient(crypto);
 
-            //SecurityParameters securityParameters;
-            //securityParameters.MasterSecret.Destroy();
-
-            var protocol = new FluxzyClientProtocol(stream) {
-                
-            };
+            var protocol = new FluxzyClientProtocol(stream); 
 
             protocol.Connect(cl);
-
 
             var clientRandom = protocol.PlainSecurityParameters.ClientRandom; 
             var masterSecret = crypto.MasterSecret;
@@ -89,28 +81,10 @@ namespace Fluxzy.Bulk.BcCli
         public FluxzyClientProtocol(Stream stream)
             : base(stream)
         {
-
         }
 
         public SecurityParameters PlainSecurityParameters => Context.SecurityParameters; 
     }
-
-
-
-
-    class FluxzyTlsClient : DefaultTlsClient
-    {
-        public FluxzyTlsClient(TlsCrypto crypto)
-            : base(crypto)
-        {
-        }
-
-        public override TlsAuthentication GetAuthentication()
-        {
-            return new FluxzyTlsAuthentication(); 
-        }
-    }
-    
 
     // Need class to handle certificate auth
     class FluxzyTlsAuthentication : TlsAuthentication
@@ -120,46 +94,11 @@ namespace Fluxzy.Bulk.BcCli
             
         }
 
-        
-
         public TlsCredentials? GetClientCredentials(CertificateRequest certificateRequest)
         {
+            
+            
             return null; 
         }
     }
-
-    class FluxzyCrypto : BcTlsCrypto
-    {
-        public FluxzyCrypto(SecureRandom sr)
-            : base(sr)
-        {
-            
-        }
-
-        public override TlsSecret GenerateRsaPreMasterSecret(ProtocolVersion version)
-        {
-            var res =  base.GenerateRsaPreMasterSecret(version);
-
-            return res; 
-        }
-        
-
-        public override TlsSecret AdoptSecret(TlsSecret secret)
-        {
-            var resultSecret =  base.AdoptSecret(secret);
-
-            // byte[] data = new byte[1024];
-            var data = secret.Extract();
-            MasterSecret = new byte[data.Length];
-            data.CopyTo(MasterSecret, 0);
-            
-            return resultSecret; 
-        }
-
-        public byte[]?  MasterSecret { get; set; }
-    }
-
-    
-
-    
 }
