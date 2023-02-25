@@ -81,35 +81,4 @@ namespace Fluxzy.Interop.Pcap.Cli
             await _taskLoop; 
         }
     }
-
-
-    public class PipeMessageReceiverContext : IAsyncDisposable
-    {
-        private readonly CancellationToken _token;
-        private readonly CaptureContext _internalCapture;
-
-        public PipeMessageReceiverContext(CancellationToken token)
-        {
-            _token = token;
-            _internalCapture = new CaptureContext();
-        }
-
-        public async Task LoopReceiver()
-        {
-            var receiver = new PipeMessageReceiver(
-                (message) => _internalCapture.Subscribe(message.OutFileName, message.RemoteAddress, message.RemotePort,
-                    message.LocalPort),
-                unsubscribeMessage => _internalCapture.Unsubscribe(unsubscribeMessage.Key),
-                (includeMessage) => _internalCapture.Include(includeMessage.RemoteAddress, includeMessage.RemotePort),
-                _token
-            );
-
-            await receiver.WaitForExit(); 
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _internalCapture.DisposeAsync();
-        }
-    }
 }

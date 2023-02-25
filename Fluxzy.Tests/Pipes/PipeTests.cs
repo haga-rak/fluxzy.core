@@ -45,7 +45,7 @@ namespace Fluxzy.Tests.Pipes
                 tokenSource.Token
                 );
 
-            using (var pipeClient = await PipedCaptureContextClient.CreateAndConnect(proxyScope)) {
+            using (var pipeClient = await OutOfProcessCaptureContext.CreateAndConnect(proxyScope)) {
 
                 pipeClient.Include(includeMessage.RemoteAddress, includeMessage.RemotePort);
                 receivedKey = pipeClient.Subscribe(expectedSubscribeMessage.OutFileName, expectedSubscribeMessage.RemoteAddress, expectedSubscribeMessage.RemotePort, expectedSubscribeMessage.LocalPort);
@@ -58,7 +58,6 @@ namespace Fluxzy.Tests.Pipes
             Assert.Equal(expectedUnSubscribe, receivedUnsubscribeMessage);
             Assert.Equal(includeMessage, receivedIncludeMessage);
             Assert.Equal(expectedKey, receivedKey);
-            
         }
     }
 }

@@ -133,8 +133,12 @@ namespace Fluxzy
         /// <summary>
         /// Skip SSL decryption for any exchanges. This setting cannot be overriden by rules 
         /// </summary>
-        public bool GlobalSkipSslDecryption { get; set; } = false; 
+        public bool GlobalSkipSslDecryption { get; set; } = false;
 
+        /// <summary>
+        /// When set to true, the raw network capture will be done out of process.
+        /// </summary>
+        public bool OutOfProcCapture { get; set; } = false; 
 
 
         [JsonConstructor]

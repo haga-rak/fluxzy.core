@@ -71,6 +71,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(CreateCertificatePasswordOption());
             command.AddOption(CreateRuleFileOption());
             command.AddOption(CreateUaParsingOption());
+            command.AddOption(CreateOutOfProcCaptureOption());
 
 
             command.SetHandler(context => Run(context, cancellationToken));
@@ -95,6 +96,7 @@ namespace Fluxzy.Cli.Commands
             var certPassword = invocationContext.Value<string>("cert-password");
             var ruleFile = invocationContext.Value<FileInfo>("rule-file");
             var parseUserAgent = invocationContext.Value<bool>("parse-ua");
+            var outOfProcCapture = invocationContext.Value<bool>("external-capture");
 
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
@@ -175,6 +177,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.SetAutoInstallCertificate(installCert);
             proxyStartUpSetting.SetSkipGlobalSslDecryption(skipDecryption);
             proxyStartUpSetting.SetDisableCertificateCache(noCertCache);
+            proxyStartUpSetting.OutOfProcCapture = outOfProcCapture; 
 
             var certificateProvider = new CertificateProvider(proxyStartUpSetting,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
@@ -186,7 +189,7 @@ namespace Fluxzy.Cli.Commands
 
             await using (var tcpConnectionProvider =
                          proxyStartUpSetting.CaptureRawPacket
-                       ? new CapturedTcpConnectionProvider(scope)
+                       ?  await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting)
                        : ITcpConnectionProvider.Default)
             {
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider))
@@ -392,6 +395,18 @@ namespace Fluxzy.Cli.Commands
             var option = new Option<bool>(
                 "--parse-ua",
                 "Parse user agent");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+        
+        private static Option CreateOutOfProcCaptureOption()
+        {
+            var option = new Option<bool>(
+                "--external-capture",
+                "Indicates that the raw capture will be done by an external process");
 
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
