@@ -38,7 +38,7 @@ namespace Fluxzy.Interop.Pcap
             
             _physicalAddressLong = NetUtility.MacToLong(_captureDevice.MacAddress.GetAddressBytes());
 
-            Start();
+            //Start();
         }
 
         public void Include(IPAddress remoteAddress, int remotePort)
@@ -69,7 +69,7 @@ namespace Fluxzy.Interop.Pcap
             return default; 
         } 
 
-        private void Start()
+        public void Start()
         {
             _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
             _captureDevice.Open(DeviceModes.MaxResponsiveness);

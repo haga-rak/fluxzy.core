@@ -4,25 +4,33 @@ public class PipeMessageReceiverContext : IAsyncDisposable
 {
     private readonly CancellationToken _token;
     private readonly ICaptureContext _internalCapture;
+    public PipeMessageReceiver? Receiver { get; private set; }
 
     public PipeMessageReceiverContext(ICaptureContext captureContext, CancellationToken token)
     {
         _token = token;
         _internalCapture = captureContext;
-    }
-
-    public async Task LoopReceiver()
-    {
-        var receiver = new PipeMessageReceiver(
+        
+        Receiver = new PipeMessageReceiver(
             (message) => _internalCapture.Subscribe(message.OutFileName, message.RemoteAddress, message.RemotePort,
                 message.LocalPort),
             unsubscribeMessage => _internalCapture.Unsubscribe(unsubscribeMessage.Key),
             (includeMessage) => _internalCapture.Include(includeMessage.RemoteAddress, includeMessage.RemotePort),
             _token
         );
-
-        await receiver.WaitForExit(); 
     }
+
+    public void Start()
+    {
+        _internalCapture.Start();
+    }
+    
+    public Task WaitForExit()
+    {
+        return Receiver!.WaitForExit().AsTask();
+    }
+    
+    
 
     public async ValueTask DisposeAsync()
     {

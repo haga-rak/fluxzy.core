@@ -228,7 +228,7 @@ namespace Fluxzy.Misc
 
             var mustBeEscapedAndQuoted = commandLineSegment.Intersect(mustMeEscapedChars).Any();
 
-            if (!mustBeEscapedAndQuoted) {
+            if (mustBeEscapedAndQuoted) {
                 commandLineSegment = "\"" + commandLineSegment.SanitizeQuote() + "\"";
             }
 
