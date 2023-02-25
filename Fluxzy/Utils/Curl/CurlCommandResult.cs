@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Haga RAKOTOHARIVELO
+// Copyright © 2023 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -132,7 +132,7 @@ namespace Fluxzy.Utils.Curl
 
     internal static class ProcessArgsSanitizer
     {
-        public static string Sanitize(this string args, CommandLineVariant variant )
+        public static string Sanitize(this string args, CommandLineVariant variant)
         {
             if (variant == CommandLineVariant.Cmd)
                 return args.Replace("\"", "\"\""); 

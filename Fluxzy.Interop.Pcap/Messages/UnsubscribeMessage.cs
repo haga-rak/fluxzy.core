@@ -1,6 +1,4 @@
-using System.IO;
-
-namespace Fluxzy.Capturing.Messages;
+namespace Fluxzy.Interop.Pcap.Messages;
 
 public readonly struct UnsubscribeMessage
 {

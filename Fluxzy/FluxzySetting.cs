@@ -1,8 +1,7 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;

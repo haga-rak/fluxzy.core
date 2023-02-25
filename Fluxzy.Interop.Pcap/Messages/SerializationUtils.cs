@@ -1,11 +1,9 @@
-using System;
 using System.Buffers.Binary;
-using System.IO;
 using System.Net;
 using System.Text;
 using Fluxzy.Misc.Streams;
 
-namespace Fluxzy.Capturing.Messages;
+namespace Fluxzy.Interop.Pcap.Messages;
 
 internal static class SerializationUtils
 {

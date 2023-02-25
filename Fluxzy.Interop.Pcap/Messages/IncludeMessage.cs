@@ -1,8 +1,6 @@
-using System;
-using System.IO;
 using System.Net;
 
-namespace Fluxzy.Capturing.Messages;
+namespace Fluxzy.Interop.Pcap.Messages;
 
 public readonly struct IncludeMessage
 {

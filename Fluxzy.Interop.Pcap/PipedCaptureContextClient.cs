@@ -1,27 +1,33 @@
-using System.IO.Pipes;
 using System.Net;
 using System.Net.Sockets;
-using Fluxzy.Capturing.Messages;
+using Fluxzy.Core;
+using Fluxzy.Interop.Pcap.Messages;
 
 namespace Fluxzy.Interop.Pcap
 {
     public class PipedCaptureContextClient : ICaptureContext, IDisposable
     {
         private readonly int _port;
+        private readonly ProxyScope _proxyScope;
+
         private readonly TcpClient _client;
 
         private BinaryWriter _writer;
         private BinaryReader _reader;
 
-        private PipedCaptureContextClient(int port)
+        private PipedCaptureContextClient(int port, ProxyScope proxyScope)
         {
             _port = port;
+            _proxyScope = proxyScope;
             _client = new TcpClient(); 
         }
 
-        public static async Task<PipedCaptureContextClient> CreateAndConnect(int port)
+        public static async Task<PipedCaptureContextClient> CreateAndConnect(ProxyScope proxyScope)
         {
-            var context = new PipedCaptureContextClient(port);
+            var captureHost = await proxyScope.GetOrCreateCaptureHost();
+            var port = (int) captureHost.Context; 
+
+            var context = new PipedCaptureContextClient(port, proxyScope);
             try {
                 // await client._namedPipeClientStream.ConnectAsync();
                 await context._client.ConnectAsync(IPAddress.Loopback, port);

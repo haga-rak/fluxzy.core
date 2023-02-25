@@ -1,4 +1,4 @@
-namespace Fluxzy.Capturing.Messages;
+namespace Fluxzy.Interop.Pcap.Messages;
 
 public enum MessageType : byte
 {
