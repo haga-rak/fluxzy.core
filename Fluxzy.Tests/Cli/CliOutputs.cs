@@ -18,24 +18,27 @@ namespace Fluxzy.Tests.Cli
     {
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
-        public async Task Run_Cli_Output(string protocol,
-            bool withPcap, bool outputDirectory, bool withSimpleRule)
+        public async Task Run_Cli_Output(string proto,
+            CaptureType rawCap, bool @out, bool rule)
         {
             // Arrange 
 
-            var rootDir = "ab0" + Guid.NewGuid();
-           // var rootDir = "d:\\aaa-test";
-            var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}";
-            var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}.fxzy";
+            var rootDir = $"ab0{Guid.NewGuid()}";
 
-            var commandLine = "start -l 127.0.0.1/0 --external-capture";
+            var directoryName = $"{rootDir}/{proto}-{rawCap}-{@out}-{rule}";
+            var fileName = $"{rootDir}/{proto}-{rawCap}-{@out}-{rule}.fxzy";
 
-            commandLine += outputDirectory ? $" -d {directoryName}" : $" -o {fileName}";
+            var commandLine = "start -l 127.0.0.1/0";
 
-            if (withPcap)
+            commandLine += @out ? $" -d {directoryName}" : $" -o {fileName}";
+
+            if (rawCap != CaptureType.None)
                 commandLine += " -c";
 
-            if (withSimpleRule)
+            if (rawCap == CaptureType.PcapOutOfProc)
+                commandLine += "  --external-capture";
+
+            if (rule)
             {
                 var ruleFile = $"rules.yml";
 
@@ -62,7 +65,7 @@ namespace Fluxzy.Tests.Cli
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post,
-                    $"{TestConstants.GetHost(protocol)}/global-health-check");
+                    $"{TestConstants.GetHost(proto)}/global-health-check");
 
                 await using var randomStream = new RandomDataStream(48, requestBodyLength, true);
                 await using var hashedStream = new HashedStream(randomStream);
@@ -80,12 +83,9 @@ namespace Fluxzy.Tests.Cli
                 // Assert
                 await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
 
-                //await Task.Delay(1000);
             }
 
-            // Assert outputDirectory content
-
-            using (IArchiveReader archiveReader = outputDirectory
+            using (IArchiveReader archiveReader = @out
                        ? new DirectoryArchiveReader(directoryName)
                        : new FluxzyArchiveReader(fileName))
             {
@@ -113,22 +113,13 @@ namespace Fluxzy.Tests.Cli
                 Assert.Contains(exchange.RequestHeader.Headers,
                     t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
 
-                if (withPcap)
+                if (rawCap != CaptureType.None)
                 {
-                    try
-                    {
-                        var rawCapStream = archiveReader.GetRawCaptureStream(connection.Id);
-                        
-                        Assert.True(await rawCapStream!.DrainAsync(disposeStream: true) > 0);
-
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception($"{directoryName} found", ex);
-                    }
+                    var rawCapStream = archiveReader.GetRawCaptureStream(connection.Id);
+                    Assert.True(await rawCapStream!.DrainAsync(disposeStream: true) > 0);
                 }
 
-                if (withSimpleRule)
+                if (rule)
                 {
                     var alterHeader =
                         exchange.GetRequestHeaders().FirstOrDefault(t => t.Name.ToString() == "x-fluxzy");
@@ -148,14 +139,12 @@ namespace Fluxzy.Tests.Cli
                 File.Delete(fileName);
         }
 
-
-
         public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt
         {
             get
             {
                 var protocols = new[] { "http11", "http2", "plainhttp11" };
-                var withPcapStatus = new[] { false, true };
+                var withPcapStatus = new[] { CaptureType.None, CaptureType.Pcap, CaptureType.PcapOutOfProc };
                 var directoryParams = new[] { false, true };
                 var withSimpleRules = new[] { false, true };
 
@@ -167,5 +156,12 @@ namespace Fluxzy.Tests.Cli
             }
         }
 
+    }
+
+    public enum CaptureType
+    {
+        None, 
+        Pcap,
+        PcapOutOfProc
     }
 }
