@@ -5,7 +5,7 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Interop.Pcap.Cli.Clients
 {
-    public class FluxzyNetCaptureHost : ICaptureHost, IDisposable
+    public class FluxzyNetCaptureHost : ICaptureHost
     {
         private Process? _process;
 
@@ -69,7 +69,6 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
             if (_process != null) {
                 _process.Exited -= ProcessOnExited; // Detach process
             }
-
         }
 
         public int Port { get; private set; }
@@ -86,12 +85,20 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
 
         public void Dispose()
         {
-            if (_process != null) {
-                try {
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_process != null)
+            {
+                try
+                {
                     _process.StandardInput.WriteLine("exit");
                     _process.StandardInput.Close();
+                    await _process.WaitForExitAsync();
                 }
-                catch {
+                catch
+                {
                     // Ignore killing failure 
                 }
             }

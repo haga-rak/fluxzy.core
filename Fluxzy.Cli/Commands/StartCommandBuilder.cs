@@ -82,7 +82,6 @@ namespace Fluxzy.Cli.Commands
         public async Task Run(InvocationContext invocationContext, CancellationToken processToken)
         {
             var proxyStartUpSetting = FluxzySetting.CreateDefault();
-            var scope = new ProxyScope(() => new FluxzyNetCaptureHost()); 
 
             var listenInterfaces = invocationContext.Value<List<IPEndPoint>>("listen-interface");
             var outFileInfo = invocationContext.Value<FileInfo>("output-file");
@@ -187,6 +186,7 @@ namespace Fluxzy.Cli.Commands
             var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
             var systemProxyManager = new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
+            await using var scope = new ProxyScope(() => new FluxzyNetCaptureHost());
             await using (var tcpConnectionProvider =
                          proxyStartUpSetting.CaptureRawPacket
                        ?  await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting)
@@ -224,7 +224,6 @@ namespace Fluxzy.Cli.Commands
                         }
                     }
                 }
-
             }
 
             invocationContext.Console.Out.WriteLine("Proxy ended, gracefully");

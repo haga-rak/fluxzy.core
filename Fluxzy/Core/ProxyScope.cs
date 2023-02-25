@@ -6,7 +6,7 @@ namespace Fluxzy.Core
     /// <summary>
     /// Shall be one per proxy instance
     /// </summary>
-    public class ProxyScope
+    public class ProxyScope : IAsyncDisposable
     {
         private readonly Func<ICaptureHost> _captureHostBuilder;
         private ICaptureHost? _currentCaptureHost; 
@@ -41,9 +41,19 @@ namespace Fluxzy.Core
 
             return _currentCaptureHost; 
         }
+
+        public void Dispose()
+        {
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_currentCaptureHost != null) 
+             await _currentCaptureHost.DisposeAsync();
+        }
     }
 
-    public interface ICaptureHost
+    public interface ICaptureHost : IAsyncDisposable
     {
         Task<bool> Start();
 
