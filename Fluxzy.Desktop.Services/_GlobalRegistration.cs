@@ -1,4 +1,4 @@
-﻿using System.Reactive.Linq;
+using System.Reactive.Linq;
 using Fluxzy.Core;
 using Fluxzy.Core.Proxy;
 using Fluxzy.Desktop.Services.Filters;
@@ -21,6 +21,7 @@ namespace Fluxzy.Desktop.Services
     {
         public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
+            collection.AddSingleton<ProxyScope>();
             collection.AddSingleton<FileManager>();
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();

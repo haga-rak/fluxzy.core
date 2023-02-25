@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core;
@@ -13,6 +13,7 @@ namespace Fluxzy.Desktop.Services
 {
     public class ProxyControl : ObservableProvider<ProxyState>
     {
+        private readonly ProxyScope _proxyScope;
         private readonly FileContentUpdateManager _fileContentUpdateManager;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null);
@@ -24,6 +25,7 @@ namespace Fluxzy.Desktop.Services
         protected override BehaviorSubject<ProxyState> Subject { get; }
 
         public ProxyControl(
+            ProxyScope proxyScope,
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<FileContentOperationManager> contentObservable,
             IObservable<ViewFilter> viewFilter,
@@ -31,6 +33,7 @@ namespace Fluxzy.Desktop.Services
             IObservable<IArchiveReader> archiveReaderObservable,
             FileContentUpdateManager fileContentUpdateManager)
         {
+            _proxyScope = proxyScope;
             _fileContentUpdateManager = fileContentUpdateManager;
 
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState
@@ -100,7 +103,7 @@ namespace Fluxzy.Desktop.Services
             {
                 _tcpConnectionProvider =
                     fluxzySetting.CaptureRawPacket
-                        ? new CapturedTcpConnectionProvider()
+                        ? new CapturedTcpConnectionProvider(_proxyScope)
                         : ITcpConnectionProvider.Default;
 
                 _proxy = new Proxy(fluxzySetting, 

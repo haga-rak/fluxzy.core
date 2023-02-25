@@ -1,23 +1,61 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace Fluxzy.Interop.Pcap.Cli
 {
     internal class Program
     {
+        private static async Task CancelTokenSourceOnStandardInputClose(CancellationTokenSource source)
+        {
+            string? str; 
+
+            while ((str = await Console.In.ReadLineAsync()) != null && !str.Equals("exit", StringComparison.OrdinalIgnoreCase)) {
+
+            }
+
+            // STDIN has closed this means that parent request halted or request an explicit close 
+
+            if (source.IsCancellationRequested) {
+                source.Cancel();
+            }
+        }
+
+        private static async Task CancelTokenWhenParentProcessExit(CancellationTokenSource source, int processId)
+        {
+            Process process = Process.GetProcessById(processId);
+
+            await process.WaitForExitAsync(source.Token);
+
+            if (source.IsCancellationRequested)
+            {
+                source.Cancel();
+            }
+        }
+
+        /// <summary>
+        /// args[0] => caller PID 
+        /// 
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         private static async Task<int> Main(string[] args)
         {
             if (args.Length < 2 ) {
-                Console.WriteLine("Usage : command pipeName pid");
+                Console.WriteLine("Usage : command pid");
                 return 1; 
             }
-            var pipeName = args[0];
-            var processId = int.Parse(args[1]);
-            var cancellationTokenSource = new CancellationTokenSource();
-            var token = cancellationTokenSource.Token; 
-            var parentProcess = Process.GetProcessById(processId);
+            var processId = int.Parse(args[0]);
+            var haltSource = new CancellationTokenSource();
 
-            await parentProcess.WaitForExitAsync(cancellationTokenSource.Token); 
-            Console.ReadLine();
+            var stdInClose = CancelTokenSourceOnStandardInputClose(haltSource);
+            var parentMonitoringTask = CancelTokenWhenParentProcessExit(haltSource, processId);
+
+            await using var receiverContext = new PipeMessageReceiverContext(haltSource.Token);
+
+            var loopingTask = receiverContext.LoopReceiver();
+
+            // We halt the process when one of the task is completed
+            await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask); 
 
             return 0;
         }

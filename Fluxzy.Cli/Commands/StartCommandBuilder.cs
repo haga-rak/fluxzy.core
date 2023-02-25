@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ using Fluxzy.Core;
 using Fluxzy.Extensions;
 using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
+using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.NativeOps;
 using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Rules;
@@ -80,6 +81,7 @@ namespace Fluxzy.Cli.Commands
         public async Task Run(InvocationContext invocationContext, CancellationToken processToken)
         {
             var proxyStartUpSetting = FluxzySetting.CreateDefault();
+            var scope = new ProxyScope(() => new FluxzyNetCaptureHost()); 
 
             var listenInterfaces = invocationContext.Value<List<IPEndPoint>>("listen-interface");
             var outFileInfo = invocationContext.Value<FileInfo>("output-file");
@@ -184,7 +186,7 @@ namespace Fluxzy.Cli.Commands
 
             await using (var tcpConnectionProvider =
                          proxyStartUpSetting.CaptureRawPacket
-                       ? new CapturedTcpConnectionProvider()
+                       ? new CapturedTcpConnectionProvider(scope)
                        : ITcpConnectionProvider.Default)
             {
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider))

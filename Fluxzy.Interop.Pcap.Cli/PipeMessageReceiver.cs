@@ -1,7 +1,6 @@
-using System.IO.Pipes;
 using System.Net;
 using System.Net.Sockets;
-using Fluxzy.Capturing.Messages;
+using Fluxzy.Interop.Pcap.Messages;
 
 namespace Fluxzy.Interop.Pcap.Cli
 {
@@ -14,7 +13,8 @@ namespace Fluxzy.Interop.Pcap.Cli
         private readonly Task _taskLoop;
         private readonly TcpListener _tcpListener;
 
-        public PipeMessageReceiver(Func<SubscribeMessage, long> subscribeHandler,
+        public PipeMessageReceiver(
+            Func<SubscribeMessage, long> subscribeHandler,
             Action<UnsubscribeMessage> unsubscribeHandler,
             Action<IncludeMessage> includeHandler,
             CancellationToken token)
@@ -35,42 +35,81 @@ namespace Fluxzy.Interop.Pcap.Cli
         private async Task InternalLoop()
         {
             // await _pipeServer.WaitForConnectionAsync(_token);
-            var client = await _tcpListener.AcceptTcpClientAsync(_token); 
-            var stream = client.GetStream();
-            
 
-            var binaryWriter = new BinaryWriter(stream);
-            var binaryReader = new BinaryReader(stream);
-            var @byte = new byte[1];
+            try {
 
-            while ( (await stream.ReadAsync(@byte, 0, 1, _token))  > 0) {
-                var messageType = (MessageType) @byte[0]; 
-        
-                switch (messageType) {
-                    case MessageType.Subscribe:
-                        var subscribeMessage = SubscribeMessage.FromReader(binaryReader);
-                        var key = _subscribeHandler(subscribeMessage);
-                        binaryWriter.Write(key);
-                        break;
-                    case MessageType.Unsubscribe:
-                        var unsubscribeMessage = UnsubscribeMessage.FromReader(binaryReader);
-                        _unsubscribeHandler(unsubscribeMessage);
-                        break;
-                    case MessageType.Include:
-                        var includeMessage = IncludeMessage.FromReader(binaryReader);
-                        _includeHandler(includeMessage);
-                        break;
-                    case MessageType.Exit:
-                        return;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                var client = await _tcpListener.AcceptTcpClientAsync(_token);
+                var stream = client.GetStream();
+
+                var binaryWriter = new BinaryWriter(stream);
+                var binaryReader = new BinaryReader(stream);
+                var @byte = new byte[1];
+
+                while ((await stream.ReadAsync(@byte, 0, 1, _token)) > 0)
+                {
+                    var messageType = (MessageType)@byte[0];
+
+                    switch (messageType)
+                    {
+                        case MessageType.Subscribe:
+                            var subscribeMessage = SubscribeMessage.FromReader(binaryReader);
+                            var key = _subscribeHandler(subscribeMessage);
+                            binaryWriter.Write(key);
+                            break;
+                        case MessageType.Unsubscribe:
+                            var unsubscribeMessage = UnsubscribeMessage.FromReader(binaryReader);
+                            _unsubscribeHandler(unsubscribeMessage);
+                            break;
+                        case MessageType.Include:
+                            var includeMessage = IncludeMessage.FromReader(binaryReader);
+                            _includeHandler(includeMessage);
+                            break;
+                        case MessageType.Exit:
+                            return;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
                 }
-            } 
+            }
+            finally {
+                _tcpListener.Stop(); // We free the port 
+            }
         }
 
         public async ValueTask WaitForExit()
         {
             await _taskLoop; 
+        }
+    }
+
+
+    public class PipeMessageReceiverContext : IAsyncDisposable
+    {
+        private readonly CancellationToken _token;
+        private readonly CaptureContext _internalCapture;
+
+        public PipeMessageReceiverContext(CancellationToken token)
+        {
+            _token = token;
+            _internalCapture = new CaptureContext();
+        }
+
+        public async Task LoopReceiver()
+        {
+            var receiver = new PipeMessageReceiver(
+                (message) => _internalCapture.Subscribe(message.OutFileName, message.RemoteAddress, message.RemotePort,
+                    message.LocalPort),
+                unsubscribeMessage => _internalCapture.Unsubscribe(unsubscribeMessage.Key),
+                (includeMessage) => _internalCapture.Include(includeMessage.RemoteAddress, includeMessage.RemotePort),
+                _token
+            );
+
+            await receiver.WaitForExit(); 
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _internalCapture.DisposeAsync();
         }
     }
 }

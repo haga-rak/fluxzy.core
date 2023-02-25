@@ -1,8 +1,11 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
+using Fluxzy.Utils.Curl;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,7 +85,7 @@ namespace Fluxzy.Misc
             return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
         }
         
-        public static ProcessRunResult QuickRun(string commandName, string args, Stream ? stdinStream = null)
+        public static ProcessRunResult QuickRun(string commandName, string args, Stream ? stdInStream = null)
         {
             // Run process and return process run result 
             
@@ -90,7 +93,7 @@ namespace Fluxzy.Misc
             {
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                RedirectStandardInput = stdinStream != null,
+                RedirectStandardInput = stdInStream != null,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
@@ -100,9 +103,9 @@ namespace Fluxzy.Misc
             if (process == null)
                 throw new InvalidOperationException("Unable to start process " + commandName + " " + args);
 
-            if (stdinStream != null) {
+            if (stdInStream != null) {
                 // Copy stdinstream to process stdin
-                stdinStream.CopyTo(process.StandardInput.BaseStream);
+                stdInStream.CopyTo(process.StandardInput.BaseStream);
                 process.StandardInput.BaseStream.Dispose();
             }
             
@@ -117,21 +120,20 @@ namespace Fluxzy.Misc
             return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
         }
 
-        public static Task<ProcessRunResult> QuickRunAsync(string fullCommand, Stream ? stdinStream = null)
+        public static Task<ProcessRunResult> QuickRunAsync(string fullCommand, Stream ? stdInStream = null)
         {
             var commandTab = fullCommand.Split(' ');
 
             if (commandTab.Length == 1)
                 return QuickRunAsync(fullCommand, string.Empty); 
             
-            
             var commandName = fullCommand.Split(' ')[0];
             var args = fullCommand.Substring(commandName.Length + 1);
 
-            return QuickRunAsync(commandName, args,stdinStream); 
+            return QuickRunAsync(commandName, args,stdInStream); 
         }
         
-        public static ProcessRunResult QuickRun(string fullCommand, Stream ? stdinStream = null)
+        public static ProcessRunResult QuickRun(string fullCommand, Stream ? stdInStream = null)
         {
             var commandTab = fullCommand.Split(' ');
 
@@ -142,7 +144,7 @@ namespace Fluxzy.Misc
             var commandName = fullCommand.Split(' ')[0];
             var args = fullCommand.Substring(commandName.Length + 1);
 
-            return QuickRun(commandName, args,stdinStream); 
+            return QuickRun(commandName, args,stdInStream); 
         }
 
         public static bool IsCommandAvailable(string commandName)
@@ -172,6 +174,32 @@ namespace Fluxzy.Misc
 
             return true; 
         }
+        
+        public static Process? RunElevated(string commandName, string [] args, bool redirectStdOut)
+        {
+            var fullArgs = string.Join(" ", args.Select(s => s.EscapeSegment()));
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                // We use run as 
+                var winProcess = Process.Start(new ProcessStartInfo(commandName, fullArgs)
+                {
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    RedirectStandardOutput = redirectStdOut
+                });
+
+                return winProcess; 
+            }
+
+            var process = Process.Start(new ProcessStartInfo("pkexec", $"{commandName} {fullArgs}")
+            {
+                UseShellExecute = true,
+                Verb = "runas"
+            });
+
+            return process; 
+        }
+
     }
 
     internal static class ProcessExtensions
@@ -189,6 +217,28 @@ namespace Fluxzy.Misc
                 cancellationToken.Register(() => tcs.SetCanceled());
 
             return process.HasExited ? Task.CompletedTask : tcs.Task;
+        }
+
+        public static string EscapeSegment(this string commandLineSegment)
+        {
+            var mustMeEscapedChars = "\"'|<> "; // Char that must be escaped or quoted for both CMD and Bash
+
+            var mustBeEscapedAndQuoted = commandLineSegment.Intersect(mustMeEscapedChars).Any();
+
+            if (!mustBeEscapedAndQuoted) {
+                commandLineSegment = "\"" + commandLineSegment.SanitizeQuote() + "\"";
+            }
+
+            return commandLineSegment; 
+        }
+
+
+        internal static string SanitizeQuote(this string str)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return str.Replace("\"", "\"\"");
+
+            return str.Replace("'", "'\\''");
         }
     }
 
