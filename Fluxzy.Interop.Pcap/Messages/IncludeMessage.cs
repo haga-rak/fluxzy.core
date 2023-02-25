@@ -20,7 +20,7 @@ public readonly struct IncludeMessage
     {
         Span<char> charBuffer = stackalloc char[512];
         
-        var remoteAddress = SerializationUtils.ReadIpAddress(reader, charBuffer);
+        var remoteAddress = SerializationUtils.ReadIpAddress(reader.BaseStream);
         var remotePort = reader.ReadInt32();
         
         return new IncludeMessage(remoteAddress, remotePort);
@@ -28,7 +28,7 @@ public readonly struct IncludeMessage
 
     public void Write(BinaryWriter writer)
     {
-        writer.Write(RemoteAddress.ToString());
+        writer.BaseStream.WriteString(RemoteAddress.ToString());
         writer.Write(RemotePort);
     }
 

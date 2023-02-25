@@ -1,4 +1,6 @@
 using System.IO.Pipes;
+using System.Net;
+using System.Net.Sockets;
 using Fluxzy.Capturing.Messages;
 
 namespace Fluxzy.Interop.Pcap.Cli
@@ -9,11 +11,10 @@ namespace Fluxzy.Interop.Pcap.Cli
         private readonly Action<UnsubscribeMessage> _unsubscribeHandler;
         private readonly Action<IncludeMessage> _includeHandler;
         private readonly CancellationToken _token;
-        private readonly NamedPipeServerStream _pipeServer;
         private readonly Task _taskLoop;
-    
-        public PipeMessageReceiver(string pipeName, 
-            Func<SubscribeMessage, long> subscribeHandler,
+        private readonly TcpListener _tcpListener;
+
+        public PipeMessageReceiver(Func<SubscribeMessage, long> subscribeHandler,
             Action<UnsubscribeMessage> unsubscribeHandler,
             Action<IncludeMessage> includeHandler,
             CancellationToken token)
@@ -22,19 +23,27 @@ namespace Fluxzy.Interop.Pcap.Cli
             _unsubscribeHandler = unsubscribeHandler;
             _includeHandler = includeHandler;
             _token = token;
-            _pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte);
-            _taskLoop = InternalLoop();
+
+            _tcpListener  = new TcpListener(IPAddress.Loopback, 0);
+            _tcpListener.Start();
+            ListeningPort = ((IPEndPoint)_tcpListener.LocalEndpoint).Port;
+            _taskLoop = Task.Run(async () => await InternalLoop());
         }
-    
+
+        public int ListeningPort { get; }
+
         private async Task InternalLoop()
         {
-            await _pipeServer.WaitForConnectionAsync(_token);
+            // await _pipeServer.WaitForConnectionAsync(_token);
+            var client = await _tcpListener.AcceptTcpClientAsync(_token); 
+            var stream = client.GetStream();
+            
 
-            var binaryWriter = new BinaryWriter(_pipeServer);
-            var binaryReader = new BinaryReader(_pipeServer);
+            var binaryWriter = new BinaryWriter(stream);
+            var binaryReader = new BinaryReader(stream);
             var @byte = new byte[1];
 
-            while ( (await _pipeServer.ReadAsync(@byte, 0, 1, _token))  > 0) {
+            while ( (await stream.ReadAsync(@byte, 0, 1, _token))  > 0) {
                 var messageType = (MessageType) @byte[0]; 
         
                 switch (messageType) {

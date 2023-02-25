@@ -1,34 +1,39 @@
 using System.IO.Pipes;
 using System.Net;
+using System.Net.Sockets;
 using Fluxzy.Capturing.Messages;
 
 namespace Fluxzy.Interop.Pcap
 {
     public class PipedCaptureContextClient : ICaptureContext, IDisposable
     {
-        private readonly NamedPipeClientStream _namedPipeClientStream;
-        private readonly BinaryWriter _writer;
-        private readonly BinaryReader _reader;
+        private readonly int _port;
+        private readonly TcpClient _client;
 
-        private PipedCaptureContextClient(string pipeName)
+        private BinaryWriter _writer;
+        private BinaryReader _reader;
+
+        private PipedCaptureContextClient(int port)
         {
-            _namedPipeClientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous)
-            {
-
-            };
-            _writer = new BinaryWriter(_namedPipeClientStream);
-            _reader = new BinaryReader(_namedPipeClientStream);
+            _port = port;
+            _client = new TcpClient(); 
         }
 
-        public static async Task<PipedCaptureContextClient> CreateAndConnect(string pipeName)
+        public static async Task<PipedCaptureContextClient> CreateAndConnect(int port)
         {
-            var client = new PipedCaptureContextClient(pipeName);
+            var context = new PipedCaptureContextClient(port);
             try {
-                await client._namedPipeClientStream.ConnectAsync();
-                return client;
+                // await client._namedPipeClientStream.ConnectAsync();
+                await context._client.ConnectAsync(IPAddress.Loopback, port);
+
+                var stream = context._client.GetStream();
+                context._writer = new BinaryWriter(stream);
+                context._reader = new BinaryReader(stream);
+
+                return context;
             }
             catch {
-                client.Dispose();
+                context.Dispose();
                 throw;
             }
         }
@@ -36,6 +41,7 @@ namespace Fluxzy.Interop.Pcap
         public void Include(IPAddress remoteAddress, int remotePort)
         {
             var includeMessage = new IncludeMessage(remoteAddress, remotePort);
+            
             _writer.Write((byte) MessageType.Include);
             includeMessage.Write(_writer);
             _writer.Flush();
@@ -63,7 +69,7 @@ namespace Fluxzy.Interop.Pcap
         public void Dispose()
         {
             _writer.Write((byte)MessageType.Exit);
-            _namedPipeClientStream.Dispose();
+            _client.Dispose();
         }
     }
 }
