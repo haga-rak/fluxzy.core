@@ -26,20 +26,21 @@ public readonly struct SubscribeMessage
     {
         Span<char> charBuffer = stackalloc char[512];
         
-        var remoteAddress = SerializationUtils.ReadIpAddress(reader, charBuffer);
+        var remoteAddress = SerializationUtils.ReadIpAddress(reader.BaseStream);
         var remotePort = reader.ReadInt32();
         var localPort = reader.ReadInt32();
-        var outFileName = reader.ReadString(); 
-        
+        var outFileNameLength = reader.BaseStream.ReadString(charBuffer);
+        var outFileName = new string(charBuffer.Slice(0, outFileNameLength));
+
         return new SubscribeMessage(remoteAddress, remotePort, localPort, outFileName);
     }
 
     public void Write(BinaryWriter writer)
     {
-        writer.Write(RemoteAddress.ToString());
+        writer.BaseStream.WriteString(RemoteAddress.ToString());
         writer.Write(RemotePort);
         writer.Write(LocalPort);
-        writer.Write(OutFileName);
+        writer.BaseStream.WriteString(OutFileName);
     }
 
     public bool Equals(SubscribeMessage other)

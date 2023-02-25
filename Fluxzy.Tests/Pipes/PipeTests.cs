@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Pipes
         public async Task TestPipeClientServer()
         {
             var pipeName = Guid.NewGuid().ToString();
-            var tokenSource = new CancellationTokenSource(30); 
+            var tokenSource = new CancellationTokenSource(10000); 
             var expectedKey = 99;
             var receivedKey = -1L;
 
@@ -27,11 +27,9 @@ namespace Fluxzy.Tests.Pipes
             UnsubscribeMessage receivedUnsubscribeMessage = default;
             IncludeMessage receivedIncludeMessage = default;
 
-            var pipeMessageReceiver = new PipeMessageReceiver(pipeName ,
-                m =>
+            var pipeMessageReceiver = new PipeMessageReceiver(m =>
                 {
                     receivedSubscribeMessage = m; 
-                    return expectedKey;
                     return expectedKey;
                 },
                 m =>
@@ -44,10 +42,8 @@ namespace Fluxzy.Tests.Pipes
                 },
                 tokenSource.Token
                 );
-
-
-
-            using (var pipeClient = await PipedCaptureContextClient.CreateAndConnect(pipeName)) {
+            
+            using (var pipeClient = await PipedCaptureContextClient.CreateAndConnect(pipeMessageReceiver.ListeningPort)) {
 
                 pipeClient.Include(includeMessage.RemoteAddress, includeMessage.RemotePort);
                 receivedKey = pipeClient.Subscribe(expectedSubscribeMessage.OutFileName, expectedSubscribeMessage.RemoteAddress, expectedSubscribeMessage.RemotePort, expectedSubscribeMessage.LocalPort);
