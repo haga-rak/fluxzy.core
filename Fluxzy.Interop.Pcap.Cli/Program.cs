@@ -41,13 +41,6 @@ namespace Fluxzy.Interop.Pcap.Cli
         /// <returns></returns>
         private static async Task<int> Main(string[] args)
         {
-            var stopWatch = new Stopwatch(); 
-            stopWatch.Start();
-            using var streamWriter = new StreamWriter(File.Create("/home/haga/__log.txt"), Encoding.UTF8, 4096, false)
-            {
-                AutoFlush = true
-            };
-
             try {
 
                 if (args.Length < 1 ) {
@@ -60,35 +53,26 @@ namespace Fluxzy.Interop.Pcap.Cli
                     return 2; 
                 }
             
-                streamWriter.WriteLine(stopWatch.ElapsedMilliseconds + " " + $"Received PID : {processId}");
-            
                 var haltSource = new CancellationTokenSource();
 
-                var stdInClose = CancelTokenSourceOnStandardInputClose(haltSource);
-                var parentMonitoringTask = CancelTokenWhenParentProcessExit(haltSource, processId);
+                var stdInClose = Task.Run(async () => { await CancelTokenSourceOnStandardInputClose(haltSource); });
+                var parentMonitoringTask = Task.Run(async () => { await CancelTokenWhenParentProcessExit(haltSource, processId); });  
 
                 await using var receiverContext = new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
                 
-                streamWriter.WriteLine(stopWatch.ElapsedMilliseconds + " " + $"Starting " + receiverContext.Receiver!.ListeningPort);
                 receiverContext.Start();
-                streamWriter.WriteLine(stopWatch.ElapsedMilliseconds + " " + $"Started");
                 Console.WriteLine(receiverContext.Receiver!.ListeningPort);
             
                 var loopingTask = receiverContext.WaitForExit();
 
                 // We halt the process when one of the task is completed
                 await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask); 
-                
-                streamWriter.WriteLine($"Natural end");
 
                 return 0;
             }
-            catch (Exception ex) {
-                streamWriter.WriteLine(ex.ToString());
+            catch (Exception) {
+                // To do : connect logger here
                 throw; 
-            }
-            finally {
-                
             }
         }
     }
