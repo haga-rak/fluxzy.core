@@ -47,7 +47,12 @@ namespace Fluxzy.Interop.Pcap
                 throw;
             }
         }
-    
+
+        public void Start()
+        {
+            
+        }
+
         public void Include(IPAddress remoteAddress, int remotePort)
         {
             var includeMessage = new IncludeMessage(remoteAddress, remotePort);

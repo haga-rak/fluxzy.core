@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Fluxzy.Core;
 using Fluxzy.Misc;
 
@@ -15,13 +16,17 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
             // save the state of sudo acquisition 
 
             var currentPid = Process.GetCurrentProcess().Id; 
-            var assemblyLocation = new FileInfo(typeof(Program).Assembly.Location).FullName;
+            var commandName = new FileInfo(typeof(Program).Assembly.Location).FullName;
 
-            if (assemblyLocation.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) {
-                assemblyLocation = $"dotnet {assemblyLocation}";
+            if (commandName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) {
+                commandName = commandName.Substring(0, commandName.Length - 4);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                    commandName += ".exe"; // TODO : find a more elegant trick than this 
+                }
             }
 
-            _process = ProcessUtils.RunElevated(assemblyLocation, new [] { $"{currentPid}" }, true);
+            _process = ProcessUtils.RunElevated(commandName, new [] { $"{currentPid}" }, true);
 
             if (_process == null) {
                 // Log "Cannot run process as sudo"
@@ -39,7 +44,7 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
                                       .WaitAsync(TimeSpan.FromSeconds(30));
 
                 if (nextLine == null || !int.TryParse(nextLine, out var port)) {
-                    return false; // Next line was invalid line 
+                    return false; // Did not receive port number
                 }
 
                 Port = port;

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 
 namespace Fluxzy.Interop.Pcap.Cli
 {
@@ -40,24 +41,55 @@ namespace Fluxzy.Interop.Pcap.Cli
         /// <returns></returns>
         private static async Task<int> Main(string[] args)
         {
-            if (args.Length < 2 ) {
-                Console.WriteLine("Usage : command pid");
-                return 1; 
+            var stopWatch = new Stopwatch(); 
+            stopWatch.Start();
+            using var streamWriter = new StreamWriter(File.Create("/home/haga/__log.txt"), Encoding.UTF8, 4096, false)
+            {
+                AutoFlush = true
+            };
+
+            try {
+
+                if (args.Length < 1 ) {
+                    Console.WriteLine("Usage : command pid. Received args : " + string.Join(" ", args));
+                    return 1; 
+                }
+            
+                if (!int.TryParse(args[0], out var processId)) {
+                    Console.WriteLine("Process ID is not a valid integer");
+                    return 2; 
+                }
+            
+                streamWriter.WriteLine(stopWatch.ElapsedMilliseconds + " " + $"Received PID : {processId}");
+            
+                var haltSource = new CancellationTokenSource();
+
+                var stdInClose = CancelTokenSourceOnStandardInputClose(haltSource);
+                var parentMonitoringTask = CancelTokenWhenParentProcessExit(haltSource, processId);
+
+                await using var receiverContext = new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
+                
+                streamWriter.WriteLine(stopWatch.ElapsedMilliseconds + " " + $"Starting " + receiverContext.Receiver!.ListeningPort);
+                receiverContext.Start();
+                streamWriter.WriteLine(stopWatch.ElapsedMilliseconds + " " + $"Started");
+                Console.WriteLine(receiverContext.Receiver!.ListeningPort);
+            
+                var loopingTask = receiverContext.WaitForExit();
+
+                // We halt the process when one of the task is completed
+                await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask); 
+                
+                streamWriter.WriteLine($"Natural end");
+
+                return 0;
             }
-            var processId = int.Parse(args[0]);
-            var haltSource = new CancellationTokenSource();
-
-            var stdInClose = CancelTokenSourceOnStandardInputClose(haltSource);
-            var parentMonitoringTask = CancelTokenWhenParentProcessExit(haltSource, processId);
-
-            await using var receiverContext = new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
-
-            var loopingTask = receiverContext.LoopReceiver();
-
-            // We halt the process when one of the task is completed
-            await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask); 
-
-            return 0;
+            catch (Exception ex) {
+                streamWriter.WriteLine(ex.ToString());
+                throw; 
+            }
+            finally {
+                
+            }
         }
     }
 

@@ -57,7 +57,7 @@ namespace Fluxzy.Tests.Cli
             var requestBodyLength = 23632;
             var bodyLength = 0L;
 
-            await using (var fluxzyInstance = await commandLineHost.Run())
+            await using (var fluxzyInstance = await commandLineHost.Run(30))
             {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 

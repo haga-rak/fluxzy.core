@@ -20,6 +20,8 @@ namespace Fluxzy.Interop.Pcap
             connectionProvider._directCaptureContext = settings.OutOfProcCapture ?
                 await OutOfProcessCaptureContext.CreateAndConnect(scope) :
                 new DirectCaptureContext();
+            
+            connectionProvider._directCaptureContext!.Start();
 
             if (connectionProvider._directCaptureContext == null) {
                 Console.WriteLine("Unable to acquire authorization for capture raw packets");

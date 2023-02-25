@@ -4,6 +4,8 @@ namespace Fluxzy.Interop.Pcap;
 
 public interface ICaptureContext : IAsyncDisposable
 {
+    void Start(); 
+    
     void Include(IPAddress remoteAddress, int remotePort);
 
     long Subscribe(string outFileName,

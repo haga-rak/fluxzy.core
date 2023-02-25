@@ -39,10 +39,10 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _outputConsole = new OutputConsole(_standardOutput, _standardError);
         }
 
-        public async Task<ProxyInstance> Run()
+        public async Task<ProxyInstance> Run(int timeoutSeconds = 5)
         {
             
-            var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$");
+            var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$", timeoutSeconds);
             _runningProxyTask = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken);
 
             var port = int.Parse(await waitForPortTask);
