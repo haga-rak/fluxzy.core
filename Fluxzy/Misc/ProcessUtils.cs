@@ -183,18 +183,21 @@ namespace Fluxzy.Misc
                 // We use run as 
                 var winProcess = Process.Start(new ProcessStartInfo(commandName, fullArgs)
                 {
-                    UseShellExecute = true,
+                    UseShellExecute = false,
                     Verb = "runas",
-                    RedirectStandardOutput = redirectStdOut
+                    RedirectStandardOutput = redirectStdOut,
+                    RedirectStandardInput = redirectStdOut
                 });
 
                 return winProcess; 
             }
 
-            var process = Process.Start(new ProcessStartInfo("/usr/bin/pkexec", $"{commandName} {fullArgs}")
+            var process = Process.Start(new ProcessStartInfo("pkexec", $"{commandName} {fullArgs}")
             {
-                UseShellExecute = true,
-                Verb = "runas"
+                UseShellExecute = false,
+                Verb = "runas",
+                RedirectStandardOutput = redirectStdOut,
+                RedirectStandardInput = redirectStdOut
             });
 
             return process; 
