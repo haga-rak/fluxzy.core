@@ -50,7 +50,7 @@ namespace Fluxzy.Interop.Pcap.Cli
             var stdInClose = CancelTokenSourceOnStandardInputClose(haltSource);
             var parentMonitoringTask = CancelTokenWhenParentProcessExit(haltSource, processId);
 
-            await using var receiverContext = new PipeMessageReceiverContext(haltSource.Token);
+            await using var receiverContext = new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
 
             var loopingTask = receiverContext.LoopReceiver();
 

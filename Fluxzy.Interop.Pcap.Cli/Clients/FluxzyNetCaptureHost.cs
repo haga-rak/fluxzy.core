@@ -17,6 +17,10 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
             var currentPid = Process.GetCurrentProcess().Id; 
             var assemblyLocation = new FileInfo(typeof(Program).Assembly.Location).FullName;
 
+            if (assemblyLocation.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) {
+                assemblyLocation = $"dotnet {assemblyLocation}";
+            }
+
             _process = ProcessUtils.RunElevated(assemblyLocation, new [] { $"{currentPid}" }, true);
 
             if (_process == null) {

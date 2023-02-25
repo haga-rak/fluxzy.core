@@ -191,7 +191,7 @@ namespace Fluxzy.Misc
                 return winProcess; 
             }
 
-            var process = Process.Start(new ProcessStartInfo("pkexec", $"{commandName} {fullArgs}")
+            var process = Process.Start(new ProcessStartInfo("/usr/bin/pkexec", $"{commandName} {fullArgs}")
             {
                 UseShellExecute = true,
                 Verb = "runas"

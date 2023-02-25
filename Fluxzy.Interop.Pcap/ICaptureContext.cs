@@ -2,7 +2,7 @@ using System.Net;
 
 namespace Fluxzy.Interop.Pcap;
 
-public interface ICaptureContext
+public interface ICaptureContext : IAsyncDisposable
 {
     void Include(IPAddress remoteAddress, int remotePort);
 

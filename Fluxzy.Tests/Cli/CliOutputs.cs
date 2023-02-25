@@ -1,4 +1,4 @@
-// Copyright © 2023 Haga RAKOTOHARIVELO
+// Copyright Â© 2023 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +28,7 @@ namespace Fluxzy.Tests.Cli
             var directoryName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}";
             var fileName = $"{rootDir}/{protocol}-{withPcap}-{outputDirectory}-{withSimpleRule}.fxzy";
 
-            var commandLine = "start -l 127.0.0.1/0";
+            var commandLine = "start -l 127.0.0.1/0 --external-capture";
 
             commandLine += outputDirectory ? $" -d {directoryName}" : $" -o {fileName}";
 

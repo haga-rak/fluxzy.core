@@ -9,7 +9,7 @@ namespace Fluxzy.Interop.Pcap
 {
     public class CapturableTcpConnection :  ITcpConnection
     {
-        private readonly CaptureContext _captureContext;
+        private readonly ICaptureContext _directCaptureContext;
         private readonly string _outTraceFileName;
         private readonly TcpClient _innerTcpClient;
         private DisposeEventNotifierStream?  _stream;
@@ -18,9 +18,9 @@ namespace Fluxzy.Interop.Pcap
         private IPEndPoint?  _localEndPoint;
         private long  _subscription;
 
-        public CapturableTcpConnection(CaptureContext captureContext, string outTraceFileName)
+        public CapturableTcpConnection(ICaptureContext directCaptureContext, string outTraceFileName)
         {
-            _captureContext = captureContext;
+            _directCaptureContext = directCaptureContext;
             _outTraceFileName = outTraceFileName;
             _innerTcpClient = new TcpClient();
         }
@@ -30,12 +30,12 @@ namespace Fluxzy.Interop.Pcap
             if (_stream != null)
                 throw new InvalidOperationException("A previous connect attempt was already made");
             
-            _captureContext.Include(remoteAddress, remotePort);
+            _directCaptureContext.Include(remoteAddress, remotePort);
 
             await _innerTcpClient.ConnectAsync(remoteAddress, remotePort);
 
             _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
-            _subscription = _captureContext.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port);
+            _subscription = _directCaptureContext.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port);
 
             _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());
             
@@ -70,7 +70,7 @@ namespace Fluxzy.Interop.Pcap
 
             if (_subscription != 0 )
             {
-                await _captureContext.Unsubscribe(_subscription);
+                await _directCaptureContext.Unsubscribe(_subscription);
 
                 // We should wait few instant before disposing the writer 
                 // to ensure that all packets are written to the file

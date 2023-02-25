@@ -5,7 +5,7 @@ using Fluxzy.Interop.Pcap.Messages;
 
 namespace Fluxzy.Interop.Pcap
 {
-    public class PipedCaptureContextClient : ICaptureContext, IDisposable
+    public class OutOfProcessCaptureContext : ICaptureContext, IDisposable
     {
         private readonly int _port;
         private readonly ProxyScope _proxyScope;
@@ -15,19 +15,23 @@ namespace Fluxzy.Interop.Pcap
         private BinaryWriter _writer;
         private BinaryReader _reader;
 
-        private PipedCaptureContextClient(int port, ProxyScope proxyScope)
+        private OutOfProcessCaptureContext(int port, ProxyScope proxyScope)
         {
             _port = port;
             _proxyScope = proxyScope;
             _client = new TcpClient(); 
         }
 
-        public static async Task<PipedCaptureContextClient> CreateAndConnect(ProxyScope proxyScope)
+        public static async Task<OutOfProcessCaptureContext?> CreateAndConnect(ProxyScope proxyScope)
         {
             var captureHost = await proxyScope.GetOrCreateCaptureHost();
+
+            if (captureHost == null)
+                return null; 
+            
             var port = (int) captureHost.Context; 
 
-            var context = new PipedCaptureContextClient(port, proxyScope);
+            var context = new OutOfProcessCaptureContext(port, proxyScope);
             try {
                 // await client._namedPipeClientStream.ConnectAsync();
                 await context._client.ConnectAsync(IPAddress.Loopback, port);
@@ -76,6 +80,12 @@ namespace Fluxzy.Interop.Pcap
         {
             _writer.Write((byte)MessageType.Exit);
             _client.Dispose();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Dispose();
+            return default; 
         }
     }
 }
