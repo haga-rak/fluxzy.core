@@ -8,48 +8,28 @@ namespace Fluxzy.Interop.Pcap
     public class OutOfProcessCaptureContext : ICaptureContext, IDisposable
     {
         private readonly int _port;
-        private readonly ProxyScope _proxyScope;
+        private readonly IOutOfProcessHost _captureHost;
 
         private readonly TcpClient _client;
 
         private BinaryWriter? _writer;
         private BinaryReader? _reader;
 
-        private OutOfProcessCaptureContext(int port, ProxyScope proxyScope)
+        public OutOfProcessCaptureContext(IOutOfProcessHost captureHost)
         {
-            _port = port;
-            _proxyScope = proxyScope;
-            _client = new TcpClient(); 
+            _port = (int)captureHost.Payload; ;
+            _captureHost = captureHost;
+            _client = new TcpClient();
         }
-
-        public static async Task<OutOfProcessCaptureContext?> CreateAndConnect(ProxyScope proxyScope)
+        
+        public async Task Start()
         {
-            var captureHost = await proxyScope.GetOrCreateCaptureHost();
+            await _client.ConnectAsync(IPAddress.Loopback, _port);
 
-            if (captureHost == null)
-                return null; 
-            
-            var port = (int) captureHost.Context; 
-
-            var context = new OutOfProcessCaptureContext(port, proxyScope);
-            try {
-                await context._client.ConnectAsync(IPAddress.Loopback, port);
-
-                var stream = context._client.GetStream();
-                context._writer = new BinaryWriter(stream);
-                context._reader = new BinaryReader(stream);
-
-                return context;
-            }
-            catch (Exception ex) {
-                context.Dispose();
-                throw;
-            }
-        }
-
-        public void Start()
-        {
-            
+            var stream = _client.GetStream();
+            _writer = new BinaryWriter(stream);
+            _reader = new BinaryReader(stream);
+            _captureHost.Context = this; 
         }
 
         public void Include(IPAddress remoteAddress, int remotePort)
@@ -59,10 +39,13 @@ namespace Fluxzy.Interop.Pcap
 
 
             var includeMessage = new IncludeMessage(remoteAddress, remotePort);
-            
-            _writer.Write((byte) MessageType.Include);
-            includeMessage.Write(_writer);
-            _writer.Flush();
+
+            lock (this)
+            {
+                _writer.Write((byte)MessageType.Include);
+                includeMessage.Write(_writer);
+                _writer.Flush();
+            }
         }
 
         public long Subscribe(string outFileName, IPAddress remoteAddress, int remotePort, int localPort)
@@ -70,10 +53,14 @@ namespace Fluxzy.Interop.Pcap
             if (_writer == null)
                 return default;
 
-            var subscribeMessage = new SubscribeMessage(remoteAddress, remotePort, localPort, outFileName);
-            _writer.Write((byte) MessageType.Subscribe);
-            subscribeMessage.Write(_writer);
-            _writer.Flush();
+            lock (this) {
+
+                var subscribeMessage = new SubscribeMessage(remoteAddress, remotePort, localPort, outFileName);
+                _writer.Write((byte)MessageType.Subscribe);
+                subscribeMessage.Write(_writer);
+                _writer.Flush();
+            }
+
             var key = _reader.ReadInt64();
 
             return key; 
@@ -83,8 +70,8 @@ namespace Fluxzy.Interop.Pcap
         {
             if (_writer == null)
                 return;
-
-            _writer.Write((byte) MessageType.Flush);
+            lock (this)
+                _writer.Write((byte) MessageType.Flush);
         }
 
         public ValueTask Unsubscribe(long subscription)
@@ -92,15 +79,23 @@ namespace Fluxzy.Interop.Pcap
             if (_writer == null)
                 return default;
 
-            var unsubscribeMessage = new UnsubscribeMessage(subscription);
-            _writer.Write((byte) MessageType.Unsubscribe);
-            unsubscribeMessage.Write(_writer);
+            lock (this) {
+                var unsubscribeMessage = new UnsubscribeMessage(subscription);
+                _writer.Write((byte)MessageType.Unsubscribe);
+                unsubscribeMessage.Write(_writer);
+            }
+
             return default;
         }
 
         public void Dispose()
         {
-            _writer?.Write((byte)MessageType.Exit);
+            // This is a singleton, so we never dispose 
+
+            return; 
+
+            lock (this)
+                _writer?.Write((byte)MessageType.Exit);
             _client?.Dispose();
         }
 

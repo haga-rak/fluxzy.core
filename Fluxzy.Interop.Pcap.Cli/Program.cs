@@ -62,7 +62,19 @@ namespace Fluxzy.Interop.Pcap.Cli
                 var loopingTask = receiverContext.WaitForExit();
 
                 // We halt the process when one of the following task is complete task is completed
-                await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask); 
+                await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask);
+
+                if (loopingTask.IsCompleted) {
+                    return 10; 
+                }
+
+                if (stdInClose.IsCompleted) {
+                    return 11; 
+                }
+
+                if (parentMonitoringTask.IsCompleted) {
+                    return 12; 
+                }
 
                 return 0;
             }

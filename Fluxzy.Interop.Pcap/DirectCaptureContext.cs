@@ -77,7 +77,7 @@ namespace Fluxzy.Interop.Pcap
             return default; 
         } 
 
-        public void Start()
+        public Task Start()
         {
             _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
             _captureDevice.Open(DeviceModes.MaxResponsiveness);
@@ -85,6 +85,8 @@ namespace Fluxzy.Interop.Pcap
             _packetQueue = new SyncWriterQueue();
             _captureDevice.Filter = $"tcp";
             _captureDevice.StartCapture();
+
+            return Task.CompletedTask;
         }
 
         public void Stop()

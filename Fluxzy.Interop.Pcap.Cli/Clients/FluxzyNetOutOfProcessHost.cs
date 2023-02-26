@@ -24,6 +24,7 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
 
             _process = ProcessUtils.RunElevated(commandName, new [] { $"{currentPid}" }, true);
 
+
             if (_process == null) {
                 // Log "Cannot run process as sudo"
                 FaultedOrDisposed = true;
@@ -33,6 +34,7 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
             try
             {
                 _process.Exited += ProcessOnExited;
+                _process.EnableRaisingEvents = true;
 
                 var nextLine = await _process.StandardOutput.ReadLineAsync()
                                         // We wait 5s for the the process to be ready
@@ -67,15 +69,15 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
 
         public int Port { get; private set; }
 
-
-
         /// <summary>
         /// Shall be port number 
         /// </summary>
-        public object Context => Port; 
+        public object Payload => Port; 
 
 
         public bool FaultedOrDisposed { get; private set; }
+
+        public ICaptureContext? Context { get; set; }
 
         public void Dispose()
         {
