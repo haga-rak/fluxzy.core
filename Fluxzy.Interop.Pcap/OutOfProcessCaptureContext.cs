@@ -33,7 +33,6 @@ namespace Fluxzy.Interop.Pcap
 
             var context = new OutOfProcessCaptureContext(port, proxyScope);
             try {
-                // await client._namedPipeClientStream.ConnectAsync();
                 await context._client.ConnectAsync(IPAddress.Loopback, port);
 
                 var stream = context._client.GetStream();

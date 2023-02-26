@@ -8,6 +8,7 @@ using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
+using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.NativeOps;
 using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Readers;
@@ -21,7 +22,7 @@ namespace Fluxzy.Desktop.Services
     {
         public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
-            collection.AddSingleton<ProxyScope>();
+            collection.AddSingleton<ProxyScope>((_) => new ProxyScope(() => new FluxzyNetCaptureHost()));
             collection.AddSingleton<FileManager>();
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();
