@@ -24,7 +24,7 @@ namespace Fluxzy.Interop.Pcap
             connectionProvider._directCaptureContext!.Start();
 
             if (connectionProvider._directCaptureContext == null) {
-                Console.WriteLine("Unable to acquire authorization for capture raw packets");
+                // Console.WriteLine("Unable to acquire authorization for capture raw packets");
                 return ITcpConnectionProvider.Default; 
             }
 
