@@ -8,10 +8,10 @@ namespace Fluxzy.Core
     /// </summary>
     public class ProxyScope : IAsyncDisposable
     {
-        private readonly Func<ICaptureHost> _captureHostBuilder;
-        private ICaptureHost? _currentCaptureHost; 
+        private readonly Func<IOutOfProcessHost> _captureHostBuilder;
+        private IOutOfProcessHost? _currentCaptureHost; 
 
-        public ProxyScope(Func<ICaptureHost> captureHostBuilder)
+        public ProxyScope(Func<IOutOfProcessHost> captureHostBuilder)
         {
             _captureHostBuilder = captureHostBuilder;
         }
@@ -22,7 +22,7 @@ namespace Fluxzy.Core
         /// No thread safe  : validate that there's no risk in thread safety 
         /// </summary>
         /// <returns></returns>
-        public async Task<ICaptureHost?> GetOrCreateCaptureHost()
+        public async Task<IOutOfProcessHost?> GetOrCreateCaptureHost()
         {
             if (_currentCaptureHost == null || _currentCaptureHost.FaultedOrDisposed) {
                 _currentCaptureHost = null;  
@@ -53,7 +53,7 @@ namespace Fluxzy.Core
         }
     }
 
-    public interface ICaptureHost : IAsyncDisposable
+    public interface IOutOfProcessHost : IAsyncDisposable
     {
         Task<bool> Start();
 

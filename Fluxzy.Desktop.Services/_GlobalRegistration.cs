@@ -22,7 +22,7 @@ namespace Fluxzy.Desktop.Services
     {
         public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
-            collection.AddSingleton<ProxyScope>((_) => new ProxyScope(() => new FluxzyNetCaptureHost()));
+            collection.AddSingleton<ProxyScope>((_) => new ProxyScope(() => new FluxzyNetOutOfProcessHost()));
             collection.AddSingleton<FileManager>();
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();

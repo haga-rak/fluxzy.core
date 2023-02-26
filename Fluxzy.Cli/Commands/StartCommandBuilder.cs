@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
 using System.Collections.Generic;
@@ -186,7 +186,7 @@ namespace Fluxzy.Cli.Commands
             var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
             var systemProxyManager = new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
-            await using var scope = new ProxyScope(() => new FluxzyNetCaptureHost());
+            await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost());
             await using (var tcpConnectionProvider =
                          proxyStartUpSetting.CaptureRawPacket
                        ?  await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting)

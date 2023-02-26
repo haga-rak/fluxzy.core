@@ -6,9 +6,8 @@ namespace Fluxzy.Interop.Pcap.Cli
     {
         private static async Task CancelTokenSourceOnStandardInputClose(CancellationTokenSource source)
         {
-            string? str; 
-
-            while ((str = await Console.In.ReadLineAsync()) != null && !str.Equals("exit", StringComparison.OrdinalIgnoreCase)) {
+            while (await Console.In.ReadLineAsync() is { } str
+                   && !str.Equals("exit", StringComparison.OrdinalIgnoreCase)) {
 
             }
 
@@ -33,8 +32,6 @@ namespace Fluxzy.Interop.Pcap.Cli
 
         /// <summary>
         /// args[0] => caller PID 
-        /// 
-        /// 
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
@@ -64,30 +61,16 @@ namespace Fluxzy.Interop.Pcap.Cli
             
                 var loopingTask = receiverContext.WaitForExit();
 
-                // We halt the process when one of the task is completed
+                // We halt the process when one of the following task is complete task is completed
                 await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask); 
 
                 return 0;
             }
-            catch (Exception) {
+            catch (Exception ex) {
                 // To do : connect logger here
+                File.WriteAllText("d:\\logo.txt", ex.ToString());
                 throw; 
             }
-        }
-    }
-
-    public static class StreamDrainer
-    {
-        public static async Task<long> Drain(this Stream stream)
-        {
-            var buffer = new byte[32 * 1024];
-
-            int read;
-            long total = 0;
-
-            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0) total += read;
-
-            return total;
         }
     }
 }

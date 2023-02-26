@@ -16,6 +16,7 @@ public class PipeMessageReceiverContext : IAsyncDisposable
                 message.LocalPort),
             unsubscribeMessage => _internalCapture.Unsubscribe(unsubscribeMessage.Key),
             (includeMessage) => _internalCapture.Include(includeMessage.RemoteAddress, includeMessage.RemotePort),
+            ( ) => _internalCapture.Flush(),
             _token
         );
     }

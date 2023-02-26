@@ -9,6 +9,7 @@ namespace Fluxzy.Interop.Pcap.Cli
         private readonly Func<SubscribeMessage, long> _subscribeHandler;
         private readonly Action<UnsubscribeMessage> _unsubscribeHandler;
         private readonly Action<IncludeMessage> _includeHandler;
+        private readonly Action _flushHandler;
         private readonly CancellationToken _token;
         private readonly Task _taskLoop;
         private readonly TcpListener _tcpListener;
@@ -17,11 +18,13 @@ namespace Fluxzy.Interop.Pcap.Cli
             Func<SubscribeMessage, long> subscribeHandler,
             Action<UnsubscribeMessage> unsubscribeHandler,
             Action<IncludeMessage> includeHandler,
+            Action flushHandler,
             CancellationToken token)
         {
             _subscribeHandler = subscribeHandler;
             _unsubscribeHandler = unsubscribeHandler;
             _includeHandler = includeHandler;
+            _flushHandler = flushHandler;
             _token = token;
 
             _tcpListener  = new TcpListener(IPAddress.Loopback, 0);
@@ -63,6 +66,9 @@ namespace Fluxzy.Interop.Pcap.Cli
                         case MessageType.Include:
                             var includeMessage = IncludeMessage.FromReader(binaryReader);
                             _includeHandler(includeMessage);
+                            break;
+                        case MessageType.Flush:
+                            _flushHandler();
                             break;
                         case MessageType.Exit:
                             return;
