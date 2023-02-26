@@ -18,8 +18,7 @@ namespace Fluxzy.Tests.Cli
     {
         [Theory]
         [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
-        public async Task Run_Cli_Output(string proto,
-            CaptureType rawCap, bool @out, bool rule)
+        public async Task Run_Cli_Output(string proto, CaptureType rawCap, bool @out, bool rule)
         {
             // Arrange 
 
@@ -38,9 +37,12 @@ namespace Fluxzy.Tests.Cli
             if (rawCap == CaptureType.PcapOutOfProc)
                 commandLine += "  --external-capture";
 
+
             if (rule)
             {
-                var ruleFile = $"rules.yml";
+                Directory.CreateDirectory(rootDir);
+
+                var ruleFile = $"{rootDir}/rules.yml";
 
                 var yamlContent = """
                 rules:
@@ -124,6 +126,7 @@ namespace Fluxzy.Tests.Cli
                     var alterHeader =
                         exchange.GetRequestHeaders().FirstOrDefault(t => t.Name.ToString() == "x-fluxzy");
 
+                    Assert.Contains("x-fluxzy", exchange.GetRequestHeaders().Select(t => t.Name.ToString()));
                     Assert.NotNull(alterHeader);
                     Assert.Equal("on", alterHeader!.Value.ToString());
                 }
