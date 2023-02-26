@@ -48,12 +48,10 @@ namespace Fluxzy.Interop.Pcap.Cli
                 var binaryReader = new BinaryReader(stream);
                 var @byte = new byte[1];
 
-                while ((await stream.ReadAsync(@byte, 0, 1, _token)) > 0)
-                {
+                while ((await stream.ReadAsync(@byte, 0, 1, _token)) > 0) {
                     var messageType = (MessageType)@byte[0];
 
-                    switch (messageType)
-                    {
+                    switch (messageType) {
                         case MessageType.Subscribe:
                             var subscribeMessage = SubscribeMessage.FromReader(binaryReader);
                             var key = _subscribeHandler(subscribeMessage);
@@ -76,6 +74,9 @@ namespace Fluxzy.Interop.Pcap.Cli
                             throw new ArgumentOutOfRangeException();
                     }
                 }
+            }
+            catch (Exception ex) {
+                File.WriteAllText(@"d:\e.txt", ex.ToString());
             }
             finally {
                 _tcpListener.Stop(); // We free the port 

@@ -7,8 +7,8 @@ namespace Fluxzy.Interop.Pcap
     public class CapturedTcpConnectionProvider : ITcpConnectionProvider
     {
         private readonly ProxyScope _scope;
+        private DirectCaptureContext? _createdContext;
 
-        public ICaptureContext? CaptureContext { get; private set; }
 
         private CapturedTcpConnectionProvider(ProxyScope scope)
         {
@@ -17,17 +17,21 @@ namespace Fluxzy.Interop.Pcap
 
         public static async Task<ITcpConnectionProvider> Create(ProxyScope scope, FluxzySetting settings)
         {
-            var connectionProvider =  new CapturedTcpConnectionProvider(scope); 
-            connectionProvider.CaptureContext = settings.OutOfProcCapture ?
-                await OutOfProcessCaptureContext.CreateAndConnect(scope) :
-                new DirectCaptureContext();
+            var connectionProvider =  new CapturedTcpConnectionProvider(scope);
             
-            connectionProvider.CaptureContext!.Start();
+            scope.CaptureContext =
+                settings.OutOfProcCapture ? 
+                    await scope.GetOrCreateHostedCaptureContext() 
+                    : (connectionProvider._createdContext = new DirectCaptureContext());
 
-            if (connectionProvider.CaptureContext == null) {
-                // Console.WriteLine("Unable to acquire authorization for capture raw packets");
-                return ITcpConnectionProvider.Default; 
+            if (connectionProvider._createdContext != null) {
+                await connectionProvider._createdContext.Start();
             }
+            
+            //if (captureContext == null) {
+            //    // Console.WriteLine("Unable to acquire authorization for capture raw packets");
+            //    return ITcpConnectionProvider.Default; 
+            //}
 
             return connectionProvider; 
         }
@@ -35,7 +39,7 @@ namespace Fluxzy.Interop.Pcap
 
         public ITcpConnection Create(string dumpFileName)
         {
-            return new CapturableTcpConnection(CaptureContext, dumpFileName);
+            return new CapturableTcpConnection(_scope, dumpFileName);
         }
 
         public void Dispose()
@@ -45,8 +49,8 @@ namespace Fluxzy.Interop.Pcap
 
         public async ValueTask DisposeAsync()
         {
-            if (CaptureContext != null)
-                await CaptureContext.DisposeAsync();
+            if (_createdContext != null)
+                await _createdContext.DisposeAsync();
         }
     }
 }

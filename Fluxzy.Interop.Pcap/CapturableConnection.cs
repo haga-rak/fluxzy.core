@@ -9,7 +9,7 @@ namespace Fluxzy.Interop.Pcap
 {
     public class CapturableTcpConnection :  ITcpConnection
     {
-        private readonly ICaptureContext _directCaptureContext;
+        private readonly ProxyScope _proxyScope;
         private readonly string _outTraceFileName;
         private readonly TcpClient _innerTcpClient;
         private DisposeEventNotifierStream?  _stream;
@@ -18,9 +18,9 @@ namespace Fluxzy.Interop.Pcap
         private IPEndPoint?  _localEndPoint;
         private long  _subscription;
 
-        public CapturableTcpConnection(ICaptureContext directCaptureContext, string outTraceFileName)
+        public CapturableTcpConnection(ProxyScope proxyScope, string outTraceFileName)
         {
-            _directCaptureContext = directCaptureContext;
+            _proxyScope = proxyScope;
             _outTraceFileName = outTraceFileName;
             _innerTcpClient = new TcpClient();
         }
@@ -29,13 +29,15 @@ namespace Fluxzy.Interop.Pcap
         {
             if (_stream != null)
                 throw new InvalidOperationException("A previous connect attempt was already made");
-            
-            _directCaptureContext.Include(remoteAddress, remotePort);
+
+            var context = _proxyScope.CaptureContext;
+
+            context?.Include(remoteAddress, remotePort);
 
             await _innerTcpClient.ConnectAsync(remoteAddress, remotePort);
 
             _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
-            _subscription = _directCaptureContext.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port);
+            _subscription = context?.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port) ?? 0;
 
             _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());
             
@@ -70,11 +72,30 @@ namespace Fluxzy.Interop.Pcap
 
             if (_subscription != 0 )
             {
-                await _directCaptureContext.Unsubscribe(_subscription);
+                var context = _proxyScope.CaptureContext;
+
+                if (context != null)
+                    await context.Unsubscribe(_subscription);
 
                 // We should wait few instant before disposing the writer 
                 // to ensure that all packets are written to the file
             }
         }
     }
+
+    //public static class ProxyScopeExtensions
+    //{
+    //    public static async Task<ICaptureContext?> GetCaptureContext(this ProxyScope scope)
+    //    {
+    //        var captureHost = await scope.GetOrCreateHostedCaptureHost();
+
+    //        if (captureHost == null)
+    //            return null; 
+
+    //        if (captureHost.Context is ICaptureContext captureContext)
+    //            return captureContext;
+
+    //        return null; 
+    //    }
+    //}
 }

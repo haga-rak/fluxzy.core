@@ -161,9 +161,8 @@ namespace Fluxzy.Desktop.Services
             if (_tcpConnectionProvider == null)
                 return false;
 
-            if (_tcpConnectionProvider is CapturedTcpConnectionProvider capturedTcpConnectionProvider 
-                && capturedTcpConnectionProvider.CaptureContext != null) {
-                capturedTcpConnectionProvider.CaptureContext.Flush();
+            if (_proxyScope.CaptureContext != null) {
+                _proxyScope.CaptureContext.Flush();
                 return true;
             }
 
