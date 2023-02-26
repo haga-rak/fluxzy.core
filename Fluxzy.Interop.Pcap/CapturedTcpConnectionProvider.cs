@@ -7,7 +7,8 @@ namespace Fluxzy.Interop.Pcap
     public class CapturedTcpConnectionProvider : ITcpConnectionProvider
     {
         private readonly ProxyScope _scope;
-        private ICaptureContext?  _directCaptureContext;
+
+        public ICaptureContext? CaptureContext { get; private set; }
 
         private CapturedTcpConnectionProvider(ProxyScope scope)
         {
@@ -17,13 +18,13 @@ namespace Fluxzy.Interop.Pcap
         public static async Task<ITcpConnectionProvider> Create(ProxyScope scope, FluxzySetting settings)
         {
             var connectionProvider =  new CapturedTcpConnectionProvider(scope); 
-            connectionProvider._directCaptureContext = settings.OutOfProcCapture ?
+            connectionProvider.CaptureContext = settings.OutOfProcCapture ?
                 await OutOfProcessCaptureContext.CreateAndConnect(scope) :
                 new DirectCaptureContext();
             
-            connectionProvider._directCaptureContext!.Start();
+            connectionProvider.CaptureContext!.Start();
 
-            if (connectionProvider._directCaptureContext == null) {
+            if (connectionProvider.CaptureContext == null) {
                 // Console.WriteLine("Unable to acquire authorization for capture raw packets");
                 return ITcpConnectionProvider.Default; 
             }
@@ -34,16 +35,18 @@ namespace Fluxzy.Interop.Pcap
 
         public ITcpConnection Create(string dumpFileName)
         {
-            return new CapturableTcpConnection(_directCaptureContext, dumpFileName);
+            return new CapturableTcpConnection(CaptureContext, dumpFileName);
         }
 
         public void Dispose()
         {
+
         }
 
         public async ValueTask DisposeAsync()
         {
-            await _directCaptureContext.DisposeAsync();
+            if (CaptureContext != null)
+                await CaptureContext.DisposeAsync();
         }
     }
 }

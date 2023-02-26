@@ -10,6 +10,8 @@ public interface ICaptureContext : IAsyncDisposable
 
     long Subscribe(string outFileName,
         IPAddress remoteAddress, int remotePort, int localPort);
+
+    void Flush(); 
     
     ValueTask Unsubscribe(long subscription);
 }

@@ -155,5 +155,19 @@ namespace Fluxzy.Desktop.Services
                                    .ToList() ?? new List<ProxyEndPoint>()
             };
         }
+
+        public bool TryFlush()
+        {
+            if (_tcpConnectionProvider == null)
+                return false;
+
+            if (_tcpConnectionProvider is CapturedTcpConnectionProvider capturedTcpConnectionProvider 
+                && capturedTcpConnectionProvider.CaptureContext != null) {
+                capturedTcpConnectionProvider.CaptureContext.Flush();
+                return true;
+            }
+
+            return false;
+        }
     }
 }

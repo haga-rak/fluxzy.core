@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Pipes
         // [Fact]
         public async Task TestPipeClientServer()
         {
-            var proxyScope = new ProxyScope(() => new FluxzyNetCaptureHost());
+            var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost());
             var tokenSource = new CancellationTokenSource(10000); 
             var expectedKey = 99;
             var receivedKey = -1L;
@@ -40,6 +40,10 @@ namespace Fluxzy.Tests.Pipes
                 m =>
                 {
                     receivedIncludeMessage = m; 
+                },
+                () =>
+                {
+
                 },
                 tokenSource.Token
                 );

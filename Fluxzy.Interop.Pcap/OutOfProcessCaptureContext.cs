@@ -12,8 +12,8 @@ namespace Fluxzy.Interop.Pcap
 
         private readonly TcpClient _client;
 
-        private BinaryWriter _writer;
-        private BinaryReader _reader;
+        private BinaryWriter? _writer;
+        private BinaryReader? _reader;
 
         private OutOfProcessCaptureContext(int port, ProxyScope proxyScope)
         {
@@ -41,7 +41,7 @@ namespace Fluxzy.Interop.Pcap
 
                 return context;
             }
-            catch {
+            catch (Exception ex) {
                 context.Dispose();
                 throw;
             }
@@ -54,6 +54,10 @@ namespace Fluxzy.Interop.Pcap
 
         public void Include(IPAddress remoteAddress, int remotePort)
         {
+            if (_writer == null)
+                return; 
+
+
             var includeMessage = new IncludeMessage(remoteAddress, remotePort);
             
             _writer.Write((byte) MessageType.Include);
@@ -63,6 +67,9 @@ namespace Fluxzy.Interop.Pcap
 
         public long Subscribe(string outFileName, IPAddress remoteAddress, int remotePort, int localPort)
         {
+            if (_writer == null)
+                return default;
+
             var subscribeMessage = new SubscribeMessage(remoteAddress, remotePort, localPort, outFileName);
             _writer.Write((byte) MessageType.Subscribe);
             subscribeMessage.Write(_writer);
@@ -72,8 +79,19 @@ namespace Fluxzy.Interop.Pcap
             return key; 
         }
 
+        public void Flush()
+        {
+            if (_writer == null)
+                return;
+
+            _writer.Write((byte) MessageType.Flush);
+        }
+
         public ValueTask Unsubscribe(long subscription)
         {
+            if (_writer == null)
+                return default;
+
             var unsubscribeMessage = new UnsubscribeMessage(subscription);
             _writer.Write((byte) MessageType.Unsubscribe);
             unsubscribeMessage.Write(_writer);
@@ -82,8 +100,8 @@ namespace Fluxzy.Interop.Pcap
 
         public void Dispose()
         {
-            _writer.Write((byte)MessageType.Exit);
-            _client.Dispose();
+            _writer?.Write((byte)MessageType.Exit);
+            _client?.Dispose();
         }
 
         public ValueTask DisposeAsync()

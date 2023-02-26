@@ -58,7 +58,15 @@ namespace Fluxzy.Interop.Pcap
             writer.Register(outFileName);
 
             return writer.Key;
-        } 
+        }
+
+        public void Flush()
+        {
+            if (_packetQueue == null)
+                return;
+
+            _packetQueue.FlushAll();
+        }
 
         public ValueTask Unsubscribe(long subscription)
         {
@@ -92,6 +100,9 @@ namespace Fluxzy.Interop.Pcap
 
         private void OnCaptureDeviceOnPacketArrival(object sender, PacketCapture capture)
         {
+            if (_packetQueue == null)
+                return; 
+
             var ethernetPacketInfo = new EthernetPacketInfo();
             
             var indexedPackedData = capture.Data;

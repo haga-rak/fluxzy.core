@@ -5,16 +5,12 @@ using Fluxzy.Misc;
 
 namespace Fluxzy.Interop.Pcap.Cli.Clients
 {
-    public class FluxzyNetCaptureHost : ICaptureHost
+    public class FluxzyNetOutOfProcessHost : IOutOfProcessHost
     {
         private Process? _process;
 
         public async Task<bool> Start()
         {
-            // Check if process is run 
-            // run the external process as sudo 
-            // save the state of sudo acquisition 
-
             var currentPid = Process.GetCurrentProcess().Id; 
             var commandName = new FileInfo(typeof(Program).Assembly.Location).FullName;
 
@@ -39,9 +35,8 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
                 _process.Exited += ProcessOnExited;
 
                 var nextLine = await _process.StandardOutput.ReadLineAsync()
-                                        // A global timeout of 30s 
-                                        // the user may be prompted to enter the password so it takes that time  limit
-                                      .WaitAsync(TimeSpan.FromSeconds(30));
+                                        // We wait 5s for the the process to be ready
+                                      .WaitAsync(TimeSpan.FromSeconds(5));
 
                 if (nextLine == null || !int.TryParse(nextLine, out var port)) {
                     return false; // Did not receive port number
@@ -57,7 +52,6 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
 
                 return false; 
             }
-
 
             // next line should be the 
         }

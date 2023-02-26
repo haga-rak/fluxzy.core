@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Haga RAKOTOHARIVELO
+// Copyright © 2023 Haga RAKOTOHARIVELO
 
 using System.Buffers;
 using SharpPcap;
@@ -36,7 +36,7 @@ namespace Fluxzy.Interop.Pcap
         public void Flush()
         {
             if (_waitStream is FileStream fileStream)
-                _waitStream.Flush();
+                fileStream.Flush(); // We probably broke thread safety here 
         }
 
         public void Register(string outFileName)
@@ -71,9 +71,10 @@ namespace Fluxzy.Interop.Pcap
                     InternalWrite(data, timeVal, fileStream);
                     return;
                 }
-                
+
                 // Check for buffer overflow here 
-                // waitstream need to be protected 
+                // _waitStream need to be protected 
+
                 lock (_locker)
                     InternalWrite(data, timeVal, _waitStream);
             }
