@@ -138,7 +138,7 @@ namespace Fluxzy
         /// <summary>
         /// When set to true, the raw network capture will be done out of process.
         /// </summary>
-        public bool OutOfProcCapture { get; set; } = false; 
+        public bool OutOfProcCapture { get; set; } = true; 
 
 
         [JsonConstructor]
