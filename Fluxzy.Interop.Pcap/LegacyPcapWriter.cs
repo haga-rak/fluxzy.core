@@ -43,6 +43,8 @@ namespace Fluxzy.Interop.Pcap
         {
             if (_waitBuffer == null)
                 throw new InvalidOperationException("Already registered!");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(outFileName));
             
             var fileStream = File.Open(outFileName, FileMode.Create, FileAccess.Write, FileShare.Read);
         

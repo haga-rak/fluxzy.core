@@ -39,9 +39,14 @@ namespace Fluxzy.Misc.Streams
             _innerStream.Flush();
         }
 
+        private int _totalRead = 0; 
+
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return _innerStream.Read(buffer, offset, count);
+            var res =  _innerStream.Read(buffer, offset, count);
+
+            _totalRead += res;
+            return res; 
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())

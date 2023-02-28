@@ -1,10 +1,11 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -379,7 +380,17 @@ namespace Fluxzy.Clients.H2
                                 ArrayPool<byte>.Shared.Return(heapBuffer);
                             }
 
-                            await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
+                            if (_baseStream is SslStream)
+                            {
+                                await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                // Bouncy castle handles badly async write (deadlock) 
+                                // this trick distinguish between SChannel / OpenSSL and BC 
+
+                                _baseStream.Write(heapBuffer.AsSpan().Slice(0, bufferLength));
+                            }
                         }
 
                         var count = 0;
@@ -397,9 +408,20 @@ namespace Fluxzy.Clients.H2
                                 )
                             try
                             {
-                                await _baseStream
-                                      .WriteAsync(writeTask.BufferBytes, token)
-                                      .ConfigureAwait(false);
+                                if (_baseStream is SslStream) {
+
+                                    await _baseStream
+                                          .WriteAsync(writeTask.BufferBytes, token)
+                                          .ConfigureAwait(false);
+                                }
+                                else {
+                                    // Bouncy castle handles badly async write (deadlock) 
+                                    // this trick distinguish between SChannel / OpenSSL and BC 
+                                    _baseStream
+                                        .Write(writeTask.BufferBytes.Span);
+                                }
+
+
 
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 
