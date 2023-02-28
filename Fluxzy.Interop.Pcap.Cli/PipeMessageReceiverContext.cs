@@ -17,6 +17,7 @@ public class PipeMessageReceiverContext : IAsyncDisposable
             unsubscribeMessage => _internalCapture.Unsubscribe(unsubscribeMessage.Key),
             (includeMessage) => _internalCapture.Include(includeMessage.RemoteAddress, includeMessage.RemotePort),
             ( ) => _internalCapture.Flush(),
+            ( ) => _internalCapture.ClearAll(),
             _token
         );
     }
@@ -26,12 +27,10 @@ public class PipeMessageReceiverContext : IAsyncDisposable
         _internalCapture.Start();
     }
     
-    public Task WaitForExit()
+    public async Task<int> WaitForExit()
     {
-        return Receiver!.WaitForExit().AsTask();
+        return await Receiver!.WaitForExit();
     }
-    
-    
 
     public async ValueTask DisposeAsync()
     {

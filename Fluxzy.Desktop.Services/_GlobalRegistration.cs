@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Core.Proxy;
 using Fluxzy.Desktop.Services.Filters;
@@ -25,6 +26,7 @@ namespace Fluxzy.Desktop.Services
         {
             collection.AddSingleton<ProxyScope>((_) => new ProxyScope(() => new FluxzyNetOutOfProcessHost(), (a) => new OutOfProcessCaptureContext(a)));
             collection.AddSingleton<FileManager>();
+            collection.AddSingleton<FromIndexIdProvider>(u => new FromIndexIdProvider(0,0));
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();
             collection.AddSingleton<UiStateManager>();

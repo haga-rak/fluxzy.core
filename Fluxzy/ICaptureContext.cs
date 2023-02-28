@@ -13,6 +13,8 @@ namespace Fluxzy
         long Subscribe(string outFileName,
             IPAddress remoteAddress, int remotePort, int localPort);
 
+        void ClearAll();
+
         void Flush(); 
     
         ValueTask Unsubscribe(long subscription);

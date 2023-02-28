@@ -37,12 +37,11 @@ namespace Fluxzy.Interop.Pcap
             if (_writer == null)
                 return; 
 
-
             var includeMessage = new IncludeMessage(remoteAddress, remotePort);
 
             lock (this)
             {
-                _writer.Write((byte)MessageType.Include);
+                _writer.Write((byte) MessageType.Include);
                 includeMessage.Write(_writer);
                 _writer.Flush();
             }
@@ -54,16 +53,21 @@ namespace Fluxzy.Interop.Pcap
                 return default;
 
             lock (this) {
-
                 var subscribeMessage = new SubscribeMessage(remoteAddress, remotePort, localPort, outFileName);
                 _writer.Write((byte)MessageType.Subscribe);
                 subscribeMessage.Write(_writer);
                 _writer.Flush();
+                return _reader.ReadInt64();
             }
 
-            var key = _reader.ReadInt64();
+        }
 
-            return key; 
+        public void ClearAll()
+        {
+            if (_writer == null)
+                return;
+            lock (this)
+                _writer.Write((byte) MessageType.ClearAll);
         }
 
         public void Flush()

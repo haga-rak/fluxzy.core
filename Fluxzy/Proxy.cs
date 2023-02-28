@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -45,12 +45,13 @@ namespace Fluxzy
             ICertificateProvider certificateProvider,
             CertificateAuthorityManager certificateAuthorityManager,
             ITcpConnectionProvider? tcpConnectionProvider = null,
-            IUserAgentInfoProvider? userAgentProvider = null
-        )
+            IUserAgentInfoProvider? userAgentProvider = null,
+            FromIndexIdProvider? idProvider = null)
+        
         {
             var tcpConnectionProvider1 = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
-            IdProvider = new FromIndexIdProvider(0, 0);
+            IdProvider = idProvider ?? new FromIndexIdProvider(0, 0);
 
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);

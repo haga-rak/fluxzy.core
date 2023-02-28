@@ -3,7 +3,6 @@
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Rules.Filters;
-using ICSharpCode.SharpZipLib.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxzy.Desktop.Ui.Controllers

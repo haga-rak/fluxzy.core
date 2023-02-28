@@ -45,6 +45,8 @@ namespace Fluxzy.Core
                 _currentCaptureHost = newHost; 
             }
 
+            _currentCaptureHost.Context?.ClearAll();
+
             return _currentCaptureHost; 
         }
 
