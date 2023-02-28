@@ -75,7 +75,6 @@ namespace Fluxzy
                 ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
                 : new SChannelConnectionBuilder();
 
-
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), sslConnectionBuilder), ITimingProvider.Default,
                 Writer);

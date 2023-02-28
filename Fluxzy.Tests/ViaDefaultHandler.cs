@@ -6,12 +6,14 @@ using Xunit;
 
 namespace Fluxzy.Tests
 {
-    public class PoolBuilderTests
+    public class ViaDefaultHandler
     {
-        [Fact]
-        public async Task Get_H2()
+        [Theory]
+        [InlineData(SslProvider.BouncyCastle)]
+        [InlineData(SslProvider.OsDefault)]
+        public async Task Get_H2(SslProvider sslProvider)
         {
-            using var handler = new FluxzyDefaultHandler();
+            using var handler = new FluxzyDefaultHandler(sslProvider);
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -24,10 +26,12 @@ namespace Fluxzy.Tests
             Assert.True(response.IsSuccessStatusCode);
         }
 
-        [Fact]
-        public async Task Get_H1()
+        [Theory]
+        [InlineData(SslProvider.BouncyCastle)]
+        [InlineData(SslProvider.OsDefault)]
+        public async Task Get_H1(SslProvider sslProvider)
         {
-            using var handler = new FluxzyDefaultHandler();
+            using var handler = new FluxzyDefaultHandler(sslProvider);
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -40,9 +44,10 @@ namespace Fluxzy.Tests
             Assert.True(response.IsSuccessStatusCode);
         }
 
-
-        [Fact]
-        public async Task Get_ConcurrentDemand()
+        [Theory]
+        [InlineData(SslProvider.BouncyCastle)]
+        [InlineData(SslProvider.OsDefault)]
+        public async Task Get_ConcurrentDemand(SslProvider sslProvider)
         {
             var urls = new[]
             {
@@ -50,7 +55,7 @@ namespace Fluxzy.Tests
                 "https://sandbox.smartizy.com/content-produce/400000/400000" // H1 only url
             };
 
-            using var handler = new FluxzyDefaultHandler();
+            using var handler = new FluxzyDefaultHandler(sslProvider);
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             for (int i = 0; i < 100; i ++ )
@@ -64,8 +69,6 @@ namespace Fluxzy.Tests
 
                 Assert.True(response.IsSuccessStatusCode);
             }
-
         }
-
     }
 }

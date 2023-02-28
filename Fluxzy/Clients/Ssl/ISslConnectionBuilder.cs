@@ -14,15 +14,18 @@ namespace Fluxzy.Clients.Ssl
 
     public class SslConnection : IDisposable
     {
-        public SslConnection(Stream stream, SslInfo sslInfo)
+        public SslConnection(Stream stream, SslInfo sslInfo, SslApplicationProtocol applicationProtocol)
         {
             Stream = stream;
             SslInfo = sslInfo;
+            ApplicationProtocol = applicationProtocol;
         }
 
         public Stream Stream { get;  }
 
         public SslInfo SslInfo { get;  }
+
+        public SslApplicationProtocol ApplicationProtocol { get;  }
 
         public string ? NssKey { get; set; }
 

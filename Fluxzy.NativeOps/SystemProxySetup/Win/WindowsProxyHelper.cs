@@ -15,28 +15,27 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Win
 
         internal static SystemProxySetting GetSetting()
         {
-            using (var registry =
-                   Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
-                       true))
+            using var registry =
+                Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
+                    true);
+
+            if (registry == null)
+                throw new InvalidOperationException("Unable to access system registry"); ;
+
+            var proxyEnabled = (int) registry.GetValue("ProxyEnable", 0)! == 1;
+            var proxyOverride = (string) registry.GetValue("ProxyOverride", string.Empty)!;
+            var proxyServer = (string) registry.GetValue("ProxyServer", string.Empty)!;
+
+            var proxyOverrideList = proxyOverride.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+            var proxyServerTab = proxyServer.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+
+            var proxyServerName = proxyServerTab.Length != 2 ? "no_proxy_server" : proxyServerTab[0];
+            var proxyPort = proxyServerTab.Length != 2 ? -1 : int.Parse(proxyServerTab[1]);
+
+            return new SystemProxySetting(proxyServerName, proxyPort,  proxyOverrideList)
             {
-                if (registry == null)
-                    throw new InvalidOperationException("Unable to access system registry"); ;
-
-                var proxyEnabled = (int) registry.GetValue("ProxyEnable", 0)! == 1;
-                var proxyOverride = (string) registry.GetValue("ProxyOverride", string.Empty)!;
-                var proxyServer = (string) registry.GetValue("ProxyServer", string.Empty)!;
-
-                var proxyOverrideList = proxyOverride.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
-                var proxyServerTab = proxyServer.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
-
-                var proxyServerName = proxyServerTab.Length != 2 ? "no_proxy_server" : proxyServerTab[0];
-                var proxyPort = proxyServerTab.Length != 2 ? -1 : int.Parse(proxyServerTab[1]);
-
-                return new SystemProxySetting(proxyServerName, proxyPort,  proxyOverrideList)
-                {
-                    Enabled = proxyEnabled 
-                };
-            }
+                Enabled = proxyEnabled 
+            };
         }
 
         internal static void SetProxySetting(SystemProxySetting systemProxySetting)

@@ -1,3 +1,4 @@
+using Fluxzy.Clients.Ssl.BouncyCastle;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
@@ -6,6 +7,10 @@ namespace Fluxzy
 {
     public class SslInfo
     {
+        /// <summary>
+        /// Building  from OsDefault
+        /// </summary>
+        /// <param name="sslStream"></param>
         public SslInfo(SslStream sslStream)
         {
             CipherAlgorithm = sslStream.CipherAlgorithm;
@@ -17,6 +22,33 @@ namespace Fluxzy
             LocalCertificateIssuer = sslStream.LocalCertificate?.Issuer;
             LocalCertificateSubject = sslStream.LocalCertificate?.Subject;
             SslProtocol = sslStream.SslProtocol;
+        }
+
+        /// <summary>
+        /// Building from BouncyCastle
+        /// </summary>
+        /// <param name="clientProtocol"></param>
+        public SslInfo(FluxzyClientProtocol clientProtocol)
+        {
+
+#if NET6_0_OR_GREATER
+            CipherAlgorithm = (TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite; 
+#endif
+
+            NegotiatedApplicationProtocol = clientProtocol.GetApplicationProtocol().ToString();
+            SslProtocol = clientProtocol.GetSChannelProtocol();
+            
+            if (BcCertificateHelper.ReadInfo(clientProtocol.SessionParameters.LocalCertificate, 
+                    out var localSubject, out var localIssuer)) {
+                LocalCertificateIssuer = localIssuer;
+                LocalCertificateSubject = localSubject; 
+            }
+
+            if (BcCertificateHelper.ReadInfo(clientProtocol.SessionParameters.PeerCertificate, 
+                    out var remoteSubject, out var remoteIssuer)) {
+                RemoteCertificateIssuer = remoteIssuer;
+                RemoteCertificateSubject = remoteSubject; 
+            }
         }
 
         [JsonConstructor]

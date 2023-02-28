@@ -16,7 +16,7 @@ namespace Fluxzy.Clients.Ssl.SChannel
 
             var sslInfo = new SslInfo(sslStream);
 
-            return new SslConnection(sslStream, sslInfo);
+            return new SslConnection(sslStream, sslInfo, sslStream.NegotiatedApplicationProtocol);
         }
     }
 }
