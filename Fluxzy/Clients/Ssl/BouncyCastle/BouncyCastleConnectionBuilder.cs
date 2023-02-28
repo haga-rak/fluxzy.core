@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net.Security;
 using System.Text;
@@ -31,8 +32,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 NssKey = keyInfos
             };
 
-            if (connection.NssKey != null)
-                File.WriteAllText("d:\\sslo.txt", connection.NssKey);
+            if (connection.NssKey != null && Environment.GetEnvironmentVariable("SSLKEYLOGFILE") != null) {
+                File.WriteAllText(Environment.GetEnvironmentVariable("SSLKEYLOGFILE"), connection.NssKey);
+            }
 
             return connection; 
         }

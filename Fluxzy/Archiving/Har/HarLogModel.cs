@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Buffers;
@@ -31,7 +31,7 @@ namespace Fluxzy.Har
     {
         public string Version { get; set; } = "1.2";
 
-        public HarCreator Creator { get; set; } = new("fluxzy", $"{FluxzyMetainformation.Version}", null);
+        public HarCreator Creator { get; set; } = new("fluxzy", $"{FluxzyMetaInformation.Version}", null);
 
         public object? Browser { get; set; } = null;
 

@@ -9,7 +9,6 @@ using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.Writers;
 using Xunit;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Fluxzy.Tests
 {
@@ -25,7 +24,7 @@ namespace Fluxzy.Tests
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
             
-            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter("d:\\oo", null));
+            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
@@ -48,7 +47,7 @@ namespace Fluxzy.Tests
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
             
-            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter("d:\\oo", null))
+            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null))
             {
                 Protocols = new List<SslApplicationProtocol>() { SslApplicationProtocol.Http11  }
             };
@@ -74,7 +73,7 @@ namespace Fluxzy.Tests
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
             
-            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter("d:\\oo", null));
+            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(
