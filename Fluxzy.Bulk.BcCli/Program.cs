@@ -27,7 +27,9 @@ namespace Fluxzy.Bulk.BcCli
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(scope, false);
             
             var uriRaw
-                = "https://sandbox.smartizy.com/ip";
+                 = "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ";
+                // = "https://extranet.2befficient.fr/ip";
+                //= "https://sandbox.smartizy.com/ip";
             if (!Uri.TryCreate(uriRaw, UriKind.Absolute, out var uri)) {
                 throw new Exception("Invalid URI");
             }
@@ -51,9 +53,9 @@ namespace Fluxzy.Bulk.BcCli
 
             using var nssWriter = new NssLogWriter("ssl.txt");
             
-            var fluxzyTlsClient = new FluxzyTlsClient(SslProtocols.Tls12 | SslProtocols.Tls11, new[] { SslApplicationProtocol.Http11, });
+            var fluxzyTlsClient = new FluxzyTlsClient(uri.Host, SslProtocols.Tls12 | SslProtocols.Tls11, new[] { SslApplicationProtocol.Http11, });
    
-            var protocol = new FluxzyClientProtocol(stream, nssWriter); 
+            var protocol = new FluxzyClientProtocol(stream, nssWriter);
 
             protocol.Connect(fluxzyTlsClient);
 
@@ -70,10 +72,7 @@ namespace Fluxzy.Bulk.BcCli
                 var encodable = cert.GetSigAlgParams();
                 var issuer = cert.X509CertificateStructure.Issuer.ToString();
                 var subject = cert.X509CertificateStructure.Subject.ToString();
-
             }
-            
-
 
             stream = protocol.Stream; 
 
@@ -87,7 +86,7 @@ namespace Fluxzy.Bulk.BcCli
 
                 Console.WriteLine(response);
             }
-            catch {
+            catch (Exception ex) {
 
             }
             finally {

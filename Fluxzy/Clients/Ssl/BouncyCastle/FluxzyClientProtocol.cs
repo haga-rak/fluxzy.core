@@ -52,12 +52,12 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (version.IsEqualOrEarlierVersionOf(ProtocolVersion.TLSv12))
                 return SslProtocols.Tls12;
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NETCOREAPP
             if (version.IsEqualOrEarlierVersionOf(ProtocolVersion.TLSv13))
                 return SslProtocols.Tls13;
 #endif
 
-            throw new ArgumentOutOfRangeException("Unknown TLS protocol");
+            throw new ArgumentOutOfRangeException($"Unknown TLS protocol");
         }
 
         public ProtocolName ApplicationProtocol => PlainSecurityParameters.ApplicationProtocol;

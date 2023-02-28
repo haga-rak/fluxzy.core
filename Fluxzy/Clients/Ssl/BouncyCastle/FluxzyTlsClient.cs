@@ -5,22 +5,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
-using Fluxzy.Bulk.BcCli;
 using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     class FluxzyTlsClient : DefaultTlsClient
     {
+        private readonly string _targetHost;
         private readonly SslProtocols _sslProtocols;
         private readonly SslApplicationProtocol[] _applicationProtocols;
+        private readonly byte[] _serverNameExtensionData;
 
-        public FluxzyTlsClient(SslProtocols sslProtocols, 
+        public FluxzyTlsClient(string targetHost, SslProtocols sslProtocols, 
              SslApplicationProtocol [] applicationProtocols)
             : base(new FluxzyCrypto())
         {
+            _targetHost = targetHost;
             _sslProtocols = sslProtocols;
             _applicationProtocols = applicationProtocols;
+            _serverNameExtensionData = ServerNameUtilities.CreateFromHost(_targetHost);
+        }
+
+        public override IDictionary<int, byte[]> GetClientExtensions()
+        {
+            var extensions =  base.GetClientExtensions(); 
+
+            extensions.Add(0, ServerNameUtilities.CreateFromHost(_targetHost));
+
+            return extensions;
         }
 
         public override TlsAuthentication GetAuthentication()

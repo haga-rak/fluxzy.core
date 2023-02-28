@@ -31,9 +31,9 @@ namespace Fluxzy
         public SslInfo(FluxzyClientProtocol clientProtocol)
         {
 
-#if NET6_0_OR_GREATER
-            CipherAlgorithm = (TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite; 
-#endif
+//#if NET6_0
+//            CipherAlgorithm = ((System.Net.Security.TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite).ToString(); 
+//#endif
 
             NegotiatedApplicationProtocol = clientProtocol.GetApplicationProtocol().ToString();
             SslProtocol = clientProtocol.GetSChannelProtocol();

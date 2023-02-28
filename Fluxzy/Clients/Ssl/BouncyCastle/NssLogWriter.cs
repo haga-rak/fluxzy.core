@@ -19,7 +19,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public static readonly string EXPORTER_SECRET = "EXPORTER_SECRET";
         
         public static readonly string CLIENT_RANDOM = "CLIENT_RANDOM";
-
+         
         private readonly Stream _stream;
         private readonly StreamWriter _streamWriter;
 
