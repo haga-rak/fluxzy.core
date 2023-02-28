@@ -1,6 +1,7 @@
 using System.Net;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Extensions;
@@ -14,9 +15,11 @@ namespace Fluxzy.Desktop.Services
     public class ProxyControl : ObservableProvider<ProxyState>
     {
         private readonly ProxyScope _proxyScope;
+        private readonly FromIndexIdProvider _idProvider;
         private readonly FileContentUpdateManager _fileContentUpdateManager;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null);
+
         private Proxy? _proxy;
         private ITcpConnectionProvider?  _tcpConnectionProvider;
 
@@ -26,6 +29,7 @@ namespace Fluxzy.Desktop.Services
 
         public ProxyControl(
             ProxyScope proxyScope,
+            FromIndexIdProvider idProvider,
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<FileContentOperationManager> contentObservable,
             IObservable<ViewFilter> viewFilter,
@@ -34,6 +38,7 @@ namespace Fluxzy.Desktop.Services
             FileContentUpdateManager fileContentUpdateManager)
         {
             _proxyScope = proxyScope;
+            _idProvider = idProvider;
             _fileContentUpdateManager = fileContentUpdateManager;
 
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState
@@ -107,9 +112,13 @@ namespace Fluxzy.Desktop.Services
                         : ITcpConnectionProvider.Default;
 
                 _proxy = new Proxy(fluxzySetting, 
-                    new CertificateProvider(fluxzySetting, new InMemoryCertificateCache()), new DefaultCertificateAuthorityManager(),
-                    _tcpConnectionProvider, new UaParserUserAgentInfoProvider());
+                    new CertificateProvider(fluxzySetting, 
+                        new InMemoryCertificateCache()), 
+                    new DefaultCertificateAuthorityManager(),
+                    _tcpConnectionProvider,
+                    new UaParserUserAgentInfoProvider(), idProvider : _idProvider);
 
+                // This is to enabled pending exchange and connection into existing file 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
                 _proxy.IdProvider.SetNextExchangeId(maxExchangeId);
 

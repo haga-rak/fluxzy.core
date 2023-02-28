@@ -7,5 +7,6 @@ public enum MessageType : byte
     Unsubscribe = 2,
     Include = 3,
     Ready = 100,
-    Flush = 101
+    Flush = 101,
+    ClearAll = 102,
 }

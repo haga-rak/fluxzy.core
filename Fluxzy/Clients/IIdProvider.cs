@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Threading;
 
@@ -38,7 +38,8 @@ namespace Fluxzy.Clients
         /// <param name="value"></param>
         public void SetNextExchangeId(int value)
         {
-            _exchangeIdStart = value; 
+            if (_exchangeIdStart < value)
+                _exchangeIdStart = value; 
         }
 
         /// <summary>
@@ -47,7 +48,8 @@ namespace Fluxzy.Clients
         /// <param name="value"></param>
         public void SetNextConnectionId(int value)
         {
-            _connectionIdStart = value; 
+            if (_connectionIdStart < value)
+                _connectionIdStart = value; 
         }
 
 

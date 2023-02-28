@@ -8,7 +8,6 @@ namespace Fluxzy.Interop.Pcap.Cli
         {
             while (await Console.In.ReadLineAsync() is { } str
                    && !str.Equals("exit", StringComparison.OrdinalIgnoreCase)) {
-
             }
 
             // STDIN has closed this means that parent request halted or request an explicit close 
@@ -65,7 +64,7 @@ namespace Fluxzy.Interop.Pcap.Cli
                 await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask);
 
                 if (loopingTask.IsCompleted) {
-                    return 10; 
+                    return loopingTask.Result; 
                 }
 
                 if (stdInClose.IsCompleted) {
@@ -80,7 +79,7 @@ namespace Fluxzy.Interop.Pcap.Cli
             }
             catch (Exception ex) {
                 // To do : connect logger here
-                File.WriteAllText("d:\\logo.txt", ex.ToString());
+                // File.WriteAllText("d:\\logo.txt", ex.ToString());
                 throw; 
             }
         }

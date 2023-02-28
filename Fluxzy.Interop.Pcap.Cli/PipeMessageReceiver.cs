@@ -10,8 +10,10 @@ namespace Fluxzy.Interop.Pcap.Cli
         private readonly Action<UnsubscribeMessage> _unsubscribeHandler;
         private readonly Action<IncludeMessage> _includeHandler;
         private readonly Action _flushHandler;
+        private readonly Action _clearAllHandler;
+
         private readonly CancellationToken _token;
-        private readonly Task _taskLoop;
+        private readonly Task<int> _taskLoop;
         private readonly TcpListener _tcpListener;
 
         public PipeMessageReceiver(
@@ -19,12 +21,14 @@ namespace Fluxzy.Interop.Pcap.Cli
             Action<UnsubscribeMessage> unsubscribeHandler,
             Action<IncludeMessage> includeHandler,
             Action flushHandler,
+            Action clearAllHandler,
             CancellationToken token)
         {
             _subscribeHandler = subscribeHandler;
             _unsubscribeHandler = unsubscribeHandler;
             _includeHandler = includeHandler;
             _flushHandler = flushHandler;
+            _clearAllHandler = clearAllHandler;
             _token = token;
 
             _tcpListener  = new TcpListener(IPAddress.Loopback, 0);
@@ -35,14 +39,11 @@ namespace Fluxzy.Interop.Pcap.Cli
 
         public int ListeningPort { get; }
 
-        private async Task InternalLoop()
+        private async Task<int> InternalLoop()
         {
-            // await _pipeServer.WaitForConnectionAsync(_token);
-
             try {
-
-                var client = await _tcpListener.AcceptTcpClientAsync(_token);
-                var stream = client.GetStream();
+                using var client = await _tcpListener.AcceptTcpClientAsync(_token);
+                await using var stream = client.GetStream();
 
                 var binaryWriter = new BinaryWriter(stream);
                 var binaryReader = new BinaryReader(stream);
@@ -65,27 +66,33 @@ namespace Fluxzy.Interop.Pcap.Cli
                             var includeMessage = IncludeMessage.FromReader(binaryReader);
                             _includeHandler(includeMessage);
                             break;
+                        case MessageType.ClearAll:
+                            _clearAllHandler();
+                            break;
                         case MessageType.Flush:
                             _flushHandler();
                             break;
                         case MessageType.Exit:
-                            return;
+                            return 80;
                         default:
-                            throw new ArgumentOutOfRangeException();
+                            throw new ArgumentOutOfRangeException(); // FATAL EXIT
                     }
                 }
+
+                return 81;
             }
             catch (Exception ex) {
-                File.WriteAllText(@"d:\e.txt", ex.ToString());
+                // TODO set logger here 
+                return 90; 
             }
             finally {
                 _tcpListener.Stop(); // We free the port 
             }
         }
 
-        public async ValueTask WaitForExit()
+        public async ValueTask<int> WaitForExit()
         {
-            await _taskLoop; 
+            return await _taskLoop; 
         }
     }
 }

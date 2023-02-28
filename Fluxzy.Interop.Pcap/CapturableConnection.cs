@@ -37,6 +37,7 @@ namespace Fluxzy.Interop.Pcap
             await _innerTcpClient.ConnectAsync(remoteAddress, remotePort);
 
             _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
+
             _subscription = context?.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port) ?? 0;
 
             _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());

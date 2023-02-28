@@ -41,11 +41,7 @@ namespace Fluxzy.Interop.Pcap
         {
             return new CapturableTcpConnection(_scope, dumpFileName);
         }
-
-        public void Dispose()
-        {
-
-        }
+        
 
         public async ValueTask DisposeAsync()
         {

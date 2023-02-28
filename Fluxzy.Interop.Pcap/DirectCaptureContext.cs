@@ -55,7 +55,8 @@ namespace Fluxzy.Interop.Pcap
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
             
             var writer = _packetQueue.GetOrAdd(connectionKey);
-            writer.Register(outFileName);
+
+            writer.Register(outFileName); // There is a change that the writer is already registered
 
             return writer.Key;
         }
@@ -66,6 +67,14 @@ namespace Fluxzy.Interop.Pcap
                 return;
 
             _packetQueue.FlushAll();
+        }
+
+        public void ClearAll()
+        {
+            if (_packetQueue == null)
+                return;
+
+            _packetQueue.ClearAll();
         }
 
         public ValueTask Unsubscribe(long subscription)
@@ -83,11 +92,12 @@ namespace Fluxzy.Interop.Pcap
             _captureDevice.Open(DeviceModes.MaxResponsiveness);
             //_captureDevice.Open();
             _packetQueue = new SyncWriterQueue();
-            _captureDevice.Filter = $"tcp";
+            _captureDevice.Filter = $"tcp"; // TODO H3 : add udp
             _captureDevice.StartCapture();
 
             return Task.CompletedTask;
         }
+        
 
         public void Stop()
         {
@@ -161,8 +171,7 @@ namespace Fluxzy.Interop.Pcap
                 writer.Write(capture.Data, capture.Header.Timeval);
             }
             catch {
-                // We ignore any write error here to not break the capture
-
+                // We ignore any write error here to not break the capture thread
             }
         }
 
