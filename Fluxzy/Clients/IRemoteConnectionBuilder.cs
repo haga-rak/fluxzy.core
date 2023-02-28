@@ -119,12 +119,10 @@ namespace Fluxzy.Clients
                 resultStream = new DebugFileStream($"raw/{connection.Id:000000}_remotehost_",
                     resultStream); 
             }
-
-            var protoType = RemoteConnectionResultType.Http2;
-
-            //var protoType =  sslStream.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2
-            //    ? RemoteConnectionResultType.Http2
-            //    : RemoteConnectionResultType.Http11;
+            
+            var protoType = sslConnectionInfo.ApplicationProtocol == SslApplicationProtocol.Http2
+                ? RemoteConnectionResultType.Http2
+                : RemoteConnectionResultType.Http11;
 
             connection.ReadStream = connection.WriteStream = resultStream;
 

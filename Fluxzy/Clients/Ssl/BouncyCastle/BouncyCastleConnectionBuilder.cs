@@ -24,8 +24,7 @@ public class BouncyCastleConnectionBuilder : ISslConnectionBuilder
 
         // TODO : Keyinfos may be get updated during runtime, must be updated in SslConnection
 
-        var connection = new SslConnection(innerStream,
-            new SslInfo(default, default, default, default, default, string.Empty, string.Empty, default, default))
+        var connection = new SslConnection(innerStream, new SslInfo(protocol), protocol.GetApplicationProtocol())
         {
             NssKey = keyInfos
         };
