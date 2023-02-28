@@ -9,6 +9,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     public class BouncyCastleConnectionBuilder : ISslConnectionBuilder
     {
+        private static readonly object _sslFileLocker = new(); 
+
         public async Task<SslConnection> AuthenticateAsClient(Stream innerStream, SslClientAuthenticationOptions request, CancellationToken token)
         {
             var client = new FluxzyTlsClient(
@@ -33,7 +35,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             };
 
             if (connection.NssKey != null && Environment.GetEnvironmentVariable("SSLKEYLOGFILE") != null) {
-                File.WriteAllText(Environment.GetEnvironmentVariable("SSLKEYLOGFILE"), connection.NssKey);
+                lock (_sslFileLocker)
+                    File.AppendAllText(Environment.GetEnvironmentVariable("SSLKEYLOGFILE"), connection.NssKey);
             }
 
             return connection; 

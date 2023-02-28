@@ -141,7 +141,7 @@ namespace Fluxzy
         public bool OutOfProcCapture { get; set; } = true;
 
         /// <summary>
-        /// Using bouncy castle for ssl streams instead of OsDefault
+        /// Using bouncy castle for ssl streams instead of OsDefault (SChannel or OpenSSL)
         /// </summary>
         public bool UseBouncyCastle { get; set; } = false; 
 

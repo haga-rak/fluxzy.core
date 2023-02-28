@@ -389,7 +389,7 @@ namespace Fluxzy.Clients.H2
                                 // Bouncy castle handles badly async write (deadlock) 
                                 // this trick distinguish between SChannel / OpenSSL and BC 
 
-                                _baseStream.Write(heapBuffer.AsSpan().Slice(0, bufferLength));
+                                await Task.Run(() => _baseStream.Write(heapBuffer.AsSpan().Slice(0, bufferLength)), token); 
                             }
                         }
 
@@ -417,11 +417,9 @@ namespace Fluxzy.Clients.H2
                                 else {
                                     // Bouncy castle handles badly async write (deadlock) 
                                     // this trick distinguish between SChannel / OpenSSL and BC 
-                                    _baseStream
-                                        .Write(writeTask.BufferBytes.Span);
+
+                                    await Task.Run(() => _baseStream.Write(writeTask.BufferBytes.Span), token);
                                 }
-
-
 
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 

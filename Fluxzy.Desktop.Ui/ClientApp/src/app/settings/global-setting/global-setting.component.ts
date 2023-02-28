@@ -80,7 +80,7 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
             },
             {
                 targetRef: this.skipSsl,
-                label: "SSL decryption"
+                label: "SSL settings"
             },
             {
                 targetRef: this.clientCertificate,

@@ -23,6 +23,10 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public SslApplicationProtocol GetApplicationProtocol()
         {
+            if (ApplicationProtocol == null)
+                return SslApplicationProtocol.Http11;
+
+
             var str = ApplicationProtocol.GetUtf8Decoding();
 
             if (str == "http/1.1") 
@@ -60,7 +64,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             throw new ArgumentOutOfRangeException($"Unknown TLS protocol");
         }
 
-        public ProtocolName ApplicationProtocol => PlainSecurityParameters.ApplicationProtocol;
+        public ProtocolName? ApplicationProtocol => PlainSecurityParameters.ApplicationProtocol;
 
         public ProtocolVersion ProtocolVersion => SessionParameters.NegotiatedVersion; 
 
