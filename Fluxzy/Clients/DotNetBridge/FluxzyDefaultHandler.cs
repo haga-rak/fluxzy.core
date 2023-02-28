@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Common;
+using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.DotNetBridge
@@ -15,7 +16,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
         public FluxzyDefaultHandler()
         {
-            _poolBuilder = new PoolBuilder(new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
+            _poolBuilder = new PoolBuilder(new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), new SChannelConnectionBuilder()),
                 ITimingProvider.Default, null);
 
             _idProvider = IIdProvider.FromZero;

@@ -1,16 +1,16 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
-namespace Fluxzy.Bulk.BcCli
+namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    class FluxzyCrypto : BcTlsCrypto
+    internal class FluxzyCrypto : BcTlsCrypto
     {
-        public FluxzyCrypto(SecureRandom sr)
-            : base(sr)
+        public FluxzyCrypto()
+            : base(new SecureRandom())
         {
         }
         
@@ -19,9 +19,6 @@ namespace Fluxzy.Bulk.BcCli
             var resultSecret =  base.AdoptSecret(secret);
 
             MasterSecret  = secret.ExtractKeySilently();
-            
-            //_writter.Write(NssLogWriter.CLIENT_RANDOM, PlainSecurityParameters.ClientRandom,
-            //    PlainSecurityParameters.TrafficSecretClient.ExtractKeySilently());
 
             return resultSecret; 
         }
