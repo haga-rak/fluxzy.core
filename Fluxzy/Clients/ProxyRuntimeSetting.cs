@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +20,9 @@ namespace Fluxzy.Clients
 
         public ProxyExecutionContext ExecutionContext { get; }
 
-        public ITcpConnectionProvider TcpConnectionProvider { get; } = ITcpConnectionProvider.Default;
+        public ITcpConnectionProvider TcpConnectionProvider { get; set;  } = ITcpConnectionProvider.Default;
 
-        public RealtimeArchiveWriter ArchiveWriter { get; }
+        public RealtimeArchiveWriter ArchiveWriter { get; set; }
         
         /// <summary>
         ///     Process to validate the remote certificate

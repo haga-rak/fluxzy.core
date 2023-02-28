@@ -3,39 +3,38 @@ using System.Net.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Org.BouncyCastle.Tls;
 
-namespace Fluxzy.Clients.Ssl.BouncyCastle;
-
-public class BouncyCastleConnectionBuilder : ISslConnectionBuilder
+namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    public async Task<SslConnection> AuthenticateAsClient(Stream innerStream, SslClientAuthenticationOptions request, CancellationToken token)
+    public class BouncyCastleConnectionBuilder : ISslConnectionBuilder
     {
-        var client = new FluxzyTlsClient(request.TargetHost!, request.EnabledSslProtocols,
-            request.ApplicationProtocols!.ToArray());
-
-        var memoryStream = new MemoryStream();
-        var nssWriter = new NssLogWriter(memoryStream);
-        var protocol = new FluxzyClientProtocol(innerStream, nssWriter);
-
-        // add SNI here 
-
-        if (!string.IsNullOrEmpty(request.TargetHost)) {
-
-        }
-        
-        protocol.Connect(client);
-
-        var keyInfos = 
-            Encoding.UTF8.GetString(memoryStream.GetBuffer(), 0, (int) memoryStream.Position);
-
-        // TODO : Keyinfos may be get updated during runtime, must be updated in SslConnection
-
-        var connection = new SslConnection(protocol.Stream, new SslInfo(protocol), protocol.GetApplicationProtocol())
+        public async Task<SslConnection> AuthenticateAsClient(Stream innerStream, SslClientAuthenticationOptions request, CancellationToken token)
         {
-            NssKey = keyInfos
-        };
+            var client = new FluxzyTlsClient(
+                request.TargetHost!, 
+                request.EnabledSslProtocols,
+                request.ApplicationProtocols!.ToArray());
 
-        return connection; 
+            var memoryStream = new MemoryStream();
+            var nssWriter = new NssLogWriter(memoryStream);
+            var protocol = new FluxzyClientProtocol(innerStream, nssWriter);
+
+            await Task.Run(() => protocol.Connect(client), token); // BAD but necessary
+
+            var keyInfos = 
+                Encoding.UTF8.GetString(memoryStream.ToArray());
+
+            // TODO : Keyinfos may be get updated during runtime, must be updated in SslConnection
+            
+            var connection = new SslConnection(protocol.Stream, new SslInfo(protocol), protocol.GetApplicationProtocol())
+            {
+                NssKey = keyInfos
+            };
+
+            if (connection.NssKey != null)
+                File.WriteAllText("d:\\sslo.txt", connection.NssKey);
+
+            return connection; 
+        }
     }
 }
