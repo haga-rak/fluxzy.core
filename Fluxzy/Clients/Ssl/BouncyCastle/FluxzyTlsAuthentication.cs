@@ -1,18 +1,18 @@
 using Org.BouncyCastle.Tls;
 
-namespace Fluxzy.Bulk.BcCli;
-
-class FluxzyTlsAuthentication : TlsAuthentication
+namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    public void NotifyServerCertificate(TlsServerCertificate serverCertificate)
+    class FluxzyTlsAuthentication : TlsAuthentication
     {
+        public void NotifyServerCertificate(TlsServerCertificate serverCertificate)
+        {
             
-    }
+        }
 
-    public TlsCredentials? GetClientCredentials(CertificateRequest certificateRequest)
-    {
+        public TlsCredentials? GetClientCredentials(CertificateRequest certificateRequest)
+        {
             
-            
-        return null; 
+            return null; 
+        }
     }
 }
