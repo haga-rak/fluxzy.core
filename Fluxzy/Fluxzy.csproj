@@ -9,7 +9,7 @@
 		<Version>0.2.001</Version>
 		<Company>smartizy.com</Company>
 		<Authors>Haga Rakotoharivelo</Authors>
-		<Description>HTTP analyzer and debugger engine, designed to deliver high end diagnosis and accurate performance measures.</Description>
+		<Description>fluxzy is an cross-platform HTTP engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<LangVersion>10</LangVersion>
 		<Nullable>enable</Nullable>
