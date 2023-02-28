@@ -74,7 +74,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             // Write key for TLS 1.2 and lower 
 
-            if (Context.ClientVersion.IsEqualOrEarlierVersionOf(ProtocolVersion.TLSv12) &&
+            if (ProtocolVersion.IsEqualOrEarlierVersionOf(ProtocolVersion.TLSv12) &&
                 Context.Crypto is FluxzyCrypto crypto && crypto.MasterSecret != null) {
                 _logWriter.Write(NssLogWriter.CLIENT_RANDOM, PlainSecurityParameters.ClientRandom,
                     crypto.MasterSecret);
