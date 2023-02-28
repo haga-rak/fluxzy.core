@@ -1,4 +1,4 @@
-﻿using System.Net.Security;
+using System.Net.Security;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
 

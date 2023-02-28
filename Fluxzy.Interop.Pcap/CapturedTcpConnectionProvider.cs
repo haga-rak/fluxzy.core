@@ -9,18 +9,17 @@ namespace Fluxzy.Interop.Pcap
         private readonly ProxyScope _scope;
         private DirectCaptureContext? _createdContext;
 
-
         private CapturedTcpConnectionProvider(ProxyScope scope)
         {
             _scope = scope;
         }
 
-        public static async Task<ITcpConnectionProvider> Create(ProxyScope scope, FluxzySetting settings)
+        public static async Task<ITcpConnectionProvider> Create(ProxyScope scope, bool outOfProcCapture)
         {
             var connectionProvider =  new CapturedTcpConnectionProvider(scope);
             
             scope.CaptureContext =
-                settings.OutOfProcCapture ? 
+                outOfProcCapture ? 
                     await scope.GetOrCreateHostedCaptureContext() 
                     : (connectionProvider._createdContext = new DirectCaptureContext());
 

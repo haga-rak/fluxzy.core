@@ -1,10 +1,11 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+// Copyright © 2021 Haga Rakotoharivelo
 
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients
@@ -33,11 +34,13 @@ namespace Fluxzy.Clients
     {
         private readonly ITimingProvider _timeProvider;
         private readonly IDnsSolver _dnsSolver;
+        private readonly ISslConnectionBuilder _sslConnectionBuilder;
 
-        public RemoteConnectionBuilder(ITimingProvider timeProvider, IDnsSolver dnsSolver)
+        public RemoteConnectionBuilder(ITimingProvider timeProvider, IDnsSolver dnsSolver, ISslConnectionBuilder sslConnectionBuilder)
         {
             _timeProvider = timeProvider;
             _dnsSolver = dnsSolver;
+            _sslConnectionBuilder = sslConnectionBuilder;
         }
 
         public async ValueTask<RemoteConnectionResult> OpenConnectionToRemote(
@@ -85,32 +88,31 @@ namespace Fluxzy.Clients
 
             byte[]? remoteCertificate = null;
 
-            var sslStream =
-                context.SkipRemoteCertificateValidation
-                    ? new SslStream(newlyOpenedStream, false, (_, _, _, errors) => true)
-                    : new SslStream(newlyOpenedStream, false);
-
-            Stream resultStream = sslStream; 
-
             var authenticationOptions = new SslClientAuthenticationOptions()
             {
                 TargetHost = authority.HostName , 
                 EnabledSslProtocols = context.ProxyTlsProtocols,
-                ApplicationProtocols = httpProtocols
+                ApplicationProtocols = httpProtocols,
             };
-            
+
+            if (context.SkipRemoteCertificateValidation) {
+                authenticationOptions.RemoteCertificateValidationCallback = (_, _, _, errors) => true;
+            }
 
             if (context.ClientCertificates != null && context.ClientCertificates.Count > 0)
             {
                 authenticationOptions.ClientCertificates = context.ClientCertificates;
             }
 
-            await sslStream.AuthenticateAsClientAsync(authenticationOptions, token);
+            var sslConnectionInfo =
+                await _sslConnectionBuilder.AuthenticateAsClient(newlyOpenedStream, authenticationOptions, token); 
 
-            connection.SslInfo = new SslInfo(sslStream);
+            connection.SslInfo = sslConnectionInfo.SslInfo;
 
             connection.SslNegotiationEnd = _timeProvider.Instant();
             connection.SslInfo.RemoteCertificate = remoteCertificate;
+
+            Stream resultStream = sslConnectionInfo.Stream;
 
             if (DebugContext.EnableNetworkFileDump)
             {
@@ -118,9 +120,11 @@ namespace Fluxzy.Clients
                     resultStream); 
             }
 
-            var protoType =  sslStream.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2
-                ? RemoteConnectionResultType.Http2
-                : RemoteConnectionResultType.Http11;
+            var protoType = RemoteConnectionResultType.Http2;
+
+            //var protoType =  sslStream.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2
+            //    ? RemoteConnectionResultType.Http2
+            //    : RemoteConnectionResultType.Http11;
 
             connection.ReadStream = connection.WriteStream = resultStream;
 

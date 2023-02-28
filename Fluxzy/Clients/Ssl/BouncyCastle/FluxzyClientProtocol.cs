@@ -1,10 +1,11 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
+using System.IO;
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
 
-namespace Fluxzy.Bulk.BcCli
+namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     public class FluxzyClientProtocol : TlsClientProtocol
     {
@@ -15,7 +16,6 @@ namespace Fluxzy.Bulk.BcCli
             : base(stream)
         {
             _logWritter = logWritter;
-            
         }
 
         public SecurityParameters PlainSecurityParameters => Context.SecurityParameters;

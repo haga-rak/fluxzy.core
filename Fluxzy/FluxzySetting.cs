@@ -138,7 +138,12 @@ namespace Fluxzy
         /// <summary>
         /// When set to true, the raw network capture will be done out of process.
         /// </summary>
-        public bool OutOfProcCapture { get; set; } = true; 
+        public bool OutOfProcCapture { get; set; } = true;
+
+        /// <summary>
+        /// Using bouncy castle for ssl streams instead of SChannel
+        /// </summary>
+        public bool UseBouncyCastle { get; set; } = false; 
 
 
         [JsonConstructor]

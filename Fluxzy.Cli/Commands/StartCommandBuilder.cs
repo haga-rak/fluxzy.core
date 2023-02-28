@@ -189,7 +189,7 @@ namespace Fluxzy.Cli.Commands
             await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(), (a) => new OutOfProcessCaptureContext(a));
             await using (var tcpConnectionProvider =
                          proxyStartUpSetting.CaptureRawPacket
-                       ?  await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting)
+                       ?  await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting.OutOfProcCapture)
                        : ITcpConnectionProvider.Default)
             {
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider))

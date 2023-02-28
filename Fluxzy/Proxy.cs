@@ -10,6 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Common;
+using Fluxzy.Clients.Ssl;
+using Fluxzy.Clients.Ssl.BouncyCastle;
+using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules.Actions;
@@ -68,8 +71,13 @@ namespace Fluxzy
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
                 tcpConnectionProvider1 = ITcpConnectionProvider.Default;
 
+            var sslConnectionBuilder = startupSetting.UseBouncyCastle
+                ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
+                : new SChannelConnectionBuilder();
+
+
             var poolBuilder = new PoolBuilder(
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default,
+                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), sslConnectionBuilder), ITimingProvider.Default,
                 Writer);
 
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);

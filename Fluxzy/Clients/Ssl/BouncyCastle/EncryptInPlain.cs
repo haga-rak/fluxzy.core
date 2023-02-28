@@ -1,9 +1,10 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
+using System;
 using Org.BouncyCastle.Tls.Crypto;
 
-namespace Fluxzy.Bulk.BcCli
+namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     internal class EncryptInPlain : TlsEncryptor
     {
@@ -17,11 +18,11 @@ namespace Fluxzy.Bulk.BcCli
 
     internal static class SecretKeyExtractor
     {
-        private static readonly EncryptInPlain _encryptor = new(); 
+        private static readonly EncryptInPlain Encryptor = new(); 
 
         public static byte[] ExtractKeySilently(this TlsSecret secret)
         {
-            return secret.Encrypt(_encryptor);
+            return secret.Encrypt(Encryptor);
         }
     }
 }

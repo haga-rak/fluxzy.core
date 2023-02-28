@@ -108,7 +108,7 @@ namespace Fluxzy.Desktop.Services
             {
                 _tcpConnectionProvider =
                     fluxzySetting.CaptureRawPacket
-                        ? await CapturedTcpConnectionProvider.Create(_proxyScope, fluxzySetting)
+                        ? await CapturedTcpConnectionProvider.Create(_proxyScope, fluxzySetting.OutOfProcCapture)
                         : ITcpConnectionProvider.Default;
 
                 _proxy = new Proxy(fluxzySetting, 

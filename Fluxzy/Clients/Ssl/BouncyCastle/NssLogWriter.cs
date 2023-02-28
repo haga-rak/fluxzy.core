@@ -1,11 +1,14 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
-using Org.BouncyCastle.Utilities.Encoders;
+using System;
+using System.IO;
 using System.Text;
+using Org.BouncyCastle.Utilities.Encoders;
+
 // ReSharper disable InconsistentNaming
 
-namespace Fluxzy.Bulk.BcCli
+namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     public class NssLogWriter : IDisposable
     {

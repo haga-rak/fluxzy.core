@@ -1,10 +1,12 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Text;
+using Fluxzy.Clients.Ssl.BouncyCastle;
+using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
+using Fluxzy.Interop.Pcap.Cli.Clients;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Bulk.BcCli
 {
@@ -17,7 +19,10 @@ namespace Fluxzy.Bulk.BcCli
     {
         static async Task Main()
         {
-            await using var tcpProvider = new CapturedTcpConnectionProvider();
+            var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(), 
+                (a) => new OutOfProcessCaptureContext(a));
+
+            await using var tcpProvider = await CapturedTcpConnectionProvider.Create(scope, false);
             
             var uriRaw
                 = "https://www.google.com/";
@@ -41,13 +46,13 @@ namespace Fluxzy.Bulk.BcCli
                                 $"X-Header-Popo: Dodo\r\n\r\n";
 
             var stream = connection.GetStream();
-            var secureRandom = new SecureRandom();
-            var crypto = new FluxzyCrypto(secureRandom);
+
+            var crypto = new FluxzyCrypto();
 
             using var nssWriter = new NssLogWriter("ssl.txt");
             
-            var cl = new FluxzyTlsClient(crypto, SslProtocols.Tls12, new[] { SslApplicationProtocol.Http11, });
-
+            var cl = new FluxzyTlsClient(SslProtocols.Tls12, new[] { SslApplicationProtocol.Http11, });
+   
             var protocol = new FluxzyClientProtocol(stream, nssWriter); 
 
             protocol.Connect(cl);
@@ -75,18 +80,4 @@ namespace Fluxzy.Bulk.BcCli
     }
 
     // Need class to handle certificate auth
-    class FluxzyTlsAuthentication : TlsAuthentication
-    {
-        public void NotifyServerCertificate(TlsServerCertificate serverCertificate)
-        {
-            
-        }
-
-        public TlsCredentials? GetClientCredentials(CertificateRequest certificateRequest)
-        {
-            
-            
-            return null; 
-        }
-    }
 }

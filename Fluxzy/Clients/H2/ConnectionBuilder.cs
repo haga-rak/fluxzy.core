@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Common;
 using Fluxzy.Clients.H11;
+using Fluxzy.Clients.Ssl.SChannel;
 
 namespace Fluxzy.Clients.H2
 {
@@ -56,7 +57,7 @@ namespace Fluxzy.Clients.H2
             CancellationToken token = default)
         {
             var connectionPool = new Http11ConnectionPool(authority,
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
+                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), new SChannelConnectionBuilder()),
                 ITimingProvider.Default, ProxyRuntimeSetting.Default, null!);
 
             connectionPool.Init();

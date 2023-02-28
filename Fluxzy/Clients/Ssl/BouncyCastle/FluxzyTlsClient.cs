@@ -1,21 +1,23 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
+using Fluxzy.Bulk.BcCli;
 using Org.BouncyCastle.Tls;
-using Org.BouncyCastle.Tls.Crypto;
 
-namespace Fluxzy.Bulk.BcCli
+namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     class FluxzyTlsClient : DefaultTlsClient
     {
         private readonly SslProtocols _sslProtocols;
         private readonly SslApplicationProtocol[] _applicationProtocols;
 
-        public FluxzyTlsClient(TlsCrypto crypto, SslProtocols sslProtocols, 
+        public FluxzyTlsClient(SslProtocols sslProtocols, 
              SslApplicationProtocol [] applicationProtocols)
-            : base(crypto)
+            : base(new FluxzyCrypto())
         {
             _sslProtocols = sslProtocols;
             _applicationProtocols = applicationProtocols;
@@ -72,10 +74,12 @@ namespace Fluxzy.Bulk.BcCli
                 listProtocolVersion.Add(ProtocolVersion.TLSv12);
             }
 
+#if NET6_0_OR_GREATER
             if (_sslProtocols.HasFlag(SslProtocols.Tls13))
             {
                 listProtocolVersion.Add(ProtocolVersion.TLSv13);
             }
+#endif
 
             return listProtocolVersion.ToArray();
         }
