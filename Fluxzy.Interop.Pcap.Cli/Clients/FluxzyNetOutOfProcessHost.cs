@@ -38,7 +38,7 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
 
                 var nextLine = await _process.StandardOutput.ReadLineAsync()
                                         // We wait 5s for the the process to be ready
-                                      .WaitAsync(TimeSpan.FromSeconds(5));
+                                      .WaitAsync(TimeSpan.FromSeconds(60));
 
                 if (nextLine == null || !int.TryParse(nextLine, out var port)) {
                     return false; // Did not receive port number
