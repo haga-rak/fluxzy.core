@@ -64,6 +64,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(CreateSystemProxyOption());
             command.AddOption(CreateTcpDumpOption());
             command.AddOption(CreateSkipSslOption());
+            command.AddOption(CreateBouncyCastleOption());
 
             command.AddOption(CreateSkipCertInstallOption());
             command.AddOption(CreateNoCertCacheOption());
@@ -96,6 +97,7 @@ namespace Fluxzy.Cli.Commands
             var ruleFile = invocationContext.Value<FileInfo>("rule-file");
             var parseUserAgent = invocationContext.Value<bool>("parse-ua");
             var outOfProcCapture = invocationContext.Value<bool>("external-capture");
+            var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
 
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
@@ -114,7 +116,6 @@ namespace Fluxzy.Cli.Commands
 
             foreach (var item in listenInterfaces)
                 proxyStartUpSetting.AddBoundAddress(item);
-
 
             var archivingPolicy = dumpDirectory == null
                 ? ArchivingPolicy.None
@@ -177,6 +178,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.SetSkipGlobalSslDecryption(skipDecryption);
             proxyStartUpSetting.SetDisableCertificateCache(noCertCache);
             proxyStartUpSetting.OutOfProcCapture = outOfProcCapture; 
+            proxyStartUpSetting.UseBouncyCastle = bouncyCastle; 
 
             var certificateProvider = new CertificateProvider(proxyStartUpSetting,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
@@ -358,6 +360,18 @@ namespace Fluxzy.Cli.Commands
                 "Disable ssl traffic decryption");
 
             option.AddAlias("-ss");
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
+        private static Option CreateBouncyCastleOption()
+        {
+            var option = new Option<bool>(
+                "--bouncy-castle",
+                "Use Bouncy Castle as SSL/TLS provider");
+
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
