@@ -3,6 +3,22 @@ using Fluxzy.Interop.Pcap.Pcapng.Structs;
 
 namespace Fluxzy.Interop.Pcap.Pcapng
 {
+    public class PcapngGlobalInfo
+    {
+        public PcapngGlobalInfo(string userApplicationName, string? osDescription = null, string? hardwareDescription = null)
+        {
+            UserApplicationName = userApplicationName;
+            OsDescription = osDescription;
+            HardwareDescription = hardwareDescription;
+        }
+
+        public string UserApplicationName { get; private set; }
+        
+        public string? OsDescription { get; private set; }
+        
+        public string? HardwareDescription { get; private set; }
+    }
+
     /// <summary>
     /// This writer aims to dump packet into pcpang format with minimal GC pressure 
     /// </summary>
@@ -12,20 +28,18 @@ namespace Fluxzy.Interop.Pcap.Pcapng
         private readonly string _hardwareDescription;
         private readonly string _osDescription;
 
-        public PcapngWriter(string userApplicationName, string? osDescription = null, string? hardwareDescription = null)
+        public PcapngWriter(PcapngGlobalInfo pcapngGlobalInfo)
         {
-            _userApplicationName = userApplicationName;
-            _hardwareDescription = hardwareDescription ?? RuntimeInformation.RuntimeIdentifier;
-            _osDescription = osDescription ?? RuntimeInformation.OSDescription;
+            _userApplicationName = pcapngGlobalInfo.UserApplicationName;
+            _hardwareDescription = pcapngGlobalInfo.HardwareDescription ?? RuntimeInformation.RuntimeIdentifier;
+            _osDescription = pcapngGlobalInfo.OsDescription ?? RuntimeInformation.OSDescription;
         }
 
         /// <summary>
         /// Static constant field
         /// </summary>
-        public void WriteHeader(Stream stream)
+        public void WriteSectionHeaderBlock(Stream stream)
         {
-            // Don't be schoked by the generic interface, it's just to avoid unboxing 
-            
             var userAppOption = new StringOptionBlock(OptionBlockCode.Shb_UserAppl, _userApplicationName);
             var osDecriptionOption = new StringOptionBlock(OptionBlockCode.Shb_Os, _osDescription);
             var hardwareOption = new StringOptionBlock(OptionBlockCode.Shb_Hardware, _hardwareDescription);
@@ -35,7 +49,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng
                 osDecriptionOption.OnWireLength
                 + userAppOption.OnWireLength
                 + hardwareOption.OnWireLength
-                + endOfOption.OnWriteLength);
+                + endOfOption.OnWireLength);
 
             //var sectionHeaderBlock = new SectionHeaderBlock(0);
 
@@ -49,12 +63,26 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             offset += osDecriptionOption.Write(sectionHeaderBlockBuffer.Slice(offset));
             offset += hardwareOption.Write(sectionHeaderBlockBuffer.Slice(offset));
 
-
             offset += endOfOption.Write(sectionHeaderBlockBuffer.Slice(offset));
 
             offset += sectionHeaderBlock.WriteTrailer(sectionHeaderBlockBuffer.Slice(offset));
 
             stream.Write(sectionHeaderBlockBuffer.Slice(0, offset));
+        }
+        
+        public void WriteInterfaceDescription(Stream stream, InterfaceDescription interfaceDescription)
+        {
+
+            var interfaceDescriptionBlock = new InterfaceDescriptionBlock(interfaceDescription);
+            
+
+            Span<byte> interfaceDescriptionBlockBuffer = stackalloc byte[interfaceDescriptionBlock.BlockTotalLength];
+            var offset = interfaceDescriptionBlock.Write(interfaceDescriptionBlockBuffer);
+
+            stream.Write(interfaceDescriptionBlockBuffer.Slice(0, offset));
+
+
+            // Write things about interface description
         }
     }
 }

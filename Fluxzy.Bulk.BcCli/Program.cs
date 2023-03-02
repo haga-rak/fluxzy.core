@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Security;
-using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Text;
 using Fluxzy.Clients.Ssl.BouncyCastle;
@@ -9,10 +8,8 @@ using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.Interop.Pcap.Pcapng;
 using Fluxzy.Interop.Pcap.Pcapng.Structs;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using YamlDotNet.Serialization;
 
 namespace Fluxzy.Bulk.BcCli
 {
@@ -26,10 +23,15 @@ namespace Fluxzy.Bulk.BcCli
         static void Main()
         {
             using var fileStream = File.Create("test.pcapng");
-            var writer = new PcapngWriter("fluxzy - https://www.fluxzy.io");
+            var writer = new PcapngWriter(new PcapngGlobalInfo("fluxzy - https://www.fluxzy.io"));
 
-
-            writer.WriteHeader(fileStream);
+            writer.WriteSectionHeaderBlock(fileStream);
+            
+            writer.WriteInterfaceDescription(fileStream, new InterfaceDescription(1)
+            {
+                Name = "WAN",
+                Description = "Superinterface très bien"
+            });
         }
 
         private static async Task QuickCaptureWithBouncy()
