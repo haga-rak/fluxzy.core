@@ -7,6 +7,7 @@ using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Services.Ui;
+using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Interop.Pcap;
@@ -41,7 +42,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<ActiveRuleManager>();
             collection.AddSingleton<FileDynamicStatsManager>();
             collection.AddSingleton<LastOpenFileManager>();
-            
+            collection.AddSingleton<UaParserUserAgentInfoProvider>();
 
             collection.AddSingleton
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);

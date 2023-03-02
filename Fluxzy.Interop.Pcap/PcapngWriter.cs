@@ -19,12 +19,10 @@ namespace Fluxzy.Interop.Pcap
         private volatile Stream _workStream;
         private byte[]? _waitBuffer;
         private readonly PcapngStreamWriter _pcapngStreamWriter;
-        private readonly Guid _instanceId;
 
         public PcapngWriter(long key, string applicationName)
         {
             Key = key;
-            _instanceId = Guid.NewGuid();
             
             _waitBuffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             _workStream = new MemoryStream(_waitBuffer);
@@ -113,9 +111,7 @@ namespace Fluxzy.Interop.Pcap
                 }
 
                 _workStream?.Dispose();
-
                 _nssKeyChannels.Writer.TryComplete();
-
             }
         }
 
