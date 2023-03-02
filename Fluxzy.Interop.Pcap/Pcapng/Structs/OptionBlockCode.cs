@@ -12,11 +12,14 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
         Shb_UserAppl = 4,
 
         Opt_EndOfOpt = 0,
+        Opt_Comment = 1,
 
         If_Name = 2,
         If_Description = 3,
         If_Ipv4Addr = 4,
         If_Ipv6Addr = 5,
         If_MacAddr = 6,
+
+        
     }
 }
