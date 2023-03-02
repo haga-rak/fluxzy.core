@@ -23,8 +23,10 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 
             BlockTotalLength = 32 + packetPaddedLength;
 
-            if (!string.IsNullOrWhiteSpace(comment)) {
-                BlockTotalLength += OptionHelper.GetOnWireLength(comment); 
+            if (!string.IsNullOrWhiteSpace(comment))
+            {
+                BlockTotalLength += OptionHelper.GetOnWireLength(comment);
+                BlockTotalLength += 4; // EndOfOption
             }
         }
 
@@ -53,18 +55,23 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(20), CapturedLength);
             BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(24), OriginalLength);
 
-            payload.Slice(0, CapturedLength).CopyTo(buffer.Slice(28));
+            payload.CopyTo(buffer.Slice(28));
 
-            var offset = 28 + CapturedLength;
+            var offset = 28 + CapturedLength + ((4 - payload.Length % 4) % 4);
 
             if (!string.IsNullOrWhiteSpace(_comment))
             {
-                offset += StringOptionBlock.Write(buffer.Slice(offset), OptionBlockCode.Opt_Comment, _comment); 
-                offset += EndOfOption.DirectWrite(buffer.Slice(offset)); 
+                offset += StringOptionBlock.Write(buffer.Slice(offset), OptionBlockCode.Opt_Comment, _comment);
+                offset += EndOfOption.DirectWrite(buffer.Slice(offset));
             }
 
             BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(offset), BlockTotalLength);
 
+            if ((offset + 4) != BlockTotalLength) {
+
+            }
+            
+            
             return offset + 4; // Should be block total length 
         }
     }

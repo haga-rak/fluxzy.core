@@ -82,9 +82,10 @@ namespace Fluxzy.Interop.Pcap.Pcapng
                     Description = capture.Device.Description
                 };
 
-                WriteInterfaceDescription(stream, description); 
+                WriteInterfaceDescription(stream, description);
             }
-
+            
+            
             var enhancedPacketBlock = new EnhancedPacketBlock(
                 description.InterfaceId, 
                 (uint) capture.Header.Timeval.Seconds,
@@ -95,7 +96,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             );
 
             // This need to be corrected if MTU is very large
-            
+
             Span<byte> enhancedPacketBlockBuffer = stackalloc byte[enhancedPacketBlock.BlockTotalLength];
             var offset = enhancedPacketBlock.Write(enhancedPacketBlockBuffer, capture.Data);
             stream.Write(enhancedPacketBlockBuffer.Slice(0, offset));

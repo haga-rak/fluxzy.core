@@ -11,29 +11,29 @@ namespace Fluxzy.Interop.Pcap
     {
         private readonly object _locker = new();
         
-        private Stream _waitStream;
+        private Stream _workStream;
         private byte[]? _waitBuffer;
-        private readonly PcapngStreamWriter _streamWriter;
+        private readonly PcapngStreamWriter _pcapngStreamWriter;
 
         public PcapngWriter(long key, string applicationName)
         {
             Key = key;
             
             _waitBuffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
-            _waitStream = new MemoryStream(_waitBuffer);
+            _workStream = new MemoryStream(_waitBuffer);
 
-            _streamWriter = new PcapngStreamWriter(new PcapngGlobalInfo(applicationName));
+            _pcapngStreamWriter = new PcapngStreamWriter(new PcapngGlobalInfo(applicationName));
 
             // On écrit l'entête
             
-            _streamWriter.WriteSectionHeaderBlock(_waitStream);
+            _pcapngStreamWriter.WriteSectionHeaderBlock(_workStream);
         }
 
         public bool Faulted { get; private set; }
 
         public void Flush()
         {
-            if (_waitStream is FileStream fileStream)
+            if (_workStream is FileStream fileStream)
                 fileStream.Flush(); // We probably broke thread safety here 
         }
 
@@ -49,16 +49,16 @@ namespace Fluxzy.Interop.Pcap
 
             var fileStream = File.Open(outFileName, FileMode.Create, FileAccess.Write, FileShare.Read);
 
-            fileStream.Write(PcapFileHeaderBuilder.Buffer);
+            // fileStream.Write(PcapFileHeaderBuilder.Buffer);
 
             lock (_locker)
             {
-                fileStream.Write(_waitBuffer, 0, (int)_waitStream.Position); // We copy content to buffer 
+                fileStream.Write(_waitBuffer, 0, (int)_workStream.Position); // We copy content to buffer 
 
                 ArrayPool<byte>.Shared.Return(_waitBuffer);
                 _waitBuffer = null;
 
-                _waitStream = fileStream;
+                _workStream = fileStream;
             }
         }
         public void Write(PacketCapture packetCapture)
@@ -69,9 +69,9 @@ namespace Fluxzy.Interop.Pcap
                     return;
 
                 // We are dumping on file so no need to lock or whatsoever
-                if (_waitStream is FileStream fileStream)
+                if (_workStream is FileStream fileStream)
                 {
-                    _streamWriter.Write(fileStream, packetCapture);
+                    _pcapngStreamWriter.Write(fileStream, packetCapture);
                     return;
                 }
 
@@ -79,7 +79,7 @@ namespace Fluxzy.Interop.Pcap
                 // _waitStream need to be protected 
 
                 lock (_locker)
-                    _streamWriter.Write(_waitStream, packetCapture);
+                    _pcapngStreamWriter.Write(_workStream, packetCapture);
             }
             catch (Exception ex)
             {
@@ -103,7 +103,7 @@ namespace Fluxzy.Interop.Pcap
                     _waitBuffer = null;
                 }
 
-                _waitStream?.Dispose();
+                _workStream?.Dispose();
 
             }
         }

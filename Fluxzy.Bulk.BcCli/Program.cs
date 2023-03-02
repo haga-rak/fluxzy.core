@@ -6,6 +6,8 @@ using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
+using Fluxzy.Interop.Pcap.Pcapng;
+using Fluxzy.Interop.Pcap.Pcapng.Structs;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
@@ -23,7 +25,7 @@ namespace Fluxzy.Bulk.BcCli
             await QuickCaptureWithBouncy();
 
             //using var fileStream = File.Create("test.pcapng");
-            //var writer = new PcapngStreamWriter(new PcapngGlobalInfo("fluxzy - https://www.fluxzy.io"));
+            //var writer = new PcapngStreamWriter(new PcapngGlobalInfo("fluxzy v0.15.9 - https://www.fluxzy.io"));
 
             //writer.WriteSectionHeaderBlock(fileStream);
 
@@ -42,9 +44,10 @@ namespace Fluxzy.Bulk.BcCli
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(scope, false);
 
             var uriRaw
-                = "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ";
+              //  = "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ";
             // = "https://extranet.2befficient.fr/ip";
-            //= "https://sandbox.smartizy.com/ip";
+                    = "https://sandbox.smartizy.com/ip";
+            
             if (!Uri.TryCreate(uriRaw, UriKind.Absolute, out var uri)) {
                 throw new Exception("Invalid URI");
             }
