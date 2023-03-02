@@ -43,10 +43,15 @@ namespace Fluxzy.Misc.Streams
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var res =  _innerStream.Read(buffer, offset, count);
+            try {
+                var res = _innerStream.Read(buffer, offset, count);
 
-            _totalRead += res;
-            return res; 
+                _totalRead += res;
+                return res;
+            }
+            catch {
+                return 0;  // JUST RETURN EOF when fail
+            }
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
