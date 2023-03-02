@@ -7,7 +7,7 @@ using SharpPcap.LibPcap;
 
 namespace Fluxzy.Interop.Pcap
 {
-    internal class LegacyPcapWriter : IDisposable, IConnectionSubscription
+    internal class LegacyPcapWriter : IConnectionSubscription, IRawCaptureWriter
     {
         private readonly object _locker = new();
         
@@ -58,6 +58,11 @@ namespace Fluxzy.Interop.Pcap
                 
                 _waitStream = fileStream;
             }
+        }
+
+        public void Write(PacketCapture packetCapture)
+        {
+            Write(packetCapture.Data, packetCapture.Header.Timeval);
         }
 
         public void Write(ReadOnlySpan<byte> data, PosixTimeval timeVal)

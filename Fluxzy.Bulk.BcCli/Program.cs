@@ -6,8 +6,6 @@ using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
-using Fluxzy.Interop.Pcap.Pcapng;
-using Fluxzy.Interop.Pcap.Pcapng.Structs;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
@@ -20,18 +18,20 @@ namespace Fluxzy.Bulk.BcCli
     /// </summary>
     internal class Program
     {
-        static void Main()
+        static async Task Main()
         {
-            using var fileStream = File.Create("test.pcapng");
-            var writer = new PcapngWriter(new PcapngGlobalInfo("fluxzy - https://www.fluxzy.io"));
+            await QuickCaptureWithBouncy();
 
-            writer.WriteSectionHeaderBlock(fileStream);
-            
-            writer.WriteInterfaceDescription(fileStream, new InterfaceDescription(1)
-            {
-                Name = "WAN",
-                Description = "Superinterface très bien"
-            });
+            //using var fileStream = File.Create("test.pcapng");
+            //var writer = new PcapngStreamWriter(new PcapngGlobalInfo("fluxzy - https://www.fluxzy.io"));
+
+            //writer.WriteSectionHeaderBlock(fileStream);
+
+            //writer.WriteInterfaceDescription(fileStream, new InterfaceDescription(1)
+            //{
+            //    Name = "WAN",
+            //    Description = "Superinterface très bien"
+            //});
         }
 
         private static async Task QuickCaptureWithBouncy()
@@ -49,7 +49,7 @@ namespace Fluxzy.Bulk.BcCli
                 throw new Exception("Invalid URI");
             }
 
-            var connection = tcpProvider.Create("test.pcap");
+            var connection = tcpProvider.Create("testos.pcapng");
 
             var ipAddress = (await Dns.GetHostAddressesAsync(uri.Host)).First();
 

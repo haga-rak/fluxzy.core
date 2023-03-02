@@ -7,19 +7,19 @@ namespace Fluxzy.Interop.Pcap
 {
     internal class SyncWriterQueue : IDisposable
     {
-        private ConcurrentDictionary<long, LegacyPcapWriter> _writers = new();
+        private ConcurrentDictionary<long, IRawCaptureWriter> _writers = new();
 
-        public LegacyPcapWriter GetOrAdd(long key)
+        public IRawCaptureWriter GetOrAdd(long key)
         {
-            return _writers.GetOrAdd(key, (k) => new LegacyPcapWriter(k));;
+            return _writers.GetOrAdd(key, (k) => new PcapngWriter(k, "fluxzy v0.15.9 - https://www.fluxzy.io"));;
         }
 
-        public bool TryGet(long key, out LegacyPcapWriter? writer)
+        public bool TryGet(long key, out IRawCaptureWriter? writer)
         {
             return _writers.TryGetValue(key, out writer);
         }
 
-        public bool TryRemove(long key, out LegacyPcapWriter? writer)
+        public bool TryRemove(long key, out IRawCaptureWriter? writer)
         {
             return _writers.TryRemove(key, out writer);
         }
@@ -35,7 +35,7 @@ namespace Fluxzy.Interop.Pcap
         public void ClearAll()
         {
             var oldWriter = _writers;
-            _writers = new ConcurrentDictionary<long, LegacyPcapWriter>();
+            _writers = new ConcurrentDictionary<long, IRawCaptureWriter>();
 
             foreach (var writer in oldWriter) {
                 try {
