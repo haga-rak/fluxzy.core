@@ -2,6 +2,7 @@
 // 
 
 using System.Collections.Concurrent;
+using Fluxzy.Interop.Pcap.Pcapng;
 
 namespace Fluxzy.Interop.Pcap
 {

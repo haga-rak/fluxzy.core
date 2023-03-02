@@ -18,7 +18,6 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             OptionValue = optionValue;
         }
 
-
         public ushort OptionCode { get; }
 
         public ushort OptionLength { get; }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using Fluxzy.Clients;
 using System.Collections.Generic;
@@ -80,7 +80,7 @@ namespace Fluxzy.Readers
 
         public Stream? GetRawCaptureStream(int connectionId)
         {
-            var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcap");
+            var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
 
             if (!File.Exists(capturePath))
                 return null;
@@ -90,7 +90,7 @@ namespace Fluxzy.Readers
         
         public string? GetRawCaptureFile(int connectionId)
         {
-            var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcap");
+            var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
 
             if (!File.Exists(capturePath))
                 return null;

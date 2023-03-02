@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
 using System.IO;
@@ -101,7 +101,7 @@ namespace Fluxzy.Readers
 
         public Stream? GetRawCaptureStream(int connectionId)
         {
-            var path = Path.Combine("captures", $"{connectionId}.pcap").Replace("\\", "/");
+            var path = Path.Combine("captures", $"{connectionId}.pcapng").Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
             if (entry == null)
