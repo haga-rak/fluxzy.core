@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc.Streams
 {
-    internal class CombinedReadonlyStream : Stream
+    public class CombinedReadonlyStream : Stream
     {
         private readonly bool _closeStreams;
         private long _position;
