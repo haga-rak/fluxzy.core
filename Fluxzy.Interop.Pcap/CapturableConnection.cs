@@ -17,6 +17,7 @@ namespace Fluxzy.Interop.Pcap
         private bool _disposed = false;
         private IPEndPoint?  _localEndPoint;
         private long  _subscription;
+        private IPAddress _remoteAddress;
 
         public CapturableTcpConnection(ProxyScope proxyScope, string outTraceFileName)
         {
@@ -36,7 +37,9 @@ namespace Fluxzy.Interop.Pcap
 
             await _innerTcpClient.ConnectAsync(remoteAddress, remotePort);
 
+            _remoteAddress = remoteAddress;
             _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
+
 
             _subscription = context?.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port) ?? 0;
 
@@ -66,8 +69,8 @@ namespace Fluxzy.Interop.Pcap
                 && _innerTcpClient.Client.RemoteEndPoint != null) {
 
                 var remoteEndPoint = (IPEndPoint) _innerTcpClient.Client.RemoteEndPoint;
-
-                _proxyScope.CaptureContext.StoreKey(nssKey, remoteEndPoint.Address, remoteEndPoint.Port,
+                
+                _proxyScope.CaptureContext.StoreKey(nssKey, _remoteAddress, remoteEndPoint.Port,
                     _localEndPoint.Port);
             }
 
