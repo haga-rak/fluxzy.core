@@ -42,6 +42,7 @@ namespace Fluxzy.Bulk.BcCli
                 (a) => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(scope, false);
+            
 
             var uriRaw
               //  = "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ";
@@ -69,7 +70,12 @@ namespace Fluxzy.Bulk.BcCli
 
             var stream = connection.GetStream();
 
-            using var nssWriter = new NssLogWriter("ssl.txt");
+            using var nssWriter = new NssLogWriter(File.Create("ssl.txt")) {
+                KeyHandler = (s =>
+                {
+                    connection.OnKeyReceived(s);
+                })
+            };
 
             var fluxzyTlsClient = new FluxzyTlsClient(uri.Host, SslProtocols.Tls12 | SslProtocols.Tls11,
                 new[] {SslApplicationProtocol.Http11,});

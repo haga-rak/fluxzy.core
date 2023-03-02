@@ -1,4 +1,6 @@
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Fluxzy.Interop.Pcap.Pcapng.Structs;
 using SharpPcap;
 
@@ -105,6 +107,16 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             Span<byte> enhancedPacketBlockBuffer = stackalloc byte[enhancedPacketBlock.BlockTotalLength];
             var offset = enhancedPacketBlock.Write(enhancedPacketBlockBuffer, capture.Data);
             stream.Write(enhancedPacketBlockBuffer.Slice(0, offset));
+        }
+
+        public void WriteNssKey(Stream stream, string nssKeys)
+        {
+            var decryptionBlock = new NssDecryptionSecretsBlock(nssKeys);
+            
+            Span<byte> decryptionBlockBuffer = stackalloc byte[decryptionBlock.BlockTotalLength];
+            var offset = decryptionBlock.Write(decryptionBlockBuffer, nssKeys);
+
+            stream.Write(decryptionBlockBuffer);
         }
     }
 }

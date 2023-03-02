@@ -6,6 +6,7 @@ public enum MessageType : byte
     Subscribe = 1 , 
     Unsubscribe = 2,
     Include = 3,
+    StoreKey = 4,
     Ready = 100,
     Flush = 101,
     ClearAll = 102,

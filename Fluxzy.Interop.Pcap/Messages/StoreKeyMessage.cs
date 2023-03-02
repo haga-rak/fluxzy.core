@@ -1,15 +1,18 @@
+// // Copyright 2022 - Haga Rakotoharivelo
+// 
+
 using System.Net;
 
 namespace Fluxzy.Interop.Pcap.Messages
 {
-    public readonly struct SubscribeMessage
+    public readonly struct StoreKeyMessage
     {
-        public SubscribeMessage(IPAddress remoteAddress, int remotePort, int localPort, string outFileName)
+        public StoreKeyMessage(IPAddress remoteAddress, int remotePort, int localPort, string nssKey)
         {
             RemoteAddress = remoteAddress;
             RemotePort = remotePort;
             LocalPort = localPort;
-            OutFileName = outFileName;
+            NssKey = nssKey;
         }
         
         public IPAddress RemoteAddress { get; }
@@ -18,9 +21,9 @@ namespace Fluxzy.Interop.Pcap.Messages
     
         public int LocalPort { get;}
     
-        public string OutFileName { get; }
+        public string NssKey { get; }
     
-        public static SubscribeMessage FromReader(BinaryReader reader)
+        public static StoreKeyMessage FromReader(BinaryReader reader)
         {
             Span<char> charBuffer = stackalloc char[512];
         
@@ -30,7 +33,7 @@ namespace Fluxzy.Interop.Pcap.Messages
             var outFileNameLength = reader.BaseStream.ReadString(charBuffer);
             var outFileName = new string(charBuffer.Slice(0, outFileNameLength));
 
-            return new SubscribeMessage(remoteAddress, remotePort, localPort, outFileName);
+            return new StoreKeyMessage(remoteAddress, remotePort, localPort, outFileName);
         }
 
         public void Write(BinaryWriter writer)
@@ -38,23 +41,22 @@ namespace Fluxzy.Interop.Pcap.Messages
             writer.BaseStream.WriteString(RemoteAddress.ToString());
             writer.Write(RemotePort);
             writer.Write(LocalPort);
-            writer.BaseStream.WriteString(OutFileName);
+            writer.BaseStream.WriteString(NssKey);
         }
 
-        public bool Equals(SubscribeMessage other)
+        public bool Equals(StoreKeyMessage other)
         {
-            return RemoteAddress.Equals(other.RemoteAddress) && RemotePort == other.RemotePort && LocalPort == other.LocalPort && OutFileName == other.OutFileName;
+            return RemoteAddress.Equals(other.RemoteAddress) && RemotePort == other.RemotePort && LocalPort == other.LocalPort && NssKey == other.NssKey;
         }
 
         public override bool Equals(object? obj)
         {
-            return obj is SubscribeMessage other && Equals(other);
+            return obj is StoreKeyMessage other && Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(RemoteAddress, RemotePort, LocalPort, OutFileName);
+            return HashCode.Combine(RemoteAddress, RemotePort, LocalPort, NssKey);
         }
-
     }
 }

@@ -64,19 +64,19 @@ namespace Fluxzy.Clients
             connection.RemoteAddress = ipAddress;
             connection.DnsSolveEnd = _timeProvider.Instant();
 
-            var tcpClient = setting.TcpConnectionProvider
+            var tcpConnection = setting.TcpConnectionProvider
                 .Create(setting.ArchiveWriter != null ?
                     setting.ArchiveWriter?.GetDumpfilePath(connection.Id)!
                     : string.Empty);
 
-            var localEndpoint = await tcpClient.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
+            var localEndpoint = await tcpConnection.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
                                                                         authority.Port).ConfigureAwait(false);
 
             connection.TcpConnectionOpened = _timeProvider.Instant();
             connection.LocalPort = localEndpoint.Port;
             connection.LocalAddress = localEndpoint.Address.ToString();
             
-            var newlyOpenedStream = tcpClient.GetStream();
+            var newlyOpenedStream = tcpConnection.GetStream();
             
             if (!authority.Secure || context.BlindMode)
             {
@@ -105,12 +105,14 @@ namespace Fluxzy.Clients
             }
 
             var sslConnectionInfo =
-                await _sslConnectionBuilder.AuthenticateAsClient(newlyOpenedStream, authenticationOptions, token); 
+                await _sslConnectionBuilder.AuthenticateAsClient(
+                    newlyOpenedStream, authenticationOptions, tcpConnection.OnKeyReceived, token); 
 
             connection.SslInfo = sslConnectionInfo.SslInfo;
 
             connection.SslNegotiationEnd = _timeProvider.Instant();
             connection.SslInfo.RemoteCertificate = remoteCertificate;
+            
 
             Stream resultStream = sslConnectionInfo.Stream;
 
