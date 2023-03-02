@@ -7,11 +7,18 @@ namespace Fluxzy.Interop.Pcap
 {
     internal class SyncWriterQueue : IDisposable
     {
+        public SyncWriterQueue()
+        {
+        }
+        
         private ConcurrentDictionary<long, IRawCaptureWriter> _writers = new();
 
         public IRawCaptureWriter GetOrAdd(long key)
         {
-            return _writers.GetOrAdd(key, (k) => new PcapngWriter(k, "fluxzy v0.15.9 - https://www.fluxzy.io"));;
+            lock (this) {
+                return _writers.GetOrAdd(key,
+                    (k) => new PcapngWriter(k, "fluxzy v0.15.9 - https://www.fluxzy.io")); ;
+            }
         }
 
         public bool TryGet(long key, out IRawCaptureWriter? writer)

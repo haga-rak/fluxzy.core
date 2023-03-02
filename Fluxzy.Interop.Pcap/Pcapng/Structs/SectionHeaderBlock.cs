@@ -2,7 +2,6 @@
 // 
 
 using System.Buffers.Binary;
-using System.Text;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
@@ -43,42 +42,6 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
         {
             BinaryPrimitives.WriteInt32LittleEndian(buffer, BlockTotalLength);
             return 4;
-        }
-    }
-
-
-    public readonly ref struct NssDecryptionSecretsBlock
-    {
-        public NssDecryptionSecretsBlock(string nssKey)
-        {
-            BlockTotalLength = 20;
-            SecretsLength = Encoding.UTF8.GetByteCount(nssKey) ; 
-            BlockTotalLength += SecretsLength + (((4 - SecretsLength % 4) % 4));
-        }
-
-        public uint BlockType { get; init; } = 0x0000000A;
-
-        public int BlockTotalLength { get; }
-
-        public int SecretsType { get; } = 0x544c534b;
-
-        public int SecretsLength { get; }
-
-        public int Write(Span<byte> buffer, string nssKey)
-        {
-            BinaryPrimitives.WriteUInt32LittleEndian(buffer, BlockType);
-            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(4), BlockTotalLength);
-            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(8), SecretsType);
-            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(12), SecretsLength);
-            
-            Encoding.UTF8.GetBytes(nssKey, buffer.Slice(16));
-
-            var offset = 16 + SecretsLength + (((4 - SecretsLength % 4) % 4));
-
-            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(offset), BlockTotalLength);
-
-            return BlockTotalLength;
-
         }
     }
 }
