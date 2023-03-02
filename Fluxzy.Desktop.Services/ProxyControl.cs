@@ -16,6 +16,7 @@ namespace Fluxzy.Desktop.Services
     {
         private readonly ProxyScope _proxyScope;
         private readonly FromIndexIdProvider _idProvider;
+        private readonly UaParserUserAgentInfoProvider _userAgentProvider;
         private readonly FileContentUpdateManager _fileContentUpdateManager;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null);
@@ -30,6 +31,7 @@ namespace Fluxzy.Desktop.Services
         public ProxyControl(
             ProxyScope proxyScope,
             FromIndexIdProvider idProvider,
+            UaParserUserAgentInfoProvider userAgentProvider,
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<FileContentOperationManager> contentObservable,
             IObservable<ViewFilter> viewFilter,
@@ -39,6 +41,7 @@ namespace Fluxzy.Desktop.Services
         {
             _proxyScope = proxyScope;
             _idProvider = idProvider;
+            _userAgentProvider = userAgentProvider;
             _fileContentUpdateManager = fileContentUpdateManager;
 
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState
@@ -116,7 +119,7 @@ namespace Fluxzy.Desktop.Services
                         new InMemoryCertificateCache()), 
                     new DefaultCertificateAuthorityManager(),
                     _tcpConnectionProvider,
-                    new UaParserUserAgentInfoProvider(), idProvider : _idProvider);
+                    _userAgentProvider, idProvider : _idProvider);
 
                 // This is to enabled pending exchange and connection into existing file 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);

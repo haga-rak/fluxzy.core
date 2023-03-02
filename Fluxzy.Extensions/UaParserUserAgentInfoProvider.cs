@@ -1,6 +1,7 @@
 ﻿// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
+using System.Collections.Concurrent;
 using UAParser;
 
 namespace Fluxzy.Extensions
@@ -10,16 +11,27 @@ namespace Fluxzy.Extensions
     /// </summary>
     public class UaParserUserAgentInfoProvider : IUserAgentInfoProvider
     {
-        private static readonly Parser Parser = Parser.GetDefault(); 
-        
+        private static readonly Parser Parser = Parser.GetDefault();
+
+        private readonly ConcurrentDictionary<int, string> _friendlyNameCaches = new(); 
+
         public string GetFriendlyName(int id, string rawUserAgentValue)
         {
+            var userAgentHash = rawUserAgentValue.GetHashCode(); 
+            
+            // A quick non threadsafe cache for user agent resolution to prevent overusing of regex 
+            // The method should still be "pure"
+            
+            if (_friendlyNameCaches.TryGetValue(userAgentHash, out var result)) {
+                return result; 
+            }
+            
             var clientInfo = Parser.Parse(rawUserAgentValue);
 
             if (string.IsNullOrWhiteSpace(clientInfo.UA.Major))
                 return $"{clientInfo.UA.Family} (#{GetForcedShort(id):X})"; 
             
-            return $"{clientInfo.UA.Family} {clientInfo.UA.Major} (#{GetForcedShort(id):X})";
+            return _friendlyNameCaches[userAgentHash] = $"{clientInfo.UA.Family} {clientInfo.UA.Major} (#{GetForcedShort(id):X})";
         }
 
         private static short GetForcedShort(int l)

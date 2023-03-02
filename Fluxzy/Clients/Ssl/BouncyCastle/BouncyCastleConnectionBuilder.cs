@@ -25,6 +25,19 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             var nssWriter = new NssLogWriter(memoryStream) {
                 KeyHandler = onKeyReceived
             };
+            
+            if (Environment.GetEnvironmentVariable("SSLKEYLOGFILE") is { } str) {
+
+                nssWriter.KeyHandler = (nss) =>
+                {
+                    onKeyReceived(nss); 
+                    lock (SslFileLocker)
+                    {
+                        File.AppendAllText(str, nss);
+                    }
+                };
+            }
+            
             var protocol = new FluxzyClientProtocol(innerStream, nssWriter);
 
             await Task.Run(() => protocol.Connect(client), token); // BAD but necessary
@@ -38,11 +51,6 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             {
                 NssKey = keyInfos
             };
-
-            if (connection.NssKey != null && Environment.GetEnvironmentVariable("SSLKEYLOGFILE") is { } str) {
-                lock (SslFileLocker)
-                    File.AppendAllText(str, connection.NssKey);
-            }
 
             return connection; 
         }
