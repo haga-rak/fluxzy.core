@@ -121,6 +121,7 @@ namespace Fluxzy.Interop.Pcap
                     headerBuffer = headerBuffer.Slice(8);
                 }
             }
+            
 
             BitConverter.TryWriteBytes(headerBuffer, (uint) data.Length);
             headerBuffer = headerBuffer.Slice(4);
