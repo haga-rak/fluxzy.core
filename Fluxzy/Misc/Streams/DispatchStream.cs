@@ -53,8 +53,9 @@ namespace Fluxzy.Misc.Streams
 
         public override void Flush()
         {
-            foreach (var destination in _destinations)
-                destination.Flush();
+            if (_destinations != null)
+                foreach (var destination in _destinations)
+                    destination.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -63,17 +64,17 @@ namespace Fluxzy.Misc.Streams
 
             var read = _baseStream.Read(buffer, offset, count);
 
-            if (read == 0 && _closeOnDone)
-            {
-                foreach (var dest in _destinations)
-                    dest.Dispose();
+            if (read == 0 && _closeOnDone) {
+                if (_destinations != null)
+                    foreach (var dest in _destinations)
+                        dest.Dispose();
 
                 _destinations = null;
             }
-            else
-            {
-                foreach (var destination in _destinations)
-                    destination.Write(buffer, offset, read);
+            else {
+                if (_destinations != null)
+                    foreach (var destination in _destinations)
+                        destination.Write(buffer, offset, read);
             }
 
             return read;
@@ -96,18 +97,19 @@ namespace Fluxzy.Misc.Streams
 
             if (read == 0 && _closeOnDone)
             {
-                await Task.WhenAll(
-                    _destinations.Select(t => t.DisposeAsync().AsTask()));
+                if (_destinations != null)
+                    await Task.WhenAll(
+                        _destinations.Select(t => t.DisposeAsync().AsTask()));
 
                 _destinations = null;
 
                 if (OnDisposeDoneTask != null)
                     await OnDisposeDoneTask();
             }
-            else
-            {
-                await Task.WhenAll(
-                    _destinations.Select(t => t.WriteAsync(buffer.Slice(0, read), cancellationToken).AsTask()));
+            else {
+                if (_destinations != null)
+                    await Task.WhenAll(
+                        _destinations.Select(t => t.WriteAsync(buffer.Slice(0, read), cancellationToken).AsTask()));
             }
 
             return read;
