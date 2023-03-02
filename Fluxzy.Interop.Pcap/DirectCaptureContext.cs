@@ -169,7 +169,7 @@ namespace Fluxzy.Interop.Pcap
                 return;
 
             try {
-                writer.Write(capture.Data, capture.Header.Timeval);
+                writer.Write(capture);
             }
             catch {
                 // We ignore any write error here to not break the capture thread

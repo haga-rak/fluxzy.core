@@ -1,42 +1,21 @@
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Fluxzy.Interop.Pcap.Pcapng.Structs;
 using SharpPcap;
 
 namespace Fluxzy.Interop.Pcap.Pcapng
 {
-    public class PcapngGlobalInfo
-    {
-        public PcapngGlobalInfo(string userApplicationName, 
-            string? osDescription = null, 
-            string? hardwareDescription = null)
-        {
-            UserApplicationName = userApplicationName;
-            OsDescription = osDescription;
-            HardwareDescription = hardwareDescription;
-        }
-
-        public string UserApplicationName { get; }
-        
-        public string? OsDescription { get; }
-        
-        public string? HardwareDescription { get; }
-    }
-
     /// <summary>
     /// This writer aims to dump packet into pcpang format with minimal GC pressure 
     /// </summary>
-    public class PcapngWriter
+    public class PcapngStreamWriter
     {
         private readonly string _userApplicationName;
         private readonly string _hardwareDescription;
         private readonly string _osDescription;
 
-        private readonly ConcurrentDictionary<int, InterfaceDescription> _interfaces = new();
-
-        private int _currentIndex = 0; 
-
-        public PcapngWriter(PcapngGlobalInfo pcapngGlobalInfo)
+        private readonly Dictionary<int, InterfaceDescription> _interfaces = new();
+        
+        public PcapngStreamWriter(PcapngGlobalInfo pcapngGlobalInfo)
         {
             _userApplicationName = pcapngGlobalInfo.UserApplicationName;
             _hardwareDescription = pcapngGlobalInfo.HardwareDescription ?? RuntimeInformation.RuntimeIdentifier;
@@ -78,7 +57,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             stream.Write(sectionHeaderBlockBuffer.Slice(0, offset));
         }
         
-        public void WriteInterfaceDescription(Stream stream, InterfaceDescription interfaceDescription)
+        protected void WriteInterfaceDescription(Stream stream, InterfaceDescription interfaceDescription)
         {
             var interfaceDescriptionBlock = new InterfaceDescriptionBlock(interfaceDescription);
 
@@ -86,9 +65,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             var offset = interfaceDescriptionBlock.Write(interfaceDescriptionBlockBuffer);
 
             stream.Write(interfaceDescriptionBlockBuffer.Slice(0, offset));
-            
 
-            
             // Write things about interface description
         }
 
@@ -96,22 +73,20 @@ namespace Fluxzy.Interop.Pcap.Pcapng
         {
             var interfaceKey = capture.Device.MacAddress.GetHashCode();
 
-            var interfaceDescription = _interfaces.GetOrAdd(interfaceKey, (key, info) =>
-            {
-                var description =  new InterfaceDescription(
-                    (ushort) info.Device.LinkType, info.Existing.Count) {
-                    Name = info.Device.Name,
-                    Description = info.Device.Description
+            if (!_interfaces.TryGetValue(interfaceKey, out var description)) {
+
+                _interfaces[interfaceKey] = description = new InterfaceDescription(
+                    (ushort) capture.Device.LinkType, _interfaces.Count)
+                {
+                    Name = capture.Device.Name,
+                    Description = capture.Device.Description
                 };
 
-                info.WriteAction(info.Stream, description);
-                
-                return description; 
-
-            }, new InterfaceAddInfo(capture.Device, _interfaces, WriteInterfaceDescription, stream));
+                WriteInterfaceDescription(stream, description); 
+            }
 
             var enhancedPacketBlock = new EnhancedPacketBlock(
-                interfaceDescription.InterfaceId, 
+                description.InterfaceId, 
                 (uint) capture.Header.Timeval.Seconds,
                 (uint) capture.Header.Timeval.MicroSeconds,
                 capture.Data.Length,
@@ -119,34 +94,11 @@ namespace Fluxzy.Interop.Pcap.Pcapng
                 "fxzy"
             );
 
+            // This need to be corrected if MTU is very large
+            
             Span<byte> enhancedPacketBlockBuffer = stackalloc byte[enhancedPacketBlock.BlockTotalLength];
-
             var offset = enhancedPacketBlock.Write(enhancedPacketBlockBuffer, capture.Data);
-
             stream.Write(enhancedPacketBlockBuffer.Slice(0, offset));
-        }
-
-        public readonly struct InterfaceAddInfo
-        {
-            public InterfaceAddInfo(ICaptureDevice device, 
-                    ConcurrentDictionary<int, 
-                    InterfaceDescription> existing, 
-                    Action<Stream, InterfaceDescription> writeAction, Stream stream)
-            {
-                Device = device;
-                Existing = existing;
-                WriteAction = writeAction;
-                Stream = stream;
-            }
-
-            public ICaptureDevice Device { get;  }
-
-            public ConcurrentDictionary<int, InterfaceDescription> Existing { get; }
-
-            public Action<Stream, InterfaceDescription> WriteAction { get; }
-
-
-            public Stream Stream { get; }
         }
     }
 }
