@@ -37,7 +37,7 @@ namespace Fluxzy.Interop.Pcap
                                               .First();
             
             _physicalAddressLong = NetUtility.MacToLong(_captureDevice.MacAddress.GetAddressBytes());
-
+            
             //Start();
         }
 
@@ -113,7 +113,8 @@ namespace Fluxzy.Interop.Pcap
         private void OnCaptureDeviceOnPacketArrival(object sender, PacketCapture capture)
         {
             if (_packetQueue == null)
-                return; 
+                return;
+            
 
             var ethernetPacketInfo = new EthernetPacketInfo();
             

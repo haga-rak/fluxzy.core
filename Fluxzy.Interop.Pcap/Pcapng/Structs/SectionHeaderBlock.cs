@@ -47,10 +47,18 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             return 4;
         }
     }
+    
 
-    public readonly ref struct EndOfOption
+    public interface IOptionBlock
     {
-        public int OnWriteLength => 4;
+        int OnWireLength { get;  }
+
+        int Write(Span<byte> buffer); 
+    }
+    
+    public readonly struct EndOfOption : IOptionBlock
+    {
+        public int OnWireLength => 4;
 
         public int Write(Span<byte> buffer)
         {
@@ -59,7 +67,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
         }
     }
 
-    public readonly ref struct StringOptionBlock
+    public readonly struct StringOptionBlock : IOptionBlock
     {
         public StringOptionBlock(OptionBlockCode optionCode, string optionValue)
                 : this((ushort)optionCode, optionValue)
@@ -74,6 +82,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             OptionValue = optionValue;
         }
 
+
         public ushort OptionCode { get; }
 
         public ushort OptionLength { get; }
@@ -84,8 +93,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
         /// This length includes padding
         /// </summary>
         public int OnWireLength => 4 + (int) OptionLength + ((4 - (int) OptionLength % 4) %4) ;
-        
-        
+
         public int Write(Span<byte> buffer)
         {
             BinaryPrimitives.WriteUInt16LittleEndian(buffer, OptionCode);
@@ -103,4 +111,82 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             return OnWireLength;
         }
     }
+
+    public readonly struct InterfaceDescriptionBlock
+    {
+        private readonly InterfaceDescription _interfaceDescription;
+        private readonly List<IOptionBlock> _options = new(); 
+
+        public InterfaceDescriptionBlock(InterfaceDescription interfaceDescription)
+        {
+            _interfaceDescription = interfaceDescription;
+            BlockTotalLength = 0;
+
+            BlockTotalLength = 16 + 4;
+
+            if (!string.IsNullOrWhiteSpace(interfaceDescription.Description)) {
+                _options.Add(new StringOptionBlock(OptionBlockCode.If_Description, interfaceDescription.Description));
+            }
+            
+            if (!string.IsNullOrWhiteSpace(interfaceDescription.Name)) {
+                _options.Add(new StringOptionBlock(OptionBlockCode.If_Name, interfaceDescription.Name));
+            }
+
+            if (_options.Any()) {
+                _options.Add(new EndOfOption());
+            }
+
+            BlockTotalLength += _options.Sum(o => o.OnWireLength); 
+
+            LinkType = interfaceDescription.LinkType;
+
+        }
+
+        public uint BlockType { get; init; } = 0x00000001;
+
+        public int BlockTotalLength { get; }
+
+        public ushort LinkType { get;  }
+
+        public ushort Reserved => 0;
+
+        public int SnapLen => 0;
+
+        public int Write(Span<byte> buffer)
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer, BlockType);
+            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(4), BlockTotalLength);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(8), LinkType);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(10), Reserved);
+            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(12), SnapLen);
+
+            var offset = 16;
+
+            foreach (var option in _options)
+            {
+                offset += option.Write(buffer.Slice(offset));
+            }
+
+            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(offset), BlockTotalLength);
+
+            return BlockTotalLength; 
+        }
+    }
+
+
+    public class InterfaceDescription
+    {
+        public InterfaceDescription(ushort linkType)
+        {
+            LinkType = linkType;
+        }
+
+        public string? Name { get; set; }
+
+        public string? Description { get; set; }
+
+        public ushort LinkType { get; }
+    }
+
+    
 }
