@@ -111,8 +111,8 @@ namespace Fluxzy.Tests
         {
             var urls = new[]
             {
-                "https://sandbox.smartizy.com:5001/content-produce/400000/400000", // H1.1 H2 url
-                "https://sandbox.smartizy.com/content-produce/400000/400000" // H1 only url
+                "https://sandbox.smartizy.com:5001/content-produce/40000/40000", // H1.1 H2 url
+                "https://sandbox.smartizy.com/content-produce/40000/40000" // H1 only url
             };
 
             using var handler = new FluxzyDefaultHandler(sslProvider);
