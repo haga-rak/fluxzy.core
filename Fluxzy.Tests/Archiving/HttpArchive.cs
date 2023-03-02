@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System.Linq;
 using Fluxzy.Tests.Archiving.Fixtures;

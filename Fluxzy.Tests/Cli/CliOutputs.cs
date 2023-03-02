@@ -37,6 +37,9 @@ namespace Fluxzy.Tests.Cli
             if (rawCap == CaptureType.PcapOutOfProc)
                 commandLine += "  --external-capture";
 
+            if (proto.EndsWith("-bc")) {
+                commandLine += " --bouncy-castle"; 
+            }
 
             if (rule)
             {
@@ -146,7 +149,7 @@ namespace Fluxzy.Tests.Cli
         {
             get
             {
-                var protocols = new[] { "http11", "http2", "plainhttp11" };
+                var protocols = new[] { "http11", "http2", "http11-bc", "http2-bc", "plainhttp11" };
                 var withPcapStatus = new[] { CaptureType.None, CaptureType.Pcap, CaptureType.PcapOutOfProc };
                 var directoryParams = new[] { false, true };
                 var withSimpleRules = new[] { false, true };
