@@ -58,7 +58,7 @@
 
                 </td>
             </tr>
-            <tr>
+            <tr *ngIf="connection.sslInfo">
                 <th>Certificate</th>
                 <td>
                     <input type="text" *ngIf="!connection.sslInfo.localCertificateSubject" class="form-control form-connectivity" readonly [value]="'-/-'"  />
@@ -70,7 +70,7 @@
 
                 </td>
             </tr>
-            <tr>
+            <tr *ngIf="connection.sslInfo">
                 <th>Issuer</th>
                 <td>
                     <input type="text" *ngIf="!connection.sslInfo.localCertificateIssuer" class="form-control form-connectivity" readonly [value]="'-/-'"  />
