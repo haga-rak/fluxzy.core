@@ -328,7 +328,7 @@ namespace Fluxzy.Clients.H2
 
                 var list = new List<WriteTask>();
 
-                if (_writerChannel.Reader.TryReadAll(ref list))
+                if (_writerChannel.Reader.TryReadAll(list))
                     foreach (var item in list)
                         if (!item.DoneTask.IsCompleted)
                             item.CompletionSource.SetCanceled();
@@ -352,7 +352,7 @@ namespace Fluxzy.Clients.H2
                     if (_writerChannel == null)
                         break;
 
-                    if (_writerChannel.Reader.TryReadAll(ref tasks))
+                    if (_writerChannel.Reader.TryReadAll(tasks))
                     {
                         var windowUpdateTasks = tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate).ToArray();
 

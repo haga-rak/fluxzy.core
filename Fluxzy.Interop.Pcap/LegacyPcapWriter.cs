@@ -65,6 +65,11 @@ namespace Fluxzy.Interop.Pcap
             Write(packetCapture.Data, packetCapture.Header.Timeval);
         }
 
+        public void StoreKey(string nssKey)
+        {
+            // We cannot store keys under legacy pcapfile
+        }
+
         public void Write(ReadOnlySpan<byte> data, PosixTimeval timeVal)
         {
             try {

@@ -11,7 +11,10 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
     {
         private static readonly object SslFileLocker = new(); 
 
-        public async Task<SslConnection> AuthenticateAsClient(Stream innerStream, SslClientAuthenticationOptions request, CancellationToken token)
+        public async Task<SslConnection> AuthenticateAsClient(Stream innerStream, 
+            SslClientAuthenticationOptions request, 
+            Action<string> onKeyReceived, 
+            CancellationToken token)
         {
             var client = new FluxzyTlsClient(
                 request.TargetHost!, 
@@ -19,7 +22,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 request.ApplicationProtocols!.ToArray());
 
             var memoryStream = new MemoryStream();
-            var nssWriter = new NssLogWriter(memoryStream);
+            var nssWriter = new NssLogWriter(memoryStream) {
+                KeyHandler = onKeyReceived
+            };
             var protocol = new FluxzyClientProtocol(innerStream, nssWriter);
 
             await Task.Run(() => protocol.Connect(client), token); // BAD but necessary

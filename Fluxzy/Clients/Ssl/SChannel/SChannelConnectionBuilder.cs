@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net.Security;
 using System.Threading;
@@ -8,7 +9,7 @@ namespace Fluxzy.Clients.Ssl.SChannel
     public class SChannelConnectionBuilder : ISslConnectionBuilder
     {
         public async Task<SslConnection> AuthenticateAsClient(Stream innerStream,
-            SslClientAuthenticationOptions request, CancellationToken token)
+            SslClientAuthenticationOptions request, Action<string> onKeyReceived, CancellationToken token)
         {
             var sslStream = new SslStream(innerStream, false);
 
@@ -18,5 +19,6 @@ namespace Fluxzy.Clients.Ssl.SChannel
 
             return new SslConnection(sslStream, sslInfo, sslStream.NegotiatedApplicationProtocol);
         }
+        
     }
 }

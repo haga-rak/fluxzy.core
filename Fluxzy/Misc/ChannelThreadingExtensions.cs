@@ -1,4 +1,4 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+// Copyright © 2021 Haga Rakotoharivelo
 
 using System.Collections.Generic;
 using System.Threading.Channels;
@@ -7,7 +7,7 @@ namespace Fluxzy.Misc
 {
     public static class ChannelThreadingExtensions
     {
-        public static bool TryReadAll<T>(this ChannelReader<T> channel, ref List<T> refList)
+        public static bool TryReadAll<T>(this ChannelReader<T> channel, List<T> refList)
         {
             var any = false;
 

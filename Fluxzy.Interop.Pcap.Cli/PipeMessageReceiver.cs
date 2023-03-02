@@ -7,6 +7,7 @@ namespace Fluxzy.Interop.Pcap.Cli
     public class PipeMessageReceiver
     {
         private readonly Func<SubscribeMessage, long> _subscribeHandler;
+        private readonly Action<StoreKeyMessage> _storeKeyHandler;
         private readonly Action<UnsubscribeMessage> _unsubscribeHandler;
         private readonly Action<IncludeMessage> _includeHandler;
         private readonly Action _flushHandler;
@@ -18,6 +19,7 @@ namespace Fluxzy.Interop.Pcap.Cli
 
         public PipeMessageReceiver(
             Func<SubscribeMessage, long> subscribeHandler,
+            Action<StoreKeyMessage> storeKeyHandler,
             Action<UnsubscribeMessage> unsubscribeHandler,
             Action<IncludeMessage> includeHandler,
             Action flushHandler,
@@ -25,6 +27,7 @@ namespace Fluxzy.Interop.Pcap.Cli
             CancellationToken token)
         {
             _subscribeHandler = subscribeHandler;
+            _storeKeyHandler = storeKeyHandler;
             _unsubscribeHandler = unsubscribeHandler;
             _includeHandler = includeHandler;
             _flushHandler = flushHandler;
@@ -57,6 +60,10 @@ namespace Fluxzy.Interop.Pcap.Cli
                             var subscribeMessage = SubscribeMessage.FromReader(binaryReader);
                             var key = _subscribeHandler(subscribeMessage);
                             binaryWriter.Write(key);
+                            break;
+                        case MessageType.StoreKey:
+                            var storeKeyMessage = StoreKeyMessage.FromReader(binaryReader);
+                            _storeKeyHandler(storeKeyMessage);
                             break;
                         case MessageType.Unsubscribe:
                             var unsubscribeMessage = UnsubscribeMessage.FromReader(binaryReader);

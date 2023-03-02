@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Threading.Channels;
 using Fluxzy.Misc;
@@ -20,7 +20,7 @@ namespace Fluxzy.Desktop.Services
 
             await _bufferedChannel.Reader.WaitToReadAsync();
 
-            _bufferedChannel.Reader.TryReadAll(ref list);
+            _bufferedChannel.Reader.TryReadAll(list);
 
             return list;
         }

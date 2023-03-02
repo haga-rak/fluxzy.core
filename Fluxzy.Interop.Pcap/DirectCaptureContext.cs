@@ -61,6 +61,17 @@ namespace Fluxzy.Interop.Pcap
             return writer.Key;
         }
 
+        public void StoreKey(string nssKey, IPAddress remoteAddress, int remotePort, int localPort)
+        {
+            if (_packetQueue == null)
+                throw new InvalidOperationException("Not started yet");
+            
+            var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
+            var writer = _packetQueue.GetOrAdd(connectionKey);
+
+            writer.StoreKey(nssKey);
+        }
+
         public void Flush()
         {
             if (_packetQueue == null)

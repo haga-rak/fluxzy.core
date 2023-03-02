@@ -10,8 +10,9 @@ namespace Fluxzy
     
         void Include(IPAddress remoteAddress, int remotePort);
 
-        long Subscribe(string outFileName,
-            IPAddress remoteAddress, int remotePort, int localPort);
+        long Subscribe(string outFileName, IPAddress remoteAddress, int remotePort, int localPort);
+
+        void StoreKey(string nssKey, IPAddress remoteAddress, int remotePort, int localPort); 
 
         void ClearAll();
 

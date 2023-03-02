@@ -59,7 +59,20 @@ namespace Fluxzy.Interop.Pcap
 
             return _stream;
         }
-        
+
+        public void OnKeyReceived(string nssKey)
+        {
+            if (_proxyScope.CaptureContext != null && _localEndPoint != null
+                && _innerTcpClient.Client.RemoteEndPoint != null) {
+
+                var remoteEndPoint = (IPEndPoint) _innerTcpClient.Client.RemoteEndPoint;
+
+                _proxyScope.CaptureContext.StoreKey(nssKey, remoteEndPoint.Address, remoteEndPoint.Port,
+                    _localEndPoint.Port);
+            }
+
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (_disposed)

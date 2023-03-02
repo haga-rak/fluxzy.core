@@ -2,7 +2,6 @@
 // 
 
 using SharpPcap;
-using System.Runtime.InteropServices;
 
 namespace Fluxzy.Interop.Pcap
 {
@@ -17,5 +16,7 @@ namespace Fluxzy.Interop.Pcap
         void Register(string outFileName);
         
         void Write(PacketCapture packetCapture);
+        
+        void StoreKey(string nssKey);
     }
 }

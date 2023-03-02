@@ -14,6 +14,8 @@ public class PipeMessageReceiverContext : IAsyncDisposable
         Receiver = new PipeMessageReceiver(
             (message) => _internalCapture.Subscribe(message.OutFileName, message.RemoteAddress, message.RemotePort,
                 message.LocalPort),
+            (message) => _internalCapture.StoreKey(message.NssKey, message.RemoteAddress, message.RemotePort,
+                message.LocalPort),
             unsubscribeMessage => _internalCapture.Unsubscribe(unsubscribeMessage.Key),
             (includeMessage) => _internalCapture.Include(includeMessage.RemoteAddress, includeMessage.RemotePort),
             ( ) => _internalCapture.Flush(),

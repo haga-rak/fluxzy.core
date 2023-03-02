@@ -62,6 +62,21 @@ namespace Fluxzy.Interop.Pcap
 
         }
 
+        public void StoreKey(string nssKey, IPAddress remoteAddress, int remotePort, int localPort)
+        {
+            if (_writer == null)
+                return;
+
+            lock (this)
+            {
+                var storeKeyMessage = new StoreKeyMessage(remoteAddress, remotePort, localPort, nssKey);
+                _writer.Write((byte) MessageType.StoreKey);
+                
+                storeKeyMessage.Write(_writer);
+                _writer.Flush();
+            }
+        }
+
         public void ClearAll()
         {
             if (_writer == null)

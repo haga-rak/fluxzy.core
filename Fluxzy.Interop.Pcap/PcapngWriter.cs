@@ -2,7 +2,10 @@
 // 
 
 using System.Buffers;
+using System.IO;
+using System.Threading.Channels;
 using Fluxzy.Interop.Pcap.Pcapng;
+using Fluxzy.Misc;
 using SharpPcap;
 
 namespace Fluxzy.Interop.Pcap
@@ -10,7 +13,9 @@ namespace Fluxzy.Interop.Pcap
     internal class PcapngWriter : IConnectionSubscription, IRawCaptureWriter
     {
         private readonly object _locker = new();
-        
+
+        private readonly Channel<string> _nssKeyChannels = Channel.CreateUnbounded<string>();
+
         private Stream _workStream;
         private byte[]? _waitBuffer;
         private readonly PcapngStreamWriter _pcapngStreamWriter;
@@ -61,16 +66,26 @@ namespace Fluxzy.Interop.Pcap
                 _workStream = fileStream;
             }
         }
+        
         public void Write(PacketCapture packetCapture)
         {
             try
             {
                 if (Faulted)
                     return;
-
+                
                 // We are dumping on file so no need to lock or whatsoever
+
                 if (_workStream is FileStream fileStream)
                 {
+                    if (_nssKeyChannels.Reader.TryPeek(out _))
+                    {
+                        var pendingChannelkeys = new List<string>();
+                        var readAll = _nssKeyChannels.Reader.TryReadAll(pendingChannelkeys);
+
+                        //_pcapngStreamWriter.WriteNssKey(fileStream, string.Join("\r\n", readAll));
+                    }
+                    
                     _pcapngStreamWriter.Write(fileStream, packetCapture);
                     return;
                 }
@@ -79,9 +94,18 @@ namespace Fluxzy.Interop.Pcap
                 // _waitStream need to be protected 
 
                 lock (_locker)
+                {
+                    if (_nssKeyChannels.Reader.TryPeek(out _))
+                    {
+                        var pendingChannelkeys = new List<string>();
+                        var readAll = _nssKeyChannels.Reader.TryReadAll(pendingChannelkeys);
+                       // _pcapngStreamWriter.WriteNssKey(_workStream, string.Join("\r\n", readAll));
+                    }
+
                     _pcapngStreamWriter.Write(_workStream, packetCapture);
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Faulted = true;
 
@@ -90,6 +114,12 @@ namespace Fluxzy.Interop.Pcap
 
                 throw;
             }
+        }
+
+        public void StoreKey(string nssKey)
+        {
+           // _nssKeyChannels.Writer.TryWrite(nssKey);
+            _pcapngStreamWriter.WriteNssKey(_workStream, nssKey + "\r\n");
         }
 
         public void Dispose()
@@ -104,6 +134,8 @@ namespace Fluxzy.Interop.Pcap
                 }
 
                 _workStream?.Dispose();
+
+                _nssKeyChannels.Writer.TryComplete();
 
             }
         }
