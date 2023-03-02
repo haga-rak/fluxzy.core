@@ -14,6 +14,8 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 
             BlockTotalLength = 16 + 4;
 
+            _options.Add(new TsResolOption(6));
+
             if (!string.IsNullOrWhiteSpace(interfaceDescription.Description)) {
                 _options.Add(new StringOptionBlock(OptionBlockCode.If_Description, interfaceDescription.Description));
             }
@@ -21,6 +23,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             if (!string.IsNullOrWhiteSpace(interfaceDescription.Name)) {
                 _options.Add(new StringOptionBlock(OptionBlockCode.If_Name, interfaceDescription.Name));
             }
+
 
             if (_options.Any()) {
                 _options.Add(new EndOfOption());

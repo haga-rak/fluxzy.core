@@ -9,6 +9,8 @@ namespace Fluxzy.Interop.Pcap.Pcapng
     /// </summary>
     public class PcapngStreamWriter
     {
+        private static readonly DateTime Reference = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        
         private readonly string _userApplicationName;
         private readonly string _hardwareDescription;
         private readonly string _osDescription;
@@ -84,12 +86,14 @@ namespace Fluxzy.Interop.Pcap.Pcapng
 
                 WriteInterfaceDescription(stream, description);
             }
-            
-            
+
+           // var longTimeSpan = (capture.Header.Timeval.Date - Reference).Ticks / (100);
+            var longTimeSpan = (long) ((capture.Header.Timeval.Date - Reference).TotalMilliseconds * 1000); 
+
             var enhancedPacketBlock = new EnhancedPacketBlock(
                 description.InterfaceId, 
-                (uint) capture.Header.Timeval.Seconds,
-                (uint) capture.Header.Timeval.MicroSeconds,
+                (uint) (longTimeSpan >> 32),
+                (uint) (longTimeSpan & 0xFFFFFFFF),
                 capture.Data.Length,
                 capture.Data.Length,
                 "fxzy"
