@@ -2,34 +2,31 @@
 // 
 
 using System.Buffers;
-using System.IO;
+using System.Security.AccessControl;
 using System.Threading.Channels;
-using Fluxzy.Interop.Pcap.Pcapng;
-using Fluxzy.Misc;
 using SharpPcap;
 
-namespace Fluxzy.Interop.Pcap
+namespace Fluxzy.Interop.Pcap.Pcapng
 {
     internal class PcapngWriter : IConnectionSubscription, IRawCaptureWriter
     {
         private readonly object _locker = new();
 
-        private readonly Channel<string> _nssKeyChannels = Channel.CreateUnbounded<string>();
-
-        private volatile Stream _workStream;
         private byte[]? _waitBuffer;
         private readonly PcapngStreamWriter _pcapngStreamWriter;
+
+        private volatile Stream _workStream;
+        private StreamWriter? _nssKeyLogStreamWriter = null;
+        private string?  _nssKeyLogPath;
 
         public PcapngWriter(long key, string applicationName)
         {
             Key = key;
-            
+
             _waitBuffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             _workStream = new MemoryStream(_waitBuffer);
 
             _pcapngStreamWriter = new PcapngStreamWriter(new PcapngGlobalInfo(applicationName));
-
-            // On écrit l'entête
             
             _pcapngStreamWriter.WriteSectionHeaderBlock(_workStream);
         }
@@ -50,15 +47,23 @@ namespace Fluxzy.Interop.Pcap
             if (_waitBuffer == null)
                 throw new InvalidOperationException("Already registered!");
 
-            var path = Path.GetDirectoryName(outFileName);
+            var fileInfo = new FileInfo(outFileName); 
+
+            var path = fileInfo.Directory?.FullName;
 
             if (!string.IsNullOrWhiteSpace(path))
+            {
                 Directory.CreateDirectory(path);
 
+                if (_nssKeyLogStreamWriter == null)
+                {
+                    _nssKeyLogPath =
+                        Path.Combine(path, Path.GetFileNameWithoutExtension(fileInfo.FullName) + ".nsskeylog"); 
+                }
+            }
+
             var fileStream = File.Open(outFileName, FileMode.Create, FileAccess.Write, FileShare.Read);
-
-            // fileStream.Write(PcapFileHeaderBuilder.Buffer);
-
+            
             lock (_pcapngStreamWriter)
             {
                 fileStream.Write(_waitBuffer, 0, (int) _workStream.Position); // We copy content to buffer 
@@ -69,17 +74,17 @@ namespace Fluxzy.Interop.Pcap
                 _workStream = fileStream;
             }
         }
-        
+
         public void Write(PacketCapture packetCapture)
         {
             try
             {
                 if (Faulted)
                     return;
-                
+
                 lock (_pcapngStreamWriter)
                     _pcapngStreamWriter.Write(_workStream, packetCapture);
-                
+
             }
             catch (Exception)
             {
@@ -94,9 +99,20 @@ namespace Fluxzy.Interop.Pcap
 
         public void StoreKey(string nssKey)
         {
-           // _nssKeyChannels.Writer.TryWrite(nssKey);
-           lock (_pcapngStreamWriter)
-                _pcapngStreamWriter.WriteNssKey(_workStream, $"{nssKey}\r\n");
+            try {
+                if (_nssKeyLogStreamWriter == null && _nssKeyLogPath != null) {
+                     _nssKeyLogStreamWriter = new StreamWriter(_nssKeyLogPath)
+                    {
+                        AutoFlush = true,
+                        NewLine = "\r\n"
+                    };
+                }
+                _nssKeyLogStreamWriter?.WriteLine($"{nssKey}");
+            }
+            catch {
+                // This call comes from a different thread,
+                // so we ignore if some nsskey is missing due to writer closed
+            }
         }
 
         public void Dispose()
@@ -110,8 +126,9 @@ namespace Fluxzy.Interop.Pcap
                     _waitBuffer = null;
                 }
 
-                _workStream?.Dispose();
-                _nssKeyChannels.Writer.TryComplete();
+                _workStream.Dispose();
+
+                _nssKeyLogStreamWriter?.Dispose();
             }
         }
 
