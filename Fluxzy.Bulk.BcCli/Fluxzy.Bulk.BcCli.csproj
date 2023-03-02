@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Cryptography" Version="2.0.0" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

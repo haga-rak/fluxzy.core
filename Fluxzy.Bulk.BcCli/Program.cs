@@ -1,14 +1,18 @@
 using System.Net;
 using System.Net.Security;
+using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Text;
 using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
-using Org.BouncyCastle.Security;
+using Fluxzy.Interop.Pcap.Pcapng;
+using Fluxzy.Interop.Pcap.Pcapng.Structs;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Bulk.BcCli
 {
@@ -19,17 +23,26 @@ namespace Fluxzy.Bulk.BcCli
     /// </summary>
     internal class Program
     {
-        static async Task Main()
+        static void Main()
         {
-            var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(), 
+            using var fileStream = File.Create("test.pcapng");
+            var writer = new PcapngWriter("fluxzy - https://www.fluxzy.io");
+
+
+            writer.WriteHeader(fileStream);
+        }
+
+        private static async Task QuickCaptureWithBouncy()
+        {
+            var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 (a) => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(scope, false);
-            
+
             var uriRaw
-                 = "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ";
-                // = "https://extranet.2befficient.fr/ip";
-                //= "https://sandbox.smartizy.com/ip";
+                = "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ";
+            // = "https://extranet.2befficient.fr/ip";
+            //= "https://sandbox.smartizy.com/ip";
             if (!Uri.TryCreate(uriRaw, UriKind.Absolute, out var uri)) {
                 throw new Exception("Invalid URI");
             }
@@ -52,15 +65,16 @@ namespace Fluxzy.Bulk.BcCli
             var stream = connection.GetStream();
 
             using var nssWriter = new NssLogWriter("ssl.txt");
-            
-            var fluxzyTlsClient = new FluxzyTlsClient(uri.Host, SslProtocols.Tls12 | SslProtocols.Tls11, new[] { SslApplicationProtocol.Http11, });
-   
+
+            var fluxzyTlsClient = new FluxzyTlsClient(uri.Host, SslProtocols.Tls12 | SslProtocols.Tls11,
+                new[] {SslApplicationProtocol.Http11,});
+
             var protocol = new FluxzyClientProtocol(stream, nssWriter);
 
             protocol.Connect(fluxzyTlsClient);
 
             var sessionParameters = protocol.SessionParameters;
-            var cipherSuite = (TlsCipherSuite)sessionParameters.CipherSuite;
+            var cipherSuite = (TlsCipherSuite) sessionParameters.CipherSuite;
             var str = protocol.ApplicationProtocol.GetUtf8Decoding();
 
             var listOfCertificate = new List<TlsCertificate>();
@@ -74,7 +88,7 @@ namespace Fluxzy.Bulk.BcCli
                 var subject = cert.X509CertificateStructure.Subject.ToString();
             }
 
-            stream = protocol.Stream; 
+            stream = protocol.Stream;
 
             await stream.WriteAsync(Encoding.ASCII.GetBytes(entireRequest));
             await stream.FlushAsync();
@@ -87,10 +101,8 @@ namespace Fluxzy.Bulk.BcCli
                 Console.WriteLine(response);
             }
             catch (Exception ex) {
-
             }
             finally {
-
                 await Task.Delay(2000);
             }
         }
