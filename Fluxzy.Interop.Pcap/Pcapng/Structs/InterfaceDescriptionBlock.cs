@@ -23,6 +23,10 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             if (!string.IsNullOrWhiteSpace(interfaceDescription.Name)) {
                 _options.Add(new StringOptionBlock(OptionBlockCode.If_Name, interfaceDescription.Name));
             }
+            
+            if (interfaceDescription.MacAddress != null) {
+                _options.Add(new IfMacAddressOption(interfaceDescription.MacAddress));
+            }
 
 
             if (_options.Any()) {

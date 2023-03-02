@@ -81,7 +81,8 @@ namespace Fluxzy.Interop.Pcap.Pcapng
                     (ushort) capture.Device.LinkType, _interfaces.Count)
                 {
                     Name = capture.Device.Name,
-                    Description = capture.Device.Description
+                    Description = capture.Device.Description,
+                    MacAddress = capture.Device.MacAddress?.GetAddressBytes()
                 };
 
                 WriteInterfaceDescription(stream, description);

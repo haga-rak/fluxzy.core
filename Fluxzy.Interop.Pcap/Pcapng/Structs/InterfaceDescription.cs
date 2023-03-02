@@ -13,6 +13,8 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 
         public string? Description { get; set; }
 
+        public byte[]? MacAddress { get; set; }
+
         public ushort LinkType { get; }
     }
 }
