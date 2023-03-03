@@ -54,5 +54,16 @@ namespace Fluxzy.Desktop.Ui.Controllers
             proxyControl.TryFlush();
             return await fileExecutionManager.OpenPcap(connectionId, archiveReader); 
         }
+
+        [HttpPost("{connectionId}/capture/key")]
+        public async Task<ActionResult<string?>> GetCaptureKey(int connectionId,
+            [FromServices] FileExecutionManager fileExecutionManager,
+            [FromServices] ProxyControl proxyControl)
+        {
+            var archiveReader = await _archiveReaderObservable.FirstAsync();
+            proxyControl.TryFlush();
+
+            return new JsonResult(await fileExecutionManager.GetNssKey(connectionId, archiveReader)); 
+        }
     }
 }

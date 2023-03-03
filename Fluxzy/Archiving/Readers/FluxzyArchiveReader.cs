@@ -110,6 +110,17 @@ namespace Fluxzy.Readers
             return entry.Open();
         }
 
+        public Stream? GetRawCaptureKeyStream(int connectionId)
+        {
+            var path = Path.Combine("captures", $"{connectionId}.nsskeylog").Replace("\\", "/");
+            var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
+
+            if (entry == null)
+                return null;
+
+            return entry.Open();
+        }
+
         public Stream? GetRequestBody(int exchangeId)
         {
             var path = DirectoryArchiveHelper.GetContentRequestPath(string.Empty, exchangeId).Replace("\\", "/");

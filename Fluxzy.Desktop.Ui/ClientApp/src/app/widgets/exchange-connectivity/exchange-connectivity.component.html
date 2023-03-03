@@ -122,6 +122,12 @@
                     <input type="text" *ngIf="connection.httpVersion" class="form-control form-connectivity" readonly [value]="connection.httpVersion"  />
                 </td>
             </tr>
+            <tr  *ngIf="captureKey">
+                <th style="vertical-align: top">NSS key log</th>
+                <td colspan="2" class="text-center">
+                    <pre  class="form-control form-connectivity" style="height : 80px; text-align: left" readonly >{{captureKey}}</pre>
+                </td>
+            </tr>
         </table>
 
 

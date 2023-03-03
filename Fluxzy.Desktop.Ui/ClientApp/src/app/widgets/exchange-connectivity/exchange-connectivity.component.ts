@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {filter, Subject, switchMap, take, tap} from 'rxjs';
 import {ConnectionInfo, ExchangeInfo} from '../../core/models/auto-generated';
 import {ApiService} from '../../services/api.service';
@@ -14,15 +14,17 @@ export class ExchangeConnectivityComponent implements OnInit, OnChanges {
 
     public connection: ConnectionInfo | null = null;
 
+    public captureKey : string | null = null ;
+
     @Input() public exchange: ExchangeInfo | null;
     @Input() public connectionId: number;
 
-    constructor(private apiService: ApiService, private systemCallService: SystemCallService, private statusBarService: StatusBarService) {
+    constructor(private apiService: ApiService, private systemCallService: SystemCallService, private statusBarService: StatusBarService,
+                private cd: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
         this.refresh();
-        console.log(this.exchange);
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -36,15 +38,21 @@ export class ExchangeConnectivityComponent implements OnInit, OnChanges {
         }
 
         this.connection = null;
+        this.captureKey = null ;
 
         this.apiService.connectionGet(this.connectionId)
             .pipe(
                 tap(
                     t => this.connection = t
-                ),
-                tap(
-                    t => console.log(t)
                 )
+            ).subscribe();
+
+        this.apiService.connectionGetRawCaptureKeys(this.connectionId)
+            .pipe(
+                tap(
+                    t => this.captureKey = t
+                ),
+                tap( _ => this.cd.detectChanges())
             ).subscribe();
     }
 

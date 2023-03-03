@@ -1,13 +1,29 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
 using System.Diagnostics;
+using System.Text;
 using Fluxzy.Readers;
 
 namespace Fluxzy.Desktop.Services.Ui
 {
     public class FileExecutionManager
     {
+        public async Task<string?> GetNssKey(int connectionId, IArchiveReader archiveReader)
+        {
+            if (!(archiveReader is DirectoryArchiveReader directoryArchiveReader)) {
+                return null;  
+            }
+
+            await using var keyStream = directoryArchiveReader.GetRawCaptureKeyStream(connectionId);
+
+            if (keyStream == null)
+                return null;
+
+            using var reader = new StreamReader(keyStream, Encoding.UTF8);
+            return await reader.ReadToEndAsync();
+        }
+
         public async Task<bool> OpenPcap(int connectionId, IArchiveReader archiveReader)
         {
             if (!(archiveReader is DirectoryArchiveReader directoryArchiveReader)) {
