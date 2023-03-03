@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
@@ -29,7 +29,7 @@ namespace Fluxzy
         public ExchangeInfo(Exchange exchange)
         {
             Id = exchange.Id;
-            HttpVersion = exchange.HttpVersion;
+            HttpVersion = exchange.HttpVersion ?? "-";
             ConnectionId = exchange.Connection?.Id ?? 0;
             Metrics = exchange.Metrics;
             Agent = exchange.Agent;

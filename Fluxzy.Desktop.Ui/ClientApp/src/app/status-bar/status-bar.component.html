@@ -47,11 +47,32 @@
             |
         </span>
 
-        <a href="javascript:;" class="text-secondary" (click)="decryptTrigger()">
-            <i class="bi bi-key-fill"></i>
-            decrypt all
-        </a>
-        &nbsp;|&nbsp;
+        <span *ngIf="uiState.proxyState.runSettings">
+            <span class="text-secondary">
+                <span *ngIf="uiState.proxyState.runSettings.rawCaptureMode === 'None'" title="packet capture disabled">
+                    no raw packet capture
+                </span>
+                <span *ngIf="uiState.proxyState.runSettings.rawCaptureMode === 'InProcess'" title="packet capture on (in process)">
+                    packet capture on
+                </span>
+                <span *ngIf="uiState.proxyState.runSettings.rawCaptureMode === 'OutProcess'" title="packet capture on (out of process)">
+                    packet capture on
+                </span>
+            </span>
+            &nbsp;|&nbsp;
+            <span class="text-secondary">
+                <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'NoSsl'" title="decrypting SSL/TLS trafic is disabled">
+                    no decryption
+                </span>
+                <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'OsDefault'" title="ssl decryption">
+                    ssl decryption
+                </span>
+                <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'BouncyCastle'" title="ssl decryption with TLS keys">
+                    ssl decryption
+                </span>
+            </span>
+            &nbsp;|&nbsp;
+        </span>
         <span>
             <a *ngIf="uiState.systemProxyState.on" (click)="proxyOff()"
                href="javascript:;" class="text-green" title="Capture is on. Clic to toggle off"><i

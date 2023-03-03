@@ -16,7 +16,10 @@ namespace Fluxzy.Clients
         private readonly FluxzySetting _startupSetting;
         private List<Rule>?  _effectiveRules;
 
-        public static ProxyRuntimeSetting Default { get; } = new();
+        public static ProxyRuntimeSetting Default { get; } = new() {
+
+            ArchiveWriter = new EventOnlyArchiveWriter()
+        };
 
         public ProxyExecutionContext ExecutionContext { get; }
 
@@ -41,7 +44,8 @@ namespace Fluxzy.Clients
 
         private ProxyRuntimeSetting()
         {
-            
+            ArchiveWriter = new EventOnlyArchiveWriter();
+            _startupSetting = new FluxzySetting();
         }
 
         public ProxyRuntimeSetting(

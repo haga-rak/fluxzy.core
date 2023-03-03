@@ -716,6 +716,12 @@ export interface ProxyState
 	boundConnections: ProxyEndPoint[];
 	onError: boolean;
 	message?: string;
+	runSettings?: ProxyNetworkState;
+}
+export interface ProxyNetworkState
+{
+	sslConfig: string;
+	rawCaptureMode: string;
 }
 export interface ProxyEndPoint
 {

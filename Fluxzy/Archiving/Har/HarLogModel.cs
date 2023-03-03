@@ -383,9 +383,9 @@ namespace Fluxzy.Har
 
         public string MimeType { get; set; }
 
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
-        public string Encoding { get; set; }
+        public string?  Encoding { get; set; }
 
         public string? Comment { get; set; }
 
@@ -415,7 +415,7 @@ namespace Fluxzy.Har
 
         public DateTime LastAccess { get; set; }
 
-        public string ETag { get; set; }
+        public string?  ETag { get; set; }
 
         public long HitCount { get; set; }
 
