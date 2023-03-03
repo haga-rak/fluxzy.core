@@ -18,7 +18,8 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" *dropdownMenu>
                     <li><a class="dropdown-item" href="javascript:;" (click)="downloadRawCapture()">Save to file (.pcapng)</a></li>
-                    <li><a class="dropdown-item" href="javascript:;" (click)="openRawCapture()">Open in default viewer</a></li>
+                    <li><a class="dropdown-item" href="javascript:;" (click)="openRawCapture(false)">Open in default viewer</a></li>
+                    <li *ngIf="captureKey"><a class="dropdown-item" href="javascript:;" (click)="openRawCapture(true)">Open in default viewer (with NSS Key)</a></li>
                 </ul>
 
             </div>

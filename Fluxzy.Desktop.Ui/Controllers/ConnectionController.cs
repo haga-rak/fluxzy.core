@@ -48,11 +48,14 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpPost("{connectionId}/capture/open")]
         public async Task<ActionResult<bool>> OpenCapture(int connectionId,
             [FromServices] FileExecutionManager fileExecutionManager,
-            [FromServices] ProxyControl proxyControl)
+            [FromServices] ProxyControl proxyControl, [FromQuery] bool withKey = false)
         {
             var archiveReader = await _archiveReaderObservable.FirstAsync();
             proxyControl.TryFlush();
-            return await fileExecutionManager.OpenPcap(connectionId, archiveReader); 
+
+            return  withKey ?
+                await fileExecutionManager.OpenPcapWithKey(connectionId, archiveReader) :
+                await fileExecutionManager.OpenPcap(connectionId, archiveReader); 
         }
 
         [HttpPost("{connectionId}/capture/key")]

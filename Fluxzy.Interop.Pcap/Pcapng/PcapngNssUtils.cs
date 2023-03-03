@@ -37,8 +37,10 @@ public static class PcapngNssUtils
             throw new InvalidOperationException("Section header block is too big"); 
         
         NssDecryptionSecretsBlock block = new NssDecryptionSecretsBlock(nssKey);
-        Span<byte> nssKeyBlockBuffer = stackalloc byte[block.BlockTotalLength]; 
-        
+        Span<byte> nssKeyBlockBuffer = stackalloc byte[block.BlockTotalLength];
+
+        block.Write(nssKeyBlockBuffer, nssKey);
+
         var finalBuffer = new byte[blockTotalLength + nssKeyBlockBuffer.Length];
 
         originalStream.Seek(0, SeekOrigin.Begin); 

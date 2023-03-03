@@ -66,8 +66,8 @@ export class ExchangeConnectivityComponent implements OnInit, OnChanges {
             ).subscribe();
     }
 
-    public openRawCapture(): void {
-        this.apiService.connectionOpenRawCapture(this.exchange.connectionId)
+    public openRawCapture(withKey: boolean): void {
+        this.apiService.connectionOpenRawCapture(this.exchange.connectionId,withKey)
             .pipe(
                 take(1),
                 filter(t => !t),

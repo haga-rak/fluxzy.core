@@ -73,7 +73,7 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     }
 
     public openRawCapture() : void {
-        this.apiService.connectionOpenRawCapture(this.exchange.connectionId)
+        this.apiService.connectionOpenRawCapture(this.exchange.connectionId, false)
             .pipe(
                 take(1),
                 filter(t =>  !t),
