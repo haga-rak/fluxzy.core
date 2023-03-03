@@ -4,6 +4,7 @@ import {ApiService} from "../../services/api.service";
 import {SystemCallService} from "../../core/services/system-call.service";
 import {StatusBarService} from "../../services/status-bar.service";
 import {tap} from "rxjs";
+import {formatDuration} from "../../core/models/functions";
 
 @Component({
     selector: 'div[exchange-metrics]',
@@ -17,6 +18,8 @@ export class ExchangeMetricsComponent implements OnInit, OnChanges {
     public exchangeId : number = 0 ;
     public metrics: ExchangeMetricInfo | null = null;
     public lineInfos: LineInfo[] | null = null;
+
+    public formatDuration = formatDuration ;
 
     constructor(private apiService: ApiService,
                 public cd : ChangeDetectorRef,
@@ -56,8 +59,8 @@ export class ExchangeMetricsComponent implements OnInit, OnChanges {
 
         result.push({label: 'Queued', value: metrics.queued, connectionLevel: true});
         result.push({label: 'Dns', value: metrics.dns, connectionLevel: true});
-        result.push({label: 'TcpHandShake', value: metrics.tcpHandShake, connectionLevel: true});
-        result.push({label: 'SslHandShake', value: metrics.sslHandShake, connectionLevel: true});
+        result.push({label: 'Tcp handshake', value: metrics.tcpHandShake, connectionLevel: true});
+        result.push({label: 'Ssl handshake', value: metrics.sslHandShake, connectionLevel: true});
         result.push({label: 'Sending Header', value: metrics.requestHeader});
         result.push({label: 'Sending Body', value: metrics.requestBody});
         result.push({label: 'Time to first byte', value: metrics.waiting});
@@ -68,6 +71,13 @@ export class ExchangeMetricsComponent implements OnInit, OnChanges {
 
     }
 
+    public connectionOnly( lineInfo : LineInfo) : boolean {
+        return !!lineInfo.connectionLevel;
+    }
+
+    public exchangeOnly( lineInfo : LineInfo) : boolean {
+        return !lineInfo.connectionLevel;
+    }
 }
 
 

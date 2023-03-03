@@ -41,20 +41,8 @@ namespace Fluxzy.Formatters.Metrics
         /// </summary>
         public int? Queued => MetricHelper.Diff(RawMetrics.RetrievingPool, RawMetrics.ReceivedFromProxy);
         
-        public int? Dns
-        {
-            get
-            {
-                if (_connectionInfo == null)
-                    return null;
+        public int? Dns => MetricHelper.Diff(_connectionInfo?.DnsSolveEnd, _connectionInfo?.DnsSolveStart);
 
-                if (_connectionInfo.DnsSolveStart == default || _connectionInfo.DnsSolveEnd == default)
-                    return null;
-
-                return (int)(_connectionInfo.DnsSolveEnd - _connectionInfo.DnsSolveStart).TotalMilliseconds;
-            }
-        }
-        
         public int? TcpHandShake => MetricHelper.Diff(_connectionInfo?.TcpConnectionOpened, _connectionInfo?.TcpConnectionOpening);
 
         public int ? SslHandShake => MetricHelper.Diff(_connectionInfo?.SslNegotiationEnd, _connectionInfo?.SslNegotiationStart);
@@ -67,12 +55,12 @@ namespace Fluxzy.Formatters.Metrics
 
         public int? ReceivingHeader => MetricHelper.Diff(RawMetrics.ResponseHeaderEnd, RawMetrics.ResponseHeaderStart);
         
-        public int? ReceivingBody => MetricHelper.Diff(RawMetrics.ResponseBodyEnd, RawMetrics.ResponseBodyStart);
+        public int? ReceivingBody => MetricHelper.Diff(RawMetrics.ResponseBodyEnd, RawMetrics.ResponseHeaderEnd);
 
         public int? OverAllDuration => MetricHelper.Diff(RawMetrics.ResponseBodyEnd, RawMetrics.ReceivedFromProxy);
     }
 
-    public static class MetricHelper
+    internal static class MetricHelper
     {
         public static int ? Diff(DateTime end, DateTime start)
         {
@@ -82,7 +70,7 @@ namespace Fluxzy.Formatters.Metrics
             if (start > end)
                 return null;
 
-            return (int)(end - start).TotalMilliseconds;
+            return (int) ((end - start).TotalMilliseconds * 1000);
         }
         public static int ? Diff(DateTime? end, DateTime? start)
         {
