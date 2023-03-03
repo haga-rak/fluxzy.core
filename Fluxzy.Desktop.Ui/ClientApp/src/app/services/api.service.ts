@@ -373,12 +373,16 @@ export class ApiService {
 
     public connectionGetRawCapture(connectionId : number, fileName : string) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/connection/${connectionId}/capture/save`, {
-            fileName : fileName
+            fileName
         }).pipe(take(1)) ;
     }
 
-    public connectionOpenRawCapture(connectionId : number) : Observable<boolean> {
-        return this.httpClient.post<boolean>(`api/connection/${connectionId}/capture/open`, null).pipe(take(1)) ;
+    public connectionGetRawCaptureKeys(connectionId: number) : Observable<string | null> {
+        return this.httpClient.post<string | null>(`api/connection/${connectionId}/capture/key`, null).pipe(take(1)) ;
+    }
+
+    public connectionOpenRawCapture(connectionId: number, withKey: boolean) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/connection/${connectionId}/capture/open?withKey=${withKey}`, null).pipe(take(1)) ;
     }
 
     public actionLongDescription(typeKind : string) : Observable<DescriptionInfo>{

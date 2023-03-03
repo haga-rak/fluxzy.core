@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,11 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Common;
+using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Clients.H11;
+using Fluxzy.Clients.Ssl;
+using Fluxzy.Clients.Ssl.BouncyCastle;
+using Fluxzy.Clients.Ssl.SChannel;
 
 namespace Fluxzy.Clients.H2
 {
@@ -52,11 +56,16 @@ namespace Fluxzy.Clients.H2
             return connectionPool;
         }
 
-        public static Task<Http11ConnectionPool> CreateH11(Authority authority,
+        public static Task<Http11ConnectionPool> CreateH11(Authority authority, SslProvider provider,
             CancellationToken token = default)
         {
+            var sslProvider = provider == SslProvider.BouncyCastle
+                ? (ISslConnectionBuilder)new BouncyCastleConnectionBuilder()
+                : new SChannelConnectionBuilder();
+
             var connectionPool = new Http11ConnectionPool(authority,
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()),
+                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(),
+                    sslProvider),
                 ITimingProvider.Default, ProxyRuntimeSetting.Default, null!);
 
             connectionPool.Init();

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Common;
+using Fluxzy.Clients.Ssl;
+using Fluxzy.Clients.Ssl.BouncyCastle;
+using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules.Actions;
@@ -43,13 +46,15 @@ namespace Fluxzy
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider,
+            CertificateAuthorityManager certificateAuthorityManager,
             ITcpConnectionProvider? tcpConnectionProvider = null,
-            IUserAgentInfoProvider? userAgentProvider = null
-        )
+            IUserAgentInfoProvider? userAgentProvider = null,
+            FromIndexIdProvider? idProvider = null)
+        
         {
             var tcpConnectionProvider1 = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
-            IdProvider = new FromIndexIdProvider(0, 0);
+            IdProvider = idProvider ?? new FromIndexIdProvider(0, 0);
 
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
@@ -66,8 +71,12 @@ namespace Fluxzy
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
                 tcpConnectionProvider1 = ITcpConnectionProvider.Default;
 
+            var sslConnectionBuilder = startupSetting.UseBouncyCastle
+                ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
+                : new SChannelConnectionBuilder();
+
             var poolBuilder = new PoolBuilder(
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver()), ITimingProvider.Default,
+                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), sslConnectionBuilder), ITimingProvider.Default,
                 Writer);
 
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
@@ -81,7 +90,7 @@ namespace Fluxzy
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
                                                          t.Filter is AnyFilter)
                 && StartupSetting.AutoInstallCertificate)
-                CertificateUtility.CheckAndInstallCertificate(startupSetting);
+                certificateAuthorityManager.CheckAndInstallCertificate(startupSetting);
         }
 
         public async ValueTask DisposeAsync()

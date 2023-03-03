@@ -63,7 +63,7 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     }
 
     public downloadRawCapture() : void {
-        this.systemCallService.requestFileSave( `connection-${this.exchange.connectionId}.cap`)
+        this.systemCallService.requestFileSave( `connection-${this.exchange.connectionId}.pcapng`)
             .pipe(
                 take(1),
                 filter(t => !!t),
@@ -73,7 +73,7 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     }
 
     public openRawCapture() : void {
-        this.apiService.connectionOpenRawCapture(this.exchange.connectionId)
+        this.apiService.connectionOpenRawCapture(this.exchange.connectionId, false)
             .pipe(
                 take(1),
                 filter(t =>  !t),

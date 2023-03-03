@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
@@ -16,6 +16,9 @@
   <ItemGroup>
     <None Remove="Files\Headers\Req001.txt.bin" />
     <None Remove="Files\Headers\Resp001.txt.bin" />
+    <None Update="_Files\Certificates\fluxzytest.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -27,8 +30,8 @@
     <PackageReference Include="fluxzy.sandbox.models" Version="1.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="System.Threading.AccessControl" Version="6.0.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -41,7 +44,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Fluxzy.Cli\Fluxzy.Cli.csproj" />
     <ProjectReference Include="..\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
-    <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
+    <ProjectReference Include="..\Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
   </ItemGroup>
 

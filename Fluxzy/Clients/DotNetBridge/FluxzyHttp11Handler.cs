@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -11,14 +11,17 @@ namespace Fluxzy.Clients.DotNetBridge
 {
     public class FluxzyHttp11Handler : HttpMessageHandler
     {
+        private readonly SslProvider _sslProvider;
+
         private readonly IDictionary<string, Http11ConnectionPool>
             _activeConnections = new Dictionary<string, Http11ConnectionPool>();
 
         private readonly SemaphoreSlim _semaphore = new(1);
         private readonly IIdProvider _idProvider;
 
-        public FluxzyHttp11Handler()
+        public FluxzyHttp11Handler(SslProvider sslProvider = SslProvider.OsDefault)
         {
+            _sslProvider = sslProvider;
             _idProvider = IIdProvider.FromZero;
         }
 
@@ -34,7 +37,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
                 if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection))
                 {
-                    connection = await ConnectionBuilder.CreateH11(authority, cancellationToken);
+                    connection = await ConnectionBuilder.CreateH11(authority, _sslProvider, cancellationToken);
 
                     _activeConnections[request.RequestUri.Authority] = connection;
                 }
@@ -66,5 +69,11 @@ namespace Fluxzy.Clients.DotNetBridge
             foreach (var connection in _activeConnections.Values)
                 connection.Dispose();
         }
+    }
+
+    public enum SslProvider
+    {
+        OsDefault = 1 , 
+        BouncyCastle
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.IO;
 using System.Net;
@@ -31,6 +31,11 @@ namespace Fluxzy.Core
             resultStream.OnStreamDisposed += ResultStreamOnOnStreamDisposed;
 
             return resultStream;
+        }
+
+        public void OnKeyReceived(string nssKey)
+        {
+            // Ignore
         }
 
         private async Task ResultStreamOnOnStreamDisposed(object sender, StreamDisposeEventArgs args)

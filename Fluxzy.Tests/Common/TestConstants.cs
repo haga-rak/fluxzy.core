@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright Â© 2022 Haga Rakotoharivelo
 
 using System;
 
@@ -14,13 +14,13 @@ namespace Fluxzy.Tests.Common
 
         public static string GetHost(string protocol)
         {
-            if (protocol == "http11")
+            if (protocol.StartsWith("http11"))
                 return Http11Host;
 
-            if (protocol == "http2")
+            if (protocol.StartsWith("http2"))
                 return Http2Host;
             
-            if (protocol == "plainhttp11")
+            if (protocol.StartsWith("plainhttp11"))
                 return PlainHttp11;
 
             throw new ArgumentException(nameof(protocol), "Unknown protocol");

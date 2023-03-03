@@ -1,70 +1,87 @@
-﻿using System.Diagnostics;
-using System.Net;
-using System.Net.Security;
-using System.Text;
+using System.Diagnostics;
 
 namespace Fluxzy.Interop.Pcap.Cli
 {
     internal class Program
     {
-        private static async Task Main(string[] args)
+        private static async Task CancelTokenSourceOnStandardInputClose(CancellationTokenSource source)
         {
-            var loopBack = IPAddress.Loopback;
-            var none = IPAddress.None;
-            var any = IPAddress.Any;
-
-            var mapToV4 = any.MapToIPv4();
-
-
-            var _total = 0L;
-            var totalLength = 20 * 1024 * 1024;
-            var url = $"https://sandbox.smartizy.com/content-produce/{totalLength}/{totalLength}";
-            var host = "sandbox.smartizy.com";
-            
-            await using (var captureContext = new CaptureContext())
-            await using (var tcpClient = new CapturableTcpConnection(captureContext, "gogo2.pcap")) {
-                var remoteIp = (await Dns.GetHostAddressesAsync(host)).First();
-
-                await tcpClient.ConnectAsync(remoteIp, 443);
-                
-                await using (var sslStream = new SslStream(tcpClient.GetStream(), false)) {
-                    await sslStream.AuthenticateAsClientAsync(host);
-
-                    var httpRequest =
-                        $"GET {url} HTTP/1.1\r\n" +
-                        $"Host: {host}\r\n" +
-                        "Connection: close\r\n" +
-                        "\r\n";
-
-                    sslStream.Write(Encoding.UTF8.GetBytes(httpRequest));
-
-                    //await Task.Delay(1000);
-
-                    _total = await sslStream.Drain();
-
-                    //  await Task.Delay(1000);
-                }
+            while (await Console.In.ReadLineAsync() is { } str
+                   && !str.Equals("exit", StringComparison.OrdinalIgnoreCase)) {
             }
-            
-            Console.ReadLine();
-            GC.Collect();
-            Console.WriteLine("GC done");
-            Console.ReadLine();
+
+            // STDIN has closed this means that parent request halted or request an explicit close 
+
+            if (source.IsCancellationRequested) {
+                source.Cancel();
+            }
         }
-    }
 
-    public static class StreamDrainer
-    {
-        public static async Task<long> Drain(this Stream stream)
+        private static async Task CancelTokenWhenParentProcessExit(CancellationTokenSource source, int processId)
         {
-            var buffer = new byte[32 * 1024];
+            Process process = Process.GetProcessById(processId);
 
-            int read;
-            long total = 0;
+            await process.WaitForExitAsync(source.Token);
 
-            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0) total += read;
+            if (source.IsCancellationRequested)
+            {
+                source.Cancel();
+            }
+        }
 
-            return total;
+        /// <summary>
+        /// args[0] => caller PID 
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        private static async Task<int> Main(string[] args)
+        {
+            try {
+
+                if (args.Length < 1 ) {
+                    Console.WriteLine("Usage : command pid. Received args : " + string.Join(" ", args));
+                    return 1; 
+                }
+            
+                if (!int.TryParse(args[0], out var processId)) {
+                    Console.WriteLine("Process ID is not a valid integer");
+                    return 2; 
+                }
+            
+                var haltSource = new CancellationTokenSource();
+
+                var stdInClose = Task.Run(async () => { await CancelTokenSourceOnStandardInputClose(haltSource); });
+                var parentMonitoringTask = Task.Run(async () => { await CancelTokenWhenParentProcessExit(haltSource, processId); });  
+
+                await using var receiverContext = new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
+                
+                receiverContext.Start();
+                Console.WriteLine(receiverContext.Receiver!.ListeningPort);
+            
+                var loopingTask = receiverContext.WaitForExit();
+
+                // We halt the process when one of the following task is complete task is completed
+                await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask);
+
+                if (loopingTask.IsCompleted) {
+                    return loopingTask.Result; 
+                }
+
+                if (stdInClose.IsCompleted) {
+                    return 11; 
+                }
+
+                if (parentMonitoringTask.IsCompleted) {
+                    return 12; 
+                }
+
+                return 0;
+            }
+            catch (Exception ex) {
+                // To do : connect logger here
+                // File.WriteAllText("d:\\logo.txt", ex.ToString());
+                throw; 
+            }
         }
     }
 }

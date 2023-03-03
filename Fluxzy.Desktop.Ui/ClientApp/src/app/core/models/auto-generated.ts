@@ -784,6 +784,8 @@ export interface FluxzySetting
 	alterationRules: Rule[];
 	saveFilter?: Filter;
 	globalSkipSslDecryption: boolean;
+	outOfProcCapture: boolean;
+	useBouncyCastle: boolean;
 }
 export interface FluxzySettingViewModel
 {

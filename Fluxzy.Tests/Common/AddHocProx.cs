@@ -39,7 +39,7 @@ namespace Fluxzy.Tests.Common
 
             _proxy = new Proxy(_startupSetting,
                 new CertificateProvider(_startupSetting,
-                    new InMemoryCertificateCache()));
+                    new InMemoryCertificateCache()), new DefaultCertificateAuthorityManager());
 
             _proxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 
