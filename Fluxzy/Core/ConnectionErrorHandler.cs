@@ -127,10 +127,7 @@ namespace Fluxzy.Core
                 exchange.Response.Header = new ResponseHeader(
                     header.AsMemory(),
                     exchange.Authority.Secure);
-
-                if (DebugContext.EnableDumpStackTraceOn502)
-                    Console.WriteLine(message);
-
+                
                 exchange.Response.Body = new MemoryStream(messageBinary);
 
                 if (!exchange.ExchangeCompletionSource.Task.IsCompleted)

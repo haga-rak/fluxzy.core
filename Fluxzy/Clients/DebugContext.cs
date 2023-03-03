@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace Fluxzy.Clients
@@ -22,8 +22,7 @@ namespace Fluxzy.Clients
         public static bool EnableWindowSizeTrace { get; }
 
         public static bool EnableDumpStackTraceOn502 { get; }
-            = !string.IsNullOrWhiteSpace(Environment
-                .GetEnvironmentVariable("EnableDumpStackTraceOn502"));
+            = Environment.GetEnvironmentVariable("EnableDumpStackTraceOn502") == "true";
 
         public static bool InsertFluxzyMetricsOnResponseHeader { get; }
             = !string.IsNullOrWhiteSpace(Environment
