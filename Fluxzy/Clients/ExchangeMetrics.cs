@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
 
@@ -6,6 +6,8 @@ namespace Fluxzy.Clients
 {
     public class ExchangeMetrics
     {
+        public bool ReusingConnection { get; set; }
+
         public DateTime ReceivedFromProxy { get; set; }
 
         public DateTime RetrievingPool { get; set; }

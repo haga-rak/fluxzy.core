@@ -122,11 +122,17 @@ namespace Fluxzy.Clients
                             continue;
                         }
 
+                        if (exchange.Metrics.RetrievingPool == default)
+                            exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+
+                        exchange.Metrics.ReusingConnection = true; 
+
                         return pool;
                     }
                 }
 
-                exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+                if (exchange.Metrics.RetrievingPool == default)
+                     exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
                 //  pool 
                 if (exchange.Context.BlindMode)

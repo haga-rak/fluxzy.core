@@ -1,0 +1,37 @@
+<div class="view-box" style="height:100%">
+    <p *ngIf="!metrics">
+        <span class="lead">
+            <i class="fa fa-spinner fa-spin"></i>
+            Loading metrics...
+        </span>
+    </p>
+    <div *ngIf="metrics">
+
+        <div class="alert alert-info">
+            This frame will help you understand the various performance of the exchange the underlying connection.
+        </div>
+
+        <div style="margin-bottom : 8px; padding : 8px">
+            &nbsp;
+            <span class="pull-right">
+                <span class="lead text-info">
+                    Overall duration <strong class="text-white">{{ metrics.overAllDuration}} ms</strong>
+                </span>
+            </span>
+        </div>
+        <table class="metrics-table" *ngIf="lineInfos">
+
+            <tr *ngFor="let lineInfo of lineInfos" [ngClass]="{'line-info-unavailable' : (lineInfo.value === undefined) || (lineInfo.value === null) }">
+                <td>{{ lineInfo.label }}</td>
+                <td></td>
+                <td>
+                    <span *ngIf="((lineInfo.value === undefined) || (lineInfo.value === null))">-</span>
+                    <span *ngIf="!((lineInfo.value === undefined) || (lineInfo.value === null))">
+                        {{ lineInfo.value }} ms
+                    </span>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

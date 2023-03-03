@@ -16,7 +16,7 @@
          style="height : calc(100% - 52px)"></div>
     <div *ngIf="context.currentTab === 'Connection'" echange-connectivity [exchange]="exchange"
          [connectionId]="exchange.connectionId" style="height : calc(100% - 52px)"></div>
-    <div *ngIf="context.currentTab === 'Performance'" style="height : calc(100% - 52px)"></div>
+    <div *ngIf="context.currentTab === 'Metrics'" exchange-metrics style="height : calc(100% - 52px)" [exchange]="exchange"></div>
     <div *ngIf="context.currentTab === 'Tools'" exchange-tools [exchange]="exchange"
          style="height : calc(100% - 52px)"></div>
 

@@ -24,9 +24,14 @@ namespace Fluxzy.Core
     {
         public static bool RequalifyOnResponseSendError(
             Exception ex,
-            Exchange exchange)
+            Exchange exchange, ITimingProvider timingProvider)
         {
             // Filling client error
+
+            if (exchange.Metrics.ResponseBodyEnd == default)
+            {
+                exchange.Metrics.ResponseBodyEnd = timingProvider.Instant();
+            }
 
             var remoteIpAddress = exchange.Connection?.RemoteAddress?.ToString(); 
 

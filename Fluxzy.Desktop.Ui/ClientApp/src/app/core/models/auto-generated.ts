@@ -911,6 +911,7 @@ export interface ResponseHeaderInfo
 }
 export interface ExchangeMetrics
 {
+	reusingConnection: boolean;
 	receivedFromProxy: Date;
 	retrievingPool: Date;
 	requestHeaderSending: Date;
@@ -933,6 +934,7 @@ export interface ExchangeMetrics
 }
 export interface ExchangeMetricInfo
 {
+	exchangeId: number;
 	rawMetrics: ExchangeMetrics;
 	available: boolean;
 	queued?: number;
@@ -944,6 +946,7 @@ export interface ExchangeMetricInfo
 	waiting?: number;
 	receivingHeader?: number;
 	receivingBody?: number;
+	overAllDuration?: number;
 }
 export interface HeaderFieldInfo
 {
