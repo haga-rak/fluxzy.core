@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
 using System.Collections.Concurrent;
@@ -162,12 +162,22 @@ namespace Fluxzy.Clients
 
                 // HTTPS test 1.1/2
 
-                var openingResult =
-                    await _remoteConnectionBuilder.OpenConnectionToRemote(
-                        exchange.Authority, exchange.Context,
-                        exchange.Context.SslApplicationProtocols ?? AllProtocols, proxyRuntimeSetting, cancellationToken);
+                RemoteConnectionResult openingResult = default;
 
-                exchange.Connection = openingResult.Connection;
+                try {
+                    openingResult =
+                        (await _remoteConnectionBuilder.OpenConnectionToRemote(
+                            exchange,
+                            exchange.Context.SslApplicationProtocols ?? AllProtocols, proxyRuntimeSetting,
+                            cancellationToken))!;
+                }
+                catch {
+                    if (exchange.Connection != null)
+                        _archiveWriter.Update(exchange.Connection, cancellationToken);
+                    throw; 
+                }
+
+                // exchange.Connection = openingResult.Connection;
 
                 if (openingResult.Type == RemoteConnectionResultType.Http11)
                 {
@@ -175,9 +185,8 @@ namespace Fluxzy.Clients
                         _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter);
 
                     exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";
-
-                    if (_archiveWriter != null)
-                        _archiveWriter.Update(openingResult.Connection, cancellationToken);
+                    
+                    _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
                     lock (_connectionPools)
                     {

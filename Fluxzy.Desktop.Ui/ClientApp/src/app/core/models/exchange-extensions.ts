@@ -39,7 +39,7 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
         }
 
         return   {
-            iconClass : ["bi",  "bi-exclamation-triangle-fill"],
+            iconClass : ["fa",  "fa-times"],
             textClass : ["text-danger", "bold"]
         };
     }

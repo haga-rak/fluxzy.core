@@ -111,7 +111,16 @@
                                 <span [title]="exchange.statusCode" [ngClass]="ExchangeStyle(exchange).textClass"><i [ngClass]="ExchangeStyle(exchange).iconClass"></i></span>
                             &nbsp;
                             <span *ngIf="exchange.statusCode">{{exchange.statusCode}} {{StatusCodeVerb[exchange.statusCode + '']}}</span>
-                            <span *ngIf="!exchange.statusCode">On erro</span>
+                            <span *ngIf="!exchange.statusCode">
+
+                                <span *ngIf="exchange.pending">
+                                    Pending
+                                </span>
+                                <span *ngIf="!exchange.pending">
+                                    No response received
+                                </span>
+
+                            </span>
                         </button>
 
                         <button *ngIf="!propertyContext.responseFormattingResults" type="button" href="javascript:;" class="btn btn-dark">

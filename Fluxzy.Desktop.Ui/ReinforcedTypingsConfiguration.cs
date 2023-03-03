@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright Â© 2022 Haga Rakotoharivelo
 
 using System.Net;
 using System.Reflection;
@@ -59,6 +59,9 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<ProxyState>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ProxyNetworkState>()
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<ProxyEndPoint>()
@@ -331,6 +334,8 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
                 .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
+                .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
+                .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -353,6 +358,8 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
                 .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
+                .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
+                .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -365,7 +372,7 @@ namespace Fluxzy.Desktop.Ui
         {
             var staticClassInfo = typeof(TypeConfigurationBuilderExtensions);
             var methodInfo = staticClassInfo.GetMethod(nameof(ExportAsInterface), 
-                System.Reflection.BindingFlags.Static)!;
+                BindingFlags.Static)!;
 
             var genericMethod = methodInfo.MakeGenericMethod(type);
             genericMethod.Invoke(null, null);
