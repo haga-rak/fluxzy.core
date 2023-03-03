@@ -11,27 +11,61 @@
             This frame will help you understand the various performance of the exchange the underlying connection.
         </div>
 
-        <div style="margin-bottom : 8px; padding : 8px">
+        <div style="margin-bottom: 16px">
+            <h5 class="text-info">Connection timings
+                <small class="pull-right">
+                    <small *ngIf="metrics.rawMetrics.reusingConnection">
+                        <i class="fa fa-warning text-warning"></i> reuse of an existing connection
+                    </small>
+                </small></h5>
+            <div class="alert alert-info">
+                <table class="metrics-table" *ngIf="lineInfos">
+
+                    <tr *ngFor="let lineInfo of lineInfos | funcFilter : connectionOnly" [ngClass]="{'line-info-unavailable' : (lineInfo.value === undefined) || (lineInfo.value === null) }">
+                        <td>{{ lineInfo.label }}</td>
+                        <td></td>
+                        <td>
+                            <span *ngIf="((lineInfo.value === undefined) || (lineInfo.value === null))">-</span>
+                            <span *ngIf="!((lineInfo.value === undefined) || (lineInfo.value === null))">
+                         {{ formatDuration(lineInfo.value) }}
+                    </span>
+
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 8px;">
+            <h5 class="text-info">
+                Exchange timings
+
+            </h5>
+            <div class="alert alert-info">
+                <table class="metrics-table" *ngIf="lineInfos">
+
+                    <tr *ngFor="let lineInfo of lineInfos | funcFilter : exchangeOnly" [ngClass]="{'line-info-unavailable' : (lineInfo.value === undefined) || (lineInfo.value === null) }">
+                        <td>{{ lineInfo.label }}</td>
+                        <td></td>
+                        <td>
+                            <span *ngIf="((lineInfo.value === undefined) || (lineInfo.value === null))">-</span>
+                            <span *ngIf="!((lineInfo.value === undefined) || (lineInfo.value === null))">
+                         {{ formatDuration(lineInfo.value) }}
+                    </span>
+
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div style="margin-bottom :0px; padding : 8px; padding-top: 0px;">
             &nbsp;
             <span class="pull-right">
                 <span class="lead text-info">
-                    Overall duration <strong class="text-white">{{ metrics.overAllDuration}} ms</strong>
+                    Overall duration <strong class="text-white">{{ formatDuration(metrics.overAllDuration)}}</strong>
                 </span>
             </span>
         </div>
-        <table class="metrics-table" *ngIf="lineInfos">
-
-            <tr *ngFor="let lineInfo of lineInfos" [ngClass]="{'line-info-unavailable' : (lineInfo.value === undefined) || (lineInfo.value === null) }">
-                <td>{{ lineInfo.label }}</td>
-                <td></td>
-                <td>
-                    <span *ngIf="((lineInfo.value === undefined) || (lineInfo.value === null))">-</span>
-                    <span *ngIf="!((lineInfo.value === undefined) || (lineInfo.value === null))">
-                        {{ lineInfo.value }} ms
-                    </span>
-
-                </td>
-            </tr>
-        </table>
     </div>
 </div>
