@@ -15,16 +15,16 @@ export class ExchangeMetricsComponent implements OnInit, OnChanges {
 
     @Input() public exchange: ExchangeInfo | null;
 
-    public exchangeId : number = 0 ;
+    public exchangeId: number = 0;
     public metrics: ExchangeMetricInfo | null = null;
     public lineInfos: LineInfo[] | null = null;
 
-    public formatDuration = formatDuration ;
+    public formatDuration = formatDuration;
 
     constructor(private apiService: ApiService,
-                public cd : ChangeDetectorRef,
+                public cd: ChangeDetectorRef,
                 private systemCallService: SystemCallService,
-                private statusBarService : StatusBarService)  {
+                private statusBarService: StatusBarService) {
     }
 
     ngOnInit(): void {
@@ -35,15 +35,15 @@ export class ExchangeMetricsComponent implements OnInit, OnChanges {
         this.refresh();
     }
 
-    private refresh() : void {
+    private refresh(): void {
         if (this.exchange === null)
-            return ;
+            return;
 
         if (this.exchange?.id === this.exchangeId) {
             return;
         }
 
-        this.metrics = null ;
+        this.metrics = null;
 
         this.apiService.exchangeMetrics(this.exchange.id)
             .pipe(
@@ -51,38 +51,72 @@ export class ExchangeMetricsComponent implements OnInit, OnChanges {
                 tap(t => this.metrics = t),
                 tap(t => this.lineInfos = this.extractLineInfos(t)),
                 tap(_ => this.cd.detectChanges())
-            ).subscribe() ;
+            ).subscribe();
     }
 
-    private extractLineInfos(metrics : ExchangeMetricInfo) : LineInfo [] {
-        const result : LineInfo [] = [] ;
+    private extractLineInfos(metrics: ExchangeMetricInfo): LineInfo [] {
+        const result: LineInfo [] = [];
 
         result.push({label: 'Queued', value: metrics.queued, connectionLevel: true});
         result.push({label: 'Dns', value: metrics.dns, connectionLevel: true});
         result.push({label: 'Tcp handshake', value: metrics.tcpHandShake, connectionLevel: true});
         result.push({label: 'Ssl handshake', value: metrics.sslHandShake, connectionLevel: true});
+
         result.push({label: 'Sending Header', value: metrics.requestHeader});
         result.push({label: 'Sending Body', value: metrics.requestBody});
         result.push({label: 'Time to first byte', value: metrics.waiting});
         result.push({label: 'Receiving header', value: metrics.receivingHeader});
         result.push({label: 'Receiving body', value: metrics.receivingBody});
 
-        return result ;
+        return result;
 
     }
 
-    public connectionOnly( lineInfo : LineInfo) : boolean {
+    public connectionOnly(lineInfo: LineInfo): boolean {
         return !!lineInfo.connectionLevel;
     }
 
-    public exchangeOnly( lineInfo : LineInfo) : boolean {
+    public exchangeOnly(lineInfo: LineInfo): boolean {
         return !lineInfo.connectionLevel;
+    }
+
+    public computeProportion(lineInfo: LineInfo, allLineInfos: LineInfo[]): Location {
+
+        let friends =
+            this.metrics.rawMetrics.reusingConnection ?
+                allLineInfos.filter(l =>
+                    l.value !== undefined && (l.connectionLevel === lineInfo.connectionLevel))
+                :
+                allLineInfos.filter(l =>
+                    l.value !== undefined);
+
+
+        let total = friends.reduce((a, b) => a + b.value, 0);
+
+        let found = false;
+        let startExact = friends.filter((a) => !found && !(found = a.label === lineInfo.label))
+            .reduce((a, b) => a + b.value, 0);
+
+        let res = {
+            start: (startExact / total) * 100,
+            size: (lineInfo.value / total) * 100
+        };
+
+        // console.log(friends);
+        // console.log(res);
+
+        return res;
+
     }
 }
 
+export interface Location {
+    start: number;
+    size: number
+}
 
 export interface LineInfo {
-    label : string ;
-    value : number ;
-    connectionLevel? : boolean;
+    label: string;
+    value: number;
+    connectionLevel?: boolean;
 }

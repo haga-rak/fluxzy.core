@@ -23,7 +23,13 @@
 
                     <tr *ngFor="let lineInfo of lineInfos | funcFilter : connectionOnly" [ngClass]="{'line-info-unavailable' : (lineInfo.value === undefined) || (lineInfo.value === null) }">
                         <td>{{ lineInfo.label }}</td>
-                        <td></td>
+                        <td>
+                            <div style="height :16px; position: relative" class="vertical-bar"
+                                 [style.width.%]="computeProportion(lineInfo, lineInfos).size"
+                                 [style.left.%]="computeProportion(lineInfo, lineInfos).start">
+                            </div>
+
+                        </td>
                         <td>
                             <span *ngIf="((lineInfo.value === undefined) || (lineInfo.value === null))">-</span>
                             <span *ngIf="!((lineInfo.value === undefined) || (lineInfo.value === null))">
@@ -46,7 +52,13 @@
 
                     <tr *ngFor="let lineInfo of lineInfos | funcFilter : exchangeOnly" [ngClass]="{'line-info-unavailable' : (lineInfo.value === undefined) || (lineInfo.value === null) }">
                         <td>{{ lineInfo.label }}</td>
-                        <td></td>
+                        <td>
+                            <div style="height :16px; position: relative" class="vertical-bar"
+                                 [ngClass]="{'bar-ttfb' : lineInfo.label === 'Time to first byte'}"
+                                 [style.width.%]="computeProportion(lineInfo, lineInfos).size"
+                                 [style.left.%]="computeProportion(lineInfo, lineInfos).start">
+                            </div>
+                        </td>
                         <td>
                             <span *ngIf="((lineInfo.value === undefined) || (lineInfo.value === null))">-</span>
                             <span *ngIf="!((lineInfo.value === undefined) || (lineInfo.value === null))">
