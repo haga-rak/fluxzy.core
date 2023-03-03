@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
@@ -32,7 +32,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<bool>> Update([ValidateNever] FluxzySettingsHolder model)
+        public ActionResult<bool> Update([ValidateNever] FluxzySettingsHolder model)
         {
             model.UpdateModel();
             _settingManager.Update(model);
