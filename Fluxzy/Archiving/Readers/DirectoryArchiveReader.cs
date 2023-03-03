@@ -87,7 +87,17 @@ namespace Fluxzy.Readers
 
             return File.Open(capturePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
-        
+
+        public Stream? GetRawCaptureKeyStream(int connectionId)
+        {
+            var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.nsskeylog");
+
+            if (!File.Exists(capturePath))
+                return null;
+
+            return File.Open(capturePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        }
+
         public string? GetRawCaptureFile(int connectionId)
         {
             var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
