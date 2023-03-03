@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright Â© 2022 Haga RAKOTOHARIVELO
 
 using System.Collections.Generic;
 using System.IO;
@@ -86,7 +86,12 @@ namespace Fluxzy
         
         internal static string GetCapturePath(string baseDirectory, int connectionId)
         {
-            return Path.Combine(baseDirectory, "captures", $"{connectionId}.pcap");
+            return Path.Combine(baseDirectory, "captures", $"{connectionId}.pcapng");
+        }
+
+        internal static string GetCapturePathNssKey(string baseDirectory, int connectionId)
+        {
+            return Path.Combine(baseDirectory, "captures", $"{connectionId}.nsskeylog");
         }
 
         internal static string GetConnectionPath(string baseDirectory, int connectionId)

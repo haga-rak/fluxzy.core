@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -166,6 +166,11 @@ namespace Fluxzy
 
                 if (captureFileInfo.Exists && captureFileInfo.Length > 0)
                     yield return new PackableFile(captureFileInfo, PackableFileType.Capture);
+
+                var captureFileInfoKey = new FileInfo(DirectoryArchiveHelper.GetCapturePathNssKey(baseDirectory, connectionId));
+
+                if (captureFileInfoKey.Exists && captureFileInfoKey.Length > 0)
+                    yield return new PackableFile(captureFileInfoKey, PackableFileType.CaptureNssKey);
             }
         }
     }
@@ -189,6 +194,7 @@ namespace Fluxzy
         Exchange = 1 , 
         Connection = 2,
         Capture = 3,
+        CaptureNssKey = 4,
         RequestBody = 10,
         ResponseBody = 11
     }

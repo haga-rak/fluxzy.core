@@ -1,25 +1,33 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
 using System.Collections.Concurrent;
+using Fluxzy.Interop.Pcap.Pcapng;
 
 namespace Fluxzy.Interop.Pcap
 {
     internal class SyncWriterQueue : IDisposable
     {
-        private readonly ConcurrentDictionary<long, CustomCaptureWriter> _writers = new();
-
-        public CustomCaptureWriter GetOrAdd(long key)
+        public SyncWriterQueue()
         {
-            return _writers.GetOrAdd(key, (k) => new CustomCaptureWriter(k));;
+        }
+        
+        private ConcurrentDictionary<long, IRawCaptureWriter> _writers = new();
+
+        public IRawCaptureWriter GetOrAdd(long key)
+        {
+            lock (this) {
+                return _writers.GetOrAdd(key,
+                    (k) => new PcapngWriter(k, "fluxzy v0.15.9 - https://www.fluxzy.io")); ;
+            }
         }
 
-        public bool TryGet(long key, out CustomCaptureWriter? writer)
+        public bool TryGet(long key, out IRawCaptureWriter? writer)
         {
             return _writers.TryGetValue(key, out writer);
         }
 
-        public bool TryRemove(long key, out CustomCaptureWriter? writer)
+        public bool TryRemove(long key, out IRawCaptureWriter? writer)
         {
             return _writers.TryRemove(key, out writer);
         }
@@ -30,6 +38,23 @@ namespace Fluxzy.Interop.Pcap
             {
                 writer.Flush();
             }
+        }
+
+        public void ClearAll()
+        {
+            var oldWriter = _writers;
+            _writers = new ConcurrentDictionary<long, IRawCaptureWriter>();
+
+            foreach (var writer in oldWriter) {
+                try {
+                    writer.Value.Dispose();
+                }
+                catch {
+                    // We ignore file closing exception 
+                }
+            }
+
+            oldWriter.Clear();
         }
 
         public void Dispose()

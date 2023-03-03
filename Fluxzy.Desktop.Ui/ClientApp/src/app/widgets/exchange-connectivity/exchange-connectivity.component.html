@@ -17,8 +17,9 @@
                     Raw network capture
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" *dropdownMenu>
-                    <li><a class="dropdown-item" href="javascript:;" (click)="downloadRawCapture()">Save to file (.pcap)</a></li>
-                    <li><a class="dropdown-item" href="javascript:;" (click)="openRawCapture()">Open in default viewer</a></li>
+                    <li><a class="dropdown-item" href="javascript:;" (click)="downloadRawCapture()">Save to file (.pcapng)</a></li>
+                    <li><a class="dropdown-item" href="javascript:;" (click)="openRawCapture(false)">Open in default viewer</a></li>
+                    <li *ngIf="captureKey"><a class="dropdown-item" href="javascript:;" (click)="openRawCapture(true)">Open in default viewer (with NSS Key)</a></li>
                 </ul>
 
             </div>
@@ -58,7 +59,7 @@
 
                 </td>
             </tr>
-            <tr>
+            <tr *ngIf="connection.sslInfo">
                 <th>Certificate</th>
                 <td>
                     <input type="text" *ngIf="!connection.sslInfo.localCertificateSubject" class="form-control form-connectivity" readonly [value]="'-/-'"  />
@@ -70,7 +71,7 @@
 
                 </td>
             </tr>
-            <tr>
+            <tr *ngIf="connection.sslInfo">
                 <th>Issuer</th>
                 <td>
                     <input type="text" *ngIf="!connection.sslInfo.localCertificateIssuer" class="form-control form-connectivity" readonly [value]="'-/-'"  />
@@ -120,6 +121,12 @@
                 <th>Http version</th>
                 <td colspan="2" class="text-center">
                     <input type="text" *ngIf="connection.httpVersion" class="form-control form-connectivity" readonly [value]="connection.httpVersion"  />
+                </td>
+            </tr>
+            <tr  *ngIf="captureKey">
+                <th style="vertical-align: top">NSS key log</th>
+                <td colspan="2" class="text-center">
+                    <pre  class="form-control form-connectivity" style="height : 80px; text-align: left" readonly >{{captureKey}}</pre>
                 </td>
             </tr>
         </table>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -81,7 +81,9 @@ namespace Fluxzy
                     
                 };
 
-                if (fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase)) {
+                if (fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase) ||
+                    fileInfo.Name.EndsWith("pcapng", StringComparison.OrdinalIgnoreCase)) {
+                    // We don't want to compress pcap files
                     newEntry.CompressionMethod = CompressionMethod.Stored;
                 }
 
@@ -116,8 +118,11 @@ namespace Fluxzy
                         DateTime = fileInfo.LastWriteTime
                     };
 
-                    if (fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase))
+                    if (
+                        fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase) ||
+                        fileInfo.Name.EndsWith("pcapng", StringComparison.OrdinalIgnoreCase))
                     {
+                        // We don't want to compress pcap files
                         newEntry.CompressionMethod = CompressionMethod.Stored;
                     }
 

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -125,7 +125,7 @@ namespace Fluxzy.Writers
 
         public override string GetDumpfilePath(int connectionId)
         {
-            return Path.Combine(_captureDirectory, $"{connectionId}.pcap");
+            return Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
         }
     }
 }

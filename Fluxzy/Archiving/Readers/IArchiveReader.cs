@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -17,6 +17,8 @@ namespace Fluxzy.Readers
         ConnectionInfo? ReadConnection(int connectionId);
 
         Stream? GetRawCaptureStream(int connectionId);
+
+        Stream? GetRawCaptureKeyStream(int connectionId);
 
         Stream? GetRequestBody(int exchangeId);
 

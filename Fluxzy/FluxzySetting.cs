@@ -1,8 +1,7 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
@@ -134,8 +133,17 @@ namespace Fluxzy
         /// <summary>
         /// Skip SSL decryption for any exchanges. This setting cannot be overriden by rules 
         /// </summary>
-        public bool GlobalSkipSslDecryption { get; set; } = false; 
+        public bool GlobalSkipSslDecryption { get; set; } = false;
 
+        /// <summary>
+        /// When set to true, the raw network capture will be done out of process.
+        /// </summary>
+        public bool OutOfProcCapture { get; set; } = true;
+
+        /// <summary>
+        /// Using bouncy castle for ssl streams instead of OsDefault (SChannel or OpenSSL)
+        /// </summary>
+        public bool UseBouncyCastle { get; set; } = false; 
 
 
         [JsonConstructor]

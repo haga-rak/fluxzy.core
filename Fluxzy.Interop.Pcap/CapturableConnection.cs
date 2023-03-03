@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Net;
 using System.Net.Sockets;
@@ -9,18 +9,19 @@ namespace Fluxzy.Interop.Pcap
 {
     public class CapturableTcpConnection :  ITcpConnection
     {
-        private readonly CaptureContext _captureContext;
+        private readonly ProxyScope _proxyScope;
         private readonly string _outTraceFileName;
         private readonly TcpClient _innerTcpClient;
         private DisposeEventNotifierStream?  _stream;
 
         private bool _disposed = false;
         private IPEndPoint?  _localEndPoint;
-        private IConnectionSubscription?  _subscription;
+        private long  _subscription;
+        private IPAddress _remoteAddress;
 
-        public CapturableTcpConnection(CaptureContext captureContext, string outTraceFileName)
+        public CapturableTcpConnection(ProxyScope proxyScope, string outTraceFileName)
         {
-            _captureContext = captureContext;
+            _proxyScope = proxyScope;
             _outTraceFileName = outTraceFileName;
             _innerTcpClient = new TcpClient();
         }
@@ -29,13 +30,18 @@ namespace Fluxzy.Interop.Pcap
         {
             if (_stream != null)
                 throw new InvalidOperationException("A previous connect attempt was already made");
-            
-            _captureContext.Include(remoteAddress, remotePort);
+
+            var context = _proxyScope.CaptureContext;
+
+            context?.Include(remoteAddress, remotePort);
 
             await _innerTcpClient.ConnectAsync(remoteAddress, remotePort);
 
+            _remoteAddress = remoteAddress;
             _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
-            _subscription = _captureContext.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port);
+
+
+            _subscription = context?.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port) ?? 0;
 
             _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());
             
@@ -56,7 +62,20 @@ namespace Fluxzy.Interop.Pcap
 
             return _stream;
         }
-        
+
+        public void OnKeyReceived(string nssKey)
+        {
+            if (_proxyScope.CaptureContext != null && _localEndPoint != null
+                && _innerTcpClient.Client.RemoteEndPoint != null) {
+
+                var remoteEndPoint = (IPEndPoint) _innerTcpClient.Client.RemoteEndPoint;
+                
+                _proxyScope.CaptureContext.StoreKey(nssKey, _remoteAddress, remoteEndPoint.Port,
+                    _localEndPoint.Port);
+            }
+
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (_disposed)
@@ -68,17 +87,32 @@ namespace Fluxzy.Interop.Pcap
 
             _innerTcpClient.Dispose();
 
-            if (_subscription != null )
+            if (_subscription != 0 )
             {
-                var disposable = _subscription;
-                _subscription = null;
+                var context = _proxyScope.CaptureContext;
 
-                await _captureContext.Unsubscribe(disposable);
+                if (context != null)
+                    await context.Unsubscribe(_subscription);
 
                 // We should wait few instant before disposing the writer 
-                
-                await disposable.DisposeAsync();
+                // to ensure that all packets are written to the file
             }
         }
     }
+
+    //public static class ProxyScopeExtensions
+    //{
+    //    public static async Task<ICaptureContext?> GetCaptureContext(this ProxyScope scope)
+    //    {
+    //        var captureHost = await scope.GetOrCreateHostedCaptureHost();
+
+    //        if (captureHost == null)
+    //            return null; 
+
+    //        if (captureHost.Context is ICaptureContext captureContext)
+    //            return captureContext;
+
+    //        return null; 
+    //    }
+    //}
 }

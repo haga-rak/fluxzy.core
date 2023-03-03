@@ -335,9 +335,8 @@
                         </div>
                     </div>
                     <div>
-                        <h4 style="border-bottom: 1px solid #555555">SSL decryption</h4>
+                        <h4 style="border-bottom: 1px solid #555555">SSL settings</h4>
                         <div class="setting-content" #skipSsl>
-
                             <div class="row mb-3">
                                 <label class="col-sm-3 col-form-label text-end">
                                     &nbsp;
@@ -359,6 +358,32 @@
                                             <span class="text-info"
                                                   *ngIf="!settingsHolder.startupSetting.globalSkipSslDecryption">
                                             You can set <a href="javascript:;">rules</a> to disable/enable decryption per host.
+                                        </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label text-end">
+                                    &nbsp;
+                                </label>
+                                <div class="col-sm-9">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="useBouncyCastle"
+                                               [(ngModel)]="settingsHolder.startupSetting.useBouncyCastle"
+                                                (ngModelChange)="cd.detectChanges()"/>
+                                        <label class="form-check-label" for="useBouncyCastle">
+                                            Use Bouncy Castle as SSL provider
+                                        </label>
+                                        <div style="margin-top: 8px">
+
+                                        <span class="text-info"
+                                              *ngIf="settingsHolder.startupSetting.useBouncyCastle">
+                                            Bouncy castle allows NSS key capture (view raw packet capture in clear text).
+                                        </span>
+                                            <span class="text-info"
+                                                  *ngIf="!settingsHolder.startupSetting.useBouncyCastle">
+                                            The OS default SSL provider will be used : SChannel for Windows, OpenSSL for Linux, SecureTransport for macOS.
                                         </span>
                                         </div>
                                     </div>

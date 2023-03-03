@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -6,6 +6,8 @@ using Fluxzy.Clients;
 
 namespace Fluxzy.Writers
 {
+
+
     public abstract class RealtimeArchiveWriter
     {
         public virtual void Init()

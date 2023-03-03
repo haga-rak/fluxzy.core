@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using Fluxzy.Core;
 
@@ -6,25 +6,46 @@ namespace Fluxzy.Interop.Pcap
 {
     public class CapturedTcpConnectionProvider : ITcpConnectionProvider
     {
-        private readonly CaptureContext _captureContext;
+        private readonly ProxyScope _scope;
+        private DirectCaptureContext? _createdContext;
 
-        public CapturedTcpConnectionProvider()
+        private CapturedTcpConnectionProvider(ProxyScope scope)
         {
-            _captureContext = new CaptureContext();
+            _scope = scope;
         }
+
+        public static async Task<ITcpConnectionProvider> Create(ProxyScope scope, bool outOfProcCapture)
+        {
+            var connectionProvider =  new CapturedTcpConnectionProvider(scope);
+            
+            scope.CaptureContext =
+                outOfProcCapture ? 
+                    await scope.GetOrCreateHostedCaptureContext() 
+                    : (connectionProvider._createdContext = new DirectCaptureContext());
+
+            if (connectionProvider._createdContext != null) {
+                await connectionProvider._createdContext.Start();
+            }
+            
+            //if (captureContext == null) {
+            //    // Console.WriteLine("Unable to acquire authorization for capture raw packets");
+            //    return ITcpConnectionProvider.Default; 
+            //}
+
+            return connectionProvider; 
+        }
+        
 
         public ITcpConnection Create(string dumpFileName)
         {
-            return new CapturableTcpConnection(_captureContext, dumpFileName);
+            return new CapturableTcpConnection(_scope, dumpFileName);
         }
-
-        public void Dispose()
-        {
-        }
+        
 
         public async ValueTask DisposeAsync()
         {
-            await _captureContext.DisposeAsync();
+            if (_createdContext != null)
+                await _createdContext.DisposeAsync();
         }
     }
 }

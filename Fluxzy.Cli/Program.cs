@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Cli.Commands;
 
 namespace Fluxzy.Cli
 {
@@ -17,8 +18,8 @@ namespace Fluxzy.Cli
             }
             
             Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
+            
             //Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
-
             //Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
             //Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts", "casalemedia.com");
             // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");

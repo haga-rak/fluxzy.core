@@ -124,4 +124,8 @@
   <data name="multipart_request_fxzy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Outputs\multipart-request.fxzy.testcase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="fluxzytest" xml:space="preserve">
+    <value>Certificates\fluxzytest.txt;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value />
+  </data>
 </root>

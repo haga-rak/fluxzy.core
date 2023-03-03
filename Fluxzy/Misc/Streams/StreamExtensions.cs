@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
 using System.Buffers;
@@ -184,7 +184,7 @@ namespace Fluxzy.Misc.Streams
 
             return -1;
         }
-
+        
         public static async ValueTask<bool> ReadExactAsync(this Stream origin, Memory<byte> buffer,
             CancellationToken cancellationToken)
         {

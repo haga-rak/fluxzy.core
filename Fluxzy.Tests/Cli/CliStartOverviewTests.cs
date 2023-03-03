@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright Â© 2022 Haga Rakotoharivelo
 
 using System;
 using System.Collections.Generic;
@@ -123,7 +123,7 @@ namespace Fluxzy.Tests.Cli
             var thumbPrint = await response.Content.ReadAsStringAsync();
             var expectedThumbPrint = "960b00317d47d0d52d04a3a03b045e96bf3be3a3";
 
-            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expectedThumbPrint, thumbPrint, StringComparer.OrdinalIgnoreCase);
         }
 

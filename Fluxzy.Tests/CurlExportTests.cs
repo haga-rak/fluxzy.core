@@ -1,4 +1,4 @@
-// Copyright © 2023 Haga RAKOTOHARIVELO
+// Copyright ? 2023 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;

@@ -1,9 +1,9 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 using System.Net;
 
 namespace Fluxzy.Interop.Pcap.FastParsing
 {
-    internal class RawPacketParser
+    internal static class RawPacketParser
     {
         public static bool TryParseEthernet(ref EthernetPacketInfo info, 
             ReadOnlySpan<byte> data, out int length)
@@ -31,10 +31,11 @@ namespace Fluxzy.Interop.Pcap.FastParsing
             if (packetInfo.Version != 4 && packetInfo.Version != 6)
                 return false;
 
-            packetInfo.HeaderLength = (short) ((data[0] & 0xF) * 4);
 
             if (packetInfo.Version == 4)
             {
+                packetInfo.HeaderLength = (short)((data[0] & 0xF) * 4);
+
                 packetInfo.IsTcp = data[9] == 6;
 
                 if (!packetInfo.IsTcp)
@@ -51,7 +52,9 @@ namespace Fluxzy.Interop.Pcap.FastParsing
             {
                 if (data.Length < 40)
                     return false;
-                
+
+                packetInfo.HeaderLength = 40; // fixed 40 bytes with IPv6
+
                 packetInfo.IsTcp = data[6] == 6;
                 
                 if (!packetInfo.IsTcp)
@@ -62,7 +65,6 @@ namespace Fluxzy.Interop.Pcap.FastParsing
                 packetInfo.PayloadLength = (short) (BinaryPrimitives.ReadInt16BigEndian(data.Slice(4, 2))
                                                     - packetInfo.HeaderLength);
             }
-            
             
             return true;
         }

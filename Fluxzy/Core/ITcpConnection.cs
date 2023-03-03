@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
 using System.IO;
@@ -12,5 +12,7 @@ namespace Fluxzy.Core
         Task<IPEndPoint> ConnectAsync(IPAddress address, int port);
 
         Stream GetStream();
+
+        void OnKeyReceived(string nssKey); 
     }
 }

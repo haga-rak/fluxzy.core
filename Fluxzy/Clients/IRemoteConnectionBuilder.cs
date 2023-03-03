@@ -1,10 +1,11 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+// Copyright © 2021 Haga Rakotoharivelo
 
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients
@@ -33,11 +34,13 @@ namespace Fluxzy.Clients
     {
         private readonly ITimingProvider _timeProvider;
         private readonly IDnsSolver _dnsSolver;
+        private readonly ISslConnectionBuilder _sslConnectionBuilder;
 
-        public RemoteConnectionBuilder(ITimingProvider timeProvider, IDnsSolver dnsSolver)
+        public RemoteConnectionBuilder(ITimingProvider timeProvider, IDnsSolver dnsSolver, ISslConnectionBuilder sslConnectionBuilder)
         {
             _timeProvider = timeProvider;
             _dnsSolver = dnsSolver;
+            _sslConnectionBuilder = sslConnectionBuilder;
         }
 
         public async ValueTask<RemoteConnectionResult> OpenConnectionToRemote(
@@ -61,19 +64,19 @@ namespace Fluxzy.Clients
             connection.RemoteAddress = ipAddress;
             connection.DnsSolveEnd = _timeProvider.Instant();
 
-            var tcpClient = setting.TcpConnectionProvider
+            var tcpConnection = setting.TcpConnectionProvider
                 .Create(setting.ArchiveWriter != null ?
                     setting.ArchiveWriter?.GetDumpfilePath(connection.Id)!
                     : string.Empty);
 
-            var localEndpoint = await tcpClient.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
+            var localEndpoint = await tcpConnection.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
                                                                         authority.Port).ConfigureAwait(false);
 
             connection.TcpConnectionOpened = _timeProvider.Instant();
             connection.LocalPort = localEndpoint.Port;
             connection.LocalAddress = localEndpoint.Address.ToString();
             
-            var newlyOpenedStream = tcpClient.GetStream();
+            var newlyOpenedStream = tcpConnection.GetStream();
             
             if (!authority.Secure || context.BlindMode)
             {
@@ -85,40 +88,41 @@ namespace Fluxzy.Clients
 
             byte[]? remoteCertificate = null;
 
-            var sslStream =
-                context.SkipRemoteCertificateValidation
-                    ? new SslStream(newlyOpenedStream, false, (_, _, _, errors) => true)
-                    : new SslStream(newlyOpenedStream, false);
-
-            Stream resultStream = sslStream; 
-
             var authenticationOptions = new SslClientAuthenticationOptions()
             {
                 TargetHost = authority.HostName , 
                 EnabledSslProtocols = context.ProxyTlsProtocols,
-                ApplicationProtocols = httpProtocols
+                ApplicationProtocols = httpProtocols,
             };
-            
+
+            if (context.SkipRemoteCertificateValidation) {
+                authenticationOptions.RemoteCertificateValidationCallback = (_, _, _, errors) => true;
+            }
 
             if (context.ClientCertificates != null && context.ClientCertificates.Count > 0)
             {
                 authenticationOptions.ClientCertificates = context.ClientCertificates;
             }
 
-            await sslStream.AuthenticateAsClientAsync(authenticationOptions, token);
+            var sslConnectionInfo =
+                await _sslConnectionBuilder.AuthenticateAsClient(
+                    newlyOpenedStream, authenticationOptions, tcpConnection.OnKeyReceived, token); 
 
-            connection.SslInfo = new SslInfo(sslStream);
+            connection.SslInfo = sslConnectionInfo.SslInfo;
 
             connection.SslNegotiationEnd = _timeProvider.Instant();
             connection.SslInfo.RemoteCertificate = remoteCertificate;
+            
+
+            Stream resultStream = sslConnectionInfo.Stream;
 
             if (DebugContext.EnableNetworkFileDump)
             {
                 resultStream = new DebugFileStream($"raw/{connection.Id:000000}_remotehost_",
                     resultStream); 
             }
-
-            var protoType =  sslStream.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2
+            
+            var protoType = sslConnectionInfo.ApplicationProtocol == SslApplicationProtocol.Http2
                 ? RemoteConnectionResultType.Http2
                 : RemoteConnectionResultType.Http11;
 

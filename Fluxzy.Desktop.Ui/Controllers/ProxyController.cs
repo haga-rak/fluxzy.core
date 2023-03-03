@@ -1,9 +1,8 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Rules.Filters;
-using ICSharpCode.SharpZipLib.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxzy.Desktop.Ui.Controllers
@@ -36,7 +35,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpPost("on/with-settings")]
         public async Task<ActionResult<bool>> OnWithSetting(
             [FromServices] FluxzySettingManager settingManager, 
-            [FromBody] Filter saveFilter = null)
+            [FromBody] Filter? saveFilter = null)
         {
             var settingsHolder = await settingManager.ProvidedObservable.FirstAsync();
             settingsHolder.StartupSetting.SaveFilter = saveFilter;

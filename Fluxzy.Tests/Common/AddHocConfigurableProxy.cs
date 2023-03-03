@@ -41,8 +41,7 @@ namespace Fluxzy.Tests.Common
                              .SetBoundAddress(BindHost, BindPort);
 
             _proxy = new Proxy(StartupSetting,
-                new CertificateProvider(StartupSetting,
-                    new InMemoryCertificateCache()));
+                new CertificateProvider(StartupSetting, new InMemoryCertificateCache()), new DefaultCertificateAuthorityManager());
 
             _proxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 

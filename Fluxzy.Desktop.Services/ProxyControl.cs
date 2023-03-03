@@ -1,6 +1,7 @@
-﻿using System.Net;
+using System.Net;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Extensions;
@@ -13,9 +14,13 @@ namespace Fluxzy.Desktop.Services
 {
     public class ProxyControl : ObservableProvider<ProxyState>
     {
+        private readonly ProxyScope _proxyScope;
+        private readonly FromIndexIdProvider _idProvider;
+        private readonly UaParserUserAgentInfoProvider _userAgentProvider;
         private readonly FileContentUpdateManager _fileContentUpdateManager;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null);
+
         private Proxy? _proxy;
         private ITcpConnectionProvider?  _tcpConnectionProvider;
 
@@ -24,6 +29,9 @@ namespace Fluxzy.Desktop.Services
         protected override BehaviorSubject<ProxyState> Subject { get; }
 
         public ProxyControl(
+            ProxyScope proxyScope,
+            FromIndexIdProvider idProvider,
+            UaParserUserAgentInfoProvider userAgentProvider,
             IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
             IObservable<FileContentOperationManager> contentObservable,
             IObservable<ViewFilter> viewFilter,
@@ -31,6 +39,9 @@ namespace Fluxzy.Desktop.Services
             IObservable<IArchiveReader> archiveReaderObservable,
             FileContentUpdateManager fileContentUpdateManager)
         {
+            _proxyScope = proxyScope;
+            _idProvider = idProvider;
+            _userAgentProvider = userAgentProvider;
             _fileContentUpdateManager = fileContentUpdateManager;
 
             _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState
@@ -100,13 +111,17 @@ namespace Fluxzy.Desktop.Services
             {
                 _tcpConnectionProvider =
                     fluxzySetting.CaptureRawPacket
-                        ? new CapturedTcpConnectionProvider()
+                        ? await CapturedTcpConnectionProvider.Create(_proxyScope, fluxzySetting.OutOfProcCapture)
                         : ITcpConnectionProvider.Default;
 
                 _proxy = new Proxy(fluxzySetting, 
-                    new CertificateProvider(fluxzySetting, new InMemoryCertificateCache()),
-                    _tcpConnectionProvider, new UaParserUserAgentInfoProvider());
+                    new CertificateProvider(fluxzySetting, 
+                        new InMemoryCertificateCache()), 
+                    new DefaultCertificateAuthorityManager(),
+                    _tcpConnectionProvider,
+                    _userAgentProvider, idProvider : _idProvider);
 
+                // This is to enabled pending exchange and connection into existing file 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
                 _proxy.IdProvider.SetNextExchangeId(maxExchangeId);
 
@@ -151,6 +166,19 @@ namespace Fluxzy.Desktop.Services
                                    .Select(b => new ProxyEndPoint(b.Address.ToString(), b.Port))
                                    .ToList() ?? new List<ProxyEndPoint>()
             };
+        }
+
+        public bool TryFlush()
+        {
+            if (_tcpConnectionProvider == null)
+                return false;
+
+            if (_proxyScope.CaptureContext != null) {
+                _proxyScope.CaptureContext.Flush();
+                return true;
+            }
+
+            return false;
         }
     }
 }

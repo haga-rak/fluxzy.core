@@ -1,10 +1,11 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -327,7 +328,7 @@ namespace Fluxzy.Clients.H2
 
                 var list = new List<WriteTask>();
 
-                if (_writerChannel.Reader.TryReadAll(ref list))
+                if (_writerChannel.Reader.TryReadAll(list))
                     foreach (var item in list)
                         if (!item.DoneTask.IsCompleted)
                             item.CompletionSource.SetCanceled();
@@ -351,7 +352,7 @@ namespace Fluxzy.Clients.H2
                     if (_writerChannel == null)
                         break;
 
-                    if (_writerChannel.Reader.TryReadAll(ref tasks))
+                    if (_writerChannel.Reader.TryReadAll(tasks))
                     {
                         var windowUpdateTasks = tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate).ToArray();
 
@@ -379,7 +380,17 @@ namespace Fluxzy.Clients.H2
                                 ArrayPool<byte>.Shared.Return(heapBuffer);
                             }
 
-                            await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
+                            if (_baseStream is SslStream)
+                            {
+                                await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                // Bouncy castle handles badly async write (deadlock) 
+                                // this trick distinguish between SChannel / OpenSSL and BC 
+
+                                await Task.Run(() => _baseStream.Write(heapBuffer.AsSpan().Slice(0, bufferLength)), token); 
+                            }
                         }
 
                         var count = 0;
@@ -397,9 +408,18 @@ namespace Fluxzy.Clients.H2
                                 )
                             try
                             {
-                                await _baseStream
-                                      .WriteAsync(writeTask.BufferBytes, token)
-                                      .ConfigureAwait(false);
+                                if (_baseStream is SslStream) {
+
+                                    await _baseStream
+                                          .WriteAsync(writeTask.BufferBytes, token)
+                                          .ConfigureAwait(false);
+                                }
+                                else {
+                                    // Bouncy castle handles badly async write (deadlock) 
+                                    // this trick distinguish between SChannel / OpenSSL and BC 
+
+                                    await Task.Run(() => _baseStream.Write(writeTask.BufferBytes.Span), token);
+                                }
 
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 

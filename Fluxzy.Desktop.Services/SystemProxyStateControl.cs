@@ -8,15 +8,17 @@ namespace Fluxzy.Desktop.Services
 {
     public class SystemProxyStateControl : ObservableProvider<SystemProxyState>
     {
+        private readonly SystemProxyRegistrationManager _systemProxyRegistrationManager;
         private FluxzySetting? _fluxzySetting;
         private ProxyState? _proxyState;
 
         protected override BehaviorSubject<SystemProxyState> Subject { get; }
 
         public SystemProxyStateControl(IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
-            IObservable<ProxyState> proxyStateObservableProvider)
+            IObservable<ProxyState> proxyStateObservableProvider, SystemProxyRegistrationManager systemProxyRegistrationManager)
         {
-            var current = SystemProxyRegistration.GetSystemProxySetting();
+            _systemProxyRegistrationManager = systemProxyRegistrationManager;
+            var current = _systemProxyRegistrationManager.GetSystemProxySetting();
 
             Subject = new BehaviorSubject<SystemProxyState>(new SystemProxyState(current.BoundHost, current.ListenPort,
                 current.Enabled));
@@ -35,7 +37,7 @@ namespace Fluxzy.Desktop.Services
                 || !_proxyState.BoundConnections.Any())
                 return;
 
-            var newSetting = SystemProxyRegistration.Register(_proxyState.BoundConnections.Select(
+            var newSetting = _systemProxyRegistrationManager.Register(_proxyState.BoundConnections.Select(
                 p => new IPEndPoint(IPAddress.Parse(p.Address), p.Port)), _fluxzySetting);
 
             if (newSetting != null)
@@ -44,9 +46,9 @@ namespace Fluxzy.Desktop.Services
 
         public void Off()
         {
-            SystemProxyRegistration.UnRegister();
+            _systemProxyRegistrationManager.UnRegister();
 
-            var current = SystemProxyRegistration.GetSystemProxySetting();
+            var current = _systemProxyRegistrationManager.GetSystemProxySetting();
             Subject.OnNext(new SystemProxyState(current.BoundHost, current.ListenPort, current.Enabled));
         }
     }

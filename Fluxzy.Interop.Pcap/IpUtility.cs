@@ -30,6 +30,7 @@ namespace Fluxzy.Interop.Pcap
                 return IPAddress.Loopback;
             }
         }
+        
         public static IPEndPoint GetFreeEndpoint()
         {
             var boundIp = IpUtility.GetDefaultRouteV4Address();
