@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Buffers;
@@ -41,8 +41,6 @@ namespace Fluxzy.Misc.ResizableBuffers
             System.Buffer.BlockCopy(Buffer, 0, newBuffer, 0, Buffer.Length);
             ArrayPool<byte>.Shared.Return(Buffer);
             Buffer = newBuffer;
-
-            Console.WriteLine("extend");
         }
     }
 }

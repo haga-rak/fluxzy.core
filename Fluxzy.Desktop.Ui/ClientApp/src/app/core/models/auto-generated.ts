@@ -931,6 +931,20 @@ export interface ExchangeMetrics
 	localPort: number;
 	localAddress?: string;
 }
+export interface ExchangeMetricInfo
+{
+	rawMetrics: ExchangeMetrics;
+	available: boolean;
+	queued?: number;
+	dns?: number;
+	tcpHandShake?: number;
+	sslHandShake?: number;
+	requestHeader?: number;
+	requestBody?: number;
+	waiting?: number;
+	receivingHeader?: number;
+	receivingBody?: number;
+}
 export interface HeaderFieldInfo
 {
 	name: string;

@@ -126,6 +126,8 @@ namespace Fluxzy.Clients
                     }
                 }
 
+                exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+
                 //  pool 
                 if (exchange.Context.BlindMode)
                 {
@@ -227,7 +229,6 @@ namespace Fluxzy.Clients
                         result.Init();
                     }
 
-                    exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
                 }
                 catch
                 {

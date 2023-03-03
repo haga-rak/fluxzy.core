@@ -24,7 +24,7 @@ import {
     CommentUpdateModel,
     ConnectionInfo,
     ContextMenuAction, CurlCommandResult, DescriptionInfo,
-    ExchangeBrowsingState,
+    ExchangeBrowsingState, ExchangeMetricInfo,
     ExchangeState,
     FileContentDelete,
     FileSaveViewModel,
@@ -218,6 +218,10 @@ export class ApiService {
 
     public exchangeReplay(exchangeId: number) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/replay`, null).pipe(take(1));
+    }
+
+    public exchangeMetrics(exchangeId: number) : Observable<ExchangeMetricInfo> {
+        return this.httpClient.get<ExchangeMetricInfo>(`api/exchange/${exchangeId}/metrics`).pipe(take(1));
     }
 
     public exchangeSaveRequestBody(exchangeId: number, fileName : string) : Observable<boolean> {

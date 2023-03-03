@@ -1,8 +1,9 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using Fluxzy.Clients.H11;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
+using Fluxzy.Formatters.Metrics;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Utils;
 using Fluxzy.Utils.Curl;
@@ -105,6 +106,22 @@ namespace Fluxzy.Desktop.Ui.Controllers
                 return new NotFoundObjectResult(exchangeId);
 
             return await requestReplayManager.Replay(archiveReader, exchangeInfo);
+        }
+
+        [HttpGet("{exchangeId}/metrics")]
+        public async Task<ActionResult<ExchangeMetricInfo>> GetMetrics(
+            int exchangeId, 
+            [FromServices] ExchangeMetricBuilder exchangeMetricBuilder,
+            [FromServices] IArchiveReaderProvider archiveReaderProvider 
+            )
+        {
+            var archiveReader = await archiveReaderProvider.Get();
+            var metric = exchangeMetricBuilder.Get(exchangeId, archiveReader!); 
+
+            if (metric == null)
+                return new NotFoundObjectResult(exchangeId);
+
+            return metric;
         }
     }
 }

@@ -12,6 +12,7 @@ using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Ui.ViewModels;
 using Fluxzy.Formatters;
+using Fluxzy.Formatters.Metrics;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Formatters.Producers.Responses;
@@ -143,6 +144,9 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<ExchangeMetrics>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ExchangeMetricInfo>()
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<HeaderFieldInfo>()
