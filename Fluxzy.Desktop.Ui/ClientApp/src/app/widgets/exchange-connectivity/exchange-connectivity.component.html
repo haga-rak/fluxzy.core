@@ -15,7 +15,7 @@
 
         <div style="margin-bottom: 10px">
             <span class="lead">
-                Underlying connection <strong class="text-white">#{{ connection.id }}</strong></span>
+                Connection <strong class="text-white">#{{ connection.id }}</strong></span>
 
 
             <div class="dropdown float-end small" dropdown [dropup]="false">
@@ -31,11 +31,12 @@
 
             </div>
         </div>
+
         <table style="width:  100%" class="connectivity-table">
             <tr>
-                <th style="min-width: 120px;visibility: hidden;"></th>
-                <th style="width: 50%">Local</th>
-                <th style="width: 50%">Remote</th>
+                <th style="width: 20%"></th>
+                <th style="width: 40%">Local</th>
+                <th style="width: 40%">Remote</th>
             </tr>
             <tr>
                 <th>Hostname</th>

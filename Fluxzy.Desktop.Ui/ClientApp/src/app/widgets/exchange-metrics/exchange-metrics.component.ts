@@ -5,6 +5,7 @@ import {SystemCallService} from "../../core/services/system-call.service";
 import {StatusBarService} from "../../services/status-bar.service";
 import {tap} from "rxjs";
 import {formatDuration} from "../../core/models/functions";
+import {formatBytes} from "../../core/models/model-extensions";
 
 @Component({
     selector: 'div[exchange-metrics]',
@@ -20,6 +21,7 @@ export class ExchangeMetricsComponent implements OnInit, OnChanges {
     public lineInfos: LineInfo[] | null = null;
 
     public formatDuration = formatDuration;
+    public formatBytes = formatBytes;
 
     constructor(private apiService: ApiService,
                 public cd: ChangeDetectorRef,
