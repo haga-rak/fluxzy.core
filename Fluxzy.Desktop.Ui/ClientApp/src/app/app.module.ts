@@ -95,6 +95,7 @@ import { HarExportSettingComponent } from './shared/har-export-setting/har-expor
 import { SearchTextFilterFormComponent } from './settings/filter-forms/child-forms/search-text-filter-form/search-text-filter-form.component';
 import {BackendInterceptor} from "./core/backend.interceptor";
 import { ExchangeToolsComponent } from './widgets/exchange-tools/exchange-tools.component';
+import { ExchangeMetricsComponent } from './widgets/exchange-metrics/exchange-metrics.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -176,6 +177,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         HarExportSettingComponent,
         SearchTextFilterFormComponent,
         ExchangeToolsComponent,
+        ExchangeMetricsComponent,
 
 
     ],

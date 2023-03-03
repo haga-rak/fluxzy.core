@@ -15,7 +15,7 @@ namespace Fluxzy.Formatters.Metrics
 
             var connectionInfo = reader.ReadConnection(exchange.ConnectionId);
 
-            return new ExchangeMetricInfo(exchange.Metrics, connectionInfo);
+            return new ExchangeMetricInfo(exchangeId, exchange.Metrics, connectionInfo);
         }
     }
 
@@ -23,11 +23,14 @@ namespace Fluxzy.Formatters.Metrics
     {
         private readonly ConnectionInfo? _connectionInfo;
 
-        public ExchangeMetricInfo(ExchangeMetrics rawMetrics, ConnectionInfo? connectionInfo)
+        public ExchangeMetricInfo(int exchangeId, ExchangeMetrics rawMetrics, ConnectionInfo? connectionInfo)
         {
             _connectionInfo = connectionInfo;
+            ExchangeId = exchangeId;
             RawMetrics = rawMetrics;
         }
+
+        public int ExchangeId { get;  }
 
         public ExchangeMetrics RawMetrics { get;  }
 
@@ -65,6 +68,8 @@ namespace Fluxzy.Formatters.Metrics
         public int? ReceivingHeader => MetricHelper.Diff(RawMetrics.ResponseHeaderEnd, RawMetrics.ResponseHeaderStart);
         
         public int? ReceivingBody => MetricHelper.Diff(RawMetrics.ResponseBodyEnd, RawMetrics.ResponseBodyStart);
+
+        public int? OverAllDuration => MetricHelper.Diff(RawMetrics.ResponseBodyEnd, RawMetrics.ReceivedFromProxy);
     }
 
     public static class MetricHelper

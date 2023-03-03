@@ -169,7 +169,7 @@ namespace Fluxzy.Core
                                 if (exception is OperationCanceledException)
                                     break;
 
-                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange))
+                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange, ITimingProvider.Default))
                                     throw;
 
                                 shouldClose = true;
