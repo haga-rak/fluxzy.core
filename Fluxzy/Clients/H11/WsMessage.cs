@@ -1,4 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
 using System;
@@ -119,7 +119,6 @@ namespace Fluxzy.Clients.H11
             else
             {
                 await using var stream = outStream(Id);
-                var lengthShift = 0;
                 var totalWr = 0;
 
                 while (WrittenLength < wsFrame.PayloadLength)
