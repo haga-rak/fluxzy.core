@@ -20,6 +20,7 @@ namespace Fluxzy.Core
         public async Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
         {
             await _client.ConnectAsync(address, port);
+
             return (IPEndPoint) _client.Client.LocalEndPoint; 
         }
 

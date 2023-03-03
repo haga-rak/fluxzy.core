@@ -1,7 +1,14 @@
 <div class="view-box" style="height:100%">
 
-    <div *ngIf="!connection" class="text-center" style="width: 100%">
-        Loading data
+    <div *ngIf="!connection">
+
+        <div *ngIf="exchange.connectionId" class="text-center" style="width: 100%">
+            Loading data
+        </div>
+
+        <div *ngIf="!exchange.connectionId" class="text-center" style="width: 100%">
+            No connection data available
+        </div>
     </div>
 
     <div *ngIf="connection" style="width:100%">
@@ -92,19 +99,19 @@
                     &nbsp;
                 </td>
             </tr>
-            <tr>
+            <tr  *ngIf="connection.sslInfo">
                 <th>SSL protocol</th>
                 <td colspan="2" class="text-center">
                     <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.sslProtocol"  />
                 </td>
             </tr>
-            <tr>
+            <tr  *ngIf="connection.sslInfo">
                 <th>Cipher</th>
                 <td colspan="2" class="text-center">
                     <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.cipherAlgorithm"  />
                 </td>
             </tr>
-            <tr>
+            <tr  *ngIf="connection.sslInfo">
                 <th>Hash</th>
                 <td colspan="2" class="text-center">
                     <input type="text" class="form-control form-connectivity" readonly [value]="connection.sslInfo.hashAlgorithm"  />

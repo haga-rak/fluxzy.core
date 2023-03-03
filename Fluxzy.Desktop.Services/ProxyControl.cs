@@ -44,11 +44,7 @@ namespace Fluxzy.Desktop.Services
             _userAgentProvider = userAgentProvider;
             _fileContentUpdateManager = fileContentUpdateManager;
 
-            _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState
-            {
-                OnError = true,
-                Message = "Not started yet"
-            });
+            _internalSubject = new BehaviorSubject<ProxyState>(new ProxyState("Not started yet"));
 
             fluxzySettingHolderObservable
                 .CombineLatest(
@@ -148,24 +144,15 @@ namespace Fluxzy.Desktop.Services
                     await _tcpConnectionProvider!.DisposeAsync();
                 }
 
-                return new ProxyState
-                {
-                    OnError = true,
-                    Message = ex.Message
-                };
+                return new ProxyState(ex.Message);
             }
 
-            return GetProxyState(endPoints);
+            return GetProxyState(endPoints, fluxzySetting);
         }
 
-        private ProxyState GetProxyState(IEnumerable<IPEndPoint> endPoints)
+        private ProxyState GetProxyState(IEnumerable<IPEndPoint> endPoints, FluxzySetting setting)
         {
-            return new ProxyState
-            {
-                BoundConnections = endPoints
-                                   .Select(b => new ProxyEndPoint(b.Address.ToString(), b.Port))
-                                   .ToList() ?? new List<ProxyEndPoint>()
-            };
+            return new ProxyState(setting, endPoints); 
         }
 
         public bool TryFlush()

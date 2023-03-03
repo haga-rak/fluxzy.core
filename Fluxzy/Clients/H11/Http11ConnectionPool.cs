@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.Collections.Generic;
@@ -96,7 +96,7 @@ namespace Fluxzy.Clients.H11
 
                     var openingResult =
                         await _remoteConnectionBuilder.OpenConnectionToRemote(
-                            exchange.Authority, exchange.Context, Http11Protocols,
+                            exchange, Http11Protocols,
                             _proxyRuntimeSetting, cancellationToken);
 
                     exchange.Connection = openingResult.Connection;

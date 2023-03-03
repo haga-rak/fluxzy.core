@@ -60,7 +60,7 @@ namespace Fluxzy
             ResponseHeader = responseHeader;
             Metrics = metrics;
             EgressIp = egressIp;
-            Pending = pending;
+            Pending = false;
             Comment = comment;
             IsWebSocket = isWebSocket;
             WebSocketMessages = webSocketMessages;

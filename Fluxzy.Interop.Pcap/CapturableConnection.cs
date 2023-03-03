@@ -32,16 +32,35 @@ namespace Fluxzy.Interop.Pcap
                 throw new InvalidOperationException("A previous connect attempt was already made");
 
             var context = _proxyScope.CaptureContext;
+            var connectError = false; 
 
             context?.Include(remoteAddress, remotePort);
 
-            await _innerTcpClient.ConnectAsync(remoteAddress, remotePort);
+            try {
 
-            _remoteAddress = remoteAddress;
-            _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
+                await _innerTcpClient.ConnectAsync(remoteAddress, remotePort);
 
+                _remoteAddress = remoteAddress;
+                _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
+            }
+            catch {
+                connectError = true; 
+                
+                throw; 
+            }
+            finally {
 
-            _subscription = context?.Subscribe(_outTraceFileName, remoteAddress, remotePort, _localEndPoint.Port) ?? 0;
+                // We force subscription to this capture context to enable pcapng retrieval for a connection error
+                
+                var localPort = ((IPEndPoint?) _innerTcpClient.Client?.LocalEndPoint)?.Port;
+
+                if (localPort != null && localPort > 0)
+                    _subscription = context?.Subscribe(_outTraceFileName, remoteAddress, remotePort, localPort.Value) ?? 0;
+
+                if (connectError) {
+                    await Task.Delay(1000);
+                }
+            }
 
             _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());
             

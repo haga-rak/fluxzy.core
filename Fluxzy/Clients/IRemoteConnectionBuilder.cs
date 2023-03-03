@@ -44,81 +44,80 @@ namespace Fluxzy.Clients
         }
 
         public async ValueTask<RemoteConnectionResult> OpenConnectionToRemote(
-            Authority authority, 
-            ExchangeContext context,
+            Exchange exchange,
             List<SslApplicationProtocol> httpProtocols,
             ProxyRuntimeSetting setting, 
             CancellationToken token)
         {
-            
-            var connection = new Connection(authority, setting.IdProvider)
+
+            exchange.Connection = new Connection(exchange.Authority, setting.IdProvider)
             {
                 TcpConnectionOpening = _timeProvider.Instant(),
                 // tcpClient.LingerState.
                 DnsSolveStart = _timeProvider.Instant()
             };
 
-            var ipAddress = context.RemoteHostIp ?? 
-                            await _dnsSolver.SolveDns(authority.HostName);
+            var ipAddress = exchange.Context.RemoteHostIp ?? 
+                            await _dnsSolver.SolveDns(exchange.Authority.HostName);
 
-            connection.RemoteAddress = ipAddress;
-            connection.DnsSolveEnd = _timeProvider.Instant();
+            exchange.Connection.RemoteAddress = ipAddress;
+            exchange.Connection.DnsSolveEnd = _timeProvider.Instant();
 
             var tcpConnection = setting.TcpConnectionProvider
                 .Create(setting.ArchiveWriter != null ?
-                    setting.ArchiveWriter?.GetDumpfilePath(connection.Id)!
+                    setting.ArchiveWriter?.GetDumpfilePath(exchange.Connection.Id)!
                     : string.Empty);
 
-            var localEndpoint = await tcpConnection.ConnectAsync(ipAddress, context.RemoteHostPort ?? 
-                                                                        authority.Port).ConfigureAwait(false);
+            var localEndpoint = await tcpConnection.ConnectAsync(ipAddress, exchange.Context.RemoteHostPort ??
+                                                                            exchange.Authority.Port).ConfigureAwait(false);
 
-            connection.TcpConnectionOpened = _timeProvider.Instant();
-            connection.LocalPort = localEndpoint.Port;
-            connection.LocalAddress = localEndpoint.Address.ToString();
+            exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
+            exchange.Connection.LocalPort = localEndpoint.Port;
+            exchange.Connection.LocalAddress = localEndpoint.Address.ToString();
             
             var newlyOpenedStream = tcpConnection.GetStream();
             
-            if (!authority.Secure || context.BlindMode)
+            if (!exchange.Authority.Secure || exchange.Context.BlindMode)
             {
-                connection.ReadStream = connection.WriteStream = newlyOpenedStream;
-                return new RemoteConnectionResult(RemoteConnectionResultType.Unknown,  connection);
+                exchange.Connection.ReadStream = exchange.Connection.WriteStream = newlyOpenedStream;
+                return new RemoteConnectionResult(RemoteConnectionResultType.Unknown, exchange.Connection);
             }
 
-            connection.SslNegotiationStart = _timeProvider.Instant();
+            exchange.Connection.SslNegotiationStart = _timeProvider.Instant();
 
             byte[]? remoteCertificate = null;
 
             var authenticationOptions = new SslClientAuthenticationOptions()
             {
-                TargetHost = authority.HostName , 
-                EnabledSslProtocols = context.ProxyTlsProtocols,
+                TargetHost = exchange.Authority.HostName , 
+                EnabledSslProtocols = exchange.Context.ProxyTlsProtocols,
                 ApplicationProtocols = httpProtocols,
             };
 
-            if (context.SkipRemoteCertificateValidation) {
+            if (exchange.Context.SkipRemoteCertificateValidation) {
                 authenticationOptions.RemoteCertificateValidationCallback = (_, _, _, errors) => true;
             }
 
-            if (context.ClientCertificates != null && context.ClientCertificates.Count > 0)
+            if (exchange.Context.ClientCertificates != null && exchange.Context.ClientCertificates.Count > 0)
             {
-                authenticationOptions.ClientCertificates = context.ClientCertificates;
+                authenticationOptions.ClientCertificates = exchange.Context.ClientCertificates;
             }
 
             var sslConnectionInfo =
                 await _sslConnectionBuilder.AuthenticateAsClient(
-                    newlyOpenedStream, authenticationOptions, tcpConnection.OnKeyReceived, token); 
+                    newlyOpenedStream, authenticationOptions, tcpConnection.OnKeyReceived, token);
 
-            connection.SslInfo = sslConnectionInfo.SslInfo;
+            exchange.Connection.SslInfo = sslConnectionInfo.SslInfo;
 
-            connection.SslNegotiationEnd = _timeProvider.Instant();
-            connection.SslInfo.RemoteCertificate = remoteCertificate;
+            exchange.Connection.SslNegotiationEnd = _timeProvider.Instant();
+            exchange.Connection.SslInfo.RemoteCertificate = remoteCertificate;
             
 
             Stream resultStream = sslConnectionInfo.Stream;
 
             if (DebugContext.EnableNetworkFileDump)
             {
-                resultStream = new DebugFileStream($"raw/{connection.Id:000000}_remotehost_",
+                resultStream = new DebugFileStream($"raw/{exchange.Connection.Id:000000}_remotehost_",
                     resultStream); 
             }
             
@@ -126,9 +125,9 @@ namespace Fluxzy.Clients
                 ? RemoteConnectionResultType.Http2
                 : RemoteConnectionResultType.Http11;
 
-            connection.ReadStream = connection.WriteStream = resultStream;
+            exchange.Connection.ReadStream = exchange.Connection.WriteStream = resultStream;
 
-            return new RemoteConnectionResult(protoType, connection);
+            return new RemoteConnectionResult(protoType, exchange.Connection);
         }
     }
 }

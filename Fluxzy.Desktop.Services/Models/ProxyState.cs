@@ -1,13 +1,74 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
+
+using System.Net;
 
 namespace Fluxzy.Desktop.Services.Models
 {
     public class ProxyState
     {
-        public List<ProxyEndPoint> BoundConnections { get; set; } = new(); 
+        public ProxyState(string errorMessage)
+        {
+            OnError = true; 
+            BoundConnections = new();
+            Message = errorMessage;
+            RunSettings = null; 
+        }
+        
+        public ProxyState(FluxzySetting setting, IEnumerable<IPEndPoint> endPoints)
+        {
+            BoundConnections = endPoints
+                               .Select(b => new ProxyEndPoint(b.Address.ToString(), b.Port))
+                               .ToList();
 
-        public bool OnError { get; set; }
+            var sslConfig = SslConfig.NoSsl;
 
-        public string?  Message { get; set; }
+            if (!setting.GlobalSkipSslDecryption) {
+                sslConfig = setting.UseBouncyCastle ? SslConfig.BouncyCastle : SslConfig.OsDefault;
+            }
+
+            var rawCaptureMode = RawCaptureMode.None;
+
+            if (setting.CaptureRawPacket) {
+                rawCaptureMode = setting.OutOfProcCapture ? RawCaptureMode.OutProcess : RawCaptureMode.InProcess;
+            }
+
+            RunSettings = new ProxyNetworkState(sslConfig, rawCaptureMode);
+        }
+
+        public List<ProxyEndPoint> BoundConnections { get; }
+
+        public bool OnError { get; }
+
+        public string?  Message { get; }
+
+        public ProxyNetworkState? RunSettings { get; }
+    }
+    
+    public class ProxyNetworkState
+    {
+        public ProxyNetworkState(SslConfig sslConfig, RawCaptureMode rawCaptureMode)
+        {
+            SslConfig = sslConfig;
+            RawCaptureMode = rawCaptureMode;
+        }
+
+        public SslConfig SslConfig { get; }
+        
+        public RawCaptureMode RawCaptureMode { get; }
+    }
+
+    
+    public enum SslConfig
+    {
+        NoSsl = 1 , 
+        OsDefault = 2 , 
+        BouncyCastle 
+    }
+
+    public enum RawCaptureMode
+    {
+        None = 1, 
+        InProcess = 2 ,
+        OutProcess = 3
     }
 }

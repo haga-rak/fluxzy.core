@@ -332,6 +332,26 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label text-end">
+                                    <small class="text-info">
+                                        &nbsp;
+                                    </small>
+                                </label>
+                                <div class="col-sm-9">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="flexSwitchRunMode"
+                                               [(ngModel)]="settingsHolder.startupSetting.outOfProcCapture">
+                                        <label class="form-check-label" for="flexSwitchRunMode">
+                                            Run the capture process out of Desktop process</label>
+                                    </div>
+
+                                    <small class="text-info">
+                                           This option must be enabled on macOS and Linux to avoid running the Desktop application as root.
+                                     </small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div>

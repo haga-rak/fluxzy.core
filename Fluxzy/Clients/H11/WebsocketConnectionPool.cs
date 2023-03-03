@@ -1,4 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
+// // Copyright 2022 - Haga Rakotoharivelo
 // 
 
 using System;
@@ -110,8 +110,7 @@ namespace Fluxzy.Clients.H11
                 throw new ArgumentNullException(nameof(localLink));
 
             var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(
-                exchange.Authority,
-                exchange.Context,
+                exchange,
                 new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
                 _creationSetting,
                 cancellationToken).ConfigureAwait(false);

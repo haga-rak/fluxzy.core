@@ -44,9 +44,6 @@ export class ExchangeManagementService {
             tap(t => this.trunkState = t),
             ).subscribe();
 
-        this.getBrowsingState().
-            pipe(tap(t => console.log(t))).subscribe();
-
         this.exchangeSelectionService.getCurrentSelection().pipe(
             tap(s => this.currentSelection = s),).subscribe();
 
