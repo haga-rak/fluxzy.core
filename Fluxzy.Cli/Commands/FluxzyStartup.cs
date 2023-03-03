@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System;
 using System.CommandLine;
@@ -14,7 +14,7 @@ namespace Fluxzy.Cli.Commands
     {
         public static async Task<int> Run(string [] args, OutputConsole ? outputConsole, CancellationToken token)
         {
-            var rootCommand = new RootCommand("Advanced HTTP capture tool");
+            var rootCommand = new RootCommand("CLI tool for recording, analyzing and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.");
             var instanceIdentifier = Guid.NewGuid().ToString();
 
             var startCommandBuilder = new StartCommandBuilder(instanceIdentifier);

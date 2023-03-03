@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright Â© 2022 Haga Rakotoharivelo
 
 using System.Net;
 using System.Net.Http;

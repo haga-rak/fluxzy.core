@@ -9,6 +9,7 @@ using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
+using Fluxzy.Formatters.Metrics;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
@@ -96,6 +97,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddScoped<CertificateValidator>();
             collection.AddScoped<SystemService>();
             collection.AddScoped<CurlRequestConverter>();
+            collection.AddScoped<ExchangeMetricBuilder>();
             collection.AddScoped<IRequestReplayManager, CurlRequestReplayManager>();
             collection.AddSingleton<CurlExportFolderManagement>(_ => new CurlExportFolderManagement());
             collection.AddScoped<FileExecutionManager>();
