@@ -30,3 +30,11 @@
 .metrics-table tr.line-info-unavailable td {
     color : var(--bs-gray-300);
 }
+.vertical-bar{
+    background : var(--bs-gray-300);
+    border-radius : 4px;
+}
+
+.bar-ttfb {
+    background : var(--bs-green);
+}
