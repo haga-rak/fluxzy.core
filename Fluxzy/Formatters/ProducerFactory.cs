@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -71,6 +71,9 @@ namespace Fluxzy.Formatters
         public IEnumerable<FormattingResult> GetResponseFormattedResults(int exchangeId,
             ProducerContext formattingProducerContext)
         {
+            if (formattingProducerContext.Exchange.StatusCode == 528)
+                yield break; // No formatters for transport level error
+
             foreach (var producer in ResponseProducers)
             {
                 var result = producer.Build(formattingProducerContext.Exchange, formattingProducerContext);

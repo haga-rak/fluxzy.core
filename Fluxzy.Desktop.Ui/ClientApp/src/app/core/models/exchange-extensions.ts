@@ -75,6 +75,13 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
         };
     }
 
+    if (exchangeInfo.responseHeader.statusCode == 528) {
+        return   {
+            iconClass : ["fa",  "fa-exclamation-circle"],
+            textClass : ["text-warning", "bold"]
+        };
+    }
+
     if (exchangeInfo.responseHeader.statusCode < 600) {
         return   {
             iconClass : ["fa",  "fa-exclamation-triangle"],
@@ -139,4 +146,5 @@ export const StatusCodeVerb = {
     '503': 'Service Unavailable',
     '504': 'Gateway Timeout',
     '505': 'HTTP Version Not Supported',
+    '528': 'Transport level error',
 };
