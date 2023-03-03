@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Collections.Generic;
 using Fluxzy.Clients.H11;
@@ -34,6 +34,26 @@ namespace Fluxzy
         IEnumerable<HeaderFieldInfo>? GetResponseHeaders();
         
         Agent ? Agent { get;  }
+
+        List<ClientError> ClientErrors { get;  }
+    }
+
+
+    public class ClientError
+    {
+        public ClientError(int errorCode, string message)
+        {
+            ErrorCode = errorCode;
+            Message = message;
+        }
+
+        public int ErrorCode { get;  }
+        
+
+        public string Message { get; }
+
+
+        public string ? ExceptionMessage { get; set; }
     }
     
 }

@@ -273,6 +273,9 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<Agent>()
                    .ApplyGenericProperties();
 
+            builder.ExportAsInterface<ClientError>()
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<DescriptionInfo>()
                    .ApplyGenericProperties();
 

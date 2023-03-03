@@ -185,6 +185,12 @@ export interface Agent
 	id: number;
 	friendlyName: string;
 }
+export interface ClientError
+{
+	errorCode: number;
+	message: string;
+	exceptionMessage?: string;
+}
 export interface DescriptionInfo
 {
 	description: string;
@@ -888,6 +894,7 @@ export interface ExchangeInfo
 	isWebSocket: boolean;
 	webSocketMessages?: WsMessage[];
 	agent?: Agent;
+	clientErrors: ClientError[];
 }
 export interface RequestHeaderInfo
 {

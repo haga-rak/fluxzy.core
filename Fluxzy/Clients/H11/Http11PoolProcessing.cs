@@ -1,10 +1,11 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright © 2022 Haga RAKOTOHARIVELO
 
 using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 
@@ -62,11 +63,21 @@ namespace Fluxzy.Clients.H11
 
             // Waiting for header block 
 
-            var headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, buffer,
-                () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
-                () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
-                true,
-                cancellationToken);
+            HeaderBlockReadResult headerBlockDetectResult = default;
+
+            try {
+
+                headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, buffer,
+                    () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
+                    () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
+                    true,
+                    cancellationToken);
+            }
+            catch (Exception ex) {
+                throw new ClientErrorException(0, $"The connection was close while trying to read the response header",
+                    ex.Message);
+            }
+            
 
             Memory<char> headerContent = new char[headerBlockDetectResult.HeaderLength];
 

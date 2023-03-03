@@ -160,6 +160,8 @@ namespace Fluxzy.Clients
 
         public Agent? Agent { get; set; }
 
+        public List<ClientError> ClientErrors { get; } = new();
+
         public static Exchange CreateUntrackedExchange(
             IIdProvider idProvider, ExchangeContext context, Authority authority,
             ReadOnlyMemory<char> requestHeaderPlain, Stream requestBody, ReadOnlyMemory<char> responseHeader,

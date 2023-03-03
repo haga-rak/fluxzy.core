@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
@@ -40,18 +41,19 @@ namespace Fluxzy
 
             RequestHeader = new RequestHeaderInfo(exchange.Request.Header);
             EgressIp = exchange.EgressIp;
-            Pending = !exchange.Complete.IsCompleted;
+            Pending = !exchange.Complete.IsCompleted && !exchange.ClientErrors.Any();
             Comment = exchange.Comment;
             Tags = exchange.Tags ?? new HashSet<Tag>();
             IsWebSocket = exchange.IsWebSocket;
             WebSocketMessages = exchange.WebSocketMessages;
+            ClientErrors = exchange.ClientErrors;
         }
 
         [JsonConstructor]
         public ExchangeInfo(int id, int connectionId, string httpVersion,
             RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader,
             ExchangeMetrics metrics, string egressIp, bool pending, string? comment, HashSet<Tag>? tags,
-            bool isWebSocket, List<WsMessage> webSocketMessages, Agent? agent)
+            bool isWebSocket, List<WsMessage> webSocketMessages, Agent? agent, List<ClientError> clientErrors)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -65,6 +67,7 @@ namespace Fluxzy
             IsWebSocket = isWebSocket;
             WebSocketMessages = webSocketMessages;
             Agent = agent;
+            ClientErrors = clientErrors;
             Tags = tags ?? new HashSet<Tag>();
         }
 
@@ -102,6 +105,8 @@ namespace Fluxzy
         public List<WsMessage>? WebSocketMessages { get; }
         
         public Agent? Agent { get; }
+        
+        public List<ClientError> ClientErrors { get; } 
     }
 
     public class BodyContent

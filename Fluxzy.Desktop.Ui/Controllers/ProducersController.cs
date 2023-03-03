@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using Microsoft.AspNetCore.Mvc;
 using Fluxzy.Formatters;
@@ -35,6 +35,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
                 return NotFound();
 
             var exchangeContext = producerContext.GetContextInfo();
+            
 
             var viewModel = new FormatterContainerViewModel(_producerFactory.GetRequestFormattedResults(
                 exchangeId, producerContext).ToList(), _producerFactory.GetResponseFormattedResults(

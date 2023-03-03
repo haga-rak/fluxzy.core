@@ -1,19 +1,38 @@
 
 <div style="height: 100%; ">
 
-    <table class="summary-table" *ngIf="exchange.responseHeader">
-        <tr *ngFor="let header of exchange.responseHeader.headers | sort:'name'" >
-            <ng-container *ngIf="!header.name.startsWith(':') && header.forwarded">
+    <div *ngIf="exchange.responseHeader">
 
-                <th>{{ header.name }}</th>
-                <td>
+        <table class="summary-table" *ngIf="exchange.clientErrors.length === 0" >
+            <tr *ngFor="let header of exchange.responseHeader.headers | sort:'name'" >
+                <ng-container *ngIf="!header.name.startsWith(':') && header.forwarded">
 
-                    <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(header.value)">
-                        <span class="material-icons" style="font-size:10px !important">content_copy</span></a>
-                    {{ header.value }}</td>
-            </ng-container>
-        </tr>
-    </table>
+                    <th>{{ header.name }}</th>
+                    <td>
+                        <a title="Copy to clipboard" href="javascript:;" class="" (click)="setClipboard(header.value)">
+                            <span class="material-icons" style="font-size:10px !important">content_copy</span></a>
+                        {{ header.value }}</td>
+                </ng-container>
+            </tr>
+        </table>
+        <div *ngIf="exchange.clientErrors.length">
+            <div class="alert alert-warning">
+                <table>
+                    <tr>
+                        <td style="width: 32px"> <i class="fa fa-exclamation-circle text-warning" style="font-size : 24px"></i></td>
+                        <td>
+                            fluxzy encountered transport level errors while trying to connect to the remote peer.
+                            <br/>
+                            The error has been requalified to status 528 in order to make it intelligible at HTTP level.
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+            <span class="text-info">Reason of failure</span><br/>
+            <pre class="error-formatting" *ngFor="let clientError of exchange.clientErrors">{{ clientError.message }}</pre>
+        </div>
+    </div>
 
 
 </div>

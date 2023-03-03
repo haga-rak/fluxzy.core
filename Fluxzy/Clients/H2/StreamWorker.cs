@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;
@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Frames;
+using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
@@ -342,8 +343,8 @@ namespace Fluxzy.Clients.H2
             {
                 _logger.Trace(StreamIdentifier, $"Received no header, cancelled by caller {StreamIdentifier}");
 
-                throw new IOException(
-                    $"Received no header, cancelled by caller {StreamIdentifier} / {Parent.Context.ConnectionId} / {cp.IsDisposed}");
+                throw new ClientErrorException(1, 
+                    $"The connection was interrupted before receiving response header");
             }
             catch (Exception)
             {

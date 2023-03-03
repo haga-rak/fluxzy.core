@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -169,8 +169,7 @@ namespace Fluxzy.Core
                                 if (exception is OperationCanceledException)
                                     break;
 
-                                if (!ConnectionErrorHandler
-                                        .RequalifyOnResponseSendError(exception, exchange))
+                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange))
                                     throw;
 
                                 shouldClose = true;
