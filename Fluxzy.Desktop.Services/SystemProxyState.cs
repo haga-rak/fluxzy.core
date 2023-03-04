@@ -1,18 +1,20 @@
-﻿namespace Fluxzy.Desktop.Services
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+namespace Fluxzy.Desktop.Services
 {
     public class SystemProxyState
     {
-        public bool On { get; set; }
-
-        public string Address { get; set; }
-
-        public int Port { get; set; }
-
         public SystemProxyState(string address, int port, bool on)
         {
             Address = address;
             Port = port;
             On = on;
         }
+
+        public bool On { get; set; }
+
+        public string Address { get; set; }
+
+        public int Port { get; set; }
     }
 }

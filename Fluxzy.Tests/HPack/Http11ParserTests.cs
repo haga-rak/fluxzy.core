@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Linq;
 using System.Text;
@@ -34,7 +36,7 @@ namespace Fluxzy.Tests.HPack
             var headerBlocks = Http11Parser.Read(header.AsMemory()).ToList();
             var result = Http11Parser.Write(headerBlocks, resultBuffer).ToString();
 
-            Assert.Equal(header, result , StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(header, result, StringComparer.OrdinalIgnoreCase);
         }
     }
 }

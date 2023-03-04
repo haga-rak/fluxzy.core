@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -22,18 +24,19 @@ namespace Fluxzy.Core
         {
             Span<char> bufferChar = stackalloc char[4];
             Encoding.ASCII.GetChars(buffer, bufferChar);
+
             return ((ReadOnlySpan<char>) bufferChar).Equals("GET ", StringComparison.OrdinalIgnoreCase);
         }
 
-        public async Task<SecureConnectionUpdateResult> AuthenticateAsServer(Stream stream, string host, CancellationToken token)
+        public async Task<SecureConnectionUpdateResult> AuthenticateAsServer(
+            Stream stream, string host, CancellationToken token)
         {
             var buffer = new byte[4];
             var originalStream = stream;
-            
+
             await stream.ReadExactAsync(buffer, token);
-            
-            if (StartWithKeyWord(buffer))
-            {
+
+            if (StartWithKeyWord(buffer)) {
                 // Probably Web socket request 
                 // This is websocket demand 
 
@@ -48,17 +51,14 @@ namespace Fluxzy.Core
 
             var certificate = _certificateProvider.GetCertificate(host);
 
-            try
-            {
+            try {
                 await secureStream
-                    .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false)
-                    .ConfigureAwait(false);
+                      .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false)
+                      .ConfigureAwait(false);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 throw new FluxzyException("Client closed connection while trying to negotiate SSL/TLS settings", ex);
             }
-
 
             return new SecureConnectionUpdateResult(false, true,
                 secureStream,
@@ -66,7 +66,8 @@ namespace Fluxzy.Core
         }
     }
 
-    public record SecureConnectionUpdateResult(bool IsSsl, bool IsWebSocket,
+    public record SecureConnectionUpdateResult(
+        bool IsSsl, bool IsWebSocket,
         Stream InStream, Stream OutStream)
     {
         public bool IsSsl { get; } = IsSsl;

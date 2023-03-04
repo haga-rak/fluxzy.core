@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -8,9 +8,10 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// Remove request headers. This actions remove <b>every</b> occurrence of the header from the request
+    ///     Remove request headers. This actions remove <b>every</b> occurrence of the header from the request
     /// </summary>
-    [ActionMetadata("Remove request headers. This actions remove <b>every</b> occurrence of the header from the request.")]
+    [ActionMetadata(
+        "Remove request headers. This actions remove <b>every</b> occurrence of the header from the request.")]
     public class DeleteRequestHeaderAction : Action
     {
         public DeleteRequestHeaderAction(string headerName)
@@ -19,18 +20,19 @@ namespace Fluxzy.Rules.Actions
         }
 
         /// <summary>
-        /// Header name
+        ///     Header name
         /// </summary>
-        public string HeaderName { get; set;  }
+        public string HeaderName { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+
+        public override string DefaultDescription => $"Remove header {HeaderName}".Trim();
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             context.RequestHeaderAlterations.Add(new HeaderAlterationDelete(HeaderName));
+
             return default;
         }
-
-        public override string DefaultDescription => $"Remove header {HeaderName}".Trim();
     }
 }

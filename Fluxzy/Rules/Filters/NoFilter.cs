@@ -1,9 +1,9 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Rules.Filters
 {
     /// <summary>
-    /// Select nothing
+    ///     Select nothing
     /// </summary>
     public class NoFilter : Filter
     {
@@ -13,7 +13,8 @@ namespace Fluxzy.Rules.Filters
 
         public override bool PreMadeFilter => true;
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return false;

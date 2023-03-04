@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using Fluxzy.Clients.H2.Frames;
@@ -27,8 +27,7 @@ namespace Fluxzy.Clients.H2
             var maxPayload = maxFrameSize - 9;
             var first = true;
 
-            while (remains > 0)
-            {
+            while (remains > 0) {
                 var writableLength = Math.Min(maxPayload, remains);
 
                 // Build header  here 

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Linq;
 using System.Net;
@@ -33,8 +33,7 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 

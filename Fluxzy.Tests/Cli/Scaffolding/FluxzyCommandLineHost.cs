@@ -1,9 +1,8 @@
-// Copyright � 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Cli;
 using Fluxzy.Cli.Commands;
 using Xunit.Abstractions;
 
@@ -11,16 +10,15 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 {
     public class FluxzyCommandLineHost
     {
-        private readonly ITestOutputHelper? _outputHelper;
-        private readonly string[] _commandLineArgs;
-        private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
-        private readonly OutputWriterNotifier _standardOutput;
-        private readonly OutputWriterNotifier _standardError;
-        private Task<int> _runningProxyTask;
+        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly string[] _commandLineArgs;
         private readonly OutputConsole _outputConsole;
+        private readonly ITestOutputHelper? _outputHelper;
+        private readonly OutputWriterNotifier _standardError;
+        private readonly OutputWriterNotifier _standardOutput;
 
-        public FluxzyCommandLineHost(string commandLine, ITestOutputHelper?  outputHelper = null)
+        public FluxzyCommandLineHost(string commandLine, ITestOutputHelper? outputHelper = null)
             : this(commandLine.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries))
 
         {
@@ -39,18 +37,17 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _outputConsole = new OutputConsole(_standardOutput, _standardError);
         }
 
+        public Task<int> ExitCode { get; private set; }
+
         public async Task<ProxyInstance> Run(int timeoutSeconds = 5)
         {
-            
             var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$", timeoutSeconds);
-            _runningProxyTask = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken);
+            ExitCode = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken);
 
             var port = int.Parse(await waitForPortTask);
 
-            return new ProxyInstance(_runningProxyTask, _standardOutput, _standardError, port, _cancellationTokenSource);
+            return new ProxyInstance(ExitCode, _standardOutput, _standardError, port, _cancellationTokenSource);
         }
-
-        public Task<int> ExitCode => _runningProxyTask;
 
         public static Task<ProxyInstance> CreateAndRun(string commandLine)
         {

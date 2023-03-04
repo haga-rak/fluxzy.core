@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
@@ -21,7 +21,7 @@ namespace Fluxzy.Desktop.Services
             var fileState = await _fileStateProvider.FirstOrDefaultAsync();
 
             if (fileState is null)
-                return null; 
+                return null;
 
             return new DirectoryArchiveReader(fileState.WorkingDirectory);
         }

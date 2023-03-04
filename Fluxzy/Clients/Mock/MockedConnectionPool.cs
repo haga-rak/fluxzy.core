@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading;
@@ -36,7 +36,8 @@ namespace Fluxzy.Clients.Mock
             return new ValueTask<bool>(Complete);
         }
 
-        public async ValueTask Send(Exchange exchange,
+        public async ValueTask Send(
+            Exchange exchange,
             ILocalLink localLink, RsBuffer buffer,
             CancellationToken cancellationToken = default)
         {
@@ -58,14 +59,12 @@ namespace Fluxzy.Clients.Mock
             exchange.Response.Body =
                 new MetricsStream(_preMadeResponse.ReadBody(Authority),
                     () => { exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant(); },
-                    length =>
-                    {
+                    length => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
                         exchange.ExchangeCompletionSource.SetResult(true);
                     },
-                    exception =>
-                    {
+                    exception => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.ExchangeCompletionSource.SetException(exception);
                     },

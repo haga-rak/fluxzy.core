@@ -1,7 +1,6 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using Fluxzy.Clients;
 
 namespace Fluxzy
 {
@@ -13,7 +12,7 @@ namespace Fluxzy
             Value = value;
         }
 
-        public Guid Identifier { get;   }
+        public Guid Identifier { get; }
 
         public string Value { get; }
 
@@ -21,8 +20,10 @@ namespace Fluxzy
         {
             if (ReferenceEquals(null, other))
                 return false;
+
             if (ReferenceEquals(this, other))
                 return true;
+
             return Identifier.Equals(other.Identifier) && Value == other.Value;
         }
 
@@ -30,11 +31,14 @@ namespace Fluxzy
         {
             if (ReferenceEquals(null, obj))
                 return false;
+
             if (ReferenceEquals(this, obj))
                 return true;
-            if (obj.GetType() != this.GetType())
+
+            if (obj.GetType() != GetType())
                 return false;
-            return Equals((Tag)obj);
+
+            return Equals((Tag) obj);
         }
 
         public override int GetHashCode()
@@ -44,7 +48,7 @@ namespace Fluxzy
 
         public override string ToString()
         {
-            return $"{Value} ({Identifier})"; 
+            return $"{Value} ({Identifier})";
         }
     }
 }

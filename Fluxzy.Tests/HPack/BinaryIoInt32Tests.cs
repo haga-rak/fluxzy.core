@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Xunit;
@@ -12,15 +14,14 @@ namespace Fluxzy.Tests.HPack
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 6;
-            int writeValue = 2;
+            var prefixSize = 6;
+            var writeValue = 2;
 
-            int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-            int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+            var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+            var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
             Assert.Equal(offsetRead, offsetWrite);
             Assert.Equal(readValue, writeValue);
-
         }
 
         [Fact]
@@ -29,15 +30,14 @@ namespace Fluxzy.Tests.HPack
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 6;
-            int writeValue = 66;
+            var prefixSize = 6;
+            var writeValue = 66;
 
-            int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-            int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+            var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+            var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
             Assert.Equal(offsetRead, offsetWrite);
             Assert.Equal(readValue, writeValue);
-
         }
 
         [Fact]
@@ -46,15 +46,14 @@ namespace Fluxzy.Tests.HPack
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 6;
-            int writeValue = (1 << prefixSize) - 1;
+            var prefixSize = 6;
+            var writeValue = (1 << prefixSize) - 1;
 
-            int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-            int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+            var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+            var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
             Assert.Equal(offsetRead, offsetWrite);
             Assert.Equal(readValue, writeValue);
-
         }
 
         [Fact]
@@ -63,11 +62,11 @@ namespace Fluxzy.Tests.HPack
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 6;
-            int writeValue = 190;
+            var prefixSize = 6;
+            var writeValue = 190;
 
-            int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-            int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+            var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+            var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
             Assert.Equal(offsetRead, offsetWrite);
             Assert.Equal(readValue, writeValue);
@@ -78,11 +77,11 @@ namespace Fluxzy.Tests.HPack
         {
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
-            int prefixSize = 6;
-            int writeValue = 191;
+            var prefixSize = 6;
+            var writeValue = 191;
 
-            int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-            int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+            var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+            var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
             Assert.Equal(offsetRead, offsetWrite);
             Assert.Equal(readValue, writeValue);
@@ -94,14 +93,13 @@ namespace Fluxzy.Tests.HPack
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 6;
+            var prefixSize = 6;
 
-            for (int i = 1; i < 1 << 16; i++)
-            {
-                int writeValue = i;
+            for (var i = 1; i < 1 << 16; i++) {
+                var writeValue = i;
 
-                int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-                int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+                var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+                var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
                 // buffer.Clear();
 
@@ -116,14 +114,13 @@ namespace Fluxzy.Tests.HPack
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 5;
+            var prefixSize = 5;
 
-            for (int i = 1; i < 1 << 16; i++)
-            {
-                int writeValue = i;
+            for (var i = 1; i < 1 << 16; i++) {
+                var writeValue = i;
 
-                int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-                int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+                var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+                var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
                 Assert.Equal(offsetRead, offsetWrite);
                 Assert.Equal(readValue, writeValue);
@@ -136,14 +133,13 @@ namespace Fluxzy.Tests.HPack
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 1;
+            var prefixSize = 1;
 
-            for (int i = 1; i < 1 << 16; i++)
-            {
-                int writeValue = i;
+            for (var i = 1; i < 1 << 16; i++) {
+                var writeValue = i;
 
-                int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-                int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+                var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+                var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
                 // buffer.Clear();
 
@@ -158,14 +154,13 @@ namespace Fluxzy.Tests.HPack
             Span<byte> buffer = stackalloc byte[8];
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 6;
+            var prefixSize = 6;
 
-            for (int i = 1; i < 27; i++)
-            {
-                int writeValue = (1 << i) - 1;
+            for (var i = 1; i < 27; i++) {
+                var writeValue = (1 << i) - 1;
 
-                int offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
-                int offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
+                var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
+                var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
 
                 Assert.Equal(offsetRead, offsetWrite);
                 Assert.Equal(readValue, writeValue);
@@ -177,15 +172,14 @@ namespace Fluxzy.Tests.HPack
         {
             var binaryHelper = new PrimitiveOperation();
 
-            int prefixSize = 6;
-            int writeValue = 66;
+            var prefixSize = 6;
+            var writeValue = 66;
 
-            Assert.Throws<HPackCodecException>(() =>
-            {
+            Assert.Throws<HPackCodecException>(() => {
                 Span<byte> buffer = stackalloc byte[1];
+
                 return binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
             });
-
         }
     }
 }

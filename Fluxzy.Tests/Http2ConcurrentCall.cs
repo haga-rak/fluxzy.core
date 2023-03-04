@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Specialized;
@@ -26,9 +26,11 @@ namespace Fluxzy.Tests
 
             requestMessage.Headers.Add("x-buffer-size", bufferSize.ToString());
 
-            if (nvCol != null)
-                foreach (string nv in nvCol)
+            if (nvCol != null) {
+                foreach (string nv in nvCol) {
                     requestMessage.Headers.Add(nv, nvCol[nv]);
+                }
+            }
 
             await using var randomStream = new RandomDataStream(9, length);
             var content = new StreamContent(randomStream, bufferSize);
@@ -74,12 +76,10 @@ namespace Fluxzy.Tests
             var buffer = new byte[500];
 
             var tasks =
-                Enumerable.Repeat(httpClient, count).Select((h, index) =>
-                {
+                Enumerable.Repeat(httpClient, count).Select((h, index) => {
                     new Random(index).NextBytes(buffer);
 
-                    return CallSimple(h, 1024 * 16 + 10, 128 * 4, new NameValueCollection
-                    {
+                    return CallSimple(h, 1024 * 16 + 10, 128 * 4, new NameValueCollection {
                         { "Cookie", Convert.ToBase64String(buffer) }
                     });
                 });
@@ -105,14 +105,12 @@ namespace Fluxzy.Tests
             var buffer = new byte[500];
 
             var tasks =
-                Enumerable.Repeat(httpClient, count).Select((h, index) =>
-                {
+                Enumerable.Repeat(httpClient, count).Select((h, index) => {
                     new Random(index % 2).NextBytes(buffer);
 
                     return CallSimple(
                         h, bodyLength,
-                        524288, new NameValueCollection
-                        {
+                        524288, new NameValueCollection {
                             { "Cookie", Convert.ToBase64String(buffer) }
                         });
                 });
@@ -130,14 +128,12 @@ namespace Fluxzy.Tests
             var repeatCount = 20;
 
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
-                                  .Select(async client =>
-                                  {
+                                  .Select(async client => {
                                       var response = await client.GetAsync($"{TestConstants.Http2Host}/headers-random");
                                       var text = await response.Content.ReadAsStringAsync();
 
                                       var items = JsonSerializer.Deserialize<Header2[]>(text
-                                          , new JsonSerializerOptions
-                                          {
+                                          , new JsonSerializerOptions {
                                               PropertyNameCaseInsensitive = true
                                           })!;
 
@@ -166,16 +162,14 @@ namespace Fluxzy.Tests
             var repeatCount = 40;
 
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
-                                  .Select(async client =>
-                                  {
+                                  .Select(async client => {
                                       var response =
                                           await client.GetAsync($"{TestConstants.Http2Host}/headers-random-repeat");
 
                                       var text = await response.Content.ReadAsStringAsync();
 
                                       var items = JsonSerializer.Deserialize<Header2[]>(text
-                                          , new JsonSerializerOptions
-                                          {
+                                          , new JsonSerializerOptions {
                                               PropertyNameCaseInsensitive = true
                                           })!;
 

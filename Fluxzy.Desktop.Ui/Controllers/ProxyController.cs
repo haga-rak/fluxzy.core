@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
@@ -19,28 +19,28 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("on")]
-        public async Task<ActionResult<bool>> On(
-            [FromServices] FluxzySettingManager settingManager)
+        public async Task<ActionResult<bool>> On([FromServices] FluxzySettingManager settingManager)
         {
             // Erase save filter when startup normally
             var settingsHolder = await settingManager.ProvidedObservable.FirstAsync();
             settingsHolder.StartupSetting.SaveFilter = null;
             settingManager.Update(settingsHolder);
 
-
             _systemProxyStateControl.On();
+
             return true;
         }
 
         [HttpPost("on/with-settings")]
         public async Task<ActionResult<bool>> OnWithSetting(
-            [FromServices] FluxzySettingManager settingManager, 
-            [FromBody] Filter? saveFilter = null)
+            [FromServices] FluxzySettingManager settingManager,
+            [FromBody]
+            Filter? saveFilter = null)
         {
             var settingsHolder = await settingManager.ProvidedObservable.FirstAsync();
             settingsHolder.StartupSetting.SaveFilter = saveFilter;
             settingManager.Update(settingsHolder);
-            
+
             _systemProxyStateControl.On();
 
             return true;

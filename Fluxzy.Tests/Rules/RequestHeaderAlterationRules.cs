@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -15,14 +17,14 @@ namespace Fluxzy.Tests.Rules
     {
         [Theory]
         [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]  
+        [InlineData(TestConstants.Http2Host)]
         public async Task AddNewRequestHeaderWithFilterHostOnly(string host)
         {
             var headerValue = "anyrandomtexTyoo!!";
             var headerName = "X-Haga-Unit-Test";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
+
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new AddRequestHeaderAction(
@@ -31,9 +33,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{endPoint}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -42,14 +43,14 @@ namespace Fluxzy.Tests.Rules
                 $"{host}/global-health-check");
 
             using var response = await httpClient.SendAsync(requestMessage);
-            
+
             var checkResult = await response.GetCheckResult();
-            
-            var matchingHeaders = 
-                checkResult.Headers?.Where(h => 
-                    h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase) 
-                    && h.Value == headerValue)
-                .ToList();
+
+            var matchingHeaders =
+                checkResult.Headers?.Where(h =>
+                               h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase)
+                               && h.Value == headerValue)
+                           .ToList();
 
             Assert.NotNull(matchingHeaders);
             Assert.Single(matchingHeaders);
@@ -59,7 +60,7 @@ namespace Fluxzy.Tests.Rules
 
         [Theory]
         [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]  
+        [InlineData(TestConstants.Http2Host)]
         public async Task UpdateRequestHeaderWithFilterHostOnly(string host)
         {
             var headerName = "X-Haga-Unit-Test";
@@ -67,7 +68,7 @@ namespace Fluxzy.Tests.Rules
             var headerNewValue = "updated to ABCDef";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
+
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new UpdateRequestHeaderAction(
@@ -76,9 +77,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{endPoint}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -89,14 +89,13 @@ namespace Fluxzy.Tests.Rules
             requestMessage.Headers.Add(headerName, headerValue);
 
             using var response = await httpClient.SendAsync(requestMessage);
-            
+
             var checkResult = await response.GetCheckResult();
 
-            var matchingHeaders = checkResult.
-                Headers?.Where(h => 
-                    h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase) 
-                    && h.Value == headerNewValue)
-                .ToList();
+            var matchingHeaders = checkResult.Headers?.Where(h =>
+                                                 h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase)
+                                                 && h.Value == headerNewValue)
+                                             .ToList();
 
             Assert.NotNull(matchingHeaders);
             Assert.Single(matchingHeaders);
@@ -106,7 +105,7 @@ namespace Fluxzy.Tests.Rules
 
         [Theory]
         [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]  
+        [InlineData(TestConstants.Http2Host)]
         public async Task UpdateRequestHeaderReuseExistingValueWithFilterHostOnly(string host)
         {
             var headerName = "x-h";
@@ -115,7 +114,7 @@ namespace Fluxzy.Tests.Rules
             var headerValueAltered = "Cd Ab";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
+
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new UpdateRequestHeaderAction(
@@ -124,9 +123,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{endPoint}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -137,21 +135,19 @@ namespace Fluxzy.Tests.Rules
             requestMessage.Headers.Add(headerName, headerValue);
 
             using var response = await httpClient.SendAsync(requestMessage);
-            
+
             var checkResult = await response.GetCheckResult();
 
-            var matchingHeaders = checkResult.
-                Headers?.Where(h => 
-                    h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase) 
-                    && h.Value == headerValueAltered)
-                .ToList();
+            var matchingHeaders = checkResult.Headers?.Where(h =>
+                                                 h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase)
+                                                 && h.Value == headerValueAltered)
+                                             .ToList();
 
             Assert.NotNull(matchingHeaders);
             Assert.Single(matchingHeaders);
 
             await proxy.WaitUntilDone();
         }
-
 
         [Theory]
         [InlineData(TestConstants.Http11Host)]
@@ -161,7 +157,7 @@ namespace Fluxzy.Tests.Rules
             var headerName = "X-Haga-Unit-Test";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
+
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new DeleteRequestHeaderAction(headerName),
@@ -169,9 +165,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{endPoint}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -183,11 +178,10 @@ namespace Fluxzy.Tests.Rules
 
             var checkResult = await response.GetCheckResult();
 
-            var matchingHeaders = checkResult.
-                Headers?
-                .Where(h =>
-                    h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            var matchingHeaders = checkResult.Headers?
+                                             .Where(h =>
+                                                 h.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase))
+                                             .ToList();
 
             Assert.NotNull(matchingHeaders);
             Assert.Empty(matchingHeaders);
@@ -195,14 +189,13 @@ namespace Fluxzy.Tests.Rules
             await proxy.WaitUntilDone();
         }
 
-
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
         public async Task ChangeMethodFilterHostOnly(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
+
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -211,9 +204,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
-                Proxy = new WebProxy($"http://{endPoint}"),
+            using var clientHandler = new HttpClientHandler {
+                Proxy = new WebProxy($"http://{endPoint}")
             };
 
             using var httpClient = new HttpClient(clientHandler);
@@ -224,13 +216,10 @@ namespace Fluxzy.Tests.Rules
             using var response = await httpClient.SendAsync(requestMessage);
 
             var checkResult = await response.GetCheckResult();
-            
+
             Assert.Equal("PATCH", checkResult.Method, StringComparer.OrdinalIgnoreCase);
 
             await proxy.WaitUntilDone();
         }
-
     }
-
-    
 }

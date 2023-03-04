@@ -1,8 +1,8 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using Microsoft.AspNetCore.Mvc;
-using Fluxzy.Formatters;
 using Fluxzy.Desktop.Ui.ViewModels;
+using Fluxzy.Formatters;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
@@ -12,8 +12,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
     {
         private readonly ProducerFactory _producerFactory;
 
-        public ProducersController(
-            ProducerFactory producerFactory)
+        public ProducersController(ProducerFactory producerFactory)
         {
             _producerFactory = producerFactory;
         }
@@ -22,7 +21,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
         // Note : object result because System.Text.Json does not handle serializing derived 
         // class from global settings
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="exchangeId"></param>
         /// <returns></returns>
@@ -35,7 +33,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
                 return NotFound();
 
             var exchangeContext = producerContext.GetContextInfo();
-            
 
             var viewModel = new FormatterContainerViewModel(_producerFactory.GetRequestFormattedResults(
                 exchangeId, producerContext).ToList(), _producerFactory.GetResponseFormattedResults(

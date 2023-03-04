@@ -1,18 +1,18 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-namespace Fluxzy
+namespace Fluxzy.Certificates
 {
     public static class CertificateExtension
     {
         public static void ExportToPem(this X509Certificate cert, Stream stream)
         {
             using var streamWriter = new StreamWriter(stream, Encoding.ASCII, 1024 * 8, true);
-            
+
             streamWriter.NewLine = "\r\n";
             streamWriter.WriteLine("-----BEGIN CERTIFICATE-----");
 

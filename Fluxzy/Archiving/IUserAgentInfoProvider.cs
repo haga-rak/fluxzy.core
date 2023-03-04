@@ -1,13 +1,12 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy
 {
     public interface IUserAgentInfoProvider
     {
-        string GetFriendlyName(int id, string rawUserAgentValue); 
+        string GetFriendlyName(int id, string rawUserAgentValue);
     }
-    
+
     public class DefaultUserAgentInfoProvider : IUserAgentInfoProvider
     {
         public string GetFriendlyName(int id, string rawUserAgentValue)

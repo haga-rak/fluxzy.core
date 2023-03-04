@@ -1,17 +1,15 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Fluxzy.Clients;
 
 namespace Fluxzy.Extensions
 {
     public static class ExchangeExtensions
     {
-        
         public static IEnumerable<HeaderFieldInfo> Find(this IEnumerable<HeaderFieldInfo> headers, string headerName)
         {
             return headers.Where(h =>
@@ -25,13 +23,13 @@ namespace Fluxzy.Extensions
 
             return contentTypeHeader?.Value.ToString();
         }
-        
+
         public static string? GetResponseHeaderValue(this IExchange exchangeInfo, string headerName)
         {
             var headers = exchangeInfo.GetResponseHeaders();
 
             if (headers == null)
-                return null; 
+                return null;
 
             var contentTypeHeader = headers.LastOrDefault(h =>
                 h.Name.Span.Equals(headerName, StringComparison.OrdinalIgnoreCase));
@@ -53,14 +51,13 @@ namespace Fluxzy.Extensions
             var valueString = contentTypeHeader.Value.ToString();
             var matchResult = Regex.Match(valueString, @"charset=([a-zA-Z\-0-9]+)");
 
-            if (matchResult.Success)
-                try
-                {
+            if (matchResult.Success) {
+                try {
                     return Encoding.GetEncoding(matchResult.Groups[1].Value);
                 }
-                catch (ArgumentException)
-                {
+                catch (ArgumentException) {
                 }
+            }
 
             return null;
         }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -8,37 +8,50 @@ using System.Threading.Tasks;
 namespace Fluxzy.Misc.Streams
 {
     /// <summary>
-    /// Convert an existing stream to a substream with max length
+    ///     Convert an existing stream to a substream with max length
     /// </summary>
     public class ContentBoundStream : Stream
     {
-        public long MaxLength { get; }
+        public ContentBoundStream(Stream innerStream, long maxLength)
+        {
+            MaxLength = maxLength;
+            InnerStream = innerStream;
+        }
 
-        private readonly Stream _innerStream;
+        public long MaxLength { get; }
 
         public long TotalWritten { get; private set; }
 
         public long TotalRead { get; private set; }
 
-        public ContentBoundStream(Stream innerStream, long maxLength)
-        {
-            MaxLength = maxLength;
-            _innerStream = innerStream;
+        public override bool CanRead => InnerStream.CanRead;
+
+        public override bool CanSeek => InnerStream.CanSeek;
+
+        public override bool CanWrite => InnerStream.CanWrite;
+
+        public override long Length => InnerStream.Length;
+
+        public override long Position {
+            get => InnerStream.Position;
+            set => InnerStream.Position = value;
         }
+
+        public Stream InnerStream { get; }
 
         public override void Flush()
         {
-            _innerStream.Flush();
+            InnerStream.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var minCount = (int)Math.Min(count, MaxLength - TotalRead);
+            var minCount = (int) Math.Min(count, MaxLength - TotalRead);
 
             if (minCount == 0)
                 return 0;
 
-            var read = _innerStream.Read(buffer, offset, minCount);
+            var read = InnerStream.Read(buffer, offset, minCount);
 
             TotalRead += read;
 
@@ -47,56 +60,44 @@ namespace Fluxzy.Misc.Streams
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return _innerStream.Seek(offset, origin);
+            return InnerStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            _innerStream.SetLength(value);
+            InnerStream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            _innerStream.Write(buffer, offset, count);
+            InnerStream.Write(buffer, offset, count);
             TotalWritten += count;
         }
 
-        public override bool CanRead => _innerStream.CanRead;
-        public override bool CanSeek => _innerStream.CanSeek;
-        public override bool CanWrite => _innerStream.CanWrite;
-        public override long Length => _innerStream.Length;
-
-        public override long Position
-        {
-            get => _innerStream.Position;
-            set => _innerStream.Position = value;
-        }
-
-        public Stream InnerStream => _innerStream;
-
         public override int Read(Span<byte> buffer)
         {
-            var res = _innerStream.Read(buffer);
+            var res = InnerStream.Read(buffer);
             TotalRead += res;
 
             return res;
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(
+            byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            var minCount = (int)Math.Min(buffer.Length, MaxLength - TotalRead);
+            var minCount = (int) Math.Min(buffer.Length, MaxLength - TotalRead);
 
             if (minCount == 0)
                 return 0;
 
-            var res = await _innerStream.ReadAsync(buffer.Slice(0, minCount), cancellationToken)
-                .ConfigureAwait(false);
+            var res = await InnerStream.ReadAsync(buffer.Slice(0, minCount), cancellationToken)
+                                       .ConfigureAwait(false);
 
             TotalRead += res;
 
@@ -105,26 +106,26 @@ namespace Fluxzy.Misc.Streams
 
         public override void Write(ReadOnlySpan<byte> buffer)
         {
-            _innerStream.Write(buffer);
+            InnerStream.Write(buffer);
             TotalWritten += buffer.Length;
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await _innerStream.WriteAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
+            await InnerStream.WriteAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
             TotalWritten += count;
         }
 
-        public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask WriteAsync(
+            ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            await _innerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+            await InnerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
             TotalWritten += buffer.Length;
-
         }
 
         public override void WriteByte(byte value)
         {
-            _innerStream.WriteByte(value);
+            InnerStream.WriteByte(value);
             TotalWritten += 1;
         }
     }

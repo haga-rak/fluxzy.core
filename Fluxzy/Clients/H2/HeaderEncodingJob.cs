@@ -1,4 +1,4 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 
@@ -13,10 +13,10 @@ namespace Fluxzy.Clients.H2
             StreamDependency = streamDependency;
         }
 
-        public ReadOnlyMemory<char> Data { get;  }
+        public ReadOnlyMemory<char> Data { get; }
 
-        public int StreamIdentifier { get;  }
+        public int StreamIdentifier { get; }
 
-        public int StreamDependency { get;  }
+        public int StreamDependency { get; }
     }
 }

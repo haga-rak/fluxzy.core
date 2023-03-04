@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Collections.Immutable;
 using Fluxzy.Desktop.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +20,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpGet("{exchangeId}")]
         public async Task<ImmutableList<ContextMenuAction>?> Get(int exchangeId)
         {
-            return await _actionProvider.GetActions(exchangeId); 
+            return await _actionProvider.GetActions(exchangeId);
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -10,12 +10,12 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Certificates;
 using Fluxzy.Core;
 using Fluxzy.Extensions;
 using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
-using Fluxzy.NativeOps;
 using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
@@ -26,8 +26,7 @@ namespace Fluxzy.Cli.Commands
     {
         private readonly string _instanceIdentifier;
 
-        public readonly List<DirectoryPackager> _packagers = new()
-        {
+        public readonly List<DirectoryPackager> _packagers = new() {
             new FxzyDirectoryPackager(),
             new SazPackager(),
             new HttpArchivePackager()
@@ -40,8 +39,7 @@ namespace Fluxzy.Cli.Commands
             _instanceIdentifier = instanceIdentifier;
         }
 
-        private DirectoryInfo TempDumpDirectory
-        {
+        private DirectoryInfo TempDumpDirectory {
             get
             {
                 if (_tempDumpDirectory != null)
@@ -74,7 +72,6 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(CreateUaParsingOption());
             command.AddOption(CreateOutOfProcCaptureOption());
 
-
             command.SetHandler(context => Run(context, cancellationToken));
 
             return command;
@@ -99,7 +96,6 @@ namespace Fluxzy.Cli.Commands
             var outOfProcCapture = invocationContext.Value<bool>("external-capture");
             var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
 
-
             var invokeCancellationToken = invocationContext.GetCancellationToken();
 
             using var linkedTokenSource =
@@ -114,8 +110,9 @@ namespace Fluxzy.Cli.Commands
 
             proxyStartUpSetting.ClearBoundAddresses();
 
-            foreach (var item in listenInterfaces)
+            foreach (var item in listenInterfaces) {
                 proxyStartUpSetting.AddBoundAddress(item);
+            }
 
             var archivingPolicy = dumpDirectory == null
                 ? ArchivingPolicy.None
@@ -124,51 +121,42 @@ namespace Fluxzy.Cli.Commands
             if (outFileInfo != null && archivingPolicy.Type == ArchivingPolicyType.None)
                 archivingPolicy = ArchivingPolicy.CreateFromDirectory(TempDumpDirectory);
 
-            if (certFile != null)
-                try
-                {
+            if (certFile != null) {
+                try {
                     var cert = Certificate.LoadFromPkcs12(
                         certFile.FullName,
                         certPassword ?? string.Empty);
 
                     proxyStartUpSetting.SetCaCertificate(cert);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     invocationContext.BindingContext.Console.WriteLine($"Error while reading cert-file : {ex.Message}");
                     invocationContext.ExitCode = 1;
+
                     return;
                 }
-            
-            if (ruleFile != null)
-            {
-                try
-                {
+            }
+
+            if (ruleFile != null) {
+                try {
                     var ruleConfigParser = new RuleConfigParser();
 
                     if (!ruleFile.Exists)
-                    {
-                        throw new FileNotFoundException($"File not found : {ruleFile.FullName}"); 
-                    }
+                        throw new FileNotFoundException($"File not found : {ruleFile.FullName}");
 
                     var ruleSet = ruleConfigParser.TryGetRuleSetFromYaml(File.ReadAllText(ruleFile.FullName),
                         out var errors);
 
                     if (ruleSet == null && errors!.Any())
-                    {
-                        throw new ArgumentException(string.Join("\r\n", errors.Select(s => s.Message))); 
-                    }
+                        throw new ArgumentException(string.Join("\r\n", errors.Select(s => s.Message)));
 
                     if (ruleSet != null)
-                    {
                         proxyStartUpSetting.AlterationRules.AddRange(ruleSet.Rules);
-                    }
-
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     invocationContext.BindingContext.Console.WriteLine($"Error while reading rule file : {ex.Message}");
                     invocationContext.ExitCode = 1;
+
                     return;
                 }
             }
@@ -177,8 +165,8 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.SetAutoInstallCertificate(installCert);
             proxyStartUpSetting.SetSkipGlobalSslDecryption(skipDecryption);
             proxyStartUpSetting.SetDisableCertificateCache(noCertCache);
-            proxyStartUpSetting.OutOfProcCapture = outOfProcCapture; 
-            proxyStartUpSetting.UseBouncyCastle = bouncyCastle; 
+            proxyStartUpSetting.OutOfProcCapture = outOfProcCapture;
+            proxyStartUpSetting.UseBouncyCastle = bouncyCastle;
 
             var certificateProvider = new CertificateProvider(proxyStartUpSetting,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
@@ -188,39 +176,36 @@ namespace Fluxzy.Cli.Commands
             var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
             var systemProxyManager = new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
-            await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(), (a) => new OutOfProcessCaptureContext(a));
+            await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
+                a => new OutOfProcessCaptureContext(a));
+
             await using (var tcpConnectionProvider =
                          proxyStartUpSetting.CaptureRawPacket
-                       ?  await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting.OutOfProcCapture)
-                       : ITcpConnectionProvider.Default)
-            {
-                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider, new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider))
-                {
+                             ? await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting.OutOfProcCapture)
+                             : ITcpConnectionProvider.Default) {
+                await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider,
+                                 new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider)) {
                     var endPoints = proxy.Run();
-                    
+
                     invocationContext.BindingContext.Console
                                      .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
 
-                    if (registerAsSystemProxy)
-                    {
+                    if (registerAsSystemProxy) {
                         var setting = systemProxyManager.Register(endPoints, proxyStartUpSetting);
+
                         invocationContext.Console.Out.WriteLine(
                             $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
                     }
 
                     invocationContext.Console.Out.WriteLine("Ready to process connections, Ctrl+C to exit.");
 
-                    try
-                    {
+                    try {
                         await Task.Delay(-1, cancellationToken);
                     }
-                    catch (OperationCanceledException)
-                    {
+                    catch (OperationCanceledException) {
                     }
-                    finally
-                    {
-                        if (registerAsSystemProxy)
-                        {
+                    finally {
+                        if (registerAsSystemProxy) {
                             systemProxyManager.UnRegister();
                             invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
                         }
@@ -230,8 +215,7 @@ namespace Fluxzy.Cli.Commands
 
             invocationContext.Console.Out.WriteLine("Proxy ended, gracefully");
 
-            if (outFileInfo != null)
-            {
+            if (outFileInfo != null) {
                 invocationContext.Console.WriteLine($"Packing output to {outFileInfo.Name} ...");
 
                 outFileInfo.Directory?.Create();
@@ -254,36 +238,33 @@ namespace Fluxzy.Cli.Commands
                 "0.0.0.0 to listen on all interface with default port." +
                 " Accept multiple values.",
                 isDefault: true,
-                parseArgument: result =>
-                {
+                parseArgument: result => {
                     var listResult = new List<IPEndPoint>();
 
-                    foreach (var token in result.Tokens)
-                    {
+                    foreach (var token in result.Tokens) {
                         var tab = token.Value.Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries);
 
-                        if (tab.Length == 1)
-                        {
-                            if (!IPAddress.TryParse(tab.First(), out var ipAddress))
-                            {
+                        if (tab.Length == 1) {
+                            if (!IPAddress.TryParse(tab.First(), out var ipAddress)) {
                                 result.ErrorMessage = $"Invalid ip address {tab.First()}";
+
                                 return null;
                             }
 
                             listResult.Add(new IPEndPoint(ipAddress, 44344));
                         }
-                        else
-                        {
-                            if (!IPAddress.TryParse(tab.First(), out var ipAddress))
-                            {
+                        else {
+                            if (!IPAddress.TryParse(tab.First(), out var ipAddress)) {
                                 result.ErrorMessage = $"Invalid ip address {tab.First()}";
+
                                 return null;
                             }
 
                             var portString = string.Join("", tab.Skip(1));
-                            if (!int.TryParse(portString, out var port))
-                            {
+
+                            if (!int.TryParse(portString, out var port)) {
                                 result.ErrorMessage = $"Invalid port {portString}";
+
                                 return null;
                             }
 
@@ -402,7 +383,6 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
-
         private static Option CreateUaParsingOption()
         {
             var option = new Option<bool>(
@@ -414,7 +394,7 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
-        
+
         private static Option CreateOutOfProcCaptureOption()
         {
             var option = new Option<bool>(
@@ -465,9 +445,10 @@ namespace Fluxzy.Cli.Commands
         {
             var packager = _packagers.FirstOrDefault(p => p.ShouldApplyTo(outFileName));
 
-            if (packager == null)
+            if (packager == null) {
                 throw new ArgumentException(
                     "Could not infer file format from output extension. Currently supported extension are : fxzy, har and saz");
+            }
 
             await using var outStream = File.Create(outFileName);
             await packager.Pack(dInfo.FullName, outStream, null);

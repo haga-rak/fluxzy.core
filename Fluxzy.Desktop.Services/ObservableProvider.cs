@@ -1,6 +1,5 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
 namespace Fluxzy.Desktop.Services

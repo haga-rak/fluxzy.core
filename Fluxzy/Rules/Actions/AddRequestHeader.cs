@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -7,21 +7,26 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-
     /// <summary>
-    /// Append a request header.
-    /// <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
+    ///     Append a request header.
+    ///     <strong>Note</strong> Headers that alter the connection behaviour will be ignored.
     /// </summary>
     [ActionMetadata("Append a request header.")]
     public class AddRequestHeaderAction : Action
     {
+        public AddRequestHeaderAction(string headerName, string headerValue)
+        {
+            HeaderName = headerName;
+            HeaderValue = headerValue;
+        }
+
         /// <summary>
-        /// Header name 
+        ///     Header name
         /// </summary>
         public string HeaderName { get; set; }
 
         /// <summary>
-        /// Header value
+        ///     Header value
         /// </summary>
         public string HeaderValue { get; set; }
 
@@ -32,16 +37,10 @@ namespace Fluxzy.Rules.Actions
                 ? "Add request header"
                 : $"Add request header ({HeaderName}, {HeaderValue})";
 
-        public AddRequestHeaderAction(string headerName, string headerValue)
-        {
-            HeaderName = headerName;
-            HeaderValue = headerValue;
-        }
-
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             context.RequestHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName, HeaderValue));
-            
+
             return default;
         }
     }

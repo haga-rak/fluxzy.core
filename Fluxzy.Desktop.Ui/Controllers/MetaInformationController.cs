@@ -1,4 +1,6 @@
-﻿using System.Reactive.Linq;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
@@ -16,13 +18,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
         private readonly IObservable<RealtimeArchiveWriter?> _archiveWriterObservable;
         private readonly FileContentUpdateManager _fileContentUpdateManager;
 
-        public record TagUpdateModel(string Name);
-
-        public record TagGlobalApplyModel(int[] ExchangeIds, Guid[] TagIdentifiers);
-
-        public record CommentUpdateModel(string Comment, int[] ExchangeIds);
-
-        public MetaInformationController(IArchiveReaderProvider archiveReaderProvider,
+        public MetaInformationController(
+            IArchiveReaderProvider archiveReaderProvider,
             IObservable<RealtimeArchiveWriter?> archiveWriterObservable,
             FileContentUpdateManager fileContentUpdateManager)
         {
@@ -41,8 +38,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("tag")]
-        public async Task<ActionResult<Tag>> CreateTag(TagUpdateModel model,
-            [FromServices] IObservable<FileState> filestate)
+        public async Task<ActionResult<Tag>> CreateTag(
+            TagUpdateModel model,
+            [FromServices]
+            IObservable<FileState> filestate)
         {
             var archiveReader = (await _archiveReaderProvider.Get())!;
             var archiveWriter = (await _archiveWriterObservable.FirstAsync())!;
@@ -61,8 +60,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPatch("tag/{tagIdentifier}")]
-        public async Task<ActionResult<bool>> UpdateTag(Guid tagIdentifier, TagUpdateModel model,
-            [FromServices] IObservable<FileState> filestate)
+        public async Task<ActionResult<bool>> UpdateTag(
+            Guid tagIdentifier, TagUpdateModel model,
+            [FromServices]
+            IObservable<FileState> filestate)
         {
             var archiveReader = (await _archiveReaderProvider.Get())!;
             var archiveWriter = (await _archiveWriterObservable.FirstAsync())!;
@@ -146,5 +147,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
+        public record TagUpdateModel(string Name);
+
+        public record TagGlobalApplyModel(int[] ExchangeIds, Guid[] TagIdentifiers);
+
+        public record CommentUpdateModel(string Comment, int[] ExchangeIds);
     }
 }

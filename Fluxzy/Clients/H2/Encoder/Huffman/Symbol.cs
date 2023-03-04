@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Buffers.Binary;
 
 namespace Fluxzy.Clients.H2.Encoder.Huffman
@@ -11,9 +13,10 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
             LengthBits = lengthBits;
             Key = key;
         }
-        public uint Value { get;  } 
 
-        public int LengthBits { get;  }
+        public uint Value { get; }
+
+        public int LengthBits { get; }
 
         public byte Key { get; }
 
@@ -21,20 +24,19 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
 
         public int GetLengthBitsInColumn(int col)
         {
-            bool valueContainsByteInColumns = (LengthBits) > (col * 8);
+            var valueContainsByteInColumns = LengthBits > col * 8;
 
             if (!valueContainsByteInColumns)
                 return 0;
 
-            if ((LengthBits / (8 * (col + 1))) >= 1)
-                return 8; 
+            if (LengthBits / (8 * (col + 1)) >= 1)
+                return 8;
 
-            return LengthBits % 8; 
+            return LengthBits % 8;
         }
 
-
         /// <summary>
-        /// Give all binary variation of the data 
+        ///     Give all binary variation of the data
         /// </summary>
         /// <param name="col"></param>
         /// <param name="result"></param>
@@ -49,14 +51,14 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
             var referencebyte = GetByte(col);
 
             var max = (0xFF >> numberOfBytesInColumn) | referencebyte;
-            
-            int i = 0;
-            for (byte currentValue = referencebyte;  currentValue <= max; currentValue++)
-            {
+
+            var i = 0;
+
+            for (var currentValue = referencebyte; currentValue <= max; currentValue++) {
                 result[i++] = currentValue;
 
                 if (currentValue == max)
-                    break;  // byte overflow goes back to 0  ; 
+                    break; // byte overflow goes back to 0  ; 
             }
 
             return result.Slice(0, i);
@@ -66,15 +68,16 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
         {
             Span<byte> data = stackalloc byte[4];
             BinaryPrimitives.WriteUInt32BigEndian(data, Value << (sizeof(int) * 8 - LengthBits));
-            return data[col]; 
+
+            return data[col];
         }
 
         public override string ToString()
         {
             var key = (char) Key;
             var printKey = char.IsControl(key) ? Key.ToString() : key.ToString();
+
             return $"{printKey} : {Convert.ToString(Value, 2).PadLeft(LengthBits, '0')}";
         }
-
     }
 }

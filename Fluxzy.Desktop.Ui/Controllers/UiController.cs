@@ -1,4 +1,6 @@
-﻿using Fluxzy.Desktop.Services;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +21,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpGet("state")]
         public async Task<ActionResult<UiState>> Get()
         {
-            return await _stateManager.GetUiState(); 
+            return await _stateManager.GetUiState();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -38,30 +40,28 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
 
         internal void Seal()
         {
-            if (_listOfRawSymbols.Count == 1)
-            {
+            if (_listOfRawSymbols.Count == 1) {
                 HasValue = true;
                 Value = _listOfRawSymbols.First();
+
                 return;
             }
 
             Span<byte> dataBuffer = stackalloc byte[256];
 
-            foreach (var symbol in _listOfRawSymbols)
-            {
+            foreach (var symbol in _listOfRawSymbols) {
                 var lengthBitsInColumn = symbol.GetLengthBitsInColumn(_column);
 
-                if (lengthBitsInColumn < 8)
-                {
+                if (lengthBitsInColumn < 8) {
                     var node = new Node(symbol);
 
                     var sb = symbol.GetByteVariation(_column, dataBuffer);
 
-                    foreach (var @byte in sb)
+                    foreach (var @byte in sb) {
                         ChildNodes[@byte] = node;
+                    }
                 }
-                else
-                {
+                else {
                     var byteAtColumn = symbol.GetByte(_column);
                     var cNode = ChildNodes[byteAtColumn];
 
@@ -70,10 +70,12 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                 }
             }
 
-            if (ChildNodes != null)
-                foreach (var childNode in ChildNodes)
+            if (ChildNodes != null) {
+                foreach (var childNode in ChildNodes) {
                     if (childNode != null)
                         childNode.Seal();
+                }
+            }
         }
 
         public override string ToString()
@@ -89,11 +91,10 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
         {
             var cData = ChildNodes[data[0]];
 
-            if (cData != null)
-            {
-                if (cData.HasValue)
-                {
+            if (cData != null) {
+                if (cData.HasValue) {
                     value = cData.Value!;
+
                     return true;
                 }
 
@@ -101,6 +102,7 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
             }
 
             value = default;
+
             return false;
         }
     }

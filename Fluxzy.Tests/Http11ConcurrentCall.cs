@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Specialized;
 using System.Linq;
@@ -9,37 +11,34 @@ using Xunit;
 
 namespace Fluxzy.Tests
 {
-
     public class Http11ConcurrentCall
     {
         public async Task CallSimple(
-            HttpClient httpClient, 
+            HttpClient httpClient,
             int anotherBufferSize, int length, NameValueCollection? nvCol = null)
         {
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
                 "https://registry.2befficient.io:40300/post"
             );
-  
+
             requestMessage.Headers.Add("x-buffer-size", length.ToString());
 
-            if (nvCol != null)
-            {
-                foreach (string nv in nvCol)
-                {
+            if (nvCol != null) {
+                foreach (string nv in nvCol) {
                     requestMessage.Headers.Add(nv, nvCol[nv]);
                 }
             }
-            
+
             await using var randomStream = new RandomDataStream(9, length, true);
 
             requestMessage.Content = new StreamContent(randomStream);
 
             using var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            
+
             Assert.True(response.IsSuccessStatusCode, response.ToString());
-            AssertHelpers.ControlHeaders(contentText, requestMessage, length); 
+            AssertHelpers.ControlHeaders(contentText, requestMessage, length);
         }
 
         [Fact]
@@ -48,19 +47,19 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler, false);
 
-            Random random = new Random(9);
+            var random = new Random(9);
 
-            int count = 15;
+            var count = 15;
 
-            var tasks = 
+            var tasks =
                 Enumerable.Repeat(httpClient, count).Select(h =>
-                    CallSimple(h, (1024 * 16) + 10, 1024 * 4));
+                    CallSimple(h, 1024 * 16 + 10, 1024 * 4));
 
-            await Task.WhenAll(tasks); 
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>
-        /// The goal of this test is to challenge the dynamic table content
+        ///     The goal of this test is to challenge the dynamic table content
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -70,22 +69,20 @@ namespace Fluxzy.Tests
 
             using var httpClient = new HttpClient(handler, false);
 
-            int count = 150;
+            var count = 150;
 
-            byte[] buffer = new byte[500]; 
+            var buffer = new byte[500];
 
-            var tasks = 
-                Enumerable.Repeat(httpClient, count).Select((h, index) =>
-                {
-                    new Random(index%2).NextBytes(buffer);
+            var tasks =
+                Enumerable.Repeat(httpClient, count).Select((h, index) => {
+                    new Random(index % 2).NextBytes(buffer);
 
-                    return CallSimple(h, (1024 * 16) + 10, 512, new NameValueCollection()
-                    {
-                        { "Cookie" , Convert.ToBase64String(buffer) }
+                    return CallSimple(h, 1024 * 16 + 10, 512, new NameValueCollection {
+                        { "Cookie", Convert.ToBase64String(buffer) }
                     });
                 });
 
-            await Task.WhenAll(tasks); 
+            await Task.WhenAll(tasks);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -13,31 +13,27 @@ namespace Fluxzy.Formatters.Producers.Responses
 
         public ResponseJsonResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
-            try
-            {
+            try {
                 if (context.ResponseBodyText == null)
-                    return null; 
+                    return null;
 
                 using var document = JsonDocument.Parse(context.ResponseBodyText);
 
                 var outStream = new MemoryStream();
 
-                using (var jsonWriter = new Utf8JsonWriter(outStream, new JsonWriterOptions()
-                       {
+                using (var jsonWriter = new Utf8JsonWriter(outStream, new JsonWriterOptions {
                            Indented = true
-                       }))
-                {
+                       })) {
                     document.WriteTo(jsonWriter);
                 }
 
-                var formattedValue = Encoding.UTF8.GetString(outStream.GetBuffer(), 0, (int)outStream.Length);
+                var formattedValue = Encoding.UTF8.GetString(outStream.GetBuffer(), 0, (int) outStream.Length);
 
                 return new ResponseJsonResult(ResultTitle, formattedValue);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 if (e is FormatException || e is JsonException)
-                    return null; 
+                    return null;
 
                 throw;
             }
@@ -46,7 +42,8 @@ namespace Fluxzy.Formatters.Producers.Responses
 
     public class ResponseJsonResult : FormattingResult
     {
-        public ResponseJsonResult(string title, string formattedContent) : base(title)
+        public ResponseJsonResult(string title, string formattedContent)
+            : base(title)
         {
             FormattedContent = formattedContent;
         }

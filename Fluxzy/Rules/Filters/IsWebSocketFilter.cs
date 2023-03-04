@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using Fluxzy.Misc;
@@ -6,7 +6,7 @@ using Fluxzy.Misc;
 namespace Fluxzy.Rules.Filters
 {
     /// <summary>
-    /// Select exchanges that are websocket communication
+    ///     Select exchanges that are websocket communication
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select websocket exchange."
@@ -25,7 +25,8 @@ namespace Fluxzy.Rules.Filters
 
         public override bool PreMadeFilter => true;
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return exchange?.IsWebSocket ?? false;

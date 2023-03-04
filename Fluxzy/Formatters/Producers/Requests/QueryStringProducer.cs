@@ -1,9 +1,8 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
@@ -24,10 +23,10 @@ namespace Fluxzy.Formatters.Producers.Requests
         }
     }
 
-
     public class QueryStringResult : FormattingResult
     {
-        public QueryStringResult(string title, List<QueryStringItem> items) : base(title)
+        public QueryStringResult(string title, List<QueryStringItem> items)
+            : base(title)
         {
             Items = items;
         }

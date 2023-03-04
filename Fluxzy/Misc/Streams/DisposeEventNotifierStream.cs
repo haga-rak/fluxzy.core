@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -11,9 +11,9 @@ namespace Fluxzy.Misc.Streams
 
     public class DisposeEventNotifierStream : Stream
     {
-        public event DisposeFunc? OnStreamDisposed;
-
         private readonly Stream _innerStream;
+
+        private int _totalRead;
 
         public DisposeEventNotifierStream(Stream innerStream)
         {
@@ -28,18 +28,17 @@ namespace Fluxzy.Misc.Streams
 
         public override long Length => _innerStream.Length;
 
-        public override long Position
-        {
+        public override long Position {
             get => _innerStream.Position;
             set => _innerStream.Position = value;
         }
+
+        public event DisposeFunc? OnStreamDisposed;
 
         public override void Flush()
         {
             _innerStream.Flush();
         }
-
-        private int _totalRead = 0; 
 
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -47,19 +46,21 @@ namespace Fluxzy.Misc.Streams
                 var res = _innerStream.Read(buffer, offset, count);
 
                 _totalRead += res;
+
                 return res;
             }
             catch {
-                return 0;  // JUST RETURN EOF when fail
+                return 0; // JUST RETURN EOF when fail
             }
         }
 
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
             return await _innerStream.ReadAsync(buffer, cancellationToken);
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(
+            byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
         }
@@ -84,7 +85,8 @@ namespace Fluxzy.Misc.Streams
             _innerStream.Write(buffer, offset, count);
         }
 
-        public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask WriteAsync(
+            ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
             await _innerStream.WriteAsync(buffer, cancellationToken);
         }
@@ -97,6 +99,7 @@ namespace Fluxzy.Misc.Streams
         public override async ValueTask DisposeAsync()
         {
             await _innerStream.DisposeAsync();
+
             if (OnStreamDisposed != null)
                 await OnStreamDisposed(this, new StreamDisposeEventArgs());
         }

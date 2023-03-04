@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -17,26 +17,8 @@ namespace Fluxzy.Misc.Streams
         private readonly Action<Exception> _onReadError;
         private readonly CancellationToken _parentToken;
 
-        public long TotalRead { get; private set; }
-
-        public override bool CanRead => InnerStream.CanRead;
-
-        public override bool CanSeek => InnerStream.CanSeek;
-
-        public override bool CanWrite => InnerStream.CanWrite;
-
-        public override long Length => InnerStream.Length;
-
-        public override long Position
-        {
-            get => InnerStream.Position;
-
-            set => InnerStream.Position = value;
-        }
-
-        public Stream InnerStream { get; }
-
-        public MetricsStream(Stream innerStream,
+        public MetricsStream(
+            Stream innerStream,
             Action firstBytesReaden,
             Action<long> endRead,
             Action<Exception> onReadError,
@@ -48,6 +30,24 @@ namespace Fluxzy.Misc.Streams
             _onReadError = onReadError;
             _parentToken = parentToken;
         }
+
+        public long TotalRead { get; private set; }
+
+        public override bool CanRead => InnerStream.CanRead;
+
+        public override bool CanSeek => InnerStream.CanSeek;
+
+        public override bool CanWrite => InnerStream.CanWrite;
+
+        public override long Length => InnerStream.Length;
+
+        public override long Position {
+            get => InnerStream.Position;
+
+            set => InnerStream.Position = value;
+        }
+
+        public Stream InnerStream { get; }
 
         public override void Flush()
         {
@@ -86,15 +86,13 @@ namespace Fluxzy.Misc.Streams
 
         public override int Read(Span<byte> buffer)
         {
-            try
-            {
+            try {
                 var res = InnerStream.Read(buffer);
                 TotalRead += res;
 
                 return res;
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 if (_onReadError != null)
                     _onReadError(ex);
 
@@ -102,7 +100,8 @@ namespace Fluxzy.Misc.Streams
             }
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
+        public override async Task<int> ReadAsync(
+            byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
@@ -111,8 +110,7 @@ namespace Fluxzy.Misc.Streams
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            try
-            {
+            try {
                 using var combinedTokenSource =
                     CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
 
@@ -129,8 +127,7 @@ namespace Fluxzy.Misc.Streams
 
                 return read;
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 if (_onReadError != null)
                     _onReadError(ex);
 

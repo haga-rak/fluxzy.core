@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -20,14 +22,16 @@ namespace Fluxzy.Tests
         public async Task Get_H2_IIS(SslProvider sslProvider)
         {
             var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
-                (a) => new OutOfProcessCaptureContext(a));
+                a => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
-            
-            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
+
+            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
+                new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
+
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ"
             );
@@ -43,17 +47,18 @@ namespace Fluxzy.Tests
         public async Task Get_H11_IIS(SslProvider sslProvider)
         {
             var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
-                (a) => new OutOfProcessCaptureContext(a));
+                a => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
-            
-            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null))
-            {
-                Protocols = new List<SslApplicationProtocol>() { SslApplicationProtocol.Http11  }
+
+            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
+                new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null)) {
+                Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 }
             };
+
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ"
             );
@@ -69,14 +74,16 @@ namespace Fluxzy.Tests
         public async Task Get_H2_Kestrel(SslProvider sslProvider)
         {
             var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
-                (a) => new OutOfProcessCaptureContext(a));
+                a => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
-            
-            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider, new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
+
+            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
+                new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
+
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://sandbox.smartizy.com:5001/content-produce/1000/1000"
             );
@@ -94,7 +101,7 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyDefaultHandler(sslProvider);
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://sandbox.smartizy.com/ip"
             );
@@ -109,8 +116,7 @@ namespace Fluxzy.Tests
         [InlineData(SslProvider.OsDefault)]
         public async Task Get_ConcurrentDemand(SslProvider sslProvider)
         {
-            var urls = new[]
-            {
+            var urls = new[] {
                 "https://sandbox.smartizy.com:5001/content-produce/40000/40000", // H1.1 H2 url
                 "https://sandbox.smartizy.com/content-produce/40000/40000" // H1 only url
             };
@@ -118,11 +124,10 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyDefaultHandler(sslProvider);
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            for (int i = 0; i < 100; i ++ )
-            {
-                HttpRequestMessage requestMessage = new HttpRequestMessage(
+            for (var i = 0; i < 100; i++) {
+                var requestMessage = new HttpRequestMessage(
                     HttpMethod.Get,
-                    urls[i%urls.Length]
+                    urls[i % urls.Length]
                 );
 
                 using var response = await httpClient.SendAsync(requestMessage);

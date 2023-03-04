@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -29,20 +29,19 @@ namespace Fluxzy.Misc
                 ? stackalloc char[charCount]
                 : heapCharBuffer = ArrayPool<char>.Shared.Rent(charCount);
 
-            try
-            {
+            try {
                 var charResultCount = (encoding ?? Encoding.UTF8).GetChars(checkedBuffer, charBuffer);
 
                 charBuffer = charBuffer.Slice(0, charResultCount);
 
-                for (var i = 0; i < charBuffer.Length; i++)
+                for (var i = 0; i < charBuffer.Length; i++) {
                     if (char.IsControl(charBuffer[i]) && !char.IsWhiteSpace(charBuffer[i]))
                         return false;
+                }
 
                 return true;
             }
-            finally
-            {
+            finally {
                 if (heapCharBuffer != null)
                     ArrayPool<char>.Shared.Return(heapCharBuffer);
             }

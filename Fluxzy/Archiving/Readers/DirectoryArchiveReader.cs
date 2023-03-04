@@ -1,6 +1,5 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using Fluxzy.Clients;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -62,7 +61,8 @@ namespace Fluxzy.Readers
             return connectionDirectory.EnumerateFiles("*.json", SearchOption.AllDirectories)
                                       .Select(f =>
                                           JsonSerializer.Deserialize<ConnectionInfo>(
-                                              File.ReadAllText(f.FullName), GlobalArchiveOption.DefaultSerializerOptions))
+                                              File.ReadAllText(f.FullName),
+                                              GlobalArchiveOption.DefaultSerializerOptions))
                                       .Where(t => t != null)
                                       .Select(t => t!);
         }
@@ -98,16 +98,6 @@ namespace Fluxzy.Readers
             return File.Open(capturePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
-        public string? GetRawCaptureFile(int connectionId)
-        {
-            var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
-
-            if (!File.Exists(capturePath))
-                return null;
-
-            return capturePath;
-        }
-
         public Stream? GetRequestBody(int exchangeId)
         {
             var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(_baseDirectory, exchangeId);
@@ -126,7 +116,7 @@ namespace Fluxzy.Readers
             if (!fileInfo.Exists)
                 return -1;
 
-            return fileInfo.Length; 
+            return fileInfo.Length;
         }
 
         public long GetResponseBodyLength(int exchangeId)
@@ -189,11 +179,22 @@ namespace Fluxzy.Readers
         public bool HasCapture(int connectionId)
         {
             var fileInfo = new FileInfo(DirectoryArchiveHelper.GetCapturePath(_baseDirectory, connectionId));
+
             return fileInfo.Exists && fileInfo.Length > 0;
         }
 
         public void Dispose()
         {
+        }
+
+        public string? GetRawCaptureFile(int connectionId)
+        {
+            var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
+
+            if (!File.Exists(capturePath))
+                return null;
+
+            return capturePath;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -10,25 +9,24 @@ namespace Fluxzy.Desktop.Services
 {
     public class FileDynamicStatsManager : ObservableProvider<DynamicStatistic>
     {
-        protected override BehaviorSubject<DynamicStatistic> Subject { get; } = new(new DynamicStatistic(new()));
-
         public FileDynamicStatsManager(IObservable<TrunkState> trunkStateObservable)
         {
             trunkStateObservable
                 .Select(t => t.Agents.ToHashSet())
                 .Do(agents => Subject.OnNext(new DynamicStatistic(agents)))
-                .Subscribe(); 
+                .Subscribe();
         }
+
+        protected override BehaviorSubject<DynamicStatistic> Subject { get; } =
+            new(new DynamicStatistic(new HashSet<Agent>()));
 
         public void ExchangeAdded(Exchange exchangeInfo)
         {
             if (exchangeInfo.Agent != null) {
+                var set = Subject.Value.Agents;
 
-                var set = Subject.Value.Agents; 
-
-                if (set.Add(exchangeInfo.Agent)) {
+                if (set.Add(exchangeInfo.Agent))
                     Subject.OnNext(new DynamicStatistic(set));
-                }
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Linq;
 
 namespace Fluxzy.Utils
@@ -32,7 +34,7 @@ namespace Fluxzy.Utils
                                ?.Where(r => r.Name.Span.Equals("accept", StringComparison.OrdinalIgnoreCase))
                                .LastOrDefault();
 
-            var firstAcceptValue = acceptHeader?.Value.ToString().Split(new[] {",", ";"},
+            var firstAcceptValue = acceptHeader?.Value.ToString().Split(new[] { ",", ";" },
                                                    StringSplitOptions.RemoveEmptyEntries)
                                                .FirstOrDefault();
 
@@ -90,21 +92,21 @@ namespace Fluxzy.Utils
         }
     }
 
-
     public static class SubdomainUtility
     {
         public static bool TryGetSubDomain(string host, out string? subDomain)
         {
-            var splittedHost = host.Split(new[] {"."}, StringSplitOptions.RemoveEmptyEntries);
+            var splittedHost = host.Split(new[] { "." }, StringSplitOptions.RemoveEmptyEntries);
 
             if (splittedHost.Length > 2) {
                 subDomain = string.Join(".", splittedHost.Skip(1));
+
                 return true;
             }
 
             subDomain = null;
-            return false;
 
+            return false;
         }
     }
 }

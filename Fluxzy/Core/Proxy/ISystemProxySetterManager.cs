@@ -1,6 +1,9 @@
-namespace Fluxzy.Core.Proxy;
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-public interface ISystemProxySetterManager
+namespace Fluxzy.Core.Proxy
 {
-    ISystemProxySetter Get(); 
+    public interface ISystemProxySetterManager
+    {
+        ISystemProxySetter Get();
+    }
 }

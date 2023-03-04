@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.IO.Compression;
@@ -16,22 +16,20 @@ namespace Fluxzy.Extensions
             // Check for chunked body 
             var workStream = GetDecodedContentStream(exchangeInfo, responseBodyInStream, out var compressionType);
 
-            compressionInfo = new CompressionInfo
-            {
+            compressionInfo = new CompressionInfo {
                 CompressionName = compressionType.ToString()
             };
 
-            try
-            {
+            try {
                 return workStream.ReadMaxLengthOrNull(maximumLength);
             }
-            finally
-            {
+            finally {
                 workStream.Dispose();
             }
         }
-        
-        public static Stream GetDecodedContentStream(ExchangeInfo exchangeInfo, Stream responseBodyInStream,
+
+        public static Stream GetDecodedContentStream(
+            ExchangeInfo exchangeInfo, Stream responseBodyInStream,
             out CompressionType compressionType)
         {
             var workStream = responseBodyInStream;
@@ -44,18 +42,22 @@ namespace Fluxzy.Extensions
             switch (compressionType) {
                 case CompressionType.None:
                     break;
+
                 case CompressionType.Gzip:
                     workStream = new GZipStream(workStream, CompressionMode.Decompress, true);
 
                     break;
+
                 case CompressionType.Deflate:
                     workStream = new DeflateStream(workStream, CompressionMode.Decompress, true);
 
                     break;
+
                 case CompressionType.Compress:
                     workStream = new LzwInputStream(workStream);
 
                     break;
+
                 case CompressionType.Brotli:
                     workStream = new BrotliStream(workStream, CompressionMode.Decompress, true);
 

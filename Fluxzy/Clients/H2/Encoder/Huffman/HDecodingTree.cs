@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
@@ -7,13 +7,6 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
 {
     internal class HPackDecodingTree
     {
-        public static HPackDecodingTree Default { get; } = new();
-
-        /// <summary>
-        ///     Using a raw array for first byte to improve perf
-        /// </summary>
-        public Node[] RootNodes { get; set; }
-
         private HPackDecodingTree()
         {
             var dictionary = HPackDictionary.Instance;
@@ -22,27 +15,23 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
 
             Span<byte> buffer = stackalloc byte[8];
 
-            foreach (var symbol in dictionary.Symbols.OrderBy(s => s.LengthBits))
-            {
+            foreach (var symbol in dictionary.Symbols.OrderBy(s => s.LengthBits)) {
                 // Create root nodes 
 
                 // Get first byte 
 
                 var bytes = symbol.GetByteVariation(0, buffer);
 
-                if (bytes.Length == 1)
-                {
+                if (bytes.Length == 1) {
                     if (RootNodes[bytes[0]] == null)
                         RootNodes[bytes[0]] = new Node(bytes[0], 1);
 
                     RootNodes[bytes[0]].AppendSymbol(symbol);
                 }
-                else
-                {
+                else {
                     Node? currentNode = null;
 
-                    foreach (var value in bytes)
-                    {
+                    foreach (var value in bytes) {
                         if (RootNodes[value] == null)
                             RootNodes[value] = currentNode ?? new Node(symbol); // final node 
 
@@ -51,8 +40,7 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                 }
             }
 
-            for (var index = 0; index < RootNodes.Length; index++)
-            {
+            for (var index = 0; index < RootNodes.Length; index++) {
                 var node = RootNodes[index];
 
                 if (node == null)
@@ -61,6 +49,13 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                 node.Seal();
             }
         }
+
+        public static HPackDecodingTree Default { get; } = new();
+
+        /// <summary>
+        ///     Using a raw array for first byte to improve perf
+        /// </summary>
+        public Node[] RootNodes { get; set; }
 
         public Symbol Read(ReadOnlySpan<byte> data)
         {

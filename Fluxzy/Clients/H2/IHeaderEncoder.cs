@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Misc.ResizableBuffers;
 

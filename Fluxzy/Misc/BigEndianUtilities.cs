@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers.Binary;
@@ -47,7 +47,7 @@ namespace Fluxzy.Misc
 
         public static Span<byte> BuWrite_32(this Span<byte> buffer, int data)
         {
-            return buffer.BuWrite_32((uint)data);
+            return buffer.BuWrite_32((uint) data);
         }
 
         public static Span<byte> BuWrite_64(this Span<byte> buffer, ulong data)
@@ -59,21 +59,21 @@ namespace Fluxzy.Misc
 
         public static Span<byte> BuWrite_64(this Span<byte> buffer, long data)
         {
-            return buffer.BuWrite_64((ulong)data);
+            return buffer.BuWrite_64((ulong) data);
         }
 
         public static Stream BuWrite_32(this Stream stream, int data)
         {
-            return stream.BuWrite_32((uint)data);
+            return stream.BuWrite_32((uint) data);
         }
 
         public static Stream BuWrite_24(this Stream stream, uint data)
         {
             Span<byte> buffer = stackalloc byte[3];
 
-            buffer[0] = (byte)((0x00ff0000 & data) >> 16);
-            buffer[1] = (byte)((0x0000ff00 & data) >> 8);
-            buffer[2] = (byte)(0x000000ff & data);
+            buffer[0] = (byte) ((0x00ff0000 & data) >> 16);
+            buffer[1] = (byte) ((0x0000ff00 & data) >> 8);
+            buffer[2] = (byte) (0x000000ff & data);
 
             stream.Write(buffer);
 
@@ -82,31 +82,31 @@ namespace Fluxzy.Misc
 
         public static Span<byte> BuWrite_24(this Span<byte> buffer, uint data)
         {
-            buffer[0] = (byte)((0x00ff0000 & data) >> 16);
-            buffer[1] = (byte)((0x0000ff00 & data) >> 8);
-            buffer[2] = (byte)(0x000000ff & data);
+            buffer[0] = (byte) ((0x00ff0000 & data) >> 16);
+            buffer[1] = (byte) ((0x0000ff00 & data) >> 8);
+            buffer[2] = (byte) (0x000000ff & data);
 
             return buffer.Slice(3);
         }
 
         public static Span<byte> BuWrite_24(this Span<byte> buffer, int data)
         {
-            return buffer.BuWrite_24((uint)data);
+            return buffer.BuWrite_24((uint) data);
         }
 
         public static Stream BuWrite_24(this Stream stream, int data)
         {
-            return stream.BuWrite_24((uint)data);
+            return stream.BuWrite_24((uint) data);
         }
 
         public static Stream BuWrite_16(this Stream stream, short data)
         {
-            return stream.BuWrite_16((ushort)data);
+            return stream.BuWrite_16((ushort) data);
         }
 
         public static Span<byte> BuWrite_16(this Span<byte> buffer, short data)
         {
-            return buffer.BuWrite_16((ushort)data);
+            return buffer.BuWrite_16((ushort) data);
         }
 
         public static Stream BuWrite_16(this Stream stream, ushort data)
@@ -141,7 +141,7 @@ namespace Fluxzy.Misc
 
         public static Span<byte> BuWrite_1_31(this Span<byte> buffer, bool _1, int _31)
         {
-            return BuWrite_1_31(buffer, _1, (uint)_31);
+            return BuWrite_1_31(buffer, _1, (uint) _31);
         }
     }
 }

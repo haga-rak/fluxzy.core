@@ -1,27 +1,26 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 
-namespace Fluxzy
+namespace Fluxzy.Misc
 {
     public static class HashUtility
     {
         /// <summary>
-        /// A stable 64bits hash code based on Knut hash 
+        ///     A stable 64bits hash code based on Knut hash
         /// </summary>
         /// <param name="read"></param>
         /// <returns></returns>
         public static ulong GetLongHash(ReadOnlySpan<char> read)
         {
-            ulong hashedValue = 3074457345618258791ul;
-            
-            for (int i = 0; i < read.Length; i++)
+            var hashedValue = 3074457345618258791ul;
+
+            for (var i = 0; i < read.Length; i++)
             {
                 hashedValue += read[i];
                 hashedValue *= 3074457345618258799ul;
             }
-            
+
             return hashedValue;
         }
 

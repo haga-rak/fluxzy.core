@@ -1,19 +1,18 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     [FilterMetaData(
-        LongDescription = "Select exchange according to configured source agent (user agent or process) with a regular string search."
+        LongDescription =
+            "Select exchange according to configured source agent (user agent or process) with a regular string search."
     )]
     public class AgentLabelFilter : StringFilter
     {
         public AgentLabelFilter(string pattern)
             : base(pattern, StringSelectorOperation.Exact)
         {
-            
         }
 
         public override FilterScope FilterScope { get; } = FilterScope.RequestHeaderReceivedFromClient;
@@ -26,10 +25,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
         {
-            if (exchange?.Agent?.FriendlyName == null )
+            if (exchange?.Agent?.FriendlyName == null)
                 yield break;
 
-            yield return exchange.Agent.FriendlyName; 
+            yield return exchange.Agent.FriendlyName;
         }
     }
 }

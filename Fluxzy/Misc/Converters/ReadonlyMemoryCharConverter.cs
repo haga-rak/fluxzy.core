@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -23,8 +23,7 @@ namespace Fluxzy.Misc.Converters
 
             byte[]? allocated = null;
 
-            try
-            {
+            try {
                 var bufferedData = byteCount < 4096
                     ? stackalloc byte[byteCount]
                     : allocated = ArrayPool<byte>.Shared.Rent(byteCount);
@@ -32,8 +31,7 @@ namespace Fluxzy.Misc.Converters
                 Encoding.UTF8.GetBytes(value.Span, bufferedData);
                 writer.WriteStringValue(bufferedData);
             }
-            finally
-            {
+            finally {
                 if (allocated != null)
                     ArrayPool<byte>.Shared.Return(allocated);
             }
@@ -44,18 +42,15 @@ namespace Fluxzy.Misc.Converters
     {
         public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if (reader.TokenType == JsonTokenType.True || reader.TokenType == JsonTokenType.False) {
-                return reader.GetBoolean(); 
-            }
+            if (reader.TokenType == JsonTokenType.True || reader.TokenType == JsonTokenType.False)
+                return reader.GetBoolean();
 
             var stringchar = reader.GetString();
 
-            if (bool.TryParse(stringchar, out var result)) {
-                return result; 
-            }
+            if (bool.TryParse(stringchar, out var result))
+                return result;
 
-            throw new JsonException($"Cannot parse {stringchar} to boolean"); 
-
+            throw new JsonException($"Cannot parse {stringchar} to boolean");
         }
 
         public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)
@@ -63,6 +58,4 @@ namespace Fluxzy.Misc.Converters
             writer.WriteBooleanValue(value);
         }
     }
-
-
 }

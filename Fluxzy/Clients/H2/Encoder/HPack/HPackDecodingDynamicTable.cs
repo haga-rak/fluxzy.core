@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Linq;
@@ -15,22 +15,20 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         private int _internalIndex = -1;
         private int _oldestElementInternalIndex;
 
-        internal H2Logger? Logger { get; set; }
-
         public HPackDecodingDynamicTable(int initialSize)
         {
             _currentMaxSize = initialSize;
         }
+
+        internal H2Logger? Logger { get; set; }
 
         private int EvictUntil(int toBeRemovedSize)
         {
             var evictedSize = 0;
             int i;
 
-            for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++)
-            {
-                if (!_entries.TryGetValue(i, out var tableEntry))
-                {
+            for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++) {
+                if (!_entries.TryGetValue(i, out var tableEntry)) {
                     _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
 
                     return evictedSize;
@@ -78,8 +76,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
             var provisionalSize = _currentSize + entry.Size;
 
-            if (provisionalSize > _currentMaxSize)
-            {
+            if (provisionalSize > _currentMaxSize) {
                 var spaceNeeded = provisionalSize - _currentMaxSize;
 
                 var evictedSize = EvictUntil(spaceNeeded);
@@ -87,8 +84,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                 // No decoding error.
                 // Inserting element larger than Table MAX SIZE cause the table to be emptied 
 
-                if (evictedSize < spaceNeeded)
-                {
+                if (evictedSize < spaceNeeded) {
                     _currentSize = 0;
                     _entries.Clear();
                     _internalIndex = -1;

@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Net;
@@ -10,17 +10,16 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     {
         private readonly HttpClientHandler _clientHandler;
 
-        public HttpClient Client { get; }
-
         public ProxiedHttpClient(int port, string remoteHost = "127.0.0.1")
         {
-            _clientHandler = new HttpClientHandler
-            {
+            _clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{remoteHost}:{port}")
             };
 
             Client = new HttpClient(_clientHandler);
         }
+
+        public HttpClient Client { get; }
 
         public void Dispose()
         {

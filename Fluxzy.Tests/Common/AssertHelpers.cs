@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -13,20 +13,19 @@ namespace Fluxzy.Tests.Common
 {
     public static class AssertHelpers
     {
-        public static MockResponse ControlHeaders(string contentText, HttpRequestMessage requestMessage,
+        public static MockResponse ControlHeaders(
+            string contentText, HttpRequestMessage requestMessage,
             int responseSize = -1)
         {
             var binResponse = JsonSerializer.Deserialize<MockResponse>(contentText)!;
 
-            if (responseSize >= 0 && binResponse.Headers.ContainsKey("Content-Length"))
-            {
+            if (responseSize >= 0 && binResponse.Headers.ContainsKey("Content-Length")) {
                 var contentLength = int.Parse(binResponse.Headers["Content-Length"]);
                 Assert.Equal(responseSize, contentLength);
                 ;
             }
 
-            foreach (var header in requestMessage.Headers)
-            {
+            foreach (var header in requestMessage.Headers) {
                 if (HttpConstants.PermanentHeaders.Contains(header.Key))
                     continue;
 
@@ -79,6 +78,12 @@ namespace Fluxzy.Tests.Common
             private ReadOnlyMemory<char> _array;
             private int _totalRead;
 
+            public DecodingStream(ReadOnlyMemory<char> array)
+            {
+                _array = array;
+                _encoding = Encoding.ASCII;
+            }
+
             public override bool CanRead => true;
 
             public override bool CanSeek => false;
@@ -87,18 +92,10 @@ namespace Fluxzy.Tests.Common
 
             public override long Length => throw new NotSupportedException();
 
-            public override long Position
-            {
+            public override long Position {
                 get => throw new NotSupportedException();
 
                 set => throw new NotSupportedException();
-            }
-
-            public DecodingStream(
-                ReadOnlyMemory<char> array)
-            {
-                _array = array;
-                _encoding = Encoding.ASCII;
             }
 
             public override void Flush()

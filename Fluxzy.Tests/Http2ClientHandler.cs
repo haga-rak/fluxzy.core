@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -13,14 +15,12 @@ namespace Fluxzy.Tests
 {
     public class Http2ClientHandler
     {
-        public static IEnumerable<object[]> GetHttpMethods
-        {
+        public static IEnumerable<object[]> GetHttpMethods {
             get
             {
                 int[] checkLength = { 0, 152, 12464, 150002 };
 
-                foreach (var length in checkLength)
-                {
+                foreach (var length in checkLength) {
                     yield return new object[] { HttpMethod.Get, length };
                     yield return new object[] { HttpMethod.Post, length };
                     yield return new object[] { HttpMethod.Put, length };
@@ -265,8 +265,7 @@ namespace Fluxzy.Tests
 
             var source = new CancellationTokenSource();
 
-            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
-            {
+            await Assert.ThrowsAsync<TaskCanceledException>(async () => {
                 var responsePromise = httpClient.SendAsync(requestMessage, source.Token);
                 source.Cancel();
                 await responsePromise;
@@ -290,7 +289,7 @@ namespace Fluxzy.Tests
 
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            Assert.Equal((HttpStatusCode)304, response.StatusCode);
+            Assert.Equal((HttpStatusCode) 304, response.StatusCode);
             Assert.Equal(string.Empty, contentText);
         }
     }

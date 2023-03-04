@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,6 @@ namespace Fluxzy
 
         public HashSet<Tag> Tags { get; set; } = new();
 
-        public List<Filter> ViewFilters { get; set; } = new(); 
+        public List<Filter> ViewFilters { get; set; } = new();
     }
 }

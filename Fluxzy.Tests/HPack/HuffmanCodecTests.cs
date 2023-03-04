@@ -1,4 +1,7 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
+using System.Text;
 using Fluxzy.Clients.H2.Encoder;
 using Xunit;
 
@@ -9,7 +12,7 @@ namespace Fluxzy.Tests.HPack
         [Fact]
         public void Encoding_Decoding_With_Many_Inputs()
         {
-            Random r = new Random(9);
+            var r = new Random(9);
 
             var testCount = 100_000;
 
@@ -22,8 +25,7 @@ namespace Fluxzy.Tests.HPack
 
             var codec = new HuffmanCodec();
 
-            for (int i = 0; i < testCount; i++)
-            {
+            for (var i = 0; i < testCount; i++) {
                 var input = StringGenerationHelper.GenerateRandomInput(testBuffer,
                     minLength, maxLength, r);
 
@@ -35,8 +37,8 @@ namespace Fluxzy.Tests.HPack
                 var encoded = codec.Encode(input.Span, bufferEncoded);
                 var decoded = codec.Decode(encoded, bufferDecoded);
 
-                Assert.Equal(System.Text.Encoding.ASCII.GetString(input.Span),
-                    System.Text.Encoding.ASCII.GetString(decoded));
+                Assert.Equal(Encoding.ASCII.GetString(input.Span),
+                    Encoding.ASCII.GetString(decoded));
 
                 Assert.Equal(encoded.Length,
                     provisionalLength);
@@ -55,16 +57,14 @@ namespace Fluxzy.Tests.HPack
 
             var input = StringGenerationHelper.GetFastString();
 
-            for (int i = 0; i < testCount; i++)
-            {
-
+            for (var i = 0; i < testCount; i++) {
                 var provisionalLength = codec.GetEncodedLength(input.Span);
                 var encoded = codec.Encode(input.Span, bufferEncoded);
                 var decoded = codec.Decode(encoded, bufferDecoded);
 
 
-                Assert.Equal(System.Text.Encoding.ASCII.GetString(input.Span),
-                    System.Text.Encoding.ASCII.GetString(decoded));
+                Assert.Equal(Encoding.ASCII.GetString(input.Span),
+                    Encoding.ASCII.GetString(decoded));
 
                 Assert.Equal(encoded.Length,
                     provisionalLength);
@@ -81,15 +81,14 @@ namespace Fluxzy.Tests.HPack
 
             var codec = new HuffmanCodec();
 
-            var input = new Memory<byte>(System.Text.Encoding.ASCII.GetBytes(inputString));
+            var input = new Memory<byte>(Encoding.ASCII.GetBytes(inputString));
 
             var encoded = codec.Encode(input.Span, bufferEncoded);
             var decoded = codec.Decode(encoded, bufferDecoded);
 
-            Assert.Equal(System.Text.Encoding.ASCII.GetString(input.Span),
-                System.Text.Encoding.ASCII.GetString(decoded));
+            Assert.Equal(Encoding.ASCII.GetString(input.Span),
+                Encoding.ASCII.GetString(decoded));
         }
-
 
         [Fact]
         public void Encoding_Decoding_WithSpecificString()
@@ -106,12 +105,13 @@ namespace Fluxzy.Tests.HPack
 
     public static class StringGenerationHelper
     {
-        private static readonly byte[] FastString = System.Text.Encoding.ASCII.GetBytes("ABCDEFJHIJKLMNOPQRSTUVWXYZ");
+        private static readonly byte[] FastString = Encoding.ASCII.GetBytes("ABCDEFJHIJKLMNOPQRSTUVWXYZ");
 
         public static Memory<byte> GenerateRandomInput(byte[] buffer, int min, int max, Random random)
         {
             var size = random.Next(min, max);
             random.NextBytes(new Span<byte>(buffer, 0, size));
+
             return new Memory<byte>(buffer, 0, size);
         }
 

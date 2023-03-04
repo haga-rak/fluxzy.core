@@ -1,11 +1,10 @@
-﻿using System.IO;
-using System.Linq;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.IO;
 using System.Threading.Tasks;
-using Fluxzy.Formatters.Producers.Requests;
 
 namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
 {
-    
     public class SaveRequestBodyProducerAction
     {
         private readonly ProducerFactory _producerFactory;
@@ -15,15 +14,14 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
             _producerFactory = producerFactory;
         }
 
-        public async Task<bool> Do(int exchangeId,  string filePath)
+        public async Task<bool> Do(int exchangeId, string filePath)
         {
             var context = await _producerFactory.GetProducerContext(
                 exchangeId
             );
 
             if (context is null)
-                return false; 
-
+                return false;
 
             await using var stream = context.ArchiveReader.GetRequestBody(exchangeId);
 

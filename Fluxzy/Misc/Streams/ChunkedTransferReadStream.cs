@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Globalization;
@@ -20,6 +20,12 @@ namespace Fluxzy.Misc.Streams
 
         private long _nextChunkSize;
 
+        public ChunkedTransferReadStream(Stream innerStream, bool closeOnDone)
+        {
+            _innerStream = innerStream;
+            _closeOnDone = closeOnDone;
+        }
+
         public override bool CanRead => true;
 
         public override bool CanSeek => false;
@@ -28,17 +34,10 @@ namespace Fluxzy.Misc.Streams
 
         public override long Length => throw new InvalidOperationException();
 
-        public override long Position
-        {
+        public override long Position {
             get => throw new InvalidOperationException();
 
             set => throw new InvalidOperationException();
-        }
-
-        public ChunkedTransferReadStream(Stream innerStream, bool closeOnDone)
-        {
-            _innerStream = innerStream;
-            _closeOnDone = closeOnDone;
         }
 
         public override void Flush()
@@ -46,7 +45,8 @@ namespace Fluxzy.Misc.Streams
             throw new NotSupportedException();
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
+        public override async Task<int> ReadAsync(
+            byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
@@ -56,8 +56,7 @@ namespace Fluxzy.Misc.Streams
         {
             // Read the length of the next block 
 
-            if (_nextChunkSize == 0)
-            {
+            if (_nextChunkSize == 0) {
                 Memory<byte> textBufferBytes = _lengthHolderBytes;
                 Memory<char> textBufferChars = _lengthHolderChar;
                 Memory<byte> singleByte = _singleByte;
@@ -68,36 +67,35 @@ namespace Fluxzy.Misc.Streams
 
                 while (
                     await _innerStream.ReadAsync(singleByte, cancellationToken) > 0
-                    && (chunkSizeNotDetected = singleByte.Span[0] != 0XD))
-                {
+                    && (chunkSizeNotDetected = singleByte.Span[0] != 0XD)) {
                     if (textCount > 40)
                         throw new IOException("Error while reading chunked stream : Chunk size is larger than 40.");
 
                     textBufferBytes.Span[textCount++] = singleByte.Span[0];
                 }
 
-                if (textCount == 0 && !chunkSizeNotDetected)
-                {
+                if (textCount == 0 && !chunkSizeNotDetected) {
                     // Natural End of stream . Read the last double cr lf 
                     await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
 
                     return 0;
                 }
 
-                if (textCount == 0 || chunkSizeNotDetected)
+                if (textCount == 0 || chunkSizeNotDetected) {
                     throw new IOException(
                         "Error while reading chunked stream : EOF was reached on chunked stream before reading a valid length block.");
+                }
 
                 Encoding.ASCII.GetChars(textBufferBytes.Span.Slice(0, textCount), textBufferChars.Span);
 
                 if (!long.TryParse(textBufferChars.Slice(0, textCount).Span,
                         NumberStyles.HexNumber, CultureInfo.InvariantCulture,
-                        out var chunkSize) || chunkSize < 0)
+                        out var chunkSize) || chunkSize < 0) {
                     throw new IOException(
                         $"Error while reading chunked stream : Received chunk size is invalid : {textBufferChars.Slice(0, textCount).ToString()}.");
+                }
 
-                if (chunkSize == 0)
-                {
+                if (chunkSize == 0) {
                     if (!_closeOnDone)
                         await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
 
@@ -111,13 +109,14 @@ namespace Fluxzy.Misc.Streams
                 _nextChunkSize = chunkSize;
             }
 
-            var nextBlockToRead = (int)Math.Min(_nextChunkSize, buffer.Length);
+            var nextBlockToRead = (int) Math.Min(_nextChunkSize, buffer.Length);
 
             var read = await _innerStream.ReadAsync(buffer.Slice(0, nextBlockToRead), cancellationToken);
 
-            if (read <= 0)
+            if (read <= 0) {
                 throw new EndOfStreamException(
                     $"Error while reading chunked stream : EOF was reached before receiving {_nextChunkSize} bytes of chunked data.");
+            }
 
             _nextChunkSize -= read;
 
@@ -133,8 +132,7 @@ namespace Fluxzy.Misc.Streams
 
             // Read the length of the next block 
 
-            if (_nextChunkSize == 0)
-            {
+            if (_nextChunkSize == 0) {
                 Memory<byte> textBufferBytes = _lengthHolderBytes;
                 Memory<char> textBufferChars = _lengthHolderChar;
                 Memory<byte> singleByte = _singleByte;
@@ -145,36 +143,35 @@ namespace Fluxzy.Misc.Streams
 
                 while (
                     _innerStream.Read(singleByte.Span) > 0
-                    && (chunkSizeNotDetected = singleByte.Span[0] != 0XD))
-                {
+                    && (chunkSizeNotDetected = singleByte.Span[0] != 0XD)) {
                     if (textCount > 40)
                         throw new IOException("Error while reading chunked stream : Chunk size is larger than 40.");
 
                     textBufferBytes.Span[textCount++] = singleByte.Span[0];
                 }
 
-                if (textCount == 0 && !chunkSizeNotDetected)
-                {
+                if (textCount == 0 && !chunkSizeNotDetected) {
                     // Natural End of stream . Read the last double cr lf 
                     _innerStream.ReadExact(textBufferBytes.Slice(0, 3).Span);
 
                     return 0;
                 }
 
-                if (textCount == 0 || chunkSizeNotDetected)
+                if (textCount == 0 || chunkSizeNotDetected) {
                     throw new IOException(
                         "Error while reading chunked stream : EOF was reached on chunked stream before reading a valid length block.");
+                }
 
                 Encoding.ASCII.GetChars(textBufferBytes.Span.Slice(0, textCount), textBufferChars.Span);
 
                 if (!long.TryParse(textBufferChars.Slice(0, textCount).Span,
                         NumberStyles.HexNumber, CultureInfo.InvariantCulture,
-                        out var chunkSize) || chunkSize < 0)
+                        out var chunkSize) || chunkSize < 0) {
                     throw new IOException(
                         $"Error while reading chunked stream : Received chunk size is invalid : {textBufferChars.Slice(0, textCount).ToString()}.");
+                }
 
-                if (chunkSize == 0)
-                {
+                if (chunkSize == 0) {
                     if (!_closeOnDone)
                         _innerStream.ReadExact(textBufferBytes.Slice(0, 3).Span);
 
@@ -188,13 +185,14 @@ namespace Fluxzy.Misc.Streams
                 _nextChunkSize = chunkSize;
             }
 
-            var nextBlockToRead = (int)Math.Min(_nextChunkSize, buffer.Length);
+            var nextBlockToRead = (int) Math.Min(_nextChunkSize, buffer.Length);
 
             var read = _innerStream.Read(buffer.Slice(0, nextBlockToRead).Span);
 
-            if (read <= 0)
+            if (read <= 0) {
                 throw new EndOfStreamException(
                     $"Error while reading chunked stream : EOF was reached before receiving {_nextChunkSize} bytes of chunked data.");
+            }
 
             _nextChunkSize -= read;
 

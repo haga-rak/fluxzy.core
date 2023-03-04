@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 
 namespace Fluxzy.Clients.H2.Frames
 {
@@ -12,8 +14,7 @@ namespace Fluxzy.Clients.H2.Frames
 
             var padded = flags.HasFlag(HeaderFlags.Padded);
 
-            if (padded)
-            {
+            if (padded) {
                 paddedLength = bodyBytes.Span[0];
                 bodyBytes = bodyBytes.Slice(1);
             }
@@ -36,9 +37,10 @@ namespace Fluxzy.Clients.H2.Frames
 
         public int WriteHeaderOnly(Span<byte> buffer, int bodyLength)
         {
-            var offset = H2Frame.Write(buffer, bodyLength, H2FrameType.Data, EndStream ? HeaderFlags.EndStream : HeaderFlags.None , StreamIdentifier);
-            
-            return offset; 
+            var offset = H2Frame.Write(buffer, bodyLength, H2FrameType.Data,
+                EndStream ? HeaderFlags.EndStream : HeaderFlags.None, StreamIdentifier);
+
+            return offset;
         }
 
         public int BodyLength { get; }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers.Binary;
@@ -35,8 +35,9 @@ namespace Fluxzy.Clients.H2.Encoder
             var array = input;
             var lengthInBits = 0;
 
-            for (var index = 0; index < array.Length; index++)
+            for (var index = 0; index < array.Length; index++) {
                 lengthInBits += symbols[array[index]].LengthBits;
+            }
 
             if (lengthInBits % 8 == 0)
                 return lengthInBits / 8;
@@ -55,12 +56,12 @@ namespace Fluxzy.Clients.H2.Encoder
             var symbols = _dictionary.Symbols;
             var offsetBits = 0;
 
-            for (var index = 0; index < input.Length; index++)
+            for (var index = 0; index < input.Length; index++) {
                 offsetBits += Write(buffer, offsetBits, symbols[input[index]]);
+            }
 
-            if (offsetBits % 8 != 0)
-            {
-                var toFillLength = (byte)(0xFF >> (offsetBits % 8));
+            if (offsetBits % 8 != 0) {
+                var toFillLength = (byte) (0xFF >> (offsetBits % 8));
                 buffer[offsetBits / 8] |= toFillLength;
 
                 return buffer.Slice(0, offsetBits / 8 + 1);
@@ -83,8 +84,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
             var totalLengthBits = encodedBytes.Length * 8;
 
-            while (currentOffsetBits < totalLengthBits)
-            {
+            while (currentOffsetBits < totalLengthBits) {
                 var nextSpan = encodedBytes.SliceBitsToNextInt32(currentOffsetBits, destinationBuffer,
                     _dictionary.ShortestSymbolLength);
 
@@ -119,8 +119,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
             var totalLengthBits = memoryInput.Length * 8;
 
-            while (currentOffsetBits < totalLengthBits)
-            {
+            while (currentOffsetBits < totalLengthBits) {
                 var nextSpan = memoryInput.SliceBitsToNextInt32(currentOffsetBits, destinationBuffer,
                     _dictionary.ShortestSymbolLength);
 
@@ -154,17 +153,15 @@ namespace Fluxzy.Clients.H2.Encoder
             var shiftPad = remain + symbol.LengthBits;
             var destSpan = buffer.Slice(offsetByte);
 
-            if (symbol.LengthBits > 25)
-            {
+            if (symbol.LengthBits > 25) {
                 // Symbol larger than 25 bits can not be encoded with an int. Using a long. 
 
                 var sub = remain == 0 ? 0UL : 0xFFFFFFFF_FFFFFFFF << (sizeof(ulong) * 8 - remain);
                 var value = BinaryPrimitives.ReadUInt64BigEndian(destSpan) & sub;
                 var shift = sizeof(ulong) * 8 - shiftPad;
-                BinaryPrimitives.WriteUInt64BigEndian(destSpan, value | ((ulong)symbol.Value << shift));
+                BinaryPrimitives.WriteUInt64BigEndian(destSpan, value | ((ulong) symbol.Value << shift));
             }
-            else
-            {
+            else {
                 var sub = remain == 0 ? 0U : 0xFFFFFFFF << (sizeof(uint) * 8 - remain);
 
                 var value = BinaryPrimitives.ReadUInt32BigEndian(destSpan) & sub;

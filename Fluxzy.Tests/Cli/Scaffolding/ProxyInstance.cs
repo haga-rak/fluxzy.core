@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading;
@@ -9,11 +9,12 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     public class ProxyInstance : IAsyncDisposable
     {
         private readonly Task _proxyTask;
-        private readonly OutputWriterNotifier _standardOutput;
         private readonly OutputWriterNotifier _standardError;
+        private readonly OutputWriterNotifier _standardOutput;
         private readonly CancellationTokenSource _tokenSource;
 
-        public ProxyInstance(Task proxyTask,
+        public ProxyInstance(
+            Task proxyTask,
             OutputWriterNotifier standardOutput,
             OutputWriterNotifier standardError,
             int listenPort, CancellationTokenSource tokenSource)
@@ -27,6 +28,17 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
         public int ListenPort { get; }
 
+        public async ValueTask DisposeAsync()
+        {
+            if (!_tokenSource.IsCancellationRequested) {
+                _tokenSource.Cancel();
+
+                await _proxyTask;
+
+                _tokenSource.Dispose();
+            }
+        }
+
         public Task<string> WaitForRegexOnStandardOutput(string regex, int timeoutSeconds)
         {
             return _standardOutput.WaitForValue(regex, timeoutSeconds);
@@ -35,18 +47,6 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         public Task<string> WaitForRegexOnStandardError(string regex, int timeoutSeconds)
         {
             return _standardError.WaitForValue(regex, timeoutSeconds);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            if (!_tokenSource.IsCancellationRequested)
-            {
-                _tokenSource.Cancel();
-
-                await _proxyTask;
-
-                _tokenSource.Dispose();
-            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -11,11 +11,18 @@ namespace Fluxzy.Misc.Streams
 {
     public class ChunkedTransferWriteStream : Stream
     {
-        private static readonly byte[] ChunkTerminator = { (byte)'0', (byte)'\r', (byte)'\n', (byte)'\r', (byte)'\n' };
-        private static readonly byte[] LineTerminator = { (byte)'\r', (byte)'\n' };
+        private static readonly byte[] ChunkTerminator =
+            { (byte) '0', (byte) '\r', (byte) '\n', (byte) '\r', (byte) '\n' };
+
+        private static readonly byte[] LineTerminator = { (byte) '\r', (byte) '\n' };
         private readonly Stream _innerStream;
 
         private bool _eof;
+
+        public ChunkedTransferWriteStream(Stream innerStream)
+        {
+            _innerStream = innerStream;
+        }
 
         public override bool CanRead => false;
 
@@ -25,16 +32,10 @@ namespace Fluxzy.Misc.Streams
 
         public override long Length => throw new NotSupportedException();
 
-        public override long Position
-        {
+        public override long Position {
             get => throw new NotSupportedException();
 
             set => throw new NotSupportedException();
-        }
-
-        public ChunkedTransferWriteStream(Stream innerStream)
-        {
-            _innerStream = innerStream;
         }
 
         public override void Flush()
@@ -60,15 +61,13 @@ namespace Fluxzy.Misc.Streams
         {
             var poolBuffer = ArrayPool<byte>.Shared.Rent(64);
 
-            try
-            {
+            try {
                 var cs = Encoding.ASCII.GetBytes($"{count:X}\r\n", poolBuffer);
                 _innerStream.Write(poolBuffer, 0, cs);
                 _innerStream.Write(buffer, offset, count);
                 _innerStream.Write(LineTerminator);
             }
-            finally
-            {
+            finally {
                 ArrayPool<byte>.Shared.Return(poolBuffer);
             }
         }
@@ -78,20 +77,19 @@ namespace Fluxzy.Misc.Streams
             await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken);
         }
 
-        public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer,
+        public override async ValueTask WriteAsync(
+            ReadOnlyMemory<byte> buffer,
             CancellationToken cancellationToken = new())
         {
             var poolBuffer = ArrayPool<byte>.Shared.Rent(64);
 
-            try
-            {
+            try {
                 var cs = Encoding.ASCII.GetBytes($"{buffer.Length:X}\r\n", poolBuffer);
                 await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(poolBuffer, 0, cs), cancellationToken);
                 await _innerStream.WriteAsync(buffer, cancellationToken);
                 await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(LineTerminator), cancellationToken);
             }
-            finally
-            {
+            finally {
                 ArrayPool<byte>.Shared.Return(poolBuffer);
             }
         }
@@ -103,8 +101,7 @@ namespace Fluxzy.Misc.Streams
 
         public async ValueTask WriteEof()
         {
-            if (!_eof)
-            {
+            if (!_eof) {
                 _eof = true;
                 await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(ChunkTerminator));
             }

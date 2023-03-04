@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -9,24 +11,6 @@ namespace Fluxzy
 {
     public class ExchangeInfo : IExchange
     {
-        [JsonPropertyOrder(-10)]
-        public int ConnectionId { get; }
-        
-        [JsonPropertyOrder(-9)]
-        public int Id { get; }
-
-        public RequestHeaderInfo RequestHeader { get; }
-
-        public ResponseHeaderInfo? ResponseHeader { get; }
-
-        public ExchangeMetrics Metrics { get; }
-
-        public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
-
-        public bool Done => ResponseHeader?.StatusCode > 0;
-
-        public bool Pending { get; }
-
         public ExchangeInfo(Exchange exchange)
         {
             Id = exchange.Id;
@@ -50,7 +34,8 @@ namespace Fluxzy
         }
 
         [JsonConstructor]
-        public ExchangeInfo(int id, int connectionId, string httpVersion,
+        public ExchangeInfo(
+            int id, int connectionId, string httpVersion,
             RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader,
             ExchangeMetrics metrics, string egressIp, bool pending, string? comment, HashSet<Tag>? tags,
             bool isWebSocket, List<WsMessage> webSocketMessages, Agent? agent, List<ClientError> clientErrors)
@@ -70,6 +55,24 @@ namespace Fluxzy
             ClientErrors = clientErrors;
             Tags = tags ?? new HashSet<Tag>();
         }
+
+        [JsonPropertyOrder(-10)]
+        public int ConnectionId { get; }
+
+        [JsonPropertyOrder(-9)]
+        public int Id { get; }
+
+        public RequestHeaderInfo RequestHeader { get; }
+
+        public ResponseHeaderInfo? ResponseHeader { get; }
+
+        public ExchangeMetrics Metrics { get; }
+
+        public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
+
+        public bool Done => ResponseHeader?.StatusCode > 0;
+
+        public bool Pending { get; }
 
         public string HttpVersion { get; }
 
@@ -91,7 +94,6 @@ namespace Fluxzy
             return ResponseHeader?.Headers;
         }
 
-
         public int StatusCode => ResponseHeader?.StatusCode ?? 0;
 
         public string? EgressIp { get; }
@@ -103,10 +105,10 @@ namespace Fluxzy
         public bool IsWebSocket { get; }
 
         public List<WsMessage>? WebSocketMessages { get; }
-        
+
         public Agent? Agent { get; }
-        
-        public List<ClientError> ClientErrors { get; } 
+
+        public List<ClientError> ClientErrors { get; }
     }
 
     public class BodyContent

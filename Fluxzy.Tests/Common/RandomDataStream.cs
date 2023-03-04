@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -9,14 +9,16 @@ namespace Fluxzy.Tests.Common
 {
     public class RandomDataStream : Stream
     {
+        private readonly SHA1 _crypto;
+        private readonly CryptoStream _cryptoStream;
         private readonly int _length;
-        private readonly bool _seekable;
-        private int _actualReaden;
         private readonly MemoryStream _memoryStream = new();
 
         private readonly Random _random;
-        private readonly CryptoStream _cryptoStream;
-        private readonly SHA1 _crypto;
+        private readonly bool _seekable;
+        private int _actualReaden;
+
+        private bool _disposed;
 
         public RandomDataStream(int seed, int length, bool seekable = false)
         {
@@ -30,6 +32,24 @@ namespace Fluxzy.Tests.Common
         }
 
         public string? Hash { get; private set; }
+
+        public string? HashBae { get; private set; }
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => _seekable;
+
+        public override bool CanWrite => false;
+
+        public override long Length =>
+            _seekable
+                ? _length - _actualReaden
+                : throw new NotSupportedException();
+
+        public override long Position {
+            get => _actualReaden;
+            set => throw new NotSupportedException();
+        }
 
         public override void Flush()
         {
@@ -51,8 +71,7 @@ namespace Fluxzy.Tests.Common
             if (currentRead == 0)
                 return 0;
 
-            if (_actualReaden == _length)
-            {
+            if (_actualReaden == _length) {
                 _cryptoStream.FlushFinalBlock();
                 var array = _memoryStream.ToArray();
 
@@ -69,8 +88,6 @@ namespace Fluxzy.Tests.Common
             return currentRead;
         }
 
-        public string? HashBae { get; private set; }
-
         public override long Seek(long offset, SeekOrigin origin)
         {
             throw new NotSupportedException();
@@ -86,26 +103,6 @@ namespace Fluxzy.Tests.Common
             throw new NotSupportedException();
         }
 
-        public override bool CanRead => true;
-        public override bool CanSeek => _seekable;
-        public override bool CanWrite => false;
-        public override long Length
-        {
-            get
-            {
-                return _seekable ? _length - _actualReaden
-                    : throw new NotSupportedException();
-            }
-        }
-
-        public override long Position
-        {
-            get => _actualReaden;
-            set => throw new NotSupportedException();
-        }
-
-        private bool _disposed;
-
         public override async ValueTask DisposeAsync()
         {
             if (_disposed)
@@ -114,9 +111,8 @@ namespace Fluxzy.Tests.Common
             _disposed = true;
 
             _crypto.Dispose();
+
             //  await _cryptoStream.DisposeAsync(); ;
-
-
         }
     }
 }

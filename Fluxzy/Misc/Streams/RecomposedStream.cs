@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,7 +8,7 @@ using System.Threading.Tasks;
 namespace Fluxzy.Misc.Streams
 {
     /// <summary>
-    /// Aims to build an I/O stream from a read and a write stream
+    ///     Aims to build an I/O stream from a read and a write stream
     /// </summary>
     internal class RecomposedStream : Stream
     {
@@ -18,6 +20,16 @@ namespace Fluxzy.Misc.Streams
             _readStream = readStream;
             _writeStream = writeStream;
         }
+
+        public override bool CanRead => _readStream.CanRead;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => _writeStream.CanWrite;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position { get; set; }
 
         public override void Flush()
         {
@@ -35,7 +47,6 @@ namespace Fluxzy.Misc.Streams
             return _readStream.Read(buffer, offset, count);
         }
 
-
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -44,7 +55,7 @@ namespace Fluxzy.Misc.Streams
             return _readStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
 
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
             return await _readStream.ReadAsync(buffer, cancellationToken);
         }
@@ -72,7 +83,8 @@ namespace Fluxzy.Misc.Streams
             return _writeStream.WriteAsync(buffer, offset, count, cancellationToken);
         }
 
-        public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override async ValueTask WriteAsync(
+            ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
             if (cancellationToken.IsCancellationRequested || !_writeStream.CanWrite)
                 return;
@@ -80,37 +92,21 @@ namespace Fluxzy.Misc.Streams
             await _writeStream.WriteAsync(buffer, cancellationToken);
         }
 
-        public override bool CanRead => _readStream.CanRead;
-
-        public override bool CanSeek => false;
-
-        public override bool CanWrite => _writeStream.CanWrite;
-
-        public override long Length => throw new NotSupportedException();
-
-        public override long Position { get; set; }
-
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
 
-            try
-            {
+            try {
                 _readStream.Dispose();
             }
-            catch
-            {
-
+            catch {
             }
-            try
-            {
+
+            try {
                 _writeStream.Dispose();
             }
-            catch
-            {
-
+            catch {
             }
         }
-
     }
 }

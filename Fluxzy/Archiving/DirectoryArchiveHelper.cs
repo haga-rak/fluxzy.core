@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +19,7 @@ namespace Fluxzy
 
         internal static IEnumerable<FileInfo> EnumerateExchangeFileCandidates(string baseDirectory)
         {
-            var targetPath = Path.Combine(baseDirectory, "exchanges"); 
+            var targetPath = Path.Combine(baseDirectory, "exchanges");
             var directoryInfo = new DirectoryInfo(targetPath);
 
             return directoryInfo.EnumerateFiles("ex-*.json", SearchOption.AllDirectories);
@@ -27,12 +27,11 @@ namespace Fluxzy
 
         internal static IEnumerable<FileInfo> EnumerateConnectionFileCandidates(string baseDirectory)
         {
-            var targetPath = Path.Combine(baseDirectory, "connections"); 
+            var targetPath = Path.Combine(baseDirectory, "connections");
             var directoryInfo = new DirectoryInfo(targetPath);
 
             return directoryInfo.EnumerateFiles("con-*.json", SearchOption.AllDirectories);
         }
-
 
         internal static string GetExchangePath(string baseDirectory, int exchangeId)
         {
@@ -83,7 +82,7 @@ namespace Fluxzy
         {
             return Path.Combine(baseDirectory, "contents", $"res-{exchangeId}.data");
         }
-        
+
         internal static string GetCapturePath(string baseDirectory, int connectionId)
         {
             return Path.Combine(baseDirectory, "captures", $"{connectionId}.pcapng");

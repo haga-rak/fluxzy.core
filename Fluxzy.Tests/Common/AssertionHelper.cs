@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
@@ -11,21 +11,19 @@ namespace Fluxzy.Tests.Common
     public static class AssertionHelper
     {
         /// <summary>
-        /// Assert that response corresponds to request
+        ///     Assert that response corresponds to request
         /// </summary>
         /// <param name="request"></param>
         /// <param name="requestHashBodyHash"></param>
         /// <param name="response"></param>
         public static async Task ValidateCheck(
-            HttpRequestMessage request, string?  requestHashBodyHash,
+            HttpRequestMessage request, string? requestHashBodyHash,
             HttpResponseMessage response)
         {
-            var checkResult = await response.GetCheckResult(); 
+            var checkResult = await response.GetCheckResult();
 
-            foreach (var header in request.Headers.Where(h => h.Key != "fluxzy"))
-            {
-                foreach (var headerValue in header.Value)
-                {
+            foreach (var header in request.Headers.Where(h => h.Key != "fluxzy")) {
+                foreach (var headerValue in header.Value) {
                     Assert.True(
                         checkResult.Headers != null && checkResult.Headers.Any(
                             h => h.Name.Equals(header.Key, StringComparison.OrdinalIgnoreCase)
@@ -34,9 +32,7 @@ namespace Fluxzy.Tests.Common
             }
 
             if (!string.IsNullOrWhiteSpace(requestHashBodyHash))
-            {
                 Assert.Equal(checkResult.RequestContent.Hash, requestHashBodyHash);
-            }
         }
     }
 }
