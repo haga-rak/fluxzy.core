@@ -64,5 +64,49 @@ namespace Fluxzy.Tests.NativeOps.Macos
             Assert.Equal(3, cmdLineResult.First(i => i.Name == "Wi-Fi").Index);
             Assert.Equal(5, cmdLineResult.First(i => i.DeviceName == "en3").Index);
         }
+
+        [Fact]
+        public void TestParseProxySettings()
+        {
+            var setting = InterfaceProxySetting.Get("Enabled: No\r\nServer:\r\nPort: 0\r\nAuthenticated Proxy Enabled: 0");
+
+            Assert.NotNull(setting);
+            Assert.False(setting.Enabled);
+            Assert.Equal(setting.Server, string.Empty);
+            Assert.Equal(setting.Port, 0);
+        }
+
+        private readonly string _basicCommandLIneResult
+            = "\r\nEnabled: yes\r\nServer: 127.0.0.1\r\nPort: 44344\r\nAuthenticated Proxy Enabled: 0";
+
+        [Fact]
+        public void TestParseProxySettingsRegularValue()
+        {
+            var setting = InterfaceProxySetting.Get(_basicCommandLIneResult);
+
+            Assert.NotNull(setting);
+            Assert.True(setting.Enabled);
+            Assert.Equal(setting.Server, "127.0.0.1");
+            Assert.Equal(setting.Port, 44344);
+        }
+
+        [Fact]
+        public void TestParseProxySettingsRegularValueMacosStyle()
+        {
+            var setting = InterfaceProxySetting.Get(_basicCommandLIneResult.Replace("\r\n", "\r"));
+
+            Assert.NotNull(setting);
+            Assert.True(setting.Enabled);
+            Assert.Equal(setting.Server, "127.0.0.1");
+            Assert.Equal(setting.Port, 44344);
+        }
+
+        [Fact]
+        public void TestParseProxySettingsLimitCase()
+        {
+            var setting = InterfaceProxySetting.Get("\r\nEnabled: yes\r\nEnabled: yes\r\nServer: 127.0.0.1\r\nPort: 44344\r\nAuthenticated Proxy Enabled: 0");
+
+            Assert.Null(setting);
+        }
     }
 }

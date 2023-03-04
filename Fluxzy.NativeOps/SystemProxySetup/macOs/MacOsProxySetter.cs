@@ -17,6 +17,10 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 
         public SystemProxySetting ReadSetting()
         {
+            // Try to read exactly every interface proxy settings 
+            // Declare active if any is active 
+            // save into the SystemProxySetting dictionary 
+
             var testedIfaces = new[] { "Ethernet", "Wi-fi" };
             SystemProxySetting? pendingResult = null;
 
@@ -33,7 +37,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 
             foreach (var iFace in testedIfaces) {
                 var input =
-                    ProcessUtils.RunAndExpectZero("networksetup", $"-getwebproxy {iFace}");
+                    ProcessUtils.RunAndExpectZero("networksetup", $"-getwebproxy \"{iFace}\"");
 
                 if (input == null || !TryReadProxySetting(input, out var address, out var port, out var enabled))
                     continue;
