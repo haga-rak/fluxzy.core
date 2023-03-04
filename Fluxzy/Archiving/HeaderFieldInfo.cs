@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Text.Json.Serialization;
@@ -13,7 +13,7 @@ namespace Fluxzy
         {
             Name = original.Name;
             Value = original.Value;
-            Forwarded = !Http11Constants.IsNonForwardableHeader(original.Name); 
+            Forwarded = !Http11Constants.IsNonForwardableHeader(original.Name);
         }
 
         [JsonConstructor]
@@ -24,13 +24,15 @@ namespace Fluxzy
             Forwarded = forwarded;
         }
 
-        public ReadOnlyMemory<char> Name { get; set; } 
+        public ReadOnlyMemory<char> Name { get; set; }
 
-        public ReadOnlyMemory<char> Value { get; set; } 
-        
+        public ReadOnlyMemory<char> Value { get; set; }
+
         public bool Forwarded { get; set; }
 
-
-        public static implicit operator HeaderFieldInfo(HeaderField d) => new(d);
+        public static implicit operator HeaderFieldInfo(HeaderField d)
+        {
+            return new(d);
+        }
     }
 }

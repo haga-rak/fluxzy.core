@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,9 +26,7 @@ namespace Fluxzy.Readers
 
         long GetRequestBodyLength(int exchangeId);
 
-        long GetResponseBodyLength(int exchangeId); 
-
-
+        long GetResponseBodyLength(int exchangeId);
 
         Stream? GetRequestWebsocketContent(int exchangeId, int messageId);
 
@@ -38,6 +38,6 @@ namespace Fluxzy.Readers
 
         bool HasResponseBody(int exchangeId);
 
-        bool HasCapture(int connectionId); 
+        bool HasCapture(int connectionId);
     }
 }

@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.HPack;
@@ -17,8 +19,8 @@ namespace Fluxzy.Tests.HPack
 
             var input = expectedText.AsSpan();
 
-            var buffer = (Span<byte>)stackalloc byte[2048];
-            var bufferDecoded = (Span<char>)stackalloc char[2048];
+            var buffer = (Span<byte>) stackalloc byte[2048];
+            var bufferDecoded = (Span<char>) stackalloc char[2048];
 
             var encoded = binaryHelper.WriteString(input, buffer, false);
             var decoded = binaryHelper.ReadString(encoded, bufferDecoded, out _);
@@ -36,8 +38,8 @@ namespace Fluxzy.Tests.HPack
 
             var input = expectedText.AsSpan();
 
-            var buffer = (Span<byte>)stackalloc byte[2048];
-            var bufferDecoded = (Span<char>)stackalloc char[2048];
+            var buffer = (Span<byte>) stackalloc byte[2048];
+            var bufferDecoded = (Span<char>) stackalloc char[2048];
 
             var encoded = binaryHelper.WriteString(input, buffer, false);
             var decoded = binaryHelper.ReadString(encoded, bufferDecoded, out _);

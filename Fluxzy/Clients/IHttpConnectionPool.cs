@@ -1,4 +1,4 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading;
@@ -20,7 +20,8 @@ namespace Fluxzy.Clients
 
         ValueTask<bool> CheckAlive();
 
-        ValueTask Send(Exchange exchange, ILocalLink localLink, RsBuffer buffer,
+        ValueTask Send(
+            Exchange exchange, ILocalLink localLink, RsBuffer buffer,
             CancellationToken cancellationToken = default);
     }
 }

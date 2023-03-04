@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Fluxzy.Core
@@ -7,7 +9,7 @@ namespace Fluxzy.Core
     {
         void WriteLine(string str);
 
-        Task WriteLineAsync(string str); 
+        Task WriteLineAsync(string str);
     }
 
     public class DefaultConsoleOutput : IConsoleOutput
@@ -29,7 +31,6 @@ namespace Fluxzy.Core
         {
             if (_writer != null)
                 await _writer.WriteLineAsync(str).ConfigureAwait(false);
-
         }
     }
 }

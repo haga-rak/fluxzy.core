@@ -1,30 +1,28 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.IO;
 using Fluxzy.Readers;
 
 namespace Fluxzy.Rules.Filters
 {
     public interface IFilteringContext
     {
-        IArchiveReader Reader { get;  }
-        
+        IArchiveReader Reader { get; }
+
         bool HasRequestBody { get; }
     }
 
     public class ExchangeInfoFilteringContext : IFilteringContext
     {
-        private readonly IArchiveReader _reader;
         private readonly int _exchangeId;
 
         public ExchangeInfoFilteringContext(IArchiveReader reader, int exchangeId)
         {
-            _reader = reader;
+            Reader = reader;
             _exchangeId = exchangeId;
         }
 
-        public bool HasRequestBody => _reader.HasRequestBody(_exchangeId);
+        public bool HasRequestBody => Reader.HasRequestBody(_exchangeId);
 
-        public IArchiveReader Reader => _reader;
+        public IArchiveReader Reader { get; }
     }
 }

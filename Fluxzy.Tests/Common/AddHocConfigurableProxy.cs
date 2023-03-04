@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Writers;
@@ -14,21 +15,13 @@ namespace Fluxzy.Tests.Common
 {
     public class AddHocConfigurableProxy : IAsyncDisposable
     {
-        private readonly int _expectedRequestCount;
-        private readonly Proxy _proxy;
         private readonly CancellationTokenSource _cancellationSource;
         private readonly List<Exchange> _capturedExchanges = new();
         private readonly TaskCompletionSource _completionSource;
+        private readonly int _expectedRequestCount;
+        private readonly Proxy _proxy;
 
         private int _requestCount;
-
-        public int BindPort { get; }
-
-        public string BindHost { get; }
-
-        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
-
-        public FluxzySetting StartupSetting { get; }
 
         public AddHocConfigurableProxy(int expectedRequestCount = 1, int timeoutSeconds = 5)
         {
@@ -41,20 +34,29 @@ namespace Fluxzy.Tests.Common
                              .SetBoundAddress(BindHost, BindPort);
 
             _proxy = new Proxy(StartupSetting,
-                new CertificateProvider(StartupSetting, new InMemoryCertificateCache()), new DefaultCertificateAuthorityManager());
+                new CertificateProvider(StartupSetting, new InMemoryCertificateCache()),
+                new DefaultCertificateAuthorityManager());
 
             _proxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 
             _cancellationSource = new CancellationTokenSource(timeoutSeconds * 1000);
             _completionSource = new TaskCompletionSource();
 
-            _cancellationSource.Token.Register(() =>
-            {
-                if (!_completionSource.Task.IsCompleted)
+            _cancellationSource.Token.Register(() => {
+                if (!_completionSource.Task.IsCompleted) {
                     _completionSource.TrySetException(
                         new TimeoutException($"Timeout of {timeoutSeconds} seconds reached"));
+                }
             });
         }
+
+        public int BindPort { get; }
+
+        public string BindHost { get; }
+
+        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
+
+        public FluxzySetting StartupSetting { get; }
 
         public async ValueTask DisposeAsync()
         {
@@ -72,8 +74,7 @@ namespace Fluxzy.Tests.Common
             if (exchangeUpdateEventArgs.UpdateType != ArchiveUpdateType.AfterResponseHeader)
                 return;
 
-            lock (_capturedExchanges)
-            {
+            lock (_capturedExchanges) {
                 _capturedExchanges.Add(exchangeUpdateEventArgs.Original);
             }
 

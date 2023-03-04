@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Buffers.Binary;
 using System.IO;
 using Fluxzy.Misc;
@@ -9,17 +11,15 @@ namespace Fluxzy.Clients.H2.Frames
     {
         public SettingFrame(ReadOnlySpan<byte> bodyBytes, HeaderFlags flags)
         {
-            if ((flags & HeaderFlags.Ack) != 0)
-            {
+            if ((flags & HeaderFlags.Ack) != 0) {
                 Ack = true;
                 SettingIdentifier = SettingIdentifier.Undefined;
-                Value = 0; 
+                Value = 0;
             }
-            else
-            {
-                SettingIdentifier = (SettingIdentifier)BinaryPrimitives.ReadUInt16BigEndian(bodyBytes);
+            else {
+                SettingIdentifier = (SettingIdentifier) BinaryPrimitives.ReadUInt16BigEndian(bodyBytes);
                 Value = BinaryPrimitives.ReadInt32BigEndian(bodyBytes.Slice(2));
-                Ack = false; 
+                Ack = false;
             }
         }
 
@@ -27,7 +27,7 @@ namespace Fluxzy.Clients.H2.Frames
         {
             SettingIdentifier = SettingIdentifier.Undefined;
             Value = 0;
-            Ack = true; 
+            Ack = true;
         }
 
         public SettingFrame(SettingIdentifier settingIdentifier, int value)
@@ -38,25 +38,24 @@ namespace Fluxzy.Clients.H2.Frames
         }
 
         public bool Ack { get; }
-        
-        public SettingIdentifier SettingIdentifier { get;  }
+
+        public SettingIdentifier SettingIdentifier { get; }
 
         public int Value { get; }
 
         public int Write(Span<byte> buffer)
         {
-            var offset = 
+            var offset =
                 H2Frame.Write(buffer, BodyLength, H2FrameType.Settings, Ack ? HeaderFlags.Ack : HeaderFlags.None, 0);
 
-            if (!Ack)
-            {
-                buffer = buffer.Slice(offset).BuWrite_16((ushort)SettingIdentifier);
+            if (!Ack) {
+                buffer = buffer.Slice(offset).BuWrite_16((ushort) SettingIdentifier);
                 buffer = buffer.BuWrite_32(Value);
 
-                return 15; 
+                return 15;
             }
 
-            return 9; 
+            return 9;
         }
 
         public int BodyLength => Ack ? 0 : 6;
@@ -64,11 +63,10 @@ namespace Fluxzy.Clients.H2.Frames
         public void Write(Stream stream)
         {
             if (Ack)
-                return; 
+                return;
 
-
-            stream.BuWrite_16((ushort)SettingIdentifier);
-            stream.BuWrite_32(Value); 
+            stream.BuWrite_16((ushort) SettingIdentifier);
+            stream.BuWrite_32(Value);
         }
 
         public override string ToString()
@@ -76,7 +74,7 @@ namespace Fluxzy.Clients.H2.Frames
             if (Ack)
                 return $"Setting : {Ack}";
 
-            return $"Setting : {SettingIdentifier} : {Value}"; 
+            return $"Setting : {SettingIdentifier} : {Value}";
         }
     }
 
@@ -88,6 +86,6 @@ namespace Fluxzy.Clients.H2.Frames
         SettingsMaxConcurrentStreams = 0x3,
         SettingsInitialWindowSize = 0x4,
         SettingsMaxFrameSize = 0x5,
-        SettingsMaxHeaderListSize = 0x6,
+        SettingsMaxHeaderListSize = 0x6
     }
 }

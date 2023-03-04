@@ -1,9 +1,11 @@
-﻿using System;
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Fluxzy
+namespace Fluxzy.Certificates
 {
     public class DefaultCertificateAuthorityManager : CertificateAuthorityManager
     {
@@ -19,6 +21,7 @@ namespace Fluxzy
             store.Open(OpenFlags.ReadOnly);
 
             var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, certificateThumbPrint, false);
+
             return certificates.Count > 0;
         }
 
@@ -29,12 +32,16 @@ namespace Fluxzy
             store.Open(OpenFlags.ReadWrite);
 
             foreach (var certificate in store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false))
-                try {
+            {
+                try
+                {
                     store.Remove(certificate);
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     return new ValueTask<bool>(false);
                 }
+            }
 
             return new ValueTask<bool>(true);
         }
@@ -58,11 +65,12 @@ namespace Fluxzy
 
             var result = new List<CaCertificateInfo>();
 
-            foreach (var certificate in store.Certificates) {
+            foreach (var certificate in store.Certificates)
+            {
                 result.Add(new CaCertificateInfo(certificate.Thumbprint ?? string.Empty, certificate.Subject));
             }
 
-            return result;  
+            return result;
         }
     }
 }

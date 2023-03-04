@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -15,8 +17,7 @@ namespace Fluxzy.Clients.H2
 
         private int _overallWindowSize;
 
-        public StreamPool(
-            StreamContext context)
+        public StreamPool(StreamContext context)
         {
             Context = context;
             _maxConcurrentStreamBarrier = new SemaphoreSlim(context.Setting.Remote.SettingsMaxConcurrentStreams);
@@ -48,7 +49,8 @@ namespace Fluxzy.Clients.H2
             return _runningStreams.TryGetValue(streamIdentifier, out result);
         }
 
-        private StreamWorker CreateActiveStream(Exchange exchange,
+        private StreamWorker CreateActiveStream(
+            Exchange exchange,
             CancellationToken callerCancellationToken,
             SemaphoreSlim ongoingStreamInit, CancellationTokenSource resetTokenSource)
         {
@@ -72,7 +74,8 @@ namespace Fluxzy.Clients.H2
         ///     Get or create  active stream
         /// </summary>
         /// <returns></returns>
-        public async ValueTask<StreamWorker> CreateNewStreamProcessing(Exchange exchange,
+        public async ValueTask<StreamWorker> CreateNewStreamProcessing(
+            Exchange exchange,
             CancellationToken callerCancellationToken, SemaphoreSlim ongoingStreamInit,
             CancellationTokenSource resetTokenSource)
         {
@@ -80,9 +83,7 @@ namespace Fluxzy.Clients.H2
                 throw new ConnectionCloseException("This connection is on error");
 
             if (!_maxConcurrentStreamBarrier.Wait(TimeSpan.Zero))
-            {
                 await _maxConcurrentStreamBarrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
-            }
 
             var res = CreateActiveStream(exchange, callerCancellationToken, ongoingStreamInit, resetTokenSource);
 
@@ -93,10 +94,9 @@ namespace Fluxzy.Clients.H2
         {
             // reset can happens here 
 
-            if (_runningStreams.TryRemove(streamWorker.StreamIdentifier, out _))
-            {
+            if (_runningStreams.TryRemove(streamWorker.StreamIdentifier, out _)) {
                 _maxConcurrentStreamBarrier.Release();
-                 streamWorker.Dispose();
+                streamWorker.Dispose();
             }
         }
 
@@ -112,8 +112,7 @@ namespace Fluxzy.Clients.H2
 
             _overallWindowSize += dataLength;
 
-            if (_overallWindowSize > 0.5 * Context.Setting.Local.WindowSize)
-            {
+            if (_overallWindowSize > 0.5 * Context.Setting.Local.WindowSize) {
                 windowIncrement = _overallWindowSize;
 
                 _overallWindowSize = 0;

@@ -1,5 +1,4 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -21,18 +20,25 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             _logWriter = logWriter;
         }
 
+        public ProtocolName? ApplicationProtocol => PlainSecurityParameters.ApplicationProtocol;
+
+        public ProtocolVersion ProtocolVersion => SessionParameters.NegotiatedVersion;
+
+        public SessionParameters SessionParameters => Context.Session.ExportSessionParameters();
+
+        public SecurityParameters PlainSecurityParameters => Context.SecurityParameters;
+
         public SslApplicationProtocol GetApplicationProtocol()
         {
             if (ApplicationProtocol == null)
                 return SslApplicationProtocol.Http11;
 
-
             var str = ApplicationProtocol.GetUtf8Decoding();
 
-            if (str == "http/1.1") 
+            if (str == "http/1.1")
                 return SslApplicationProtocol.Http11;
 
-            if (str.Equals("h2")) 
+            if (str.Equals("h2"))
                 return SslApplicationProtocol.Http2;
 
             return SslApplicationProtocol.Http11;
@@ -41,7 +47,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public SslProtocols GetSChannelProtocol()
         {
             var version = ProtocolVersion;
-            
+
             if (version.IsEqualOrEarlierVersionOf(ProtocolVersion.SSLv3))
 #pragma warning disable CS0618
                 return SslProtocols.Ssl3;
@@ -61,16 +67,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 return SslProtocols.Tls13;
 #endif
 
-            throw new ArgumentOutOfRangeException($"Unknown TLS protocol");
+            throw new ArgumentOutOfRangeException("Unknown TLS protocol");
         }
-
-        public ProtocolName? ApplicationProtocol => PlainSecurityParameters.ApplicationProtocol;
-
-        public ProtocolVersion ProtocolVersion => SessionParameters.NegotiatedVersion; 
-
-        public SessionParameters SessionParameters => Context.Session.ExportSessionParameters();
-
-        public SecurityParameters PlainSecurityParameters => Context.SecurityParameters;
 
         protected override void CompleteHandshake()
         {
@@ -88,7 +86,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         protected override void Handle13HandshakeMessage(short type, HandshakeMessageInput buf)
         {
             base.Handle13HandshakeMessage(type, buf);
-            
+
             // Here we shall extract the application keys    
 
             var alreadyUsed = PlainSecurityParameters.TrafficSecretClient == _localSecret;
@@ -99,10 +97,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
                 _logWriter.Write(NssLogWriter.SERVER_TRAFFIC_SECRET_0, PlainSecurityParameters.ClientRandom,
                     PlainSecurityParameters.TrafficSecretServer.ExtractKeySilently());
-                
-                if (PlainSecurityParameters.ExporterMasterSecret != null)
+
+                if (PlainSecurityParameters.ExporterMasterSecret != null) {
                     _logWriter.Write(NssLogWriter.EXPORTER_SECRET, PlainSecurityParameters.ClientRandom,
                         PlainSecurityParameters.ExporterMasterSecret.ExtractKeySilently());
+                }
             }
         }
 
@@ -112,11 +111,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             // Here we shall extract the handshake keys    
 
-            _localSecret = PlainSecurityParameters.TrafficSecretClient; 
+            _localSecret = PlainSecurityParameters.TrafficSecretClient;
 
             _logWriter.Write(NssLogWriter.CLIENT_HANDSHAKE_TRAFFIC_SECRET, PlainSecurityParameters.ClientRandom,
                 PlainSecurityParameters.TrafficSecretClient.ExtractKeySilently());
-            
+
             _logWriter.Write(NssLogWriter.SERVER_HANDSHAKE_TRAFFIC_SECRET, PlainSecurityParameters.ClientRandom,
                 PlainSecurityParameters.TrafficSecretServer.ExtractKeySilently());
         }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -22,24 +22,24 @@ namespace Fluxzy.Formatters.Producers.Requests
                     && h.Value.Span.Contains("x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase));
 
             if (!headerPresent)
-                return null; 
-            
+                return null;
+
             var res = HttpUtility.ParseQueryString(context.RequestBodyText);
 
             var items = res.AllKeys.SelectMany(k => res.GetValues(k)?.Select(v => new FormUrlEncodedItem(k, v)))
                            .Where(t => t != null).ToList();
 
             if (!items.Any())
-                return null; 
+                return null;
 
-
-            return new FormUrlEncodedResult(ResultTitle, items); 
+            return new FormUrlEncodedResult(ResultTitle, items);
         }
     }
 
     public class FormUrlEncodedResult : FormattingResult
     {
-        public FormUrlEncodedResult(string title, IEnumerable<FormUrlEncodedItem> items) : base(title)
+        public FormUrlEncodedResult(string title, IEnumerable<FormUrlEncodedItem> items)
+            : base(title)
         {
             Items = items.ToList();
         }
@@ -59,5 +59,4 @@ namespace Fluxzy.Formatters.Producers.Requests
 
         public string Value { get; }
     }
-
 }

@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 
 namespace Fluxzy.Clients.H2.Encoder.HPack
@@ -17,7 +19,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
             if ((firstByte & 0x80) != 0)
                 return HeaderFieldType.IndexedHeaderField;
-            
+
             if ((firstByte & 0x40) != 0)
                 return HeaderFieldType.LiteralHeaderFieldIncrementalIndexingExistingName;
 
@@ -30,9 +32,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             if ((firstByte & 0xF0) == 0)
                 return HeaderFieldType.LiteralHeaderFieldWithoutIndexingExistingName;
 
-
-
-            throw new NotSupportedException($"HPackDecoder could not determine the binary format {firstByte:X}"); 
+            throw new NotSupportedException($"HPackDecoder could not determine the binary format {firstByte:X}");
         }
     }
 }

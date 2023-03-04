@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
@@ -8,9 +10,8 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
     {
         static HPackStaticTableEntry()
         {
-            StaticTable = new HeaderField[]
-            {
-                new HeaderField(":authority"),
+            StaticTable = new[] {
+                new(":authority"),
                 new HeaderField(":method", "GET"),
                 new HeaderField(":method", "POST"),
                 new HeaderField(":path", "/"),
@@ -74,9 +75,9 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             };
 
             ReverseStaticTable = StaticTable.Select((t, index) => new { Entry = t, Index = index })
-                .ToDictionary(t => t.Entry, t => t.Index, new TableEntryComparer());
+                                            .ToDictionary(t => t.Entry, t => t.Index, new TableEntryComparer());
         }
-        
+
         public static HeaderField[] StaticTable { get; }
 
         public static Dictionary<HeaderField, int> ReverseStaticTable { get; }
@@ -85,14 +86,14 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
             var res = ReverseStaticTable.TryGetValue(entry, out var internalIndex);
 
-            if (res)
-            {
-                externalIndex = internalIndex +1;
-                return true; 
+            if (res) {
+                externalIndex = internalIndex + 1;
 
+                return true;
             }
 
-            externalIndex = -1; 
+            externalIndex = -1;
+
             return false;
         }
 
@@ -100,14 +101,15 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
             var internalIndex = externalIndex - 1;
 
-            if (internalIndex < 0 || internalIndex >= (StaticTable.Length))
-            {
+            if (internalIndex < 0 || internalIndex >= StaticTable.Length) {
                 entry = default;
-                return false; 
+
+                return false;
             }
 
             entry = StaticTable[internalIndex];
-            return true; 
+
+            return true;
         }
     }
 }

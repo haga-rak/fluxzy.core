@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
 
@@ -25,7 +27,11 @@ namespace Fluxzy
         }
 
         [JsonConstructor]
-        public ConnectionInfo(int id, AuthorityInfo authority, SslInfo sslInfo, int requestProcessed, DateTime dnsSolveStart, DateTime dnsSolveEnd, DateTime tcpConnectionOpening, DateTime tcpConnectionOpened, DateTime sslNegotiationStart, DateTime sslNegotiationEnd, int localPort, string localAddress, string remoteAddress, string? httpVersion)
+        public ConnectionInfo(
+            int id, AuthorityInfo authority, SslInfo sslInfo, int requestProcessed, DateTime dnsSolveStart,
+            DateTime dnsSolveEnd, DateTime tcpConnectionOpening, DateTime tcpConnectionOpened,
+            DateTime sslNegotiationStart, DateTime sslNegotiationEnd, int localPort, string localAddress,
+            string remoteAddress, string? httpVersion)
         {
             Id = id;
             Authority = authority;
@@ -69,6 +75,6 @@ namespace Fluxzy
 
         public string? LocalAddress { get; }
 
-        public string?  RemoteAddress { get; }
+        public string? RemoteAddress { get; }
     }
 }

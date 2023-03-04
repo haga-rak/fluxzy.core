@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ namespace Fluxzy.Tests.Bins
             JsonSerializerOptions options)
         {
             var dic = (Dictionary<string, TValue>) JsonSerializer.Deserialize(ref reader, typeToConvert, options)!;
+
             return new Dictionary<string, TValue>(dic, StringComparer.OrdinalIgnoreCase);
         }
 

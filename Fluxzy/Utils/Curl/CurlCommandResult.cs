@@ -1,9 +1,8 @@
-// Copyright © 2023 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Fluxzy.Utils.Curl
 {
@@ -16,45 +15,44 @@ namespace Fluxzy.Utils.Curl
             _configuration = configuration;
         }
 
-        public void AddOption(string optionName, string optionValue)
-        {
-            Args.Add(new CommandLineOption(optionName, optionValue)); 
-        }
-        
-        public void AddArgument(string arg)
-        {
-            Args.Add(new CommandLineArgument(arg)); 
-        }
-
         public Guid Id { get; set; } = Guid.NewGuid();
-        
+
         public List<ICommandLineItem> Args { get; set; } = new();
 
         public string? FileName { get; set; }
 
         public string FlatCmdArgs => BuildArgs(false, CommandLineVariant.Cmd);
-        
+
         public string FlatBashArgs => BuildArgs(false, CommandLineVariant.Bash);
 
         public string FlatCmdArgsWithProxy => BuildArgs(true, CommandLineVariant.Cmd);
-        
+
         public string FlatBashArgsWithProxy => BuildArgs(true, CommandLineVariant.Bash);
+
+        public void AddOption(string optionName, string optionValue)
+        {
+            Args.Add(new CommandLineOption(optionName, optionValue));
+        }
+
+        public void AddArgument(string arg)
+        {
+            Args.Add(new CommandLineArgument(arg));
+        }
 
         public string GetProcessCompatibleArgs()
         {
             return FlatCmdArgsWithProxy
                    .Substring("curl ".Length)
-                   .Replace(" ^\r\n  ", " ") ;
+                   .Replace(" ^\r\n  ", " ");
         }
 
         private string BuildArgs(bool withProxy, CommandLineVariant variant)
         {
             var list = new List<ICommandLineItem>();
-            
+
             list.Add(Args.OfType<CommandLineArgument>().First());
 
-            if (withProxy && _configuration != null)
-            {
+            if (withProxy && _configuration != null) {
                 list.Add(new CommandLineOption("-x", $"{_configuration.Host}:{_configuration.Port}"));
                 list.Add(new CommandLineOption("--insecure"));
                 list.Add(new CommandLineOption("-H", "Accept:"));
@@ -67,16 +65,15 @@ namespace Fluxzy.Utils.Curl
             var res = string.Join(variant == CommandLineVariant.Cmd ? " ^\r\n  " : " \\\n  ",
                 list.Select(x => x.ToCommandLine(variant)));
 
-            return "curl " +  res;
+            return "curl " + res;
         }
     }
 
     public class CommandLineOption : ICommandLineItem
     {
         public CommandLineOption(string name)
-            : this (name, null)
+            : this(name, null)
         {
-
         }
 
         public CommandLineOption(string name, string? value)
@@ -85,21 +82,19 @@ namespace Fluxzy.Utils.Curl
             Value = value;
         }
 
-        public string Name { get;  }
+        public string Name { get; }
 
-        public string?  Value { get;  }
+        public string? Value { get; }
 
         public string ToCommandLine(CommandLineVariant variant)
         {
             if (variant == CommandLineVariant.Cmd)
-            {
                 return Value == null ? $"{Name}" : $"{Name} \"{Value.Sanitize(CommandLineVariant.Cmd)}\"";
-            }
 
             return Value == null ? $"{Name}" : $"{Name} '{Value.Sanitize(CommandLineVariant.Bash)}'";
         }
     }
-    
+
     public class CommandLineArgument : ICommandLineItem
     {
         public CommandLineArgument(string value)
@@ -107,7 +102,7 @@ namespace Fluxzy.Utils.Curl
             Value = value;
         }
 
-        public string Value { get;  }
+        public string Value { get; }
 
         public string ToCommandLine(CommandLineVariant variant)
         {
@@ -129,15 +124,14 @@ namespace Fluxzy.Utils.Curl
         Bash
     }
 
-
     internal static class ProcessArgsSanitizer
     {
         public static string Sanitize(this string args, CommandLineVariant variant)
         {
             if (variant == CommandLineVariant.Cmd)
-                return args.Replace("\"", "\"\""); 
+                return args.Replace("\"", "\"\"");
 
-            return args.Replace("'", "'\\''"); 
+            return args.Replace("'", "'\\''");
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Concurrent;
@@ -20,12 +20,11 @@ namespace Fluxzy.Clients
     /// </summary>
     internal class PoolBuilder : IDisposable
     {
-        private static readonly List<SslApplicationProtocol> AllProtocols = new()
-        {
+        private static readonly List<SslApplicationProtocol> AllProtocols = new() {
             SslApplicationProtocol.Http11,
             SslApplicationProtocol.Http2
         };
-        
+
         private readonly RealtimeArchiveWriter _archiveWriter;
 
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
@@ -56,26 +55,22 @@ namespace Fluxzy.Clients
 
         private async void CheckPoolStatus(CancellationToken token)
         {
-            try
-            {
-                while (!token.IsCancellationRequested)
-                {
+            try {
+                while (!token.IsCancellationRequested) {
                     // TODO put delay into config files or settings
 
                     await Task.Delay(5000, token);
 
                     List<IHttpConnectionPool> activePools;
 
-                    lock (_connectionPools)
-                    {
+                    lock (_connectionPools) {
                         activePools = _connectionPools.Values.ToList();
                     }
 
                     await ValueTaskUtil.WhenAll(activePools.Select(s => s.CheckAlive()).ToArray());
                 }
             }
-            catch (TaskCanceledException)
-            {
+            catch (TaskCanceledException) {
                 // Disposed was called 
             }
         }
@@ -95,28 +90,25 @@ namespace Fluxzy.Clients
         {
             // At this point, we'll trying the suitable pool for exchange
 
-            if (exchange.Context.PreMadeResponse != null)
+            if (exchange.Context.PreMadeResponse != null) {
                 return new MockedConnectionPool(exchange.Authority,
                     exchange.Context.PreMadeResponse);
+            }
 
             IHttpConnectionPool? result = null;
 
             var semaphorePerAuthority = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
             var released = false;
 
-            try
-            {
+            try {
                 if (!semaphorePerAuthority.Wait(0))
                     await semaphorePerAuthority.WaitAsync(cancellationToken);
 
                 // Looking for existing HttpPool
 
-                lock (_connectionPools)
-                {
-                    while (_connectionPools.TryGetValue(exchange.Authority, out var pool))
-                    {
-                        if (pool.Complete)
-                        {
+                lock (_connectionPools) {
+                    while (_connectionPools.TryGetValue(exchange.Authority, out var pool)) {
+                        if (pool.Complete) {
                             _connectionPools.Remove(pool.Authority);
 
                             continue;
@@ -125,18 +117,17 @@ namespace Fluxzy.Clients
                         if (exchange.Metrics.RetrievingPool == default)
                             exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
-                        exchange.Metrics.ReusingConnection = true; 
+                        exchange.Metrics.ReusingConnection = true;
 
                         return pool;
                     }
                 }
 
                 if (exchange.Metrics.RetrievingPool == default)
-                     exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+                    exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
                 //  pool 
-                if (exchange.Context.BlindMode)
-                {
+                if (exchange.Context.BlindMode) {
                     var tunneledConnectionPool = new TunnelOnlyConnectionPool(
                         exchange.Authority, _timingProvider,
                         _remoteConnectionBuilder, proxyRuntimeSetting);
@@ -144,8 +135,7 @@ namespace Fluxzy.Clients
                     return result = tunneledConnectionPool;
                 }
 
-                if (exchange.Request.Header.IsWebSocketRequest)
-                {
+                if (exchange.Request.Header.IsWebSocketRequest) {
                     var tunneledConnectionPool = new WebsocketConnectionPool(
                         exchange.Authority, _timingProvider,
                         _remoteConnectionBuilder, proxyRuntimeSetting);
@@ -153,8 +143,7 @@ namespace Fluxzy.Clients
                     return result = tunneledConnectionPool;
                 }
 
-                if (!exchange.Authority.Secure)
-                {
+                if (!exchange.Authority.Secure) {
                     // Plain HTTP/1, no h2c
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting,
@@ -162,8 +151,7 @@ namespace Fluxzy.Clients
 
                     exchange.HttpVersion = "HTTP/1.1";
 
-                    lock (_connectionPools)
-                    {
+                    lock (_connectionPools) {
                         return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
                     }
                 }
@@ -182,28 +170,26 @@ namespace Fluxzy.Clients
                 catch {
                     if (exchange.Connection != null)
                         _archiveWriter.Update(exchange.Connection, cancellationToken);
-                    throw; 
+
+                    throw;
                 }
 
                 // exchange.Connection = openingResult.Connection;
 
-                if (openingResult.Type == RemoteConnectionResultType.Http11)
-                {
+                if (openingResult.Type == RemoteConnectionResultType.Http11) {
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter);
 
                     exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";
-                    
+
                     _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
-                    lock (_connectionPools)
-                    {
+                    lock (_connectionPools) {
                         return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
                     }
                 }
 
-                if (openingResult.Type == RemoteConnectionResultType.Http2)
-                {
+                if (openingResult.Type == RemoteConnectionResultType.Http2) {
                     var h2ConnectionPool = new H2ConnectionPool(
                         openingResult.Connection
                                      .ReadStream!, // Read and write stream are the same after the sslhandshake
@@ -215,34 +201,27 @@ namespace Fluxzy.Clients
                     if (_archiveWriter != null)
                         _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
-                    lock (_connectionPools)
-                    {
+                    lock (_connectionPools) {
                         return result = _connectionPools[exchange.Authority] = h2ConnectionPool;
                     }
                 }
 
                 throw new NotSupportedException($"Unhandled protocol type {openingResult.Type}");
             }
-            finally
-            {
-                try
-                {
-                    if (result != null)
-                    {
+            finally {
+                try {
+                    if (result != null) {
                         released = true;
                         semaphorePerAuthority.Release();
 
                         result.Init();
                     }
-
                 }
-                catch
-                {
+                catch {
                     if (result != null)
                         OnConnectionFaulted(result);
                 }
-                finally
-                {
+                finally {
                     if (!released)
                         semaphorePerAuthority.Release();
                 }
@@ -251,18 +230,15 @@ namespace Fluxzy.Clients
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)
         {
-            lock (_connectionPools)
-            {
+            lock (_connectionPools) {
                 if (_connectionPools.Remove(h2ConnectionPool.Authority))
                     h2ConnectionPool.DisposeAsync();
             }
 
-            try
-            {
+            try {
                 // h2ConnectionPool.Dispose();
             }
-            catch
-            {
+            catch {
                 // Dispose and suppress errors
             }
         }

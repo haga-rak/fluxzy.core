@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
@@ -28,7 +28,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             // Update view model 
             settingsHolder.UpdateViewModel();
 
-            return settingsHolder; 
+            return settingsHolder;
         }
 
         [HttpPost]
@@ -37,7 +37,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             model.UpdateModel();
             _settingManager.Update(model);
 
-            return true; 
+            return true;
         }
 
         [HttpGet("endpoint")]

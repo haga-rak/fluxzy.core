@@ -1,17 +1,17 @@
-﻿using System.Reactive.Linq;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text.Json;
-using Fluxzy.Desktop.Services.Attributes;
 using System.Text.Json.Serialization;
+using Fluxzy.Desktop.Services.Attributes;
 
 namespace Fluxzy.Desktop.Services.Ui
 {
     public class LastOpenFileManager : ObservableProvider<LastOpenFileState>
     {
-        protected override BehaviorSubject<LastOpenFileState> Subject { get; }
-        
         private static readonly int MaxFileOpenHistoryCount = 10;
-        
+
         private readonly string _filePath;
 
         public LastOpenFileManager()
@@ -19,7 +19,7 @@ namespace Fluxzy.Desktop.Services.Ui
             var basePath = Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy.Desktop");
             Directory.CreateDirectory(basePath);
             _filePath = Path.Combine(basePath, "settings.last-open-files.json");
-            
+
             var subject = new BehaviorSubject<LastOpenFileState>(InternalGet());
 
             subject
@@ -29,10 +29,12 @@ namespace Fluxzy.Desktop.Services.Ui
             Subject = subject;
         }
 
+        protected override BehaviorSubject<LastOpenFileState> Subject { get; }
+
         private LastOpenFileState InternalGet()
         {
             if (!File.Exists(_filePath))
-                return new LastOpenFileState(new());
+                return new LastOpenFileState(new List<LastOpenFileItem>());
 
             return JsonSerializer.Deserialize<LastOpenFileState>(File.ReadAllText(_filePath),
                 GlobalArchiveOption.DefaultSerializerOptions)!;
@@ -46,9 +48,10 @@ namespace Fluxzy.Desktop.Services.Ui
             list.RemoveAll(i => i.FullPath == fileInfo.FullName);
 
             list.Insert(0, new LastOpenFileItem(fileInfo));
-            
-            while (list.Count > MaxFileOpenHistoryCount)
+
+            while (list.Count > MaxFileOpenHistoryCount) {
                 list.RemoveAt(list.Count - 1);
+            }
 
             var nextState = new LastOpenFileState(list);
 
@@ -58,12 +61,10 @@ namespace Fluxzy.Desktop.Services.Ui
 
         private void InternalUpdate(LastOpenFileState state)
         {
-            File.WriteAllText(_filePath, 
+            File.WriteAllText(_filePath,
                 JsonSerializer.Serialize(state, GlobalArchiveOption.DefaultSerializerOptions));
         }
-
     }
-
 
     [Exportable]
     public class LastOpenFileState
@@ -73,13 +74,12 @@ namespace Fluxzy.Desktop.Services.Ui
             Items = items;
         }
 
-        public List<LastOpenFileItem> Items { get;  } 
+        public List<LastOpenFileItem> Items { get; }
     }
 
     [Exportable]
     public class LastOpenFileItem
     {
-
         public LastOpenFileItem(FileInfo fileInfo)
         {
             FileName = fileInfo.Name;
@@ -93,10 +93,10 @@ namespace Fluxzy.Desktop.Services.Ui
             FullPath = fullPath;
         }
 
-        public string FullPath { get;  } 
+        public string FullPath { get; }
 
-        public string FileName { get;  }
+        public string FileName { get; }
 
-        public DateTime CreationDate { get; set; } = DateTime.Now; 
+        public DateTime CreationDate { get; set; } = DateTime.Now;
     }
 }

@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -13,5 +15,7 @@ using System.Runtime.CompilerServices;
 namespace System.Runtime.CompilerServices
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
-    internal class IsExternalInit { }
+    internal class IsExternalInit
+    {
+    }
 }

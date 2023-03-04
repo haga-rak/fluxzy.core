@@ -1,6 +1,8 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-namespace Fluxzy
+using System.Security.Cryptography.X509Certificates;
+
+namespace Fluxzy.Certificates
 {
     internal static class FluxzySecurity
     {
@@ -9,7 +11,7 @@ namespace Fluxzy
             BuiltinCertificate = new X509Certificate2(FileStore.Fluxzy, "echoes");
         }
 
-        public static X509Certificate2 BuiltinCertificate { get;  }
+        public static X509Certificate2 BuiltinCertificate { get; }
 
         public static string DefaultThumbPrint => BuiltinCertificate.Thumbprint!;
     }

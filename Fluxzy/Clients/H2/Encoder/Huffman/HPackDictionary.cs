@@ -1,11 +1,13 @@
-﻿using System.Linq;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Linq;
 using Fluxzy.Clients.H2.Encoder.Huffman.Interfaces;
 
 namespace Fluxzy.Clients.H2.Encoder.Huffman
 {
     public class HPackDictionary : IHuffmanDictionary
     {
-        private static readonly uint[] Codes = { 
+        private static readonly uint[] Codes = {
             0x1FF8, 0x7FFFD8, 0xFFFFFE2, 0xFFFFFE3, 0xFFFFFE4, 0xFFFFFE5, 0xFFFFFE6, 0xFFFFFE7, 0xFFFFFE8,
             0xFFFFEA, 0x3FFFFFFC, 0xFFFFFE9, 0xFFFFFEA, 0x3FFFFFFD, 0xFFFFFEB, 0xFFFFFEC, 0xFFFFFED,
             0xFFFFFEE, 0xFFFFFEF, 0xFFFFFF0, 0xFFFFFF1, 0xFFFFFF2, 0x3FFFFFFE, 0xFFFFFF3, 0xFFFFFF4,
@@ -49,19 +51,19 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
 
         private static readonly Symbol[] AllSymbols;
 
-        public static HPackDictionary Instance { get; } = new HPackDictionary();
-
-        private HPackDictionary()
-        {
-
-        }
-
         static HPackDictionary()
         {
             AllSymbols = Codes.Select((c, index) => new Symbol(c, CodeLengths[index], (byte) index)).ToArray();
         }
 
-        public Symbol [] Symbols => AllSymbols;
+        private HPackDictionary()
+        {
+        }
+
+        public static HPackDictionary Instance { get; } = new();
+
+        public Symbol[] Symbols => AllSymbols;
+
         public int ShortestSymbolLength => 5;
     }
 }

@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -8,8 +8,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Certificates;
 using Fluxzy.Clients;
-using Fluxzy.Clients.Common;
+using Fluxzy.Clients.Dns;
 using Fluxzy.Clients.Ssl;
 using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Clients.Ssl.SChannel;
@@ -33,16 +34,6 @@ namespace Fluxzy
         private Task? _loopTask;
         private bool _started;
 
-        public ProxyExecutionContext ExecutionContext { get; }
-
-        public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
-
-        internal FromIndexIdProvider IdProvider { get; }
-
-        public FluxzySetting StartupSetting { get; }
-
-        public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider,
@@ -50,7 +41,7 @@ namespace Fluxzy
             ITcpConnectionProvider? tcpConnectionProvider = null,
             IUserAgentInfoProvider? userAgentProvider = null,
             FromIndexIdProvider? idProvider = null)
-        
+
         {
             var tcpConnectionProvider1 = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
@@ -62,10 +53,11 @@ namespace Fluxzy
             var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory
-                && StartupSetting.ArchivingPolicy.Directory != null)
-            {
+                && StartupSetting.ArchivingPolicy.Directory != null) {
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
-                Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory, StartupSetting.SaveFilter);
+
+                Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory,
+                    StartupSetting.SaveFilter);
             }
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
@@ -76,7 +68,8 @@ namespace Fluxzy
                 : new SChannelConnectionBuilder();
 
             var poolBuilder = new PoolBuilder(
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), sslConnectionBuilder), ITimingProvider.Default,
+                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), sslConnectionBuilder),
+                ITimingProvider.Default,
                 Writer);
 
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
@@ -93,22 +86,31 @@ namespace Fluxzy
                 certificateAuthorityManager.CheckAndInstallCertificate(startupSetting);
         }
 
+        public ProxyExecutionContext ExecutionContext { get; }
+
+        public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
+
+        internal FromIndexIdProvider IdProvider { get; }
+
+        public FluxzySetting StartupSetting { get; }
+
+        public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+
         public async ValueTask DisposeAsync()
         {
             InternalDispose();
 
-            try
-            {
+            try {
                 if (_loopTask != null)
                     await _loopTask.ConfigureAwait(false); // Wait for main loop to end
 
                 var n = 100;
 
-                while (_currentConcurrentCount > 0 && n-- > 0)
+                while (_currentConcurrentCount > 0 && n-- > 0) {
                     await Task.Delay(5);
+                }
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 // Loop task exception 
             }
         }
@@ -117,8 +119,7 @@ namespace Fluxzy
         {
             Writer.Init();
 
-            while (true)
-            {
+            while (true) {
                 var client =
                     await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
 
@@ -133,16 +134,13 @@ namespace Fluxzy
         {
             Interlocked.Increment(ref _currentConcurrentCount);
 
-            try
-            {
+            try {
                 await Task.Yield();
 
-                using (client)
-                {
+                using (client) {
                     using var buffer = RsBuffer.Allocate(16 * 1024);
 
-                    try
-                    {
+                    try {
                         // already disposed
                         if (_proxyHaltTokenSource.IsCancellationRequested)
                             return;
@@ -150,14 +148,12 @@ namespace Fluxzy
                         await _proxyOrchestrator!.Operate(client, buffer, _proxyHaltTokenSource.Token)
                                                  .ConfigureAwait(false);
                     }
-                    finally
-                    {
+                    finally {
                         client.Close();
                     }
                 }
             }
-            finally
-            {
+            finally {
                 var value = Interlocked.Decrement(ref _currentConcurrentCount);
             }
         }
@@ -205,14 +201,14 @@ namespace Fluxzy
 
     public class ProxyExecutionContext
     {
-        public string SessionId { get; }
-
-        public FluxzySetting StartupSetting { get; }
-
         public ProxyExecutionContext(string sessionId, FluxzySetting startupSetting)
         {
             SessionId = sessionId;
             StartupSetting = startupSetting;
         }
+
+        public string SessionId { get; }
+
+        public FluxzySetting StartupSetting { get; }
     }
 }

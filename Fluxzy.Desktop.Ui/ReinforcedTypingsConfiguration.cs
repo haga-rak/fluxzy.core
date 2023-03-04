@@ -3,6 +3,7 @@
 using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
+using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Desktop.Services;

@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Utils.Curl
 {
@@ -10,9 +10,8 @@ namespace Fluxzy.Utils.Curl
             Port = port;
         }
 
-        public string  Host { get; }
+        public string Host { get; }
 
         public int Port { get; }
     }
-    
 }

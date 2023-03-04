@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.CommandLine;
@@ -6,6 +6,7 @@ using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using Fluxzy.Certificates;
 
 namespace Fluxzy.Cli.Commands
 {
@@ -21,7 +22,7 @@ namespace Fluxzy.Cli.Commands
             command.AddCommand(BuildCheckCommand());
             command.AddCommand(BuildInstallCommand());
             command.AddCommand(BuildRemoveCommand());
-            command.AddCommand( BuildListCommand());
+            command.AddCommand(BuildListCommand());
 
             return command;
         }
@@ -39,11 +40,10 @@ namespace Fluxzy.Cli.Commands
 
             exportCommand.AddArgument(argumentFileInfo);
 
-            exportCommand.SetHandler(async fileInfo =>
-            {
+            exportCommand.SetHandler(async fileInfo => {
                 await using var stream = fileInfo.Create();
-                var certificateManager = new DefaultCertificateAuthorityManager(); 
-                
+                var certificateManager = new DefaultCertificateAuthorityManager();
+
                 certificateManager.DumpDefaultCertificate(stream);
             }, argumentFileInfo);
 
@@ -57,11 +57,10 @@ namespace Fluxzy.Cli.Commands
             var argumentFileInfo = new Argument<FileInfo?>(
                 "cert-file",
                 description: "A X509 certificate file or stdin if omitted",
-                parse: argumentResult =>
-                {
+                parse: argumentResult => {
                     if (!argumentResult.Tokens.Any())
-                        return null; 
-                    
+                        return null;
+
                     return new FileInfo(argumentResult.Tokens.First().Value);
                 }) {
                 Arity = ArgumentArity.ZeroOrOne
@@ -69,30 +68,26 @@ namespace Fluxzy.Cli.Commands
 
             exportCommand.AddArgument(argumentFileInfo);
 
-            exportCommand.SetHandler(async fileInfo =>
-            {
+            exportCommand.SetHandler(async fileInfo => {
                 var certificateManager = new DefaultCertificateAuthorityManager();
                 X509Certificate2 certificate;
-                
+
                 if (fileInfo == null) {
                     // READ stdin to end 
 
                     var inputStream = Console.OpenStandardInput();
-                    
+
                     // We read a certificate up to 8K 
-                    var buffer = new byte[8 * 1024]; 
-                    var memoryStream = new MemoryStream(buffer); 
+                    var buffer = new byte[8 * 1024];
+                    var memoryStream = new MemoryStream(buffer);
                     await inputStream.CopyToAsync(memoryStream);
-                    
+
                     certificate = new X509Certificate2(buffer.AsSpan().Slice(0, (int) memoryStream.Position));
                 }
-                else {
+                else
                     certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
-                }
-                
+
                 await certificateManager.InstallCertificate(certificate);
-                
-                
             }, argumentFileInfo);
 
             return exportCommand;
@@ -114,8 +109,7 @@ namespace Fluxzy.Cli.Commands
 
             exportCommand.AddArgument(argumentFileInfo);
 
-            exportCommand.SetHandler(async (fileInfo, console) =>
-            {
+            exportCommand.SetHandler(async (fileInfo, console) => {
                 var certificate = FluxzySecurity.BuiltinCertificate;
                 var certificateManager = new DefaultCertificateAuthorityManager();
 
@@ -123,16 +117,16 @@ namespace Fluxzy.Cli.Commands
                     certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
 
                 if (certificateManager.IsCertificateInstalled(certificate.Thumbprint))
+
                     // ReSharper disable once LocalizableElement
                     console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 else
                     console.Error.WriteLine($"NOT trusted {certificate.SubjectName.Name}");
-
             }, argumentFileInfo, new ConsoleBinder());
 
             return exportCommand;
         }
-        
+
         private static Command BuildRemoveCommand()
         {
             var exportCommand = new Command("uninstall", "Remove a certificate from Root CA authority store");
@@ -146,30 +140,25 @@ namespace Fluxzy.Cli.Commands
 
             exportCommand.AddArgument(argumentFileInfo);
 
-            exportCommand.SetHandler(async (thumbPrint, console) =>
-            {
+            exportCommand.SetHandler(async (thumbPrint, console) => {
                 var certificateManager = new DefaultCertificateAuthorityManager();
                 await certificateManager.RemoveCertificate(thumbPrint);
-
             }, argumentFileInfo, new ConsoleBinder());
 
             return exportCommand;
         }
-        
+
         private static Command BuildListCommand()
         {
             var exportCommand = new Command("list", "List all root certificates");
 
-            exportCommand.SetHandler(async (console) =>
-            {
+            exportCommand.SetHandler(async console => {
                 var certificateManager = new DefaultCertificateAuthorityManager();
-                
-                foreach (var certificate in certificateManager.EnumerateRootCertificates())
-                {
+
+                foreach (var certificate in certificateManager.EnumerateRootCertificates()) {
                     console.Out.WriteLine($"{certificate.ThumbPrint}\t{certificate.Subject}");
                 }
-
-            },  new ConsoleBinder());
+            }, new ConsoleBinder());
 
             return exportCommand;
         }

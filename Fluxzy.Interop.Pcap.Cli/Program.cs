@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Diagnostics;
 
 namespace Fluxzy.Interop.Pcap.Cli
@@ -12,76 +14,68 @@ namespace Fluxzy.Interop.Pcap.Cli
 
             // STDIN has closed this means that parent request halted or request an explicit close 
 
-            if (source.IsCancellationRequested) {
+            if (source.IsCancellationRequested)
                 source.Cancel();
-            }
         }
 
         private static async Task CancelTokenWhenParentProcessExit(CancellationTokenSource source, int processId)
         {
-            Process process = Process.GetProcessById(processId);
+            var process = Process.GetProcessById(processId);
 
             await process.WaitForExitAsync(source.Token);
 
             if (source.IsCancellationRequested)
-            {
                 source.Cancel();
-            }
         }
 
         /// <summary>
-        /// args[0] => caller PID 
+        ///     args[0] => caller PID
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
         private static async Task<int> Main(string[] args)
         {
-            try {
+            if (args.Length < 1) {
+                Console.WriteLine("Usage : command pid. Received args : " + string.Join(" ", args));
 
-                if (args.Length < 1 ) {
-                    Console.WriteLine("Usage : command pid. Received args : " + string.Join(" ", args));
-                    return 1; 
-                }
-            
-                if (!int.TryParse(args[0], out var processId)) {
-                    Console.WriteLine("Process ID is not a valid integer");
-                    return 2; 
-                }
-            
-                var haltSource = new CancellationTokenSource();
-
-                var stdInClose = Task.Run(async () => { await CancelTokenSourceOnStandardInputClose(haltSource); });
-                var parentMonitoringTask = Task.Run(async () => { await CancelTokenWhenParentProcessExit(haltSource, processId); });  
-
-                await using var receiverContext = new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
-                
-                receiverContext.Start();
-                Console.WriteLine(receiverContext.Receiver!.ListeningPort);
-            
-                var loopingTask = receiverContext.WaitForExit();
-
-                // We halt the process when one of the following task is complete task is completed
-                await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask);
-
-                if (loopingTask.IsCompleted) {
-                    return loopingTask.Result; 
-                }
-
-                if (stdInClose.IsCompleted) {
-                    return 11; 
-                }
-
-                if (parentMonitoringTask.IsCompleted) {
-                    return 12; 
-                }
-
-                return 0;
+                return 1;
             }
-            catch (Exception ex) {
-                // To do : connect logger here
-                // File.WriteAllText("d:\\logo.txt", ex.ToString());
-                throw; 
+
+            if (!int.TryParse(args[0], out var processId)) {
+                Console.WriteLine("Process ID is not a valid integer");
+
+                return 2;
             }
+
+            var haltSource = new CancellationTokenSource();
+
+            var stdInClose = Task.Run(async () => { await CancelTokenSourceOnStandardInputClose(haltSource); });
+
+            var parentMonitoringTask = Task.Run(async () => {
+                await CancelTokenWhenParentProcessExit(haltSource, processId);
+            });
+
+            await using var receiverContext =
+                new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
+
+            receiverContext.Start();
+            Console.WriteLine(receiverContext.Receiver!.ListeningPort);
+
+            var loopingTask = receiverContext.WaitForExit();
+
+            // We halt the process when one of the following task is complete task is completed
+            await Task.WhenAny(loopingTask, stdInClose, parentMonitoringTask);
+
+            if (loopingTask.IsCompleted)
+                return loopingTask.Result;
+
+            if (stdInClose.IsCompleted)
+                return 11;
+
+            if (parentMonitoringTask.IsCompleted)
+                return 12;
+
+            return 0;
         }
     }
 }

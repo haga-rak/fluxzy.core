@@ -1,5 +1,6 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
@@ -7,7 +8,7 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
     /// <summary>
-    /// Replace a request body only 
+    ///     Replace a request body only
     /// </summary>
     public class ReplaceRequestBodyAction : Action
     {
@@ -15,11 +16,11 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
+        public override string DefaultDescription => "Full request substitution";
+
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
-
-        public override string DefaultDescription => "Full request substitution";
     }
 }

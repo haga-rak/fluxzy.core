@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -7,14 +7,14 @@ namespace Fluxzy.Misc.ResizableBuffers
 {
     public class RsBuffer : IDisposable
     {
-        public byte[] Buffer { get; private set; }
-
-        public Memory<byte> Memory => new(Buffer);
-
         private RsBuffer(byte[] buffer)
         {
             Buffer = buffer;
         }
+
+        public byte[] Buffer { get; private set; }
+
+        public Memory<byte> Memory => new(Buffer);
 
         public void Dispose()
         {

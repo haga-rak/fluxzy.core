@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -13,16 +13,11 @@ namespace Fluxzy.Clients
         private readonly bool _active;
         private readonly string _directory;
 
-        public static List<string>? AuthorizedHosts { get; }
-
-        public Authority Authority { get; }
-
         static H1Logger()
         {
             var hosts = Environment.GetEnvironmentVariable("EnableH1TracingFilterHosts");
 
-            if (!string.IsNullOrWhiteSpace(hosts))
-            {
+            if (!string.IsNullOrWhiteSpace(hosts)) {
                 AuthorizedHosts =
                     hosts.Split(new[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries)
                          .Select(s => s.Trim())
@@ -48,9 +43,12 @@ namespace Fluxzy.Clients
             _active = active.Value;
 
             if (_active && AuthorizedHosts != null)
+
                 // Check for domain restriction 
+            {
                 _active = AuthorizedHosts.Any(c => Authority.HostName.EndsWith(
                     c, StringComparison.OrdinalIgnoreCase));
+            }
 
             _directory = new DirectoryInfo(Path.Combine(loggerPath, "h1")).FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
@@ -58,8 +56,11 @@ namespace Fluxzy.Clients
             Directory.CreateDirectory(_directory);
         }
 
-        private void WriteLn(
-            int exchangeId, string message)
+        public static List<string>? AuthorizedHosts { get; }
+
+        public Authority Authority { get; }
+
+        private void WriteLn(int exchangeId, string message)
         {
             var fullPath = _directory;
             var portString = Authority.Port == 443 ? string.Empty : $"-{Authority.Port:00000}";
@@ -71,8 +72,7 @@ namespace Fluxzy.Clients
 
             fullPath = Path.Combine(fullPath, $"exId={exchangeId:00000}.txt");
 
-            lock (string.Intern(fullPath))
-            {
+            lock (string.Intern(fullPath)) {
                 File.AppendAllText(fullPath,
                     $"[{ITimingProvider.Default.InstantMillis:000000000}] {message}\r\n");
             }
@@ -90,8 +90,7 @@ namespace Fluxzy.Clients
             Trace(exchange.Id, "Response : " + firstLine);
         }
 
-        public void Trace(
-            int exchangeId, string message)
+        public void Trace(int exchangeId, string message)
         {
             if (!_active)
                 return;
@@ -117,7 +116,8 @@ namespace Fluxzy.Clients
             Trace(exchange, preMessage + (ex == null ? string.Empty : ex.ToString()));
         }
 
-        public void Trace(StreamWorker streamWorker,
+        public void Trace(
+            StreamWorker streamWorker,
             Exchange exchange,
             string preMessage)
         {

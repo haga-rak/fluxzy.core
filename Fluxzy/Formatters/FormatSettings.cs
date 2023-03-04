@@ -1,11 +1,11 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Formatters
 {
     public class FormatSettings
     {
         public static FormatSettings Default { get; } = new();
-        
+
         public int MaxFormattableJsonLength { get; set; } = 2 * 1024 * 1024;
 
         public int MaxFormattableXmlLength { get; set; } = 1024 * 1024;

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -14,10 +14,6 @@ namespace Fluxzy.Desktop.Services
         private readonly FxzyDirectoryPackager _directoryPackager;
         private readonly string _tempDirectory;
 
-        protected sealed override BehaviorSubject<FileState> Subject { get; }
-
-        public override IObservable<FileState> ProvidedObservable => Subject.AsObservable().DistinctUntilChanged();
-
         public FileManager(IConfiguration configuration, FxzyDirectoryPackager directoryPackager)
         {
             _directoryPackager = directoryPackager;
@@ -32,6 +28,10 @@ namespace Fluxzy.Desktop.Services
 
             Subject = new BehaviorSubject<FileState>(CreateNewFileState(_tempDirectory));
         }
+
+        protected sealed override BehaviorSubject<FileState> Subject { get; }
+
+        public override IObservable<FileState> ProvidedObservable => Subject.AsObservable().DistinctUntilChanged();
 
         private static (Guid, string) GenerateNewDirectory(string tempDirectory)
         {
@@ -113,7 +113,7 @@ namespace Fluxzy.Desktop.Services
 
             using var outStream = File.Create(fileName);
 
-            var exchangeIds = trunkState.Exchanges.Select(s => s.Id).ToHashSet(); 
+            var exchangeIds = trunkState.Exchanges.Select(s => s.Id).ToHashSet();
 
             await _directoryPackager.Pack(current.WorkingDirectory, outStream, exchangeIds);
 
@@ -123,7 +123,7 @@ namespace Fluxzy.Desktop.Services
 
             Subject.OnNext(nextState);
         }
-        
+
         public async Task<bool> ExportHttpArchive(HarExportRequest exportRequest)
         {
             var current = await ProvidedObservable.FirstAsync();
@@ -133,7 +133,7 @@ namespace Fluxzy.Desktop.Services
             var harArchive = new HttpArchivePackager(exportRequest.SaveSetting);
             await harArchive.Pack(current.WorkingDirectory, stream, exchangeIds);
 
-            return true; 
+            return true;
         }
 
         public async Task<bool> ExportSaz(SazExportRequest exportRequest)
@@ -141,10 +141,11 @@ namespace Fluxzy.Desktop.Services
             var current = await ProvidedObservable.FirstAsync();
             var exchangeIds = exportRequest.ExchangeIds?.ToHashSet();
             await using var stream = File.Create(exportRequest.FileName);
-            
+
             var sazPackager = new SazPackager();
             await sazPackager.Pack(current.WorkingDirectory, stream, exchangeIds);
-            return true; 
+
+            return true;
         }
     }
 
@@ -157,9 +158,9 @@ namespace Fluxzy.Desktop.Services
             ExchangeIds = exchangeIds;
         }
 
-        public string FileName { get;  }
+        public string FileName { get; }
 
-        public HttpArchiveSavingSetting SaveSetting { get;  }
+        public HttpArchiveSavingSetting SaveSetting { get; }
 
         public List<int>? ExchangeIds { get; }
     }
@@ -172,8 +173,8 @@ namespace Fluxzy.Desktop.Services
             ExchangeIds = exchangeIds;
         }
 
-        public string FileName { get;  }
+        public string FileName { get; }
 
-        public List<int>?  ExchangeIds { get;  }
+        public List<int>? ExchangeIds { get; }
     }
 }

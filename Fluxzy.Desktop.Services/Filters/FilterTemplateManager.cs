@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reflection;
 using Fluxzy.Rules.Filters;
@@ -20,13 +20,13 @@ namespace Fluxzy.Desktop.Services.Filters
                                                               && !derivedType.IsAbstract)
                                         .Where(derivedType =>
                                             derivedType.GetCustomAttribute<FilterMetaDataAttribute>() != null)
+
                                         // TODO : update this suboptimal double call of GetCustomAttribute
                                         .Select(derivedType => new TypeFilter(derivedType,
                                             derivedType.GetCustomAttribute<FilterMetaDataAttribute>()!))
                                         .ToList();
 
-            foreach (var item in TypeFilters.Where(t => !t.MetaData.NotSelectable))
-            {
+            foreach (var item in TypeFilters.Where(t => !t.MetaData.NotSelectable)) {
                 var filter = CreateFilter(item);
                 Instances[item.Type] = filter;
                 DefaultTemplates.Add(filter);
@@ -43,12 +43,13 @@ namespace Fluxzy.Desktop.Services.Filters
 
             var arguments = new List<object>();
 
-            foreach (var argument in constructor.GetParameters())
+            foreach (var argument in constructor.GetParameters()) {
                 arguments.Add(argument.ParameterType == typeof(string)
                     ? string.Empty
                     : ReflectionHelper.GetDefault(argument.ParameterType));
+            }
 
-            var filter = (Filter)constructor.Invoke(arguments.ToArray());
+            var filter = (Filter) constructor.Invoke(arguments.ToArray());
 
             return filter;
         }
@@ -63,8 +64,7 @@ namespace Fluxzy.Desktop.Services.Filters
 
         public bool TryGetDescription(string typeKind, out string longDescription)
         {
-            if (DescriptionMapping.TryGetValue(typeKind, out var metaData))
-            {
+            if (DescriptionMapping.TryGetValue(typeKind, out var metaData)) {
                 longDescription = metaData.LongDescription ?? string.Empty;
 
                 return true;
@@ -77,15 +77,15 @@ namespace Fluxzy.Desktop.Services.Filters
 
         private class TypeFilter
         {
-            public Type Type { get; }
-
-            public FilterMetaDataAttribute MetaData { get; }
-
             public TypeFilter(Type type, FilterMetaDataAttribute metaData)
             {
                 Type = type;
                 MetaData = metaData;
             }
+
+            public Type Type { get; }
+
+            public FilterMetaDataAttribute MetaData { get; }
         }
     }
 

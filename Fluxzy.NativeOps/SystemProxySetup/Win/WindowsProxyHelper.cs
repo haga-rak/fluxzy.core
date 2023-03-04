@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Runtime.InteropServices;
 using Fluxzy.Core.Proxy;
@@ -7,11 +9,12 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Win
 {
     internal static class WindowsProxyHelper
     {
-        [DllImport("wininet.dll")]
-        private static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
-
         private const int InternetOptionSettingsChanged = 39;
         private const int InternetOptionRefresh = 37;
+
+        [DllImport("wininet.dll")]
+        private static extern bool InternetSetOption(
+            IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
 
         internal static SystemProxySetting GetSetting()
         {
@@ -20,7 +23,9 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Win
                     true);
 
             if (registry == null)
-                throw new InvalidOperationException("Unable to access system registry"); ;
+                throw new InvalidOperationException("Unable to access system registry");
+
+            ;
 
             var proxyEnabled = (int) registry.GetValue("ProxyEnable", 0)! == 1;
             var proxyOverride = (string) registry.GetValue("ProxyOverride", string.Empty)!;
@@ -32,9 +37,8 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Win
             var proxyServerName = proxyServerTab.Length != 2 ? "no_proxy_server" : proxyServerTab[0];
             var proxyPort = proxyServerTab.Length != 2 ? -1 : int.Parse(proxyServerTab[1]);
 
-            return new SystemProxySetting(proxyServerName, proxyPort,  proxyOverrideList)
-            {
-                Enabled = proxyEnabled 
+            return new SystemProxySetting(proxyServerName, proxyPort, proxyOverrideList) {
+                Enabled = proxyEnabled
             };
         }
 
@@ -45,17 +49,17 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Win
                     true);
 
             if (registry == null)
-                throw new InvalidOperationException("Unable to access system registry"); ;
+                throw new InvalidOperationException("Unable to access system registry");
+
+            ;
 
             registry.SetValue("ProxyEnable", systemProxySetting.Enabled ? 1 : 0);
 
-            if (systemProxySetting.BoundHost == null)
-            {
+            if (systemProxySetting.BoundHost == null) {
                 // Remove proxy setting 
                 registry.DeleteValue("ProxyServer");
             }
-            else
-            {
+            else {
                 var actualServerLine = $"{systemProxySetting.BoundHost}:{systemProxySetting.ListenPort}";
                 registry.SetValue("ProxyServer", actualServerLine);
             }

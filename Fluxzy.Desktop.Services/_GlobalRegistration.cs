@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Reactive.Linq;
 using Fluxzy.Clients;
 using Fluxzy.Core;
@@ -13,7 +15,6 @@ using Fluxzy.Formatters.Metrics;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
-using Fluxzy.NativeOps;
 using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Readers;
 using Fluxzy.Utils;
@@ -26,9 +27,11 @@ namespace Fluxzy.Desktop.Services
     {
         public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
-            collection.AddSingleton<ProxyScope>(_ => new ProxyScope(() => new FluxzyNetOutOfProcessHost(), (a) => new OutOfProcessCaptureContext(a)));
+            collection.AddSingleton<ProxyScope>(_ =>
+                new ProxyScope(() => new FluxzyNetOutOfProcessHost(), a => new OutOfProcessCaptureContext(a)));
+
             collection.AddSingleton<FileManager>();
-            collection.AddSingleton<FromIndexIdProvider>(u => new FromIndexIdProvider(0,0));
+            collection.AddSingleton<FromIndexIdProvider>(u => new FromIndexIdProvider(0, 0));
             collection.AddSingleton<ProxyControl>();
             collection.AddSingleton<FluxzySettingManager>();
             collection.AddSingleton<UiStateManager>();
@@ -69,10 +72,10 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton
                 (s => s.GetRequiredService<FilteredExchangeManager>().ProvidedObservable);
-            
+
             collection.AddSingleton
                 (s => s.GetRequiredService<FileDynamicStatsManager>().ProvidedObservable);
-            
+
             collection.AddSingleton
                 (s => s.GetRequiredService<LastOpenFileManager>().ProvidedObservable);
 
@@ -84,7 +87,7 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton
                 (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));
-            
+
             collection.AddSingleton
             (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
                    .Select(t => t.Observable).Switch());
@@ -102,9 +105,12 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<CurlExportFolderManagement>(_ => new CurlExportFolderManagement());
             collection.AddScoped<FileExecutionManager>();
             collection.AddScoped<IRunningProxyProvider, RunningProxyProvider>();
-            
-            collection.AddSingleton<ISystemProxySetterManager, NativeProxySetterManager>(); // TODO, replace here with pipe call 
-            collection.AddSingleton<ISystemProxySetter>((i) => i.GetRequiredService<ISystemProxySetterManager>().Get()); 
+
+            collection
+                .AddSingleton<ISystemProxySetterManager,
+                    NativeProxySetterManager>(); // TODO, replace here with pipe call 
+
+            collection.AddSingleton<ISystemProxySetter>(i => i.GetRequiredService<ISystemProxySetterManager>().Get());
             collection.AddSingleton<SystemProxyRegistrationManager>();
 
             collection.AddTransient<FxzyDirectoryPackager>();

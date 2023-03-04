@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +16,7 @@ namespace Fluxzy.Core
         private readonly List<TcpListener> _listeners;
 
         private readonly Channel<IAsyncResult> _pendingClientConnections =
-            Channel.CreateUnbounded<IAsyncResult>(new UnboundedChannelOptions
-            {
+            Channel.CreateUnbounded<IAsyncResult>(new UnboundedChannelOptions {
                 SingleWriter = true,
                 SingleReader = true
             });
@@ -36,8 +37,7 @@ namespace Fluxzy.Core
             if (!_listeners.Any())
                 return null;
 
-            try
-            {
+            try {
                 var asyncState = await
                     _pendingClientConnections.Reader.ReadAsync(_token);
 
@@ -49,8 +49,7 @@ namespace Fluxzy.Core
 
                 return tcpClient;
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 // Listener Stop was probably called 
                 return null;
             }
@@ -64,28 +63,26 @@ namespace Fluxzy.Core
 
             var boundEndPoints = new List<IPEndPoint>();
 
-            foreach (var listener in _listeners)
-                try
-                {
+            foreach (var listener in _listeners) {
+                try {
                     listener.Start(1000);
 
                     boundEndPoints.Add((IPEndPoint) listener.LocalEndpoint);
 
                     var listenerCopy = listener;
 
-                    new Thread(a => HandleAcceptConnection((TcpListener)a))
-                    {
+                    new Thread(a => HandleAcceptConnection((TcpListener) a)) {
                         IsBackground = true,
                         Priority = ThreadPriority.Normal
                     }.Start(listenerCopy);
                 }
-                catch (SocketException sex)
-                {
+                catch (SocketException sex) {
                     throw new Exception("Impossible port : " +
                                         $"{((IPEndPoint) listener.LocalEndpoint).Address} - " +
                                         $"{((IPEndPoint) listener.LocalEndpoint).Port}  - \r\n"
                                         + sex, sex);
                 }
+            }
 
             if (!boundEndPoints.Any())
                 throw new InvalidOperationException("No listen endpoints was provided");
@@ -97,36 +94,32 @@ namespace Fluxzy.Core
 
         public void Dispose()
         {
-            foreach (var listener in _listeners)
-                try
-                {
+            foreach (var listener in _listeners) {
+                try {
                     listener.Stop();
                 }
-                catch (Exception)
-                {
+                catch (Exception) {
                     // Ignore errors
                 }
+            }
 
             _tokenSource.Cancel();
         }
 
         private void HandleAcceptConnection(TcpListener listener)
         {
-            try
-            {
+            try {
                 listener.BeginAcceptTcpClient(Callback, listener);
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 // Connection closed 
             }
         }
 
         private void Callback(IAsyncResult ar)
         {
-            try
-            {
-                var listener = (TcpListener)ar.AsyncState;
+            try {
+                var listener = (TcpListener) ar.AsyncState;
                 _pendingClientConnections.Writer.TryWrite(ar);
                 listener.BeginAcceptTcpClient(Callback, listener);
 
@@ -134,8 +127,7 @@ namespace Fluxzy.Core
                 //
                 //tcpClient.NoDelay = true;
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 // ignored
             }
         }

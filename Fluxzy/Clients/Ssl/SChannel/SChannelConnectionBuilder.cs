@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.IO;
 using System.Net.Security;
@@ -8,7 +10,8 @@ namespace Fluxzy.Clients.Ssl.SChannel
 {
     public class SChannelConnectionBuilder : ISslConnectionBuilder
     {
-        public async Task<SslConnection> AuthenticateAsClient(Stream innerStream,
+        public async Task<SslConnection> AuthenticateAsClient(
+            Stream innerStream,
             SslClientAuthenticationOptions request, Action<string> onKeyReceived, CancellationToken token)
         {
             var sslStream = new SslStream(innerStream, false);
@@ -19,6 +22,5 @@ namespace Fluxzy.Clients.Ssl.SChannel
 
             return new SslConnection(sslStream, sslInfo, sslStream.NegotiatedApplicationProtocol);
         }
-        
     }
 }

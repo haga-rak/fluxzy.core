@@ -1,4 +1,6 @@
-﻿using Fluxzy.Rules.Filters;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ViewOnlyFilters;
 
@@ -6,10 +8,10 @@ namespace Fluxzy.Desktop.Services.Models
 {
     public class TemplateToolBarFilterModel
     {
-        private static readonly List<Filter> DefaultQuickFilters = new List<Filter> {
+        private static readonly List<Filter> DefaultQuickFilters = new() {
             new SearchTextFilter("") {
-                Description = "Find text", 
-                SearchInResponseBody = true, 
+                Description = "Find text",
+                SearchInResponseBody = true,
                 SearchInRequestBody = true
             },
             new PathFilter("", StringSelectorOperation.Contains) {
@@ -30,6 +32,6 @@ namespace Fluxzy.Desktop.Services.Models
 
         public List<Filter> LastUsedFilters { get; }
 
-        public List<Filter> AgentFilters { get;  }
+        public List<Filter> AgentFilters { get; }
     }
 }

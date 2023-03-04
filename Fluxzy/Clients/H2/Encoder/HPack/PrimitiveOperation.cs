@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Buffers;
 using System.Text;
 using Fluxzy.Clients.H2.Encoder.Huffman;
@@ -23,8 +25,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
         public int GetInt32Length(int value, int prefixSize)
         {
-            try
-            {
+            try {
                 var maxSize = (1 << prefixSize) - 1;
 
                 if (value < maxSize)
@@ -35,8 +36,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 var index = 1;
 
-                do
-                {
+                do {
                     index++;
                     value >>= 7;
                 }
@@ -44,42 +44,38 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 return index;
             }
-            catch (IndexOutOfRangeException)
-            {
+            catch (IndexOutOfRangeException) {
                 throw new HPackCodecException("Provided buffer is not large enough");
             }
         }
 
         public int WriteInt32(Span<byte> output, int value, int prefixSize)
         {
-            try
-            {
+            try {
                 var maxSize = (1 << prefixSize) - 1;
 
-                if (value < maxSize)
-                {
+                if (value < maxSize) {
                     // Clear existing value 
-                    output[0] = (byte)(output[0] & (0XFF << prefixSize));
-                    output[0] |= (byte)((0XFF >> (8 - prefixSize)) & value);
+                    output[0] = (byte) (output[0] & (0XFF << prefixSize));
+                    output[0] |= (byte) ((0XFF >> (8 - prefixSize)) & value);
 
                     return 1;
                 }
 
                 var fullPrefix = 0xFF >> (8 - prefixSize);
 
-                output[0] = (byte)(output[0] | fullPrefix);
+                output[0] = (byte) (output[0] | fullPrefix);
 
                 value -= fullPrefix;
 
                 var index = 1;
 
-                do
-                {
+                do {
                     var toInsert = value % 0x80;
 
                     output[index] = value > 0x7F
-                        ? (byte)(toInsert | 0x80)
-                        : (byte)(toInsert & 0x7F);
+                        ? (byte) (toInsert | 0x80)
+                        : (byte) (toInsert & 0x7F);
 
                     index++;
                     value >>= 7;
@@ -88,21 +84,18 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 return index;
             }
-            catch (IndexOutOfRangeException)
-            {
+            catch (IndexOutOfRangeException) {
                 throw new HPackCodecException("Provided buffer is not large enough");
             }
         }
 
         public int ReadInt32(ReadOnlySpan<byte> input, int prefixSize, out int value)
         {
-            try
-            {
+            try {
                 var maxSize = (1 << prefixSize) - 1;
                 var firstBlockValue = input[0] & (0xFF >> (8 - prefixSize));
 
-                if (firstBlockValue < maxSize)
-                {
+                if (firstBlockValue < maxSize) {
                     value = firstBlockValue;
 
                     return 1;
@@ -111,12 +104,10 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                 var index = 1;
                 var result = 0;
 
-                while (index < 6)
-                {
+                while (index < 6) {
                     result |= (input[index] & 0x7F) << (7 * (index - 1));
 
-                    if ((input[index] & 0x80) == 0)
-                    {
+                    if ((input[index] & 0x80) == 0) {
                         value = result + firstBlockValue;
 
                         return 1 + index;
@@ -127,22 +118,21 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 throw new InvalidOperationException("Integer overflow. Value exceed 28 bits");
             }
-            catch (IndexOutOfRangeException)
-            {
+            catch (IndexOutOfRangeException) {
                 throw new HPackCodecException("Provided buffer is not large enough");
             }
         }
 
         public int GetStringLength(ReadOnlySpan<byte> input)
         {
-            try
-            {
+            try {
                 var huffmanEncoded = (input[0] & 0x80) != 0;
                 var offset = ReadInt32(input, 7, out var stringLength);
 
-                if (stringLength > _maxStringLength)
+                if (stringLength > _maxStringLength) {
                     throw new HPackCodecException(
                         $"string length exceed the maximum authorized : {stringLength} / {_maxStringLength}");
+                }
 
                 var rawString = input.Slice(offset, stringLength);
 
@@ -151,27 +141,25 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 return _codec.GetDecodedLength(rawString);
             }
-            catch (IndexOutOfRangeException)
-            {
+            catch (IndexOutOfRangeException) {
                 throw new HPackCodecException("Provided buffer is not large enough");
             }
         }
 
         public Span<char> ReadString(ReadOnlySpan<byte> input, Span<char> buffer, out int newOffset)
         {
-            try
-            {
+            try {
                 var huffmanEncoded = (input[0] & 0x80) != 0;
                 var offset = ReadInt32(input, 7, out var stringLength);
 
-                if (stringLength > _maxStringLength)
+                if (stringLength > _maxStringLength) {
                     throw new HPackCodecException(
                         $"string length exceed the maximum authorized : {stringLength} / {_maxStringLength}");
+                }
 
                 var rawString = input.Slice(offset, stringLength);
 
-                if (!huffmanEncoded)
-                {
+                if (!huffmanEncoded) {
                     var size = Encoding.ASCII.GetChars(rawString, buffer);
                     var res = buffer.Slice(0, size);
 
@@ -190,22 +178,19 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                     ? stackalloc byte[decodedLength]
                     : heapBuffer = ArrayPool<byte>.Shared.Rent(decodedLength);
 
-                try
-                {
+                try {
                     var decoded = _codec.Decode(rawString, decodeBuffer);
 
                     var resultLength = Encoding.ASCII.GetChars(decoded, buffer);
 
                     return buffer.Slice(0, resultLength);
                 }
-                finally
-                {
+                finally {
                     if (heapBuffer != null)
                         ArrayPool<byte>.Shared.Return(heapBuffer);
                 }
             }
-            catch (IndexOutOfRangeException)
-            {
+            catch (IndexOutOfRangeException) {
                 throw new HPackCodecException("Provided buffer is not large enough");
             }
         }
@@ -214,8 +199,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
             byte[]? heapBuffer = null;
 
-            try
-            {
+            try {
                 var inputByteBuffer = input.Length * 2 < 1024
                     ? stackalloc byte[input.Length * 2]
                     : heapBuffer = ArrayPool<byte>.Shared.Rent(input.Length * 2);
@@ -231,8 +215,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 var offset = GetInt32Length(length, 7);
 
-                if (huffmanEncoded)
-                {
+                if (huffmanEncoded) {
                     var encoded = _codec.GetEncodedLength(inputBytes);
 
                     return offset + encoded;
@@ -240,12 +223,10 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 return offset + input.Length;
             }
-            catch (IndexOutOfRangeException)
-            {
+            catch (IndexOutOfRangeException) {
                 throw new HPackCodecException("Provided buffer is not large enough");
             }
-            finally
-            {
+            finally {
                 if (heapBuffer != null)
                     ArrayPool<byte>.Shared.Return(heapBuffer);
             }
@@ -255,8 +236,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
             byte[]? heapBuffer = null;
 
-            try
-            {
+            try {
                 var inputByteBuffer = input.Length * 2 < 1024
                     ? stackalloc byte[input.Length * 2]
                     : heapBuffer = ArrayPool<byte>.Shared.Rent(input.Length * 2);
@@ -268,14 +248,13 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 huffmanEncoded = encodedLength < inputBytes.Length;
 
-                buffer[0] = (byte)(huffmanEncoded ? 0x80 : 0);
+                buffer[0] = (byte) (huffmanEncoded ? 0x80 : 0);
 
                 var length = !huffmanEncoded ? input.Length : encodedLength;
 
                 var offset = WriteInt32(buffer, length, 7);
 
-                if (huffmanEncoded)
-                {
+                if (huffmanEncoded) {
                     var encoded = _codec.Encode(inputBytes, buffer.Slice(offset));
 
                     return buffer.Slice(0, offset + encoded.Length);
@@ -285,12 +264,10 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
                 return buffer.Slice(0, offset + input.Length);
             }
-            catch (IndexOutOfRangeException)
-            {
+            catch (IndexOutOfRangeException) {
                 throw new HPackCodecException("Provided buffer is not large enough");
             }
-            finally
-            {
+            finally {
                 if (heapBuffer != null)
                     ArrayPool<byte>.Shared.Return(heapBuffer);
             }

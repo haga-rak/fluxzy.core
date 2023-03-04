@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -6,7 +8,7 @@ using System.Threading;
 namespace Fluxzy.Clients
 {
     /// <summary>
-    /// Contains information about transport layer 
+    ///     Contains information about transport layer
     /// </summary>
     public class Connection : IRemoteLink
     {
@@ -20,27 +22,15 @@ namespace Fluxzy.Clients
 
         public int Id { get; set; }
 
-        public Stream? WriteStream { get; set; }
-
-        public Stream? ReadStream { get; set; }
-
         public string? HttpVersion { get; set; }
 
-        public int RequestProcessed
-        {
-            get => _requestProcessed;
-        }
-
-        public void AddNewRequestProcessed()
-        {
-            Interlocked.Increment(ref _requestProcessed);
-        }
+        public int RequestProcessed => _requestProcessed;
 
         public Authority Authority { get; set; }
 
         public IPAddress? RemoteAddress { get; set; }
 
-        public SslInfo?  SslInfo { get; set; }
+        public SslInfo? SslInfo { get; set; }
 
         public DateTime DnsSolveStart { get; set; }
 
@@ -58,6 +48,13 @@ namespace Fluxzy.Clients
 
         public string? LocalAddress { get; set; }
 
-        
+        public Stream? WriteStream { get; set; }
+
+        public Stream? ReadStream { get; set; }
+
+        public void AddNewRequestProcessed()
+        {
+            Interlocked.Increment(ref _requestProcessed);
+        }
     }
 }

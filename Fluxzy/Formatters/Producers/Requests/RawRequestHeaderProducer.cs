@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Buffers;
 using System.Linq;
@@ -18,14 +18,12 @@ namespace Fluxzy.Formatters.Producers.Requests
 
             var charBuffer = ArrayPool<char>.Shared.Rent(context.Settings.MaxHeaderLength);
 
-            try
-            {
+            try {
                 var spanRes = Http11Parser.Write(requestHeaders, charBuffer);
 
                 stringBuilder.Append(spanRes);
             }
-            finally
-            {
+            finally {
                 ArrayPool<char>.Shared.Return(charBuffer);
             }
 
@@ -38,12 +36,12 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public class RawRequestHeaderResult : FormattingResult
     {
-        public string RawHeader { get; }
-
         public RawRequestHeaderResult(string title, string rawHeader)
             : base(title)
         {
             RawHeader = rawHeader;
         }
+
+        public string RawHeader { get; }
     }
 }

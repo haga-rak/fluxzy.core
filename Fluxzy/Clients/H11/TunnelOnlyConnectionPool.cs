@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -15,10 +15,10 @@ namespace Fluxzy.Clients.H11
 {
     internal class TunnelOnlyConnectionPool : IHttpConnectionPool
     {
-        private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _connectionBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly SemaphoreSlim _semaphoreSlim;
+        private readonly ITimingProvider _timingProvider;
 
         public TunnelOnlyConnectionPool(
             Authority authority,
@@ -46,11 +46,11 @@ namespace Fluxzy.Clients.H11
             return new ValueTask<bool>(!Complete);
         }
 
-        public async ValueTask Send(Exchange exchange, ILocalLink localLink, RsBuffer buffer,
+        public async ValueTask Send(
+            Exchange exchange, ILocalLink localLink, RsBuffer buffer,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
+            try {
                 await _semaphoreSlim.WaitAsync(cancellationToken);
 
                 await using var ex = new TunneledConnectionProcess(
@@ -60,8 +60,7 @@ namespace Fluxzy.Clients.H11
 
                 await ex.Process(exchange, localLink, buffer.Buffer, CancellationToken.None);
             }
-            finally
-            {
+            finally {
                 _semaphoreSlim.Release();
                 Complete = true;
             }
@@ -77,13 +76,14 @@ namespace Fluxzy.Clients.H11
 
     internal class TunneledConnectionProcess : IDisposable, IAsyncDisposable
     {
-        private readonly Authority _authority;
-        private readonly ITimingProvider _timingProvider;
-        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
-        private readonly ProxyRuntimeSetting _creationSetting;
         private readonly RealtimeArchiveWriter? _archiveWriter;
+        private readonly Authority _authority;
+        private readonly ProxyRuntimeSetting _creationSetting;
+        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
+        private readonly ITimingProvider _timingProvider;
 
-        public TunneledConnectionProcess(Authority authority,
+        public TunneledConnectionProcess(
+            Authority authority,
             ITimingProvider timingProvider,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ProxyRuntimeSetting creationSetting,
@@ -105,7 +105,8 @@ namespace Fluxzy.Clients.H11
         {
         }
 
-        public async Task Process(Exchange exchange, ILocalLink localLink, byte[] buffer,
+        public async Task Process(
+            Exchange exchange, ILocalLink localLink, byte[] buffer,
             CancellationToken cancellationToken)
         {
             if (localLink == null)
@@ -121,14 +122,12 @@ namespace Fluxzy.Clients.H11
 
             _archiveWriter?.Update(exchange.Connection, cancellationToken);
 
-            if (exchange.Request.Header.IsWebSocketRequest)
-            {
+            if (exchange.Request.Header.IsWebSocketRequest) {
                 var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
                 await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken);
             }
 
-            try
-            {
+            try {
                 await using var remoteStream = exchange.Connection.WriteStream;
 
                 var copyTask = Task.WhenAll(
@@ -141,10 +140,8 @@ namespace Fluxzy.Clients.H11
 
                 await copyTask.ConfigureAwait(false);
             }
-            catch (Exception ex)
-            {
-                if (ex is IOException || ex is SocketException)
-                {
+            catch (Exception ex) {
+                if (ex is IOException || ex is SocketException) {
                     exchange.Errors.Add(new Error("", ex));
 
                     return;
@@ -152,8 +149,7 @@ namespace Fluxzy.Clients.H11
 
                 throw;
             }
-            finally
-            {
+            finally {
                 exchange.Metrics.RemoteClosed = _timingProvider.Instant();
             }
         }

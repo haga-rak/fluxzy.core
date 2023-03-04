@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
@@ -31,12 +31,12 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public class AuthorizationResult : FormattingResult
     {
-        public string Value { get; }
-
         public AuthorizationResult(string title, string value)
             : base(title)
         {
             Value = value;
         }
+
+        public string Value { get; }
     }
 }

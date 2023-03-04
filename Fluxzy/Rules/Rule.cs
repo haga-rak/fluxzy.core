@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading.Tasks;
@@ -10,6 +10,12 @@ namespace Fluxzy.Rules
 {
     public class Rule
     {
+        public Rule(Action action, Filter filter)
+        {
+            Filter = filter;
+            Action = action;
+        }
+
         [YamlIgnore]
         public Guid Identifier { get; set; } = Guid.NewGuid();
 
@@ -24,13 +30,8 @@ namespace Fluxzy.Rules
         [YamlIgnore]
         public bool InScope => Filter.FilterScope <= Action.ActionScope;
 
-        public Rule(Action action, Filter filter)
-        {
-            Filter = filter;
-            Action = action;
-        }
-
-        public ValueTask Enforce(ExchangeContext context,
+        public ValueTask Enforce(
+            ExchangeContext context,
             Exchange? exchange,
             Connection? connection)
         {
@@ -40,7 +41,6 @@ namespace Fluxzy.Rules
 
             return default;
         }
-
 
         public override string ToString()
         {

@@ -1,5 +1,4 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net.Http;
 using System.Text;
@@ -53,7 +52,7 @@ namespace Fluxzy.Tests.Cli
             var res = await response.Content.ReadAsStringAsync();
 
 
-         //   await Task.Delay(2000);
+            //   await Task.Delay(2000);
 
             // using var response2 = await proxiedHttpClient.Client.SendAsync(requestMessage2);
 

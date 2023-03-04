@@ -1,7 +1,7 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using Fluxzy.Extensions;
 using System;
+using Fluxzy.Extensions;
 
 namespace Fluxzy.Formatters.Producers.Responses
 {
@@ -16,26 +16,26 @@ namespace Fluxzy.Formatters.Producers.Responses
                 || context.CompressionInfo == null)
                 return null;
 
-
             var preferredFileName = $"response-{exchangeInfo.Id}.data";
+
             // Try to deduce filename from URL 
 
             if (Uri.TryCreate(exchangeInfo.FullUrl, UriKind.Absolute, out var uri) &&
                 !string.IsNullOrWhiteSpace(uri.LocalPath))
-            {
                 preferredFileName = uri.LocalPath;
-            }
 
             return new ResponseBodySummaryResult(ResultTitle, context.ResponseBodyLength.Value,
                 context.CompressionInfo.CompressionName!, exchangeInfo.GetResponseHeaderValue("content-type"),
-                context.ResponseBodyText, preferredFileName); 
+                context.ResponseBodyText, preferredFileName);
         }
     }
 
     public class ResponseBodySummaryResult : FormattingResult
     {
-        public ResponseBodySummaryResult(string title,
-            long contentLength, string compression, string? contentType, string? bodyText, string preferredFileName) : base(title)
+        public ResponseBodySummaryResult(
+            string title,
+            long contentLength, string compression, string? contentType, string? bodyText, string preferredFileName)
+            : base(title)
         {
             ContentLength = contentLength;
             Compression = compression;
@@ -44,13 +44,14 @@ namespace Fluxzy.Formatters.Producers.Responses
             PreferredFileName = preferredFileName;
         }
 
-        public long ContentLength { get;  }
+        public long ContentLength { get; }
 
-        public string Compression { get;  }
+        public string Compression { get; }
 
         public string? ContentType { get; }
 
-        public string? BodyText { get;  }
+        public string? BodyText { get; }
+
         public string PreferredFileName { get; }
     }
 }

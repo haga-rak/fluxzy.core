@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -12,16 +14,16 @@ namespace Fluxzy.Core
     public class SystemProxyRegistrationManager
     {
         private readonly ISystemProxySetter _systemProxySetter;
-        private SystemProxySetting? _oldSetting;
         private SystemProxySetting? _currentSetting;
+        private SystemProxySetting? _oldSetting;
         private bool _registerDone;
 
-        public  SystemProxyRegistrationManager(ISystemProxySetter systemProxySetter)
+        public SystemProxyRegistrationManager(ISystemProxySetter systemProxySetter)
         {
             _systemProxySetter = systemProxySetter;
         }
 
-        public  SystemProxySetting? Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
+        public SystemProxySetting? Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
         {
             return Register(endPoints.OrderByDescending(t => Equals(t.Address, IPAddress.Loopback)
                                                              || t.Address.Equals(IPAddress.IPv6Loopback)).First(),
@@ -35,8 +37,7 @@ namespace Fluxzy.Core
             if (_oldSetting != null && !existingSetting.Equals(_oldSetting))
                 _oldSetting = existingSetting;
 
-            if (!_registerDone)
-            {
+            if (!_registerDone) {
                 _registerDone = true;
                 ProxyUnregisterOnAppdomainExit();
             }
@@ -63,16 +64,14 @@ namespace Fluxzy.Core
 
         public void UnRegister()
         {
-            if (_oldSetting != null)
-            {
+            if (_oldSetting != null) {
                 _systemProxySetter.ApplySetting(_oldSetting);
                 _oldSetting = null;
 
                 return;
             }
 
-            if (_currentSetting != null)
-            {
+            if (_currentSetting != null) {
                 _currentSetting.Enabled = false;
                 _systemProxySetter.ApplySetting(_currentSetting);
                 _currentSetting = null;
@@ -82,8 +81,7 @@ namespace Fluxzy.Core
 
             var existingSetting = GetSystemProxySetting();
 
-            if (existingSetting.Enabled)
-            {
+            if (existingSetting.Enabled) {
                 existingSetting.Enabled = false;
                 _systemProxySetter.ApplySetting(existingSetting);
             }

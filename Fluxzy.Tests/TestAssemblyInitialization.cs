@@ -1,10 +1,10 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
+using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-[assembly: Xunit.TestFramework("Fluxzy.H2.Tests.TestAssemblyInitialization", "Fluxzy.Tests")]
+[assembly: TestFramework("Fluxzy.H2.Tests.TestAssemblyInitialization", "Fluxzy.Tests")]
 
 namespace Fluxzy.Tests
 {

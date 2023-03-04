@@ -1,5 +1,4 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -17,21 +16,21 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public static readonly string CLIENT_HANDSHAKE_TRAFFIC_SECRET = "CLIENT_HANDSHAKE_TRAFFIC_SECRET";
         public static readonly string SERVER_HANDSHAKE_TRAFFIC_SECRET = "SERVER_HANDSHAKE_TRAFFIC_SECRET";
         public static readonly string EXPORTER_SECRET = "EXPORTER_SECRET";
-        
+
         public static readonly string CLIENT_RANDOM = "CLIENT_RANDOM";
-         
+
         private readonly Stream _stream;
         private readonly StreamWriter _streamWriter;
 
-        public NssLogWriter(string fileName) : this(File.Create(fileName))
+        public NssLogWriter(string fileName)
+            : this(File.Create(fileName))
         {
-
         }
-        
+
         public NssLogWriter(Stream stream)
         {
             _stream = stream;
-            
+
             _streamWriter = new StreamWriter(stream, Encoding.UTF8) {
                 NewLine = "\r\n",
                 AutoFlush = true
@@ -42,6 +41,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public Action<string>? KeyHandler { get; set; }
 
+        public void Dispose()
+        {
+            _stream.Dispose();
+        }
+
         public void Write(string key, byte[] clientRandom, byte[] secret)
         {
             var stringKey = $"{key} {Hex.ToHexString(clientRandom)} {Hex.ToHexString(secret)}";
@@ -49,12 +53,6 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             KeyHandler?.Invoke(stringKey);
 
             _streamWriter.WriteLine(stringKey);
-        }
-
-        
-        public void Dispose()
-        {
-            _stream.Dispose();
         }
     }
 }

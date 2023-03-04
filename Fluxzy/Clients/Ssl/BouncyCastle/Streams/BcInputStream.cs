@@ -1,16 +1,15 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.IO;
 using System.Net.Sockets;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle.Streams
 {
-
-
-    
     internal class BcInputStream : Stream
     {
         /// <summary>
-        /// The underlined networkstream 
+        ///     The underlined networkstream
         /// </summary>
         private readonly NetworkStream _networkStream;
 
@@ -19,6 +18,16 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle.Streams
             _networkStream = networkStream;
         }
 
+        public override bool CanRead { get; }
+
+        public override bool CanSeek { get; }
+
+        public override bool CanWrite { get; }
+
+        public override long Length { get; }
+
+        public override long Position { get; set; }
+
         public override void Flush()
         {
             throw new NotImplementedException();
@@ -26,7 +35,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle.Streams
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return _networkStream.Read(buffer, offset, count); 
+            return _networkStream.Read(buffer, offset, count);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -43,11 +52,5 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle.Streams
         {
             throw new NotImplementedException();
         }
-
-        public override bool CanRead { get; }
-        public override bool CanSeek { get; }
-        public override bool CanWrite { get; }
-        public override long Length { get; }
-        public override long Position { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 
@@ -6,8 +6,8 @@ namespace Fluxzy.Clients.Mock
 {
     public abstract class PreMadeResponse
     {
-        public abstract string GetFlatH11Header(Authority authority); 
+        public abstract string GetFlatH11Header(Authority authority);
 
-        public abstract Stream ReadBody(Authority authority); 
+        public abstract Stream ReadBody(Authority authority);
     }
 }

@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -33,9 +33,7 @@ namespace Fluxzy.Tests.Bins
             Memory<byte> memory = new byte[length];
 
             if (!Convert.TryFromBase64Chars(dataSpan, memory.Span, out _))
-            {
-                throw new InvalidOperationException("Invalid length"); 
-            }
+                throw new InvalidOperationException("Invalid length");
 
             return memory;
         }
@@ -43,9 +41,8 @@ namespace Fluxzy.Tests.Bins
 
     public static class HttpConstants
     {
-        public static readonly HashSet<string> PermanentHeaders = new(StringComparer.OrdinalIgnoreCase)
-        {
+        public static readonly HashSet<string> PermanentHeaders = new(StringComparer.OrdinalIgnoreCase) {
             "host"
-        }; 
+        };
     }
 }

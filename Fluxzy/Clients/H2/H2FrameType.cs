@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Clients.H2
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+namespace Fluxzy.Clients.H2
 {
     public enum H2FrameType : byte
     {
@@ -11,6 +13,6 @@
         Ping = 0x6,
         Goaway = 0x7,
         WindowUpdate = 0x8,
-        Continuation = 0x9,
+        Continuation = 0x9
     }
 }

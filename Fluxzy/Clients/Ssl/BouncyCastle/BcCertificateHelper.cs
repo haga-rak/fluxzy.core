@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
@@ -10,20 +12,21 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             subject = issuer = null;
 
             if (!(certificate is BcTlsCertificate bcTlsCertificate))
-                return false; 
+                return false;
 
             subject = bcTlsCertificate.X509CertificateStructure.Subject.ToString();
             issuer = bcTlsCertificate.X509CertificateStructure.Issuer.ToString();
 
-            return true; 
-
+            return true;
         }
-        public static bool ReadInfo(Org.BouncyCastle.Tls.Certificate?  certificate, out string? subject, out string? issuer)
+
+        public static bool ReadInfo(
+            Org.BouncyCastle.Tls.Certificate? certificate, out string? subject, out string? issuer)
         {
             subject = issuer = null;
 
             if (certificate == null || certificate.Length == 0)
-                return false; 
+                return false;
 
             var cert = certificate.GetCertificateAt(0);
 

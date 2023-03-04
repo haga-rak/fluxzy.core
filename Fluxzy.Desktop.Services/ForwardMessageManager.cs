@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Channels;
 using Fluxzy.Misc;
@@ -11,7 +11,7 @@ namespace Fluxzy.Desktop.Services
 
         public void Send<T>(T payload) where T : notnull
         {
-            _bufferedChannel.Writer.TryWrite(new ForwardMessage(payload.GetType().Name, payload)); 
+            _bufferedChannel.Writer.TryWrite(new ForwardMessage(payload.GetType().Name, payload));
         }
 
         public async Task<List<ForwardMessage>> ReadAll()
@@ -34,8 +34,8 @@ namespace Fluxzy.Desktop.Services
             Payload = payload;
         }
 
-        public string Type { get;  }
+        public string Type { get; }
 
-        public object Payload { get;  }
+        public object Payload { get; }
     }
 }

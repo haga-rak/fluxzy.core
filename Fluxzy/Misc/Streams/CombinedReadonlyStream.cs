@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -9,44 +11,9 @@ namespace Fluxzy.Misc.Streams
     public class CombinedReadonlyStream : Stream
     {
         private readonly bool _closeStreams;
-        private long _position;
-        private IEnumerator<Stream>? _iterator;
         private Stream? _current;
-
-        public override bool CanRead => true;
-
-        public override bool CanWrite => false;
-
-        private Stream? Current
-        {
-            get
-            {
-                if (_current != null) return _current;
-
-                if (_iterator == null) throw new ObjectDisposedException(GetType().Name);
-
-                if (_iterator.MoveNext())
-                    _current = _iterator.Current;
-
-                return _current;
-            }
-        }
-
-        public override bool CanSeek => false;
-
-        public override bool CanTimeout => false;
-
-        public override long Length => throw new NotSupportedException();
-
-        public override long Position
-        {
-            get => _position;
-
-            set
-            {
-                if (value != _position) throw new NotSupportedException();
-            }
-        }
+        private IEnumerator<Stream>? _iterator;
+        private long _position;
 
         public CombinedReadonlyStream(bool closeStreams, params Stream[] args)
             : this(args, closeStreams)
@@ -62,10 +29,45 @@ namespace Fluxzy.Misc.Streams
             _closeStreams = closeStreams;
         }
 
+        public override bool CanRead => true;
+
+        public override bool CanWrite => false;
+
+        private Stream? Current {
+            get
+            {
+                if (_current != null)
+                    return _current;
+
+                if (_iterator == null)
+                    throw new ObjectDisposedException(GetType().Name);
+
+                if (_iterator.MoveNext())
+                    _current = _iterator.Current;
+
+                return _current;
+            }
+        }
+
+        public override bool CanSeek => false;
+
+        public override bool CanTimeout => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position {
+            get => _position;
+
+            set
+            {
+                if (value != _position)
+                    throw new NotSupportedException();
+            }
+        }
+
         private void EndOfStream()
         {
-            if (_closeStreams && _current != null)
-            {
+            if (_closeStreams && _current != null) {
                 _current.Close();
                 _current.Dispose();
             }
@@ -75,8 +77,7 @@ namespace Fluxzy.Misc.Streams
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
+            if (disposing) {
                 EndOfStream();
                 _iterator?.Dispose();
                 _iterator = null;
@@ -114,8 +115,7 @@ namespace Fluxzy.Misc.Streams
         {
             var result = 0;
 
-            while (count > 0)
-            {
+            while (count > 0) {
                 var stream = Current;
 
                 if (stream == null)
@@ -125,7 +125,9 @@ namespace Fluxzy.Misc.Streams
                 result += thisCount;
                 count -= thisCount;
                 offset += thisCount;
-                if (thisCount == 0) EndOfStream();
+
+                if (thisCount == 0)
+                    EndOfStream();
             }
 
             _position += result;
@@ -137,8 +139,7 @@ namespace Fluxzy.Misc.Streams
         {
             var result = 0;
 
-            while (count > 0)
-            {
+            while (count > 0) {
                 var stream = Current;
 
                 if (stream == null)
@@ -155,6 +156,7 @@ namespace Fluxzy.Misc.Streams
 
                 if (currentReadCount == 0)
                     EndOfStream();
+
                 // break;
                 else
                     break; // We already have something, + NetworkStream may be blocked forever

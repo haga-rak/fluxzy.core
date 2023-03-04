@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers.Binary;
@@ -24,8 +24,8 @@ namespace Fluxzy.Clients.H2
             BodyLength =
                 headerFrames[2] | (headerFrames[1] << 8) | (headerFrames[0] << 16); // 24 premier bits == length 
 
-            BodyType = (H2FrameType)headerFrames[3];
-            Flags = (HeaderFlags)headerFrames[4];
+            BodyType = (H2FrameType) headerFrames[3];
+            Flags = (HeaderFlags) headerFrames[4];
             StreamIdentifier = BinaryPrimitives.ReadInt32BigEndian(headerFrames.Slice(5, 4));
         }
 
@@ -41,14 +41,15 @@ namespace Fluxzy.Clients.H2
         {
             data
                 .BuWrite_24(BodyLength)
-                .BuWrite_8((byte)BodyType)
-                .BuWrite_8((byte)Flags)
+                .BuWrite_8((byte) BodyType)
+                .BuWrite_8((byte) Flags)
                 .BuWrite_32(StreamIdentifier);
 
             return 9;
         }
 
-        public static int Write(Span<byte> buffer, int length, H2FrameType bodyType, HeaderFlags flags,
+        public static int Write(
+            Span<byte> buffer, int length, H2FrameType bodyType, HeaderFlags flags,
             int streamIdentifier)
         {
             var frame = new H2Frame(length, bodyType, flags, streamIdentifier);
@@ -57,7 +58,8 @@ namespace Fluxzy.Clients.H2
             return frameRes;
         }
 
-        public static H2Frame BuildHeaderFrameHeader(int length, int streamIdentifier, bool first, bool endStream,
+        public static H2Frame BuildHeaderFrameHeader(
+            int length, int streamIdentifier, bool first, bool endStream,
             bool endHeader)
         {
             HeaderFlags flags = 0;

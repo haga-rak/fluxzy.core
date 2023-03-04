@@ -1,12 +1,4 @@
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using Fluxzy.Core;
-using Fluxzy.Interop.Pcap;
-using Fluxzy.Interop.Pcap.Cli;
-using Fluxzy.Interop.Pcap.Cli.Clients;
-using Fluxzy.Interop.Pcap.Messages;
-using Xunit;
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Tests.Pipes
 {

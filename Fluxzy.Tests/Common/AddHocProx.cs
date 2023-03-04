@@ -1,9 +1,12 @@
-﻿using System;
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Writers;
@@ -12,20 +15,14 @@ namespace Fluxzy.Tests.Common
 {
     public class AddHocProxy : IAsyncDisposable
     {
-        private readonly int _expectedRequestCount;
-        private readonly FluxzySetting _startupSetting;
-        private readonly Proxy _proxy;
         private readonly CancellationTokenSource _cancellationSource;
         private readonly List<Exchange> _capturedExchanges = new();
         private readonly TaskCompletionSource _completionSource;
+        private readonly int _expectedRequestCount;
+        private readonly Proxy _proxy;
+        private readonly FluxzySetting _startupSetting;
 
         private int _requestCount;
-
-        public int BindPort { get; }
-
-        public string BindHost { get; }
-
-        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
 
         public AddHocProxy(int expectedRequestCount = 1, int timeoutSeconds = 5)
         {
@@ -46,11 +43,11 @@ namespace Fluxzy.Tests.Common
             _cancellationSource = new CancellationTokenSource(timeoutSeconds * 1000);
             _completionSource = new TaskCompletionSource();
 
-            _cancellationSource.Token.Register(() =>
-            {
-                if (!_completionSource.Task.IsCompleted)
+            _cancellationSource.Token.Register(() => {
+                if (!_completionSource.Task.IsCompleted) {
                     _completionSource.TrySetException(
                         new TimeoutException($"Timeout of {timeoutSeconds} seconds reached"));
+                }
             });
 
             var endPoints = _proxy.Run();
@@ -59,6 +56,12 @@ namespace Fluxzy.Tests.Common
 
             BindPort = endPoint.Port;
         }
+
+        public int BindPort { get; }
+
+        public string BindHost { get; }
+
+        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
 
         public async ValueTask DisposeAsync()
         {
@@ -71,8 +74,7 @@ namespace Fluxzy.Tests.Common
             if (exchangeUpdateEventArgs.UpdateType != ArchiveUpdateType.AfterResponseHeader)
                 return;
 
-            lock (_capturedExchanges)
-            {
+            lock (_capturedExchanges) {
                 _capturedExchanges.Add(exchangeUpdateEventArgs.Original);
             }
 

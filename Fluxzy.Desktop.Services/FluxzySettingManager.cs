@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Subjects;
 using System.Text.Json;
@@ -9,11 +9,10 @@ namespace Fluxzy.Desktop.Services
 {
     public class FluxzySettingManager : ObservableProvider<FluxzySettingsHolder>
     {
+        private readonly BehaviorSubject<FluxzySettingsHolder> _internalSubject;
         private readonly string _settingPath;
 
-        private readonly BehaviorSubject<FluxzySettingsHolder> _internalSubject;
-
-        public FluxzySettingManager(IConfiguration configuration)                             
+        public FluxzySettingManager(IConfiguration configuration)
         {
             _settingPath = configuration["UiSettings:CaptureTemp"]
                            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -30,8 +29,7 @@ namespace Fluxzy.Desktop.Services
 
         public void Update(FluxzySettingsHolder settingsHolder)
         {
-            lock (_settingPath)
-            {
+            lock (_settingPath) {
                 using var outStream = File.Create(_settingPath);
                 JsonSerializer.Serialize(outStream, settingsHolder, GlobalArchiveOption.DefaultSerializerOptions);
             }
@@ -42,16 +40,14 @@ namespace Fluxzy.Desktop.Services
         private FluxzySettingsHolder ReadFromFile()
         {
             if (!File.Exists(_settingPath))
-            {
-                return new FluxzySettingsHolder(startupSetting: FluxzySetting.CreateDefault());
-            }
+                return new FluxzySettingsHolder(FluxzySetting.CreateDefault());
 
-            lock (_settingPath)
-            {
+            lock (_settingPath) {
                 using var inStream = File.OpenRead(_settingPath)!;
-                return (JsonSerializer.Deserialize<FluxzySettingsHolder>(inStream, GlobalArchiveOption.DefaultSerializerOptions))!;
+
+                return JsonSerializer.Deserialize<FluxzySettingsHolder>(inStream,
+                    GlobalArchiveOption.DefaultSerializerOptions)!;
             }
         }
-
     }
 }

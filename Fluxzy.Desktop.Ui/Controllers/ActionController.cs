@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Ui.ViewModels;
@@ -11,12 +11,11 @@ namespace Fluxzy.Desktop.Ui.Controllers
     public class ActionController : ControllerBase
     {
         [HttpGet("description/{typeKind}")]
-        public ActionResult<DescriptionInfo> GetFilterDescription(string typeKind, [FromServices] ActionTemplateManager templateManager)
+        public ActionResult<DescriptionInfo> GetFilterDescription(
+            string typeKind, [FromServices] ActionTemplateManager templateManager)
         {
             if (templateManager.TryGetDescription(typeKind, out var longDescription))
-            {
                 return new DescriptionInfo(longDescription);
-            }
 
             return NotFound();
         }

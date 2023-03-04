@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -36,20 +36,17 @@ namespace Fluxzy.Clients.H11
             var indexFound = -1;
             var firstBytes = true;
 
-            while (totalRead < buffer.Buffer.Length)
-            {
+            while (totalRead < buffer.Buffer.Length) {
                 var currentRead = await stream.ReadAsync(bufferIndex, token);
 
-                if (currentRead == 0)
-                {
+                if (currentRead == 0) {
                     if (throwOnError)
                         throw new IOException("Remote connection closed before receiving response");
 
                     break; // Connection closed
                 }
 
-                if (firstBytes)
-                {
+                if (firstBytes) {
                     firstByteReceived?.Invoke();
 
                     firstBytes = false;
@@ -65,16 +62,14 @@ namespace Fluxzy.Clients.H11
 
                 var detected = searchBuffer.Span.IndexOf(CrLf);
 
-                if (detected >= 0)
-                {
+                if (detected >= 0) {
                     // FOUND CRLF 
                     indexFound = start + detected + 4;
 
                     break;
                 }
 
-                if (totalRead >= buffer.Buffer.Length)
-                {
+                if (totalRead >= buffer.Buffer.Length) {
                     var bufferIndexLength = totalRead;
 
                     buffer.Multiply(2);
@@ -82,11 +77,11 @@ namespace Fluxzy.Clients.H11
                 }
             }
 
-            if (indexFound < 0)
-            {
-                if (throwOnError)
+            if (indexFound < 0) {
+                if (throwOnError) {
                     throw new ExchangeException(
                         $"Double CRLF not detected or header buffer size ({buffer.Buffer.Length}) is less than actual header size.");
+                }
 
                 return default;
             }
