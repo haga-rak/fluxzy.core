@@ -102,31 +102,42 @@ namespace Fluxzy.Interop.Pcap
 
         public Task Start()
         {
-            _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
-            _captureDevice.Open(DeviceModes.MaxResponsiveness);
             _packetQueue = new SyncWriterQueue();
-            _captureDevice.Filter = "tcp"; // TODO H3 : add udp
-            _captureDevice.StartCapture();
+
+            lock (this) {
+                if (_disposed)
+                    return Task.CompletedTask; 
+
+                _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
+                _captureDevice.Open(DeviceModes.MaxResponsiveness);
+                _captureDevice.Filter = "tcp"; // TODO H3 : add udp
+                _captureDevice.StartCapture();
+            }
 
             return Task.CompletedTask;
         }
 
         public ValueTask DisposeAsync()
         {
-            if (_disposed)
-                return ValueTask.CompletedTask;
 
-            _disposed = true;
+            lock (this) {
 
-            Stop();
+                if (_disposed)
+                    return ValueTask.CompletedTask;
 
-            _captureDevice.Dispose();
-            _packetQueue?.Dispose();
+                _disposed = true;
+
+                Stop();
+
+                _captureDevice.Dispose();
+                _packetQueue?.Dispose();
+            }
+
 
             return ValueTask.CompletedTask;
         }
 
-        public void Stop()
+        private void Stop()
         {
             if (_halted)
                 return;

@@ -21,7 +21,7 @@ namespace Fluxzy.Core
         {
             await _client.ConnectAsync(address, port);
 
-            return (IPEndPoint) _client.Client.LocalEndPoint;
+            return (IPEndPoint) _client.Client.LocalEndPoint!;
         }
 
         public Stream GetStream()
