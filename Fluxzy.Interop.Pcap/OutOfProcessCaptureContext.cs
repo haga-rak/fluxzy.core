@@ -44,6 +44,7 @@ namespace Fluxzy.Interop.Pcap
                 _writer.Write((byte) MessageType.Include);
                 includeMessage.Write(_writer);
                 _writer.Flush();
+                _reader.ReadInt32();
             }
         }
 

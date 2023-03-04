@@ -174,7 +174,8 @@ namespace Fluxzy.Misc
                     UseShellExecute = false,
                     Verb = "runas",
                     RedirectStandardOutput = redirectStdOut,
-                    RedirectStandardInput = redirectStdOut
+                    RedirectStandardInput = redirectStdOut,
+                    CreateNoWindow = true
                 });
 
                 return winProcess;
