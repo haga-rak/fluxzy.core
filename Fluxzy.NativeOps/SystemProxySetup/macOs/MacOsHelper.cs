@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fluxzy.Misc;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.macOs
@@ -41,7 +40,28 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
                 index += 1; // skip next line because it 's already parsed
 
                 yield return iface;
+            }
+        }
 
+
+        public static void TrySetProxySettings(IEnumerable<Interface> interfaces)
+        {
+            foreach (var iFace in interfaces) {
+                var interfaceName = iFace.Name;
+
+                var commandLineResult = ProcessUtils.QuickRun("networksetup", $"-getwebproxy \"{interfaceName}\"");
+
+                if (commandLineResult.ExitCode != 0 || commandLineResult.StandardOutputMessage == null)
+                    continue;
+
+                var commandResponse = commandLineResult.StandardOutputMessage;
+
+                var proxySetting = InterfaceProxySetting.Get(commandResponse);  
+
+                if (proxySetting == null)
+                    continue;
+
+                iFace.ProxySetting = proxySetting;
             }
         }
     }
