@@ -5,8 +5,9 @@ namespace Fluxzy.Interop.Pcap.Pcapng
 {
     public class PcapngGlobalInfo
     {
-        public PcapngGlobalInfo(string userApplicationName, 
-            string? osDescription = null, 
+        public PcapngGlobalInfo(
+            string userApplicationName,
+            string? osDescription = null,
             string? hardwareDescription = null)
         {
             UserApplicationName = userApplicationName;
@@ -15,9 +16,9 @@ namespace Fluxzy.Interop.Pcap.Pcapng
         }
 
         public string UserApplicationName { get; }
-        
+
         public string? OsDescription { get; }
-        
+
         public string? HardwareDescription { get; }
     }
 }

@@ -3,15 +3,12 @@
 
 using System.Collections.Concurrent;
 using Fluxzy.Interop.Pcap.Pcapng;
+using Fluxzy.Interop.Pcap.Writing;
 
 namespace Fluxzy.Interop.Pcap
 {
     internal class SyncWriterQueue : IDisposable
     {
-        public SyncWriterQueue()
-        {
-        }
-        
         private ConcurrentDictionary<long, IRawCaptureWriter> _writers = new();
 
         public IRawCaptureWriter GetOrAdd(long key)

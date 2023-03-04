@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright © 2022 Haga Rakotoharivelo
 
 using System.Net;
 
@@ -30,6 +30,5 @@ namespace Fluxzy.Interop.Pcap
         {
             return HashCode.Combine(Address, Port);
         }
-
     }
 }
