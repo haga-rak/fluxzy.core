@@ -80,7 +80,7 @@ namespace Fluxzy.Interop.Pcap.Cli
                         case MessageType.Include:
                             var includeMessage = IncludeMessage.FromReader(binaryReader);
                             _includeHandler(includeMessage);
-
+                            binaryWriter.Write((int) 0);
                             break;
 
                         case MessageType.ClearAll:
