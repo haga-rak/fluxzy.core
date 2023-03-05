@@ -1,10 +1,10 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fluxzy.Core.Utils
+namespace Fluxzy.Misc
 {
     public class QuickSlim : IDisposable
     {

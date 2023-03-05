@@ -20,6 +20,34 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
             // Try to read exactly every interface proxy settings 
             // Declare active if any is active 
             // save into the SystemProxySetting dictionary 
+            
+
+            // list all interfaces 
+
+            var interfaces = MacOsHelper.GetEnabledInterfaces().ToList();
+
+            MacOsHelper.TrySetProxySettings(interfaces);
+
+            interfaces = interfaces.Where(s => s.ProxySetting != null).ToList();
+
+            var proxyEnabled = interfaces.Any(s => s.ProxySetting!.Enabled);
+
+            var enabledProxy = interfaces.Where(s => s.ProxySetting!.Enabled)
+                                         .Select(s => s.ProxySetting!.Server).FirstOrDefault();
+
+            var proxyName = enabledProxy ?? "127.0.0.1";
+
+
+           // return new SystemProxySetting(proxyName,  )
+           return null;
+
+
+
+
+
+
+
+
 
             var testedIfaces = new[] { "Ethernet", "Wi-fi" };
             SystemProxySetting? pendingResult = null;

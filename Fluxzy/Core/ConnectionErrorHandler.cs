@@ -12,16 +12,6 @@ using Fluxzy.Clients.H2;
 
 namespace Fluxzy.Core
 {
-    public static class ConnectionErrorConstants
-    {
-        public static readonly string Generic502 =
-            "HTTP/1.1 528 Fluxzy error\r\n" +
-            "x-fluxzy: Fluxzy error\r\n" +
-            "Content-length: {0}\r\n" +
-            "Content-type: text/plain\r\n" +
-            "Connection : close\r\n\r\n";
-    }
-
     public class ConnectionErrorHandler
     {
         public static bool RequalifyOnResponseSendError(
@@ -139,52 +129,5 @@ namespace Fluxzy.Core
 
             return false;
         }
-    }
-
-    public static class ExceptionUtils
-    {
-        /// <summary>
-        ///     Retrieve an inner or aggreate exception
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="ex"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        public static bool TryGetException<T>(this Exception ex, out T result)
-            where T : Exception
-        {
-            if (ex is T exception) {
-                result = exception;
-
-                return true;
-            }
-
-            if (ex.InnerException != null)
-                return TryGetException(ex.InnerException, out result);
-
-            if (ex is AggregateException aggregateException) {
-                foreach (var innerException in aggregateException.InnerExceptions) {
-                    if (TryGetException(innerException, out result))
-                        return true;
-                }
-            }
-
-            result = null!;
-
-            return false;
-        }
-    }
-
-    public class ClientErrorException : Exception
-    {
-        public ClientErrorException(int errorCode, string message, string? innerMessageException = null)
-            : base(message)
-        {
-            ClientError = new ClientError(errorCode, message) {
-                ExceptionMessage = innerMessageException
-            };
-        }
-
-        public ClientError ClientError { get; }
     }
 }

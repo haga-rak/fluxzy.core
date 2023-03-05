@@ -8,7 +8,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 {
     internal class MacOsHelper
     {
-        public static IEnumerable<Interface> GetInterfaces()
+        public static IEnumerable<Interface> GetEnabledInterfaces()
         {
             var runResult = ProcessUtils.QuickRun("networksetup", "-listnetworkserviceorder");
 
