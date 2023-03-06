@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
@@ -263,7 +264,7 @@ namespace Fluxzy.Tests.Cli
                     new HttpRequestMessage(HttpMethod.Post,
                         $"{TestConstants.GetHost("plainhttp11")}/global-health-check");
 
-                requestMessage.Content = new ByteArrayContent("ABCD"u8.ToArray());
+                requestMessage.Content = new ByteArrayContent(Encoding.UTF8.GetBytes("ABCD"));
 
                 var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
                 await response.Content.ReadAsStringAsync();
