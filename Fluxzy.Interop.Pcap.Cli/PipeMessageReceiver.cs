@@ -48,7 +48,11 @@ namespace Fluxzy.Interop.Pcap.Cli
         {
             try {
                 using var client = await _tcpListener.AcceptTcpClientAsync(_token);
+                
+                client.NoDelay = true;
+                
                 await using var stream = client.GetStream();
+
 
                 var binaryWriter = new BinaryWriter(stream);
                 var binaryReader = new BinaryReader(stream);

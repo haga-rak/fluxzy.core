@@ -18,9 +18,10 @@ namespace Fluxzy.Interop.Pcap
         public OutOfProcessCaptureContext(IOutOfProcessHost captureHost)
         {
             _port = (int) captureHost.Payload;
-            ;
             _captureHost = captureHost;
-            _client = new TcpClient();
+            _client = new TcpClient() {
+                NoDelay = true
+            };
         }
 
         public async Task Start()
