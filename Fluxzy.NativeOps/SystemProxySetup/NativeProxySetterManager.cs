@@ -19,7 +19,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return new LinuxProxySetter();
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return new MacOsProxySetter();
 
             throw new NotSupportedException("This platform is not supported");

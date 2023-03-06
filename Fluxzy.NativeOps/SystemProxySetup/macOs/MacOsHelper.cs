@@ -8,6 +8,9 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 {
     internal class MacOsHelper
     {
+        // Adding root certificate on macos s
+        // sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain r.cer 
+        
         public static IEnumerable<Interface> GetEnabledInterfaces()
         {
             var runResult = ProcessUtils.QuickRun("networksetup", "-listnetworkserviceorder");
