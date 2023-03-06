@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -10,8 +10,6 @@ namespace Fluxzy.Desktop.Services
     public class FilteredExchangeManager : ObservableProvider<FilteredExchangeState?>
     {
         private readonly ActiveViewFilterManager _activeViewFilterManager;
-
-        protected override BehaviorSubject<FilteredExchangeState?> Subject { get; } = new(null);
 
         public FilteredExchangeManager(
             IObservable<FileState> fileStateObservable, IObservable<ViewFilter> viewFilterObservable,
@@ -28,8 +26,7 @@ namespace Fluxzy.Desktop.Services
 
             trunkStateObservable.CombineLatest(
                                     viewFilterObservable, archiveReaderObservable,
-                                    (trunkState, viewFilter, archiveReader) =>
-                                    {
+                                    (trunkState, viewFilter, archiveReader) => {
                                         // Ne pas s'abonner à trunk state ici 
                                         // viewFilter devra just s'appliquer au nouveau venu et devra sauvegarder son état 
 
@@ -46,21 +43,21 @@ namespace Fluxzy.Desktop.Services
                                     })
                                 .DistinctUntilChanged()
                                 .Do(v => Subject.OnNext(v))
-                                .Do(v =>
-                                {
+                                .Do(v => {
                                     if (v != null)
                                         forwardMessageManager.Send(v);
                                 })
                                 .Subscribe();
         }
 
+        protected override BehaviorSubject<FilteredExchangeState?> Subject { get; } = new(null);
+
         public void OnExchangeAdded(ExchangeInfo exchange, IArchiveReader archiveReader)
         {
             var viewFilter = _activeViewFilterManager.Current;
             var filteredExchangeState = Subject.Value;
 
-            if (filteredExchangeState != null)
-            {
+            if (filteredExchangeState != null) {
                 var passFilter = viewFilter.Apply(null, exchange, archiveReader);
 
                 if (passFilter)

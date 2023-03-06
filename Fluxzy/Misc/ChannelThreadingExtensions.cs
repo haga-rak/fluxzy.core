@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Threading.Channels;
@@ -11,8 +11,7 @@ namespace Fluxzy.Misc
         {
             var any = false;
 
-            while (channel.TryRead(out var item))
-            {
+            while (channel.TryRead(out var item)) {
                 refList.Add(item);
                 any = true;
             }

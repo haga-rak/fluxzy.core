@@ -1,12 +1,12 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Desktop.Services.Models
 {
     /// <summary>
-    /// TS model only 
-    /// Count must be set.
-    /// When endIndex is null, read should be from the end
-    /// When startIndex is null, read should be from the start 
+    ///     TS model only
+    ///     Count must be set.
+    ///     When endIndex is null, read should be from the end
+    ///     When startIndex is null, read should be from the start
     /// </summary>
     public class ExchangeBrowsingState
     {
@@ -20,6 +20,6 @@ namespace Fluxzy.Desktop.Services.Models
     public enum ExchangeBrowsingStateType
     {
         FromStart = 0,
-        FromEnd,
+        FromEnd
     }
 }

@@ -1,8 +1,8 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Clients.H2.Frames
 {
-    public enum H2ErrorCode : int
+    public enum H2ErrorCode
     {
         NoError = 0x0,
         ProtocolError = 0x1,
@@ -17,6 +17,6 @@ namespace Fluxzy.Clients.H2.Frames
         ConnectError = 0xa,
         EnhanceYourCalm = 0xb,
         InadequateSecurity = 0xc,
-        Http11Required = 0xd,
+        Http11Required = 0xd
     }
 }

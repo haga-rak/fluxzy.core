@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Buffers.Binary;
 using Fluxzy.Misc;
 
@@ -10,10 +12,10 @@ namespace Fluxzy.Clients.H2.Frames
         {
             StreamIdentifier = streamIdentifier;
             WindowSizeIncrement = BinaryPrimitives.ReadInt32BigEndian(data);
-            Reserved = false; 
+            Reserved = false;
         }
 
-        public WindowUpdateFrame(int windowSizeIncrement, int streamIdentifier) 
+        public WindowUpdateFrame(int windowSizeIncrement, int streamIdentifier)
         {
             WindowSizeIncrement = windowSizeIncrement;
             Reserved = false;
@@ -23,7 +25,7 @@ namespace Fluxzy.Clients.H2.Frames
         public int StreamIdentifier { get; }
 
         public bool Reserved { get; }
-        
+
         public int WindowSizeIncrement { get; }
 
         public int BodyLength => 4;
@@ -34,7 +36,7 @@ namespace Fluxzy.Clients.H2.Frames
                 H2Frame.Write(buffer, BodyLength, H2FrameType.WindowUpdate, HeaderFlags.None, StreamIdentifier);
 
             buffer.Slice(offset)
-                .BuWrite_32(WindowSizeIncrement);
+                  .BuWrite_32(WindowSizeIncrement);
 
             return 9 + 4;
         }

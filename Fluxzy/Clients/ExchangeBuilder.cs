@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -32,14 +32,6 @@ namespace Fluxzy.Clients
     {
         private static int _count;
 
-        public int Id { get; }
-
-        public Authority Authority { get; }
-
-        public Exchange ProvisionalExchange { get; }
-
-        public bool TunnelOnly { get; }
-
         public ExchangeBuildingResult(
             Authority authority,
             Stream readStream,
@@ -53,8 +45,7 @@ namespace Fluxzy.Clients
             ProvisionalExchange = provisionalExchange;
             TunnelOnly = tunnelOnly;
 
-            if (DebugContext.EnableNetworkFileDump)
-            {
+            if (DebugContext.EnableNetworkFileDump) {
                 ReadStream = new DebugFileStream($"raw/{Id:0000}_browser_",
                     ReadStream, true);
 
@@ -62,6 +53,14 @@ namespace Fluxzy.Clients
                     WriteStream, false);
             }
         }
+
+        public int Id { get; }
+
+        public Authority Authority { get; }
+
+        public Exchange ProvisionalExchange { get; }
+
+        public bool TunnelOnly { get; }
 
         public Stream ReadStream { get; }
 
@@ -75,8 +74,9 @@ namespace Fluxzy.Clients
 
         private static readonly byte[] AcceptTunnelResponse =
             Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
-        private readonly SecureConnectionUpdater _secureConnectionUpdater;
+
         private readonly IIdProvider _idProvider;
+        private readonly SecureConnectionUpdater _secureConnectionUpdater;
 
         public ExchangeBuilder(
             SecureConnectionUpdater secureConnectionUpdater,
@@ -103,15 +103,14 @@ namespace Fluxzy.Clients
                 return null;
 
             var plainHeaderChars = new char[blockReadResult.HeaderLength];
-            
+
             Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
                 plainHeaderChars);
 
             var plainHeader = new RequestHeader(plainHeaderChars, true);
 
             // Classic TLS Request 
-            if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase))
-            {
+            if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase)) {
                 // GET Authority 
                 var authorityArray =
                     plainHeader.Path.ToString().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
@@ -128,7 +127,7 @@ namespace Fluxzy.Clients
 
                 await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
-                if (exchangeContext.BlindMode)
+                if (exchangeContext.BlindMode) {
                     return
                         new ExchangeBuildingResult(
                             authority, plainStream, plainStream,
@@ -138,6 +137,7 @@ namespace Fluxzy.Clients
                                 null, false,
                                 "HTTP/1.1",
                                 receivedFromProxy), true);
+                }
 
                 var certStart = ITimingProvider.Default.Instant();
                 var certEnd = ITimingProvider.Default.Instant();
@@ -162,8 +162,7 @@ namespace Fluxzy.Clients
 
             var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
 
-            if (remainder > 0)
-            {
+            if (remainder > 0) {
                 var extraBlock = new byte[remainder];
 
                 buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder)
@@ -218,11 +217,10 @@ namespace Fluxzy.Clients
             var secureHeader = new RequestHeader(secureHeaderChars, true);
 
             if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength) {
-
                 var copyBuffer = new byte[blockReadResult.TotalReadLength - blockReadResult.HeaderLength];
 
                 Buffer.BlockCopy(buffer.Buffer, blockReadResult.HeaderLength, copyBuffer, 0, copyBuffer.Length);
-                
+
                 inStream = new CombinedReadonlyStream(false,
                     new MemoryStream(copyBuffer),
                     inStream);

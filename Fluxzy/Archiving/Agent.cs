@@ -1,8 +1,8 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Net;
+using Fluxzy.Misc;
 
 namespace Fluxzy
 {
@@ -14,32 +14,37 @@ namespace Fluxzy
             FriendlyName = friendlyName;
         }
 
-        public int Id { get;  }
+        public int Id { get; }
 
-        public string FriendlyName { get;  }
+        public string FriendlyName { get; }
 
         protected bool Equals(Agent other)
         {
             return Id == other.Id && FriendlyName == other.FriendlyName;
         }
+
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
                 return false;
+
             if (ReferenceEquals(this, obj))
                 return true;
-            if (obj.GetType() != this.GetType())
+
+            if (obj.GetType() != GetType())
                 return false;
-            return Equals((Agent)obj);
+
+            return Equals((Agent) obj);
         }
 
         public override int GetHashCode()
         {
             return HashCode.Combine(Id, FriendlyName);
         }
-        
-        public static Agent Create(string userAgentValue, 
-            IPAddress localAddress, 
+
+        public static Agent Create(
+            string userAgentValue,
+            IPAddress localAddress,
             IUserAgentInfoProvider userAgentInfoProvider)
         {
             var id = CreateId(userAgentValue, localAddress);
@@ -52,8 +57,7 @@ namespace Fluxzy
             var id = HashUtility.GetLongHash(userAgentValue);
             id ^= (ulong) localAddress.GetHashCode(); // WARNING: IPAddress GetHashCode is not stable
 
-            unchecked
-            {
+            unchecked {
                 return (int) id;
             }
         }

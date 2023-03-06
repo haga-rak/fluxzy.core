@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 
 namespace Fluxzy.Clients.H2.Encoder.Utils
 {
@@ -9,14 +11,14 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             if (obj.IsEmpty)
                 return 0;
 
-            unchecked
-            {
+            unchecked {
                 const int p = 16777619;
 
-                var hash = (int)2166136261;
+                var hash = (int) 2166136261;
 
-                for (var i = 0; i < obj.Length; i++)
+                for (var i = 0; i < obj.Length; i++) {
                     hash = (hash ^ obj[i]) * p;
+                }
 
                 return hash;
             }

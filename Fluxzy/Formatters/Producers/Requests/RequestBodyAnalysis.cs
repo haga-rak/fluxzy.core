@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
@@ -14,7 +14,6 @@ namespace Fluxzy.Formatters.Producers.Requests
             if (context.RequestBodyLength == 0)
                 return null;
 
-
             var contentType = exchangeInfo.GetRequestHeaders()
                                           .Where(h => h.Name.Span.Equals("content-type",
                                               StringComparison.OrdinalIgnoreCase))
@@ -22,22 +21,24 @@ namespace Fluxzy.Formatters.Producers.Requests
                                           .LastOrDefault();
 
             var preferredFileName = $"request-{exchangeInfo.Id}.data";
+
             // Try to deduce filename from URL 
 
-            if (Uri.TryCreate(exchangeInfo.FullUrl, UriKind.Absolute, out var uri) && 
+            if (Uri.TryCreate(exchangeInfo.FullUrl, UriKind.Absolute, out var uri) &&
                 !string.IsNullOrWhiteSpace(uri.LocalPath))
-            {
-                preferredFileName = uri.LocalPath; 
-            }
+                preferredFileName = uri.LocalPath;
 
-            return new RequestBodyAnalysisResult(ResultTitle, context.RequestBodyLength, preferredFileName, contentType); 
+            return new RequestBodyAnalysisResult(ResultTitle, context.RequestBodyLength, preferredFileName,
+                contentType);
         }
     }
 
     public class RequestBodyAnalysisResult : FormattingResult
     {
-        public RequestBodyAnalysisResult(string title, 
-            long bodyLength, string preferredFileName, string? contentType) : base(title)
+        public RequestBodyAnalysisResult(
+            string title,
+            long bodyLength, string preferredFileName, string? contentType)
+            : base(title)
         {
             BodyLength = bodyLength;
             PreferredFileName = preferredFileName;
@@ -48,10 +49,6 @@ namespace Fluxzy.Formatters.Producers.Requests
 
         public string PreferredFileName { get; }
 
-        public string ? ContentType { get; }
-
-
-
+        public string? ContentType { get; }
     }
-
 }

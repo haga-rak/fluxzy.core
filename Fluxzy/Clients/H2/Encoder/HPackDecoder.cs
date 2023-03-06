@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -10,15 +10,11 @@ namespace Fluxzy.Clients.H2.Encoder
 {
     public class HPackDecoder : IDisposable
     {
-        private readonly PrimitiveOperation _primitiveOperation;
         private readonly CodecSetting _codecSetting;
         private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
+        private readonly PrimitiveOperation _primitiveOperation;
 
         private readonly List<HeaderField> _tempEntries = new();
-
-        internal H2Logger? Logger { get; set; }
-
-        public DecodingContext Context { get; }
 
         /// <summary>
         ///     Decoding process
@@ -45,19 +41,22 @@ namespace Fluxzy.Clients.H2.Encoder
             _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
         }
 
+        internal H2Logger? Logger { get; set; }
+
+        public DecodingContext Context { get; }
+
         public void Dispose()
         {
         }
 
-        public ReadOnlySpan<char> Decode(ReadOnlySpan<byte> headerContent, Span<char> buffer,
+        public ReadOnlySpan<char> Decode(
+            ReadOnlySpan<byte> headerContent, Span<char> buffer,
             ref IList<HeaderField> originalFields)
         {
             _tempEntries.Clear();
 
-            try
-            {
-                for (;;)
-                {
+            try {
+                for (;;) {
                     var tableEntry = ReadNextField(headerContent, out var readen);
 
                     if (readen <= 0)
@@ -71,8 +70,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
                 return Http11Parser.Write(_tempEntries, buffer);
             }
-            finally
-            {
+            finally {
                 _tempEntries.Clear();
             }
         }
@@ -81,10 +79,8 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             _tempEntries.Clear();
 
-            try
-            {
-                for (;;)
-                {
+            try {
+                for (;;) {
                     var tableEntry = ReadNextField(headerContent, out var readen);
 
                     if (readen <= 0)
@@ -100,16 +96,14 @@ namespace Fluxzy.Clients.H2.Encoder
 
                 return Http11Parser.Write(_tempEntries, buffer);
             }
-            finally
-            {
+            finally {
                 _tempEntries.Clear();
             }
         }
 
         private HeaderField ReadNextField(in ReadOnlySpan<byte> buffer, out int bytesReaden)
         {
-            if (buffer.Length == 0)
-            {
+            if (buffer.Length == 0) {
                 bytesReaden = 0;
 
                 return default;
@@ -119,10 +113,8 @@ namespace Fluxzy.Clients.H2.Encoder
 
             var index = -1;
 
-            switch (type)
-            {
-                case HeaderFieldType.DynamicTableSizeUpdate:
-                {
+            switch (type) {
+                case HeaderFieldType.DynamicTableSizeUpdate: {
                     var currentByteReaden = _primitiveOperation.ReadInt32(buffer, 5, out var maxSize);
                     Context.UpdateMaxSize(maxSize);
 
@@ -131,8 +123,8 @@ namespace Fluxzy.Clients.H2.Encoder
 
                     return res;
                 }
-                case HeaderFieldType.IndexedHeaderField:
-                {
+
+                case HeaderFieldType.IndexedHeaderField: {
                     bytesReaden = _primitiveOperation.ReadInt32(buffer, 7, out index);
 
                     if (!Context.TryGetEntry(index, out var tableEntry))
@@ -140,16 +132,17 @@ namespace Fluxzy.Clients.H2.Encoder
 
                     return tableEntry;
                 }
-                case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingExistingName:
-                {
+
+                case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingExistingName: {
                     var offsetLength = _primitiveOperation.ReadInt32(buffer, 6, out var headerIndex);
 
                     // obtenir header value from static table
 
                     if (!Context
-                            .TryGetEntry(headerIndex, out var header))
+                            .TryGetEntry(headerIndex, out var header)) {
                         throw new HPackCodecException(
                             $"Requested headerIndex does not exist in static table {headerIndex}");
+                    }
 
                     var stringLength = _primitiveOperation.GetStringLength(buffer.Slice(offsetLength));
 
@@ -167,8 +160,8 @@ namespace Fluxzy.Clients.H2.Encoder
 
                     return Context.Register(header.Name.Span, headerValue);
                 }
-                case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingWithName:
-                {
+
+                case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingWithName: {
                     var headerNameLength = _primitiveOperation.GetStringLength(buffer.Slice(1));
 
                     var headerNameBuffer =
@@ -192,9 +185,9 @@ namespace Fluxzy.Clients.H2.Encoder
 
                     return Context.Register(headerName, headerValue);
                 }
+
                 case HeaderFieldType.LiteralHeaderFieldNeverIndexExistingName:
-                case HeaderFieldType.LiteralHeaderFieldWithoutIndexingExistingName:
-                {
+                case HeaderFieldType.LiteralHeaderFieldWithoutIndexingExistingName: {
                     var offsetLength = _primitiveOperation.ReadInt32(buffer, 4, out index);
 
                     if (!Context.TryGetEntry(index, out var tableEntry))
@@ -214,9 +207,9 @@ namespace Fluxzy.Clients.H2.Encoder
 
                     return new HeaderField(tableEntry.Name.Span, resultString, _memoryProvider);
                 }
+
                 case HeaderFieldType.LiteralHeaderFieldNeverIndexWithName:
-                case HeaderFieldType.LiteralHeaderFieldWithoutIndexingWithName:
-                {
+                case HeaderFieldType.LiteralHeaderFieldWithoutIndexingWithName: {
                     var headerNameLength = _primitiveOperation.GetStringLength(buffer.Slice(1));
 
                     var headerNameBuffer =
@@ -241,6 +234,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
                     return new HeaderField(headerName, headerValue, _memoryProvider);
                 }
+
                 default:
                     throw new HPackCodecException("Stream could not decoded");
             }

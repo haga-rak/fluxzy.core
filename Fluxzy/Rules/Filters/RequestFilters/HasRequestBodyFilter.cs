@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using Fluxzy.Misc;
@@ -6,9 +6,8 @@ using Fluxzy.Misc;
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>
-    /// Select exchange that has request body. 
+    ///     Select exchange that has request body.
     /// </summary>
-
     [FilterMetaData(
         LongDescription = "Select request having body."
     )]
@@ -24,7 +23,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override bool PreMadeFilter => true;
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return filteringContext?.HasRequestBody ?? false;

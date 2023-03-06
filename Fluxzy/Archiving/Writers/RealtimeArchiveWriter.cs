@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,8 +8,6 @@ using Fluxzy.Clients;
 
 namespace Fluxzy.Writers
 {
-
-
     public abstract class RealtimeArchiveWriter
     {
         public virtual void Init()
@@ -57,7 +57,8 @@ namespace Fluxzy.Writers
                 ConnectionUpdated(this, new ConnectionUpdateEventArgs(connectionInfo));
         }
 
-        public virtual void Update(Exchange exchange, ArchiveUpdateType updateType,
+        public virtual void Update(
+            Exchange exchange, ArchiveUpdateType updateType,
             CancellationToken cancellationToken)
         {
             var exchangeInfo = new ExchangeInfo(exchange);

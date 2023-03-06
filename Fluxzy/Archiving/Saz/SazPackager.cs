@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -19,28 +19,31 @@ namespace Fluxzy.Saz
         {
             return fileName.EndsWith(".saz", StringComparison.CurrentCultureIgnoreCase);
         }
-        
+
         public override async Task Pack(string directory, Stream outputStream, HashSet<int>? exchangeIds)
         {
             var baseDirectory = new DirectoryInfo(directory);
 
             if (!baseDirectory.Exists)
                 throw new InvalidOperationException("Directory does not exists");
-            
+
             var packableFiles = GetPackableFileInfos(baseDirectory, exchangeIds).ToList();
 
             var connectionInfos = ReadConnections(packableFiles).ToDictionary(t => t.Id, t => t);
 
             var sessionId = 0;
 
-            var exchanges = ReadExchanges(packableFiles).ToList(); 
+            var exchanges = ReadExchanges(packableFiles).ToList();
 
             using var zipArchive = new ZipArchive(outputStream, ZipArchiveMode.Create);
-            var max = (int)Math.Ceiling(Math.Log10(exchanges.Count));
+            var max = (int) Math.Ceiling(Math.Log10(exchanges.Count));
 
             foreach (var exchangeInfo in exchanges) {
-                var requestPayloadPath = DirectoryArchiveHelper.GetContentRequestPath(baseDirectory.FullName, exchangeInfo.Id);
-                var responsePayloadPath = DirectoryArchiveHelper.GetContentResponsePath(baseDirectory.FullName, exchangeInfo.Id);
+                var requestPayloadPath =
+                    DirectoryArchiveHelper.GetContentRequestPath(baseDirectory.FullName, exchangeInfo.Id);
+
+                var responsePayloadPath =
+                    DirectoryArchiveHelper.GetContentResponsePath(baseDirectory.FullName, exchangeInfo.Id);
 
                 if (!connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo))
                     continue;
@@ -54,13 +57,11 @@ namespace Fluxzy.Saz
             RequestHeaderInfo requestHeaderInfo,
             string payloadPath, Stream output, int exchangeId)
         {
-            await using (var streamWriter = new StreamWriter(output, new UTF8Encoding(false), 1024 * 8, true))
-            {
+            await using (var streamWriter = new StreamWriter(output, new UTF8Encoding(false), 1024 * 8, true)) {
                 await streamWriter.WriteAsync($"{requestHeaderInfo.Method} {requestHeaderInfo.Path} HTTP/1.1\r\n");
                 await streamWriter.WriteAsync($"Host: {requestHeaderInfo.Authority}\r\n");
 
-                foreach (var header in requestHeaderInfo.Headers.Where(h => h.Forwarded))
-                {
+                foreach (var header in requestHeaderInfo.Headers.Where(h => h.Forwarded)) {
                     if (header.Name.Span.StartsWith(":"))
                         continue;
 
@@ -74,8 +75,7 @@ namespace Fluxzy.Saz
 
             var payloadFileInfo = new FileInfo(payloadPath);
 
-            if (payloadFileInfo.Exists && payloadFileInfo.Length > 0)
-            {
+            if (payloadFileInfo.Exists && payloadFileInfo.Length > 0) {
                 await using var bodyStream = File.OpenRead(payloadPath);
                 await bodyStream.CopyToAsync(output);
 
@@ -87,14 +87,12 @@ namespace Fluxzy.Saz
             ResponseHeaderInfo responseHeaderInfo,
             string payloadPath, Stream output)
         {
-            await using (var streamWriter = new StreamWriter(output, new UTF8Encoding(false), 1024 * 8, true))
-            {
-                var statusCodeString = ((HttpStatusCode)responseHeaderInfo.StatusCode).ToString();
+            await using (var streamWriter = new StreamWriter(output, new UTF8Encoding(false), 1024 * 8, true)) {
+                var statusCodeString = ((HttpStatusCode) responseHeaderInfo.StatusCode).ToString();
 
                 await streamWriter.WriteAsync($"HTTP/1.1 {responseHeaderInfo.StatusCode} {statusCodeString}\r\n");
 
-                foreach (var header in responseHeaderInfo.Headers.Where(h => h.Forwarded))
-                {
+                foreach (var header in responseHeaderInfo.Headers.Where(h => h.Forwarded)) {
                     if (header.Name.Span.StartsWith(":"))
                         continue;
 
@@ -109,8 +107,7 @@ namespace Fluxzy.Saz
 
             var payloadFileInfo = new FileInfo(payloadPath);
 
-            if (payloadFileInfo.Exists && payloadFileInfo.Length > 0)
-            {
+            if (payloadFileInfo.Exists && payloadFileInfo.Length > 0) {
                 await using var bodyStream = File.OpenRead(payloadPath);
                 await bodyStream.CopyToAsync(output);
 
@@ -126,15 +123,13 @@ namespace Fluxzy.Saz
         {
             var requestEntry = zipArchive.CreateEntry($"raw/{sessionId.ToString(new string('0', maxNumberId))}_c.txt");
 
-            using (var requestStream = requestEntry.Open())
-            {
+            using (var requestStream = requestEntry.Open()) {
                 await WriteRequest(exchange.RequestHeader, requestBodyPath, requestStream, exchange.Id);
             }
 
             var sessionEntry = zipArchive.CreateEntry($"raw/{sessionId.ToString(new string('0', maxNumberId))}_m.xml");
 
-            using (var sessionStream = sessionEntry.Open())
-            {
+            using (var sessionStream = sessionEntry.Open()) {
                 var bodyLength = 0L;
 
                 if (File.Exists(responseBodyPath))
@@ -143,33 +138,28 @@ namespace Fluxzy.Saz
                 WriteSessionContent(exchange, connectionInfo, sessionId, bodyLength, sessionStream);
             }
 
-            if (exchange.ResponseHeader != null)
-            {
+            if (exchange.ResponseHeader != null) {
                 var response = zipArchive.CreateEntry($"raw/{sessionId.ToString(new string('0', maxNumberId))}_s.txt");
 
-                await using (var responseStream = response.Open())
-                {
+                await using (var responseStream = response.Open()) {
                     await WriteResponse(exchange.ResponseHeader, responseBodyPath, responseStream);
                 }
             }
-
         }
 
         private static void WriteSessionContent(
             ExchangeInfo exchange, ConnectionInfo connectionInfo, int sessionId, long bodyLength,
             Stream outStream)
         {
-            using (var writer = XmlWriter.Create(outStream, new XmlWriterSettings
-                   {
+            using (var writer = XmlWriter.Create(outStream, new XmlWriterSettings {
                        Indent = true
-                   }))
-            {
+                   })) {
                 var flags = SazFlags.IsHttps | SazFlags.RequestStreamed | SazFlags.ResponseStreamed
                             | SazFlags.ImportedFromOtherTool;
 
                 writer.WriteStartElement("Session");
                 writer.WriteAttributeString("SID", sessionId.ToString());
-                writer.WriteAttributeString("BitFlags", ((int)flags).ToString());
+                writer.WriteAttributeString("BitFlags", ((int) flags).ToString());
 
                 writer.WriteStartElement("SessionTimers");
 
@@ -194,10 +184,12 @@ namespace Fluxzy.Saz
                 writer.WriteAttributeString("TCPConnectTime", "0");
 
                 if (connectionInfo.SslNegotiationEnd != default &&
-                    connectionInfo.SslNegotiationStart != default)
+                    connectionInfo.SslNegotiationStart != default) {
                     writer.WriteAttributeString("HTTPSHandshakeTime",
-                        ((int)(connectionInfo.SslNegotiationEnd - connectionInfo.SslNegotiationStart).TotalMilliseconds)
+                        ((int) (connectionInfo.SslNegotiationEnd - connectionInfo.SslNegotiationStart)
+                            .TotalMilliseconds)
                         .ToString());
+                }
 
                 writer.WriteAttributeString("ServerConnected",
                     connectionInfo.TcpConnectionOpened.FormatWithLocalKind() ?? "0001-01-01T00:00:00.0000000+01:00");

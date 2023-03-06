@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using Fluxzy.Clients.H11;
@@ -29,31 +29,12 @@ namespace Fluxzy
 
         List<WsMessage>? WebSocketMessages { get; }
 
+        Agent? Agent { get; }
+
+        List<ClientError> ClientErrors { get; }
+
         IEnumerable<HeaderFieldInfo> GetRequestHeaders();
 
         IEnumerable<HeaderFieldInfo>? GetResponseHeaders();
-        
-        Agent ? Agent { get;  }
-
-        List<ClientError> ClientErrors { get;  }
     }
-
-
-    public class ClientError
-    {
-        public ClientError(int errorCode, string message)
-        {
-            ErrorCode = errorCode;
-            Message = message;
-        }
-
-        public int ErrorCode { get;  }
-        
-
-        public string Message { get; }
-
-
-        public string ? ExceptionMessage { get; set; }
-    }
-    
 }

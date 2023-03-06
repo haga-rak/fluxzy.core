@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
@@ -19,6 +19,7 @@ namespace Fluxzy.Desktop.Services
         public async Task<IRunningProxyConfiguration> GetConfiguration()
         {
             var proxyState = await _proxyStateProvider.FirstAsync();
+
             return new CurlProxyConfiguration("127.0.0.1", proxyState.BoundConnections.First().Port);
         }
     }

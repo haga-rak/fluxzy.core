@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -23,13 +23,13 @@ namespace Fluxzy
         public override async Task Pack(string directory, Stream outputStream, HashSet<int>? exchangeIds)
         {
             var baseDirectory = new DirectoryInfo(directory);
-            
+
             var packableFiles =
                 GetPackableFileInfos(baseDirectory, exchangeIds);
 
             await ZipHelper.CompressWithFileInfos(baseDirectory, outputStream, packableFiles.Select(s => s.File));
         }
-        
+
         public async Task Unpack(Stream inputStream, string directoryOutput)
         {
             await ZipHelper.Decompress(inputStream, new DirectoryInfo(directoryOutput));

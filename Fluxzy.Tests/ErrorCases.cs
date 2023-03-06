@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net;
 using System.Net.Http;
@@ -16,8 +16,7 @@ namespace Fluxzy.Tests
         {
             await using var proxy = new AddHocProxy();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
@@ -26,17 +25,15 @@ namespace Fluxzy.Tests
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/connection-broken-abort-before-response");
 
-            try
-            {
+            try {
                 using var response = await httpClient.SendAsync(requestMessage);
 
                 var responseBody = await response.Content.ReadAsStringAsync();
 
-                Assert.Equal((HttpStatusCode)528, response.StatusCode);
+                Assert.Equal((HttpStatusCode) 528, response.StatusCode);
                 Assert.True(!string.IsNullOrWhiteSpace(responseBody));
             }
-            catch (HttpRequestException)
-            {
+            catch (HttpRequestException) {
                 // May reached here 
             }
         }
@@ -48,8 +45,7 @@ namespace Fluxzy.Tests
         {
             await using var proxy = new AddHocProxy();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 

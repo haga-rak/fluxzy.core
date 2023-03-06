@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -7,7 +7,7 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// Add comment to exchange. Comment does not alter the stream.
+    ///     Add comment to exchange. Comment does not alter the stream.
     /// </summary>
     [ActionMetadata("Add comment to exchange. Comment does not alter the stream.")]
     public class ApplyCommentAction : Action
@@ -20,9 +20,11 @@ namespace Fluxzy.Rules.Actions
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
         /// <summary>
-        /// Comment
+        ///     Comment
         /// </summary>
         public string? Comment { get; set; }
+
+        public override string DefaultDescription => $"Apply comment {Comment}".Trim();
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
@@ -31,7 +33,5 @@ namespace Fluxzy.Rules.Actions
 
             return default;
         }
-
-        public override string DefaultDescription => $"Apply comment {Comment}".Trim();
     }
 }

@@ -1,21 +1,9 @@
-﻿namespace Fluxzy.Clients.H2
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+namespace Fluxzy.Clients.H2
 {
     internal class StreamContext
     {
-        public int ConnectionId { get; }
-
-        public Authority Authority { get; }
-
-        public H2StreamSetting Setting { get; }
-
-        public H2Logger Logger { get; }
-
-        public IHeaderEncoder HeaderEncoder { get; }
-
-        public UpStreamChannel UpStreamChannel { get; }
-
-        public WindowSizeHolder OverallWindowSizeHolder { get; }
-
         public StreamContext(
             int connectionId,
             Authority authority,
@@ -33,5 +21,19 @@
             UpStreamChannel = upStreamChannel;
             OverallWindowSizeHolder = overallWindowSizeHolder;
         }
+
+        public int ConnectionId { get; }
+
+        public Authority Authority { get; }
+
+        public H2StreamSetting Setting { get; }
+
+        public H2Logger Logger { get; }
+
+        public IHeaderEncoder HeaderEncoder { get; }
+
+        public UpStreamChannel UpStreamChannel { get; }
+
+        public WindowSizeHolder OverallWindowSizeHolder { get; }
     }
 }

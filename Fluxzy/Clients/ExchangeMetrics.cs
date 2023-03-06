@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 
@@ -39,7 +39,7 @@ namespace Fluxzy.Clients
         public long TotalReceived { get; set; }
 
         public int RequestHeaderLength { get; set; }
-        
+
         public int ResponseHeaderLength { get; set; }
 
         public int LocalPort { get; set; }

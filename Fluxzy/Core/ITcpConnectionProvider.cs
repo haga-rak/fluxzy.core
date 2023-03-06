@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading.Tasks;
@@ -9,7 +9,7 @@ namespace Fluxzy.Core
     {
         public static ITcpConnectionProvider Default { get; } = new DefaultTcpConnectionProvider();
 
-        ITcpConnection Create(string dumpFileName); 
+        ITcpConnection Create(string dumpFileName);
     }
 
     public class DefaultTcpConnectionProvider : ITcpConnectionProvider
@@ -18,7 +18,7 @@ namespace Fluxzy.Core
         {
             return new DefaultTcpConnection();
         }
-        
+
         public ValueTask DisposeAsync()
         {
             return default;

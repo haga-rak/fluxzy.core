@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -11,13 +13,13 @@ namespace Fluxzy.Clients.DotNetBridge
 {
     public class FluxzyHttp11Handler : HttpMessageHandler
     {
-        private readonly SslProvider _sslProvider;
-
         private readonly IDictionary<string, Http11ConnectionPool>
             _activeConnections = new Dictionary<string, Http11ConnectionPool>();
 
-        private readonly SemaphoreSlim _semaphore = new(1);
         private readonly IIdProvider _idProvider;
+
+        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly SslProvider _sslProvider;
 
         public FluxzyHttp11Handler(SslProvider sslProvider = SslProvider.OsDefault)
         {
@@ -31,19 +33,16 @@ namespace Fluxzy.Clients.DotNetBridge
             var authority = new Authority(request.RequestUri.Host, request.RequestUri.Port,
                 true);
 
-            try
-            {
+            try {
                 await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection))
-                {
+                if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection)) {
                     connection = await ConnectionBuilder.CreateH11(authority, _sslProvider, cancellationToken);
 
                     _activeConnections[request.RequestUri.Authority] = connection;
                 }
             }
-            finally
-            {
+            finally {
                 _semaphore.Release();
             }
 
@@ -66,14 +65,15 @@ namespace Fluxzy.Clients.DotNetBridge
 
             _semaphore.Dispose();
 
-            foreach (var connection in _activeConnections.Values)
+            foreach (var connection in _activeConnections.Values) {
                 connection.Dispose();
+            }
         }
     }
 
     public enum SslProvider
     {
-        OsDefault = 1 , 
+        OsDefault = 1,
         BouncyCastle
     }
 }

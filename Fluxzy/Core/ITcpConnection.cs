@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -13,6 +13,6 @@ namespace Fluxzy.Core
 
         Stream GetStream();
 
-        void OnKeyReceived(string nssKey); 
+        void OnKeyReceived(string nssKey);
     }
 }

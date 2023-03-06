@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -27,8 +27,7 @@ namespace Fluxzy.Misc
 
             buffer = buffer.Slice(0, byteCount);
 
-            try
-            {
+            try {
                 Encoding.ASCII.GetBytes(inputChars, buffer);
 
                 Span<byte> md5Dest = stackalloc byte[16];
@@ -38,8 +37,7 @@ namespace Fluxzy.Misc
 
                 return new Guid(md5Dest);
             }
-            finally
-            {
+            finally {
                 if (heapBuffer != null)
                     ArrayPool<byte>.Shared.Return(heapBuffer);
             }

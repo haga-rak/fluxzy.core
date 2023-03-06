@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Readers;
 using Fluxzy.Rules.Filters;
@@ -16,21 +16,21 @@ namespace Fluxzy.Desktop.Services.Models
 
             _effectiveFilter = Filter is AnyFilter && SourceFilter is AnyFilter
                 ? AnyFilter.Default
-                : new FilterCollection(Filter, SourceFilter)
-                {
+                : new FilterCollection(Filter, SourceFilter) {
                     Operation = SelectorCollectionOperation.And
                 };
         }
 
         public Filter Filter { get; }
-        
+
         public Filter SourceFilter { get; }
 
         public bool Empty => _effectiveFilter is AnyFilter;
 
-        public bool Apply(IAuthority authority, ExchangeInfo exchange,IArchiveReader archiveReader)
+        public bool Apply(IAuthority authority, ExchangeInfo exchange, IArchiveReader archiveReader)
         {
-            var filteringContext = new ExchangeInfoFilteringContext(archiveReader, exchange.Id); 
+            var filteringContext = new ExchangeInfoFilteringContext(archiveReader, exchange.Id);
+
             return _effectiveFilter.Apply(authority, exchange, filteringContext);
         }
     }

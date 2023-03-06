@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Buffers;
 using System.IO;
@@ -45,13 +47,11 @@ namespace Fluxzy.Clients.H2
         {
             var settingBuffer = ArrayPool<byte>.Shared.Rent(80);
 
-            try
-            {
+            try {
                 var written = new SettingFrame(true).Write(settingBuffer);
                 await innerStream.WriteAsync(settingBuffer, 0, written);
             }
-            finally
-            {
+            finally {
                 ArrayPool<byte>.Shared.Return(settingBuffer);
             }
         }

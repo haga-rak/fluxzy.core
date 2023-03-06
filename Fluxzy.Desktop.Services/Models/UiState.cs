@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Rules;
@@ -9,10 +9,10 @@ namespace Fluxzy.Desktop.Services.Models
     {
         public UiState(
             FileState fileState, ProxyState proxyState,
-            FluxzySettingsHolder settingsHolder, SystemProxyState systemProxyState, 
-            ViewFilter viewFilter, List<ToolBarFilter> toolBarFilters, 
-            TemplateToolBarFilterModel templateToolBarFilterModel, 
-            List<Rule> activeRules, LastOpenFileState lastOpenFileState) 
+            FluxzySettingsHolder settingsHolder, SystemProxyState systemProxyState,
+            ViewFilter viewFilter, List<ToolBarFilter> toolBarFilters,
+            TemplateToolBarFilterModel templateToolBarFilterModel,
+            List<Rule> activeRules, LastOpenFileState lastOpenFileState)
         {
             FileState = fileState;
             ProxyState = proxyState;
@@ -27,7 +27,7 @@ namespace Fluxzy.Desktop.Services.Models
 
         public Guid Id { get; } = Guid.NewGuid();
 
-        public FileState FileState { get;  }
+        public FileState FileState { get; }
 
         public ProxyState ProxyState { get; }
 
@@ -41,9 +41,8 @@ namespace Fluxzy.Desktop.Services.Models
 
         public List<ToolBarFilter> ToolBarFilters { get; }
 
-        public FluxzySettingsHolder SettingsHolder { get;  }
+        public FluxzySettingsHolder SettingsHolder { get; }
 
         public LastOpenFileState LastOpenFileState { get; }
-
     }
 }

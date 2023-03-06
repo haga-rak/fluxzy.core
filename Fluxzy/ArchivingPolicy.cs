@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.Text.Json.Serialization;
@@ -21,8 +21,8 @@ namespace Fluxzy
         public static ArchivingPolicy CreateFromDirectory(DirectoryInfo directoryInfo)
         {
             directoryInfo.Create();
-            return new ArchivingPolicy
-            {
+
+            return new ArchivingPolicy {
                 Directory = directoryInfo.FullName,
                 Type = ArchivingPolicyType.Directory
             };
@@ -31,6 +31,7 @@ namespace Fluxzy
         public static ArchivingPolicy CreateFromDirectory(string path)
         {
             var directoryInfo = new DirectoryInfo(path);
+
             return CreateFromDirectory(directoryInfo);
         }
     }

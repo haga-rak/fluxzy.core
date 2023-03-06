@@ -14,19 +14,19 @@ namespace Fluxzy.Interop.Pcap.Messages
             LocalPort = localPort;
             NssKey = nssKey;
         }
-        
+
         public IPAddress RemoteAddress { get; }
-    
+
         public int RemotePort { get; }
-    
-        public int LocalPort { get;}
-    
+
+        public int LocalPort { get; }
+
         public string NssKey { get; }
-    
+
         public static StoreKeyMessage FromReader(BinaryReader reader)
         {
             Span<char> charBuffer = stackalloc char[512];
-        
+
             var remoteAddress = SerializationUtils.ReadIpAddress(reader.BaseStream);
             var remotePort = reader.ReadInt32();
             var localPort = reader.ReadInt32();
@@ -46,7 +46,8 @@ namespace Fluxzy.Interop.Pcap.Messages
 
         public bool Equals(StoreKeyMessage other)
         {
-            return RemoteAddress.Equals(other.RemoteAddress) && RemotePort == other.RemotePort && LocalPort == other.LocalPort && NssKey == other.NssKey;
+            return RemoteAddress.Equals(other.RemoteAddress) && RemotePort == other.RemotePort &&
+                   LocalPort == other.LocalPort && NssKey == other.NssKey;
         }
 
         public override bool Equals(object? obj)

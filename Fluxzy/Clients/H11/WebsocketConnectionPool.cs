@@ -1,5 +1,4 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -17,10 +16,10 @@ namespace Fluxzy.Clients.H11
 {
     internal class WebsocketConnectionPool : IHttpConnectionPool
     {
-        private readonly ITimingProvider _timingProvider;
         private readonly RemoteConnectionBuilder _connectionBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly SemaphoreSlim _semaphoreSlim;
+        private readonly ITimingProvider _timingProvider;
 
         public WebsocketConnectionPool(
             Authority authority,
@@ -48,11 +47,11 @@ namespace Fluxzy.Clients.H11
             return new ValueTask<bool>(!Complete);
         }
 
-        public async ValueTask Send(Exchange exchange, ILocalLink localLink, RsBuffer buffer,
+        public async ValueTask Send(
+            Exchange exchange, ILocalLink localLink, RsBuffer buffer,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
+            try {
                 await _semaphoreSlim.WaitAsync(cancellationToken);
 
                 await using var ex = new WebSocketProcessing(
@@ -62,8 +61,7 @@ namespace Fluxzy.Clients.H11
 
                 await ex.Process(exchange, localLink, buffer.Buffer, cancellationToken);
             }
-            finally
-            {
+            finally {
                 _semaphoreSlim.Release();
                 Complete = true;
             }
@@ -79,13 +77,14 @@ namespace Fluxzy.Clients.H11
 
     internal class WebSocketProcessing : IAsyncDisposable
     {
-        private readonly Authority _authority;
-        private readonly ITimingProvider _timingProvider;
-        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
-        private readonly ProxyRuntimeSetting _creationSetting;
         private readonly RealtimeArchiveWriter? _archiveWriter;
+        private readonly Authority _authority;
+        private readonly ProxyRuntimeSetting _creationSetting;
+        private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
+        private readonly ITimingProvider _timingProvider;
 
-        public WebSocketProcessing(Authority authority,
+        public WebSocketProcessing(
+            Authority authority,
             ITimingProvider timingProvider,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ProxyRuntimeSetting creationSetting,
@@ -103,7 +102,8 @@ namespace Fluxzy.Clients.H11
             return default;
         }
 
-        public async Task Process(Exchange exchange, ILocalLink localLink, byte[] buffer,
+        public async Task Process(
+            Exchange exchange, ILocalLink localLink, byte[] buffer,
             CancellationToken cancellationToken)
         {
             if (localLink == null)
@@ -120,6 +120,7 @@ namespace Fluxzy.Clients.H11
             _archiveWriter?.Update(exchange.Connection, cancellationToken);
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
+
             // Writing 
             var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
             await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken);
@@ -146,8 +147,7 @@ namespace Fluxzy.Clients.H11
 
             var concatedReadStream = exchange.Connection.ReadStream!;
 
-            if (headerBlock.HeaderLength < headerBlock.TotalReadLength)
-            {
+            if (headerBlock.HeaderLength < headerBlock.TotalReadLength) {
                 var remainder = new byte[headerBlock.TotalReadLength -
                                          headerBlock.HeaderLength];
 
@@ -164,20 +164,17 @@ namespace Fluxzy.Clients.H11
 
             _archiveWriter?.Update(exchange, ArchiveUpdateType.AfterResponseHeader, cancellationToken);
 
-            try
-            {
+            try {
                 var outWriteStream = exchange.Connection.WriteStream;
 
                 var addLock = new object();
 
                 await using var upReadStream = new WebSocketStream(concatedReadStream, _timingProvider,
                     cancellationToken,
-                    wsMessage =>
-                    {
+                    wsMessage => {
                         wsMessage.Direction = WsMessageDirection.Receive;
 
-                        lock (addLock)
-                        {
+                        lock (addLock) {
                             exchange.WebSocketMessages ??= new List<WsMessage>();
                             exchange.WebSocketMessages.Add(wsMessage);
                         }
@@ -188,12 +185,10 @@ namespace Fluxzy.Clients.H11
 
                 await using var downReaderStream = new WebSocketStream(localLink.ReadStream, _timingProvider,
                     cancellationToken,
-                    wsMessage =>
-                    {
+                    wsMessage => {
                         wsMessage.Direction = WsMessageDirection.Sent;
 
-                        lock (addLock)
-                        {
+                        lock (addLock) {
                             exchange.WebSocketMessages ??= new List<WsMessage>();
                             exchange.WebSocketMessages.Add(wsMessage);
                         }
@@ -212,10 +207,8 @@ namespace Fluxzy.Clients.H11
 
                 await copyTask.ConfigureAwait(false);
             }
-            catch (Exception ex)
-            {
-                if (ex is IOException || ex is SocketException)
-                {
+            catch (Exception ex) {
+                if (ex is IOException || ex is SocketException) {
                     exchange.Errors.Add(new Error("", ex));
 
                     return;
@@ -223,8 +216,7 @@ namespace Fluxzy.Clients.H11
 
                 throw;
             }
-            finally
-            {
+            finally {
                 exchange.Metrics.RemoteClosed = _timingProvider.Instant();
                 exchange.ExchangeCompletionSource.TrySetResult(true);
             }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
@@ -9,9 +9,7 @@ namespace Fluxzy.Formatters.Producers.Requests
         public RequestTextBodyResult? Build(ExchangeInfo exchangeInfo, ProducerContext context)
         {
             if (context.RequestBodyText == null)
-            {
                 return null;
-            }
 
             return new RequestTextBodyResult(ResultTitle, context.RequestBodyText);
         }
@@ -19,11 +17,12 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public class RequestTextBodyResult : FormattingResult
     {
-        public string Text { get; }
-
-        public RequestTextBodyResult(string title, string text) : base(title)
+        public RequestTextBodyResult(string title, string text)
+            : base(title)
         {
             Text = text;
         }
+
+        public string Text { get; }
     }
 }

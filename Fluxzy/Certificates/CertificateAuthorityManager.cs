@@ -1,9 +1,11 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Fluxzy
+namespace Fluxzy.Certificates
 {
     public abstract class CertificateAuthorityManager
     {
@@ -25,18 +27,18 @@ namespace Fluxzy
         public abstract bool IsCertificateInstalled(string certificateThumbPrint);
 
         /// <summary>
-        /// Check if the default certificate is installed 
+        ///     Check if the default certificate is installed
         /// </summary>
         /// <returns></returns>
         public virtual bool IsDefaultCertificateInstalled()
         {
             return IsCertificateInstalled(FluxzySecurity.DefaultThumbPrint);
         }
-        
-        public abstract ValueTask<bool>  RemoveCertificate(string thumbPrint);
-        
+
+        public abstract ValueTask<bool> RemoveCertificate(string thumbPrint);
+
         public abstract ValueTask<bool> InstallCertificate(X509Certificate2 certificate);
-       
+
         public virtual ValueTask<bool> InstallDefaultCertificate()
         {
             return InstallCertificate(FluxzySecurity.BuiltinCertificate);
@@ -61,7 +63,8 @@ namespace Fluxzy
             Subject = subject;
         }
 
-        public string ThumbPrint { get;  }
+        public string ThumbPrint { get; }
+
         public string Subject { get; }
     }
 }

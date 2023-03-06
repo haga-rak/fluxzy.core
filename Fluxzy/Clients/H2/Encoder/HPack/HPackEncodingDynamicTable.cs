@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
@@ -7,6 +9,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
     public class HPackEncodingDynamicTable
     {
         private readonly Dictionary<int, HeaderField> _entries = new();
+
         private readonly Dictionary<HeaderField, int>
             _reverseEntries = new(new TableEntryComparer()); // only used for evicting
 
@@ -31,10 +34,8 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             var evictedSize = 0;
             var i = 0;
 
-            for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++)
-            {
-                if (!_entries.TryGetValue(i, out var tableEntry))
-                {
+            for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++) {
+                if (!_entries.TryGetValue(i, out var tableEntry)) {
                     _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
 
                     return evictedSize;
@@ -75,16 +76,14 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
             var provisionalSize = _currentSize + entry.Size;
 
-            if (provisionalSize > _currentMaxSize)
-            {
+            if (provisionalSize > _currentMaxSize) {
                 var spaceNeeded = provisionalSize - _currentMaxSize;
 
                 var evictedSize = EvictUntil(spaceNeeded);
 
                 // No decoding error.
                 // Inserting element larger than Table MAX SIZE cause the table to be emptied 
-                if (evictedSize < spaceNeeded)
-                {
+                if (evictedSize < spaceNeeded) {
                     _currentSize = 0;
                     _entries.Clear();
                     _internalIndex = -1;
@@ -98,8 +97,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
             _internalIndex += 1;
 
-            if (_entries.ContainsKey(_internalIndex) != _reverseEntries.ContainsKey(entry))
-            {
+            if (_entries.ContainsKey(_internalIndex) != _reverseEntries.ContainsKey(entry)) {
             }
 
             _entries[_internalIndex] = entry;
@@ -112,8 +110,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
             int indexInternal;
 
-            if (_reverseEntries.TryGetValue(entry, out indexInternal))
-            {
+            if (_reverseEntries.TryGetValue(entry, out indexInternal)) {
                 indexExternal = ConvertIndexFromInternal(indexInternal);
 
                 return true;

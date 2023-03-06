@@ -1,24 +1,22 @@
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using Fluxzy.Interop.Pcap.Pcapng.Structs;
 using SharpPcap;
 
 namespace Fluxzy.Interop.Pcap.Pcapng
 {
     /// <summary>
-    /// This writer aims to dump packet into pcpang format with minimal GC pressure 
+    ///     This writer aims to dump packet into pcpang format with minimal GC pressure
     /// </summary>
     public class PcapngStreamWriter
     {
-        private static readonly DateTime Reference = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        
-        private readonly string _userApplicationName;
+        private static readonly DateTime Reference = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         private readonly string _hardwareDescription;
-        private readonly string _osDescription;
 
         private readonly Dictionary<int, InterfaceDescription> _interfaces = new();
-        
+        private readonly string _osDescription;
+
+        private readonly string _userApplicationName;
+
         public PcapngStreamWriter(PcapngGlobalInfo pcapngGlobalInfo)
         {
             _userApplicationName = pcapngGlobalInfo.UserApplicationName;
@@ -27,31 +25,29 @@ namespace Fluxzy.Interop.Pcap.Pcapng
         }
 
         /// <summary>
-        /// Static constant field
+        ///     Static constant field
         /// </summary>
         public void WriteSectionHeaderBlock(Stream stream)
         {
             var userAppOption = new StringOptionBlock(OptionBlockCode.Shb_UserAppl, _userApplicationName);
-            var osDecriptionOption = new StringOptionBlock(OptionBlockCode.Shb_Os, _osDescription);
+            var osDescription = new StringOptionBlock(OptionBlockCode.Shb_Os, _osDescription);
             var hardwareOption = new StringOptionBlock(OptionBlockCode.Shb_Hardware, _hardwareDescription);
             var endOfOption = new EndOfOption();
 
             var sectionHeaderBlock = new SectionHeaderBlock(
-                osDecriptionOption.OnWireLength
+                osDescription.OnWireLength
                 + userAppOption.OnWireLength
                 + hardwareOption.OnWireLength
                 + endOfOption.OnWireLength);
-
-            //var sectionHeaderBlock = new SectionHeaderBlock(0);
-
+            
             Span<byte> sectionHeaderBlockBuffer = stackalloc byte[sectionHeaderBlock.OnWireLength];
 
-            int offset = 0;
+            var offset = 0;
 
             offset += sectionHeaderBlock.WriteHeader(sectionHeaderBlockBuffer);
 
             offset += userAppOption.Write(sectionHeaderBlockBuffer.Slice(offset));
-            offset += osDecriptionOption.Write(sectionHeaderBlockBuffer.Slice(offset));
+            offset += osDescription.Write(sectionHeaderBlockBuffer.Slice(offset));
             offset += hardwareOption.Write(sectionHeaderBlockBuffer.Slice(offset));
 
             offset += endOfOption.Write(sectionHeaderBlockBuffer.Slice(offset));
@@ -60,7 +56,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng
 
             stream.Write(sectionHeaderBlockBuffer.Slice(0, offset));
         }
-        
+
         protected void WriteInterfaceDescription(Stream stream, InterfaceDescription interfaceDescription)
         {
             var interfaceDescriptionBlock = new InterfaceDescriptionBlock(interfaceDescription);
@@ -78,10 +74,8 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             var interfaceKey = capture.Device.MacAddress.GetHashCode();
 
             if (!_interfaces.TryGetValue(interfaceKey, out var description)) {
-
                 _interfaces[interfaceKey] = description = new InterfaceDescription(
-                    (ushort) capture.Device.LinkType, _interfaces.Count)
-                {
+                    (ushort) capture.Device.LinkType, _interfaces.Count) {
                     Name = capture.Device.Name,
                     Description = capture.Device.Description,
                     MacAddress = capture.Device.MacAddress?.GetAddressBytes()
@@ -90,11 +84,11 @@ namespace Fluxzy.Interop.Pcap.Pcapng
                 WriteInterfaceDescription(stream, description);
             }
 
-           // var longTimeSpan = (capture.Header.Timeval.Date - Reference).Ticks / (100);
-            var longTimeSpan = (long) ((capture.Header.Timeval.Date - Reference).TotalMilliseconds * 1000); 
+            // var longTimeSpan = (capture.Header.Timeval.Date - Reference).Ticks / (100);
+            var longTimeSpan = (long) ((capture.Header.Timeval.Date - Reference).TotalMilliseconds * 1000);
 
             var enhancedPacketBlock = new EnhancedPacketBlock(
-                description.InterfaceId, 
+                description.InterfaceId,
                 (uint) (longTimeSpan >> 32),
                 (uint) (longTimeSpan & 0xFFFFFFFF),
                 capture.Data.Length,
@@ -103,7 +97,6 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             );
 
             // This need to be corrected if MTU is very large
-
             Span<byte> enhancedPacketBlockBuffer = stackalloc byte[enhancedPacketBlock.BlockTotalLength];
             var offset = enhancedPacketBlock.Write(enhancedPacketBlockBuffer, capture.Data);
             stream.Write(enhancedPacketBlockBuffer.Slice(0, offset));
@@ -112,7 +105,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng
         public void WriteNssKey(Stream stream, string nssKeys)
         {
             var decryptionBlock = new NssDecryptionSecretsBlock(nssKeys);
-            
+
             Span<byte> decryptionBlockBuffer = stackalloc byte[decryptionBlock.BlockTotalLength];
             var offset = decryptionBlock.Write(decryptionBlockBuffer, nssKeys);
 

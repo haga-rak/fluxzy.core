@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -56,15 +56,15 @@ namespace Fluxzy.Clients.H11
             return new ValueTask<bool>(true);
         }
 
-        public async ValueTask Send(Exchange exchange, ILocalLink _, RsBuffer buffer,
+        public async ValueTask Send(
+            Exchange exchange, ILocalLink _, RsBuffer buffer,
             CancellationToken cancellationToken)
         {
             ITimingProvider.Default.Instant();
 
             exchange.HttpVersion = "HTTP/1.1";
 
-            try
-            {
+            try {
                 _logger.Trace(exchange, "Begin wait for authority slot");
 
                 if (!_semaphoreSlim.Wait(0))
@@ -72,14 +72,13 @@ namespace Fluxzy.Clients.H11
 
                 _logger.Trace(exchange.Id, "Acquiring slot");
 
-                lock (_processingStates)
-                {
+                lock (_processingStates) {
                     var requestDate = _timingProvider.Instant();
 
-                    while (_processingStates.TryDequeue(out var state))
-                    {
+                    while (_processingStates.TryDequeue(out var state)) {
                         if (requestDate - state.LastUsed >
                             TimeSpan.FromSeconds(_proxyRuntimeSetting.TimeOutSecondsUnusedConnection))
+
                             // The connection pool exceeds timing connection ..
                             continue;
 
@@ -90,8 +89,7 @@ namespace Fluxzy.Clients.H11
                     }
                 }
 
-                if (exchange.Connection == null)
-                {
+                if (exchange.Connection == null) {
                     _logger.Trace(exchange.Id, () => "New connection request");
 
                     var openingResult =
@@ -111,34 +109,30 @@ namespace Fluxzy.Clients.H11
 
                 var poolProcessing = new Http11PoolProcessing(_logger);
 
-                try
-                {
+                try {
                     await poolProcessing.Process(exchange, buffer, cancellationToken)
                                         .ConfigureAwait(false);
 
                     _logger.Trace(exchange.Id, () => "[Process] return");
 
                     var res = exchange.Complete
-                                      .ContinueWith(async completeTask =>
-                                      {
+                                      .ContinueWith(async completeTask => {
                                           if (exchange.Metrics.ResponseBodyEnd == default)
                                               exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
                                           if (completeTask.Exception != null &&
-                                              completeTask.Exception.InnerExceptions.Any())
-                                          {
+                                              completeTask.Exception.InnerExceptions.Any()) {
                                               _logger.Trace(exchange.Id,
                                                   () =>
                                                       $"Complete on error {completeTask.Exception.GetType()} : {completeTask.Exception.Message}");
 
-                                              foreach (var exception in completeTask.Exception.InnerExceptions)
+                                              foreach (var exception in completeTask.Exception.InnerExceptions) {
                                                   exchange.Errors.Add(new Error("Error while reading response",
                                                       exception));
+                                              }
                                           }
-                                          else if (completeTask.IsCompletedSuccessfully && !completeTask.Result)
-                                          {
-                                              lock (_processingStates)
-                                              {
+                                          else if (completeTask.IsCompletedSuccessfully && !completeTask.Result) {
+                                              lock (_processingStates) {
                                                   _processingStates.Enqueue(
                                                       new Http11ProcessingState(exchange.Connection, _timingProvider));
                                               }
@@ -148,10 +142,10 @@ namespace Fluxzy.Clients.H11
 
                                               return;
                                           }
-                                          else
-                                          {
+                                          else {
                                               _logger.Trace(exchange.Id,
                                                   () => "Complete on success, closing connection ...");
+
                                               // should close connection 
                                           }
 
@@ -161,15 +155,13 @@ namespace Fluxzy.Clients.H11
                                               await exchange.Connection.WriteStream!.DisposeAsync();
                                       }, cancellationToken);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     _logger.Trace(exchange.Id, () => $"Processing error {ex}");
 
                     throw;
                 }
             }
-            finally
-            {
+            finally {
                 _semaphoreSlim.Release();
                 ITimingProvider.Default.Instant();
             }
@@ -187,14 +179,14 @@ namespace Fluxzy.Clients.H11
 
     public class Http11ProcessingState
     {
-        public Connection Connection { get; }
-
-        public DateTime LastUsed { get; set; }
-
         public Http11ProcessingState(Connection connection, ITimingProvider timingProvider)
         {
             Connection = connection;
             LastUsed = timingProvider.Instant();
         }
+
+        public Connection Connection { get; }
+
+        public DateTime LastUsed { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.Threading.Tasks;
@@ -34,12 +34,12 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
             fileInfo.Directory?.Create();
 
             await using var outStream = fileInfo.Create();
-            
+
             await using var contentStream = stream.GetSlicedStream(model.Offset, model.Length);
 
             await contentStream.CopyToAsync(outStream);
 
-            return true; 
+            return true;
         }
     }
 

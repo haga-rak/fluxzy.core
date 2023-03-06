@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
@@ -21,7 +20,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpGet("certificates")]
         public ActionResult<List<CertificateOnStore>> GetStoreCertificates([FromQuery] bool caOnly = false)
         {
-            return _systemService.GetStoreCertificates(caOnly); 
+            return _systemService.GetStoreCertificates(caOnly);
         }
     }
 }

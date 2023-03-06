@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Clients.Common;
+using Fluxzy.Clients.Dns;
 using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.Ssl;
@@ -31,11 +31,9 @@ namespace Fluxzy.Clients.H2
 
             var sslStream = new SslStream(tcpClient.GetStream());
 
-            var sslAuthenticationOption = new SslClientAuthenticationOptions
-            {
+            var sslAuthenticationOption = new SslClientAuthenticationOptions {
                 TargetHost = hostName,
-                ApplicationProtocols = new List<SslApplicationProtocol>
-                {
+                ApplicationProtocols = new List<SslApplicationProtocol> {
                     SslApplicationProtocol.Http2
                 }
             };
@@ -56,11 +54,12 @@ namespace Fluxzy.Clients.H2
             return connectionPool;
         }
 
-        public static Task<Http11ConnectionPool> CreateH11(Authority authority, SslProvider provider,
+        public static Task<Http11ConnectionPool> CreateH11(
+            Authority authority, SslProvider provider,
             CancellationToken token = default)
         {
             var sslProvider = provider == SslProvider.BouncyCastle
-                ? (ISslConnectionBuilder)new BouncyCastleConnectionBuilder()
+                ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
                 : new SChannelConnectionBuilder();
 
             var connectionPool = new Http11ConnectionPool(authority,

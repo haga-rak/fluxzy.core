@@ -1,5 +1,4 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -19,6 +18,11 @@ namespace Fluxzy.Clients.H11
 
     public class WsMessage
     {
+        public WsMessage(int id)
+        {
+            Id = id;
+        }
+
         public int Id { get; set; }
 
         public WsMessageDirection Direction { get; set; }
@@ -39,11 +43,6 @@ namespace Fluxzy.Clients.H11
 
         public int FrameCount { get; set; }
 
-        public WsMessage(int id)
-        {
-            Id = id;
-        }
-
         internal void ApplyXorSlow(Span<byte> data, int mask, int countIndex)
         {
             if (mask == 0)
@@ -52,8 +51,9 @@ namespace Fluxzy.Clients.H11
             Span<byte> maskData = stackalloc byte[4];
             BinaryPrimitives.WriteInt32BigEndian(maskData, mask);
 
-            for (var i = 0; i < data.Length; i++)
+            for (var i = 0; i < data.Length; i++) {
                 data[i] ^= maskData[i % 4];
+            }
         }
 
         internal void ApplyXor(Span<byte> data, uint mask, int countIndex)
@@ -61,21 +61,17 @@ namespace Fluxzy.Clients.H11
             if (mask == 0)
                 return;
 
-            mask = RotateLeft(mask, (countIndex % 4) * 8);
+            mask = RotateLeft(mask, countIndex % 4 * 8);
 
-            if (countIndex % 2 == 1)
-            {
-
+            if (countIndex % 2 == 1) {
             }
 
             Span<byte> maskData = stackalloc byte[4];
 
-            for (var i = 0; i < data.Length;)
-            {
+            for (var i = 0; i < data.Length;) {
                 var currentBlock = data.Slice(i);
 
-                if (currentBlock.Length >= 4)
-                {
+                if (currentBlock.Length >= 4) {
                     var val = BinaryPrimitives.ReadUInt32BigEndian(currentBlock);
                     var finalVal = val ^ mask;
                     BinaryPrimitives.WriteUInt32BigEndian(currentBlock, finalVal);
@@ -86,8 +82,9 @@ namespace Fluxzy.Clients.H11
 
                 BinaryPrimitives.WriteUInt32BigEndian(maskData, mask);
 
-                for (var j = 0; j < currentBlock.Length; j++)
-                    currentBlock[j] = (byte)(currentBlock[j] ^ maskData[j]);
+                for (var j = 0; j < currentBlock.Length; j++) {
+                    currentBlock[j] = (byte) (currentBlock[j] ^ maskData[j]);
+                }
 
                 break;
             }
@@ -100,11 +97,10 @@ namespace Fluxzy.Clients.H11
             if (wsFrame.OpCode != 0) // We don't affect continuation frame
                 OpCode = wsFrame.OpCode;
 
-            if (wsFrame.FinalFragment && Length == 0 && wsFrame.PayloadLength < maxWsMessageLengthBuffered)
-            {
+            if (wsFrame.FinalFragment && Length == 0 && wsFrame.PayloadLength < maxWsMessageLengthBuffered) {
                 // Build direct buffer for message 
 
-                var readResult = await pipeReader.ReadAtLeastAsync((int)wsFrame.PayloadLength, token);
+                var readResult = await pipeReader.ReadAtLeastAsync((int) wsFrame.PayloadLength, token);
 
                 // TODO optimize with stackalloc on sequence
 
@@ -116,13 +112,11 @@ namespace Fluxzy.Clients.H11
 
                 pipeReader.AdvanceTo(readResult.Buffer.GetPosition(wsFrame.PayloadLength));
             }
-            else
-            {
+            else {
                 await using var stream = outStream(Id);
                 var totalWr = 0;
 
-                while (WrittenLength < wsFrame.PayloadLength)
-                {
+                while (WrittenLength < wsFrame.PayloadLength) {
                     // Write into file 
 
                     if (!pipeReader.TryRead(out var readResult))
@@ -131,39 +125,35 @@ namespace Fluxzy.Clients.H11
                     // readResult.Buffer.Slice()
 
                     var effectiveBufferLength =
-                        (int)Math.Min(readResult.Buffer.Length, wsFrame.PayloadLength - WrittenLength);
+                        (int) Math.Min(readResult.Buffer.Length, wsFrame.PayloadLength - WrittenLength);
 
                     var totalWriteInSequence = 0;
 
-                    foreach (var sequence in readResult.Buffer)
-                    {
+                    foreach (var sequence in readResult.Buffer) {
                         var memory = sequence.Slice(0,
                             Math.Min(sequence.Length, effectiveBufferLength - totalWriteInSequence));
 
-                        if (wsFrame.MaskedPayload != 0)
-                        {
+                        if (wsFrame.MaskedPayload != 0) {
                             var copyBuffer = ArrayPool<byte>.Shared.Rent(memory.Length);
 
-                            try
-                            {
+                            try {
                                 memory.CopyTo(copyBuffer);
 
                                 ApplyXor(new Span<byte>(copyBuffer, 0, memory.Length),
-                                    wsFrame.MaskedPayload, totalWr%4);
+                                    wsFrame.MaskedPayload, totalWr % 4);
 
                                 totalWr += memory.Length;
-                              //  lengthShift = (lengthShift + memory.Length) % 4;
+
+                                //  lengthShift = (lengthShift + memory.Length) % 4;
 
                                 stream.Write(copyBuffer, 0, memory.Length);
                                 stream.Flush();
                             }
-                            finally
-                            {
+                            finally {
                                 ArrayPool<byte>.Shared.Return(copyBuffer);
                             }
                         }
-                        else
-                        {
+                        else {
                             stream.Write(memory.Span);
                             stream.Flush();
                         }
@@ -176,8 +166,7 @@ namespace Fluxzy.Clients.H11
                     pipeReader.AdvanceTo(readResult.Buffer.GetPosition(effectiveBufferLength));
                 }
 
-                if (wsFrame.FinalFragment)
-                {
+                if (wsFrame.FinalFragment) {
                 }
             }
 

@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
@@ -9,12 +8,13 @@ namespace Fluxzy.Desktop.Services
 {
     public class FileContentUpdateManager
     {
-        private readonly ForwardMessageManager _forwardMessageManager;
         private readonly FilteredExchangeManager _filteredExchangeManager;
+        private readonly ForwardMessageManager _forwardMessageManager;
+        private FileContentOperationManager? _currentContentOperationManager;
         private ViewFilter? _viewFilter;
-        private FileContentOperationManager?  _currentContentOperationManager;
 
-        public FileContentUpdateManager(ForwardMessageManager forwardMessageManager, 
+        public FileContentUpdateManager(
+            ForwardMessageManager forwardMessageManager,
             IObservable<ViewFilter> viewFilterObservable, FilteredExchangeManager filteredExchangeManager,
             IObservable<FileContentOperationManager> contentObservable)
         {
@@ -22,12 +22,12 @@ namespace Fluxzy.Desktop.Services
             _filteredExchangeManager = filteredExchangeManager;
 
             viewFilterObservable
-                .Do(t => this._viewFilter = t)
+                .Do(t => _viewFilter = t)
                 .Subscribe();
 
             contentObservable
                 .Do(c => _currentContentOperationManager = c)
-                .Subscribe(); 
+                .Subscribe();
         }
 
         public void AddOrUpdate(ConnectionInfo connectionInfo)
@@ -45,11 +45,9 @@ namespace Fluxzy.Desktop.Services
                 return;
 
             _currentContentOperationManager.AddOrUpdate(exchangeInfo);
-            
+
             if (_viewFilter == null || _viewFilter.Apply(null, exchangeInfo, archiveReader))
-            {
                 _forwardMessageManager.Send(exchangeInfo);
-            }
 
             _filteredExchangeManager.OnExchangeAdded(exchangeInfo, archiveReader);
         }

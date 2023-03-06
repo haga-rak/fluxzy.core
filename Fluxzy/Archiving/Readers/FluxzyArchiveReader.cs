@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +16,7 @@ namespace Fluxzy.Readers
         {
             _zipFile = ZipFile.OpenRead(filePath);
         }
-        
+
         public FluxzyArchiveReader(Stream stream)
         {
             _zipFile = new ZipArchive(stream, ZipArchiveMode.Read);
@@ -40,8 +40,7 @@ namespace Fluxzy.Readers
             return _zipFile.Entries.Where(e =>
                                e.FullName.StartsWith("exchanges")
                                && e.FullName.EndsWith(".json"))
-                           .Select(s =>
-                           {
+                           .Select(s => {
                                using var stream = s.Open();
 
                                return JsonSerializer.Deserialize<ExchangeInfo>(
@@ -72,8 +71,7 @@ namespace Fluxzy.Readers
             return _zipFile.Entries.Where(e =>
                                e.FullName.StartsWith("connections")
                                && e.FullName.EndsWith(".json"))
-                           .Select(s =>
-                           {
+                           .Select(s => {
                                using var stream = s.Open();
 
                                return JsonSerializer.Deserialize<ConnectionInfo>(
@@ -209,7 +207,6 @@ namespace Fluxzy.Readers
 
         public bool HasCapture(int connectionId)
         {
-
             var path = DirectoryArchiveHelper.GetCapturePath(string.Empty, connectionId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 

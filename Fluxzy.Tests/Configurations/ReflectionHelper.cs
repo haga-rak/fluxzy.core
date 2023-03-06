@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -16,17 +15,17 @@ namespace Fluxzy.Tests.Configurations
         {
             return type.GetProperties(BindingFlags.GetProperty | BindingFlags.SetProperty
                                                                | BindingFlags.Public | BindingFlags.Instance)
-                       .Where(p => p.Name != nameof(Filter.Identifier)).ToArray(); 
+                       .Where(p => p.Name != nameof(Filter.Identifier)).ToArray();
         }
 
-        public static object?  GetPropertyValue(this object obj,PropertyInfo propertyInfo)
+        public static object? GetPropertyValue(this object obj, PropertyInfo propertyInfo)
         {
             return propertyInfo.GetValue(obj);
         }
     }
 
     /// <summary>
-    /// This greed equality comparer should be used only for testing 
+    ///     This greed equality comparer should be used only for testing
     /// </summary>
     public class GreedyFilterComparer : IEqualityComparer<Filter>
     {
@@ -34,15 +33,17 @@ namespace Fluxzy.Tests.Configurations
         {
             if (ReferenceEquals(x, y))
                 return true;
+
             if (ReferenceEquals(x, null))
                 return false;
+
             if (ReferenceEquals(y, null))
                 return false;
+
             if (x.GetType() != y.GetType())
                 return false;
 
             if (x is FilterCollection colX && y is FilterCollection colY) {
-
                 if (colX.Children.Count != colY.Children.Count)
                     return false;
 
@@ -52,13 +53,12 @@ namespace Fluxzy.Tests.Configurations
                 if (colX.Operation != colY.Operation)
                     return false;
 
-                for (int i = 0 ; i < colX.Children.Count ; i ++) {
+                for (var i = 0; i < colX.Children.Count; i++) {
                     if (!Equals(colX.Children[i], colY.Children[i]))
                         return false;
                 }
             }
             else {
-
                 var properties = ReflectionHelper.GetSettableProperties(x.GetType());
 
                 foreach (var propertyInfo in properties) {
@@ -66,11 +66,11 @@ namespace Fluxzy.Tests.Configurations
                     var valY = y.GetPropertyValue(propertyInfo);
 
                     if (!Equals(valX, valY))
-                        return false; 
+                        return false;
                 }
             }
 
-            return true; 
+            return true;
         }
 
         public int GetHashCode(Filter obj)
@@ -79,17 +79,20 @@ namespace Fluxzy.Tests.Configurations
             return 0;
         }
     }
-   
+
     public class GreedyActionComparer : IEqualityComparer<Action>
     {
         public bool Equals(Action x, Action y)
         {
             if (ReferenceEquals(x, y))
                 return true;
+
             if (ReferenceEquals(x, null))
                 return false;
+
             if (ReferenceEquals(y, null))
                 return false;
+
             if (x.GetType() != y.GetType())
                 return false;
 
@@ -100,10 +103,10 @@ namespace Fluxzy.Tests.Configurations
                 var valY = y.GetPropertyValue(propertyInfo);
 
                 if (!Equals(valX, valY))
-                    return false; 
+                    return false;
             }
 
-            return true; 
+            return true;
         }
 
         public int GetHashCode(Action obj)

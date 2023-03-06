@@ -1,4 +1,6 @@
-﻿using System.Reactive.Linq;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Rules.Filters;
@@ -10,20 +12,22 @@ namespace Fluxzy.Desktop.Services
     {
         private readonly HashSet<Guid> _defaultFilterSet;
 
-        protected override BehaviorSubject<TemplateToolBarFilterModel> Subject { get; } =
-            new(new TemplateToolBarFilterModel(new() , new()));
-        
-        public TemplateToolBarFilterProvider(ToolBarFilterProvider toolBarFilterProvider, 
+        public TemplateToolBarFilterProvider(
+            ToolBarFilterProvider toolBarFilterProvider,
             IObservable<DynamicStatistic> dynamicStatistic)
         {
             _defaultFilterSet = toolBarFilterProvider.GetDefault().Select(t => t.Filter.Identifier).ToHashSet();
-            
+
             dynamicStatistic
-                .Select(ts => ts.Agents.OrderBy(a => a.FriendlyName).Select(s => new AgentFilter(s)).OfType<Filter>().ToList())
+                .Select(ts =>
+                    ts.Agents.OrderBy(a => a.FriendlyName).Select(s => new AgentFilter(s)).OfType<Filter>().ToList())
                 .Do(filters =>
                     Subject.OnNext(new TemplateToolBarFilterModel(Subject.Value.LastUsedFilters, filters)))
-                .Subscribe(); 
+                .Subscribe();
         }
+
+        protected override BehaviorSubject<TemplateToolBarFilterModel> Subject { get; } =
+            new(new TemplateToolBarFilterModel(new List<Filter>(), new List<Filter>()));
 
         public void SetNewFilter(Filter setFilter)
         {
@@ -31,14 +35,15 @@ namespace Fluxzy.Desktop.Services
                 return;
 
             var lastUsedFilters = Subject.Value.LastUsedFilters;
-            var agentFilters = Subject.Value.AgentFilters; 
+            var agentFilters = Subject.Value.AgentFilters;
 
             lastUsedFilters.RemoveAll(f => f.Identifier == setFilter.Identifier);
 
             lastUsedFilters.Insert(0, setFilter);
 
-            while (lastUsedFilters.Count > 5)
+            while (lastUsedFilters.Count > 5) {
                 lastUsedFilters.RemoveAt(lastUsedFilters.Count - 1);
+            }
 
             Subject.OnNext(new TemplateToolBarFilterModel(lastUsedFilters, agentFilters));
         }

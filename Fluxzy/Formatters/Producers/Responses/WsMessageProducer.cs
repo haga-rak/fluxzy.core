@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +18,7 @@ namespace Fluxzy.Formatters.Producers.Responses
                 return null;
 
             foreach (var message in exchangeInfo.WebSocketMessages
-                                                .Where(d => d.Data != null))
-            {
+                                                .Where(d => d.Data != null)) {
                 if (!ArrayTextUtilities.IsText(message.Data))
                     continue;
 
@@ -32,12 +31,12 @@ namespace Fluxzy.Formatters.Producers.Responses
 
     public class WsMessageFormattingResult : FormattingResult
     {
-        public List<WsMessage> Messages { get; }
-
         public WsMessageFormattingResult(string title, List<WsMessage> messages)
             : base(title)
         {
             Messages = messages;
         }
+
+        public List<WsMessage> Messages { get; }
     }
 }

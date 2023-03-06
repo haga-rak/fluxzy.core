@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -12,14 +12,14 @@ namespace Fluxzy.Writers
 {
     public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {
-        private readonly string _baseDirectory;
-        private readonly Filter? _saveFilter;
-        private readonly string _captureDirectory;
-        private readonly string _contentDirectory;
         private readonly ArchiveMetaInformation _archiveMetaInformation = new();
         private readonly string _archiveMetaInformationPath;
+        private readonly string _baseDirectory;
+        private readonly string _captureDirectory;
+        private readonly string _contentDirectory;
+        private readonly Filter? _saveFilter;
 
-        public DirectoryArchiveWriter(string baseDirectory, Filter ? saveFilter)
+        public DirectoryArchiveWriter(string baseDirectory, Filter? saveFilter)
         {
             _baseDirectory = baseDirectory;
             _saveFilter = saveFilter;
@@ -51,8 +51,9 @@ namespace Fluxzy.Writers
 
         public override void UpdateTags(IEnumerable<Tag> tags)
         {
-            foreach (var tag in tags)
+            foreach (var tag in tags) {
                 _archiveMetaInformation.Tags.Add(tag);
+            }
 
             UpdateMeta();
         }
@@ -66,23 +67,22 @@ namespace Fluxzy.Writers
 
             DirectoryArchiveHelper.CreateDirectory(exchangePath);
 
-            using (var fileStream = File.Create(exchangePath))
-            {
+            using (var fileStream = File.Create(exchangePath)) {
                 JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.DefaultSerializerOptions);
             }
 
-            if (exchangeInfo.Tags?.Any() ?? false)
-            {
+            if (exchangeInfo.Tags?.Any() ?? false) {
                 var modified = false;
 
-                foreach (var tag in exchangeInfo.Tags)
+                foreach (var tag in exchangeInfo.Tags) {
                     modified = _archiveMetaInformation.Tags.Add(tag) || modified;
+                }
 
                 if (modified)
                     UpdateMeta();
             }
 
-            return true; 
+            return true;
         }
 
         public override void Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)

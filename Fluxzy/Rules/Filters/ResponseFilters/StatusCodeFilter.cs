@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Linq;
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    /// Select exchange according to HTTP status code
+    ///     Select exchange according to HTTP status code
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select exchanges according to HTTP status code."
@@ -27,7 +27,8 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 
         public override bool PreMadeFilter => true;
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             if (exchange == null)
@@ -36,6 +37,4 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             return StatusCodes.Contains(exchange.StatusCode);
         }
     }
-
-    
 }

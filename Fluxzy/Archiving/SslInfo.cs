@@ -1,14 +1,16 @@
-using Fluxzy.Clients.Ssl.BouncyCastle;
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients.Ssl.BouncyCastle;
 
 namespace Fluxzy
 {
     public class SslInfo
     {
         /// <summary>
-        /// Building  from OsDefault
+        ///     Building  from OsDefault
         /// </summary>
         /// <param name="sslStream"></param>
         public SslInfo(SslStream sslStream)
@@ -25,34 +27,36 @@ namespace Fluxzy
         }
 
         /// <summary>
-        /// Building from BouncyCastle
+        ///     Building from BouncyCastle
         /// </summary>
         /// <param name="clientProtocol"></param>
         public SslInfo(FluxzyClientProtocol clientProtocol)
         {
-
 //#if NET6_0
 //            CipherAlgorithm = ((System.Net.Security.TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite).ToString(); 
 //#endif
 
             NegotiatedApplicationProtocol = clientProtocol.GetApplicationProtocol().ToString();
             SslProtocol = clientProtocol.GetSChannelProtocol();
-            
-            if (BcCertificateHelper.ReadInfo(clientProtocol.SessionParameters.LocalCertificate, 
+
+            if (BcCertificateHelper.ReadInfo(clientProtocol.SessionParameters.LocalCertificate,
                     out var localSubject, out var localIssuer)) {
                 LocalCertificateIssuer = localIssuer;
-                LocalCertificateSubject = localSubject; 
+                LocalCertificateSubject = localSubject;
             }
 
-            if (BcCertificateHelper.ReadInfo(clientProtocol.SessionParameters.PeerCertificate, 
+            if (BcCertificateHelper.ReadInfo(clientProtocol.SessionParameters.PeerCertificate,
                     out var remoteSubject, out var remoteIssuer)) {
                 RemoteCertificateIssuer = remoteIssuer;
-                RemoteCertificateSubject = remoteSubject; 
+                RemoteCertificateSubject = remoteSubject;
             }
         }
 
         [JsonConstructor]
-        public SslInfo(SslProtocols sslProtocol, string? remoteCertificateIssuer, string? remoteCertificateSubject, string? localCertificateSubject, string? localCertificateIssuer, string negotiatedApplicationProtocol, string keyExchangeAlgorithm, HashAlgorithmType hashAlgorithm, CipherAlgorithmType cipherAlgorithm)
+        public SslInfo(
+            SslProtocols sslProtocol, string? remoteCertificateIssuer, string? remoteCertificateSubject,
+            string? localCertificateSubject, string? localCertificateIssuer, string negotiatedApplicationProtocol,
+            string keyExchangeAlgorithm, HashAlgorithmType hashAlgorithm, CipherAlgorithmType cipherAlgorithm)
         {
             SslProtocol = sslProtocol;
             RemoteCertificateIssuer = remoteCertificateIssuer;
@@ -65,26 +69,26 @@ namespace Fluxzy
             CipherAlgorithm = cipherAlgorithm;
         }
 
-        public SslProtocols SslProtocol { get;  }
+        public SslProtocols SslProtocol { get; }
 
-        public string? RemoteCertificateIssuer { get;  }
+        public string? RemoteCertificateIssuer { get; }
 
         public string? RemoteCertificateSubject { get; }
 
-        public string? LocalCertificateSubject { get;  }
+        public string? LocalCertificateSubject { get; }
 
-        public string? LocalCertificateIssuer { get;  }
+        public string? LocalCertificateIssuer { get; }
 
-        public string NegotiatedApplicationProtocol { get;  }
+        public string NegotiatedApplicationProtocol { get; }
 
-        public string KeyExchangeAlgorithm { get;  }
+        public string KeyExchangeAlgorithm { get; }
 
         public HashAlgorithmType HashAlgorithm { get; }
 
         public CipherAlgorithmType CipherAlgorithm { get; }
 
-        public byte[] ? RemoteCertificate { get; set;  }
+        public byte[]? RemoteCertificate { get; set; }
 
-        public byte[] ? LocalCertificate { get; set;  }
+        public byte[]? LocalCertificate { get; set; }
     }
 }

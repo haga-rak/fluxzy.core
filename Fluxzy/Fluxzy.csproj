@@ -53,4 +53,8 @@
 		</EmbeddedResource>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Core\Utils\" />
+	</ItemGroup>
+
 </Project>

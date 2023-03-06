@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,24 +9,25 @@ using ICSharpCode.SharpZipLib.Zip;
 namespace Fluxzy
 {
     /// <summary>
-    /// Utilities for zipping a directory
+    ///     Utilities for zipping a directory
     /// </summary>
-    public static class ZipHelper
+    internal static class ZipHelper
     {
         public static Task Decompress(
             Stream input,
             DirectoryInfo directoryInfo)
         {
             if (directoryInfo.Exists)
-                Directory.CreateDirectory(directoryInfo.FullName); 
-            
+                Directory.CreateDirectory(directoryInfo.FullName);
+
             new FastZip().ExtractZip(input, directoryInfo.FullName, FastZip.Overwrite.Always,
                 s => true, ".*", ".*", true, true);
 
             return Task.CompletedTask;
         }
 
-        public static async Task Compress(DirectoryInfo directoryInfo, 
+        public static async Task Compress(
+            DirectoryInfo directoryInfo,
             Stream output,
             Func<FileInfo, bool> policy)
         {
@@ -37,8 +40,9 @@ namespace Fluxzy
 
             await InternalCompressDirectory(directoryInfo, zipStream, policy);
         }
-        
-        public static async Task CompressWithFileInfos(DirectoryInfo directoryInfo, 
+
+        public static async Task CompressWithFileInfos(
+            DirectoryInfo directoryInfo,
             Stream output, IEnumerable<FileInfo> fileInfos)
         {
             if (!directoryInfo.Exists)
@@ -50,23 +54,22 @@ namespace Fluxzy
 
             await InternaCompressDirectoryWithFileInfos(directoryInfo, zipStream, fileInfos);
         }
-        
+
         private static async Task InternalCompressDirectory(
             DirectoryInfo directoryInfo, ZipOutputStream zipStream,
             Func<FileInfo, bool> policy)
         {
             var fileInfos = directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories);
-            var directoryName = directoryInfo.FullName; 
+            var directoryName = directoryInfo.FullName;
 
-            foreach (var fileInfo in fileInfos)
-            {
+            foreach (var fileInfo in fileInfos) {
                 if (!fileInfo.Exists)
                     continue;
 
                 if (!policy(fileInfo))
                     continue;
 
-                await using var fsInput = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite); 
+                await using var fsInput = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 if (fsInput.Length == 0)
                     continue;
@@ -75,10 +78,8 @@ namespace Fluxzy
 
                 entryName = ZipEntry.CleanName(entryName);
 
-                var newEntry = new ZipEntry(entryName)
-                {
-                    DateTime = fileInfo.LastWriteTime,
-                    
+                var newEntry = new ZipEntry(entryName) {
+                    DateTime = fileInfo.LastWriteTime
                 };
 
                 if (fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase) ||
@@ -97,31 +98,28 @@ namespace Fluxzy
             DirectoryInfo directoryInfo, ZipOutputStream zipStream,
             IEnumerable<FileInfo> fileInfos)
         {
-            var directoryName = directoryInfo.FullName; 
+            var directoryName = directoryInfo.FullName;
 
-            foreach (var fileInfo in fileInfos)
-            {
-                try
-                {
+            foreach (var fileInfo in fileInfos) {
+                try {
                     if (!fileInfo.Exists)
                         continue;
 
                     await using var fsInput = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                     if (fsInput.Length == 0)
-                        continue; 
+                        continue;
 
                     var entryName = fileInfo.FullName.Replace(directoryName, string.Empty);
                     entryName = ZipEntry.CleanName(entryName);
-                    var newEntry = new ZipEntry(entryName)
-                    {
+
+                    var newEntry = new ZipEntry(entryName) {
                         DateTime = fileInfo.LastWriteTime
                     };
 
                     if (
                         fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase) ||
-                        fileInfo.Name.EndsWith("pcapng", StringComparison.OrdinalIgnoreCase))
-                    {
+                        fileInfo.Name.EndsWith("pcapng", StringComparison.OrdinalIgnoreCase)) {
                         // We don't want to compress pcap files
                         newEntry.CompressionMethod = CompressionMethod.Stored;
                     }
@@ -130,8 +128,7 @@ namespace Fluxzy
                     await fsInput.CopyToAsync(zipStream);
                     zipStream.CloseEntry();
                 }
-                catch (IOException)
-                {
+                catch (IOException) {
                     // read input is ignored, file may currently used by engine
                 }
             }

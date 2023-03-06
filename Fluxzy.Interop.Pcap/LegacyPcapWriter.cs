@@ -1,22 +1,23 @@
 // Copyright © 2023 Haga RAKOTOHARIVELO
 
 using System.Buffers;
-using SharpPcap;
 using System.Runtime.InteropServices;
+using Fluxzy.Interop.Pcap.Writing;
+using SharpPcap;
 using SharpPcap.LibPcap;
 
 namespace Fluxzy.Interop.Pcap
 {
-    internal class LegacyPcapWriter : IConnectionSubscription, IRawCaptureWriter
+    internal class LegacyPcapWriter : IRawCaptureWriter
     {
-        private readonly object _locker = new();
-        
-        private readonly bool _isOsx;
         private readonly int _headerLength;
+
+        private readonly bool _isOsx;
         private readonly bool _isShortTimeVal;
-        
-        private  Stream _waitStream;
-        private  byte[]? _waitBuffer;
+        private readonly object _locker = new();
+        private byte[]? _waitBuffer;
+
+        private Stream _waitStream;
 
         public LegacyPcapWriter(long key)
         {
@@ -26,8 +27,8 @@ namespace Fluxzy.Interop.Pcap
             _headerLength = GetPreHeaderHeaderLength() + sizeof(long);
 
             // TODO put _waitBuffer length into config file / env variable
-            
-            _waitBuffer = ArrayPool<byte>.Shared.Rent(8 * 1024); 
+
+            _waitBuffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             _waitStream = new MemoryStream(_waitBuffer);
         }
 
@@ -44,18 +45,18 @@ namespace Fluxzy.Interop.Pcap
             if (_waitBuffer == null)
                 throw new InvalidOperationException("Already registered!");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(outFileName));
-            
+            Directory.CreateDirectory(Path.GetDirectoryName(outFileName)!);
+
             var fileStream = File.Open(outFileName, FileMode.Create, FileAccess.Write, FileShare.Read);
-        
+
             fileStream.Write(PcapFileHeaderBuilder.Buffer);
 
             lock (_locker) {
                 fileStream.Write(_waitBuffer, 0, (int) _waitStream.Position); // We copy content to buffer 
-                
+
                 ArrayPool<byte>.Shared.Return(_waitBuffer);
-                _waitBuffer = null; 
-                
+                _waitBuffer = null;
+
                 _waitStream = fileStream;
             }
         }
@@ -70,25 +71,39 @@ namespace Fluxzy.Interop.Pcap
             // We cannot store keys under legacy pcapfile
         }
 
+        public void Dispose()
+        {
+            lock (_locker) {
+                if (_waitBuffer != null) {
+                    ArrayPool<byte>.Shared.Return(_waitBuffer);
+                    _waitBuffer = null;
+                }
+
+                _waitStream?.Dispose();
+            }
+        }
+
+        public long Key { get; }
+
         public void Write(ReadOnlySpan<byte> data, PosixTimeval timeVal)
         {
             try {
-
                 if (Faulted)
-                    return; 
-                
+                    return;
+
                 // We are dumping on file so no need to lock or whatsoever
-                if (_waitStream is FileStream fileStream)
-                {
+                if (_waitStream is FileStream fileStream) {
                     InternalWrite(data, timeVal, fileStream);
+
                     return;
                 }
 
                 // Check for buffer overflow here 
                 // _waitStream need to be protected 
 
-                lock (_locker)
+                lock (_locker) {
                     InternalWrite(data, timeVal, _waitStream);
+                }
             }
             catch {
                 Faulted = true;
@@ -96,7 +111,7 @@ namespace Fluxzy.Interop.Pcap
                 // Free the memory when disposed
                 Dispose();
 
-                throw; 
+                throw;
             }
         }
 
@@ -108,7 +123,7 @@ namespace Fluxzy.Interop.Pcap
             // Building header 
 
             Span<byte> headerBuffer = stackalloc byte[_headerLength];
-            Span<byte> original = headerBuffer;
+            var original = headerBuffer;
 
 
             if (_isShortTimeVal) {
@@ -127,22 +142,22 @@ namespace Fluxzy.Interop.Pcap
                 else {
                     BitConverter.TryWriteBytes(headerBuffer, (long) timeValSeconds);
                     headerBuffer = headerBuffer.Slice(8);
-                    BitConverter.TryWriteBytes(headerBuffer, (ulong) timeValMicroseconds);
+                    BitConverter.TryWriteBytes(headerBuffer, timeValMicroseconds);
                     headerBuffer = headerBuffer.Slice(8);
                 }
             }
-            
+
 
             BitConverter.TryWriteBytes(headerBuffer, (uint) data.Length);
             headerBuffer = headerBuffer.Slice(4);
 
             BitConverter.TryWriteBytes(headerBuffer, (uint) data.Length);
 
-         
+
             destination.Write(original);
             destination.Write(data);
         }
-        
+
         private int GetPreHeaderHeaderLength()
         {
             if (_isShortTimeVal)
@@ -151,38 +166,19 @@ namespace Fluxzy.Interop.Pcap
             if (_isOsx)
                 return 12;
 
-            return 16; 
-        }
-
-        public void Dispose()
-        {
-
-            lock (_locker)
-            {
-                if (_waitBuffer != null) {
-                    ArrayPool<byte>.Shared.Return(_waitBuffer);
-                    _waitBuffer = null;
-                }
-                
-                _waitStream?.Dispose();
-
-            }
+            return 16;
         }
 
         public ValueTask DisposeAsync()
         {
             Dispose();
+
             return default;
         }
-
-        public long Key { get; }
     }
-
 
     internal static class PcapFileHeaderBuilder
     {
-        public static byte[] Buffer { get;  }
-
         static PcapFileHeaderBuilder()
         {
             var tempFile = Environment.GetEnvironmentVariable("FLUXZY_BASE_DIR")
@@ -192,13 +188,14 @@ namespace Fluxzy.Interop.Pcap
 
             var tempFileName = Path.Combine(tempFile, "header.pcap");
 
-            using (var deviceWriter = new CaptureFileWriterDevice(tempFileName, FileMode.Create))
-            {
+            using (var deviceWriter = new CaptureFileWriterDevice(tempFileName, FileMode.Create)) {
                 // Writing file header
                 deviceWriter.Open();
             }
 
             Buffer = File.ReadAllBytes(tempFileName);
         }
+
+        public static byte[] Buffer { get; }
     }
 }

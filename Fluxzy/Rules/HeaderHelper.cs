@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Rules
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+namespace Fluxzy.Rules
 {
     internal static class HeaderHelper
     {
@@ -8,11 +10,11 @@
                 $"HTTP/1.1 {statusCode} OK\r\n" +
                 $"Content-length : {contentLength}\r\n" +
                 $"Content-type : {contentType}\r\n" +
-                $"Cache-Control: no-cache, no-store, must-revalidate\r\n" +
-                $"Pragma: no-cache\r\n" +
-                $"Server: Fluxzy\r\n" +
-                $"Expires: 0\r\n" +
-                $"\r\n";
+                "Cache-Control: no-cache, no-store, must-revalidate\r\n" +
+                "Pragma: no-cache\r\n" +
+                "Server: Fluxzy\r\n" +
+                "Expires: 0\r\n" +
+                "\r\n";
 
             return header;
         }

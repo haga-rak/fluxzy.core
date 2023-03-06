@@ -3,43 +3,45 @@ using System.Net;
 using System.Text;
 using Fluxzy.Misc.Streams;
 
-namespace Fluxzy.Interop.Pcap.Messages;
-
-internal static class SerializationUtils
+namespace Fluxzy.Interop.Pcap.Messages
 {
-    public static IPAddress ReadIpAddress(Stream stream)
+    internal static class SerializationUtils
     {
-        Span<char> charBuffer = stackalloc char[64];
+        public static IPAddress ReadIpAddress(Stream stream)
+        {
+            Span<char> charBuffer = stackalloc char[64];
 
-        int length = stream.ReadString(charBuffer);
-        
-        var remoteAddress = IPAddress.Parse(charBuffer.Slice(0, length));
-        return remoteAddress;
-    }
+            var length = stream.ReadString(charBuffer);
 
-    public static void WriteString(this Stream stream, string str)
-    {
-        Span<byte> buffer = stackalloc byte[str.Length * 2];
+            var remoteAddress = IPAddress.Parse(charBuffer.Slice(0, length));
 
-        var length = Encoding.UTF8.GetBytes(str, buffer.Slice(4));
-        
-        BinaryPrimitives.WriteInt32BigEndian(buffer, length);
-        
-        stream.Write(buffer.Slice(0, 4 + length));
-    }
+            return remoteAddress;
+        }
 
-    public static int ReadString(this Stream stream, Span<char> charBuffer)
-    {
-        Span<byte> buffer = stackalloc byte[1024];
+        public static void WriteString(this Stream stream, string str)
+        {
+            Span<byte> buffer = stackalloc byte[str.Length * 2];
 
-        if (!stream.ReadExact(buffer.Slice(0, 4)))
-            throw new InvalidOperationException("Connection close");
+            var length = Encoding.UTF8.GetBytes(str, buffer.Slice(4));
 
-        var stringLength = BinaryPrimitives.ReadInt32BigEndian(buffer); 
+            BinaryPrimitives.WriteInt32BigEndian(buffer, length);
 
-        if (!stream.ReadExact(buffer.Slice(0, stringLength)))
-            throw new InvalidOperationException("Connection close");
+            stream.Write(buffer.Slice(0, 4 + length));
+        }
 
-        return Encoding.UTF8.GetChars(buffer.Slice(0, stringLength), charBuffer);
+        public static int ReadString(this Stream stream, Span<char> charBuffer)
+        {
+            Span<byte> buffer = stackalloc byte[1024];
+
+            if (!stream.ReadExact(buffer.Slice(0, 4)))
+                throw new InvalidOperationException("Connection close");
+
+            var stringLength = BinaryPrimitives.ReadInt32BigEndian(buffer);
+
+            if (!stream.ReadExact(buffer.Slice(0, stringLength)))
+                throw new InvalidOperationException("Connection close");
+
+            return Encoding.UTF8.GetChars(buffer.Slice(0, stringLength), charBuffer);
+        }
     }
 }

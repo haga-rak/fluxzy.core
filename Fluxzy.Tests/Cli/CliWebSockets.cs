@@ -1,4 +1,4 @@
-// Copyright © 2023 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -20,7 +20,6 @@ namespace Fluxzy.Tests.Cli
 {
     public class CliWebSockets
     {
-
         [Fact]
         public async Task Run_Cli_For_Web_Socket_Tests()
         {
@@ -35,16 +34,14 @@ namespace Fluxzy.Tests.Cli
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
-            await using (var fluxzyInstance = await commandLineHost.Run())
-            {
-                using var ws = new ClientWebSocket
-                {
+            await using (var fluxzyInstance = await commandLineHost.Run()) {
+                using var ws = new ClientWebSocket {
                     Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
                 };
 
                 var uri = new Uri($"{TestConstants.WssHost}/websocket");
 
-                var buffer = (Memory<byte>)new byte[4096];
+                var buffer = (Memory<byte>) new byte[4096];
 
                 await ws.ConnectAsync(uri, CancellationToken.None);
                 await ws.ReceiveAsync(buffer, CancellationToken.None);
@@ -61,8 +58,7 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(expectedHash, resultHash);
             }
 
-            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directoryName))
-            {
+            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directoryName)) {
                 var exchanges = archiveReader.ReadAllExchanges().ToList();
                 var connections = archiveReader.ReadAllConnections().ToList();
 
@@ -109,16 +105,14 @@ namespace Fluxzy.Tests.Cli
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
-            await using (var fluxzyInstance = await commandLineHost.Run())
-            {
-                using var ws = new ClientWebSocket
-                {
+            await using (var fluxzyInstance = await commandLineHost.Run()) {
+                using var ws = new ClientWebSocket {
                     Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
                 };
 
                 var uri = new Uri($"{TestConstants.WssHost}/websocket-req-res");
 
-                var buffer = (Memory<byte>)new byte[4096];
+                var buffer = (Memory<byte>) new byte[4096];
 
                 await ws.ConnectAsync(uri, CancellationToken.None);
 
@@ -136,8 +130,7 @@ namespace Fluxzy.Tests.Cli
                 await Task.Delay(200);
             }
 
-            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directoryName))
-            {
+            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directoryName)) {
                 var exchanges = archiveReader.ReadAllExchanges().ToList();
                 var connections = archiveReader.ReadAllConnections().ToList();
 
@@ -149,8 +142,7 @@ namespace Fluxzy.Tests.Cli
 
                 var testData = fistSentMessage.Data;
 
-                if (testData == null)
-                {
+                if (testData == null) {
                     using var fileStream = archiveReader.GetRequestWebsocketContent(exchange.Id, fistSentMessage.Id);
                     testData = fileStream.ToArrayGreedy();
                 }
@@ -181,6 +173,5 @@ namespace Fluxzy.Tests.Cli
             return new string(Enumerable.Repeat(chars, length)
                                         .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-
     }
 }

@@ -1,11 +1,13 @@
-﻿namespace Fluxzy.Clients.H2.Encoder.HPack
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+namespace Fluxzy.Clients.H2.Encoder.HPack
 {
     public enum HeaderFieldType : byte
     {
         IndexedHeaderField = 1,
-        LiteralHeaderFieldIncrementalIndexingExistingName ,
+        LiteralHeaderFieldIncrementalIndexingExistingName,
         LiteralHeaderFieldIncrementalIndexingWithName,
-        LiteralHeaderFieldWithoutIndexingExistingName, 
+        LiteralHeaderFieldWithoutIndexingExistingName,
         LiteralHeaderFieldWithoutIndexingWithName,
         LiteralHeaderFieldNeverIndexExistingName,
         LiteralHeaderFieldNeverIndexWithName,

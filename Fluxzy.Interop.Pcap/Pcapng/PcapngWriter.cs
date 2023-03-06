@@ -2,13 +2,12 @@
 // 
 
 using System.Buffers;
-using System.Security.AccessControl;
-using System.Threading.Channels;
+using Fluxzy.Interop.Pcap.Writing;
 using SharpPcap;
 
 namespace Fluxzy.Interop.Pcap.Pcapng
 {
-    internal class PcapngWriter : IConnectionSubscription, IRawCaptureWriter
+    internal class PcapngWriter : IRawCaptureWriter
     {
         private readonly object _locker = new();
 

@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.IO;
 
@@ -5,6 +7,30 @@ namespace Fluxzy.Clients
 {
     public static class DebugContext
     {
+        static DebugContext()
+        {
+            var fileDump = Environment
+                           .GetEnvironmentVariable("Fluxzy_EnableNetworkFileDump")?.Trim();
+
+            EnableNetworkFileDump = string.Equals(fileDump, "true", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(fileDump, "1", StringComparison.OrdinalIgnoreCase);
+
+            var windowSizeTrace = Environment
+                                  .GetEnvironmentVariable("Fluxzy_EnableWindowSizeTrace")?.Trim();
+
+            EnableWindowSizeTrace = string.Equals(windowSizeTrace, "true", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(windowSizeTrace, "1", StringComparison.OrdinalIgnoreCase);
+
+            NetworkFileDumpDirectory = Environment
+                                       .GetEnvironmentVariable("Fluxzy_FileDumpDirectory")?.Trim() ?? "raw";
+
+            if (EnableNetworkFileDump)
+                Directory.CreateDirectory(NetworkFileDumpDirectory);
+
+            if (EnableWindowSizeTrace)
+                Directory.CreateDirectory(WindowSizeTraceDumpDirectory);
+        }
+
         /// <summary>
         ///     Reference for current debug sessions
         /// </summary>
@@ -41,29 +67,5 @@ namespace Fluxzy.Clients
         ///     When EnableWindowSizeTrace is enabled, store the logs on this directory
         /// </summary>
         public static string WindowSizeTraceDumpDirectory { get; } = "trace";
-
-        static DebugContext()
-        {
-            var fileDump = Environment
-                           .GetEnvironmentVariable("Fluxzy_EnableNetworkFileDump")?.Trim();
-
-            EnableNetworkFileDump = string.Equals(fileDump, "true", StringComparison.OrdinalIgnoreCase)
-                                    || string.Equals(fileDump, "1", StringComparison.OrdinalIgnoreCase);
-
-            var windowSizeTrace = Environment
-                                  .GetEnvironmentVariable("Fluxzy_EnableWindowSizeTrace")?.Trim();
-
-            EnableWindowSizeTrace = string.Equals(windowSizeTrace, "true", StringComparison.OrdinalIgnoreCase)
-                                    || string.Equals(windowSizeTrace, "1", StringComparison.OrdinalIgnoreCase);
-
-            NetworkFileDumpDirectory = Environment
-                                       .GetEnvironmentVariable("Fluxzy_FileDumpDirectory")?.Trim() ?? "raw";
-
-            if (EnableNetworkFileDump)
-                Directory.CreateDirectory(NetworkFileDumpDirectory);
-
-            if (EnableWindowSizeTrace)
-                Directory.CreateDirectory(WindowSizeTraceDumpDirectory);
-        }
     }
 }

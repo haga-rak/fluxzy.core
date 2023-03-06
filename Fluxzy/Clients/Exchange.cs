@@ -1,4 +1,4 @@
-// Copyright © 2021 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,73 @@ namespace Fluxzy.Clients
 {
     public class Exchange : IExchange
     {
+        private Exchange(
+            IIdProvider idProvider,
+            ExchangeContext context,
+            Authority authority,
+            ReadOnlyMemory<char> requestHeaderPlain,
+            Stream requestBody,
+            ReadOnlyMemory<char> responseHeader,
+            Stream responseBody,
+            bool isSecure,
+            string httpVersion, DateTime receivedFromProxy)
+        {
+            Id = idProvider.NextExchangeId();
+
+            Context = context;
+            Authority = authority;
+            HttpVersion = httpVersion;
+
+            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure)) {
+                Body = requestBody ?? StreamUtils.EmptyStream
+            };
+
+            Response = new Response {
+                Header = new ResponseHeader(responseHeader, isSecure),
+                Body = responseBody ?? StreamUtils.EmptyStream
+            };
+
+            // TODO : Fill metrics 
+
+            Metrics.ReceivedFromProxy = receivedFromProxy;
+
+            ExchangeCompletionSource.SetResult(false);
+        }
+
+        public Exchange(
+            IIdProvider idProvider,
+            ExchangeContext context,
+            Authority authority,
+            RequestHeader requestHeader,
+            Stream bodyStream,
+            string httpVersion,
+            DateTime receivedFromProxy)
+        {
+            Id = idProvider.NextExchangeId();
+            Context = context;
+            Authority = authority;
+            HttpVersion = httpVersion;
+
+            Request = new Request(requestHeader) {
+                Body = bodyStream
+            };
+
+            Metrics.ReceivedFromProxy = receivedFromProxy;
+        }
+
+        public Exchange(
+            IIdProvider idProvider,
+            Authority authority,
+            ReadOnlyMemory<char> requestHeaderPlain, string? httpVersion, DateTime receivedFromProxy)
+        {
+            Id = idProvider.NextExchangeId();
+            Context = new ExchangeContext(authority);
+            Authority = authority;
+            HttpVersion = httpVersion;
+            Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure));
+            Metrics.ReceivedFromProxy = receivedFromProxy;
+        }
+
         public int Id { get; }
 
         /// <summary>
@@ -25,7 +92,7 @@ namespace Fluxzy.Clients
         ///     The remote authority
         /// </summary>
         public Authority Authority { get; }
-        
+
         /// <summary>
         ///     Contains the request sent from the proxy to the remote server
         /// </summary>
@@ -56,76 +123,6 @@ namespace Fluxzy.Clients
 
         public ExchangeContext Context { get; }
 
-        private Exchange(
-            IIdProvider idProvider,
-            ExchangeContext context,
-            Authority authority,
-            ReadOnlyMemory<char> requestHeaderPlain,
-            Stream requestBody,
-            ReadOnlyMemory<char> responseHeader,
-            Stream responseBody,
-            bool isSecure,
-            string httpVersion, DateTime receivedFromProxy)
-        {
-            Id = idProvider.NextExchangeId();
-
-            Context = context;
-            Authority = authority;
-            HttpVersion = httpVersion;
-
-            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure))
-            {
-                Body = requestBody ?? StreamUtils.EmptyStream
-            };
-
-            Response = new Response
-            {
-                Header = new ResponseHeader(responseHeader, isSecure),
-                Body = responseBody ?? StreamUtils.EmptyStream
-            };
-
-            // TODO : Fill metrics 
-
-            Metrics.ReceivedFromProxy = receivedFromProxy;
-
-            ExchangeCompletionSource.SetResult(false);
-        }
-
-        public Exchange(
-            IIdProvider idProvider,
-            ExchangeContext context,
-            Authority authority,
-            RequestHeader requestHeader,
-            Stream bodyStream,
-            string httpVersion,
-            DateTime receivedFromProxy)
-        {
-            Id = idProvider.NextExchangeId();
-            Context = context;
-            Authority = authority;
-            HttpVersion = httpVersion;
-
-            Request = new Request(requestHeader)
-            {
-                Body = bodyStream
-            };
-
-            Metrics.ReceivedFromProxy = receivedFromProxy;
-        }
-
-        public Exchange(
-            IIdProvider idProvider,
-            Authority authority,
-            ReadOnlyMemory<char> requestHeaderPlain, string?  httpVersion, DateTime receivedFromProxy)
-        {
-            Id = idProvider.NextExchangeId();
-            Context = new ExchangeContext(authority);
-            Authority = authority;
-            HttpVersion = httpVersion;
-            Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure));
-            Metrics.ReceivedFromProxy = receivedFromProxy;
-        }
-
         public string? HttpVersion { get; set; }
 
         public bool IsWebSocket => Request.Header.IsWebSocketRequest;
@@ -150,12 +147,12 @@ namespace Fluxzy.Clients
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
-            return Request.Header.Headers.Select(t => (HeaderFieldInfo)t);
+            return Request.Header.Headers.Select(t => (HeaderFieldInfo) t);
         }
 
         public IEnumerable<HeaderFieldInfo>? GetResponseHeaders()
         {
-            return Response.Header?.Headers.Select(t => (HeaderFieldInfo)t);
+            return Response.Header?.Headers.Select(t => (HeaderFieldInfo) t);
         }
 
         public Agent? Agent { get; set; }
@@ -173,42 +170,47 @@ namespace Fluxzy.Clients
         }
 
         /// <summary>
-        /// Get performance metrics as header field
+        ///     Get performance metrics as header field
         /// </summary>
         /// <returns></returns>
         public HeaderField GetMetricsSummaryAsHeader()
         {
             var collection = new NameValueCollection();
 
-            if (Metrics.CreateCertEnd != default)
+            if (Metrics.CreateCertEnd != default) {
                 collection.Add("create-cert",
                     ((int)
                         (Metrics.CreateCertEnd - Metrics.CreateCertStart).TotalMilliseconds)
                     .ToString());
+            }
 
-            if (Connection != null && Connection.SslNegotiationEnd != default)
+            if (Connection != null && Connection.SslNegotiationEnd != default) {
                 collection.Add("SSL",
                     ((int)
                         (Connection.SslNegotiationEnd - Connection.SslNegotiationStart).TotalMilliseconds)
                     .ToString());
+            }
 
-            if (Metrics.RetrievingPool != default)
+            if (Metrics.RetrievingPool != default) {
                 collection.Add("time-to-get-a-pool",
                     ((int)
                         (Metrics.RetrievingPool - Metrics.ReceivedFromProxy).TotalMilliseconds)
                     .ToString());
+            }
 
-            if (Metrics.RequestHeaderSent != default)
+            if (Metrics.RequestHeaderSent != default) {
                 collection.Add("Time-to-send",
                     ((int)
                         (Metrics.RequestHeaderSent - Metrics.ReceivedFromProxy).TotalMilliseconds)
                     .ToString());
+            }
 
-            if (Metrics.ResponseHeaderEnd != default)
+            if (Metrics.ResponseHeaderEnd != default) {
                 collection.Add("TTFB",
                     ((int)
                         (Metrics.ResponseHeaderEnd - Metrics.RequestHeaderSent).TotalMilliseconds)
                     .ToString());
+            }
 
             return new HeaderField(
                 "echoes-metrics",
@@ -225,14 +227,14 @@ namespace Fluxzy.Clients
 
     public class Request
     {
-        public RequestHeader Header { get; }
-
-        public Stream? Body { get; set; }
-
         public Request(RequestHeader header)
         {
             Header = header;
         }
+
+        public RequestHeader Header { get; }
+
+        public Stream? Body { get; set; }
 
         public override string ToString()
         {
@@ -249,14 +251,14 @@ namespace Fluxzy.Clients
 
     public class Error
     {
-        public string Message { get; }
-
-        public Exception Exception { get; }
-
         public Error(string message, Exception exception)
         {
             Message = message;
             Exception = exception;
         }
+
+        public string Message { get; }
+
+        public Exception Exception { get; }
     }
 }

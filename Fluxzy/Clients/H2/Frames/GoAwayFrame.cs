@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Buffers.Binary;
 using Fluxzy.Misc;
 
@@ -12,7 +14,8 @@ namespace Fluxzy.Clients.H2.Frames
             ErrorCode = (H2ErrorCode) BinaryPrimitives.ReadInt32BigEndian(bodyBytes.Slice(4));
         }
 
-        public GoAwayFrame(int lastStreamId, H2ErrorCode errorCode) : this()
+        public GoAwayFrame(int lastStreamId, H2ErrorCode errorCode)
+            : this()
         {
             LastStreamId = lastStreamId;
             ErrorCode = errorCode;
@@ -28,14 +31,12 @@ namespace Fluxzy.Clients.H2.Frames
                 H2Frame.Write(buffer, BodyLength, H2FrameType.Goaway, HeaderFlags.None, 0);
 
             buffer.Slice(offset)
-                .BuWrite_32(LastStreamId)
-                .BuWrite_32((int)ErrorCode);
+                  .BuWrite_32(LastStreamId)
+                  .BuWrite_32((int) ErrorCode);
 
             return 9 + 8;
         }
 
         public int BodyLength => 8;
-
-
     }
 }

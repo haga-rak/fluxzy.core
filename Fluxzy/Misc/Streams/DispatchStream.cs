@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -19,23 +19,6 @@ namespace Fluxzy.Misc.Streams
         private List<Stream>? _destinations;
         private bool _started;
 
-        public override bool CanRead => _baseStream.CanRead;
-
-        public override bool CanSeek => _baseStream.CanSeek;
-
-        public override bool CanWrite => _baseStream.CanWrite;
-
-        public override long Length => _baseStream.Length;
-
-        public override long Position
-        {
-            get => throw new NotSupportedException();
-
-            set => throw new NotSupportedException();
-        }
-
-        public Func<ValueTask>? OnDisposeDoneTask { get; set; }
-
         /// <summary>
         ///     Constructor
         /// </summary>
@@ -51,11 +34,29 @@ namespace Fluxzy.Misc.Streams
             _destinations = listenerStreams.ToList();
         }
 
+        public override bool CanRead => _baseStream.CanRead;
+
+        public override bool CanSeek => _baseStream.CanSeek;
+
+        public override bool CanWrite => _baseStream.CanWrite;
+
+        public override long Length => _baseStream.Length;
+
+        public override long Position {
+            get => throw new NotSupportedException();
+
+            set => throw new NotSupportedException();
+        }
+
+        public Func<ValueTask>? OnDisposeDoneTask { get; set; }
+
         public override void Flush()
         {
-            if (_destinations != null)
-                foreach (var destination in _destinations)
+            if (_destinations != null) {
+                foreach (var destination in _destinations) {
                     destination.Flush();
+                }
+            }
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -65,22 +66,27 @@ namespace Fluxzy.Misc.Streams
             var read = _baseStream.Read(buffer, offset, count);
 
             if (read == 0 && _closeOnDone) {
-                if (_destinations != null)
-                    foreach (var dest in _destinations)
+                if (_destinations != null) {
+                    foreach (var dest in _destinations) {
                         dest.Dispose();
+                    }
+                }
 
                 _destinations = null;
             }
             else {
-                if (_destinations != null)
-                    foreach (var destination in _destinations)
+                if (_destinations != null) {
+                    foreach (var destination in _destinations) {
                         destination.Write(buffer, offset, read);
+                    }
+                }
             }
 
             return read;
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
+        public override async Task<int> ReadAsync(
+            byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
             _started = true;
@@ -88,18 +94,19 @@ namespace Fluxzy.Misc.Streams
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
         }
 
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer,
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
             CancellationToken cancellationToken = new())
         {
             _started = true;
 
             var read = await _baseStream.ReadAsync(buffer, cancellationToken);
 
-            if (read == 0 && _closeOnDone)
-            {
-                if (_destinations != null)
+            if (read == 0 && _closeOnDone) {
+                if (_destinations != null) {
                     await Task.WhenAll(
                         _destinations.Select(t => t.DisposeAsync().AsTask()));
+                }
 
                 _destinations = null;
 
@@ -107,9 +114,10 @@ namespace Fluxzy.Misc.Streams
                     await OnDisposeDoneTask();
             }
             else {
-                if (_destinations != null)
+                if (_destinations != null) {
                     await Task.WhenAll(
                         _destinations.Select(t => t.WriteAsync(buffer.Slice(0, read), cancellationToken).AsTask()));
+                }
             }
 
             return read;
@@ -134,10 +142,10 @@ namespace Fluxzy.Misc.Streams
         {
             // Console.WriteLine($"Dispatched stream realeased async {_closeOnDone}");
 
-            if (_destinations != null && _closeOnDone)
-            {
-                foreach (var dest in _destinations)
+            if (_destinations != null && _closeOnDone) {
+                foreach (var dest in _destinations) {
                     await dest.DisposeAsync();
+                }
 
                 _destinations = null;
             }
@@ -149,10 +157,10 @@ namespace Fluxzy.Misc.Streams
         {
             // Console.WriteLine($"Dispatched stream realeased sync {_closeOnDone}");
 
-            if (_destinations != null && _closeOnDone)
-            {
-                foreach (var dest in _destinations)
+            if (_destinations != null && _closeOnDone) {
+                foreach (var dest in _destinations) {
                     dest.Dispose();
+                }
 
                 _destinations = null;
             }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -14,8 +14,7 @@ namespace Fluxzy.Misc.Converters
 
         public PolymorphicConverter(params Type[] args)
         {
-            if (args.Any())
-            {
+            if (args.Any()) {
                 _typeMapping = args.ToDictionary(t => t.Name, t => t);
 
                 return;
@@ -52,7 +51,7 @@ namespace Fluxzy.Misc.Converters
 
             var actualType = GetFinalType(ref typeCalculatorReader);
 
-            var res = (T?)JsonSerializer.Deserialize(ref reader, actualType, options);
+            var res = (T?) JsonSerializer.Deserialize(ref reader, actualType, options);
 
             return res;
         }

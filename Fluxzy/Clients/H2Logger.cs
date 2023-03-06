@@ -1,4 +1,4 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -23,12 +23,6 @@ namespace Fluxzy.Clients
 
         private readonly bool _active;
 
-        public static List<string>? AuthorizedHosts { get; }
-
-        public Authority Authority { get; }
-
-        public int ConnectionId { get; }
-
         static H2Logger()
         {
             if (!DebugContext.IsH2TracingEnabled)
@@ -41,8 +35,7 @@ namespace Fluxzy.Clients
 
             var hosts = Environment.GetEnvironmentVariable("EnableH2TracingFilterHosts");
 
-            if (!string.IsNullOrWhiteSpace(hosts))
-            {
+            if (!string.IsNullOrWhiteSpace(hosts)) {
                 AuthorizedHosts =
                     hosts.Split(new[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries)
                          .Select(s => s.Trim())
@@ -64,13 +57,21 @@ namespace Fluxzy.Clients
             _active = active.Value;
 
             if (_active && AuthorizedHosts != null)
+
                 // Check for domain restriction 
+            {
                 _active = AuthorizedHosts.Any(c => Authority.HostName.EndsWith(
                     c, StringComparison.OrdinalIgnoreCase));
+            }
         }
 
-        private void WriteLn(
-            int streamIdentifier, string message)
+        public static List<string>? AuthorizedHosts { get; }
+
+        public Authority Authority { get; }
+
+        public int ConnectionId { get; }
+
+        private void WriteLn(int streamIdentifier, string message)
         {
             var fullPath = _directory;
             var portString = Authority.Port == 443 ? string.Empty : $"-{Authority.Port:00000}";
@@ -82,15 +83,13 @@ namespace Fluxzy.Clients
 
             fullPath = Path.Combine(fullPath, $"cId={ConnectionId:00000}-sId={streamIdentifier:00000}.txt");
 
-            lock (string.Intern(fullPath))
-            {
+            lock (string.Intern(fullPath)) {
                 File.AppendAllText(fullPath,
                     $"[{ITimingProvider.Default.InstantMillis:000000000}] {message}\r\n");
             }
         }
 
-        private void WriteLnHPack(
-            int streamIdentifier, string message)
+        private void WriteLnHPack(int streamIdentifier, string message)
         {
             var fullPath = _directory;
             var portString = Authority.Port == 443 ? string.Empty : $"-{Authority.Port:00000}";
@@ -102,8 +101,7 @@ namespace Fluxzy.Clients
 
             fullPath = Path.Combine(fullPath, $"cId={ConnectionId:00000}-hpack.txt");
 
-            lock (string.Intern(fullPath))
-            {
+            lock (string.Intern(fullPath)) {
                 File.AppendAllText(fullPath,
                     $"[{ITimingProvider.Default.InstantMillis:000000000}] ({streamIdentifier:00000}) - {message}\r\n");
             }
@@ -111,78 +109,77 @@ namespace Fluxzy.Clients
 
         private static string GetFrameExtraMessage(ref H2FrameReadResult frame)
         {
-            switch (frame.BodyType)
-            {
-                case H2FrameType.Data:
-                {
+            switch (frame.BodyType) {
+                case H2FrameType.Data: {
                     var innerFrame = frame.GetDataFrame();
 
                     return $"Length = {innerFrame.BodyLength}, EndStream = {innerFrame.EndStream}";
                 }
-                case H2FrameType.Headers:
-                {
+
+                case H2FrameType.Headers: {
                     var innerFrame = frame.GetHeadersFrame();
 
                     return
                         $"Length = {innerFrame.BodyLength}, EndHeaders = {innerFrame.EndHeaders}, EndStream = {innerFrame.EndStream}";
                 }
-                case H2FrameType.Priority:
-                {
+
+                case H2FrameType.Priority: {
                     var innerFrame = frame.GetPriorityFrame();
 
                     return
                         $"Exclusive = {innerFrame.Exclusive}, StreamDependency = {innerFrame.StreamDependency}, Weight = {innerFrame.Weight}";
                 }
-                case H2FrameType.RstStream:
-                {
+
+                case H2FrameType.RstStream: {
                     var innerFrame = frame.GetRstStreamFrame();
 
                     return $"ErrorCode = {innerFrame.ErrorCode}";
                 }
-                case H2FrameType.Settings:
-                {
+
+                case H2FrameType.Settings: {
                     var builder = new StringBuilder();
                     var index = 0;
 
-                    while (frame.TryReadNextSetting(out var innerFrame, ref index))
+                    while (frame.TryReadNextSetting(out var innerFrame, ref index)) {
                         builder.Append(
                             $"Ack = {innerFrame.Ack}, SettingIdentifier = {innerFrame.SettingIdentifier}, Value = {innerFrame.Value}, ");
+                    }
 
                     return builder.ToString();
                 }
-                case H2FrameType.PushPromise:
-                {
+
+                case H2FrameType.PushPromise: {
                     return "";
                 }
-                case H2FrameType.Ping:
-                {
+
+                case H2FrameType.Ping: {
                     return "";
                 }
-                case H2FrameType.Goaway:
-                {
+
+                case H2FrameType.Goaway: {
                     var innerFrame = frame.GetGoAwayFrame();
 
                     return $"ErrorCode = {innerFrame.ErrorCode}, LastStreamId = {innerFrame.LastStreamId}";
                 }
-                case H2FrameType.WindowUpdate:
-                {
+
+                case H2FrameType.WindowUpdate: {
                     var innerFrame = frame.GetWindowUpdateFrame();
 
                     return $"WindowSizeIncrement = {innerFrame.WindowSizeIncrement}";
                 }
-                case H2FrameType.Continuation:
-                {
+
+                case H2FrameType.Continuation: {
                     var innerFrame = frame.GetContinuationFrame();
 
                     return $"Length = {innerFrame.BodyLength}, EndHeaders = {innerFrame.EndHeaders}";
                 }
+
                 default:
                     return "";
             }
         }
 
-        public void IncomingFrame(
-            ref H2FrameReadResult frame)
+        public void IncomingFrame(ref H2FrameReadResult frame)
         {
             if (!_active)
                 return;
@@ -197,8 +194,7 @@ namespace Fluxzy.Clients
             WriteLn(frame.StreamIdentifier, message);
         }
 
-        public void OutgoingFrame(
-            ref H2FrameReadResult frame)
+        public void OutgoingFrame(ref H2FrameReadResult frame)
         {
             if (!_active)
                 return;
@@ -213,8 +209,7 @@ namespace Fluxzy.Clients
             WriteLn(frame.StreamIdentifier, message);
         }
 
-        public void OutgoingFrame(
-            ReadOnlyMemory<byte> buffer)
+        public void OutgoingFrame(ReadOnlyMemory<byte> buffer)
         {
             if (!_active)
                 return;
@@ -224,8 +219,7 @@ namespace Fluxzy.Clients
             OutgoingFrame(ref frame);
         }
 
-        public void OutgoingWindowUpdate(
-            int value, int streamIdentifier)
+        public void OutgoingWindowUpdate(int value, int streamIdentifier)
         {
             if (!_active)
                 return;
@@ -240,8 +234,7 @@ namespace Fluxzy.Clients
             WriteLn(streamIdentifier, message);
         }
 
-        public void Trace(
-            int streamId, string message)
+        public void Trace(int streamId, string message)
         {
             if (!_active)
                 return;
@@ -249,8 +242,7 @@ namespace Fluxzy.Clients
             WriteLn(streamId, message);
         }
 
-        public void TraceH(
-            int streamId, Func<string> message)
+        public void TraceH(int streamId, Func<string> message)
         {
             if (!_active)
                 return;
@@ -258,8 +250,7 @@ namespace Fluxzy.Clients
             WriteLnHPack(streamId, message());
         }
 
-        public void Trace(
-            int streamId, Func<string> messageString)
+        public void Trace(int streamId, Func<string> messageString)
         {
             if (!_active)
                 return;
@@ -267,8 +258,7 @@ namespace Fluxzy.Clients
             WriteLn(streamId, messageString());
         }
 
-        public void TraceDeep(
-            int streamId, Func<string> messageString)
+        public void TraceDeep(int streamId, Func<string> messageString)
         {
             if (!_active || true)
                 return;
@@ -276,8 +266,7 @@ namespace Fluxzy.Clients
             WriteLn(streamId, messageString());
         }
 
-        public void TraceDeep(
-            int streamId, string messageString)
+        public void TraceDeep(int streamId, string messageString)
         {
             if (!_active)
                 return;
@@ -293,7 +282,8 @@ namespace Fluxzy.Clients
             Trace(exchange, streamIdentifier, preMessage + (ex == null ? string.Empty : ex.ToString()));
         }
 
-        public void Trace(StreamWorker streamWorker,
+        public void Trace(
+            StreamWorker streamWorker,
             Exchange exchange,
             string preMessage)
         {
@@ -303,7 +293,8 @@ namespace Fluxzy.Clients
             Trace(exchange, streamWorker.StreamIdentifier, preMessage);
         }
 
-        public void TraceResponse(StreamWorker streamWorker,
+        public void TraceResponse(
+            StreamWorker streamWorker,
             Exchange exchange)
         {
             if (!_active)
@@ -390,6 +381,7 @@ namespace Fluxzy.Clients
                 $"Before = {holder.WindowSize} - " +
                 $"Value = {windowSizeIncrement} -  " +
                 $"After = {holder.WindowSize + windowSizeIncrement} -  ";
+
             //$"Sid = {holder.StreamIdentifier} " +
 
             WriteLn(holder.StreamIdentifier, message);

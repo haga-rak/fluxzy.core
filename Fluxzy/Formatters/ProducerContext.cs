@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -13,6 +13,52 @@ namespace Fluxzy.Formatters
     public class ProducerContext : IDisposable
     {
         private byte[]? _internalBuffer;
+
+        public ProducerContext(
+            ExchangeInfo exchange,
+            IArchiveReader archiveReader,
+            FormatSettings settings)
+        {
+            Exchange = exchange;
+            ArchiveReader = archiveReader;
+            Settings = settings;
+
+            using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
+
+            RequestBodyLength = requestBodyStream?.Length ?? 0;
+
+            if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length <
+                Settings.MaxFormattableJsonLength) {
+                _internalBuffer = ArrayPool<byte>.Shared.Rent((int) requestBodyStream.Length);
+                var length = requestBodyStream.SeekableStreamToBytes(_internalBuffer);
+
+                RequestBody = new ReadOnlyMemory<byte>(_internalBuffer, 0, length);
+
+                if (ArrayTextUtilities.IsText(RequestBody.Span))
+                    RequestBodyText = Encoding.UTF8.GetString(RequestBody.Span);
+            }
+
+            using var responseBodyStream = archiveReader.GetResponseBody(exchange.Id);
+
+            if (responseBodyStream != null) {
+                ResponseBodyLength = responseBodyStream.Length;
+
+                ResponseBodyContent = CompressionHelper.ReadResponseBodyContent(exchange, responseBodyStream,
+                    settings.MaximumRenderableBodyLength,
+                    out var compressionInfo);
+
+                var responseEncoding = exchange.GetResponseEncoding();
+
+                if (ResponseBodyContent != null && (IsTextContent =
+                        ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024, responseEncoding))) {
+                    ResponseBody = ResponseBodyContent;
+                    responseEncoding = responseEncoding ?? Encoding.UTF8;
+                    ResponseBodyText = responseEncoding.GetString(ResponseBody.Span);
+                }
+
+                CompressionInfo = compressionInfo;
+            }
+        }
 
         public bool IsTextContent { get; set; }
 
@@ -42,59 +88,9 @@ namespace Fluxzy.Formatters
 
         public long? ResponseBodyLength { get; } = 0;
 
-        public ProducerContext(
-            ExchangeInfo exchange,
-            IArchiveReader archiveReader,
-            FormatSettings settings)
-        {
-            Exchange = exchange;
-            ArchiveReader = archiveReader;
-            Settings = settings;
-
-            using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
-
-            RequestBodyLength = requestBodyStream?.Length ?? 0;
-
-            if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length <
-                Settings.MaxFormattableJsonLength)
-            {
-                _internalBuffer = ArrayPool<byte>.Shared.Rent((int)requestBodyStream.Length);
-                var length = requestBodyStream.SeekableStreamToBytes(_internalBuffer);
-
-                RequestBody = new ReadOnlyMemory<byte>(_internalBuffer, 0, length);
-
-                if (ArrayTextUtilities.IsText(RequestBody.Span))
-                    RequestBodyText = Encoding.UTF8.GetString(RequestBody.Span);
-            }
-
-            using var responseBodyStream = archiveReader.GetResponseBody(exchange.Id);
-
-            if (responseBodyStream != null)
-            {
-                ResponseBodyLength = responseBodyStream.Length;
-
-                ResponseBodyContent = CompressionHelper.ReadResponseBodyContent(exchange, responseBodyStream,
-                    settings.MaximumRenderableBodyLength,
-                    out var compressionInfo);
-
-                var responseEncoding = exchange.GetResponseEncoding();
-
-                if (ResponseBodyContent != null && (IsTextContent =
-                        ArrayTextUtilities.IsText(ResponseBodyContent, 1024 * 1024, responseEncoding)))
-                {
-                    ResponseBody = ResponseBodyContent;
-                    responseEncoding = responseEncoding ?? Encoding.UTF8;
-                    ResponseBodyText = responseEncoding.GetString(ResponseBody.Span);
-                }
-
-                CompressionInfo = compressionInfo;
-            }
-        }
-
         public void Dispose()
         {
-            if (_internalBuffer != null)
-            {
+            if (_internalBuffer != null) {
                 ArrayPool<byte>.Shared.Return(_internalBuffer);
                 _internalBuffer = null;
             }
@@ -108,17 +104,17 @@ namespace Fluxzy.Formatters
 
     public class ExchangeContextInfo
     {
-        public string? ResponseBodyText { get; }
-
-        public long? ResponseBodyLength { get; } = 0;
-
-        public bool IsTextContent { get; set; }
-
         public ExchangeContextInfo(string? responseBodyText, long? responseBodyLength, bool isTextContent)
         {
             ResponseBodyText = responseBodyText;
             ResponseBodyLength = responseBodyLength;
             IsTextContent = isTextContent;
         }
+
+        public string? ResponseBodyText { get; }
+
+        public long? ResponseBodyLength { get; } = 0;
+
+        public bool IsTextContent { get; set; }
     }
 }

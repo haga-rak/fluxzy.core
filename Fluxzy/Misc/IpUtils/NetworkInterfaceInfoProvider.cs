@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -12,18 +14,17 @@ namespace Fluxzy.Misc.IpUtils
         {
             var allInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
-            return allInterfaces.
-                   SelectMany(i => i.GetIPProperties().UnicastAddresses.Select(a => new {
-                       a.Address,
-                       i.Name
-                   }))
-                   .Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork ||
-                               a.Address.AddressFamily == AddressFamily.InterNetworkV6)
-                   .Where(a => !a.Address.IsIPv6LinkLocal
-                               && a.Address.AddressFamily == AddressFamily.InterNetwork)
-                   .Select(a => new NetworkInterfaceInfo(a.Address, a.Name))
-                   .OrderBy(a => !a.IPAddress.Equals(IPAddress.Loopback))
-                   .ToList();
+            return allInterfaces.SelectMany(i => i.GetIPProperties().UnicastAddresses.Select(a => new {
+                                    a.Address,
+                                    i.Name
+                                }))
+                                .Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork ||
+                                            a.Address.AddressFamily == AddressFamily.InterNetworkV6)
+                                .Where(a => !a.Address.IsIPv6LinkLocal
+                                            && a.Address.AddressFamily == AddressFamily.InterNetwork)
+                                .Select(a => new NetworkInterfaceInfo(a.Address, a.Name))
+                                .OrderBy(a => !a.IPAddress.Equals(IPAddress.Loopback))
+                                .ToList();
         }
     }
 
@@ -35,9 +36,7 @@ namespace Fluxzy.Misc.IpUtils
             InterfaceName = interfaceName;
 
             if (ipAddress.Equals(IPAddress.Loopback))
-            {
                 InterfaceName = "Loopback";
-            }
         }
 
         public IPAddress IPAddress { get; }

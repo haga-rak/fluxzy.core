@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Rules;
@@ -27,27 +27,27 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("container")]
-        public async Task<ActionResult<bool>> Patch([FromBody] RuleContainer[] containers, [FromServices] ActiveRuleManager activeRuleManager)
+        public async Task<ActionResult<bool>> Patch(
+            [FromBody] RuleContainer[] containers, [FromServices] ActiveRuleManager activeRuleManager)
         {
             await _ruleStorage.Update(containers);
 
             activeRuleManager.SetCurrentSelection(
                 containers.Where(c => c.Enabled).Select(c => c.Rule.Identifier));
 
-            return true; 
+            return true;
         }
 
         [HttpPost("action/validation")]
         public ActionResult<Action> Patch([FromBody] Action action)
         {
-            return action; 
+            return action;
         }
-
 
         [HttpPost("validation")]
         public ActionResult<Rule> ValidateRule([FromBody] Rule rule)
         {
-            return rule; 
+            return rule;
         }
 
         [HttpPost]
@@ -56,9 +56,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return new Rule(
                 action,
                 new AnyFilter() // TODO build better intel here 
-            ); 
+            );
         }
-
 
         [HttpGet("action")]
         public ActionResult<List<Action>> GetActionTemplates([FromServices] ActionTemplateManager templateManager)

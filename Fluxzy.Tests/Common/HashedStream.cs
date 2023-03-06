@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -9,19 +9,34 @@ using System.Threading.Tasks;
 namespace Fluxzy.Tests.Common
 {
     /// <summary>
-    /// Read an inner stream and automatically produces hash 
+    ///     Read an inner stream and automatically produces hash
     /// </summary>
     internal class HashedStream : Stream
     {
         private readonly Stream _innerStream;
-        private readonly HashAlgorithm _transform;
         private readonly MemoryStream _outStream = new(new byte[64]);
+        private readonly HashAlgorithm _transform;
 
         public HashedStream(Stream innerStream, bool useSha1 = false)
         {
             _transform = !useSha1 ? SHA256.Create() : SHA1.Create();
             _innerStream = innerStream;
         }
+
+        public override bool CanRead => _innerStream.CanRead;
+
+        public override bool CanSeek => _innerStream.CanSeek;
+
+        public override bool CanWrite => _innerStream.CanWrite;
+
+        public override long Length => _innerStream.Length;
+
+        public override long Position {
+            get => _innerStream.Position;
+            set => _innerStream.Position = value;
+        }
+
+        public string Hash => Convert.ToBase64String(Compute() ?? Array.Empty<byte>());
 
         public override void Flush()
         {
@@ -52,7 +67,8 @@ namespace Fluxzy.Tests.Common
             _innerStream.Write(buffer, offset, count);
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(
+            byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             var res = await _innerStream.ReadAsync(buffer, offset, count, cancellationToken);
 
@@ -61,24 +77,9 @@ namespace Fluxzy.Tests.Common
             return res;
         }
 
-        public override bool CanRead => _innerStream.CanRead;
-
-        public override bool CanSeek => _innerStream.CanSeek;
-
-        public override bool CanWrite => _innerStream.CanWrite;
-
-        public override long Length => _innerStream.Length;
-
-        public override long Position
-        {
-            get => _innerStream.Position;
-            set => _innerStream.Position = value;
-        }
-
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
+            if (disposing) {
                 _innerStream.Dispose();
                 _transform.Dispose();
                 _outStream.Dispose();
@@ -87,16 +88,12 @@ namespace Fluxzy.Tests.Common
             base.Dispose(disposing);
         }
 
-        public string Hash
-        {
-            get { return Convert.ToBase64String(Compute() ?? Array.Empty<byte>()); }
-        }
-
         public byte[]? Compute()
         {
             _transform.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
 
             var array = _transform.Hash;
+
             return array;
         }
     }

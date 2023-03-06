@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.IO;
 using System.Net.Security;
@@ -8,12 +10,12 @@ namespace Fluxzy.Clients.Ssl
 {
     public interface ISslConnectionBuilder
     {
-        Task<SslConnection> AuthenticateAsClient(Stream innerStream,
+        Task<SslConnection> AuthenticateAsClient(
+            Stream innerStream,
             SslClientAuthenticationOptions request,
             Action<string> onKeyReceived,
             CancellationToken token);
     }
-
 
     public class SslConnection : IDisposable
     {
@@ -24,13 +26,13 @@ namespace Fluxzy.Clients.Ssl
             ApplicationProtocol = applicationProtocol;
         }
 
-        public Stream Stream { get;  }
+        public Stream Stream { get; }
 
-        public SslInfo SslInfo { get;  }
+        public SslInfo SslInfo { get; }
 
-        public SslApplicationProtocol ApplicationProtocol { get;  }
+        public SslApplicationProtocol ApplicationProtocol { get; }
 
-        public string ? NssKey { get; set; }
+        public string? NssKey { get; set; }
 
         public void Dispose()
         {

@@ -1,29 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Text.Json.Serialization;
 using Reinforced.Typings.Attributes;
 
 namespace Fluxzy.Desktop.Services.Models
 {
     public class FileState
     {
-        [TsIgnore]
-        [JsonIgnore]
-        public FileManager Owner { get; private init; }
-
-        public string Identifier { get; private init; }
-
-        public string WorkingDirectory { get; private init; }
-
-        public string? MappedFileFullPath { get; private init; }
-
-        public string? MappedFileName { get; private init; }
-
-        public bool Unsaved { get; private init; }
-
-        public DateTime LastModification { get; private init; } = DateTime.Now;
-
-        [JsonIgnore]
-        public FileContentOperationManager ContentOperation { get; private init; }
-
         private FileState()
         {
         }
@@ -44,12 +27,30 @@ namespace Fluxzy.Desktop.Services.Models
             MappedFileName = fileInfo.Name;
         }
 
+        [TsIgnore]
+        [JsonIgnore]
+        public FileManager Owner { get; private init; }
+
+        public string Identifier { get; private init; }
+
+        public string WorkingDirectory { get; private init; }
+
+        public string? MappedFileFullPath { get; private init; }
+
+        public string? MappedFileName { get; private init; }
+
+        public bool Unsaved { get; private init; }
+
+        public DateTime LastModification { get; private init; } = DateTime.Now;
+
+        [JsonIgnore]
+        public FileContentOperationManager ContentOperation { get; private init; }
+
         public FileState SetFileName(string newFileName)
         {
             var fileInfo = new FileInfo(newFileName);
 
-            return new FileState
-            {
+            return new FileState {
                 Owner = Owner,
                 MappedFileName = fileInfo.Name,
                 Unsaved = Unsaved,
@@ -63,8 +64,7 @@ namespace Fluxzy.Desktop.Services.Models
 
         public FileState SetUnsaved(bool state)
         {
-            return new FileState
-            {
+            return new FileState {
                 Owner = Owner,
                 MappedFileName = MappedFileName,
                 Unsaved = state,

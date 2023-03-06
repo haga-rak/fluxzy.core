@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
@@ -31,8 +33,7 @@ namespace Fluxzy.Clients.H2.Encoder
         public bool TryGetEntry(in ReadOnlyMemory<char> headerName, out int externalIndex)
         {
             if (HPackStaticTableEntry.ReverseStaticTable.TryGetValue(new HeaderField(headerName),
-                    out var indexInternal))
-            {
+                    out var indexInternal)) {
                 externalIndex = indexInternal + 1;
 
                 return true;
@@ -46,12 +47,12 @@ namespace Fluxzy.Clients.H2.Encoder
             return false;
         }
 
-        public bool TryGetEntry(in ReadOnlyMemory<char> headerName, in ReadOnlyMemory<char> headerValue,
+        public bool TryGetEntry(
+            in ReadOnlyMemory<char> headerName, in ReadOnlyMemory<char> headerValue,
             out int externalIndex)
         {
             if (HPackStaticTableEntry.ReverseStaticTable.TryGetValue(new HeaderField(headerName, headerValue),
-                    out var indexInternal))
-            {
+                    out var indexInternal)) {
                 externalIndex = indexInternal + 1;
 
                 return true;

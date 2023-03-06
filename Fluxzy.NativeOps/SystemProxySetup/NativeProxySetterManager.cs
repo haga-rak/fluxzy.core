@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Runtime.InteropServices;
 using Fluxzy.Core.Proxy;
@@ -11,16 +13,16 @@ namespace Fluxzy.NativeOps.SystemProxySetup
     {
         public ISystemProxySetter Get()
         {
-             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                 return new WindowsSystemProxySetter();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return new WindowsSystemProxySetter();
 
-             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                 return new LinuxProxySetter();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return new LinuxProxySetter();
 
-             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                 return new MacOsProxySetter();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return new MacOsProxySetter();
 
-             throw new NotSupportedException("This platform is not supported");
+            throw new NotSupportedException("This platform is not supported");
         }
     }
 }

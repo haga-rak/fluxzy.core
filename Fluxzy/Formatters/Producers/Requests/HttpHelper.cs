@@ -1,7 +1,8 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Web;
 using Fluxzy.Formatters.Producers.Responses;
 
@@ -12,10 +13,10 @@ namespace Fluxzy.Formatters.Producers.Requests
         public static List<RequestCookie> ReadRequestCookies(IEnumerable<HeaderFieldInfo> targetHeaders)
         {
             var requestCookies = new List<RequestCookie>();
-            
+
             foreach (var headerValue in targetHeaders) {
                 var cookieLines = headerValue.Value.ToString()
-                                             .Split(new[] {";"}, StringSplitOptions.RemoveEmptyEntries)
+                                             .Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries)
                                              .Select(s => s.Trim());
 
                 foreach (var cookieLine in cookieLines) {
@@ -36,28 +37,28 @@ namespace Fluxzy.Formatters.Producers.Requests
 
         public static List<SetCookieItem> ReadResponseCookies(IEnumerable<HeaderFieldInfo> cookieHeaders)
         {
-            var cookieItems = cookieHeaders.Select(s =>
-            {
+            var cookieItems = cookieHeaders.Select(s => {
                 if (SetCookieItem.TryParse(s.Value.ToString(), out var cookie))
                     return cookie;
 
                 return null;
             }).Where(s => s != null).OfType<SetCookieItem>().ToList();
+
             return cookieItems;
         }
 
         public static bool TryGetQueryStrings(string url, out List<QueryStringItem> result)
         {
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            {
-                result = null!; 
-                return false; 
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
+                result = null!;
+
+                return false;
             }
 
             result = GetQueryStrings(uri);
+
             return true;
         }
-
 
         public static List<QueryStringItem> GetQueryStrings(Uri uri)
         {

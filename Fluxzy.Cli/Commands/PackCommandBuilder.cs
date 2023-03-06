@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.CommandLine;
@@ -21,21 +21,19 @@ namespace Fluxzy.Cli.Commands
             command.Add(outputFileArgument);
             command.Add(outputFileFormatOption);
 
-            command.SetHandler(async (directory, outputFile, format) =>
-            {
+            command.SetHandler(async (directory, outputFile, format) => {
                 if (!directory.Exists)
                     throw new InvalidOperationException($"Directory does not exists {directory.FullName}");
 
                 outputFile.Directory?.Create();
 
-                var packager = format == null ? 
-                    PackagerRegistry.Instance.InferPackagerFromFileName(outputFile.Name) 
+                var packager = format == null
+                    ? PackagerRegistry.Instance.InferPackagerFromFileName(outputFile.Name)
                     : PackagerRegistry.Instance.GetPackageOrDefault(format);
 
                 using var outputFileStream = outputFile.Create();
 
-                await packager.Pack(directory.FullName, outputFileStream, null); 
-
+                await packager.Pack(directory.FullName, outputFileStream, null);
             }, inputDirectoryArgument, outputFileArgument, outputFileFormatOption);
 
             return command;
@@ -46,8 +44,7 @@ namespace Fluxzy.Cli.Commands
             var argument = new Argument<DirectoryInfo>(
                 "input-directory",
                 description: "a fluxzy folder result to export",
-                parse: t => new DirectoryInfo(t.Tokens.First().Value))
-            {
+                parse: t => new DirectoryInfo(t.Tokens.First().Value)) {
                 Arity = ArgumentArity.ExactlyOne
             };
 
@@ -59,8 +56,7 @@ namespace Fluxzy.Cli.Commands
             var argument = new Argument<FileInfo>(
                 "output-file",
                 description: "a fluxzy folder result to export",
-                parse: t => new FileInfo(t.Tokens.First().Value))
-            {
+                parse: t => new FileInfo(t.Tokens.First().Value)) {
                 Arity = ArgumentArity.ExactlyOne
             };
 
@@ -72,8 +68,7 @@ namespace Fluxzy.Cli.Commands
             var option = new Option<string>(
                 "f",
                 description: "The output file format among fluxzy and saz",
-                getDefaultValue: () => null)
-            {
+                getDefaultValue: () => null) {
                 Arity = ArgumentArity.ExactlyOne
             };
 

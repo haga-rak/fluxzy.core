@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Net;
@@ -36,7 +36,7 @@ namespace Fluxzy.Misc.Converters
 
         public override IPEndPoint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            JsonDocument document = JsonDocument.ParseValue(ref reader);
+            var document = JsonDocument.ParseValue(ref reader);
 
             var port = document.RootElement.GetProperty("port").GetInt32();
             var addressProperty = document.RootElement.GetProperty("address");

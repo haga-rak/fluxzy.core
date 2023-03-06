@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Net;
@@ -34,17 +34,27 @@ namespace Fluxzy
 
         public bool Equals(ProxyBindPoint other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
             return Equals(EndPoint, other.EndPoint) && Default == other.Default;
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((ProxyBindPoint)obj);
+            if (ReferenceEquals(null, obj))
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            if (obj.GetType() != GetType())
+                return false;
+
+            return Equals((ProxyBindPoint) obj);
         }
 
         public override int GetHashCode()
@@ -62,29 +72,14 @@ namespace Fluxzy
             Port = port;
         }
 
-
         public FluxzyEndPoint(IPEndPoint endPoint)
-            : this (endPoint.Address.ToString(), endPoint.Port)
+            : this(endPoint.Address.ToString(), endPoint.Port)
         {
-
         }
-
 
         public string Address { get; set; }
 
         public int Port { get; set; }
-
-
-        public IPEndPoint ToIpEndPoint()
-        {
-            return new IPEndPoint(IPAddress.Parse(Address), Port); 
-        }
-
-        public static implicit operator IPEndPoint(FluxzyEndPoint d) => d.ToIpEndPoint();
-
-
-        public static implicit operator FluxzyEndPoint(IPEndPoint d) => new FluxzyEndPoint(d);
-
 
         public bool Equals(FluxzyEndPoint? other)
         {
@@ -97,6 +92,21 @@ namespace Fluxzy
             return Address == other.Address && Port == other.Port;
         }
 
+        public IPEndPoint ToIpEndPoint()
+        {
+            return new IPEndPoint(IPAddress.Parse(Address), Port);
+        }
+
+        public static implicit operator IPEndPoint(FluxzyEndPoint d)
+        {
+            return d.ToIpEndPoint();
+        }
+
+        public static implicit operator FluxzyEndPoint(IPEndPoint d)
+        {
+            return new(d);
+        }
+
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -105,16 +115,15 @@ namespace Fluxzy
             if (ReferenceEquals(this, obj))
                 return true;
 
-            if (obj.GetType() != this.GetType())
+            if (obj.GetType() != GetType())
                 return false;
 
-            return Equals((FluxzyEndPoint)obj);
+            return Equals((FluxzyEndPoint) obj);
         }
 
         public override int GetHashCode()
         {
             return HashCode.Combine(Address, Port);
         }
-
     }
 }

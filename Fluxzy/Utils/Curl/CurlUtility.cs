@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Diagnostics;
 using System.IO;
@@ -12,10 +11,8 @@ namespace Fluxzy.Utils.Curl
     {
         public static async Task<bool> RunCurl(string args, string? workDirectory)
         {
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
+            using var process = new Process {
+                StartInfo = new ProcessStartInfo {
                     FileName = "curl",
                     Arguments = args,
                     UseShellExecute = false,
@@ -26,13 +23,13 @@ namespace Fluxzy.Utils.Curl
             };
 
             if (workDirectory != null)
-                process.StartInfo.WorkingDirectory = new DirectoryInfo(workDirectory).FullName; 
-            
+                process.StartInfo.WorkingDirectory = new DirectoryInfo(workDirectory).FullName;
+
             process.Start();
-            
+
             await process.WaitForExitAsync();
 
-            return process.ExitCode == 0 
+            return process.ExitCode == 0
                    || process.ExitCode == 23; //curl exit 23 when  stdout close early even the command succeed
         }
     }

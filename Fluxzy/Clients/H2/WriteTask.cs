@@ -1,4 +1,4 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading.Tasks;
@@ -7,7 +7,8 @@ namespace Fluxzy.Clients.H2
 {
     internal readonly struct WriteTask
     {
-        public WriteTask(H2FrameType frameType,
+        public WriteTask(
+            H2FrameType frameType,
             int streamIdentifier,
             int priority,
             int streamDependency,
@@ -27,9 +28,9 @@ namespace Fluxzy.Clients.H2
 
         public void OnComplete(Exception? ex)
         {
-            if (ex != null)
-            {
+            if (ex != null) {
                 CompletionSource.SetException(ex);
+
                 return;
             }
 

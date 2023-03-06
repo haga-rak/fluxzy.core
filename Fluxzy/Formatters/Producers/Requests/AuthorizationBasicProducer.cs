@@ -1,7 +1,6 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using Fluxzy.Readers;
 using System.Linq;
 using System.Text;
 
@@ -28,21 +27,18 @@ namespace Fluxzy.Formatters.Producers.Requests
 
             var base64Value = targetHeader.Value.Span.Slice("Basic ".Length).Trim().ToString();
 
-            try
-            {
+            try {
                 var tab = Encoding.UTF8.GetString(Convert.FromBase64String(base64Value))
                                   .Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 
                 var clientId = tab.First();
 
                 return new AuthorizationBasicResult(ResultTitle, clientId, string.Join(":", tab.Skip(1)));
-
             }
-            catch (FormatException)
-            {
+            catch (FormatException) {
                 var errorMessage = "Basic value was not a valid base64 encoded string";
-                return new AuthorizationBasicResult(ResultTitle, base64Value, null)
-                {
+
+                return new AuthorizationBasicResult(ResultTitle, base64Value, null) {
                     ErrorMessage = errorMessage
                 };
             }
@@ -51,15 +47,15 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public class AuthorizationBasicResult : FormattingResult
     {
-        public string ClientId { get; }
-
-        public string? ClientSecret { get; }
-
         public AuthorizationBasicResult(string title, string clientId, string? clientSecret)
             : base(title)
         {
             ClientId = clientId;
             ClientSecret = clientSecret;
         }
+
+        public string ClientId { get; }
+
+        public string? ClientSecret { get; }
     }
 }

@@ -3,7 +3,7 @@
 
 using SharpPcap;
 
-namespace Fluxzy.Interop.Pcap
+namespace Fluxzy.Interop.Pcap.Writing
 {
     internal interface IRawCaptureWriter : IDisposable
     {
@@ -12,11 +12,11 @@ namespace Fluxzy.Interop.Pcap
         bool Faulted { get; }
 
         void Flush();
-        
+
         void Register(string outFileName);
-        
+
         void Write(PacketCapture packetCapture);
-        
+
         void StoreKey(string nssKey);
     }
 }

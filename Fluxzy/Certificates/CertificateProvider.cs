@@ -1,20 +1,22 @@
-﻿using System;
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Core;
 
-namespace Fluxzy
+namespace Fluxzy.Certificates
 {
     /// <summary>
-    /// This implementation of ICertificateProvier is based on System.Security.Cryptography
+    ///     This implementation of ICertificateProvier is based on System.Security.Cryptography
     /// </summary>
     public class CertificateProvider : ICertificateProvider
     {
-        private readonly X509Certificate2 _rootCertificate;
         private readonly ICertificateCache _certCache;
         private readonly ConcurrentDictionary<string, Lazy<byte[]>> _certificateRepository = new();
+        private readonly X509Certificate2 _rootCertificate;
 
         private readonly RSA _rsaKeyEngine = RSA.Create(2048);
         private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new();
@@ -36,14 +38,14 @@ namespace Fluxzy
         {
             hostName = GetRootDomain(hostName);
 
-            lock (string.Intern(hostName))
-            {
+            lock (string.Intern(hostName)) {
                 if (_solveCertificateRepository.TryGetValue(hostName, out var value))
                     return value;
 
                 var lazyCertificate =
                     _certificateRepository.GetOrAdd(hostName, new Lazy<byte[]>(() =>
-                        _certCache.Load(_rootCertificate.SerialNumber!, hostName, BuildCertificateForRootDomain), true));
+                            _certCache.Load(_rootCertificate.SerialNumber!, hostName, BuildCertificateForRootDomain),
+                        true));
 
                 var val = lazyCertificate.Value;
 
@@ -79,7 +81,7 @@ namespace Fluxzy
                 _rsaKeyEngine,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
-            
+
             certificateRequest.CertificateExtensions.Add(
                 new X509KeyUsageExtension(
                     X509KeyUsageFlags.DigitalSignature
@@ -94,12 +96,13 @@ namespace Fluxzy
             alternativeName.AddDnsName($"*.{rootDomain}");
 
             certificateRequest.CertificateExtensions.Add(alternativeName.Build());
-            certificateRequest.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(_rootCertificate, false));
+
+            certificateRequest.CertificateExtensions.Add(
+                new X509AuthorityKeyIdentifierExtension(_rootCertificate, false));
 
             certificateRequest.CertificateExtensions.Add(
                 new X509EnhancedKeyUsageExtension(
-                    new OidCollection
-                    {
+                    new OidCollection {
                         new("1.3.6.1.5.5.7.3.1")
                     },
                     true));
@@ -113,7 +116,8 @@ namespace Fluxzy
             var offSetEnd = new DateTimeOffset(_rootCertificate.NotAfter.AddSeconds(-1));
             var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(34));
 
-            if (offSetEnd > offsetLimit) offSetEnd = offsetLimit;
+            if (offSetEnd > offsetLimit)
+                offSetEnd = offsetLimit;
 
             var buffer = new byte[16];
             randomGenerator.NextBytes(buffer);
@@ -131,28 +135,35 @@ namespace Fluxzy
 
     public class X509AuthorityKeyIdentifierExtension : X509Extension
     {
-        private static Oid AuthorityKeyIdentifierOid => new Oid("2.5.29.35");
-        private static Oid SubjectKeyIdentifierOid => new Oid("2.5.29.14");
-
         public X509AuthorityKeyIdentifierExtension(X509Certificate2 certificateAuthority, bool critical)
             : base(AuthorityKeyIdentifierOid, EncodeExtension(certificateAuthority), critical)
         {
         }
 
+        private static Oid AuthorityKeyIdentifierOid => new("2.5.29.35");
+
+        private static Oid SubjectKeyIdentifierOid => new("2.5.29.14");
+
         private static byte[] EncodeExtension(X509Certificate2 certificateAuthority)
         {
-            var subjectKeyIdentifier = certificateAuthority.Extensions.Cast<X509Extension>().FirstOrDefault(p => p.Oid?.Value == SubjectKeyIdentifierOid.Value);
+            var subjectKeyIdentifier = certificateAuthority.Extensions.Cast<X509Extension>()
+                                                           .FirstOrDefault(p =>
+                                                               p.Oid?.Value == SubjectKeyIdentifierOid.Value);
+
             if (subjectKeyIdentifier == null)
                 return null;
+
             var rawData = subjectKeyIdentifier.RawData;
             var segment = new ArraySegment<byte>(rawData, 2, rawData.Length - 2);
             var authorityKeyIdentifier = new byte[segment.Count + 4];
+
             // KeyID of the AuthorityKeyIdentifier
             authorityKeyIdentifier[0] = 0x30;
             authorityKeyIdentifier[1] = 0x16;
             authorityKeyIdentifier[2] = 0x80;
             authorityKeyIdentifier[3] = 0x14;
             segment.CopyTo(authorityKeyIdentifier, 4);
+
             return authorityKeyIdentifier;
         }
     }

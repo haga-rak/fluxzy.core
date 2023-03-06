@@ -1,5 +1,4 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reflection;
 
@@ -9,15 +8,14 @@ namespace Fluxzy
     {
         private static string? _version;
 
-        public static string? Version
-        {
+        public static string? Version {
             get
             {
                 if (_version != null)
                     return _version;
 
                 return _version = typeof(Proxy).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                                               .InformationalVersion ?? "1.0.0";
+                    .InformationalVersion ?? "1.0.0";
             }
         }
     }

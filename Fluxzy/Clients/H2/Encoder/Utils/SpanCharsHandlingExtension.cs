@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using Fluxzy.Clients.H2.Encoder.HPack;
 
@@ -9,21 +11,19 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         private static readonly ReadOnlyMemory<char> HttpsPrefix = "https://".AsMemory();
         private static readonly ReadOnlyMemory<char> EmptyPath = "/".AsMemory();
 
-        public static IEnumerable<ReadOnlyMemory<char>> Split(this ReadOnlyMemory<char> input, HashSet<char> separator,
+        public static IEnumerable<ReadOnlyMemory<char>> Split(
+            this ReadOnlyMemory<char> input, HashSet<char> separator,
             int numberOfParts = -1)
         {
             var startString = -1;
             var count = 0;
 
-            for (var i = 0; i < input.Length; i++)
-            {
-                if (separator.Contains(input.Span[i]))
-                {
+            for (var i = 0; i < input.Length; i++) {
+                if (separator.Contains(input.Span[i])) {
                     if (startString == -1)
                         continue;
 
-                    if (numberOfParts >= 0 && count + 1 >= numberOfParts)
-                    {
+                    if (numberOfParts >= 0 && count + 1 >= numberOfParts) {
                         // Split until the end 
                         yield return input.Slice(startString);
 
@@ -44,21 +44,20 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                     startString = i;
             }
 
-            if (startString >= 0)
-            {
+            if (startString >= 0) {
                 count++;
 
                 yield return input.Slice(startString);
             }
         }
 
-        public static Span<ReadOnlyMemory<char>> SplitArray(this ReadOnlyMemory<char> input, HashSet<char> separator,
+        public static Span<ReadOnlyMemory<char>> SplitArray(
+            this ReadOnlyMemory<char> input, HashSet<char> separator,
             Span<ReadOnlyMemory<char>> buffer, int numberOfParts = -1)
         {
             var count = 0;
 
-            foreach (var item in input.Split(separator, numberOfParts))
-            {
+            foreach (var item in input.Split(separator, numberOfParts)) {
                 if (count >= buffer.Length)
                     throw new HPackCodecException("Unable to split array because provided buffer is not large enough");
 
@@ -72,9 +71,10 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         {
             var i = 0;
 
-            for (i = 0; i < input.Length; i++)
+            for (i = 0; i < input.Length; i++) {
                 if (input.Span[i] != @char)
                     break;
+            }
 
             return input.Slice(i);
         }
@@ -83,9 +83,10 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         {
             var i = 0;
 
-            for (i = input.Length - 1; i >= 0; i--)
+            for (i = input.Length - 1; i >= 0; i--) {
                 if (input.Span[i] != @char)
                     break;
+            }
 
             return input.Slice(0, i + 1);
         }
@@ -97,8 +98,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
         public static ReadOnlyMemory<char> RemoveProtocolAndAuthority(this ReadOnlyMemory<char> input)
         {
-            if (input.Span.StartsWith(HttpsPrefix.Span, StringComparison.OrdinalIgnoreCase))
-            {
+            if (input.Span.StartsWith(HttpsPrefix.Span, StringComparison.OrdinalIgnoreCase)) {
                 var indexOfPath = input.Span.Slice(HttpsPrefix.Length).IndexOf('/');
 
                 if (indexOfPath < 0)
@@ -143,10 +143,8 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
             var offsetBuffer = buffer;
 
-            foreach (var item in items)
-            {
-                if (first)
-                {
+            foreach (var item in items) {
+                if (first) {
                     item.Span.CopyTo(offsetBuffer);
                     offset += item.Length;
 

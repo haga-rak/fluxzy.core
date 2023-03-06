@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Buffers.Binary;
 using Fluxzy.Misc;
 
@@ -9,7 +11,7 @@ namespace Fluxzy.Clients.H2.Frames
         public PriorityFrame(ReadOnlySpan<byte> data, int streamIdentifier)
         {
             StreamIdentifier = streamIdentifier;
-            Exclusive = (data[0] >> 7) == 1;
+            Exclusive = data[0] >> 7 == 1;
             StreamDependency = BinaryPrimitives.ReadInt32BigEndian(data) & 0x7FFFFFFF;
             Weight = data[4];
         }
@@ -23,7 +25,7 @@ namespace Fluxzy.Clients.H2.Frames
         public byte Weight { get; }
 
         public int BodyLength => 5;
-        
+
         public int Write(Span<byte> buffer)
         {
             var offset =
@@ -34,6 +36,5 @@ namespace Fluxzy.Clients.H2.Frames
 
             return 9 + 5;
         }
-
     }
 }
