@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -6,10 +6,23 @@ using System.IO;
 namespace Fluxzy.Misc.Streams
 {
     /// <summary>
-    /// A stream that does nothing when written to.
+    ///     A stream that does nothing when written to.
     /// </summary>
     public class EmptyWriteStream : Stream
     {
+        public override bool CanRead => throw new NotImplementedException();
+
+        public override bool CanSeek => throw new NotImplementedException();
+
+        public override bool CanWrite => true;
+
+        public override long Length => throw new NotImplementedException();
+
+        public override long Position {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+
         public override void Flush()
         {
         }
@@ -31,20 +44,6 @@ namespace Fluxzy.Misc.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-        }
-
-        public override bool CanRead => throw new NotImplementedException();
-
-        public override bool CanSeek => throw new NotImplementedException();
-
-        public override bool CanWrite => true;
-
-        public override long Length => throw new NotImplementedException();
-
-        public override long Position
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
         }
     }
 }

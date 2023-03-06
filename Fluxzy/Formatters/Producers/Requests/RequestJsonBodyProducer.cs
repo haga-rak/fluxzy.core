@@ -1,17 +1,13 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Buffers;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using Fluxzy.Misc.Streams;
-using Fluxzy.Readers;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
-
     public class RequestJsonBodyProducer : IFormattingProducer<RequestJsonResult>
     {
         public string ResultTitle => "JSON";
@@ -26,30 +22,26 @@ namespace Fluxzy.Formatters.Producers.Requests
             if (context.RequestBody.IsEmpty)
                 return null;
 
-            try
-            {
+            try {
                 var requestBodyBytes = context.RequestBody!;
 
                 using var document = JsonDocument.Parse(requestBodyBytes);
 
                 var outStream = new MemoryStream();
 
-                using (var jsonWriter = new Utf8JsonWriter(outStream, new JsonWriterOptions()
-                {
-                    Indented = true
-                }))
-                {
+                using (var jsonWriter = new Utf8JsonWriter(outStream, new JsonWriterOptions {
+                           Indented = true
+                       })) {
                     document.WriteTo(jsonWriter);
                 }
 
-                var formattedValue = Encoding.UTF8.GetString(outStream.GetBuffer(), 0, (int)outStream.Length);
+                var formattedValue = Encoding.UTF8.GetString(outStream.GetBuffer(), 0, (int) outStream.Length);
 
                 var rawValue = context.RequestBodyText;
 
                 return new RequestJsonResult(ResultTitle, rawValue, formattedValue);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 if (ex is FormatException || ex is JsonException)
                     return null;
 
@@ -60,7 +52,8 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public class RequestJsonResult : FormattingResult
     {
-        public RequestJsonResult(string title, string? rawBody, string formattedBody) : base(title)
+        public RequestJsonResult(string title, string? rawBody, string formattedBody)
+            : base(title)
         {
             RawBody = rawBody;
             FormattedBody = formattedBody;
@@ -69,6 +62,5 @@ namespace Fluxzy.Formatters.Producers.Requests
         public string? RawBody { get; }
 
         public string FormattedBody { get; }
-
     }
 }

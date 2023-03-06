@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -8,7 +8,7 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
     /// <summary>
-    /// Mock completely a response.
+    ///     Mock completely a response.
     /// </summary>
     public class FullResponseAction : Action
     {
@@ -18,18 +18,19 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         }
 
         /// <summary>
-        /// The response 
+        ///     The response
         /// </summary>
         public PreMadeResponse PreMadeResponse { get; set; }
 
-        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient; 
+        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+
+        public override string DefaultDescription => "Full response substitution";
 
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             context.PreMadeResponse = PreMadeResponse;
+
             return default;
         }
-
-        public override string DefaultDescription => "Full response substitution";
     }
 }

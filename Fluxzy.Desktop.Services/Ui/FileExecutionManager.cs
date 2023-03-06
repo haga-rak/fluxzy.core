@@ -1,11 +1,9 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Diagnostics;
 using System.Text;
 using Fluxzy.Interop.Pcap.Pcapng;
 using Fluxzy.Readers;
-using SharpPcap;
 
 namespace Fluxzy.Desktop.Services.Ui
 {
@@ -13,9 +11,8 @@ namespace Fluxzy.Desktop.Services.Ui
     {
         public async Task<string?> GetNssKey(int connectionId, IArchiveReader archiveReader)
         {
-            if (!(archiveReader is DirectoryArchiveReader directoryArchiveReader)) {
-                return null;  
-            }
+            if (!(archiveReader is DirectoryArchiveReader directoryArchiveReader))
+                return null;
 
             await using var keyStream = directoryArchiveReader.GetRawCaptureKeyStream(connectionId);
 
@@ -23,14 +20,14 @@ namespace Fluxzy.Desktop.Services.Ui
                 return null;
 
             using var reader = new StreamReader(keyStream, Encoding.UTF8);
+
             return await reader.ReadToEndAsync();
         }
 
         public async Task<bool> OpenPcap(int connectionId, IArchiveReader archiveReader)
         {
-            if (!(archiveReader is DirectoryArchiveReader directoryArchiveReader)) {
-                return false;  
-            }
+            if (!(archiveReader is DirectoryArchiveReader directoryArchiveReader))
+                return false;
 
             var fileName = directoryArchiveReader.GetRawCaptureFile(connectionId);
 
@@ -39,11 +36,11 @@ namespace Fluxzy.Desktop.Services.Ui
 
             return ShellExecutor(fileName);
         }
+
         public async Task<bool> OpenPcapWithKey(int connectionId, IArchiveReader archiveReader)
         {
-            if (!(archiveReader is DirectoryArchiveReader directoryArchiveReader)) {
-                return false;  
-            }
+            if (!(archiveReader is DirectoryArchiveReader directoryArchiveReader))
+                return false;
 
             await using var keyStream = directoryArchiveReader.GetRawCaptureKeyStream(connectionId);
 
@@ -51,7 +48,7 @@ namespace Fluxzy.Desktop.Services.Ui
                 return false;
 
             using var reader = new StreamReader(keyStream, Encoding.UTF8);
-            var nssKey =  await reader.ReadToEndAsync();
+            var nssKey = await reader.ReadToEndAsync();
 
             var pcapStream = directoryArchiveReader.GetRawCaptureStream(connectionId);
 
@@ -64,13 +61,12 @@ namespace Fluxzy.Desktop.Services.Ui
 
             tempFile = Path.Combine(tempFile, $"{connectionId}.pcapng");
 
-            using (var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
-            {
+            using (var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write)) {
                 using var tempStream = PcapngNssUtils.GetNssIncludedStream(pcapStream, nssKey);
 
                 await tempStream.CopyToAsync(fileStream);
             }
-            
+
             return ShellExecutor(tempFile);
         }
 
@@ -79,7 +75,7 @@ namespace Fluxzy.Desktop.Services.Ui
             try {
                 var processStartInfo = new ProcessStartInfo {
                     FileName = fileName,
-                    UseShellExecute = true,
+                    UseShellExecute = true
                 };
 
                 var process = new Process {
@@ -87,6 +83,7 @@ namespace Fluxzy.Desktop.Services.Ui
                 };
 
                 process.Start();
+
                 return true;
             }
             catch {

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -7,20 +7,22 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// Instruct fluxzy not to decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope
-    /// in order to make this action effective. 
+    ///     Instruct fluxzy not to decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope
+    ///     in order to make this action effective.
     /// </summary>
-    [ActionMetadata("Instruct fluxzy not to decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope in order to make this action effective. ")]
+    [ActionMetadata(
+        "Instruct fluxzy not to decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope in order to make this action effective. ")]
     public class SkipSslTunnelingAction : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
+        public override string DefaultDescription => "Do not decrypt".Trim();
+
         public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
         {
             context.BlindMode = true;
+
             return default;
         }
-
-        public override string DefaultDescription => $"Do not decrypt".Trim();
     }
 }

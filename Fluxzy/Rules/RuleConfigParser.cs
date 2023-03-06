@@ -1,14 +1,13 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
-using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization;
 using System.Linq;
+using System.Text.Json;
 using YamlDotNet.Core;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 using YamlDotNet.Serialization.TypeInspectors;
 
 namespace Fluxzy.Rules
@@ -25,6 +24,7 @@ namespace Fluxzy.Rules
         public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
         {
             var properties = _innerTypeInspector.GetProperties(type, container);
+
             return properties.OrderByDescending(x => x.Name == "typeKind");
         }
     }
@@ -35,13 +35,14 @@ namespace Fluxzy.Rules
         {
             var serializer = BuildDefaultSerializer();
 
-            return serializer.Serialize(graph : rule);
+            return serializer.Serialize(rule);
         }
 
         public string GetYamlFromRuleSet(RuleSet ruleSet)
         {
             var serializer = BuildDefaultSerializer();
-            return serializer.Serialize(graph : ruleSet);
+
+            return serializer.Serialize(ruleSet);
         }
 
         public RuleSet? TryGetRuleSetFromYaml(string yamlContent, out List<RuleConfigReaderError>? readErrors)
@@ -52,34 +53,28 @@ namespace Fluxzy.Rules
 
             Dictionary<string, object> rawObject;
 
-            try
-            {
+            try {
                 rawObject = deserializer.Deserialize<Dictionary<string, object>>(stringReader);
 
-                if (rawObject.Any(r => r.Key != "rules"))
-                {
-                    readErrors = new List<RuleConfigReaderError>()
-                    {
-                        new($"Unknown entries found {string.Join(", ", rawObject.Where(r => r.Key != "rules").Select(s => s.Key))}. Expected \"rules\"")
+                if (rawObject.Any(r => r.Key != "rules")) {
+                    readErrors = new List<RuleConfigReaderError> {
+                        new(
+                            $"Unknown entries found {string.Join(", ", rawObject.Where(r => r.Key != "rules").Select(s => s.Key))}. Expected \"rules\"")
                     };
 
                     return null;
                 }
             }
-            catch (Exception e)
-            {
-                if (e is SemanticErrorException see)
-                {
-                    readErrors = new List<RuleConfigReaderError>()
-                    {
+            catch (Exception e) {
+                if (e is SemanticErrorException see) {
+                    readErrors = new List<RuleConfigReaderError> {
                         new($"{see.Message} {see.End}")
                     };
 
                     return null;
                 }
 
-                readErrors = new List<RuleConfigReaderError>()
-                {
+                readErrors = new List<RuleConfigReaderError> {
                     new($"Unable to read yaml file : {e.Message}")
                 };
 
@@ -88,63 +83,57 @@ namespace Fluxzy.Rules
 
             readErrors = new List<RuleConfigReaderError>();
 
-            int ruleIndex = 1;
+            var ruleIndex = 1;
 
-            if (rawObject.TryGetValue("rules", out var tempList) && tempList is ICollection<object> items)
-            {
-                foreach (var item in items)
-                {
+            if (rawObject.TryGetValue("rules", out var tempList) && tempList is ICollection<object> items) {
+                foreach (var item in items) {
                     var current = InternalTryGetRuleFromYaml(out var partialErrors, item);
 
                     var ruleName = current?.Name ?? $"Rule #{ruleIndex}";
 
                     ruleIndex++;
 
-                    if (current == null)
-                    {
+                    if (current == null) {
                         readErrors.Add(new RuleConfigReaderError($"Error in “{ruleName}”"));
                         readErrors.AddRange(partialErrors);
 
-                        continue; 
+                        continue;
                     }
 
                     result.Rules.Add(current);
                 }
             }
-            
-            return readErrors.Any() ? null : result; 
+
+            return readErrors.Any() ? null : result;
         }
 
-        public Rule? TryGetRuleFromYaml(string yamlContent,
+        public Rule? TryGetRuleFromYaml(
+            string yamlContent,
             out List<RuleConfigReaderError>? readErrors)
         {
             var deserializer = BuildDefaultDeserializer();
 
             using var stringReader = new StringReader(yamlContent);
 
-            try
-            {
+            try {
                 var rawObject = deserializer.Deserialize(stringReader);
+
                 return InternalTryGetRuleFromYaml(out readErrors, rawObject);
             }
-            catch (Exception ex)
-            {
-                if (ex is SemanticErrorException see)
-                {
-                    readErrors = new List<RuleConfigReaderError>()
-                    {
+            catch (Exception ex) {
+                if (ex is SemanticErrorException see) {
+                    readErrors = new List<RuleConfigReaderError> {
                         new($"{see.Message} {see.End}")
                     };
 
                     return null;
                 }
 
-                readErrors = new List<RuleConfigReaderError>()
-                {
+                readErrors = new List<RuleConfigReaderError> {
                     new("Not a valid yaml " + ex.Message)
                 };
 
-                return null;  
+                return null;
             }
         }
 
@@ -159,34 +148,29 @@ namespace Fluxzy.Rules
             // 
             Rule? rule;
 
-            try
-            {
+            try {
                 rule = JsonSerializer.Deserialize<Rule?>(flatJson, GlobalArchiveOption.DefaultSerializerOptions);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 readErrors.Add(new RuleConfigReaderError(e.Message));
 
                 return null;
             }
 
-            if (rule == null)
-            {
-                readErrors.Add(new RuleConfigReaderError($"Cannot parse rule"));
+            if (rule == null) {
+                readErrors.Add(new RuleConfigReaderError("Cannot parse rule"));
 
                 return null;
             }
 
-            if (rule.Filter == null!)
-            {
-                readErrors.Add(new RuleConfigReaderError($"Unable to detect filter matching this rule"));
+            if (rule.Filter == null!) {
+                readErrors.Add(new RuleConfigReaderError("Unable to detect filter matching this rule"));
 
                 return null;
             }
 
-            if (rule.Action == null!)
-            {
-                readErrors.Add(new RuleConfigReaderError($"Unable to detect action matching this rule"));
+            if (rule.Action == null!) {
+                readErrors.Add(new RuleConfigReaderError("Unable to detect action matching this rule"));
 
                 return null;
             }
@@ -213,9 +197,7 @@ namespace Fluxzy.Rules
 
             return serializer;
         }
-
     }
-
 
     public class RuleConfigReaderError
     {
@@ -224,14 +206,12 @@ namespace Fluxzy.Rules
             Message = message;
         }
 
-        public string Message { get;  }
+        public string Message { get; }
 
         public override string ToString()
         {
             return Message;
         }
-
-
     }
 
     public class RuleSet

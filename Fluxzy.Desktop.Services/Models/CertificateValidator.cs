@@ -1,6 +1,7 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Security.Cryptography.X509Certificates;
+using Fluxzy.Certificates;
 
 namespace Fluxzy.Desktop.Services.Models
 {
@@ -12,32 +13,28 @@ namespace Fluxzy.Desktop.Services.Models
 
             var validationErrors = new List<ValidationError>();
 
-            switch (originalCertificate.RetrieveMode)
-            {
-                case CertificateRetrieveMode.FluxzyDefault:
-                {
-                    certificate  = new X509Certificate2(FileStore.Fluxzy, "echoes");
+            switch (originalCertificate.RetrieveMode) {
+                case CertificateRetrieveMode.FluxzyDefault: {
+                    certificate = new X509Certificate2(FileStore.Fluxzy, "echoes");
+
                     return validationErrors;
                 }
 
                 case CertificateRetrieveMode.FromUserStoreSerialNumber:
 
-                    if (string.IsNullOrWhiteSpace(originalCertificate.SerialNumber))
-                    {
+                    if (string.IsNullOrWhiteSpace(originalCertificate.SerialNumber)) {
                         validationErrors.Add(new ValidationError("SerialNumber cannot be empty"));
 
                         return validationErrors;
                     }
 
-                    using (var store = new X509Store(StoreLocation.CurrentUser))
-                    {
+                    using (var store = new X509Store(StoreLocation.CurrentUser)) {
                         store.Open(OpenFlags.ReadOnly);
 
                         var foundItems = store.Certificates.Find(X509FindType.FindBySerialNumber,
                             originalCertificate.SerialNumber, false);
 
-                        if (!foundItems.Any())
-                        {
+                        if (!foundItems.Any()) {
                             validationErrors.Add(new ValidationError(
                                 $"Certificate with serial number “{originalCertificate.SerialNumber}” was not found on current user store"));
 
@@ -46,8 +43,7 @@ namespace Fluxzy.Desktop.Services.Models
 
                         certificate = foundItems.First();
 
-                        if (!certificate.HasPrivateKey)
-                        {
+                        if (!certificate.HasPrivateKey) {
                             validationErrors.Add(new ValidationError(
                                 $"Provided certificate {certificate.SubjectName} (SN: {originalCertificate.SerialNumber}) does not contains private key. " +
                                 "Private key is mandatory for this certificate."));
@@ -57,24 +53,22 @@ namespace Fluxzy.Desktop.Services.Models
                     }
 
                     break;
+
                 case CertificateRetrieveMode.FromUserStoreThumbPrint:
 
-                    if (string.IsNullOrWhiteSpace(originalCertificate.ThumbPrint))
-                    {
+                    if (string.IsNullOrWhiteSpace(originalCertificate.ThumbPrint)) {
                         validationErrors.Add(new ValidationError("SerialNumber cannot be empty"));
 
                         return validationErrors;
                     }
 
-                    using (var store = new X509Store(StoreLocation.CurrentUser))
-                    {
+                    using (var store = new X509Store(StoreLocation.CurrentUser)) {
                         store.Open(OpenFlags.ReadOnly);
 
                         var foundItems = store.Certificates.Find(X509FindType.FindByThumbprint,
                             originalCertificate.ThumbPrint, false);
 
-                        if (!foundItems.Any())
-                        {
+                        if (!foundItems.Any()) {
                             validationErrors.Add(new ValidationError(
                                 $"Certificate with thumbprint “{originalCertificate.ThumbPrint}” was not found on current user store"));
 
@@ -83,8 +77,7 @@ namespace Fluxzy.Desktop.Services.Models
 
                         certificate = foundItems.First();
 
-                        if (!certificate.HasPrivateKey)
-                        {
+                        if (!certificate.HasPrivateKey) {
                             validationErrors.Add(new ValidationError(
                                 $"Provided certificate {certificate.SubjectName} (SN: {originalCertificate.ThumbPrint}) does not contains private key. " +
                                 "Private key is mandatory for this certificate."));
@@ -94,18 +87,17 @@ namespace Fluxzy.Desktop.Services.Models
                     }
 
                     break;
+
                 case CertificateRetrieveMode.FromPkcs12:
 
-                    if (string.IsNullOrWhiteSpace(originalCertificate.Pkcs12File))
-                    {
+                    if (string.IsNullOrWhiteSpace(originalCertificate.Pkcs12File)) {
                         validationErrors.Add(new ValidationError(
                             "Pcks12File cannot be empty"));
 
                         return validationErrors;
                     }
 
-                    if (!File.Exists(originalCertificate.Pkcs12File))
-                    {
+                    if (!File.Exists(originalCertificate.Pkcs12File)) {
                         validationErrors.Add(new ValidationError(
                             $"File {new FileInfo(originalCertificate.Pkcs12File).FullName} was not found"));
 
@@ -114,23 +106,20 @@ namespace Fluxzy.Desktop.Services.Models
 
                     var byteContent = File.ReadAllBytes(originalCertificate.Pkcs12File);
 
-                    try
-                    {
+                    try {
                         certificate =
                             string.IsNullOrEmpty(originalCertificate.Pkcs12Password)
                                 ? new X509Certificate2(byteContent)
                                 : new X509Certificate2(byteContent, originalCertificate.Pkcs12Password.AsSpan());
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         validationErrors.Add(new ValidationError(
                             $"{ex.Message}"));
 
                         return validationErrors;
                     }
 
-                    if (!certificate.HasPrivateKey)
-                    {
+                    if (!certificate.HasPrivateKey) {
                         validationErrors.Add(new ValidationError(
                             $"Provided certificate  “{certificate.SubjectName.Name}” does not come with private key. Private key is mandatory for this certificate."));
 
@@ -138,8 +127,8 @@ namespace Fluxzy.Desktop.Services.Models
                     }
 
                     break;
-                default:
-                {
+
+                default: {
                     validationErrors.Add(new ValidationError("Invalid location option"));
 
                     return validationErrors;
@@ -164,11 +153,11 @@ namespace Fluxzy.Desktop.Services.Models
 
     public class ValidationError
     {
-        public string Message { get; }
-
         public ValidationError(string message)
         {
             Message = message;
         }
+
+        public string Message { get; }
     }
 }

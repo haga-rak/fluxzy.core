@@ -1,8 +1,8 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Fluxzy.Certificates;
 using Fluxzy.Desktop.Services.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Xml.Linq;
 
 namespace Fluxzy.Desktop.Ui.Controllers
 {
@@ -16,18 +16,15 @@ namespace Fluxzy.Desktop.Ui.Controllers
         {
             var errors = validator.Validate(certificate, out var outCertificate);
 
-            if (errors.Any())
-            {
-                return new CertificateValidationResult()
-                {
+            if (errors.Any()) {
+                return new CertificateValidationResult {
                     Errors = errors
-                }; 
+                };
             }
 
-            return new CertificateValidationResult()
-            {
-                SubjectName = outCertificate!.SubjectName.Name.ToString()
-            }; 
+            return new CertificateValidationResult {
+                SubjectName = outCertificate!.SubjectName.Name
+            };
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 
@@ -13,40 +12,39 @@ namespace Fluxzy.Rules.Filters
         }
 
         /// <summary>
-        /// Long description of the filter : eg : Documentation
+        ///     Long description of the filter : eg : Documentation
         /// </summary>
         public string? LongDescription { get; init; }
 
         /// <summary>
-        /// The filter shall be present on toolbar 
+        ///     The filter shall be present on toolbar
         /// </summary>
         public bool ToolBarFilter { get; init; }
 
         /// <summary>
-        /// The order of apperance on the toolbar
+        ///     The order of apperance on the toolbar
         /// </summary>
-        public int ToolBarFilterOrder { get; init;  }
+        public int ToolBarFilterOrder { get; init; }
 
         /// <summary>
-        /// Quickly reachable filter 
+        ///     Quickly reachable filter
         /// </summary>
-        public bool QuickReachFilter { get; set; } 
+        public bool QuickReachFilter { get; set; }
 
         /// <summary>
-        /// Order 
+        ///     Order
         /// </summary>
-        public int QuickReachFilterOrder { get; init;  }
+        public int QuickReachFilterOrder { get; init; }
 
         /// <summary>
-        /// The filter shall not be saved in last used filter history. 
+        ///     The filter shall not be saved in last used filter history.
         /// </summary>
         public bool DoNotHistorize { get; init; }
 
         /// <summary>
-        /// Indicates that the targeted filter cannot be selected from filter management UIs.
-        /// (Implicit filter)
+        ///     Indicates that the targeted filter cannot be selected from filter management UIs.
+        ///     (Implicit filter)
         /// </summary>
         public bool NotSelectable { get; init; }
-
     }
 }

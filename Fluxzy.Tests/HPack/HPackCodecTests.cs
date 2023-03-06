@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Linq;
 using System.Text;
@@ -91,8 +93,7 @@ namespace Fluxzy.Tests.HPack
 
             var input = new UTF8Encoding(false).GetString(Headers.Req001);
 
-            for (var i = 0; i < 2; i++)
-            {
+            for (var i = 0; i < 2; i++) {
                 var encoded = encoder.Encode(input.AsMemory(), encodingBuffer);
                 var decoded = decoder.Decode(encoded, decodingBuffer);
 

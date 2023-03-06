@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Clients.H2.Encoder.Utils;
@@ -10,8 +12,7 @@ namespace Fluxzy.Clients.H2.Encoder
         /// <summary>
         ///     The HPACK encoder will use dynamic table when encoding value of the headers on this list.
         /// </summary>
-        private static readonly string[] SavedHeadersStrings =
-        {
+        private static readonly string[] SavedHeadersStrings = {
             ":authority",
             "accept",
             "accept-charset",

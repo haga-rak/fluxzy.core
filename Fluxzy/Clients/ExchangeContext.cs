@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Net;
@@ -12,45 +12,43 @@ namespace Fluxzy.Clients
 {
     public class ExchangeContext
     {
-        public IAuthority Authority { get; }
-
         public ExchangeContext(IAuthority authority)
         {
             Authority = authority;
         }
 
+        public IAuthority Authority { get; }
+
         /// <summary>
-        /// Host IP that shall be used instead of a classic DNS resolution 
+        ///     Host IP that shall be used instead of a classic DNS resolution
         /// </summary>
         public IPAddress? RemoteHostIp { get; set; }
 
         /// <summary>
-        /// Port of substitution 
+        ///     Port of substitution
         /// </summary>
-        public int ? RemoteHostPort { get; set; }
+        public int? RemoteHostPort { get; set; }
 
         /// <summary>
-        /// Client certificate for this exchange 
+        ///     Client certificate for this exchange
         /// </summary>
         public X509Certificate2Collection? ClientCertificates { get; set; }
 
         /// <summary>
-        /// true if fluxzy should not decrypt this exchange
+        ///     true if fluxzy should not decrypt this exchange
         /// </summary>
         public bool BlindMode { get; set; }
 
-
         public PreMadeResponse? PreMadeResponse { get; set; }
 
+        public List<SslApplicationProtocol>? SslApplicationProtocols { get; set; }
 
-        public List<SslApplicationProtocol>?  SslApplicationProtocols { get; set; }
-        
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
 
         public bool SkipRemoteCertificateValidation { get; set; } = false;
 
-        public List<HeaderAlteration> RequestHeaderAlterations { get; } = new(); 
-        
-        public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new(); 
+        public List<HeaderAlteration> RequestHeaderAlterations { get; } = new();
+
+        public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new();
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +7,25 @@ using System.Text.Json.Serialization;
 namespace Fluxzy.Rules.Filters
 {
     /// <summary>
-    /// A filter collection is a combination of multiple filter with a merging operator (OR / AND).
-    /// <b>Specific consideration</b> A blank filter collection (no children) will always pass if operator is AND and will
-    /// always fail if operator is OR
-    /// 
+    ///     A filter collection is a combination of multiple filter with a merging operator (OR / AND).
+    ///     <b>Specific consideration</b> A blank filter collection (no children) will always pass if operator is AND and will
+    ///     always fail if operator is OR
     /// </summary>
-    /// 
     [FilterMetaData(
         LongDescription = "FilterCollection is combination of multiple filter with a merging operator (OR / AND)."
     )]
     public class FilterCollection : Filter
     {
+        [JsonConstructor]
+        public FilterCollection()
+        {
+        }
+
+        public FilterCollection(params Filter[] filters)
+        {
+            Children = filters?.ToList() ?? new List<Filter>();
+        }
+
         public List<Filter> Children { get; set; } = new();
 
         public SelectorCollectionOperation Operation { get; set; }
@@ -33,21 +41,11 @@ namespace Fluxzy.Rules.Filters
 
         public override string GenericName => "Filter collection";
 
-        [JsonConstructor]
-        public FilterCollection()
-        {
-        }
-
-        public FilterCollection(params Filter[] filters)
-        {
-            Children = filters?.ToList() ?? new List<Filter>();
-        }
-
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
-            foreach (var child in Children)
-            {
+            foreach (var child in Children) {
                 var res = child.Apply(authority, exchange, filteringContext);
 
                 if (Operation == SelectorCollectionOperation.And && !res)

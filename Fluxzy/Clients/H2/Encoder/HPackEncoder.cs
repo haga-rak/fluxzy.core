@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -9,11 +9,9 @@ namespace Fluxzy.Clients.H2.Encoder
 {
     public class HPackEncoder : IDisposable
     {
-        private readonly PrimitiveOperation _primitiveOperation;
         private readonly CodecSetting _codecSetting;
         private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
-
-        public EncodingContext Context { get; }
+        private readonly PrimitiveOperation _primitiveOperation;
 
         /// <summary>
         ///     Decoding process
@@ -37,6 +35,8 @@ namespace Fluxzy.Clients.H2.Encoder
             _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
         }
 
+        public EncodingContext Context { get; }
+
         public void Dispose()
         {
         }
@@ -45,8 +45,9 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             var offset = 0;
 
-            foreach (var headerField in Http11Parser.Read(headerContent, isHttps))
+            foreach (var headerField in Http11Parser.Read(headerContent, isHttps)) {
                 offset += GetEncodedLength(headerField);
+            }
 
             return offset;
         }
@@ -55,34 +56,31 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             var offset = 0;
 
-            foreach (var headerField in Http11Parser.Read(headerContent, isHttps))
+            foreach (var headerField in Http11Parser.Read(headerContent, isHttps)) {
                 offset += Encode(headerField, buffer.Slice(offset));
+            }
 
             return buffer.Slice(0, offset);
         }
 
         private int GetEncodedLength(in HeaderField entry)
         {
-            if (Context.TryGetEntry(entry.Name, entry.Value, out var index))
-            {
+            if (Context.TryGetEntry(entry.Name, entry.Value, out var index)) {
                 // Existing 
                 var length = _primitiveOperation.GetInt32Length(index, 7);
 
                 return length;
             }
 
-            if (Context.TryGetEntry(entry.Name, out index))
-            {
-                if (_codecSetting.EncodedHeaders.Contains(entry.Name))
-                {
+            if (Context.TryGetEntry(entry.Name, out index)) {
+                if (_codecSetting.EncodedHeaders.Contains(entry.Name)) {
                     var length = _primitiveOperation.GetInt32Length(index, 6);
                     var res = GetWriteStringLength(entry.Value.Span);
                     length += res;
 
                     return length;
                 }
-                else
-                {
+                else {
                     // Value is not meant to be saved 
 
                     var length = _primitiveOperation.GetInt32Length(index, 4);
@@ -92,8 +90,7 @@ namespace Fluxzy.Clients.H2.Encoder
                 }
             }
 
-            if (_codecSetting.EncodedHeaders.Contains(entry.Name))
-            {
+            if (_codecSetting.EncodedHeaders.Contains(entry.Name)) {
                 var length = 1;
 
                 Span<char> lowerCaseBuffer = stackalloc char[entry.Name.Length];
@@ -110,8 +107,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
                 char[]? heapBuffer = null;
 
-                try
-                {
+                try {
                     var lowerCaseBuffer = entry.Name.Length < 1024
                         ? stackalloc char[entry.Name.Length]
                         : heapBuffer = ArrayPool<char>.Shared.Rent(entry.Name.Length);
@@ -125,8 +121,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
                     return length;
                 }
-                finally
-                {
+                finally {
                     if (heapBuffer != null)
                         ArrayPool<char>.Shared.Return(heapBuffer);
                 }
@@ -137,8 +132,7 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             int index;
 
-            if (Context.TryGetEntry(entry.Name, entry.Value, out index))
-            {
+            if (Context.TryGetEntry(entry.Name, entry.Value, out index)) {
                 // Existing 
                 WritePrefix(buffer, 0x80, 1);
                 var length = _primitiveOperation.WriteInt32(buffer, index, 7);
@@ -146,12 +140,10 @@ namespace Fluxzy.Clients.H2.Encoder
                 return length;
             }
 
-            if (Context.TryGetEntry(entry.Name, out index))
-            {
+            if (Context.TryGetEntry(entry.Name, out index)) {
                 // Header is present on the table with no value 
 
-                if (_codecSetting.EncodedHeaders.Contains(entry.Name))
-                {
+                if (_codecSetting.EncodedHeaders.Contains(entry.Name)) {
                     // Let's go save this entry on table 
                     Context.Register(entry.Name.Span, entry.Value.Span);
 
@@ -159,18 +151,18 @@ namespace Fluxzy.Clients.H2.Encoder
                     var length = _primitiveOperation.WriteInt32(buffer, index, 6);
                     var slicedBuff = buffer.Slice(length);
 
-                    if (entry.Value.Length > slicedBuff.Length)
+                    if (entry.Value.Length > slicedBuff.Length) {
                         throw new HPackCodecException(
                             "Length of string value " +
                             $"({entry.Value.Length}) exceed the maximum buffer {slicedBuff.Length}");
+                    }
 
                     var res = InternalWriteString(entry.Value, slicedBuff);
                     length += res.Length;
 
                     return length;
                 }
-                else
-                {
+                else {
                     // Value is not meant to be saved 
 
                     WritePrefix(buffer, 0x0, 4);
@@ -181,8 +173,7 @@ namespace Fluxzy.Clients.H2.Encoder
                 }
             }
 
-            if (_codecSetting.EncodedHeaders.Contains(entry.Name))
-            {
+            if (_codecSetting.EncodedHeaders.Contains(entry.Name)) {
                 // Header are meant to be fully saved 
                 //// Value of this header field should be saved on dynamic table
 
@@ -206,8 +197,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
                 char[]? heapBuffer = null;
 
-                try
-                {
+                try {
                     var lowerCaseBuffer = entry.Name.Length < 1024
                         ? stackalloc char[entry.Name.Length]
                         : heapBuffer = ArrayPool<char>.Shared.Rent(entry.Name.Length);
@@ -219,8 +209,7 @@ namespace Fluxzy.Clients.H2.Encoder
 
                     return length;
                 }
-                finally
-                {
+                finally {
                     if (heapBuffer != null)
                         ArrayPool<char>.Shared.Return(heapBuffer);
                 }
@@ -247,8 +236,8 @@ namespace Fluxzy.Clients.H2.Encoder
 
         private void WritePrefix(Span<byte> buffer, byte value, int suffix)
         {
-            buffer[0] = (byte)(buffer[0] & (0xFF >> suffix));
-            buffer[0] = (byte)(buffer[0] | value);
+            buffer[0] = (byte) (buffer[0] & (0xFF >> suffix));
+            buffer[0] = (byte) (buffer[0] | value);
         }
 
         public static HPackEncoder Create(CodecSetting codeSetting)

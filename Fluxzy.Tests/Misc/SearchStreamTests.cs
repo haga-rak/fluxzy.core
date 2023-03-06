@@ -1,10 +1,9 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
 using Xunit;
 
@@ -21,7 +20,7 @@ namespace Fluxzy.Tests.Misc
 
             var searchStream = new SearchStream(inputStream, searchSequence);
 
-            searchStream.Drain(bufferSize: bufferSize);
+            searchStream.Drain(bufferSize);
 
             Assert.NotNull(searchStream.Result);
             Assert.Equal(expectedIndex, searchStream.Result!.OffsetFound);
@@ -29,29 +28,26 @@ namespace Fluxzy.Tests.Misc
 
         public static IEnumerable<object[]> Get_Check_For_Valid_Index_Params()
         {
-            var baseTestCases = new List<object[]>()
-            {
-                new object[] {  "de", "abcdef", 3 },
-                new object[] {  "abc", "abcdef", 0 },
-                new object[] {  "f", "abcdef", 5 },
+            var baseTestCases = new List<object[]> {
+                new object[] { "de", "abcdef", 3 },
+                new object[] { "abc", "abcdef", 0 },
+                new object[] { "f", "abcdef", 5 },
                 new object[] { "jklmn", "abcdefghijklmnopqrstuvwxyz", 9 },
                 new object[] { "awxyz", "abcdefghijklmnopqrstuvwxyz", -1 },
-                new object[] { "vwxyz", "abcdefghijklmnopqrstuvwxyz", 21 },
+                new object[] { "vwxyz", "abcdefghijklmnopqrstuvwxyz", 21 }
             };
 
-            var bufferSizes = new int[] { 1,14,5,4,20 };
+            var bufferSizes = new[] { 1, 14, 5, 4, 20 };
 
-            foreach (var buffersize in bufferSizes)
-            {
-                foreach (var baseTestCase in baseTestCases)
-                {
-                    yield return new List<object>() { buffersize }.Concat(baseTestCase).ToArray();
+            foreach (var buffersize in bufferSizes) {
+                foreach (var baseTestCase in baseTestCases) {
+                    yield return new List<object> { buffersize }.Concat(baseTestCase).ToArray();
                 }
             }
         }
     }
 
-    static class SearchStreamTestHelper
+    internal static class SearchStreamTestHelper
     {
         public static Stream ToMemoryStream(this string input)
         {

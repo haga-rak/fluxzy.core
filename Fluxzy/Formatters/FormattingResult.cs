@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Formatters
 {
@@ -9,9 +9,9 @@ namespace Fluxzy.Formatters
             Title = title;
         }
 
-        public string Title {  get; }
+        public string Title { get; }
 
-        public string ? ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         public string Type => GetType().Name;
     }

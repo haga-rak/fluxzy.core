@@ -1,4 +1,4 @@
-﻿// Copyright © 2021 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -12,13 +12,13 @@ namespace Fluxzy.Clients.DotNetBridge
 {
     public class FluxzyHttp2Handler : HttpMessageHandler, IAsyncDisposable
     {
-        private readonly H2StreamSetting _streamSetting;
         private readonly IDictionary<string, H2ConnectionPool>
             _activeConnections = new Dictionary<string, H2ConnectionPool>();
 
-        private readonly SemaphoreSlim _semaphore = new(1);
-
         private readonly IIdProvider _idProvider;
+
+        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly H2StreamSetting _streamSetting;
 
         public FluxzyHttp2Handler(H2StreamSetting? streamSetting = null)
         {
@@ -28,19 +28,18 @@ namespace Fluxzy.Clients.DotNetBridge
 
         public async ValueTask DisposeAsync()
         {
-            foreach (var connection in _activeConnections.Values)
+            foreach (var connection in _activeConnections.Values) {
                 await connection.DisposeAsync();
+            }
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            try
-            {
+            try {
                 await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection))
-                {
+                if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection)) {
                     connection = await ConnectionBuilder.CreateH2(
                         request.RequestUri.Host,
                         request.RequestUri.Port, _streamSetting, cancellationToken).ConfigureAwait(false);
@@ -48,8 +47,7 @@ namespace Fluxzy.Clients.DotNetBridge
                     _activeConnections[request.RequestUri.Authority] = connection;
                 }
             }
-            finally
-            {
+            finally {
                 _semaphore.Release();
             }
 
@@ -71,8 +69,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
             _semaphore.Dispose();
 
-            foreach (var connection in _activeConnections.Values)
-            {
+            foreach (var connection in _activeConnections.Values) {
                 // connection.Dispose();
             }
         }

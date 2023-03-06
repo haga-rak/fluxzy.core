@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,8 +9,7 @@ namespace Fluxzy.Formatters
 {
     public class ProducerFactory
     {
-        private static readonly List<IFormattingProducer<FormattingResult>> RequestProducers = new()
-        {
+        private static readonly List<IFormattingProducer<FormattingResult>> RequestProducers = new() {
             new RequestJsonBodyProducer(),
             new MultipartFormContentProducer(),
             new FormUrlEncodedProducer(),
@@ -24,14 +23,14 @@ namespace Fluxzy.Formatters
             new RawRequestHeaderProducer()
         };
 
-        private static readonly List<IFormattingProducer<FormattingResult>> ResponseProducers = new()
-        {
+        private static readonly List<IFormattingProducer<FormattingResult>> ResponseProducers = new() {
             new ResponseBodySummaryProducer(),
             new ResponseBodyJsonProducer(),
             new SetCookieProducer(),
             new ResponseTextContentProducer(),
             new WsMessageProducer()
         };
+
         private readonly IArchiveReaderProvider _archiveReaderProvider;
         private readonly FormatSettings _formatSettings;
 
@@ -56,11 +55,11 @@ namespace Fluxzy.Formatters
             return new ProducerContext(exchangeInfo, archiveReader, _formatSettings);
         }
 
-        public IEnumerable<FormattingResult> GetRequestFormattedResults(int exchangeId,
+        public IEnumerable<FormattingResult> GetRequestFormattedResults(
+            int exchangeId,
             ProducerContext formattingProducerContext)
         {
-            foreach (var producer in RequestProducers)
-            {
+            foreach (var producer in RequestProducers) {
                 var result = producer.Build(formattingProducerContext.Exchange, formattingProducerContext);
 
                 if (result != null)
@@ -68,14 +67,14 @@ namespace Fluxzy.Formatters
             }
         }
 
-        public IEnumerable<FormattingResult> GetResponseFormattedResults(int exchangeId,
+        public IEnumerable<FormattingResult> GetResponseFormattedResults(
+            int exchangeId,
             ProducerContext formattingProducerContext)
         {
             if (formattingProducerContext.Exchange.StatusCode == 528)
                 yield break; // No formatters for transport level error
 
-            foreach (var producer in ResponseProducers)
-            {
+            foreach (var producer in ResponseProducers) {
                 var result = producer.Build(formattingProducerContext.Exchange, formattingProducerContext);
 
                 if (result != null)

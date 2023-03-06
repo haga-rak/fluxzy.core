@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.Net;
@@ -16,18 +16,18 @@ namespace Fluxzy.Core
         {
             _client = new TcpClient();
         }
-        
+
         public async Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
         {
             await _client.ConnectAsync(address, port);
 
-            return (IPEndPoint) _client.Client.LocalEndPoint; 
+            return (IPEndPoint) _client.Client.LocalEndPoint!;
         }
 
         public Stream GetStream()
         {
-            var resultStream = 
-                new  DisposeEventNotifierStream(_client.GetStream());
+            var resultStream =
+                new DisposeEventNotifierStream(_client.GetStream());
 
             resultStream.OnStreamDisposed += ResultStreamOnOnStreamDisposed;
 
@@ -39,18 +39,18 @@ namespace Fluxzy.Core
             // Ignore
         }
 
+        public async ValueTask DisposeAsync()
+        {
+            _client?.Dispose();
+            await Task.CompletedTask;
+        }
+
         private async Task ResultStreamOnOnStreamDisposed(object sender, StreamDisposeEventArgs args)
         {
             var stream = (DisposeEventNotifierStream) sender;
             stream.OnStreamDisposed -= ResultStreamOnOnStreamDisposed;
 
-            await DisposeAsync(); 
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            _client?.Dispose();
-            await Task.CompletedTask;
+            await DisposeAsync();
         }
     }
 }

@@ -1,10 +1,8 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
-using Fluxzy.Readers;
 
 namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
 {
@@ -34,7 +32,8 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
                 using var outStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 await stream.CopyToAsync(outStream);
-                return true; 
+
+                return true;
             }
 
             if (direction == WsMessageDirection.Receive) {
@@ -47,11 +46,11 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
                 using var outStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
                 await stream.CopyToAsync(outStream);
-                return true; 
+
+                return true;
             }
 
             return false;
         }
-
     }
 }

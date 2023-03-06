@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Net;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core;
@@ -12,10 +14,10 @@ namespace Fluxzy.Desktop.Services
         private FluxzySetting? _fluxzySetting;
         private ProxyState? _proxyState;
 
-        protected override BehaviorSubject<SystemProxyState> Subject { get; }
-
-        public SystemProxyStateControl(IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
-            IObservable<ProxyState> proxyStateObservableProvider, SystemProxyRegistrationManager systemProxyRegistrationManager)
+        public SystemProxyStateControl(
+            IObservable<FluxzySettingsHolder> fluxzySettingHolderObservable,
+            IObservable<ProxyState> proxyStateObservableProvider,
+            SystemProxyRegistrationManager systemProxyRegistrationManager)
         {
             _systemProxyRegistrationManager = systemProxyRegistrationManager;
             var current = _systemProxyRegistrationManager.GetSystemProxySetting();
@@ -26,6 +28,8 @@ namespace Fluxzy.Desktop.Services
             fluxzySettingHolderObservable.Do(t => _fluxzySetting = t.StartupSetting).Subscribe();
             proxyStateObservableProvider.Do(t => _proxyState = t).Subscribe();
         }
+
+        protected override BehaviorSubject<SystemProxyState> Subject { get; }
 
         public void On()
         {

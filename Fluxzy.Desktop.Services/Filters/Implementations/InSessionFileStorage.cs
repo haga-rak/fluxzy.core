@@ -1,10 +1,12 @@
-﻿using Fluxzy.Rules.Filters;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Desktop.Services.Filters.Implementations
 {
     public class InSessionFileStorage : IFilterStorage
     {
-        private  Dictionary<Guid, Filter> _currentFilters = new();
+        private Dictionary<Guid, Filter> _currentFilters = new();
 
         public StoreLocation StoreLocation => StoreLocation.OnSession;
 
@@ -31,7 +33,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
         public void Patch(IEnumerable<Filter> filters)
         {
             _currentFilters = filters.DistinctBy(t => t.Identifier)
-                                     .ToDictionary(t => t.Identifier, t => t); 
+                                     .ToDictionary(t => t.Identifier, t => t);
         }
     }
 }

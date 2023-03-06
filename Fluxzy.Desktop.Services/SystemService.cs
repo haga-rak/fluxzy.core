@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Desktop.Services.Models;
@@ -8,7 +7,7 @@ using Fluxzy.Misc.IpUtils;
 namespace Fluxzy.Desktop.Services
 {
     /// <summary>
-    /// Any operation OS related
+    ///     Any operation OS related
     /// </summary>
     public class SystemService
     {
@@ -22,14 +21,13 @@ namespace Fluxzy.Desktop.Services
             var listOfCertificates = store.Certificates;
 
             foreach (var certificate in listOfCertificates) {
-
                 if (!certificate.HasPrivateKey)
                     continue;
 
                 if (caOnly && !certificate.IsCa())
                     continue;
-                
-                result.Add(new CertificateOnStore(certificate.Thumbprint, certificate.SubjectName.Name.ToString()));
+
+                result.Add(new CertificateOnStore(certificate.Thumbprint, certificate.SubjectName.Name));
             }
 
             return result;

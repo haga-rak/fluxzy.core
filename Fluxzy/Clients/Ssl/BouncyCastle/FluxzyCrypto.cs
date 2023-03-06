@@ -1,5 +1,4 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto;
@@ -13,16 +12,16 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             : base(new SecureRandom())
         {
         }
-        
+
+        public byte[]? MasterSecret { get; set; }
+
         public override TlsSecret AdoptSecret(TlsSecret secret)
         {
-            var resultSecret =  base.AdoptSecret(secret);
+            var resultSecret = base.AdoptSecret(secret);
 
-            MasterSecret  = secret.ExtractKeySilently();
+            MasterSecret = secret.ExtractKeySilently();
 
-            return resultSecret; 
+            return resultSecret;
         }
-
-        public byte[]?  MasterSecret { get; set; }
     }
 }

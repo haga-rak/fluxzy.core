@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Filters;
@@ -12,16 +12,14 @@ namespace Fluxzy.Desktop.Ui.Controllers
     public class FilterController : ControllerBase
     {
         [HttpGet("description/{typeKind}")]
-        public ActionResult<string> GetFilterDescription(string typeKind, [FromServices] FilterTemplateManager templateManager)
+        public ActionResult<string> GetFilterDescription(
+            string typeKind, [FromServices] FilterTemplateManager templateManager)
         {
             if (templateManager.TryGetDescription(typeKind, out var longDescription))
-            {
-                return longDescription; 
-            }
+                return longDescription;
 
             return NotFound();
         }
-
 
         [HttpPost("validate")]
         public ActionResult<Filter> Validate(Filter filter)
@@ -42,8 +40,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("apply/regular")]
-        public ActionResult<bool> ApplyToView(Filter filter,
-            [FromServices] ActiveViewFilterManager activeViewFilterManager,
+        public ActionResult<bool> ApplyToView(
+            Filter filter,
+            [FromServices]
+            ActiveViewFilterManager activeViewFilterManager,
             [FromServices]
             TemplateToolBarFilterProvider filterProvider)
         {
@@ -52,10 +52,12 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             return true;
         }
-        
+
         [HttpPost("apply/source")]
-        public ActionResult<bool> ApplySourceFilterToView(Filter filter,
-            [FromServices] ActiveViewFilterManager activeViewFilterManager,
+        public ActionResult<bool> ApplySourceFilterToView(
+            Filter filter,
+            [FromServices]
+            ActiveViewFilterManager activeViewFilterManager,
             [FromServices]
             TemplateToolBarFilterProvider filterProvider)
         {
@@ -65,7 +67,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             return true;
         }
-        
+
         [HttpDelete("apply/source")]
         public ActionResult<bool> ApplyResetSourceFilterToView(
             [FromServices] ActiveViewFilterManager activeViewFilterManager,
@@ -73,6 +75,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             TemplateToolBarFilterProvider filterProvider)
         {
             activeViewFilterManager.UpdateSourceFilter(AnyFilter.Default);
+
             return true;
         }
     }

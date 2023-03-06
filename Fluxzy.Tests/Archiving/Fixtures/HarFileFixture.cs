@@ -1,5 +1,4 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -16,13 +15,12 @@ namespace Fluxzy.Tests.Archiving.Fixtures
     public class HarFileFixture : IDisposable
     {
         private readonly string _tempDirectory;
-        
+
         public HarFileFixture()
         {
             _tempDirectory = nameof(HarFileFixture) + Guid.NewGuid();
 
-            using (var zipArchive = new ZipArchive(new MemoryStream(StorageContext.multipart_request_fxzy)))
-            {
+            using (var zipArchive = new ZipArchive(new MemoryStream(StorageContext.multipart_request_fxzy))) {
                 zipArchive.ExtractToDirectory(_tempDirectory);
             }
 
@@ -36,13 +34,13 @@ namespace Fluxzy.Tests.Archiving.Fixtures
             httpArchivePackager.Pack(_tempDirectory, memoryStream, null).GetAwaiter().GetResult();
 
             memoryStream.Seek(0, SeekOrigin.Begin);
-            
+
             Document = JsonDocument.Parse(memoryStream);
         }
-        
+
         public JsonDocument Document { get; }
-        
-        public List<ExchangeInfo> Exchanges { get;  }
+
+        public List<ExchangeInfo> Exchanges { get; }
 
         public void Dispose()
         {
@@ -50,7 +48,6 @@ namespace Fluxzy.Tests.Archiving.Fixtures
 
             if (Directory.Exists(_tempDirectory))
                 Directory.Delete(_tempDirectory, true);
-
         }
     }
 }

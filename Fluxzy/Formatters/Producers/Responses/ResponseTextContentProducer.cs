@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Formatters.Producers.Responses
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+namespace Fluxzy.Formatters.Producers.Responses
 {
     public class ResponseTextContentProducer : IFormattingProducer<ResponseTextContentResult>
     {

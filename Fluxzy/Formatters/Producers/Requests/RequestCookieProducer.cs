@@ -1,15 +1,11 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using Fluxzy.Readers;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
-
-
     public class RequestCookieProducer : IFormattingProducer<RequestCookieResult>
     {
         public string ResultTitle => "Cookies";
@@ -28,13 +24,13 @@ namespace Fluxzy.Formatters.Producers.Requests
             var requestCookies = HttpHelper.ReadRequestCookies(targetHeaders);
 
             return requestCookies.Any() ? new RequestCookieResult(ResultTitle, requestCookies) : null;
-
         }
     }
 
     public class RequestCookieResult : FormattingResult
     {
-        public RequestCookieResult(string title, List<RequestCookie> cookies) : base(title)
+        public RequestCookieResult(string title, List<RequestCookie> cookies)
+            : base(title)
         {
             Cookies = cookies;
         }

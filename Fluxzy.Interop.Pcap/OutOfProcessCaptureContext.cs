@@ -7,21 +7,22 @@ namespace Fluxzy.Interop.Pcap
 {
     public class OutOfProcessCaptureContext : ICaptureContext, IDisposable
     {
-        private readonly int _port;
         private readonly IOutOfProcessHost _captureHost;
 
         private readonly TcpClient _client;
+        private readonly int _port;
+        private BinaryReader? _reader;
 
         private BinaryWriter? _writer;
-        private BinaryReader? _reader;
 
         public OutOfProcessCaptureContext(IOutOfProcessHost captureHost)
         {
-            _port = (int)captureHost.Payload; ;
+            _port = (int) captureHost.Payload;
+            ;
             _captureHost = captureHost;
             _client = new TcpClient();
         }
-        
+
         public async Task Start()
         {
             await _client.ConnectAsync(IPAddress.Loopback, _port);
@@ -29,21 +30,21 @@ namespace Fluxzy.Interop.Pcap
             var stream = _client.GetStream();
             _writer = new BinaryWriter(stream);
             _reader = new BinaryReader(stream);
-            _captureHost.Context = this; 
+            _captureHost.Context = this;
         }
 
         public void Include(IPAddress remoteAddress, int remotePort)
         {
             if (_writer == null)
-                return; 
+                return;
 
             var includeMessage = new IncludeMessage(remoteAddress, remotePort);
 
-            lock (this)
-            {
+            lock (this) {
                 _writer.Write((byte) MessageType.Include);
                 includeMessage.Write(_writer);
                 _writer.Flush();
+                _reader.ReadInt32();
             }
         }
 
@@ -54,12 +55,12 @@ namespace Fluxzy.Interop.Pcap
 
             lock (this) {
                 var subscribeMessage = new SubscribeMessage(remoteAddress, remotePort, localPort, outFileName);
-                _writer.Write((byte)MessageType.Subscribe);
+                _writer.Write((byte) MessageType.Subscribe);
                 subscribeMessage.Write(_writer);
                 _writer.Flush();
+
                 return _reader.ReadInt64();
             }
-
         }
 
         public void StoreKey(string nssKey, IPAddress remoteAddress, int remotePort, int localPort)
@@ -67,11 +68,10 @@ namespace Fluxzy.Interop.Pcap
             if (_writer == null)
                 return;
 
-            lock (this)
-            {
+            lock (this) {
                 var storeKeyMessage = new StoreKeyMessage(remoteAddress, remotePort, localPort, nssKey);
                 _writer.Write((byte) MessageType.StoreKey);
-                
+
                 storeKeyMessage.Write(_writer);
                 _writer.Flush();
             }
@@ -81,16 +81,20 @@ namespace Fluxzy.Interop.Pcap
         {
             if (_writer == null)
                 return;
-            lock (this)
+
+            lock (this) {
                 _writer.Write((byte) MessageType.ClearAll);
+            }
         }
 
         public void Flush()
         {
             if (_writer == null)
                 return;
-            lock (this)
+
+            lock (this) {
                 _writer.Write((byte) MessageType.Flush);
+            }
         }
 
         public ValueTask Unsubscribe(long subscription)
@@ -100,9 +104,16 @@ namespace Fluxzy.Interop.Pcap
 
             lock (this) {
                 var unsubscribeMessage = new UnsubscribeMessage(subscription);
-                _writer.Write((byte)MessageType.Unsubscribe);
+                _writer.Write((byte) MessageType.Unsubscribe);
                 unsubscribeMessage.Write(_writer);
             }
+
+            return default;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Dispose();
 
             return default;
         }
@@ -111,17 +122,13 @@ namespace Fluxzy.Interop.Pcap
         {
             // This is a singleton, so we never dispose 
 
-            return; 
+            return;
 
-            lock (this)
-                _writer?.Write((byte)MessageType.Exit);
+            lock (this) {
+                _writer?.Write((byte) MessageType.Exit);
+            }
+
             _client?.Dispose();
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            Dispose();
-            return default; 
         }
     }
 }

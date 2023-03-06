@@ -2,24 +2,24 @@
 
 using System.Collections.Concurrent;
 using System.Net;
-using Fluxzy.Interop.Pcap.FastParsing;
+using Fluxzy.Interop.Pcap.Reading;
 using SharpPcap;
 using SharpPcap.LibPcap;
 
 namespace Fluxzy.Interop.Pcap
 {
-    public class DirectCaptureContext : IAsyncDisposable, ICaptureContext
+    public class DirectCaptureContext : ICaptureContext
     {
         private readonly PcapDevice _captureDevice;
 
+        private readonly ConcurrentDictionary<long, object?> _knownAuthorities = new();
+        private readonly long _physicalAddressLong;
+        private bool _disposed;
+
         private bool _halted;
         private SyncWriterQueue? _packetQueue;
-        private bool _disposed;
-        private readonly long _physicalAddressLong;
-        
-        private readonly ConcurrentDictionary<long, object?> _knownAuthorities = new();
 
-        public DirectCaptureContext(IPAddress?  localAddress = null)
+        public DirectCaptureContext(IPAddress? localAddress = null)
         {
             var localAddress1 = localAddress ?? IpUtility.GetDefaultRouteV4Address();
 
@@ -33,11 +33,12 @@ namespace Fluxzy.Interop.Pcap
                                               .ThenByDescending(l => l.IsConnected())
                                               .ThenByDescending(d => d.Interface.Addresses.Any(
                                                   a => Equals(a.Addr.ipAddress, localAddress1)))
-                                              .ThenByDescending(d => d.Interface.GatewayAddresses.Any(g => !g.IsIPv6LinkLocal))
+                                              .ThenByDescending(d =>
+                                                  d.Interface.GatewayAddresses.Any(g => !g.IsIPv6LinkLocal))
                                               .First();
-            
+
             _physicalAddressLong = NetUtility.MacToLong(_captureDevice.MacAddress.GetAddressBytes());
-            
+
             //Start();
         }
 
@@ -46,14 +47,15 @@ namespace Fluxzy.Interop.Pcap
             _knownAuthorities.TryAdd(PacketKeyBuilder.GetAuthorityKey(remoteAddress, remotePort), null);
         }
 
-        public long Subscribe(string outFileName,
+        public long Subscribe(
+            string outFileName,
             IPAddress remoteAddress, int remotePort, int localPort)
         {
             if (_packetQueue == null)
                 throw new InvalidOperationException("Not started yet");
 
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
-            
+
             var writer = _packetQueue.GetOrAdd(connectionKey);
 
             writer.Register(outFileName); // There is a change that the writer is already registered
@@ -65,7 +67,7 @@ namespace Fluxzy.Interop.Pcap
         {
             if (_packetQueue == null)
                 throw new InvalidOperationException("Not started yet");
-            
+
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
             var writer = _packetQueue.GetOrAdd(connectionKey);
 
@@ -94,23 +96,48 @@ namespace Fluxzy.Interop.Pcap
                 throw new InvalidOperationException("Not started yet");
 
             _packetQueue.TryRemove(subscription, out _);
-            return default; 
-        } 
+
+            return default;
+        }
 
         public Task Start()
         {
-            _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
-            _captureDevice.Open(DeviceModes.MaxResponsiveness);
-            //_captureDevice.Open();
             _packetQueue = new SyncWriterQueue();
-            _captureDevice.Filter = $"tcp"; // TODO H3 : add udp
-            _captureDevice.StartCapture();
+
+            lock (this) {
+                if (_disposed)
+                    return Task.CompletedTask; 
+
+                _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
+                _captureDevice.Open(DeviceModes.MaxResponsiveness);
+                _captureDevice.Filter = "tcp"; // TODO H3 : add udp
+                _captureDevice.StartCapture();
+            }
 
             return Task.CompletedTask;
         }
-        
 
-        public void Stop()
+        public ValueTask DisposeAsync()
+        {
+
+            lock (this) {
+
+                if (_disposed)
+                    return ValueTask.CompletedTask;
+
+                _disposed = true;
+
+                Stop();
+
+                _captureDevice.Dispose();
+                _packetQueue?.Dispose();
+            }
+
+
+            return ValueTask.CompletedTask;
+        }
+
+        private void Stop()
         {
             if (_halted)
                 return;
@@ -125,20 +152,20 @@ namespace Fluxzy.Interop.Pcap
         {
             if (_packetQueue == null)
                 return;
-            
 
             var ethernetPacketInfo = new EthernetPacketInfo();
-            
+
             var indexedPackedData = capture.Data;
 
-            if (!RawPacketParser.TryParseEthernet(ref ethernetPacketInfo, indexedPackedData, out var ethernetHeaderLength))
-                return;  // Invalid Ethernet packet
-            
+            if (!RawPacketParser.TryParseEthernet(ref ethernetPacketInfo, indexedPackedData,
+                    out var ethernetHeaderLength))
+                return; // Invalid Ethernet packet
+
             if (ethernetPacketInfo.DestinationMac != _physicalAddressLong &&
                 ethernetPacketInfo.SourceMac != _physicalAddressLong)
                 return; // Unknown mac address or not Ethernet II, we don't handle this now
 
-            if (!ethernetPacketInfo.IsIPv4 && !ethernetPacketInfo.IsIPv6) 
+            if (!ethernetPacketInfo.IsIPv4 && !ethernetPacketInfo.IsIPv6)
                 return; // We consider only IP packet 
 
             indexedPackedData = indexedPackedData.Slice(ethernetHeaderLength);
@@ -146,34 +173,33 @@ namespace Fluxzy.Interop.Pcap
             var ipPacketInfo = new IpPacketInfo();
 
             if (!RawPacketParser.TryParseIp(ref ipPacketInfo, indexedPackedData))
-                return;  // Invalid IP packet here 
+                return; // Invalid IP packet here 
 
             if (!ipPacketInfo.IsTcp)
                 return; // TCP packet only, update need here for H3
-            
+
             indexedPackedData = indexedPackedData.Slice(ipPacketInfo.HeaderLength);
 
-            var tcpPacketInfo = new TcpPacketInfo(); 
+            var tcpPacketInfo = new TcpPacketInfo();
 
             if (!RawPacketParser.TryParseTcp(ref tcpPacketInfo, indexedPackedData))
-                return;  // Not a valid TCP packet
+                return; // Not a valid TCP packet
 
             // This should be true 
-            
-            var consumed = indexedPackedData.Length == ipPacketInfo.PayloadLength;
+
             var sentPacket = ethernetPacketInfo.SourceMac == _physicalAddressLong;
-            
-            var remoteAddr = sentPacket ? ipPacketInfo.DestinationIp : ipPacketInfo.SourceIp;
+
+            var remoteAddress = sentPacket ? ipPacketInfo.DestinationIp : ipPacketInfo.SourceIp;
             var remotePort = sentPacket ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
             var localPort = !sentPacket ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
 
-            var authorityKey = PacketKeyBuilder.GetAuthorityKey(remoteAddr, remotePort);
+            var authorityKey = PacketKeyBuilder.GetAuthorityKey(remoteAddress, remotePort);
 
             // Check if included authority 
             if (!_knownAuthorities.ContainsKey(authorityKey))
                 return; // No one registered for this 
 
-            var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddr);
+            var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
             var writer = _packetQueue.GetOrAdd(connectionKey);
 
             if (writer.Faulted)
@@ -185,21 +211,6 @@ namespace Fluxzy.Interop.Pcap
             catch {
                 // We ignore any write error here to not break the capture thread
             }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-
-            Stop();
-
-            _captureDevice.Dispose();
-            _packetQueue.Dispose();
         }
     }
 }

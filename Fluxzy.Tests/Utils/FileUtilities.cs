@@ -1,4 +1,4 @@
-// Copyright © 2023 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -13,9 +13,10 @@ namespace Fluxzy.Tests.Utils
             using var sha1 = SHA1.Create();
             var hash = sha1.ComputeHash(stream);
             var base64String = Convert.ToBase64String(hash);
+
             return base64String;
         }
-        
+
         public static bool CompareStream(Stream a, Stream b)
         {
             return string.Equals(a.DrainAndSha1(), b.DrainAndSha1());

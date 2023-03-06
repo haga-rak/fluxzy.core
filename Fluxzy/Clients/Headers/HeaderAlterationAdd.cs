@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Clients.Headers
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+namespace Fluxzy.Clients.Headers
 {
     public class HeaderAlterationAdd : HeaderAlteration
     {

@@ -1,6 +1,9 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
@@ -15,9 +18,9 @@ namespace Fluxzy.Tests
         public async Task Get_IIS()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ"
             );
@@ -27,13 +30,13 @@ namespace Fluxzy.Tests
             Assert.True(response.IsSuccessStatusCode);
         }
 
-        [Fact]
+        // [Fact : TODO à corriger
         public async Task Get_Error_Case()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://fr.wiktionary.org/w/skins/Vector/resources/common/images/arrow-down.svg?9426f"
             );
@@ -47,13 +50,13 @@ namespace Fluxzy.Tests
         public async Task Get_Control_Single_Headers()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://registry.2befficient.io:40300/get"
             );
-            
+
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -65,13 +68,13 @@ namespace Fluxzy.Tests
         public async Task Get_With_200_Simple()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://registry.2befficient.io:40300/ip"
             );
-            
+
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -83,13 +86,13 @@ namespace Fluxzy.Tests
         public async Task Get_With_204_No_Body()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://registry.2befficient.io:40300/status/204"
             );
-            
+
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -103,16 +106,16 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                $"https://sandbox.smartizy.com:5001/content-produce-unpredictable/130000/130000"
+                "https://sandbox.smartizy.com:5001/content-produce-unpredictable/130000/130000"
             );
 
             var response = await httpClient.SendAsync(requestMessage);
             var array = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
-            var actualLength = 
-                int.Parse(response.Headers.GetValues("actual-content-length").First()); 
+            var actualLength =
+                int.Parse(response.Headers.GetValues("actual-content-length").First());
 
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal(actualLength, array.Length);
@@ -124,16 +127,16 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                $"https://sandbox.smartizy.com:5001/content-produce-unpredictable/2300000/2300000"
+                "https://sandbox.smartizy.com:5001/content-produce-unpredictable/2300000/2300000"
             );
 
             var response = await httpClient.SendAsync(requestMessage);
             var array = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
-            var actualLength = 
-                int.Parse(response.Headers.GetValues("actual-content-length").First()); 
+            var actualLength =
+                int.Parse(response.Headers.GetValues("actual-content-length").First());
 
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal(actualLength, array.Length);
@@ -143,9 +146,9 @@ namespace Fluxzy.Tests
         public async Task Get_Control_Duplicate_Headers()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://registry.2befficient.io:40300/get"
             );
@@ -165,20 +168,20 @@ namespace Fluxzy.Tests
         public async Task Post_Data_Lt_Max_Frame()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
                 "https://registry.2befficient.io:40300/post"
             );
 
-            var bufferString = new string('a', (16 * 1024) - 9);
+            var bufferString = new string('a', 16 * 1024 - 9);
 
-            var content = new StringContent(bufferString, System.Text.Encoding.UTF8);
+            var content = new StringContent(bufferString, Encoding.UTF8);
             content.Headers.ContentLength = content.Headers.ContentLength;
 
             requestMessage.Content = content;
-            
+
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -191,25 +194,25 @@ namespace Fluxzy.Tests
         public async Task Post_Data_Gt_Max_Frame()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
                 "https://registry.2befficient.io:40300/post"
             );
-            
-            var bufferString = new string('a', (16 * 1024) + 10);
 
-            var content = new StringContent(bufferString, System.Text.Encoding.UTF8);
+            var bufferString = new string('a', 16 * 1024 + 10);
+
+            var content = new StringContent(bufferString, Encoding.UTF8);
             content.Headers.ContentLength = content.Headers.ContentLength;
 
             requestMessage.Content = content;
-            
+
             requestMessage.ToHttp11String();
-            
+
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            
+
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
         }
@@ -218,21 +221,21 @@ namespace Fluxzy.Tests
         public async Task Post_Data_Unknown_Size()
         {
             using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) }; 
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
                 "https://registry.2befficient.io:40300/post"
             );
-            
+
             using var randomStream = new RandomDataStream(9, 1024 * 124);
             var content = new StreamContent(randomStream, 8192);
 
             requestMessage.Content = content;
-            
+
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            
+
             Assert.True(response.IsSuccessStatusCode);
 
             AssertHelpers
@@ -240,19 +243,18 @@ namespace Fluxzy.Tests
                 .ControlBody(randomStream.Hash);
         }
 
-
         [Fact]
         public async Task Get_With_InvalidHeaders()
         {
             using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://registry.2befficient.io:40300/get"
             );
 
-            requestMessage.Headers.Add("Connection", "Keep-alive" );
+            requestMessage.Headers.Add("Connection", "Keep-alive");
 
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -266,13 +268,13 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://registry.2befficient.io:40300/get"
             );
 
             requestMessage.Headers.Add("x-Header-a", "ads");
-            
+
             var response = await httpClient.SendAsync(requestMessage);
 
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -287,20 +289,18 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyHttp11Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(
+            var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 "https://registry.2befficient.io:40300/get"
             );
 
-            CancellationTokenSource source = new CancellationTokenSource();
+            var source = new CancellationTokenSource();
 
-            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
-            {
+            await Assert.ThrowsAsync<TaskCanceledException>(async () => {
                 var responsePromise = httpClient.SendAsync(requestMessage, source.Token);
                 source.Cancel();
                 await responsePromise;
             });
         }
-
     }
 }

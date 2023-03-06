@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Diagnostics;
@@ -7,10 +7,16 @@ namespace Fluxzy.Clients
 {
     public interface ITimingProvider
     {
+        public static ITimingProvider Default { get; } = new DefaultTimingProvider();
+
+        long InstantMillis { get; }
+
+        DateTime Instant();
+
         class DefaultTimingProvider : ITimingProvider
         {
             private readonly DateTime _start;
-            private readonly Stopwatch _watch = new Stopwatch();
+            private readonly Stopwatch _watch = new();
 
             public DefaultTimingProvider()
             {
@@ -25,11 +31,5 @@ namespace Fluxzy.Clients
 
             public long InstantMillis => _watch.ElapsedMilliseconds;
         }
-
-        public static ITimingProvider Default { get; } = new DefaultTimingProvider(); 
-
-        DateTime Instant();
-
-        long InstantMillis { get; }
     }
 }

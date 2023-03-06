@@ -1,11 +1,10 @@
-// Copyright ? 2023 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Readers;
@@ -25,7 +24,8 @@ namespace Fluxzy.Tests
         [InlineData("PUT", TestPayloadType.FormContentEncoded)]
         [InlineData("POST", TestPayloadType.Binary)]
         [InlineData("POST", TestPayloadType.BinarySmall)]
-        public async Task Compare_Curl_W_HttpClient(string methodString, 
+        public async Task Compare_Curl_W_HttpClient(
+            string methodString,
             TestPayloadType payloadType)
         {
             var rootDir = $"{nameof(Compare_Curl_W_HttpClient)}{Guid.NewGuid()}";
@@ -35,34 +35,34 @@ namespace Fluxzy.Tests
             var converter = new CurlRequestConverter(folderManagement);
 
             try {
-
-                var quickTestResult = await DoRequestThroughHttpClient(directoryName, 
+                var quickTestResult = await DoRequestThroughHttpClient(directoryName,
                     new HttpMethod(methodString), payloadType);
-                
+
                 using var archiveReader = quickTestResult.ArchiveReader;
 
-                var curlDirectoryOutput = $"{rootDir}/curl-test"; 
+                var curlDirectoryOutput = $"{rootDir}/curl-test";
 
                 var commandLine = "start -l 127.0.0.1/0";
                 commandLine += $" -d {curlDirectoryOutput}";
-                
+
                 var commandLineHost = new FluxzyCommandLineHost(commandLine);
-                
+
                 await using (var fluxzyInstance = await commandLineHost.Run()) {
-                    var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo, new CurlProxyConfiguration(
-                        "127.0.0.1", fluxzyInstance.ListenPort));
+                    var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo,
+                        new CurlProxyConfiguration(
+                            "127.0.0.1", fluxzyInstance.ListenPort));
 
                     var curlExecutionSuccess = await CurlUtility.RunCurl(
                         commandResult.GetProcessCompatibleArgs(),
                         folderManagement.TemporaryPath);
-                    
+
                     Assert.True(curlExecutionSuccess);
                 }
-                
+
                 using var curlArchiveReader = new DirectoryArchiveReader(curlDirectoryOutput);
 
                 var exchanges = curlArchiveReader.ReadAllExchanges().ToList();
-                
+
                 var httpClientExchange = quickTestResult.ExchangeInfo;
                 var curlExchange = exchanges.FirstOrDefault()!;
 
@@ -75,12 +75,12 @@ namespace Fluxzy.Tests
                     curlExchange
                         .GetRequestHeaders()
                         .OrderBy(r => r.Name.ToString()).Select(s => $"{s.Name} : {s.Value}"));
-                
+
                 var httpClientFlatHeader = string.Join("\r\n",
                     httpClientExchange
                         .GetRequestHeaders()
                         .OrderBy(r => r.Name.ToString()).Select(s => $"{s.Name} : {s.Value}"));
-                
+
                 Assert.Equal(httpClientFlatHeader, curlFlatHeader);
                 Assert.Equal(httpClientRequestBodyStream?.DrainAndSha1(), curlRequestBodyStream?.DrainAndSha1());
             }
@@ -108,29 +108,26 @@ namespace Fluxzy.Tests
                     $"{TestConstants.GetHost(protocol)}/global-health-check");
 
                 if (method != HttpMethod.Get) {
-                    
-                    if (payloadType == TestPayloadType.FlatText) {
-                        requestMessage.Content = new StringContent("Some flatString", Encoding.UTF8); 
-                    }
+                    if (payloadType == TestPayloadType.FlatText)
+                        requestMessage.Content = new StringContent("Some flatString", Encoding.UTF8);
 
                     if (payloadType == TestPayloadType.FormContentEncoded) {
-                        requestMessage.Content = new FormUrlEncodedContent(new Dictionary<string, string>() {
-                            {"A", "B"},
-                            {"C", "p"},
-                            {"d", "g"},
-                            {"f", "r"},
-                        }); 
+                        requestMessage.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+                            { "A", "B" },
+                            { "C", "p" },
+                            { "d", "g" },
+                            { "f", "r" }
+                        });
                     }
 
-                    if (payloadType == TestPayloadType.Binary)
-                    {
-                        requestMessage.Content = 
+                    if (payloadType == TestPayloadType.Binary) {
+                        requestMessage.Content =
                             new StreamContent(new RandomDataStream(9, 1024 * 9 + 5, true));
                     }
-                    if (payloadType == TestPayloadType.BinarySmall)
-                    {
-                        requestMessage.Content = 
-                            new StreamContent(new RandomDataStream(9, 1024  + 5, true));
+
+                    if (payloadType == TestPayloadType.BinarySmall) {
+                        requestMessage.Content =
+                            new StreamContent(new RandomDataStream(9, 1024 + 5, true));
                     }
                 }
 
@@ -155,18 +152,19 @@ namespace Fluxzy.Tests
             var quickTestResult = new QuickTestResult(archiveReader, exchange);
 
             await commandLineHost.ExitCode;
+
             return quickTestResult;
         }
     }
 
     public enum TestPayloadType
     {
-        FlatText = 1 ,
-        FormContentEncoded = 2, 
-        Binary = 3, 
-        BinarySmall = 4, 
+        FlatText = 1,
+        FormContentEncoded = 2,
+        Binary = 3,
+        BinarySmall = 4
     }
-    
+
     internal class QuickTestResult
     {
         public QuickTestResult(IArchiveReader archiveReader, ExchangeInfo exchangeInfo)
@@ -177,6 +175,6 @@ namespace Fluxzy.Tests
 
         public IArchiveReader ArchiveReader { get; }
 
-        public ExchangeInfo ExchangeInfo { get;  }
+        public ExchangeInfo ExchangeInfo { get; }
     }
 }

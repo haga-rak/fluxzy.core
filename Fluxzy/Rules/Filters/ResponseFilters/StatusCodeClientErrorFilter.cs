@@ -1,10 +1,12 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    /// Select exchange that response status code indicates a client error (4XX)
+    ///     Select exchange that response status code indicates a client error (4XX)
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select exchange that HTTP status code indicates a client error (4XX)."
@@ -23,7 +25,8 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 
         public override bool PreMadeFilter => true;
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             if (exchange == null)

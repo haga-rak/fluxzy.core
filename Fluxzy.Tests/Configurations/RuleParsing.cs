@@ -1,15 +1,16 @@
-﻿using System;
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Net;
+using Fluxzy.Certificates;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
 using Xunit;
-using Rule = Fluxzy.Rules.Rule;
 
 namespace Fluxzy.Tests.Configurations
 {
@@ -19,6 +20,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Parse_Basic_Rule()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 filter: 
                   typeKind: AnyFilter        
@@ -46,6 +48,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Fail_Resolve_Filter_Invalid_Type_Kind()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 filter: 
                   typeKind: NoMoreFilter        
@@ -66,6 +69,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Fail_InvalidYaml()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 fi lter 
                     typeKi'nd: NoMoreFilter        
@@ -117,6 +121,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Fail_No_Action()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 filter: 
                   typeKind: AnyFilter       
@@ -132,6 +137,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Fail_Resolve_Filter_No_Type_Kind()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 filter:       
                 action : 
@@ -150,6 +156,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Parse_List_Of_Int()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 filter: 
                   typeKind: StatusCodeFilter        
@@ -184,6 +191,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Parse_Filter_Collection()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 filter: 
                   typeKind: FilterCollection        
@@ -220,10 +228,11 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Parse_Enum(SelectorCollectionOperation operation)
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = $"""
                 filter: 
                   typeKind: FilterCollection        
-                  operation: { operation.ToString().ToLower()} 
+                  operation: {operation.ToString().ToLower()} 
                   children:
                     - typeKind: ContentTypeJsonFilter
                       inverted: true
@@ -232,7 +241,7 @@ namespace Fluxzy.Tests.Configurations
                   typeKind: AddRequestHeaderAction
                   headerName: fluxzy
                   headerValue: on
-                """ ;
+                """;
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
@@ -249,11 +258,12 @@ namespace Fluxzy.Tests.Configurations
             Assert.True(filter.Children.First().Inverted);
             Assert.False(filter.Children.Last().Inverted);
         }
-        
+
         [Fact]
         public void Reading_Should_Parse_Basic_Rule_Set()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 rules:
                   - filter: 
@@ -286,6 +296,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Fail_Basic_Rule_Set()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 ruldes:
                   - filter: 
@@ -311,6 +322,7 @@ namespace Fluxzy.Tests.Configurations
         public void Reading_Should_Parse_Basic_Rule_Set_Multiple()
         {
             var ruleConfigReader = new RuleConfigParser();
+
             var yamlContent = """
                 rules:
                   - filter: 
@@ -360,8 +372,7 @@ namespace Fluxzy.Tests.Configurations
             Assert.NotNull(outputRule);
             Assert.Equal(ruleSet.Rules.Count, outputRule.Rules.Count);
 
-            for (var index = 0; index < ruleSet.Rules.Count; index++)
-            {
+            for (var index = 0; index < ruleSet.Rules.Count; index++) {
                 var originalRule = ruleSet.Rules[index];
                 var resultRule = outputRule.Rules[index];
 
@@ -412,42 +423,38 @@ namespace Fluxzy.Tests.Configurations
         public static IEnumerable<object[]> GetTestRuleSet()
         {
             yield return new object[] {
-
                 new RuleSet(
-                        new Rule(
-                            new ApplyCommentAction("Another comment"),
-                            new FullUrlFilter(".*", StringSelectorOperation.Regex)
-                        ),
-                        new Rule(
-                            new ApplyTagAction {
-                                Tag = new Tag(Guid.NewGuid(), "Random value")
-                            },
-                            new AnyFilter()
-                        )
+                    new Rule(
+                        new ApplyCommentAction("Another comment"),
+                        new FullUrlFilter(".*", StringSelectorOperation.Regex)
+                    ),
+                    new Rule(
+                        new ApplyTagAction {
+                            Tag = new Tag(Guid.NewGuid(), "Random value")
+                        },
+                        new AnyFilter()
                     )
+                )
             };
 
             yield return new object[] {
-
                 new RuleSet(
-                        new Rule(
-                            new AddResponseHeaderAction("sdf", "sd"),
-                            new FilterCollection(new HasCommentFilter(), new RequestHeaderFilter("Coco",
-                                StringSelectorOperation.EndsWith, "Content-type"))
-                        ),
-                        new Rule(
-                            new SetClientCertificateAction(new Certificate {
-                                RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
-                                Pkcs12File = "A pkcs12file",
-                                Pkcs12Password = "A pkcs12 password",
-                                SerialNumber = "absdf465"
-                            }),
-                            new IpEgressFilter(IPAddress.Loopback.ToString(), StringSelectorOperation.Contains)
-                        )
+                    new Rule(
+                        new AddResponseHeaderAction("sdf", "sd"),
+                        new FilterCollection(new HasCommentFilter(), new RequestHeaderFilter("Coco",
+                            StringSelectorOperation.EndsWith, "Content-type"))
+                    ),
+                    new Rule(
+                        new SetClientCertificateAction(new Certificate {
+                            RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
+                            Pkcs12File = "A pkcs12file",
+                            Pkcs12Password = "A pkcs12 password",
+                            SerialNumber = "absdf465"
+                        }),
+                        new IpEgressFilter(IPAddress.Loopback.ToString(), StringSelectorOperation.Contains)
                     )
+                )
             };
         }
-
-
     }
 }

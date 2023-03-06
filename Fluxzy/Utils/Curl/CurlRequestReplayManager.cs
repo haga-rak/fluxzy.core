@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Misc;
@@ -11,7 +11,8 @@ namespace Fluxzy.Utils.Curl
         private readonly CurlRequestConverter _requestConverter;
         private readonly IRunningProxyProvider _runningProxyProvider;
 
-        public CurlRequestReplayManager(CurlRequestConverter requestConverter, IRunningProxyProvider runningProxyProvider)
+        public CurlRequestReplayManager(
+            CurlRequestConverter requestConverter, IRunningProxyProvider runningProxyProvider)
         {
             _requestConverter = requestConverter;
             _runningProxyProvider = runningProxyProvider;
@@ -20,7 +21,8 @@ namespace Fluxzy.Utils.Curl
         public async Task<bool> Replay(IArchiveReader archiveReader, ExchangeInfo exchangeInfo)
         {
             var configuration = await _runningProxyProvider.GetConfiguration();
-            var curlCommandResult = 
+
+            var curlCommandResult =
                 _requestConverter.BuildCurlRequest(archiveReader, exchangeInfo, configuration);
 
             var args = curlCommandResult.GetProcessCompatibleArgs();
@@ -28,15 +30,13 @@ namespace Fluxzy.Utils.Curl
             if (!ProcessUtils.IsCommandAvailable("curl"))
                 return false;
 
-            try
-            {
+            try {
                 return await CurlUtility.RunCurl(args, null);
             }
-            catch
-            {
+            catch {
                 // We just ignore all run errors 
-                
-                return false; 
+
+                return false;
             }
         }
     }

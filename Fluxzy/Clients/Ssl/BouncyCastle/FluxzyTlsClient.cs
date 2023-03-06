@@ -1,5 +1,4 @@
-// // Copyright 2022 - Haga Rakotoharivelo
-// 
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Linq;
@@ -9,15 +8,16 @@ using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    class FluxzyTlsClient : DefaultTlsClient
+    internal class FluxzyTlsClient : DefaultTlsClient
     {
-        private readonly string _targetHost;
-        private readonly SslProtocols _sslProtocols;
         private readonly SslApplicationProtocol[] _applicationProtocols;
         private readonly byte[] _serverNameExtensionData;
+        private readonly SslProtocols _sslProtocols;
+        private readonly string _targetHost;
 
-        public FluxzyTlsClient(string targetHost, SslProtocols sslProtocols, 
-             SslApplicationProtocol [] applicationProtocols)
+        public FluxzyTlsClient(
+            string targetHost, SslProtocols sslProtocols,
+            SslApplicationProtocol[] applicationProtocols)
             : base(new FluxzyCrypto())
         {
             _targetHost = targetHost;
@@ -28,7 +28,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public override IDictionary<int, byte[]> GetClientExtensions()
         {
-            var extensions =  base.GetClientExtensions(); 
+            var extensions = base.GetClientExtensions();
 
             extensions.Add(0, ServerNameUtilities.CreateFromHost(_targetHost));
 
@@ -37,27 +37,25 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public override TlsAuthentication GetAuthentication()
         {
-            return new FluxzyTlsAuthentication(); 
+            return new FluxzyTlsAuthentication();
         }
 
         protected override IList<ProtocolName> GetProtocolNames()
         {
             var result = new List<ProtocolName>();
 
-            if (!_applicationProtocols.Any()) {
+            if (!_applicationProtocols.Any())
                 return base.GetProtocolNames();
-            }
 
             foreach (var applicationProtocol in _applicationProtocols) {
-                
                 if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http11.Protocol))
                     result.Add(ProtocolName.Http_1_1);
-                
+
                 if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http2.Protocol))
                     result.Add(ProtocolName.Http_2_Tls);
             }
-            
-            return result; 
+
+            return result;
         }
 
         protected override ProtocolVersion[] GetSupportedVersions()
@@ -67,24 +65,16 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             var listProtocolVersion = new List<ProtocolVersion>();
 
             if (SslProtocols.None == _sslProtocols)
-            {
                 return base.GetSupportedVersions();
-            }
 
             if (_sslProtocols.HasFlag(SslProtocols.Tls))
-            {
                 listProtocolVersion.Add(ProtocolVersion.TLSv10);
-            }
 
             if (_sslProtocols.HasFlag(SslProtocols.Tls11))
-            {
                 listProtocolVersion.Add(ProtocolVersion.TLSv11);
-            }
 
             if (_sslProtocols.HasFlag(SslProtocols.Tls12))
-            {
                 listProtocolVersion.Add(ProtocolVersion.TLSv12);
-            }
 
 #if NET6_0_OR_GREATER
             if (_sslProtocols.HasFlag(SslProtocols.Tls13))

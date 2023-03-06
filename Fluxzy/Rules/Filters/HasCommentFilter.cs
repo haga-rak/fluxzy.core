@@ -1,10 +1,9 @@
-﻿// // Copyright 2022 - Haga Rakotoharivelo
-// 
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Rules.Filters
 {
     /// <summary>
-    /// Select exchanges that contain comment
+    ///     Select exchanges that contain comment
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select exchange having comment."
@@ -17,7 +16,8 @@ namespace Fluxzy.Rules.Filters
 
         public override bool PreMadeFilter => true;
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return !string.IsNullOrWhiteSpace(exchange?.Comment);

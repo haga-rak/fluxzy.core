@@ -1,7 +1,6 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,9 +13,10 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         public TimeoutTaskCompletionSource(int timeout, string message)
         {
             _tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
-            _tokenSource.Token.Register(
-                () => CompletionSource.TrySetException(new TimeoutException($"Timeout was reached for this source : {message}")));
 
+            _tokenSource.Token.Register(
+                () => CompletionSource.TrySetException(
+                    new TimeoutException($"Timeout was reached for this source : {message}")));
         }
 
         public TaskCompletionSource<T> CompletionSource { get; } = new();

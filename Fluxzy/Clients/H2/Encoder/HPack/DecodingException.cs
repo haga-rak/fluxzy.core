@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 
 namespace Fluxzy.Clients.H2.Encoder.HPack
 {
@@ -7,7 +9,6 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         public HPackCodecException(string message)
             : base(message)
         {
-
         }
     }
 }

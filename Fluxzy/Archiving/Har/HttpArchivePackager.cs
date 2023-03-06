@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace Fluxzy.Har
     {
         private readonly HttpArchiveSavingSetting _savingSetting;
 
-        public HttpArchivePackager(HttpArchiveSavingSetting?  savingSetting = null)
+        public HttpArchivePackager(HttpArchiveSavingSetting? savingSetting = null)
         {
             _savingSetting = savingSetting ?? HttpArchiveSavingSetting.Default;
         }
@@ -36,7 +36,8 @@ namespace Fluxzy.Har
             return InternalPack(directory, outputStream, exchanges, connections);
         }
 
-        private Task InternalPack(string directory, Stream outputStream,
+        private Task InternalPack(
+            string directory, Stream outputStream,
             IEnumerable<ExchangeInfo> exchangeInfos,
             IEnumerable<ConnectionInfo> connectionInfos)
         {

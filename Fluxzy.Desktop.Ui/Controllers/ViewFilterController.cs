@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Rules.Filters;
@@ -17,37 +17,38 @@ namespace Fluxzy.Desktop.Ui.Controllers
             _management = management;
         }
 
-        [HttpGet()]
+        [HttpGet]
         public ActionResult<IEnumerable<StoredFilter>> Get()
         {
-            return new ActionResult<IEnumerable<StoredFilter>>(_management.Get()); 
+            return new ActionResult<IEnumerable<StoredFilter>>(_management.Get());
         }
 
         [HttpPut("{filterId}/store/{storeLocation}")]
-        public ActionResult<bool> Update(Guid filterId, StoreLocation storeLocation, Filter filter )
+        public ActionResult<bool> Update(Guid filterId, StoreLocation storeLocation, Filter filter)
         {
             _management.AddOrUpdate(filterId, storeLocation, filter);
-            return true; 
+
+            return true;
         }
 
         [HttpPost("store/{storeLocation}")]
-        public ActionResult<bool> Add(StoreLocation storeLocation, Filter filter )
+        public ActionResult<bool> Add(StoreLocation storeLocation, Filter filter)
         {
             _management.AddOrUpdate(filter.Identifier, storeLocation, filter);
-            return true; 
+
+            return true;
         }
 
         [HttpDelete("{filterId}/store/{storeLocation}")]
         public ActionResult<bool> Delete(Guid filterId, StoreLocation storeLocation)
         {
-            return _management.Delete(filterId, storeLocation); 
+            return _management.Delete(filterId, storeLocation);
         }
-
 
         [HttpPatch("store")]
         public ActionResult<bool> Patch(List<LocatedFilter> filters)
         {
-            return _management.Patch(filters); 
+            return _management.Patch(filters);
         }
     }
 }

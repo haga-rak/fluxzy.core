@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -12,20 +12,20 @@ namespace Fluxzy.Misc
         {
             if (tasks.Count == 0)
                 return Array.Empty<T>();
-            
+
             List<Exception>? exceptions = null;
 
             var results = new T[tasks.Count];
-            for (var i = 0; i < tasks.Count; i++)
-                try
-                {
+
+            for (var i = 0; i < tasks.Count; i++) {
+                try {
                     results[i] = await tasks[i].ConfigureAwait(false);
                 }
-                catch (Exception ex)
-                {
-                    exceptions ??= new(tasks.Count);
+                catch (Exception ex) {
+                    exceptions ??= new List<Exception>(tasks.Count);
                     exceptions.Add(ex);
                 }
+            }
 
             return exceptions is null
                 ? results

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,8 +8,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 {
     public sealed class Http11Constants
     {
-        private static readonly Dictionary<string, string> StatusLineMappingStr = new()
-        {
+        private static readonly Dictionary<string, string> StatusLineMappingStr = new() {
             { "100", "Continue" },
             { "101", "Switching Protocols" },
             { "102", "Processing" },
@@ -99,20 +100,17 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         public static readonly ReadOnlyMemory<char> Expect = "expect".AsMemory();
 
         public static readonly HashSet<ReadOnlyMemory<char>> AvoidAutoParseHttp11Headers =
-            new(new[]
-            {
+            new(new[] {
                 MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, CookieVerb, StatusVerb
             }, new SpanCharactersIgnoreCaseComparer());
 
         public static readonly HashSet<ReadOnlyMemory<char>> ControlHeaders =
-            new(new[]
-            {
+            new(new[] {
                 MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, StatusVerb
             }, new SpanCharactersIgnoreCaseComparer());
 
         public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
-            new(new[]
-            {
+            new(new[] {
                 ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade, AltSvc, Expect
             }, new SpanCharactersIgnoreCaseComparer());
 

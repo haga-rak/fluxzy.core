@@ -1,4 +1,5 @@
-using System.Threading.Tasks;
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using Fluxzy.Core.Proxy;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.Win

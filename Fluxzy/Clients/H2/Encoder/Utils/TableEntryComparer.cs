@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 
@@ -17,12 +19,10 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
         public int GetHashCode(HeaderField obj)
         {
-            unchecked
-            {
+            unchecked {
                 char[]? heapBuffer = null;
 
-                try
-                {
+                try {
                     Span<char> buffer1 = stackalloc char[obj.Name.Span.Length];
 
                     var buffer2 = obj.Value.Span.Length < 1024
@@ -31,13 +31,12 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                             ArrayPool<char>.Shared.Rent(obj.Value.Span.Length);
 
                     buffer2 = buffer2.Slice(0, obj.Value.Span.Length);
-                    
+
                     obj.Value.Span.ToLowerInvariant(buffer2);
-                    
+
                     return (buffer1.GetHashCodeArray() * 397) ^ buffer2.GetHashCodeArray();
                 }
-                finally
-                {
+                finally {
                     if (heapBuffer != null)
                         ArrayPool<char>.Shared.Return(heapBuffer);
                 }

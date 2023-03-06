@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -19,19 +19,18 @@ namespace Fluxzy.Tests.Cli
 {
     public class CliStartOverviewTests
     {
-        public static IEnumerable<object[]> GetSingleRequestParameters
-        {
+        public static IEnumerable<object[]> GetSingleRequestParameters {
             get
             {
                 var protocols = new[] { "http11", "http2" };
                 var decryptionStatus = new[] { false, true };
 
                 foreach (var protocol in protocols)
-                foreach (var decryptStat in decryptionStatus)
+                foreach (var decryptStat in decryptionStatus) {
                     yield return new object[] { protocol, decryptStat };
+                }
             }
         }
-
 
         [Theory]
         [MemberData(nameof(GetSingleRequestParameters))]
@@ -71,9 +70,9 @@ namespace Fluxzy.Tests.Cli
         {
             // Arrange 
             var commandLine = "start -l 127.0.0.1/0";
-            var ruleFile = $"rules.yml";
+            var ruleFile = "rules.yml";
 
-            File.WriteAllBytes("cc.pfx", StorageContext.client_cert); 
+            File.WriteAllBytes("cc.pfx", StorageContext.client_cert);
 
             var yamlContent = """
                 rules:
@@ -114,7 +113,7 @@ namespace Fluxzy.Tests.Cli
 
             var requestMessage =
                 new HttpRequestMessage(HttpMethod.Get, $"{TestConstants.GetHost("http2")}/certificate");
-            
+
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
 
             // Act 
@@ -146,18 +145,19 @@ namespace Fluxzy.Tests.Cli
 
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
         }
-        
+
         [Theory]
-        [InlineData("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36", "Chrome 107")]
+        [InlineData(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+            "Chrome 107")]
         [InlineData("Bad User Agent", "Other")]
         public async Task Run_Cli_And_Validate_User_Agent(string userAgent, string expectedFriendlyName)
         {
             // Arrange 
             var directory = nameof(Run_Cli_And_Validate_User_Agent);
             var commandLine = $"start -l 127.0.0.1/0 -d {directory} --parse-ua";
-            
-            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine)) {
 
+            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine)) {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post,
@@ -171,8 +171,7 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             }
 
-            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory))
-            {
+            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory)) {
                 var exchanges = archiveReader.ReadAllExchanges().ToList();
                 archiveReader.ReadAllConnections().ToList();
 
@@ -186,22 +185,22 @@ namespace Fluxzy.Tests.Cli
             if (Directory.Exists(directory))
                 Directory.Delete(directory, true);
         }
-        
+
         [Fact]
         public async Task Run_Cli_And_Validate_User_Absence()
         {
             // Arrange 
             var directory = nameof(Run_Cli_And_Validate_User_Absence);
             var commandLine = $"start -l 127.0.0.1/0 -d {directory}";
-            
-            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine)) {
 
+            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine)) {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post,
                     "https://registry.2befficient.io:40300/status/200");
 
-                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36");
+                requestMessage.Headers.Add("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36");
 
                 var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
                 await response.Content.ReadAsStringAsync();
@@ -209,8 +208,7 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             }
 
-            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory))
-            {
+            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory)) {
                 var exchanges = archiveReader.ReadAllExchanges().ToList();
                 archiveReader.ReadAllConnections().ToList();
 
@@ -239,16 +237,17 @@ namespace Fluxzy.Tests.Cli
             var url =
                 "https://cci-news.com/wp-content/mmr/e44b2584-1639397252.min.js";
 
-            for (var i = 0; i < 2; i++)
+            for (var i = 0; i < 2; i++) {
                 await Task.WhenAll(
                     Enumerable.Range(0, count).Select((i, e) =>
                         AggressiveCallProducer.MakeAggressiveCall(
                             $"{url}",
                             fluxzyInstance.ListenPort, bodyLength, i % 2 == 0))
                 );
+            }
+
             // await Task.Delay(30 * 1000);
         }
-
 
         [Fact]
         public async Task Run_Post_Plain_Http()
@@ -257,11 +256,11 @@ namespace Fluxzy.Tests.Cli
             var directory = nameof(Run_Post_Plain_Http);
             var commandLine = $"start -l 127.0.0.1/0 -d {directory}";
 
-            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine))
-            {
+            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine)) {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
                 var requestMessage =
-                    new HttpRequestMessage(HttpMethod.Post, 
+                    new HttpRequestMessage(HttpMethod.Post,
                         $"{TestConstants.GetHost("plainhttp11")}/global-health-check");
 
                 requestMessage.Content = new ByteArrayContent("ABCD"u8.ToArray());
@@ -272,8 +271,7 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             }
 
-            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory))
-            {
+            using (IArchiveReader archiveReader = new DirectoryArchiveReader(directory)) {
                 var exchanges = archiveReader.ReadAllExchanges().ToList();
                 archiveReader.ReadAllConnections().ToList();
 
@@ -292,8 +290,7 @@ namespace Fluxzy.Tests.Cli
     {
         public static async Task MakeAggressiveCall(string url, int listenPort, int bodyLength, bool abort)
         {
-            using var handler = new HttpClientHandler
-            {
+            using var handler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://127.0.0.1:{listenPort}")
             };
 
@@ -305,18 +302,17 @@ namespace Fluxzy.Tests.Cli
             var contentLength = -1;
 
             if (abort)
+
                 // await Task.Delay(50);
                 cancellationTokenSource.Cancel();
 
-            try
-            {
+            try {
                 var responseMessage = await responseMessageTask;
 
                 contentLength = (await responseMessage.Content.ReadAsStreamAsync(cancellationTokenSource.Token))
                     .Drain();
             }
-            catch (OperationCanceledException)
-            {
+            catch (OperationCanceledException) {
                 return;
             }
 

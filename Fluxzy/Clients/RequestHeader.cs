@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
@@ -9,16 +9,6 @@ namespace Fluxzy.Clients
 {
     public class RequestHeader : Header
     {
-        public ReadOnlyMemory<char> Authority { get; internal set; }
-
-        public ReadOnlyMemory<char> Path { get; internal set; }
-
-        public ReadOnlyMemory<char> Method { get; internal set; }
-
-        public ReadOnlyMemory<char> Scheme { get; }
-
-        public bool IsWebSocketRequest { get; }
-
         public RequestHeader(
             ReadOnlyMemory<char> headerContent,
             bool isSecure)
@@ -36,14 +26,23 @@ namespace Fluxzy.Clients
                                      .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
         }
 
+        public ReadOnlyMemory<char> Authority { get; internal set; }
+
+        public ReadOnlyMemory<char> Path { get; internal set; }
+
+        public ReadOnlyMemory<char> Method { get; internal set; }
+
+        public ReadOnlyMemory<char> Scheme { get; }
+
+        public bool IsWebSocketRequest { get; }
+
         public string GetFullUrl()
         {
             var stringPath = Path.ToString();
 
-            if (Uri.TryCreate(Path.ToString(), UriKind.Absolute, out var uri) && uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-            {
-                return stringPath; 
-            }
+            if (Uri.TryCreate(Path.ToString(), UriKind.Absolute, out var uri) &&
+                uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                return stringPath;
 
             return $"{Scheme}://{Authority}{stringPath}";
         }
@@ -81,10 +80,6 @@ namespace Fluxzy.Clients
 
     public class ResponseHeader : Header
     {
-        public int StatusCode { get; }
-
-        public bool ConnectionCloseRequest { get; }
-
         public ResponseHeader(
             ReadOnlyMemory<char> headerContent,
             bool isSecure)
@@ -96,6 +91,10 @@ namespace Fluxzy.Clients
                 r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
                      && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
         }
+
+        public int StatusCode { get; }
+
+        public bool ConnectionCloseRequest { get; }
 
         public bool HasResponseBody()
         {

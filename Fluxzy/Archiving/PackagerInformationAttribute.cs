@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga RAKOTOHARIVELO
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -13,15 +13,8 @@ namespace Fluxzy
 {
     public class PackagerInformationAttribute : Attribute
     {
-        public string Name { get; }
-
-        public string Description { get; }
-
-        public string DefaultExtension { get; }
-
-        public HashSet<string> Extensions { get; }
-
-        public PackagerInformationAttribute(string name, string description, string defaultExtension,
+        public PackagerInformationAttribute(
+            string name, string description, string defaultExtension,
             params string[] extraExtensions)
         {
             Name = name;
@@ -31,6 +24,14 @@ namespace Fluxzy
             Extensions = new HashSet<string>(new[] { DefaultExtension }.Concat(extraExtensions),
                 StringComparer.OrdinalIgnoreCase);
         }
+
+        public string Name { get; }
+
+        public string Description { get; }
+
+        public string DefaultExtension { get; }
+
+        public HashSet<string> Extensions { get; }
     }
 
     public static class AttributeExtensions
@@ -47,8 +48,7 @@ namespace Fluxzy
         public static PackagerRegistry Instance { get; } = new();
 
         public IReadOnlyCollection<DirectoryPackager> Packagers { get; }
-            = new ReadOnlyCollection<DirectoryPackager>(new List<DirectoryPackager>
-            {
+            = new ReadOnlyCollection<DirectoryPackager>(new List<DirectoryPackager> {
                 new FxzyDirectoryPackager(),
                 new SazPackager(),
                 new HttpArchivePackager()
@@ -61,8 +61,7 @@ namespace Fluxzy
 
             var extension = Path.GetExtension(fileName);
 
-            foreach (var packager in Packagers)
-            {
+            foreach (var packager in Packagers) {
                 var packagerInfo = packager.GetInfo();
 
                 if (packagerInfo.Extensions.Contains(extension))
@@ -77,8 +76,7 @@ namespace Fluxzy
             if (!Packagers.Any())
                 throw new InvalidOperationException("No packager was registered yet");
 
-            foreach (var packager in Packagers)
-            {
+            foreach (var packager in Packagers) {
                 var packagerInfo = packager.GetInfo();
 
                 if (packagerInfo.Name.Equals(name, StringComparison.OrdinalIgnoreCase))

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Fluxzy.Misc.Streams;
@@ -9,7 +11,6 @@ namespace Fluxzy.Writers
     {
         public override void UpdateTags(IEnumerable<Tag> tags)
         {
-
         }
 
         public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)

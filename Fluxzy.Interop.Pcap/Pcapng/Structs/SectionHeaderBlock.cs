@@ -14,10 +14,10 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 
         public uint BlockType { get; init; } = 0x0A0D0D0A;
 
-        public int BlockTotalLength { get; } 
+        public int BlockTotalLength { get; }
 
         public uint ByteOrderMagic { get; init; } = 0x1A2B3C4D;
-        
+
         public ushort MajorVersion { get; init; } = 1;
 
         public ushort MinorVersion { get; init; } = 0;
@@ -37,10 +37,11 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 
             return 24;
         }
-        
+
         public int WriteTrailer(Span<byte> buffer)
         {
             BinaryPrimitives.WriteInt32LittleEndian(buffer, BlockTotalLength);
+
             return 4;
         }
     }

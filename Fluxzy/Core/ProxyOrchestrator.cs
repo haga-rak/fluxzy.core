@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.IO;
 using System.Net;
@@ -16,10 +18,10 @@ namespace Fluxzy.Core
 {
     internal class ProxyOrchestrator : IDisposable
     {
-        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
+        private readonly RealtimeArchiveWriter _archiveWriter;
         private readonly ExchangeBuilder _exchangeBuilder;
         private readonly PoolBuilder _poolBuilder;
-        private readonly RealtimeArchiveWriter _archiveWriter;
+        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
 
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
@@ -38,24 +40,20 @@ namespace Fluxzy.Core
 
         public async ValueTask Operate(TcpClient client, RsBuffer buffer, CancellationToken token)
         {
-            try
-            {
+            try {
                 using var callerTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
 
                 token = callerTokenSource.Token;
 
-                if (!token.IsCancellationRequested)
-                {
+                if (!token.IsCancellationRequested) {
                     // READ initial state of connection, 
                     ExchangeBuildingResult? localConnection = null;
 
-                    try
-                    {
+                    try {
                         localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), buffer,
                             _proxyRuntimeSetting, token);
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         // Failure from the local connection
 
                         if (ex is SocketException || ex is IOException)
@@ -68,34 +66,31 @@ namespace Fluxzy.Core
                     var exchange =
                         localConnection.ProvisionalExchange;
 
-                    var endPoint = (IPEndPoint)client.Client.RemoteEndPoint;
+                    var endPoint = (IPEndPoint) client.Client.RemoteEndPoint;
 
                     exchange.Metrics.LocalPort = endPoint.Port;
                     exchange.Metrics.LocalAddress = endPoint.Address.ToString();
 
                     var shouldClose = false;
 
-                    do
-                    {
+                    do {
                         if (
                             !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase)
                             || localConnection.TunnelOnly
-                        )
-                        {
+                        ) {
                             // Check whether the local browser ask for a connection close 
 
                             shouldClose = exchange.ShouldClose();
 
                             if (_proxyRuntimeSetting.UserAgentProvider != null) {
-                                var userAgentValue = exchange.GetRequestHeaderValue("User-Agent"); 
+                                var userAgentValue = exchange.GetRequestHeaderValue("User-Agent");
 
                                 // Solve user agent 
-                                
+
                                 exchange.Agent = Agent.Create(userAgentValue ?? string.Empty,
                                     ((IPEndPoint) client.Client.LocalEndPoint).Address,
                                     _proxyRuntimeSetting.UserAgentProvider);
                             }
-                            
 
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
@@ -103,17 +98,14 @@ namespace Fluxzy.Core
 
                             // Run header alteration 
 
-                            foreach (var requestHeaderAlteration in exchange.Context.RequestHeaderAlterations)
-                            {
+                            foreach (var requestHeaderAlteration in exchange.Context.RequestHeaderAlterations) {
                                 requestHeaderAlteration.Apply(exchange.Request.Header);
                             }
 
                             IHttpConnectionPool connectionPool;
 
-                            try
-                            {
-                                if (_archiveWriter != null)
-                                {
+                            try {
+                                if (_archiveWriter != null) {
                                     _archiveWriter.Update(
                                         exchange,
                                         ArchiveUpdateType.BeforeRequestHeader,
@@ -121,26 +113,24 @@ namespace Fluxzy.Core
                                     );
 
                                     if (exchange.Request.Body != null &&
-                                        (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0))
+                                        (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0)) {
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body,
                                             true,
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
+                                    }
                                 }
 
-                                while (true)
-                                {
+                                while (true) {
                                     // get a connection pool for the current exchange 
 
                                     connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
 
                                     // Actual request send 
 
-                                    try
-                                    {
+                                    try {
                                         await connectionPool.Send(exchange, localConnection, buffer, token);
                                     }
-                                    catch (ConnectionCloseException)
-                                    {
+                                    catch (ConnectionCloseException) {
                                         // This connection was "goawayed" while current exchange 
                                         // tries to use it. 
 
@@ -150,8 +140,7 @@ namespace Fluxzy.Core
 
                                         continue;
                                     }
-                                    finally
-                                    {
+                                    finally {
                                         // We close the request body dispatchstream
                                         await SafeCloseRequestBody(exchange);
                                     }
@@ -159,8 +148,7 @@ namespace Fluxzy.Core
                                     break;
                                 }
                             }
-                            catch (Exception exception)
-                            {
+                            catch (Exception exception) {
                                 // The caller cancelled the task 
 
                                 await SafeCloseRequestBody(exchange);
@@ -169,7 +157,8 @@ namespace Fluxzy.Core
                                 if (exception is OperationCanceledException)
                                     break;
 
-                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange, ITimingProvider.Default))
+                                if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange,
+                                        ITimingProvider.Default))
                                     throw;
 
                                 shouldClose = true;
@@ -178,8 +167,7 @@ namespace Fluxzy.Core
                             // We do not need to read websocket response
 
                             if (!exchange.Request.Header.IsWebSocketRequest && !exchange.Context.BlindMode
-                                                                            && exchange.Response.Header != null)
-                            {
+                                                                            && exchange.Response.Header != null) {
                                 // Request processed by IHttpConnectionPool returns before complete response body
 
                                 await _proxyRuntimeSetting.EnforceRules(exchange.Context,
@@ -189,29 +177,28 @@ namespace Fluxzy.Core
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     exchange.Response.Body != null &&
                                     exchange.HttpVersion == "HTTP/2")
-                                    
+
                                     // HTTP2 servers are allowed to send response body
                                     // without specifying a content-length or transfer-encoding chunked.
                                     // In case content-length is not present, we force transfer-encoding chunked 
                                     // in order to inform HTTP/1.1 receiver of the content body end
-                                
+
                                     exchange.Response.Header.ForceTransferChunked();
-                                
-                                foreach (var responseHeaderAlteration in exchange.Context.ResponseHeaderAlterations)
-                                {
+
+                                foreach (var responseHeaderAlteration in exchange.Context.ResponseHeaderAlterations) {
                                     responseHeaderAlteration.Apply(exchange.Response.Header);
                                 }
-                                
-                                 // Writing the received header to downstream
 
-                                if (DebugContext.InsertFluxzyMetricsOnResponseHeader)
+                                // Writing the received header to downstream
+
+                                if (DebugContext.InsertFluxzyMetricsOnResponseHeader) {
                                     exchange.Response.Header?.AddExtraHeaderFieldToLocalConnection(
                                         exchange.GetMetricsSummaryAsHeader());
+                                }
 
                                 var responseHeaderLength = exchange.Response.Header!.WriteHttp11(buffer, true, true);
 
-                                if (_archiveWriter != null)
-                                {
+                                if (_archiveWriter != null) {
                                     // Update the state of the exchange
                                     // 
                                     _archiveWriter.Update(exchange, ArchiveUpdateType.AfterResponseHeader,
@@ -219,16 +206,14 @@ namespace Fluxzy.Core
                                     );
 
                                     if (exchange.Response.Body != null &&
-                                        (!exchange.Response.Body.CanSeek || exchange.Response.Body.Length > 0))
-                                    {
+                                        (!exchange.Response.Body.CanSeek || exchange.Response.Body.Length > 0)) {
                                         var dispatchStream = new DispatchStream(exchange.Response.Body,
                                             true,
                                             _archiveWriter.CreateResponseBodyStream(exchange.Id));
 
                                         var ext = exchange;
 
-                                        dispatchStream.OnDisposeDoneTask = () =>
-                                        {
+                                        dispatchStream.OnDisposeDoneTask = () => {
                                             _archiveWriter.Update(ext,
                                                 ArchiveUpdateType.AfterResponse,
                                                 CancellationToken.None
@@ -239,8 +224,7 @@ namespace Fluxzy.Core
 
                                         exchange.Response.Body = dispatchStream;
                                     }
-                                    else
-                                    {
+                                    else {
                                         // No response body, we ensure the stream is done
 
                                         _archiveWriter.Update(exchange,
@@ -250,19 +234,18 @@ namespace Fluxzy.Core
                                     }
                                 }
 
-                                try
-                                {
+                                try {
                                     // Start sending response to browser
                                     await localConnection.WriteStream.WriteAsync(
                                         new ReadOnlyMemory<byte>(buffer.Buffer, 0, responseHeaderLength),
                                         token);
                                 }
-                                catch (Exception ex)
-                                {
+                                catch (Exception ex) {
                                     await SafeCloseRequestBody(exchange);
                                     await SafeCloseResponseBody(exchange);
 
                                     if (ex is OperationCanceledException || ex is IOException)
+
                                         // local browser interrupt connection 
                                         break;
 
@@ -270,16 +253,15 @@ namespace Fluxzy.Core
                                 }
 
                                 if (exchange.Response.Header.ContentLength != 0 &&
-                                    exchange.Response.Body != null)
-                                {
+                                    exchange.Response.Body != null) {
                                     var localConnectionWriteStream = localConnection.WriteStream;
 
-                                    if (exchange.Response.Header.ChunkedBody)
+                                    if (exchange.Response.Header.ChunkedBody) {
                                         localConnectionWriteStream =
                                             new ChunkedTransferWriteStream(localConnectionWriteStream);
+                                    }
 
-                                    try
-                                    {
+                                    try {
                                         await exchange.Response.Body.CopyDetailed(
                                             localConnectionWriteStream, buffer.Buffer, _ => { }, token);
 
@@ -287,34 +269,30 @@ namespace Fluxzy.Core
 
                                         await localConnection.WriteStream.FlushAsync(CancellationToken.None);
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        if (ex is IOException || ex is OperationCanceledException)
-                                        {
+                                    catch (Exception ex) {
+                                        if (ex is IOException || ex is OperationCanceledException) {
                                             // Local connection may close the underlying stream before 
                                             // receiving the entire message. Particulary when waiting for the last 0\r\n\r\n on chunked stream.
                                             // In that case, we just leave
                                             // without any error
 
-                                            if (ex is IOException && ex.InnerException is SocketException sex)
+                                            if (ex is IOException && ex.InnerException is SocketException sex) {
                                                 if (sex.SocketErrorCode == SocketError.ConnectionAborted)
                                                     callerTokenSource.Cancel();
+                                            }
 
                                             break;
                                         }
 
                                         throw;
                                     }
-                                    finally
-                                    {
+                                    finally {
                                         await SafeCloseRequestBody(exchange);
                                         await SafeCloseResponseBody(exchange);
                                     }
                                 }
-                                else
-                                {
-                                    if (exchange.Response.Body != null)
-                                    {
+                                else {
+                                    if (exchange.Response.Body != null) {
                                         await SafeCloseRequestBody(exchange);
                                         await SafeCloseResponseBody(exchange);
                                     }
@@ -323,19 +301,15 @@ namespace Fluxzy.Core
                                 // In case the down stream connection is persisted, 
                                 // we wait for the current exchange to complete before reading further request
 
-                                try
-                                {
+                                try {
                                     shouldClose = shouldClose || await exchange.Complete;
                                 }
-                                catch (ExchangeException)
-                                {
+                                catch (ExchangeException) {
                                     // Enhance your calm
                                 }
                             }
                             else
-                            {
                                 shouldClose = true;
-                            }
 
                             // Handle websocket request here and produce result 
                         }
@@ -343,8 +317,7 @@ namespace Fluxzy.Core
                         if (shouldClose)
                             break;
 
-                        try
-                        {
+                        try {
                             // Read the nex HTTP message 
                             exchange = await _exchangeBuilder.ReadExchange(
                                 localConnection.ReadStream,
@@ -352,16 +325,14 @@ namespace Fluxzy.Core
                                 buffer, _proxyRuntimeSetting, token
                             );
 
-                            if (exchange != null)
-                            {
-                                var ep2 = (IPEndPoint)client.Client.RemoteEndPoint;
+                            if (exchange != null) {
+                                var ep2 = (IPEndPoint) client.Client.RemoteEndPoint;
 
                                 exchange.Metrics.LocalPort = ep2.Port;
                                 exchange.Metrics.LocalAddress = ep2.Address.ToString();
                             }
                         }
-                        catch (IOException)
-                        {
+                        catch (IOException) {
                             // Downstream close the underlying connection
                             break;
                         }
@@ -369,8 +340,7 @@ namespace Fluxzy.Core
                     while (exchange != null);
                 }
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 if (ex is OperationCanceledException)
                     return;
 
@@ -381,32 +351,30 @@ namespace Fluxzy.Core
 
         private async ValueTask SafeCloseRequestBody(Exchange exchange)
         {
-            if (exchange.Request.Body != null)
-                try
-                {
+            if (exchange.Request.Body != null) {
+                try {
                     // Clean the pipe 
                     await exchange.Request.Body.DisposeAsync();
                     exchange.Request.Body = null;
                 }
-                catch
-                {
+                catch {
                     // ignore errors when closing pipe 
                 }
+            }
         }
 
         private async ValueTask SafeCloseResponseBody(Exchange exchange)
         {
-            if (exchange.Response.Body != null)
-                try
-                {
+            if (exchange.Response.Body != null) {
+                try {
                     // Clean the pipe 
                     await exchange.Response.Body.DisposeAsync();
                     exchange.Response.Body = null;
                 }
-                catch
-                {
+                catch {
                     // ignore errors when closing pipe 
                 }
+            }
         }
     }
 }

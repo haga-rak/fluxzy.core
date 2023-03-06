@@ -1,6 +1,9 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Net;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
@@ -14,19 +17,15 @@ namespace Fluxzy.Desktop.Services
 {
     public class ProxyControl : ObservableProvider<ProxyState>
     {
-        private readonly ProxyScope _proxyScope;
-        private readonly FromIndexIdProvider _idProvider;
-        private readonly UaParserUserAgentInfoProvider _userAgentProvider;
         private readonly FileContentUpdateManager _fileContentUpdateManager;
+        private readonly FromIndexIdProvider _idProvider;
         private readonly BehaviorSubject<ProxyState> _internalSubject;
+        private readonly ProxyScope _proxyScope;
+        private readonly UaParserUserAgentInfoProvider _userAgentProvider;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null);
 
         private Proxy? _proxy;
-        private ITcpConnectionProvider?  _tcpConnectionProvider;
-
-        public IObservable<RealtimeArchiveWriter?> WriterObservable { get; }
-
-        protected override BehaviorSubject<ProxyState> Subject { get; }
+        private ITcpConnectionProvider? _tcpConnectionProvider;
 
         public ProxyControl(
             ProxyScope proxyScope,
@@ -54,8 +53,7 @@ namespace Fluxzy.Desktop.Services
                 )
                 .Select(stateAndSetting =>
                     Observable.Create<ProxyState>(
-                        async (observer, _) =>
-                        {
+                        async (observer, _) => {
                             var setting = stateAndSetting.First.StartupSetting;
 
                             var trunkState = await stateAndSetting.Second.Observable.FirstAsync();
@@ -87,35 +85,37 @@ namespace Fluxzy.Desktop.Services
             archiveReaderObservable.Do(a => ArchiveReader = a).Subscribe();
         }
 
+        public IObservable<RealtimeArchiveWriter?> WriterObservable { get; }
+
+        protected override BehaviorSubject<ProxyState> Subject { get; }
+
         public IArchiveReader? ArchiveReader { get; private set; }
 
         private async Task<ProxyState> ReloadProxy(
             FluxzySetting fluxzySetting,
             FileContentOperationManager currentContentOperationManager, int maxConnectionId, int maxExchangeId)
         {
-            if (_proxy != null)
-            {
+            if (_proxy != null) {
                 await _proxy.DisposeAsync();
                 _proxy = null;
                 await _tcpConnectionProvider!.DisposeAsync();
-                _tcpConnectionProvider = null; 
+                _tcpConnectionProvider = null;
             }
 
             IEnumerable<IPEndPoint> endPoints;
 
-            try
-            {
+            try {
                 _tcpConnectionProvider =
                     fluxzySetting.CaptureRawPacket
                         ? await CapturedTcpConnectionProvider.Create(_proxyScope, fluxzySetting.OutOfProcCapture)
                         : ITcpConnectionProvider.Default;
 
-                _proxy = new Proxy(fluxzySetting, 
-                    new CertificateProvider(fluxzySetting, 
-                        new InMemoryCertificateCache()), 
+                _proxy = new Proxy(fluxzySetting,
+                    new CertificateProvider(fluxzySetting,
+                        new InMemoryCertificateCache()),
                     new DefaultCertificateAuthorityManager(),
                     _tcpConnectionProvider,
-                    _userAgentProvider, idProvider : _idProvider);
+                    _userAgentProvider, _idProvider);
 
                 // This is to enabled pending exchange and connection into existing file 
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
@@ -123,22 +123,18 @@ namespace Fluxzy.Desktop.Services
 
                 _writerSubject.OnNext(_proxy.Writer);
 
-                _proxy.Writer.ExchangeUpdated += delegate(object? _, ExchangeUpdateEventArgs args)
-                {
+                _proxy.Writer.ExchangeUpdated += delegate(object? _, ExchangeUpdateEventArgs args) {
                     _fileContentUpdateManager.AddOrUpdate(args.ExchangeInfo, ArchiveReader!);
                 };
 
-                _proxy.Writer.ConnectionUpdated += delegate(object? _, ConnectionUpdateEventArgs args)
-                {
+                _proxy.Writer.ConnectionUpdated += delegate(object? _, ConnectionUpdateEventArgs args) {
                     _fileContentUpdateManager.AddOrUpdate(args.Connection);
                 };
 
                 endPoints = _proxy.Run();
             }
-            catch (Exception ex)
-            {
-                if (_proxy != null)
-                {
+            catch (Exception ex) {
+                if (_proxy != null) {
                     _writerSubject.OnNext(null);
                     await _proxy.DisposeAsync();
                     await _tcpConnectionProvider!.DisposeAsync();
@@ -152,7 +148,7 @@ namespace Fluxzy.Desktop.Services
 
         private ProxyState GetProxyState(IEnumerable<IPEndPoint> endPoints, FluxzySetting setting)
         {
-            return new ProxyState(setting, endPoints); 
+            return new ProxyState(setting, endPoints);
         }
 
         public bool TryFlush()
@@ -162,6 +158,7 @@ namespace Fluxzy.Desktop.Services
 
             if (_proxyScope.CaptureContext != null) {
                 _proxyScope.CaptureContext.Flush();
+
                 return true;
             }
 

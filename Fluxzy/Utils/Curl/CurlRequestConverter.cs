@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.IO;
 using System.Text;
 using Fluxzy.Misc;
@@ -17,11 +19,11 @@ namespace Fluxzy.Utils.Curl
         }
 
         public CurlCommandResult BuildCurlRequest(
-            IArchiveReader archiveReader, 
+            IArchiveReader archiveReader,
             ExchangeInfo exchange,
             IRunningProxyConfiguration? configuration)
         {
-            var result = new CurlCommandResult(configuration); 
+            var result = new CurlCommandResult(configuration);
             var fullUrl = exchange.FullUrl;
 
             result.AddArgument(fullUrl);
@@ -35,45 +37,38 @@ namespace Fluxzy.Utils.Curl
 
             // Setting up headers 
 
-            foreach (var requestHeader in exchange.GetRequestHeaders())
-            {
+            foreach (var requestHeader in exchange.GetRequestHeaders()) {
                 if (!requestHeader.Forwarded)
                     continue;
 
                 if (requestHeader.Name.Span.StartsWith(":"))
-                    continue; 
-                
+                    continue;
+
                 result.AddOption("-H", $"{requestHeader.Name}: {requestHeader.Value}");
             }
 
             using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
 
-            if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length > 0)
-            {
-                if (requestBodyStream.Length > (1024 * 8))
-                {
+            if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length > 0) {
+                if (requestBodyStream.Length > 1024 * 8) {
                     // We put file on temp 
                     AddBinaryPayload(result, requestBodyStream);
                 }
-                else
-                {
-                    byte [] buffer = new byte[(int) requestBodyStream.Length];
+                else {
+                    var buffer = new byte[(int) requestBodyStream.Length];
 
                     requestBodyStream.ReadExact(buffer);
 
-                    if (ArrayTextUtilities.IsText(buffer))
-                    {
+                    if (ArrayTextUtilities.IsText(buffer)) {
                         var bodyString = Encoding.UTF8.GetString(buffer);
                         result.AddOption("--data", bodyString);
                     }
                     else
-                    {
                         AddBinaryPayload(result, new MemoryStream(buffer));
-                    }
                 }
             }
 
-            return result; 
+            return result;
         }
 
         private void AddBinaryPayload(CurlCommandResult result, Stream requestBodyStream)

@@ -1,5 +1,6 @@
-﻿using System;
-using System.Diagnostics;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
@@ -8,28 +9,25 @@ namespace Fluxzy.Clients.H2.Encoder
     public class DecodingContext
     {
         private readonly HPackDecodingDynamicTable _dynamicTable;
-
-        private readonly Authority _authority;
         private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
 
         public DecodingContext(
             Authority authority,
-            ArrayPoolMemoryProvider<char> memoryProvider, 
+            ArrayPoolMemoryProvider<char> memoryProvider,
             int maxDynamicTableSize = 1024 * 4)
         {
-            _authority = authority;
+            Authority = authority;
             _memoryProvider = memoryProvider;
             _dynamicTable = new HPackDecodingDynamicTable(maxDynamicTableSize);
         }
 
-        public Authority Authority => _authority;
-        
+        public Authority Authority { get; }
 
-        internal HeaderField [] DynContent()
+        internal HeaderField[] DynContent()
         {
-            return _dynamicTable.GetContent(); 
+            return _dynamicTable.GetContent();
         }
-        
+
         internal HeaderField Register(ReadOnlySpan<char> headerName, ReadOnlySpan<char> headerValue)
         {
             var entry = new HeaderField(headerName, headerValue, _memoryProvider);
@@ -45,16 +43,15 @@ namespace Fluxzy.Clients.H2.Encoder
 
         public bool TryGetEntry(int externalIndex, out HeaderField tableEntry)
         {
-            var indexStaticTable = externalIndex - 1; 
+            var indexStaticTable = externalIndex - 1;
 
-            if ((indexStaticTable) < HPackStaticTableEntry.StaticTable.Length)
-            {
-                tableEntry = HPackStaticTableEntry.StaticTable[indexStaticTable]; 
+            if (indexStaticTable < HPackStaticTableEntry.StaticTable.Length) {
+                tableEntry = HPackStaticTableEntry.StaticTable[indexStaticTable];
+
                 return true;
             }
 
             return _dynamicTable.TryGet(externalIndex, out tableEntry);
         }
-        
     }
 }

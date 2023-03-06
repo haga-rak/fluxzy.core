@@ -1,18 +1,24 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>
-    /// Select exchange according to request method.
+    ///     Select exchange according to request method.
     /// </summary>
-
     [FilterMetaData(
         LongDescription = "Select exchange according to request method."
     )]
     public class MethodFilter : StringFilter
     {
+        public MethodFilter(string pattern)
+            : base(pattern, StringSelectorOperation.Exact)
+        {
+        }
+
         public override Guid Identifier => $"{Pattern}|{Operation}".GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
@@ -23,18 +29,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string GenericName => "Filter by HTTP method";
 
-        public MethodFilter(string pattern)
-            : base(pattern, StringSelectorOperation.Exact)
-        {
-        }
-
         protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
         {
             if (exchange != null)
                 yield return exchange.Method;
         }
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             CaseSensitive = false;

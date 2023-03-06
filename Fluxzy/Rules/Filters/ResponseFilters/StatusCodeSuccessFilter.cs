@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using Fluxzy.Misc;
@@ -6,7 +6,7 @@ using Fluxzy.Misc;
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    /// Select exchange that HTTP status code indicates a successful request (2XX)
+    ///     Select exchange that HTTP status code indicates a successful request (2XX)
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select exchange that HTTP status code indicates a successful request (2XX)."
@@ -27,7 +27,8 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 
         public override bool Common { get; set; } = true;
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange,
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             if (exchange == null)

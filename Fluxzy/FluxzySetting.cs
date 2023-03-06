@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
+using Fluxzy.Certificates;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -15,6 +16,11 @@ namespace Fluxzy
 {
     public class FluxzySetting
     {
+        [JsonConstructor]
+        public FluxzySetting()
+        {
+        }
+
         /// <summary>
         ///     Proxy listen address
         /// </summary>
@@ -24,8 +30,7 @@ namespace Fluxzy
         /// <summary>
         ///     Returns a friendly description of the bound points
         /// </summary>
-        public string BoundPointsDescription
-        {
+        public string BoundPointsDescription {
             get
             {
                 return string.Join(", ", BoundPoints
@@ -51,16 +56,17 @@ namespace Fluxzy
         /// </summary>
 
         [JsonInclude]
-        public SslProtocols ServerProtocols { get; internal set; } = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+        public SslProtocols ServerProtocols { get; internal set; } =
+            SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
         /// <summary>
-        ///     The CA certificate used for decryption 
+        ///     The CA certificate used for decryption
         /// </summary>
         public Certificate CaCertificate { get; set; } = Certificate.UseDefault();
 
         /// <summary>
         ///     The default certificate cache directory. Setting this value helps improving performance because producing
-        ///     root certificate on the fly is expensive. 
+        ///     root certificate on the fly is expensive.
         /// </summary>
         [JsonInclude]
         public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.echoes/cert-caches";
@@ -84,20 +90,18 @@ namespace Fluxzy
         public bool DisableCertificateCache { get; internal set; }
 
         /// <summary>
-        /// True if fluxzy should capture raw packet matching exchanges
+        ///     True if fluxzy should capture raw packet matching exchanges
         /// </summary>
         [JsonInclude]
-        public bool CaptureRawPacket { get; internal set; } = false;
+        public bool CaptureRawPacket { get; internal set; }
 
         /// <summary>
-        /// 
         /// </summary>
         [JsonInclude]
         public string? CaptureInterfaceName { get; internal set; }
 
-
         /// <summary>
-        /// Hosts that by pass proxy 
+        ///     Hosts that by pass proxy
         /// </summary>
         [JsonInclude]
         public List<string> ByPassHost {
@@ -108,11 +112,7 @@ namespace Fluxzy
             }
         }
 
-
-
-        public string ByPassHostFlat { get; set; } = "localhost;127.0.0.1"; 
-
-
+        public string ByPassHostFlat { get; set; } = "localhost;127.0.0.1";
 
         /// <summary>
         ///     Archiving policy
@@ -123,42 +123,33 @@ namespace Fluxzy
         ///     Global alteration rules
         /// </summary>
         public List<Rule> AlterationRules { get; set; } = new();
-        
+
         /// <summary>
-        /// Specify a filter which trigger save to directory when passed.
-        /// When this filter is null, any exchanges will be saved. 
+        ///     Specify a filter which trigger save to directory when passed.
+        ///     When this filter is null, any exchanges will be saved.
         /// </summary>
-        public Filter?  SaveFilter { get; set; }
-        
+        public Filter? SaveFilter { get; set; }
+
         /// <summary>
-        /// Skip SSL decryption for any exchanges. This setting cannot be overriden by rules 
+        ///     Skip SSL decryption for any exchanges. This setting cannot be overriden by rules
         /// </summary>
         public bool GlobalSkipSslDecryption { get; set; } = false;
 
         /// <summary>
-        /// When set to true, the raw network capture will be done out of process.
+        ///     When set to true, the raw network capture will be done out of process.
         /// </summary>
         public bool OutOfProcCapture { get; set; } = true;
 
         /// <summary>
-        /// Using bouncy castle for ssl streams instead of OsDefault (SChannel or OpenSSL)
+        ///     Using bouncy castle for ssl streams instead of OsDefault (SChannel or OpenSSL)
         /// </summary>
-        public bool UseBouncyCastle { get; set; } = false; 
-
-
-        [JsonConstructor]
-        public FluxzySetting()
-        {
-        }
+        public bool UseBouncyCastle { get; set; } = false;
 
         internal IEnumerable<Rule> FixedRules()
         {
-            if (GlobalSkipSslDecryption) {
-                yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default); 
-            }
+            if (GlobalSkipSslDecryption)
+                yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
         }
-
-
 
         /// <summary>
         ///     Set hosts that bypass the proxy
@@ -167,7 +158,7 @@ namespace Fluxzy
         /// <returns></returns>
         public FluxzySetting SetByPassedHosts(params string[] hosts)
         {
-            ByPassHostFlat = string.Join(";", hosts.Distinct()); 
+            ByPassHostFlat = string.Join(";", hosts.Distinct());
 
             return this;
         }
@@ -192,10 +183,11 @@ namespace Fluxzy
         /// <returns></returns>
         public FluxzySetting AddTunneledHosts(params string[] hosts)
         {
-            foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h)))
+            foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h))) {
                 AlterationRules.Add(new Rule(
                     new SkipSslTunnelingAction(),
                     new HostFilter(host, StringSelectorOperation.Exact)));
+            }
 
             return this;
         }
@@ -323,8 +315,7 @@ namespace Fluxzy
         /// <returns></returns>
         public static FluxzySetting CreateDefault()
         {
-            return new FluxzySetting
-            {
+            return new FluxzySetting {
                 ConnectionPerHost = 8
             }.SetBoundAddress("127.0.0.1", 44344);
         }

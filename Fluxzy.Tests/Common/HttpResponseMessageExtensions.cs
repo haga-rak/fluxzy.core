@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net.Http;
 using System.Text.Json;
@@ -12,14 +12,12 @@ namespace Fluxzy.Tests.Common
         public static async Task<HealthCheckResult> GetCheckResult(this HttpResponseMessage message)
         {
             var resultText = await message.Content.ReadAsStringAsync();
-            var res = JsonSerializer.Deserialize<HealthCheckResult>(resultText, new JsonSerializerOptions()
-            {
+
+            var res = JsonSerializer.Deserialize<HealthCheckResult>(resultText, new JsonSerializerOptions {
                 PropertyNameCaseInsensitive = true
-            } );
+            });
 
-            return res; 
+            return res;
         }
-
-    
     }
 }

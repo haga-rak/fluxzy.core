@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,15 +16,6 @@ namespace Fluxzy.Clients.H2
         private readonly Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new();
         private volatile int _windowSize;
 
-        public int WindowSize
-        {
-            get => _windowSize;
-
-            private set => _windowSize = value;
-        }
-
-        public int StreamIdentifier { get; }
-
         public WindowSizeHolder(
             H2Logger logger,
             int windowSize,
@@ -32,6 +25,14 @@ namespace Fluxzy.Clients.H2
             WindowSize = windowSize;
             StreamIdentifier = streamIdentifier;
         }
+
+        public int WindowSize {
+            get => _windowSize;
+
+            private set => _windowSize = value;
+        }
+
+        public int StreamIdentifier { get; }
 
         public void Dispose()
         {
@@ -43,9 +44,8 @@ namespace Fluxzy.Clients.H2
         {
             _logger.Trace(this, windowSizeIncrement);
 
-            lock (this)
-            {
-                if (WindowSize + (long)windowSizeIncrement > int.MaxValue)
+            lock (this) {
+                if (WindowSize + (long) windowSizeIncrement > int.MaxValue)
                     WindowSize = int.MaxValue;
                 else
                     WindowSize += windowSizeIncrement;
@@ -54,15 +54,14 @@ namespace Fluxzy.Clients.H2
             // This is not behaving as expected
             //_semaphore?.Release(_semaphore.CurrentCount);
 
-            lock (_windowSizeAWaiters)
-            {
+            lock (_windowSizeAWaiters) {
                 var list = new List<TaskCompletionSource<object?>>();
 
-                while (_windowSizeAWaiters.TryDequeue(out var item))
+                while (_windowSizeAWaiters.TryDequeue(out var item)) {
                     list.Add(item);
+                }
 
-                foreach (var item in list)
-                {
+                foreach (var item in list) {
                     item.SetResult(null);
                 }
             }
@@ -73,12 +72,10 @@ namespace Fluxzy.Clients.H2
             if (cancellationToken.IsCancellationRequested || requestedLength == 0)
                 return 0;
 
-            lock (this)
-            {
+            lock (this) {
                 var maxAvailable = Math.Min(requestedLength, WindowSize);
 
-                if (maxAvailable > 0)
-                {
+                if (maxAvailable > 0) {
                     WindowSize -= maxAvailable;
 
                     _logger.Trace(this, -maxAvailable);
@@ -91,8 +88,7 @@ namespace Fluxzy.Clients.H2
 
             // sleep until window updated 
 
-            lock (_windowSizeAWaiters)
-            {
+            lock (_windowSizeAWaiters) {
                 _windowSizeAWaiters.Enqueue(onJobReady);
             }
 

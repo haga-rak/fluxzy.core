@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System;
 using Fluxzy.Clients.H2.Frames;
 
 namespace Fluxzy.Clients.H2
@@ -37,8 +39,7 @@ namespace Fluxzy.Clients.H2
 
         public bool TryReadNextSetting(out SettingFrame settingFrame, ref int index)
         {
-            if (BodyLength == 0 && index == 0)
-            {
+            if (BodyLength == 0 && index == 0) {
                 settingFrame = new SettingFrame(_bodyBytes.Span.Slice(index), Flags);
                 index += 1;
 

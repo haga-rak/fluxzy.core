@@ -1,8 +1,7 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
-using Fluxzy.Readers;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
@@ -10,7 +9,8 @@ namespace Fluxzy.Formatters.Producers.Requests
     {
         public string ResultTitle => " \"Bearer token\"";
 
-        public AuthorizationBearerResult? Build(ExchangeInfo exchangeInfo,
+        public AuthorizationBearerResult? Build(
+            ExchangeInfo exchangeInfo,
             ProducerContext context)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
@@ -29,18 +29,18 @@ namespace Fluxzy.Formatters.Producers.Requests
             var token = targetHeader.Value.Span.Slice("Bearer ".Length).ToString();
 
             return new AuthorizationBearerResult(
-               ResultTitle, token);
+                ResultTitle, token);
         }
     }
 
     public class AuthorizationBearerResult : FormattingResult
     {
-        public string Token { get; }
-
         public AuthorizationBearerResult(string title, string token)
             : base(title)
         {
             Token = token;
         }
+
+        public string Token { get; }
     }
 }

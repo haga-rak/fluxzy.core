@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Haga Rakotoharivelo
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -10,7 +10,6 @@ namespace Fluxzy.Desktop.Services
     public class ActiveRuleManager : ObservableProvider<HashSet<Guid>>
     {
         private readonly IRuleStorage _ruleStorage;
-        protected override BehaviorSubject<HashSet<Guid>> Subject { get; } 
 
         public ActiveRuleManager(IRuleStorage ruleStorage)
         {
@@ -18,18 +17,17 @@ namespace Fluxzy.Desktop.Services
             var subject = new BehaviorSubject<HashSet<Guid>>(new HashSet<Guid>());
 
             ActiveRules = subject.AsObservable()
-                                 .Select(s => Observable.FromAsync(async () =>
-                                 {
-
+                                 .Select(s => Observable.FromAsync(async () => {
                                      var ruleContainers = await ruleStorage.ReadRules();
 
                                      return ruleContainers.Where(r => s.Contains(r.Rule.Identifier))
                                                           .Select(r => r.Rule).ToList();
-
                                  })).Concat();
 
             Subject = subject;
         }
+
+        protected override BehaviorSubject<HashSet<Guid>> Subject { get; }
 
         public IObservable<List<Rule>> ActiveRules { get; }
 
@@ -38,7 +36,7 @@ namespace Fluxzy.Desktop.Services
             var rules = await _ruleStorage.ReadRules();
 
             var selectRuleIds = rules.Where(r => r.Enabled)
-                               .Select(s => s.Rule.Identifier);
+                                     .Select(s => s.Rule.Identifier);
 
             SetCurrentSelection(selectRuleIds);
         }
@@ -48,7 +46,7 @@ namespace Fluxzy.Desktop.Services
             var current = new HashSet<Guid>(guids);
 
             if (current.SetEquals(Subject.Value))
-                return; 
+                return;
 
             Subject.OnNext(current);
         }
