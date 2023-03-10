@@ -9,6 +9,7 @@ using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Services.Ui;
+using Fluxzy.Desktop.Services.Wizards;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Metrics;
@@ -27,6 +28,7 @@ namespace Fluxzy.Desktop.Services
     {
         public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
+            collection.AddSingleton<GlobalUiSettingStorage>();
             collection.AddSingleton<ProxyScope>(_ =>
                 new ProxyScope(() => new FluxzyNetOutOfProcessHost(), a => new OutOfProcessCaptureContext(a)));
 
@@ -105,6 +107,8 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<CurlExportFolderManagement>(_ => new CurlExportFolderManagement());
             collection.AddScoped<FileExecutionManager>();
             collection.AddScoped<IRunningProxyProvider, RunningProxyProvider>();
+            
+            collection.AddScoped<CertificateWizard>();
 
             collection
                 .AddSingleton<ISystemProxySetterManager,
