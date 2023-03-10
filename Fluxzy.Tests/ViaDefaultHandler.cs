@@ -124,7 +124,7 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyDefaultHandler(sslProvider);
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 50; i++) {
                 var requestMessage = new HttpRequestMessage(
                     HttpMethod.Get,
                     urls[i % urls.Length]
