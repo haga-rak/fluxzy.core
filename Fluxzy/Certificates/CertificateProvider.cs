@@ -114,7 +114,7 @@ namespace Fluxzy.Certificates
             // Sign the certificate according to parent 
 
             var offSetEnd = new DateTimeOffset(_rootCertificate.NotAfter.AddSeconds(-1));
-            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(34));
+            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(12));
 
             if (offSetEnd > offsetLimit)
                 offSetEnd = offsetLimit;
