@@ -24,7 +24,7 @@ namespace Fluxzy.Tests
             var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
-            await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
+            await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
 
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
                 new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
@@ -49,7 +49,7 @@ namespace Fluxzy.Tests
             var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
-            await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
+            await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
 
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
                 new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null)) {
@@ -76,7 +76,7 @@ namespace Fluxzy.Tests
             var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
-            await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
+            await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
 
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
                 new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
