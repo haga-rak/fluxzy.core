@@ -22,6 +22,13 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return await _certificateWizard.ShouldAskCertificateWizard();
         }
 
+        [HttpGet("raw-capture/check")]
+        public ActionResult<bool> CheckRawCaptureEnable(
+            [FromServices] ICaptureAvailabilityChecker captureAvailabilityChecker)
+        {
+            return captureAvailabilityChecker.IsAvailable;
+        }
+
         [HttpPost("certificate/install")]
         public async Task<ActionResult<bool>> InstallCertificate()
         {

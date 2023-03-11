@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Concurrent;
 using System.Net;
@@ -100,13 +100,27 @@ namespace Fluxzy.Interop.Pcap
             return default;
         }
 
+        public bool Available {
+            get
+            {
+                try {
+                    return CaptureDeviceList.Instance.OfType<PcapDevice>().Any();
+                }
+                catch {
+                    // ignore further warning 
+
+                    return false;
+                }
+            }
+        }
+
         public Task Start()
         {
             _packetQueue = new SyncWriterQueue();
 
             lock (this) {
                 if (_disposed)
-                    return Task.CompletedTask; 
+                    return Task.CompletedTask;
 
                 _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
                 _captureDevice.Open(DeviceModes.MaxResponsiveness);
@@ -119,9 +133,7 @@ namespace Fluxzy.Interop.Pcap
 
         public ValueTask DisposeAsync()
         {
-
             lock (this) {
-
                 if (_disposed)
                     return ValueTask.CompletedTask;
 
@@ -132,7 +144,6 @@ namespace Fluxzy.Interop.Pcap
                 _captureDevice.Dispose();
                 _packetQueue?.Dispose();
             }
-
 
             return ValueTask.CompletedTask;
         }

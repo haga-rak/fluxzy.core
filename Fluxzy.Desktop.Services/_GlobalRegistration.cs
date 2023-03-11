@@ -32,6 +32,7 @@ namespace Fluxzy.Desktop.Services
         public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
             collection.AddSingleton<GlobalUiSettingStorage>();
+
             collection.AddSingleton<ProxyScope>(_ =>
                 new ProxyScope(() => new FluxzyNetOutOfProcessHost(), a => new OutOfProcessCaptureContext(a)));
 
@@ -52,10 +53,12 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<FileDynamicStatsManager>();
             collection.AddSingleton<LastOpenFileManager>();
             collection.AddSingleton<UaParserUserAgentInfoProvider>();
+
             collection.AddSingleton<CertificateAuthorityManager>(t =>
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                    t.GetRequiredService<DefaultCertificateAuthorityManager>() : 
-                    new OutOfProcAuthorityManager(t.GetRequiredService<DefaultCertificateAuthorityManager>()));
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? t.GetRequiredService<DefaultCertificateAuthorityManager>()
+                    : new OutOfProcAuthorityManager(t.GetRequiredService<DefaultCertificateAuthorityManager>()));
+
             collection.AddSingleton<DefaultCertificateAuthorityManager>();
 
             collection.AddSingleton
@@ -115,7 +118,8 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<CurlExportFolderManagement>(_ => new CurlExportFolderManagement());
             collection.AddScoped<FileExecutionManager>();
             collection.AddScoped<IRunningProxyProvider, RunningProxyProvider>();
-            
+
+            collection.AddScoped<ICaptureAvailabilityChecker, CaptureAvailabilityChecker>();
             collection.AddScoped<CertificateWizard>();
 
             collection
