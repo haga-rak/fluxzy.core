@@ -8,6 +8,8 @@ namespace Fluxzy
 {
     public interface ICaptureContext : IAsyncDisposable
     {
+        bool Available { get; }
+
         Task Start();
 
         void Include(IPAddress remoteAddress, int remotePort);

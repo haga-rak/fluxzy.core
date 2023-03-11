@@ -397,6 +397,10 @@ export class ApiService {
         return this.httpClient.get<CertificateWizardStatus>(`api/wizard/certificate/check`).pipe(take(1)) ;
     }
 
+    public wizardCheckRawCapture() : Observable<boolean> {
+        return this.httpClient.get<boolean>(`api/wizard/raw-capture/check`).pipe(take(1)) ;
+    }
+
     public wizardInstallCertificate() : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/wizard/certificate/install`, null).pipe(take(1)) ;
     }
