@@ -8,22 +8,22 @@ namespace Fluxzy.Desktop.Services.Wizards
 {
     public class CertificateWizard
     {
-        private readonly GlobalUiSettingStorage _globalUiSettingStorage;
         private readonly CertificateAuthorityManager _certificateAuthorityManager;
+        private readonly GlobalUiSettingStorage _globalUiSettingStorage;
         private readonly IObservable<FluxzySettingsHolder> _settingHolder;
 
         public CertificateWizard(
-            GlobalUiSettingStorage globalUiSettingStorage, 
-            CertificateAuthorityManager certificateAuthorityManager, 
+            GlobalUiSettingStorage globalUiSettingStorage,
+            CertificateAuthorityManager certificateAuthorityManager,
             IObservable<FluxzySettingsHolder> settingHolder)
         {
             _globalUiSettingStorage = globalUiSettingStorage;
             _certificateAuthorityManager = certificateAuthorityManager;
             _settingHolder = settingHolder;
         }
-        
+
         /// <summary>
-        /// Check if the certificate wizard shall be prompt to the user
+        ///     Check if the certificate wizard shall be prompt to the user
         /// </summary>
         /// <param name="setting"></param>
         public async Task<CertificateWizardStatus> ShouldAskCertificateWizard()
@@ -31,27 +31,35 @@ namespace Fluxzy.Desktop.Services.Wizards
             // Check for installed certificate 
 
             var setting = (await _settingHolder.FirstAsync()).StartupSetting;
-            var certificate = setting.CaCertificate.GetCertificate(); 
-            
-            var certificateFriendlyName = certificate.FriendlyName;
-            
+            var certificate = setting.CaCertificate.GetCertificate();
+
+            var certificateFriendlyName = certificate.Subject;
+
             var runningCertificateThumbPrint = certificate.Thumbprint;
-            
-            return new CertificateWizardStatus(_certificateAuthorityManager.IsCertificateInstalled(runningCertificateThumbPrint),
-                _globalUiSettingStorage.UiUserSetting.StartupWizardSettings.NoCertificateInstallExplicit, certificateFriendlyName);
+
+            return new CertificateWizardStatus(
+                _certificateAuthorityManager.IsCertificateInstalled(runningCertificateThumbPrint),
+                _globalUiSettingStorage.UiUserSetting.StartupWizardSettings.NoCertificateInstallExplicit,
+                certificateFriendlyName);
         }
-        
+
         public async Task<bool> InstallCertificate()
         {
-            var setting = (await _settingHolder.FirstAsync()).StartupSetting; 
+            var setting = (await _settingHolder.FirstAsync()).StartupSetting;
             var certificate = setting.CaCertificate.GetCertificate();
 
             return await _certificateAuthorityManager.InstallCertificate(certificate);
         }
-        
+
         public void RefuseCertificate()
         {
             _globalUiSettingStorage.UiUserSetting.StartupWizardSettings.NoCertificateInstallExplicit = true;
+            _globalUiSettingStorage.UpdateUiSetting();
+        }
+
+        public void ReviveWizard()
+        {
+            _globalUiSettingStorage.UiUserSetting.StartupWizardSettings.NoCertificateInstallExplicit = false;
             _globalUiSettingStorage.UpdateUiSetting();
         }
     }

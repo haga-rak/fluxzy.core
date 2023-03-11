@@ -1,6 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
+using Fluxzy.Certificates;
+using Fluxzy.Cli.System;
 using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Core.Proxy;
@@ -49,6 +52,11 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<FileDynamicStatsManager>();
             collection.AddSingleton<LastOpenFileManager>();
             collection.AddSingleton<UaParserUserAgentInfoProvider>();
+            collection.AddSingleton<CertificateAuthorityManager>(t =>
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                    t.GetRequiredService<DefaultCertificateAuthorityManager>() : 
+                    new OutOfProcAuthorityManager(t.GetRequiredService<DefaultCertificateAuthorityManager>()));
+            collection.AddSingleton<DefaultCertificateAuthorityManager>();
 
             collection.AddSingleton
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);

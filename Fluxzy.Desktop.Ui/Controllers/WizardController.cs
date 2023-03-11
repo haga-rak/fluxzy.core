@@ -15,23 +15,36 @@ namespace Fluxzy.Desktop.Ui.Controllers
         {
             _certificateWizard = certificateWizard;
         }
-        
+
         [HttpGet("certificate/check")]
         public async Task<ActionResult<CertificateWizardStatus>> ShouldAskCertificateWizard()
         {
             return await _certificateWizard.ShouldAskCertificateWizard();
         }
-        
+
         [HttpPost("certificate/install")]
         public async Task<ActionResult<bool>> InstallCertificate()
         {
             return await _certificateWizard.InstallCertificate();
         }
-        
+
         [HttpPost("certificate/refuse")]
-        public async Task<ActionResult<bool>> RefuseCertificate()
+        public ActionResult<bool> RefuseCertificate()
         {
             _certificateWizard.RefuseCertificate();
+
+            return true;
+        }
+
+        /// <summary>
+        ///     Undo the refuse certificate wizard
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("certificate/revive")]
+        public ActionResult<bool> ReviveWizard()
+        {
+            _certificateWizard.ReviveWizard();
+
             return true;
         }
     }

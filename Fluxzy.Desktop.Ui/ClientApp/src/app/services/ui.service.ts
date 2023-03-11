@@ -79,7 +79,6 @@ export class UiStateService {
         )
          .subscribe();
 
-
         this.getUiState()
             .pipe(
                 tap(t => this.uiState = t)
@@ -87,6 +86,14 @@ export class UiStateService {
 
         this.menuService.registerMenuEvent('save', () => {
             this.apiService.fileSave().subscribe();
+        });
+
+        this.menuService.registerMenuEvent('certificate-wizard', () => {
+            this.apiService.wizardRevive()
+                .pipe(
+                    switchMap(t => this.apiService.wizardShouldAskCertificate()),
+                   switchMap(t => this.dialogService.openWizardDialog(t)) )
+                .subscribe();
         });
     }
 
