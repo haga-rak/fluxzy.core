@@ -187,8 +187,11 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 id : 'global-settings'
             },
             {
-                label : 'Ui settings',
-                accelerator: process.platform === 'darwin' ? 'Cmd+O' : 'Ctrl+O',
+                type :  'separator'
+            },
+            {
+                label : 'Run certificate wizard',
+                id : 'certificate-wizard'
             }
         ]
     },

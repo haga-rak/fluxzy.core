@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Text.Json;
 using Fluxzy.Desktop.Services.Wizards;
 
 namespace Fluxzy.Desktop.Services
@@ -15,12 +16,16 @@ namespace Fluxzy.Desktop.Services
 
             Directory.CreateDirectory(applicationPath);
 
-            ApplicationPath = applicationPath; 
-            
+            ApplicationPath = applicationPath;
+
             _uiSettingPath = Path.Combine(ApplicationPath, "ui-settings.json");
 
-            UiUserSetting = LoadUiSetting(); 
+            UiUserSetting = LoadUiSetting();
         }
+
+        public string ApplicationPath { get; }
+
+        public UiUserSetting UiUserSetting { get; private set; }
 
         private UiUserSetting LoadUiSetting()
         {
@@ -29,7 +34,8 @@ namespace Fluxzy.Desktop.Services
 
             try {
                 using var fileStream = File.OpenRead(_uiSettingPath);
-                return System.Text.Json.JsonSerializer.Deserialize<UiUserSetting>(fileStream)!; 
+
+                return JsonSerializer.Deserialize<UiUserSetting>(fileStream)!;
             }
             catch {
                 // If error happens when loading setting, we just ignore and return the default value 
@@ -37,16 +43,13 @@ namespace Fluxzy.Desktop.Services
             }
         }
 
-        public string ApplicationPath { get;  }
-        
-        public UiUserSetting UiUserSetting { get; private set; }
-        
-        
         public void UpdateUiSetting()
         {
-            using var fileStream = File.OpenRead(_uiSettingPath);
-            System.Text.Json.JsonSerializer.Serialize(fileStream, UiUserSetting);
-            UiUserSetting = LoadUiSetting(); 
+            using (var fileStream = File.Create(_uiSettingPath)) {
+                JsonSerializer.Serialize(fileStream, UiUserSetting);
+            }
+
+            UiUserSetting = LoadUiSetting();
         }
     }
 }
