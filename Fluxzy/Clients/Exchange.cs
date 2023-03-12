@@ -68,6 +68,14 @@ namespace Fluxzy.Clients
             Metrics.ReceivedFromProxy = receivedFromProxy;
         }
 
+        /// <summary>
+        ///     Creating exchange from handler
+        /// </summary>
+        /// <param name="idProvider"></param>
+        /// <param name="authority"></param>
+        /// <param name="requestHeaderPlain"></param>
+        /// <param name="httpVersion"></param>
+        /// <param name="receivedFromProxy"></param>
         public Exchange(
             IIdProvider idProvider,
             Authority authority,

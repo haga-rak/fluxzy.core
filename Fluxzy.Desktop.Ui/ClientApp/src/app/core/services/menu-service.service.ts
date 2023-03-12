@@ -144,7 +144,6 @@ export class MenuService {
         return ConfirmResult.Cancel;
     }
 
-
     public registerMenuEvent(menuId: string, callback: () => void): void {
         this.callBacks[menuId] = callback;
     }
