@@ -1,12 +1,14 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Rules.Actions;
 
 namespace Fluxzy.Clients
 {
@@ -50,5 +52,25 @@ namespace Fluxzy.Clients
         public List<HeaderAlteration> RequestHeaderAlterations { get; } = new();
 
         public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new();
+
+        public BreakPointContext? BreakPointContext { get; set; }
+
+        /// <summary>
+        /// </summary>
+        public BreakPointManager? BreakPointManager { get; set; }
     }
+
+    public class BreakPointContext
+    {
+        private readonly int _exchangeId;
+
+        public BreakPointContext(int exchangeId)
+        {
+            _exchangeId = exchangeId;
+        }
+
+        public Task<IPEndPoint?>? BreakOnDnsTask { get; set; }
+    }
+
+    
 }

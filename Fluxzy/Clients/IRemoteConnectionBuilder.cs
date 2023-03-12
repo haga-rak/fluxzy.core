@@ -59,6 +59,18 @@ namespace Fluxzy.Clients
             var ipAddress = exchange.Context.RemoteHostIp ??
                             await _dnsSolver.SolveDns(exchange.Authority.HostName);
 
+            var remotePort = exchange.Context.RemoteHostPort ??
+                             exchange.Authority.Port;
+
+            if (exchange.Context.BreakPointContext?.BreakOnDnsTask != null) {
+                var endPoint = await exchange.Context.BreakPointContext.BreakOnDnsTask;
+
+                if (endPoint != null) {
+                    ipAddress = endPoint.Address; 
+                    remotePort = endPoint.Port;
+                }
+            }
+
             exchange.Connection.RemoteAddress = ipAddress;
             exchange.Connection.DnsSolveEnd = _timeProvider.Instant();
 
@@ -67,8 +79,7 @@ namespace Fluxzy.Clients
                                            ? setting.ArchiveWriter?.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
 
-            var localEndpoint = await tcpConnection.ConnectAsync(ipAddress, exchange.Context.RemoteHostPort ??
-                                                                            exchange.Authority.Port)
+            var localEndpoint = await tcpConnection.ConnectAsync(ipAddress, remotePort)
                                                    .ConfigureAwait(false);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
