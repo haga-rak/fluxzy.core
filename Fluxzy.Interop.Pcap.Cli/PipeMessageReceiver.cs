@@ -48,11 +48,10 @@ namespace Fluxzy.Interop.Pcap.Cli
         {
             try {
                 using var client = await _tcpListener.AcceptTcpClientAsync(_token);
-                
-                client.NoDelay = true;
-                
-                await using var stream = client.GetStream();
 
+                client.NoDelay = true;
+
+                await using var stream = client.GetStream();
 
                 var binaryWriter = new BinaryWriter(stream);
                 var binaryReader = new BinaryReader(stream);
@@ -84,7 +83,8 @@ namespace Fluxzy.Interop.Pcap.Cli
                         case MessageType.Include:
                             var includeMessage = IncludeMessage.FromReader(binaryReader);
                             _includeHandler(includeMessage);
-                            binaryWriter.Write((int) 0);
+                            binaryWriter.Write(0);
+
                             break;
 
                         case MessageType.ClearAll:

@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions

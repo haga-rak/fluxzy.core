@@ -7,7 +7,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
-using Fluxzy.Rules.Actions;
+using Fluxzy.Core.Breakpoints;
 
 namespace Fluxzy.Clients
 {

@@ -15,6 +15,7 @@ using Fluxzy.Clients.Ssl;
 using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Core;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -89,7 +90,6 @@ namespace Fluxzy
         public ProxyExecutionContext ExecutionContext { get; }
 
         public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
-
 
         internal FromIndexIdProvider IdProvider { get; }
 

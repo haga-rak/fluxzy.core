@@ -73,10 +73,10 @@ namespace Fluxzy.Clients
 
             // out of scope action needs to be run everytime 
 
-            foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope 
+            foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope
                                                             || a.Action.ActionScope == FilterScope.OutOfScope)) {
                 await rule.Enforce(
-                    context, exchange, connection, filterScope, 
+                    context, exchange, connection, filterScope,
                     ExecutionContext.BreakPointManager);
             }
         }

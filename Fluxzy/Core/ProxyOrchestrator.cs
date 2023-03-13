@@ -180,7 +180,6 @@ namespace Fluxzy.Core
 
                             if (!exchange.Request.Header.IsWebSocketRequest && !exchange.Context.BlindMode
                                                                             && exchange.Response.Header != null) {
-
                                 // Request processed by IHttpConnectionPool returns before complete response body
                                 // Apply response alteration 
 
@@ -190,13 +189,11 @@ namespace Fluxzy.Core
 
                                 // Setup break point for response 
 
-                                if (exchange.Context.BreakPointContext != null && exchange.Response.Header != null)
-                                {
+                                if (exchange.Context.BreakPointContext != null && exchange.Response.Header != null) {
                                     var response = await exchange.Context.BreakPointContext.ResponseHeaderCompletion
-                                                                .WaitForValue();
+                                                                 .WaitForValue();
 
-                                    if (response != null)
-                                    {
+                                    if (response != null) {
                                         exchange.Response.Header = response.Header;
                                         exchange.Response.Body = response.Body;
                                     }
@@ -299,7 +296,6 @@ namespace Fluxzy.Core
                                     }
                                     catch (Exception ex) {
                                         if (ex is IOException || ex is OperationCanceledException) {
-
                                             // Local connection may close the underlying stream before 
                                             // receiving the entire message. Particulary when waiting for the last 0\r\n\r\n on chunked stream.
                                             // In that case, we just leave
