@@ -26,7 +26,8 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription => $"Change url path {NewPath}".Trim();
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             exchange.Request.Header.Path = NewPath.AsMemory();
 

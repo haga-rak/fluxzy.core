@@ -38,7 +38,8 @@ namespace Fluxzy.Rules.Actions
                 : $"Add request header ({HeaderName}, {HeaderValue})";
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.RequestHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName, HeaderValue));
 

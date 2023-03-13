@@ -18,7 +18,8 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription => "Remove cache";
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             // TODO : reuse the same HeaderAlteration instance here instead of allocating new ones each call
 

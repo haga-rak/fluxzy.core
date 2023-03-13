@@ -90,6 +90,7 @@ namespace Fluxzy
 
         public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
 
+
         internal FromIndexIdProvider IdProvider { get; }
 
         public FluxzySetting StartupSetting { get; }
@@ -210,5 +211,7 @@ namespace Fluxzy
         public string SessionId { get; }
 
         public FluxzySetting StartupSetting { get; }
+
+        public BreakPointManager BreakPointManager { get; } = new();
     }
 }

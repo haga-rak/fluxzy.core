@@ -27,7 +27,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         public override string DefaultDescription => "Full response substitution";
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.PreMadeResponse = PreMadeResponse;
 

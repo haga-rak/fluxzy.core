@@ -71,8 +71,13 @@ namespace Fluxzy.Clients
             if (_effectiveRules == null)
                 _effectiveRules = _startupSetting.FixedRules().Concat(_startupSetting.AlterationRules).ToList();
 
-            foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope)) {
-                await rule.Enforce(context, exchange, connection, filterScope);
+            // out of scope action needs to be run everytime 
+
+            foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope 
+                                                            || a.Action.ActionScope == FilterScope.OutOfScope)) {
+                await rule.Enforce(
+                    context, exchange, connection, filterScope, 
+                    ExecutionContext.BreakPointManager);
             }
         }
     }

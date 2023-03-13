@@ -17,7 +17,8 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription => "Skip certificate validation";
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.SkipRemoteCertificateValidation = true;
 

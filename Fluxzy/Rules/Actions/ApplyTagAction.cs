@@ -23,7 +23,8 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription => $"Apply tag {Tag}".Trim();
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             if (Tag != null && exchange != null) {
                 exchange.Tags ??= new HashSet<Tag>();
