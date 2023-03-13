@@ -237,7 +237,7 @@ namespace Fluxzy.Clients
 
     public enum ExchangeStep
     {
-        Received, 
+        Received,
         Request,
         Connection,
         Response

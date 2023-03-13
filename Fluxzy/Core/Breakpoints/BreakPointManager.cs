@@ -1,13 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
-namespace Fluxzy.Rules.Actions
+namespace Fluxzy.Core.Breakpoints
 {
     public class BreakPointManager
     {
@@ -19,7 +18,7 @@ namespace Fluxzy.Rules.Actions
 
         public BreakPointContext GetOrCreate(Exchange exchange, FilterScope filterScope)
         {
-            var context =  _runningContext.GetOrAdd(exchange.Id, (_) => new BreakPointContext(exchange, UpdateContext));
+            var context = _runningContext.GetOrAdd(exchange.Id, (_) => new BreakPointContext(exchange, UpdateContext));
 
             context.CurrentScope = filterScope;
 
@@ -33,22 +32,14 @@ namespace Fluxzy.Rules.Actions
 
         internal BreakPointContext GetFirst()
         {
-            return _runningContext.Values.First(); 
+            return _runningContext.Values.First();
         }
-
-
-
 
         private void UpdateContext(BreakPointContext obj)
         {
             // TODO: Notify UI
-            _contextQueue.Writer.TryWrite(obj); 
+            _contextQueue.Writer.TryWrite(obj);
         }
-    }
-
-    public class BreakPointState
-    {
-        public List<BreakPointContextState> States { get; set; } = new();
     }
 
     public class BreakPointContextState

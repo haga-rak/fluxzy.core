@@ -62,11 +62,11 @@ namespace Fluxzy.Clients
             var remotePort = exchange.Context.RemoteHostPort ??
                              exchange.Authority.Port;
 
-            if (exchange.Context.BreakPointContext!= null) {
+            if (exchange.Context.BreakPointContext != null) {
                 var endPoint = await exchange.Context.BreakPointContext.EndPointCompletion.WaitForValue();
 
                 if (endPoint != null) {
-                    ipAddress = endPoint.Address; 
+                    ipAddress = endPoint.Address;
                     remotePort = endPoint.Port;
                 }
             }

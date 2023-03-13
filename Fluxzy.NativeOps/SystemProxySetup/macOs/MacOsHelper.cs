@@ -10,7 +10,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
     {
         // Adding root certificate on macos s
         // sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain r.cer 
-        
+
         public static IEnumerable<Interface> GetEnabledInterfaces()
         {
             var runResult = ProcessUtils.QuickRun("networksetup", "-listnetworkserviceorder");
@@ -20,7 +20,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 
             var commandResponse = runResult.StandardOutputMessage;
 
-            return  ParseInterfaces(commandResponse);
+            return ParseInterfaces(commandResponse);
         }
 
         public static IEnumerable<Interface> ParseInterfaces(string commandResponse)
@@ -28,15 +28,14 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
             var lines = commandResponse
                 .Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            for (var index = 0; index < lines.Length - 1; index++)
-            {
+            for (var index = 0; index < lines.Length - 1; index++) {
                 var line = lines[index];
                 var nextLine = lines[index + 1];
 
-                var iface = Interface.BuildFrom(new[] { line, nextLine});
+                var iface = Interface.BuildFrom(new[] { line, nextLine });
 
                 if (iface == null)
-                    continue; 
+                    continue;
 
                 // parsing happens 
 
@@ -45,7 +44,6 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
                 yield return iface;
             }
         }
-
 
         public static void TrySetProxySettings(IEnumerable<Interface> interfaces)
         {
@@ -59,7 +57,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 
                 var commandResponse = commandLineResult.StandardOutputMessage;
 
-                var proxySetting = InterfaceProxySetting.Get(commandResponse);  
+                var proxySetting = InterfaceProxySetting.Get(commandResponse);
 
                 if (proxySetting == null)
                     continue;

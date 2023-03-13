@@ -20,8 +20,6 @@ namespace Fluxzy.Tests.Common
         private readonly TaskCompletionSource _completionSource;
         private readonly int _expectedRequestCount;
 
-        public Proxy InternalProxy { get; }
-
         private int _requestCount;
 
         public AddHocConfigurableProxy(int expectedRequestCount = 1, int timeoutSeconds = 5)
@@ -50,6 +48,8 @@ namespace Fluxzy.Tests.Common
                 }
             });
         }
+
+        public Proxy InternalProxy { get; }
 
         public int BindPort { get; }
 

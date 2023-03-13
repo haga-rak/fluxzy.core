@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
-using Fluxzy.Rules.Actions;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules.Filters;
 using YamlDotNet.Serialization;
 
