@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using YamlDotNet.Serialization;
 
@@ -33,11 +34,11 @@ namespace Fluxzy.Rules
         public ValueTask Enforce(
             ExchangeContext context,
             Exchange? exchange,
-            Connection? connection, FilterScope filterScope)
+            Connection? connection, FilterScope filterScope, BreakPointManager breakPointManager)
         {
             // TODO put a decent filtering context here 
             if (Filter.Apply(context.Authority, exchange, null))
-                return Action.Alter(context, exchange, connection, filterScope);
+                return Action.Alter(context, exchange, connection, filterScope, breakPointManager);
 
             return default;
         }

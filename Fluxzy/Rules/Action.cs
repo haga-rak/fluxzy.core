@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Misc.Converters;
+using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using YamlDotNet.Serialization;
 
@@ -30,6 +31,7 @@ namespace Fluxzy.Rules
             !string.IsNullOrWhiteSpace(Description) ? Description : DefaultDescription;
 
         public abstract ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope);
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager);
     }
 }

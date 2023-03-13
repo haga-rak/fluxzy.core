@@ -24,7 +24,8 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription => "Force using HTTP/2.0";
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             // TODO avoid allocating new list here 
 

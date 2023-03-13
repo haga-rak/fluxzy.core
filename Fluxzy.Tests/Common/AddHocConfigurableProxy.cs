@@ -19,7 +19,8 @@ namespace Fluxzy.Tests.Common
         private readonly List<Exchange> _capturedExchanges = new();
         private readonly TaskCompletionSource _completionSource;
         private readonly int _expectedRequestCount;
-        private readonly Proxy _proxy;
+
+        public Proxy InternalProxy { get; }
 
         private int _requestCount;
 
@@ -33,11 +34,11 @@ namespace Fluxzy.Tests.Common
                              .CreateDefault()
                              .SetBoundAddress(BindHost, BindPort);
 
-            _proxy = new Proxy(StartupSetting,
+            InternalProxy = new Proxy(StartupSetting,
                 new CertificateProvider(StartupSetting, new InMemoryCertificateCache()),
                 new DefaultCertificateAuthorityManager());
 
-            _proxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
+            InternalProxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 
             _cancellationSource = new CancellationTokenSource(timeoutSeconds * 1000);
             _completionSource = new TaskCompletionSource();
@@ -60,13 +61,13 @@ namespace Fluxzy.Tests.Common
 
         public async ValueTask DisposeAsync()
         {
-            await _proxy.DisposeAsync();
+            await InternalProxy.DisposeAsync();
             _cancellationSource.Dispose();
         }
 
         public IReadOnlyCollection<IPEndPoint> Run()
         {
-            return _proxy.Run();
+            return InternalProxy.Run();
         }
 
         private void ProxyOnBeforeResponse(object? sender, ExchangeUpdateEventArgs exchangeUpdateEventArgs)

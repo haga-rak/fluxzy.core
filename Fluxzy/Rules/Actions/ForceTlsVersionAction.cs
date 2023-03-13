@@ -33,7 +33,8 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription => $"Force using {SslProtocols}";
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.ProxyTlsProtocols = SslProtocols;
 

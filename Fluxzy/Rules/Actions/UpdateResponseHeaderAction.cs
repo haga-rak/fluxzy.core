@@ -40,7 +40,8 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription => $"Update response header {HeaderName}".Trim();
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.ResponseHeaderAlterations.Add(new HeaderAlterationReplace(HeaderName, HeaderValue));
 

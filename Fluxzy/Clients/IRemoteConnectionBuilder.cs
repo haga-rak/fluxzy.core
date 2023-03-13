@@ -63,7 +63,7 @@ namespace Fluxzy.Clients
                              exchange.Authority.Port;
 
             if (exchange.Context.BreakPointContext!= null) {
-                var endPoint = await exchange.Context.BreakPointContext.OriginEndPoint.WaitForValue();
+                var endPoint = await exchange.Context.BreakPointContext.EndPointCompletion.WaitForValue();
 
                 if (endPoint != null) {
                     ipAddress = endPoint.Address; 

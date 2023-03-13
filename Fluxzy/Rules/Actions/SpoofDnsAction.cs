@@ -29,7 +29,8 @@ namespace Fluxzy.Rules.Actions
             RemoteHostIp == null ? "Spoof dns".Trim() : $"Spoof dns {RemoteHostIp}:{RemoteHostPort}".Trim();
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.RemoteHostIp = RemoteHostIp;
             context.RemoteHostPort = RemoteHostPort;

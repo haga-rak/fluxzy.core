@@ -28,7 +28,8 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription => $"Change method {NewMethod}".Trim();
 
         public override ValueTask Alter(
-            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             if (exchange == null)
                 return default;
