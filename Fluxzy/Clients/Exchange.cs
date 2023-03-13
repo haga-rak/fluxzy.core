@@ -91,6 +91,8 @@ namespace Fluxzy.Clients
 
         public int Id { get; }
 
+        public ExchangeStep Step { get; set; } = ExchangeStep.Received;
+
         /// <summary>
         ///     This tasks indicates the status of the exchange
         /// </summary>
@@ -233,6 +235,14 @@ namespace Fluxzy.Clients
         }
     }
 
+    public enum ExchangeStep
+    {
+        Received, 
+        Request,
+        Connection,
+        Response
+    }
+
     public class Request
     {
         public Request(RequestHeader header)
@@ -240,7 +250,7 @@ namespace Fluxzy.Clients
             Header = header;
         }
 
-        public RequestHeader Header { get; }
+        public RequestHeader Header { get; internal set; }
 
         public Stream? Body { get; set; }
 

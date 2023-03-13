@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading.Tasks;
@@ -33,11 +33,11 @@ namespace Fluxzy.Rules
         public ValueTask Enforce(
             ExchangeContext context,
             Exchange? exchange,
-            Connection? connection)
+            Connection? connection, FilterScope filterScope)
         {
             // TODO put a decent filtering context here 
             if (Filter.Apply(context.Authority, exchange, null))
-                return Action.Alter(context, exchange, connection);
+                return Action.Alter(context, exchange, connection, filterScope);
 
             return default;
         }

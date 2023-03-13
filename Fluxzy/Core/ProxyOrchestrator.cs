@@ -66,7 +66,7 @@ namespace Fluxzy.Core
                     var exchange =
                         localConnection.ProvisionalExchange;
 
-                    var endPoint = (IPEndPoint) client.Client.RemoteEndPoint;
+                    var endPoint = (IPEndPoint) client.Client.RemoteEndPoint!;
 
                     exchange.Metrics.LocalPort = endPoint.Port;
                     exchange.Metrics.LocalAddress = endPoint.Address.ToString();
@@ -88,9 +88,11 @@ namespace Fluxzy.Core
                                 // Solve user agent 
 
                                 exchange.Agent = Agent.Create(userAgentValue ?? string.Empty,
-                                    ((IPEndPoint) client.Client.LocalEndPoint).Address,
+                                    ((IPEndPoint) client.Client.LocalEndPoint!).Address,
                                     _proxyRuntimeSetting.UserAgentProvider);
                             }
+
+                            exchange.Step = ExchangeStep.Request;
 
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
@@ -100,6 +102,16 @@ namespace Fluxzy.Core
 
                             foreach (var requestHeaderAlteration in exchange.Context.RequestHeaderAlterations) {
                                 requestHeaderAlteration.Apply(exchange.Request.Header);
+                            }
+
+                            if (exchange.Context.BreakPointContext != null) {
+                                var request = await exchange.Context.BreakPointContext.RequestHeaderCompletion
+                                                            .WaitForValue();
+
+                                if (request != null) {
+                                    exchange.Request.Header = request.Header;
+                                    exchange.Request.Body = request.Body;
+                                }
                             }
 
                             IHttpConnectionPool connectionPool;
@@ -168,11 +180,27 @@ namespace Fluxzy.Core
 
                             if (!exchange.Request.Header.IsWebSocketRequest && !exchange.Context.BlindMode
                                                                             && exchange.Response.Header != null) {
+
                                 // Request processed by IHttpConnectionPool returns before complete response body
+                                // Apply response alteration 
 
                                 await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                     FilterScope.ResponseHeaderReceivedFromRemote,
                                     exchange.Connection, exchange);
+
+                                // Setup break point for response 
+
+                                if (exchange.Context.BreakPointContext != null && exchange.Response.Header != null)
+                                {
+                                    var response = await exchange.Context.BreakPointContext.ResponseHeaderCompletion
+                                                                .WaitForValue();
+
+                                    if (response != null)
+                                    {
+                                        exchange.Response.Header = response.Header;
+                                        exchange.Response.Body = response.Body;
+                                    }
+                                }
 
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     exchange.Response.Body != null &&
@@ -271,6 +299,7 @@ namespace Fluxzy.Core
                                     }
                                     catch (Exception ex) {
                                         if (ex is IOException || ex is OperationCanceledException) {
+
                                             // Local connection may close the underlying stream before 
                                             // receiving the entire message. Particulary when waiting for the last 0\r\n\r\n on chunked stream.
                                             // In that case, we just leave
@@ -326,7 +355,7 @@ namespace Fluxzy.Core
                             );
 
                             if (exchange != null) {
-                                var ep2 = (IPEndPoint) client.Client.RemoteEndPoint;
+                                var ep2 = (IPEndPoint) client.Client.RemoteEndPoint!;
 
                                 exchange.Metrics.LocalPort = ep2.Port;
                                 exchange.Metrics.LocalAddress = ep2.Address.ToString();

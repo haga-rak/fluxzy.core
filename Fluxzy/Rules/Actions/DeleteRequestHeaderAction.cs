@@ -28,7 +28,8 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => $"Remove header {HeaderName}".Trim();
 
-        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
+        public override ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
         {
             context.RequestHeaderAlterations.Add(new HeaderAlterationDelete(HeaderName));
 

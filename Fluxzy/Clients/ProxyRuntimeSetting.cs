@@ -72,7 +72,7 @@ namespace Fluxzy.Clients
                 _effectiveRules = _startupSetting.FixedRules().Concat(_startupSetting.AlterationRules).ToList();
 
             foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope)) {
-                await rule.Enforce(context, exchange, connection);
+                await rule.Enforce(context, exchange, connection, filterScope);
             }
         }
     }

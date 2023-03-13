@@ -26,7 +26,8 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => $"Apply comment {Comment}".Trim();
 
-        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
+        public override ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
         {
             if (exchange != null)
                 exchange.Comment = Comment;

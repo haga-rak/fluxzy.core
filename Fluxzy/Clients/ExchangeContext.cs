@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Rules.Actions;
@@ -59,18 +58,4 @@ namespace Fluxzy.Clients
         /// </summary>
         public BreakPointManager? BreakPointManager { get; set; }
     }
-
-    public class BreakPointContext
-    {
-        private readonly int _exchangeId;
-
-        public BreakPointContext(int exchangeId)
-        {
-            _exchangeId = exchangeId;
-        }
-
-        public Task<IPEndPoint?>? BreakOnDnsTask { get; set; }
-    }
-
-    
 }
