@@ -4,30 +4,41 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Fluxzy.Clients;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
     public class BreakPointManager
     {
-        private ConcurrentDictionary<int, BreakPointContext> _runningContext = new(); 
-
-        private readonly Action<BreakPointState> _breakPointStateListener;
+        private readonly ConcurrentDictionary<int, BreakPointContext> _runningContext = new();
 
         public BreakPointManager(Action<BreakPointState> breakPointStateListener)
         {
-            _breakPointStateListener = breakPointStateListener;
+
         }
 
-        public BreakPointContext GetOrCreate(int exchangeId)
+        public BreakPointContext GetOrCreate(Exchange exchange, FilterScope filterScope)
         {
-            return _runningContext.GetOrAdd(exchangeId, (eId) => new BreakPointContext(exchangeId)); 
+            var context =  _runningContext.GetOrAdd(exchange.Id, (_) => new BreakPointContext(exchange, UpdateContext));
+
+            context.CurrentScope = filterScope;
+
+            return context; 
         }
 
-
+        private void UpdateContext(BreakPointContext obj)
+        {
+            // TODO: Notify UI
+        }
     }
 
     public class BreakPointState
     {
+        public List<BreakPointContextState> States { get; set; } = new();
+    }
 
+    public class BreakPointContextState
+    {
+        public FilterScope Scope { get; set; }
     }
 }

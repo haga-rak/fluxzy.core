@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading.Tasks;
@@ -29,6 +29,7 @@ namespace Fluxzy.Rules
         public virtual string FriendlyName =>
             !string.IsNullOrWhiteSpace(Description) ? Description : DefaultDescription;
 
-        public abstract ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection);
+        public abstract ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope);
     }
 }

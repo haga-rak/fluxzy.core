@@ -37,7 +37,8 @@ namespace Fluxzy.Rules.Actions
                 ? "Add response header"
                 : $"Add response header ({HeaderName}, {HeaderValue})";
 
-        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
+        public override ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope)
         {
             context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName, HeaderValue));
 
