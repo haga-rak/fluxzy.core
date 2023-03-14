@@ -139,6 +139,7 @@ namespace Fluxzy.Clients.H11
 
                                               _logger.Trace(exchange.Id,
                                                   () => "Complete on success, recycling connection ...");
+                                              
 
                                               return;
                                           }

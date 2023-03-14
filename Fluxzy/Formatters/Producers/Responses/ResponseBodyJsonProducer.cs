@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -17,6 +17,7 @@ namespace Fluxzy.Formatters.Producers.Responses
                 if (context.ResponseBodyText == null)
                     return null;
 
+                
                 using var document = JsonDocument.Parse(context.ResponseBodyText);
 
                 var outStream = new MemoryStream();

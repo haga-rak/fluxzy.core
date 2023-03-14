@@ -34,6 +34,7 @@ import {BreakPointService} from "../breakpoints/break-point.service";
 export class DialogService {
     bsModalRef?: BsModalRef;
     waitModalRef?: BsModalRef;
+    private breakPointDialog: any;
     constructor(
         private modalService: BsModalService,
         private apiService : ApiService
@@ -387,7 +388,11 @@ export class DialogService {
         return subject.asObservable().pipe(take(1));
     }
 
+
+
     public openBreakPointDialog() : void {
+        // Avoid opening if it's already exist
+
         const config: ModalOptions = {
             class: '',
             initialState: {
@@ -395,9 +400,11 @@ export class DialogService {
             ignoreBackdropClick : true
         };
 
-        this.waitModalRef = this.modalService.show(
+        let modalInstance = this.modalService.show(
             BreakPointDialogComponent,
             config
         );
+
+        this.breakPointDialog = modalInstance;
     }
 }

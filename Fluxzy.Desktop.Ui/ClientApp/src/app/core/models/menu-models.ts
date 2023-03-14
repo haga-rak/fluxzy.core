@@ -167,7 +167,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         label : 'Debug',
         submenu : [
             {
-                label : 'Pause All',
+                label : 'Pause any requests',
                 id : 'pause-all'
             },
             {
@@ -183,7 +183,8 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 label : 'Show breakpoint window',
-                id : 'breakpoint-window'
+                id : 'breakpoint-window',
+                accelerator : 'F11',
             },
         ]
     },

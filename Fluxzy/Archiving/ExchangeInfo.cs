@@ -70,6 +70,9 @@ namespace Fluxzy
 
         public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
 
+        /// <summary>
+        /// Misleading
+        /// </summary>
         public bool Done => ResponseHeader?.StatusCode > 0;
 
         public bool Pending { get; }

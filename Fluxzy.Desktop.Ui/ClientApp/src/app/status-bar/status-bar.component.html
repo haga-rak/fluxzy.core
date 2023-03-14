@@ -43,11 +43,11 @@
           <i class="fa fa-pause" aria-hidden="true"></i>
             <span class="text-warning">
 
-                {{ uiState.breakPointState.entries.length }}
-                <span *ngIf="uiState.breakPointState.entries.length < 2">
+                {{ uiState.breakPointState.activeEntries }}
+                <span *ngIf="uiState.breakPointState.activeEntries < 2">
                     request in pause
                 </span>
-                <span *ngIf="uiState.breakPointState.entries.length >= 2">
+                <span *ngIf="uiState.breakPointState.activeEntries >= 2">
                     requests in pause
                 </span>
             </span>
