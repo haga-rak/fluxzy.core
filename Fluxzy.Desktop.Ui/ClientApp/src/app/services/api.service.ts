@@ -34,7 +34,7 @@ import {
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult,
-    ForwardMessage, HarExportRequest,
+    ForwardMessage, HarExportRequest, IPEndPoint,
     MultipartItem,
     NetworkInterfaceInfo,
     Rule,
@@ -411,5 +411,41 @@ export class ApiService {
 
     public wizardRevive() : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/wizard/certificate/revive`, null).pipe(take(1)) ;
+    }
+
+    public breakPointActiveBreakPoints() : Observable<Rule[]> {
+        return this.httpClient.get<Rule[]>(`api/breakpoint`).pipe(take(1)) ;
+    }
+
+    public breakPointAdd(filter: Filter) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint`, filter).pipe(take(1)) ;
+    }
+
+    public breakPointBreakAll() : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/all`, null).pipe(take(1)) ;
+    }
+
+    public breakPointDelete(filterId: string) : Observable<boolean> {
+        return this.httpClient.delete<boolean>(`api/breakpoint/${filterId}`).pipe(take(1)) ;
+    }
+
+    public breakPointDeleteAll() : Observable<boolean> {
+        return this.httpClient.delete<boolean>(`api/breakpoint/clear`).pipe(take(1)) ;
+    }
+
+    public breakPointContinueAll() : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/continue-all`, null).pipe(take(1)) ;
+    }
+
+    public breakPointContinue(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/continue`, null).pipe(take(1)) ;
+    }
+
+    public breakPointEndPointSet(exchangeId : number, ipEndPoint : IPEndPoint) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/endpoint`, ipEndPoint).pipe(take(1)) ;
+    }
+
+    public breakPointEndPointContinue(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/endpoint/continue`, null).pipe(take(1)) ;
     }
 }
