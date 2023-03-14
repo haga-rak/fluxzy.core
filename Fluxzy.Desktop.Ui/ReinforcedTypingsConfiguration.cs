@@ -6,6 +6,7 @@ using System.Security.Authentication;
 using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Attributes;
 using Fluxzy.Desktop.Services.Filters;
@@ -86,6 +87,12 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<FilteredExchangeState>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<BreakPointState>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<BreakPointContextInfo>()
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<FluxzySettingsHolder>()
@@ -353,6 +360,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
                 .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
                 .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
+                .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -377,6 +385,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
                 .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
                 .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
+                .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)

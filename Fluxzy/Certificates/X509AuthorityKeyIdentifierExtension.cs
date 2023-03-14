@@ -24,7 +24,7 @@ namespace Fluxzy.Certificates
             var subjectKeyIdentifier = certificateAuthority
                                        .Extensions.GetExtensions()
                                        .FirstOrDefault(p =>
-                                        p.Oid?.Value == SubjectKeyIdentifierOid.Value);
+                                           p.Oid?.Value == SubjectKeyIdentifierOid.Value);
 
             if (subjectKeyIdentifier == null)
                 return null;
@@ -48,8 +48,9 @@ namespace Fluxzy.Certificates
     {
         public static IEnumerable<X509Extension> GetExtensions(this X509ExtensionCollection collection)
         {
-            foreach (var item in collection)
+            foreach (var item in collection) {
                 yield return item;
+            }
         }
     }
 }

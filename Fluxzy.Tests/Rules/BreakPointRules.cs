@@ -125,12 +125,11 @@ namespace Fluxzy.Tests.Rules
 
             var context = await proxy.InternalProxy.ExecutionContext.BreakPointManager.ContextQueue.ReadAsync();
 
-            if (!EditableRequestHeaderSet.TryParse(newRequestHeader, 
-                    Array.Empty<byte>(), 
-                    out var headerSet).Success) {
-                Assert.Fail("Fail to parse request header, check your test arrangement"); 
-            }
-            
+            if (!EditableRequestHeaderSet.TryParse(newRequestHeader,
+                    Array.Empty<byte>(),
+                    out var headerSet).Success)
+                Assert.Fail("Fail to parse request header, check your test arrangement");
+
             context.RequestHeaderCompletion.SetValue(headerSet!.ToRequest());
 
             context.ContinueAll();
@@ -153,11 +152,11 @@ namespace Fluxzy.Tests.Rules
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            var payload = Encoding.UTF8.GetBytes(payloadString); 
+            var payload = Encoding.UTF8.GetBytes(payloadString);
 
             var fullResponseHeader =
                 "HTTP/1.1 203 OkBuddy\r\n" +
-                $"Content-length: 900\r\n" +
+                "Content-length: 900\r\n" +
                 "x-header-added: value\r\n" +
                 "\r\n";
 
@@ -183,11 +182,10 @@ namespace Fluxzy.Tests.Rules
             var context = await proxy.InternalProxy.ExecutionContext.BreakPointManager.ContextQueue.ReadAsync();
 
             if (!EditableResponseHeaderSet.TryParse(fullResponseHeader,
-                    payload, 
-                    out var headerSet).Success) {
-                Assert.Fail("Fail to parse response header, check your test arrangement"); 
-            }
-            
+                    payload,
+                    out var headerSet).Success)
+                Assert.Fail("Fail to parse response header, check your test arrangement");
+
             context.ResponseHeaderCompletion.SetValue(headerSet!.ToResponse());
 
             context.ContinueAll();
@@ -198,6 +196,7 @@ namespace Fluxzy.Tests.Rules
 
             Assert.Equal(203, (int) response.StatusCode);
             Assert.Equal(payloadString, actualBodyString);
+            Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added")); 
 
             await proxy.WaitUntilDone();
         }

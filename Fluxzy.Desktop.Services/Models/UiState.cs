@@ -1,5 +1,6 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Rules;
 
@@ -12,7 +13,7 @@ namespace Fluxzy.Desktop.Services.Models
             FluxzySettingsHolder settingsHolder, SystemProxyState systemProxyState,
             ViewFilter viewFilter, List<ToolBarFilter> toolBarFilters,
             TemplateToolBarFilterModel templateToolBarFilterModel,
-            List<Rule> activeRules, LastOpenFileState lastOpenFileState)
+            List<Rule> activeRules, LastOpenFileState lastOpenFileState, BreakPointState breakPointState)
         {
             FileState = fileState;
             ProxyState = proxyState;
@@ -23,6 +24,7 @@ namespace Fluxzy.Desktop.Services.Models
             TemplateToolBarFilterModel = templateToolBarFilterModel;
             ActiveRules = activeRules;
             LastOpenFileState = lastOpenFileState;
+            BreakPointState = breakPointState;
         }
 
         public Guid Id { get; } = Guid.NewGuid();
@@ -44,5 +46,7 @@ namespace Fluxzy.Desktop.Services.Models
         public FluxzySettingsHolder SettingsHolder { get; }
 
         public LastOpenFileState LastOpenFileState { get; }
+
+        public BreakPointState BreakPointState { get; }
     }
 }

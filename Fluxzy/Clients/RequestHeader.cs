@@ -34,11 +34,10 @@ namespace Fluxzy.Clients
         }
 
         /// <summary>
-        /// Building from explicit headers
+        ///     Building from explicit headers
         /// </summary>
         /// <param name="headers"></param>
-        public RequestHeader(
-            IEnumerable<HeaderField> headers)
+        public RequestHeader(IEnumerable<HeaderField> headers)
             : base(headers)
         {
             Authority = this[Http11Constants.AuthorityVerb].First().Value;
@@ -53,7 +52,6 @@ namespace Fluxzy.Clients
                                      .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
         }
 
-        
         public ReadOnlyMemory<char> Authority { get; internal set; }
 
         public ReadOnlyMemory<char> Path { get; internal set; }
@@ -109,7 +107,7 @@ namespace Fluxzy.Clients
     public class ResponseHeader : Header
     {
         /// <summary>
-        /// Building from flat header
+        ///     Building from flat header
         /// </summary>
         /// <param name="headerContent"></param>
         /// <param name="isSecure"></param>
@@ -126,11 +124,10 @@ namespace Fluxzy.Clients
         }
 
         /// <summary>
-        /// Building from direct header
+        ///     Building from direct header
         /// </summary>
         /// <param name="headers"></param>
-        public ResponseHeader(
-            IEnumerable<HeaderField> headers)
+        public ResponseHeader(IEnumerable<HeaderField> headers)
             : base(headers)
         {
             StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
@@ -139,7 +136,6 @@ namespace Fluxzy.Clients
                 r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
                      && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
         }
-
 
         public int StatusCode { get; }
 
