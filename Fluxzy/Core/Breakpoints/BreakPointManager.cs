@@ -18,11 +18,11 @@ namespace Fluxzy.Core.Breakpoints
 
         public ChannelReader<BreakPointContext> ContextQueue => _contextQueue.Reader;
 
-        public BreakPointContext GetOrCreate(Exchange exchange, FilterScope filterScope)
+        public BreakPointContext GetOrCreate(Exchange exchange, Filter filter, FilterScope filterScope)
         {
             lock (_runningContext) {
                 var context =
-                    _runningContext.GetOrAdd(exchange.Id, _ => new BreakPointContext(exchange, UpdateContext));
+                    _runningContext.GetOrAdd(exchange.Id, _ => new BreakPointContext(exchange, filter, UpdateContext));
 
                 context.CurrentScope = filterScope;
 

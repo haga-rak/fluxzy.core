@@ -25,6 +25,8 @@ import {CommentApplyComponent} from "../shared/comment-apply/comment-apply.compo
 import {TagApplyComponent} from "../shared/tag-apply/tag-apply.component";
 import {HarExportSettingComponent} from "../shared/har-export-setting/har-export-setting.component";
 import {WizardComponent} from "../settings/wizard/wizard.component";
+import {BreakPointDialogComponent} from "../breakpoints/break-point-dialog/break-point-dialog.component";
+import {BreakPointService} from "../breakpoints/break-point.service";
 
 @Injectable({
     providedIn: 'root',
@@ -383,5 +385,19 @@ export class DialogService {
         );
 
         return subject.asObservable().pipe(take(1));
+    }
+
+    public openBreakPointDialog() : void {
+        const config: ModalOptions = {
+            class: '',
+            initialState: {
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.waitModalRef = this.modalService.show(
+            BreakPointDialogComponent,
+            config
+        );
     }
 }

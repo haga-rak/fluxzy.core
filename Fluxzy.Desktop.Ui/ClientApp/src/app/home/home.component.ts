@@ -12,6 +12,7 @@ import { ApiService } from '../services/api.service';
 import { DialogService } from '../services/dialog.service';
 import { ExchangeSelectionService } from '../services/exchange-selection.service';
 import { UiStateService } from '../services/ui.service';
+import {BreakPointService} from "../breakpoints/break-point.service";
 
 @Component({
     selector: 'app-home',
@@ -29,6 +30,7 @@ export class HomeComponent implements OnInit {
         private dialogService : DialogService,
         private uiStateService : UiStateService,
         private apiService : ApiService,
+        private _ : BreakPointService, // init the servie only
         private cdr: ChangeDetectorRef) { }
 
     ngOnInit(): void {

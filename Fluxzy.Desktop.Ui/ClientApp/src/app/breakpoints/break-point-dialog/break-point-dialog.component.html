@@ -1,0 +1,55 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">Breakpoints</h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" *ngIf="uiState">
+    <p>
+        List of active breakpoints
+    </p>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="alert alert-info">
+
+                <p class="lead">Current step</p>
+                <ul class="fa-ul">
+                    <li>
+                        <span class="fa-li"><i class="fa fa-check-circle text-green" title="Done"></i></span>
+                        Receiving authority
+                    </li>
+                    <li>
+                        <span class="fa-li"><i class="fa fa-pause text-warning"></i></span>
+                        Before sending request</li>
+                    <li>
+                        <span class="fa-li"><i class="fa fa-minus" title="Not run yet"></i></span>
+                        Solving DNS
+                    </li>
+                    <li>
+                        <span class="fa-li"><i class="fa fa-minus" title="Not run yet"></i></span>
+                        Before sending response
+                    </li>
+                </ul>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><button class="btn btn-warning">Continue</button></div>
+                <div class="col-md-6"><button class="btn btn-warning">Continue all</button></div>
+            </div>
+
+        </div>
+        <div class="col-md-8">
+                <div class="alert" style="min-height: 480px">
+
+                    <p class="lead"><i class="fa fa-check-circle text-green" title="Done"></i> Receiving authority</p>
+                    <p>
+                        A terminated step could not be altered anymore.
+                    </p>
+                </div>
+        </div>
+    </div>
+
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="bsModalRef.hide()">Close</button>
+</div>

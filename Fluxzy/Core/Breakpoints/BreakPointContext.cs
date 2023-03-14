@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
@@ -11,12 +12,16 @@ namespace Fluxzy.Core.Breakpoints
     public class BreakPointContext
     {
         private readonly Exchange _exchange;
+        private readonly Filter _filter;
         private readonly Action<BreakPointContext> _statusChanged;
         private readonly List<IBreakPoint> _breakPoints = new();
 
-        public BreakPointContext(Exchange exchange, Action<BreakPointContext> statusChanged)
+        public BreakPointContext(Exchange exchange,
+            Filter filter, 
+            Action<BreakPointContext> statusChanged)
         {
             _exchange = exchange;
+            _filter = filter;
             _statusChanged = statusChanged;
 
             EndPointCompletion = new BreakPointOrigin<IPEndPoint?>(BreakPointLocation.WaitingEndPoint,
@@ -33,12 +38,18 @@ namespace Fluxzy.Core.Breakpoints
             _breakPoints.Add(ResponseHeaderCompletion);
         }
 
-        public void ContinueAll()
+        public void ContinueUntilEnd()
         {
             foreach (var breakPoint in _breakPoints)
             {
                 breakPoint.Continue();
             }
+        }
+
+        public void ContinueCurrent()
+        {
+            var breakPoint = _breakPoints.FirstOrDefault(b => b.Running == true); 
+            breakPoint?.Continue();
         }
 
         public BreakPointOrigin<Request?> RequestHeaderCompletion { get; set; }
@@ -71,23 +82,7 @@ namespace Fluxzy.Core.Breakpoints
 
         public BreakPointContextInfo GetInfo()
         {
-            return new(ExchangeInfo, LastLocation, CurrentHit); 
+            return new(ExchangeInfo, LastLocation, CurrentHit, _filter); 
         }
-    }
-
-    public class BreakPointContextInfo
-    {
-        public BreakPointContextInfo(ExchangeInfo exchange, BreakPointLocation lastLocation, BreakPointLocation? currentHit)
-        {
-            Exchange = exchange;
-            LastLocation = lastLocation;
-            CurrentHit = currentHit;
-        }
-
-        public ExchangeInfo Exchange { get;  }
-
-        public BreakPointLocation LastLocation { get; }
-
-        public BreakPointLocation? CurrentHit { get; }
     }
 }

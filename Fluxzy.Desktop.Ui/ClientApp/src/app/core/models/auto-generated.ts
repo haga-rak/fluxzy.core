@@ -595,6 +595,12 @@ export interface ApplyTagAction extends Action
 	tag?: Tag;
 	defaultDescription: string;
 }
+export interface BreakPointAction extends Action
+{
+	exchangeContext?: any;
+	actionScope: number;
+	defaultDescription: string;
+}
 export interface ChangeRequestMethodAction extends Action
 {
 	newMethod: string;
@@ -711,6 +717,7 @@ export interface UiState
 	toolBarFilters: ToolBarFilter[];
 	settingsHolder: FluxzySettingsHolder;
 	lastOpenFileState: LastOpenFileState;
+	breakPointState: BreakPointState;
 }
 export interface ForwardMessage
 {
@@ -770,6 +777,18 @@ export interface ToolBarFilter
 export interface FilteredExchangeState
 {
 	exchanges: Set<number>;
+}
+export interface BreakPointState
+{
+	hasToPop: boolean;
+	entries: BreakPointContextInfo[];
+	emptyEntries: BreakPointState;
+}
+export interface BreakPointContextInfo
+{
+	exchange: ExchangeInfo;
+	lastLocation: string;
+	currentHit?: string;
 }
 export interface FluxzySettingsHolder
 {
