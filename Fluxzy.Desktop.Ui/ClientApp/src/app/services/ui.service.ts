@@ -34,6 +34,7 @@ import {SystemCallService} from "../core/services/system-call.service";
 })
 export class UiStateService {
     private uiState$: Subject<UiState> = new Subject<UiState>();
+    public lastUiState$: BehaviorSubject<UiState | null> = new BehaviorSubject<UiState | null>(null);
     private filteredUpdate$: BehaviorSubject<FilteredExchangeState | null> = new BehaviorSubject<FilteredExchangeState | null>(null);
     private uiState: UiState;
 
@@ -50,6 +51,7 @@ export class UiStateService {
 
         this.apiService.registerEvent('UiState', (state: UiState) => {
             this.uiState$.next(state);
+            this.lastUiState$.next(state);
             console.log(state);
         });
 
@@ -102,6 +104,7 @@ export class UiStateService {
             .get<UiState>(`api/ui/state`)
             .pipe(
                 tap((t) => this.uiState$.next(t)),
+                tap((t) => this.lastUiState$.next(t)),
                 take(1)
             )
             .subscribe();

@@ -25,7 +25,7 @@ namespace Fluxzy.Core.Breakpoints
 
     public static class DescriptionHelper
     {
-        public static string? GetDescription(this Enum value)
+        public static string? GetEnumDescription(this Enum value)
         {
             var type = value.GetType();
             var memberInfos = type.GetMember(value.ToString());

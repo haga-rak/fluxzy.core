@@ -28,7 +28,8 @@ export class StatusBarComponent implements OnInit {
         private apiService: ApiService,
         private statusBarService : StatusBarService,
         private dialogService : DialogService,
-        private systemCallService : SystemCallService
+        private systemCallService : SystemCallService,
+
     ) {
     }
 
@@ -93,6 +94,9 @@ export class StatusBarComponent implements OnInit {
 
     selectRule() {
         this.dialogService.openManageRules();
+    }
 
+    showBreakPointWindow() {
+        this.dialogService.openBreakPointDialog();
     }
 }

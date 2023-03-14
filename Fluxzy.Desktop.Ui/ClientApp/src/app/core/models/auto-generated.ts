@@ -786,9 +786,17 @@ export interface BreakPointState
 }
 export interface BreakPointContextInfo
 {
+	exchangeId: number;
 	exchange: ExchangeInfo;
 	lastLocation: string;
 	currentHit?: string;
+	originFilter: Filter;
+	stepInfos: BreakPointContextStepInfo[];
+}
+export interface BreakPointContextStepInfo
+{
+	stepName: string;
+	status: string;
 }
 export interface FluxzySettingsHolder
 {

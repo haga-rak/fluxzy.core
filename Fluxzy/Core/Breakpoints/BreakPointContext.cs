@@ -46,7 +46,7 @@ namespace Fluxzy.Core.Breakpoints
             }
         }
 
-        public void ContinueCurrent()
+        public void ContinueOnce()
         {
             var breakPoint = _breakPoints.FirstOrDefault(b => b.Running == true); 
             breakPoint?.Continue();
