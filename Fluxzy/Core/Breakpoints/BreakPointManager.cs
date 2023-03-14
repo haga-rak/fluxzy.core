@@ -39,15 +39,20 @@ namespace Fluxzy.Core.Breakpoints
 
         internal BreakPointContext GetFirst()
         {
-            return _runningContext.Values.First();
+            lock (_runningContext) {
+                return _runningContext.Values.First();
+            }
         }
 
-        private void UpdateContext(BreakPointContext obj)
+        private void UpdateContext(BreakPointContext breakPointContext)
         {
             // TODO: feed only writer in a debugging context
-            _contextQueue.Writer.TryWrite(obj);
 
-            OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(obj));
+            if (Environment.GetEnvironmentVariable("TEST_CONTEXT") == "true")
+                _contextQueue.Writer.TryWrite(breakPointContext);
+
+
+            OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointContext));
         }
 
         public BreakPointState GetState()

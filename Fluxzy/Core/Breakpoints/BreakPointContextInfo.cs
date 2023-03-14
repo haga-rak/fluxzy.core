@@ -19,6 +19,8 @@ namespace Fluxzy.Core.Breakpoints
             OriginFilter = originFilter;
         }
 
+        public int ExchangeId => Exchange.Id; 
+
         public ExchangeInfo Exchange { get;  }
 
         public BreakPointLocation LastLocation { get; }
@@ -35,16 +37,16 @@ namespace Fluxzy.Core.Breakpoints
             {
                 // enumerate breakpoint location 
 
-                foreach (var location in Enum.GetValues<BreakPointLocation>()) {
+                foreach (BreakPointLocation location in Enum.GetValues(typeof(BreakPointLocation))) {
                     // TODO : minimize the cost of reflection here by using caching 
 
-                    var description = location.GetDescription();
+                    var description = location.GetEnumDescription();
 
                     if (description == null)
                         continue;
 
                     var status = CurrentHit == location ? BreakPointStatus.Current
-                        : LastLocation < location ? BreakPointStatus.AlreadyRun
+                        : (int) LastLocation < (int) location ? BreakPointStatus.AlreadyRun
                         : BreakPointStatus.Pending;
 
                     var stepInfo = new BreakPointContextStepInfo(description, status);
