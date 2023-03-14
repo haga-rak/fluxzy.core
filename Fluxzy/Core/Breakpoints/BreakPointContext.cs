@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
@@ -90,64 +89,5 @@ namespace Fluxzy.Core.Breakpoints
         public BreakPointLocation LastLocation { get; }
 
         public BreakPointLocation? CurrentHit { get; }
-    }
-
-    public interface IBreakPoint
-    {
-        void Continue();
-    }
-
-    public class BreakPointOrigin<T> : IBreakPoint
-    {
-        private readonly Action<BreakPointLocation?> _updateReceiver;
-        private readonly TaskCompletionSource<T?> _waitForValueCompletionSource;
-
-        public BreakPointOrigin(BreakPointLocation location, Action<BreakPointLocation?> updateReceiver)
-        {
-            _updateReceiver = updateReceiver;
-            Location = location;
-            _waitForValueCompletionSource = new TaskCompletionSource<T?>();
-        }
-
-        public BreakPointLocation Location { get; }
-
-        /// <summary>
-        /// null, not run, true, running, false, finished
-        /// </summary>
-        public bool? Running { get; private set; }
-
-        public async Task<T?> WaitForValue()
-        {
-            Running = true;
-            _updateReceiver(Location);
-
-            try
-            {
-                return await _waitForValueCompletionSource.Task;
-            }
-            finally
-            {
-                Running = false;
-                _updateReceiver(null);
-            }
-        }
-
-        public void SetValue(T? value)
-        {
-            _waitForValueCompletionSource.TrySetResult(value);
-        }
-
-        public void Continue()
-        {
-            SetValue(default);
-        }
-    }
-
-    public enum BreakPointLocation
-    {
-        Start = 0,
-        WaitingEndPoint,
-        WaitingRequest,
-        WaitingResponse,
     }
 }

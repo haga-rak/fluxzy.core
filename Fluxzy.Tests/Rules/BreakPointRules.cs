@@ -196,7 +196,7 @@ namespace Fluxzy.Tests.Rules
 
             Assert.Equal(203, (int) response.StatusCode);
             Assert.Equal(payloadString, actualBodyString);
-            Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added")); 
+            Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added"));
 
             await proxy.WaitUntilDone();
         }

@@ -6,7 +6,6 @@ using System.Net.Security;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Rules;
-using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
 
@@ -64,17 +63,15 @@ namespace Fluxzy.Clients
         public IIdProvider IdProvider { get; set; } = new FromIndexIdProvider(0, 0);
 
         public IUserAgentInfoProvider? UserAgentProvider { get; }
-        
+
         public async ValueTask EnforceRules(
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
-            if (_effectiveRules == null)
-            {
+            if (_effectiveRules == null) {
                 _effectiveRules = _startupSetting.FixedRules()
                                                  .Concat(_startupSetting.AlterationRules)
                                                  .ToList();
-
             }
 
             // out of scope action needs to be run everytime 
