@@ -6,6 +6,7 @@ using Fluxzy.Core.Breakpoints;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Rules;
+using Fluxzy.Rules.Actions;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -44,7 +45,7 @@ namespace Fluxzy.Desktop.Services
                     return new UiState(f, p,
                         s, sp,
                         v, defaultToolBarFilters,
-                        tt, aro, lop, bs);
+                        tt, aro.Where(r => r.Action.GetType() != typeof(BreakPointAction)).ToList() , lop, bs);
                 });
 
             Observable = _stateObservable

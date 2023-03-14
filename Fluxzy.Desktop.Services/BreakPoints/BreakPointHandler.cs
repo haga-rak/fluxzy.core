@@ -21,11 +21,12 @@ namespace Fluxzy.Desktop.Services.BreakPoints
         public void AddBreakPoint(Filter filter)
         {
             _activeRuleManager.AddInMemoryRule(new Rule(new BreakPointAction(), filter));
+
         }
 
         public void BreakAll()
         {
-            AddBreakPoint(AnyFilter.Default);
+            _activeRuleManager.SetInMemoryRule(new Rule(new BreakPointAction(), AnyFilter.Default));
         }
 
         public void DeleteBreakPoint(Guid filterId)

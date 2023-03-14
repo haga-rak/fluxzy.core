@@ -70,6 +70,11 @@ namespace Fluxzy.Desktop.Services
             _inMemoryRules.OnNext(_inMemoryRules.Value.Add(rule));
         }
 
+        public void SetInMemoryRule(Rule rule)
+        {
+            _inMemoryRules.OnNext(_inMemoryRules.Value.Clear().Add(rule));
+        }
+
         public void RemoveInMemoryRule(Guid filterIdentifier)
         {
             _inMemoryRules.OnNext(_inMemoryRules.Value.RemoveAll(t => t.Filter.Identifier == filterIdentifier));
