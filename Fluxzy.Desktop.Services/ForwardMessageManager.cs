@@ -18,9 +18,16 @@ namespace Fluxzy.Desktop.Services
         {
             var list = new List<ForwardMessage>();
 
-            await _bufferedChannel.Reader.WaitToReadAsync();
+            while (true) {
+                if (!await _bufferedChannel.Reader.WaitToReadAsync())
+                    break; 
 
-            _bufferedChannel.Reader.TryReadAll(list);
+                _bufferedChannel.Reader.TryReadAll(list);
+                
+                if (list.Count > 0)
+                    break;
+            }
+
 
             return list;
         }

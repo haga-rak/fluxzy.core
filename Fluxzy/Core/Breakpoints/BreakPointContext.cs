@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
@@ -15,6 +16,7 @@ namespace Fluxzy.Core.Breakpoints
         private readonly Filter _filter;
         private readonly Action<BreakPointContext> _statusChanged;
         private readonly List<IBreakPoint> _breakPoints = new();
+        private bool _previousStatus = false; 
 
         public BreakPointContext(Exchange exchange,
             Filter filter, 
@@ -82,7 +84,8 @@ namespace Fluxzy.Core.Breakpoints
 
         public BreakPointContextInfo GetInfo()
         {
-            return new(ExchangeInfo, LastLocation, CurrentHit, _filter); 
+            _previousStatus = (_previousStatus) || (_exchange.Complete.IsCompleted || _exchange.Complete.Status >= TaskStatus.RanToCompletion);
+            return new(ExchangeInfo, _previousStatus, LastLocation, CurrentHit, _filter); 
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core.Breakpoints
@@ -10,6 +11,7 @@ namespace Fluxzy.Core.Breakpoints
     {
         public BreakPointContextInfo(
             ExchangeInfo exchange,
+            bool exchangeComplete,
             BreakPointLocation lastLocation,
             BreakPointLocation? currentHit, Filter originFilter)
         {
@@ -17,6 +19,7 @@ namespace Fluxzy.Core.Breakpoints
             LastLocation = lastLocation;
             CurrentHit = currentHit;
             OriginFilter = originFilter;
+            Done = LastLocation == BreakPointLocation.WaitingResponse && CurrentHit == null; 
         }
 
         public int ExchangeId => Exchange.Id; 
@@ -26,6 +29,8 @@ namespace Fluxzy.Core.Breakpoints
         public BreakPointLocation LastLocation { get; }
 
         public BreakPointLocation? CurrentHit { get; }
+
+        public bool Done { get; }
 
         /// <summary>
         /// The filter that triggers this break point
@@ -46,9 +51,13 @@ namespace Fluxzy.Core.Breakpoints
                         continue;
 
                     var status = CurrentHit == location ? BreakPointStatus.Current
-                        : (int) LastLocation < (int) location ? BreakPointStatus.AlreadyRun
+                        : (int) LastLocation >= (int) location ? BreakPointStatus.AlreadyRun
                         : BreakPointStatus.Pending;
 
+                    if (Done) {
+                        status = BreakPointStatus.AlreadyRun; 
+                    }
+                    
                     var stepInfo = new BreakPointContextStepInfo(description, status);
 
                     yield return stepInfo;

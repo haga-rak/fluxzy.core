@@ -42,7 +42,8 @@ export class StatusBarComponent implements OnInit {
             ).subscribe();
 
         this.selectionService.getCurrenSelectionCount().pipe(
-            tap(n => this.selectedCount = n)
+            tap(n => this.selectedCount = n),
+            tap(_ => this.cdr.detectChanges()),
         ).subscribe();
 
         this.exchangeManagementService.exchangeState$.pipe(
@@ -53,13 +54,13 @@ export class StatusBarComponent implements OnInit {
         this.uiStateService.getUiState()
             .pipe(
                 tap(u => this.uiState = u),
-
                 tap(_ => this.cdr.detectChanges()),
             ).subscribe();
 
         this.uiStateService.getFileState()
             .pipe(
-                tap(f => this.fileState = f)
+                tap(f => this.fileState = f),
+                tap(_ => this.cdr.detectChanges()),
             ).subscribe();
     }
 

@@ -15,40 +15,77 @@
         </p>
     </div>
     <div  *ngIf="currentContextInfo">
-        <div class="row">
-            <div class="col-md-6">#{{ currentContextInfo.exchangeId}} - <span class="text-info">{{ currentContextInfo.exchange.fullUrl}}</span></div>
-            <div class="col-md-6">
+        <div class="p-3">
 
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="btn-group" role="group" dropdown>
+                        <button  type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+                                 aria-expanded="false" dropdownToggle>
+                                    <span>
+                                        <span class="badge bg-success text-gray-600" *ngIf="currentContextInfo.done">done</span>
+                                        <span class="badge bg-warning text-gray-600" *ngIf="!currentContextInfo.done">in pause</span>
+                                        &nbsp;
+                                    </span>
+                            Exchange #{{ currentContextInfo.exchangeId}} - <span class="text-info">{{ currentContextInfo.exchange.fullUrl}}</span>
+                        </button>
+                        <ul class="dropdown-menu bg-light text-primary" *dropdownMenu >
+                            <li role="menuitem" *ngFor="let entry of breakPointState.entries">
+                                <a class="dropdown-item" href="javascript:;" (click)="selectEntry(entry)">
+
+                                    <span>
+                                        <span class="badge bg-success text-gray-600" *ngIf="entry.done">done</span>
+                                        <span class="badge bg-warning text-gray-600" *ngIf="!entry.done">in pause</span>
+                                        &nbsp;
+                                    </span>
+
+
+                                    #{{ entry.exchangeId}} -
+                                    <span class="text-info">{{ entry.exchange.fullUrl}}</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+
+                    <span *ngIf="breakPointState.activeEntries > 0 && currentContextInfo.done"
+                    style="cursor:pointer" (click)="setSelectionToNextPending()" title="some requests wait for user input to continue">
+                        &nbsp;&nbsp;
+                        <span class="badge bg-warning text-gray-600" >
+                            pending ({{ breakPointState.activeEntries }})
+                        </span>
+                    </span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="btn-group" role="group" aria-label="">
+                        <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-primary" (click)="continueNext()" title="Skip">
+                            <i class="fa fa-step-forward"></i> &nbsp; skip once</button>
+                        <button  [disabled]="currentContextInfo.done"  type="button" class="btn btn-primary" (click)="continueUntilEnd()" title="Skip until end">
+                            &nbsp;
+                            <i class="fa fa-fast-forward"></i>
+                            skip until the end
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-4">
                 <div class="alert alert-info">
 
-                    <p class="lead">Current step</p>
-                    <ul class="fa-ul">
-                        <li>
-                            <span class="fa-li"><i class="fa fa-check-circle text-green" title="Done"></i></span>
-                            Receiving authority
+                    <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span></p>
+                    <ul class="fa-ul border-right">
+                        <li *ngFor="let item of currentContextInfo.stepInfos">
+
+                            <span class="fa-li" *ngIf="item.status === 'AlreadyRun'"><i class="fa fa-check-circle text-green" title="Done"></i></span>
+
+                            <span class="fa-li" *ngIf="item.status === 'Current'"><i class="fa fa-pause text-warning"></i></span>
+                            <span class="fa-li"  *ngIf="item.status === 'Pending'"><i class="fa fa-minus" title="Not run yet"></i></span>
+                            <span>{{ item.stepName}}</span>
                         </li>
-                        <li>
-                            <span class="fa-li"><i class="fa fa-pause text-warning"></i></span>
-                            Before sending request</li>
-                        <li>
-                            <span class="fa-li"><i class="fa fa-minus" title="Not run yet"></i></span>
-                            Solving DNS
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fa fa-minus" title="Not run yet"></i></span>
-                            Before sending response
-                        </li>
+
                     </ul>
                 </div>
-                <div class="row">
-                    <div class="col-md-6"></div>
-                    <div class="col-md-6 text-end"><button class="btn btn-warning" (click)="continueUntilEnd()">Continue until end</button></div>
-                </div>
-
             </div>
             <div class="col-md-8">
                 <div class="alert" style="min-height: 480px">

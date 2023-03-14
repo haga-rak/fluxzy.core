@@ -51,6 +51,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpDelete("clear")]
         public ActionResult<bool> DeleteAll()
         {
+            _handler.ContinueAll();
             _handler.DeleteAllBreakPoints();
 
             return true;

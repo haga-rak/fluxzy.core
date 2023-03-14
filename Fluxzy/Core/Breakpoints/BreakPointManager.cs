@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
@@ -12,6 +13,11 @@ namespace Fluxzy.Core.Breakpoints
 {
     public class BreakPointManager
     {
+        public BreakPointManager()
+        {
+
+        }
+
         private readonly Channel<BreakPointContext> _contextQueue = Channel.CreateUnbounded<BreakPointContext>();
 
         private readonly ConcurrentDictionary<int, BreakPointContext> _runningContext = new();
@@ -51,8 +57,11 @@ namespace Fluxzy.Core.Breakpoints
             if (Environment.GetEnvironmentVariable("TEST_CONTEXT") == "true")
                 _contextQueue.Writer.TryWrite(breakPointContext);
 
-
-            OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointContext));
+            Task.Run(async () => {
+                await Task.Delay(50); // TODO : Find a better trick than this. The main issue is that this event is trigger earlier 
+                // compared to the availability of BreakPointContext from UiState point of view
+                OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointContext));
+            }); 
         }
 
         public BreakPointState GetState()
@@ -82,27 +91,5 @@ namespace Fluxzy.Core.Breakpoints
         }
 
         public BreakPointContext Context { get; }
-    }
-
-    /// <summary>
-    ///     The view model of the breakpoint status
-    /// </summary>
-    public class BreakPointState
-    {
-        public BreakPointState(List<BreakPointContextInfo> entries)
-        {
-            Entries = entries;
-        }
-
-        /// <summary>
-        ///     Define is debugging window has to popup
-        /// </summary>
-        public bool HasToPop {
-            get { return Entries.Any(e => e.CurrentHit != null); }
-        }
-
-        public List<BreakPointContextInfo> Entries { get; }
-
-        public static BreakPointState EmptyEntries { get; } = new(new List<BreakPointContextInfo>());
     }
 }

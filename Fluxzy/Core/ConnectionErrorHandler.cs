@@ -122,7 +122,7 @@ namespace Fluxzy.Core
                 exchange.Response.Body = new MemoryStream(messageBinary);
 
                 if (!exchange.ExchangeCompletionSource.Task.IsCompleted)
-                    exchange.ExchangeCompletionSource.SetResult(true);
+                    exchange.ExchangeCompletionSource.TrySetResult(true);
 
                 return true;
             }

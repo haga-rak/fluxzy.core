@@ -3,7 +3,7 @@ import {BsModalRef} from "ngx-bootstrap/modal";
 import {ApiService} from "../../services/api.service";
 import {SystemCallService} from "../../core/services/system-call.service";
 import {UiStateService} from "../../services/ui.service";
-import {tap} from "rxjs";
+import {filter, tap} from "rxjs";
 import {BreakPointContextInfo, BreakPointState, UiState} from "../../core/models/auto-generated";
 
 @Component({
@@ -30,6 +30,7 @@ export class BreakPointDialogComponent implements OnInit {
     ngOnInit(): void {
         this.uiStateService.lastUiState$
             .pipe(
+                filter(s => !!s),
                 tap(s => this.uiState = s),
                 tap(s => this.breakPointState = s.breakPointState),
                 tap(_ => this.computeCurrentContextInfo(this.breakPointState)),
@@ -47,7 +48,11 @@ export class BreakPointDialogComponent implements OnInit {
             // Check if there is a context to select
 
             if (breakPointState.entries.length > 0) {
-                this.currentContextInfo = breakPointState.entries[0];
+
+                const array = breakPointState.entries.slice();
+                array.sort(t => !t.done ? 1 : 0);
+
+                this.currentContextInfo = array[array.length -1];
                 this.currentExchangeId = this.currentContextInfo.exchangeId;
             }
 
@@ -64,5 +69,35 @@ export class BreakPointDialogComponent implements OnInit {
 
         this.apiService.breakPointContinueUntilEnd(this.currentExchangeId)
             .subscribe();
+    }
+
+    selectEntry(entry: BreakPointContextInfo) {
+        if (!entry)
+            return;
+
+        this.currentExchangeId = entry.exchangeId;
+        this.computeCurrentContextInfo(this.breakPointState);
+        this.cd.detectChanges();
+    }
+
+    continueNext() {
+        if (!this.currentExchangeId)
+            return;
+        this.apiService.breakPointContinueOnce(this.currentExchangeId)
+            .subscribe();
+    }
+
+    setSelectionToNextPending() {
+        if (!this.currentExchangeId)
+            return;
+
+        let pendingExchanges = this.breakPointState.entries.filter(e => !e.done);
+
+        if (pendingExchanges.length) {
+            this.currentExchangeId = pendingExchanges[0].exchangeId;
+            this.computeCurrentContextInfo(this.breakPointState);
+            this.cd.detectChanges();
+        }
+
     }
 }

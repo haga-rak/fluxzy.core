@@ -781,6 +781,7 @@ export interface FilteredExchangeState
 export interface BreakPointState
 {
 	hasToPop: boolean;
+	activeEntries: number;
 	entries: BreakPointContextInfo[];
 	emptyEntries: BreakPointState;
 }
@@ -790,6 +791,7 @@ export interface BreakPointContextInfo
 	exchange: ExchangeInfo;
 	lastLocation: string;
 	currentHit?: string;
+	done: boolean;
 	originFilter: Filter;
 	stepInfos: BreakPointContextStepInfo[];
 }
