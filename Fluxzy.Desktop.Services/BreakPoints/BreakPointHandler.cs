@@ -23,6 +23,11 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             _activeRuleManager.AddInMemoryRule(new Rule(new BreakPointAction(), filter));
         }
 
+        public void BreakAll()
+        {
+            AddBreakPoint(AnyFilter.Default);
+        }
+
         public void DeleteBreakPoint(Guid filterId)
         {
             _activeRuleManager.RemoveInMemoryRule(filterId);
@@ -44,12 +49,12 @@ namespace Fluxzy.Desktop.Services.BreakPoints
 
             if (contexts != null) {
                 foreach (var context in contexts) {
-                    context.ContinueAll();
+                    context.ContinueUntilEnd();
                 }
             }
         }
 
-        public void ContinueContext(int exchangeId)
+        public void ContinueExchangeUntilEnd(int exchangeId)
         {
             var breakPointManager = _watcher.BreakPointManager;
 
@@ -59,7 +64,20 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             if (!breakPointManager.TryGet(exchangeId, out var context))
                 return;
 
-            context!.ContinueAll();
+            context!.ContinueUntilEnd();
+        }
+
+        public void ContinueExchangeOnce(int exchangeId)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.ContinueOnce();
         }
 
         public void SetEndPoint(int exchangeId, IPAddress ipAddress, int port)

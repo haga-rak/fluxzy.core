@@ -437,8 +437,12 @@ export class ApiService {
         return this.httpClient.post<boolean>(`api/breakpoint/continue-all`, null).pipe(take(1)) ;
     }
 
-    public breakPointContinue(exchangeId : number) : Observable<boolean> {
+    public breakPointContinueUntilEnd(exchangeId : number) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/continue`, null).pipe(take(1)) ;
+    }
+
+    public breakPointContinueOnce(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/continue/once`, null).pipe(take(1)) ;
     }
 
     public breakPointEndPointSet(exchangeId : number, ipEndPoint : IPEndPoint) : Observable<boolean> {

@@ -5,5 +5,7 @@ namespace Fluxzy.Core.Breakpoints
     public interface IBreakPoint
     {
         void Continue();
+
+        bool? Running { get; }
     }
 }

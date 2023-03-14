@@ -47,7 +47,7 @@ namespace Fluxzy.Tests.Rules
 
             context.EndPointCompletion.SetValue(new IPEndPoint(IPAddress.Loopback, 852));
 
-            context.ContinueAll();
+            context.ContinueUntilEnd();
 
             var response = await responseTask;
 
@@ -132,7 +132,7 @@ namespace Fluxzy.Tests.Rules
 
             context.RequestHeaderCompletion.SetValue(headerSet!.ToRequest());
 
-            context.ContinueAll();
+            context.ContinueUntilEnd();
 
             var response = await responseTask;
 
@@ -188,7 +188,7 @@ namespace Fluxzy.Tests.Rules
 
             context.ResponseHeaderCompletion.SetValue(headerSet!.ToResponse());
 
-            context.ContinueAll();
+            context.ContinueUntilEnd();
 
             var response = await responseTask;
 

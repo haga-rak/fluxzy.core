@@ -33,6 +33,13 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
+        [HttpPost("all")]
+        public ActionResult<bool> BreakAll()
+        {
+            _handler.BreakAll();
+            return true;
+        }
+
         [HttpDelete("{filterId}")]
         public ActionResult<bool> Delete(Guid filterId)
         {
@@ -41,7 +48,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
-        [HttpPost("clear")]
+        [HttpDelete("clear")]
         public ActionResult<bool> DeleteAll()
         {
             _handler.DeleteAllBreakPoints();
@@ -58,9 +65,18 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("{exchangeId}/continue")]
-        public ActionResult<bool> ContinueContext(int exchangeId)
+        public ActionResult<bool> ContinueExchangeUntilEnd(int exchangeId)
         {
-            _handler.ContinueContext(exchangeId);
+            _handler.ContinueExchangeUntilEnd(exchangeId);
+
+            return true;
+        }
+
+
+        [HttpPost("{exchangeId}/continue/once")]
+        public ActionResult<bool> ContinueExchangeOnce(int exchangeId)
+        {
+            _handler.ContinueExchangeOnce(exchangeId);
 
             return true;
         }

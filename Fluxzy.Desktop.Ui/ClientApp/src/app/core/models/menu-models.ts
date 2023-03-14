@@ -164,6 +164,30 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         ]
     },
     {
+        label : 'Debug',
+        submenu : [
+            {
+                label : 'Pause All',
+                id : 'pause-all'
+            },
+            {
+                label : 'Continue All',
+                id : 'continue-all'
+            },
+            {
+                label : 'Disable all breakpoints',
+                id : 'disable-all'
+            },
+            {
+                type :  'separator'
+            },
+            {
+                label : 'Show breakpoint window',
+                id : 'breakpoint-window'
+            },
+        ]
+    },
+    {
         label : 'Rule',
         submenu : [
             {

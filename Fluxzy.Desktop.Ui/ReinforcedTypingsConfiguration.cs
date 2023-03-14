@@ -95,6 +95,9 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<BreakPointContextInfo>()
                 .ApplyGenericProperties();
 
+            builder.ExportAsInterface<BreakPointContextStepInfo>()
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<FluxzySettingsHolder>()
                 .ApplyGenericProperties();
 
@@ -302,6 +305,7 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<CurlCommandResult>()
                    .ApplyGenericProperties();
+
         }
 
         private static void ConfigureFilters(ConfigurationBuilder builder)
@@ -361,6 +365,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
                 .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
+                .Substitute(typeof(BreakPointStatus), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -386,6 +391,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
                 .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
+                .Substitute(typeof(BreakPointStatus), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
