@@ -18,7 +18,7 @@ namespace Fluxzy.Clients
 
         protected Header(IEnumerable<HeaderField> headerFields)
         {
-            _rawHeaderFields = headerFields.ToList(); 
+            _rawHeaderFields = headerFields.ToList();
 
             _lookupFields = _rawHeaderFields
                 .ToLookup(t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
@@ -36,11 +36,9 @@ namespace Fluxzy.Clients
         protected Header(
             ReadOnlyMemory<char> rawHeader,
             bool isSecure)
-            : this (Http11Parser.Read(rawHeader, isSecure, true, false))
+            : this(Http11Parser.Read(rawHeader, isSecure, true, false))
         {
-
         }
-        
 
         public IEnumerable<HeaderField> this[ReadOnlyMemory<char> key] => _lookupFields[key];
 

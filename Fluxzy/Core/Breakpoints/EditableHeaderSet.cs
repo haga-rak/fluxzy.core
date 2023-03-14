@@ -66,9 +66,9 @@ namespace Fluxzy.Core.Breakpoints
         {
             var request = new Request(new RequestHeader(Headers.Select(s => new HeaderField(s.Name, s.Value))));
 
-            request.Body = new MemoryStream(Payload); 
+            request.Body = new MemoryStream(Payload);
 
-            return request; 
+            return request;
         }
     }
 
@@ -85,8 +85,8 @@ namespace Fluxzy.Core.Breakpoints
 
         public Response ToResponse()
         {
-            var response = new Response() {
-                Header = new ResponseHeader(Headers.Select(s => new HeaderField(s.Name, s.Value))), 
+            var response = new Response {
+                Header = new ResponseHeader(Headers.Select(s => new HeaderField(s.Name, s.Value))),
                 Body = new MemoryStream(Payload)
             };
 
@@ -118,7 +118,8 @@ namespace Fluxzy.Core.Breakpoints
 
             // We are removing any content length header 
 
-            var count = headers.RemoveAll(t => t.Name.Span.Equals(Http11Constants.ContentLength.Span, StringComparison.OrdinalIgnoreCase));
+            var count = headers.RemoveAll(t =>
+                t.Name.Span.Equals(Http11Constants.ContentLength.Span, StringComparison.OrdinalIgnoreCase));
 
             result = new EditableResponseHeaderSet(headers.Select(h => new EditableHeader(
                 h.Name.ToString(), h.Value.ToString())).ToList(), payload);

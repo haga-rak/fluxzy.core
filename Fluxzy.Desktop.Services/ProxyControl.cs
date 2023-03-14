@@ -23,6 +23,7 @@ namespace Fluxzy.Desktop.Services
         private readonly ProxyScope _proxyScope;
         private readonly UaParserUserAgentInfoProvider _userAgentProvider;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null);
+        private readonly BehaviorSubject<Proxy?> _internalProxy = new(null);
 
         private Proxy? _proxy;
         private ITcpConnectionProvider? _tcpConnectionProvider;
@@ -66,7 +67,7 @@ namespace Fluxzy.Desktop.Services
                             setting.AlterationRules = stateAndSetting.Third;
 
                             var proxyState = await ReloadProxy(
-                                setting, stateAndSetting.Second,
+                                setting,
                                 trunkState.MaxConnectionId, trunkState.MaxExchangeId);
 
                             observer.OnNext(proxyState);
@@ -87,17 +88,19 @@ namespace Fluxzy.Desktop.Services
 
         public IObservable<RealtimeArchiveWriter?> WriterObservable { get; }
 
+        public IObservable<Proxy?> InternalProxy => _internalProxy.AsObservable();
+
         protected override BehaviorSubject<ProxyState> Subject { get; }
 
         public IArchiveReader? ArchiveReader { get; private set; }
 
         private async Task<ProxyState> ReloadProxy(
-            FluxzySetting fluxzySetting,
-            FileContentOperationManager currentContentOperationManager, int maxConnectionId, int maxExchangeId)
+            FluxzySetting fluxzySetting, int maxConnectionId, int maxExchangeId)
         {
             if (_proxy != null) {
                 await _proxy.DisposeAsync();
                 _proxy = null;
+                _internalProxy.OnNext(null);
                 await _tcpConnectionProvider!.DisposeAsync();
                 _tcpConnectionProvider = null;
             }
@@ -118,9 +121,11 @@ namespace Fluxzy.Desktop.Services
                     _userAgentProvider, _idProvider);
 
                 // This is to enabled pending exchange and connection into existing file 
+
                 _proxy.IdProvider.SetNextConnectionId(maxConnectionId);
                 _proxy.IdProvider.SetNextExchangeId(maxExchangeId);
 
+                _internalProxy.OnNext(_proxy);
                 _writerSubject.OnNext(_proxy.Writer);
 
                 _proxy.Writer.ExchangeUpdated += delegate(object? _, ExchangeUpdateEventArgs args) {
@@ -136,6 +141,7 @@ namespace Fluxzy.Desktop.Services
             catch (Exception ex) {
                 if (_proxy != null) {
                     _writerSubject.OnNext(null);
+                    _internalProxy.OnNext(null);
                     await _proxy.DisposeAsync();
                     await _tcpConnectionProvider!.DisposeAsync();
                 }

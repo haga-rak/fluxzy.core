@@ -213,5 +213,8 @@ namespace Fluxzy
         public FluxzySetting StartupSetting { get; }
 
         public BreakPointManager BreakPointManager { get; } = new();
+
     }
+
+
 }

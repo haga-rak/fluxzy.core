@@ -69,6 +69,27 @@ namespace Fluxzy.Core.Breakpoints
         public FilterScope CurrentScope { get; set; }
 
         public ExchangeInfo ExchangeInfo => new(_exchange);
+
+        public BreakPointContextInfo GetInfo()
+        {
+            return new(ExchangeInfo, LastLocation, CurrentHit); 
+        }
+    }
+
+    public class BreakPointContextInfo
+    {
+        public BreakPointContextInfo(ExchangeInfo exchange, BreakPointLocation lastLocation, BreakPointLocation? currentHit)
+        {
+            Exchange = exchange;
+            LastLocation = lastLocation;
+            CurrentHit = currentHit;
+        }
+
+        public ExchangeInfo Exchange { get;  }
+
+        public BreakPointLocation LastLocation { get; }
+
+        public BreakPointLocation? CurrentHit { get; }
     }
 
     public interface IBreakPoint
@@ -91,7 +112,7 @@ namespace Fluxzy.Core.Breakpoints
         public BreakPointLocation Location { get; }
 
         /// <summary>
-        /// null, not runned, true, running, false, finished
+        /// null, not run, true, running, false, finished
         /// </summary>
         public bool? Running { get; private set; }
 
