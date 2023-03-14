@@ -20,9 +20,9 @@ namespace Fluxzy.Core.Breakpoints
 
         public BreakPointContext GetOrCreate(Exchange exchange, FilterScope filterScope)
         {
-            lock (_runningContext)
-            {
-                var context = _runningContext.GetOrAdd(exchange.Id, (_) => new BreakPointContext(exchange, UpdateContext));
+            lock (_runningContext) {
+                var context =
+                    _runningContext.GetOrAdd(exchange.Id, _ => new BreakPointContext(exchange, UpdateContext));
 
                 context.CurrentScope = filterScope;
 
@@ -32,8 +32,9 @@ namespace Fluxzy.Core.Breakpoints
 
         public bool TryGet(int exchangeId, out BreakPointContext? context)
         {
-            lock (_runningContext)
+            lock (_runningContext) {
                 return _runningContext.TryGetValue(exchangeId, out context);
+            }
         }
 
         internal BreakPointContext GetFirst()
@@ -51,21 +52,22 @@ namespace Fluxzy.Core.Breakpoints
 
         public BreakPointState GetState()
         {
-            lock (_runningContext)
+            lock (_runningContext) {
                 return new BreakPointState(_runningContext.Values.Select(c => c.GetInfo()).ToList());
+            }
         }
 
         public IEnumerable<BreakPointContext> GetAllContext()
         {
-            lock (_runningContext)
-                return _runningContext.Values.ToList(); 
+            lock (_runningContext) {
+                return _runningContext.Values.ToList();
+            }
         }
 
-        public event OnContextUpdated?  OnContextUpdated;
+        public event OnContextUpdated? OnContextUpdated;
     }
 
     public delegate void OnContextUpdated(object sender, OnContextUpdatedArgs args);
-
 
     public class OnContextUpdatedArgs : EventArgs
     {
@@ -74,11 +76,11 @@ namespace Fluxzy.Core.Breakpoints
             Context = context;
         }
 
-        public BreakPointContext Context { get;  }
+        public BreakPointContext Context { get; }
     }
 
     /// <summary>
-    /// The view model of the breakpoint status  
+    ///     The view model of the breakpoint status
     /// </summary>
     public class BreakPointState
     {
@@ -88,18 +90,14 @@ namespace Fluxzy.Core.Breakpoints
         }
 
         /// <summary>
-        /// Define is debugging window has to popup 
+        ///     Define is debugging window has to popup
         /// </summary>
         public bool HasToPop {
-            get
-            {
-                return Entries.Any(e => e.CurrentHit != null); 
-            }
+            get { return Entries.Any(e => e.CurrentHit != null); }
         }
 
         public List<BreakPointContextInfo> Entries { get; }
 
-        public static BreakPointState EmptyEntries { get; } = new(new());
+        public static BreakPointState EmptyEntries { get; } = new(new List<BreakPointContextInfo>());
     }
-
 }

@@ -19,11 +19,11 @@ namespace Fluxzy.Desktop.Services
     {
         private readonly FileContentUpdateManager _fileContentUpdateManager;
         private readonly FromIndexIdProvider _idProvider;
+        private readonly BehaviorSubject<Proxy?> _internalProxy = new(null);
         private readonly BehaviorSubject<ProxyState> _internalSubject;
         private readonly ProxyScope _proxyScope;
         private readonly UaParserUserAgentInfoProvider _userAgentProvider;
         private readonly BehaviorSubject<RealtimeArchiveWriter?> _writerSubject = new(null);
-        private readonly BehaviorSubject<Proxy?> _internalProxy = new(null);
 
         private Proxy? _proxy;
         private ITcpConnectionProvider? _tcpConnectionProvider;
@@ -94,8 +94,7 @@ namespace Fluxzy.Desktop.Services
 
         public IArchiveReader? ArchiveReader { get; private set; }
 
-        private async Task<ProxyState> ReloadProxy(
-            FluxzySetting fluxzySetting, int maxConnectionId, int maxExchangeId)
+        private async Task<ProxyState> ReloadProxy(FluxzySetting fluxzySetting, int maxConnectionId, int maxExchangeId)
         {
             if (_proxy != null) {
                 await _proxy.DisposeAsync();

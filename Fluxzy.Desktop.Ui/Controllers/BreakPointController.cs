@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Net;
 using Fluxzy.Desktop.Services.BreakPoints;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
@@ -29,7 +30,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         {
             _handler.AddBreakPoint(filter);
 
-            return true; 
+            return true;
         }
 
         [HttpDelete("{filterId}")]
@@ -37,14 +38,47 @@ namespace Fluxzy.Desktop.Ui.Controllers
         {
             _handler.DeleteBreakPoint(filterId);
 
-            return true; 
+            return true;
         }
 
         [HttpPost("clear")]
         public ActionResult<bool> DeleteAll()
         {
             _handler.DeleteAllBreakPoints();
-            return true; 
+
+            return true;
+        }
+
+        [HttpPost("continue-all")]
+        public ActionResult<bool> ContinueAll()
+        {
+            _handler.ContinueAll();
+
+            return true;
+        }
+
+        [HttpPost("{exchangeId}/continue")]
+        public ActionResult<bool> ContinueContext(int exchangeId)
+        {
+            _handler.ContinueContext(exchangeId);
+
+            return true;
+        }
+
+        [HttpPost("{exchangeId}/endpoint")]
+        public ActionResult<bool> SetEndPoint(int exchangeId, [FromBody] IPEndPoint ipEndPoint)
+        {
+            _handler.SetEndPoint(exchangeId, ipEndPoint.Address, ipEndPoint.Port);
+
+            return true;
+        }
+
+        [HttpPost("{exchangeId}/endpoint/continue")]
+        public ActionResult<bool> ContinueEndPoint(int exchangeId)
+        {
+            _handler.ContinueEndPoint(exchangeId);
+
+            return true;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Fluxzy.Desktop.Services
                 breakPointStateObservable,
                 (
                     f, p, s, sp, v, tt,
-                    aro, lop,bs) => {
+                    aro, lop, bs) => {
                     var defaultToolBarFilters = toolBarFilterProvider.GetDefault().ToList();
 
                     return new UiState(f, p,

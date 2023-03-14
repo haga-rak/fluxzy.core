@@ -10,12 +10,12 @@ namespace Fluxzy.Desktop.Services
 {
     public class ActiveRuleManager : ObservableProvider<HashSet<Guid>>
     {
-        private readonly IRuleStorage _ruleStorage;
-
         /// <summary>
-        /// Rules that stays on memory (not persisted), mostly breakpoints
+        ///     Rules that stays on memory (not persisted), mostly breakpoints
         /// </summary>
-        private readonly BehaviorSubject<ImmutableList<Rule>> _inMemoryRules = new(ImmutableList.Create<Rule>()); 
+        private readonly BehaviorSubject<ImmutableList<Rule>> _inMemoryRules = new(ImmutableList.Create<Rule>());
+
+        private readonly IRuleStorage _ruleStorage;
 
         public ActiveRuleManager(IRuleStorage ruleStorage)
         {
@@ -34,7 +34,9 @@ namespace Fluxzy.Desktop.Services
                                              return ruleContainers.Where(r => s.Contains(r.Rule.Identifier))
                                                                   .Select(r => r.Rule).ToList();
                                          })).Concat())
-                              .Select(s => s.Second.Concat(s.First).ToList()); ;
+                              .Select(s => s.Second.Concat(s.First).ToList());
+
+            ;
 
             Subject = subject;
         }

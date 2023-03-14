@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Core.Breakpoints;
@@ -6,9 +8,6 @@ namespace Fluxzy.Desktop.Services.BreakPoints
 {
     public class BreakPointWatcher : ObservableProvider<BreakPointState>
     {
-        public BreakPointManager? BreakPointManager { get; private set; }
-
-        protected override BehaviorSubject<BreakPointState> Subject { get; } = new(BreakPointState.EmptyEntries); 
         private readonly BehaviorSubject<bool> _breakPointChangedWatcher = new(true);
 
         public BreakPointWatcher(ProxyControl proxyControl)
@@ -28,8 +27,12 @@ namespace Fluxzy.Desktop.Services.BreakPoints
                             .Select(s => s.First)
                             .Select(s => s!.ExecutionContext.BreakPointManager.GetState());
 
-            observableState.Do(s => Subject.OnNext(s)).Subscribe(); 
+            observableState.Do(s => Subject.OnNext(s)).Subscribe();
         }
+
+        public BreakPointManager? BreakPointManager { get; private set; }
+
+        protected override BehaviorSubject<BreakPointState> Subject { get; } = new(BreakPointState.EmptyEntries);
 
         private void OnNewBreakPointManager(BreakPointManager b)
         {
@@ -38,7 +41,7 @@ namespace Fluxzy.Desktop.Services.BreakPoints
 
             if (BreakPointManager != null)
                 BreakPointManager.OnContextUpdated -= ContextUpdated;
-            
+
             BreakPointManager = b;
 
             BreakPointManager.OnContextUpdated += ContextUpdated;
@@ -47,7 +50,7 @@ namespace Fluxzy.Desktop.Services.BreakPoints
         private void ContextUpdated(object sender, OnContextUpdatedArgs args)
         {
             // Break point state has changed 
-            _breakPointChangedWatcher.OnNext(true); 
+            _breakPointChangedWatcher.OnNext(true);
         }
     }
 }
