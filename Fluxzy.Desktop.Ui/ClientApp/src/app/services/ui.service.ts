@@ -35,7 +35,7 @@ import {SystemCallService} from "../core/services/system-call.service";
 export class UiStateService {
     private uiState$: Subject<UiState> = new Subject<UiState>();
     public lastUiState$: BehaviorSubject<UiState | null> = new BehaviorSubject<UiState | null>(null);
-    private filteredUpdate$: BehaviorSubject<FilteredExchangeState | null> = new BehaviorSubject<FilteredExchangeState | null>(null);
+   //  private filteredUpdate$: BehaviorSubject<FilteredExchangeState | null> = new BehaviorSubject<FilteredExchangeState | null>(null);
     private uiState: UiState;
 
     constructor(
@@ -69,13 +69,12 @@ export class UiStateService {
             )
             .subscribe();
 
-        combineLatest(
-            [
-                this.getFileState().pipe(distinct()),
-                this.filteredUpdate$.asObservable()
-            ]
-        ).pipe(
-            map(t => t[0].workingDirectory),
+        combineLatest([
+            this.uiState$.pipe(filter(u => !!u), map(u => u.viewFilter.id), distinct()),
+            this.getFileState().pipe(map(f => f.workingDirectory), distinct()),
+        ]).pipe(
+            map(t => t[1]),
+            tap(t => console.log(t)),
             switchMap(f => this.apiService.readTrunkState(f)),
             tap(t => this.exchangeContentService.update(t)),
         )

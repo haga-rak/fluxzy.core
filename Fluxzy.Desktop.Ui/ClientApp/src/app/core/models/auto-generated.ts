@@ -764,6 +764,7 @@ export interface FileState
 }
 export interface ViewFilter
 {
+	id: number;
 	filter: Filter;
 	sourceFilter: Filter;
 	empty: boolean;
