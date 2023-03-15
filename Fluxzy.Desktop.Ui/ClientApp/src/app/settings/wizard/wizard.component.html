@@ -1,0 +1,60 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">Root CA installation</h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="">
+
+    <div>
+        <p class="lead text-info" *ngIf="!certificateWizardStatus || !certificateWizardStatus.installed">
+            Fluxzy has detected that the current certificate authority is not trusted by the operating system.
+            Browsers may trigger errors when the HTTP capture is on.
+            <br/>
+            Do you want to trust the Fluxzy Root CA?
+        </p>
+        <p class="lead text-info" *ngIf="!certificateWizardStatus || certificateWizardStatus.installed">
+            Fluxzy certificate is already trusted by the system.
+        </p>
+
+        <div *ngIf="certificateWizardStatus" class="cert-presentation">
+                    <span>
+                        Information about the certificate
+                    </span>
+            <br/>
+            <pre class="text-monospace">{{ certificateWizardStatus.certificateFriendlyName }}</pre>
+        </div>
+        <div *ngIf="certificateWizardStatus">
+
+            <div class="text-center" *ngIf="!certificateWizardStatus.installed">
+                <button class="btn btn-light btn-outline-primary btn-lg" (click)="installCertificate()">Install
+                    certificate
+                </button>
+            </div>
+            <div class="text-center" *ngIf="certificateWizardStatus.installed">
+                <button class="btn btn-success btn-lg text-white" (click)="bsModalRef.hide()">
+                    <i class="fa fa-check"></i>
+                    Certificate trusted
+                </button>
+            </div>
+        </div>
+        <div *ngIf="!certificateWizardStatus" class="text-center lead">
+            <i class="fa fa-spinner fa-spin fa-fw"></i> .. installing certificate
+        </div>
+    </div>
+
+</div>
+<div class="modal-footer">
+    <span *ngIf="certificateWizardStatus">
+
+    <span *ngIf="!certificateWizardStatus.installed">
+        <button class="btn btn-dark" (click)="neverAskAgain()">No and never ask me again</button>
+&nbsp;
+        <button class="btn btn-primary" (click)="bsModalRef.hide()">Not this time</button>
+    </span>
+    <span *ngIf="certificateWizardStatus.installed">
+        <button class="btn btn-primary" (click)="bsModalRef.hide()">Close</button>
+    </span>
+    </span>
+</div>
+

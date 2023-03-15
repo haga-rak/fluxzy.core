@@ -1006,3 +1006,18 @@ export interface SazExportRequest
 	fileName: string;
 	exchangeIds?: number[];
 }
+export interface CertificateWizardStatus
+{
+	installed: boolean;
+	userExplicitlyRefused: boolean;
+	certificateFriendlyName: string;
+	ignoreStep: boolean;
+}
+export interface UiUserSetting
+{
+	startupWizardSettings: StartupWizardSettings;
+}
+export interface StartupWizardSettings
+{
+	noCertificateInstallExplicit: boolean;
+}

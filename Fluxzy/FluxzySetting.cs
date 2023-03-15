@@ -74,7 +74,7 @@ namespace Fluxzy
         ///     When set to true, echoes will automatically install default certificate when starting.
         /// </summary>
         [JsonInclude]
-        public bool AutoInstallCertificate { get; internal set; } = true;
+        public bool AutoInstallCertificate { get; internal set; }
 
         /// <summary>
         ///     Check whether server certificate is valid. Default value is true

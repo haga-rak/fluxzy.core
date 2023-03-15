@@ -3,11 +3,12 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuItemConstructorOptions } from 'electron';
-import { filter, tap } from 'rxjs';
+import {filter, switchMap, tap} from 'rxjs';
 import {ExchangeInfo, UiState} from '../core/models/auto-generated';
 import { GlobalMenuItems } from '../core/models/menu-models';
 import { ElectronService } from '../core/services';
 import { MenuService } from '../core/services/menu-service.service';
+import { ApiService } from '../services/api.service';
 import { DialogService } from '../services/dialog.service';
 import { ExchangeSelectionService } from '../services/exchange-selection.service';
 import { UiStateService } from '../services/ui.service';
@@ -27,9 +28,16 @@ export class HomeComponent implements OnInit {
         private exchangeSelectionService : ExchangeSelectionService,
         private dialogService : DialogService,
         private uiStateService : UiStateService,
+        private apiService : ApiService,
         private cdr: ChangeDetectorRef) { }
 
     ngOnInit(): void {
+        // Check for the necessity to launch certificate wizard
+        this.apiService.wizardShouldAskCertificate()
+            .pipe(
+                filter(t => !t.ignoreStep),
+                tap(t => this.dialogService.openWizardDialog(t)),
+            ).subscribe() ;
 
         this.uiStateService.getUiState()
             .pipe(
