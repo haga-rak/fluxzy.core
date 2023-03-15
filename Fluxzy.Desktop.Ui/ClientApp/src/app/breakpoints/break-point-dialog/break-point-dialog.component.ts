@@ -1,17 +1,18 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {BsModalRef} from "ngx-bootstrap/modal";
 import {ApiService} from "../../services/api.service";
 import {SystemCallService} from "../../core/services/system-call.service";
 import {UiStateService} from "../../services/ui.service";
 import {filter, tap} from "rxjs";
 import {BreakPointContextInfo, BreakPointState, UiState} from "../../core/models/auto-generated";
+import {BreakPointService} from "../break-point.service";
 
 @Component({
     selector: 'app-break-point-dialog',
     templateUrl: './break-point-dialog.component.html',
     styleUrls: ['./break-point-dialog.component.scss']
 })
-export class BreakPointDialogComponent implements OnInit {
+export class BreakPointDialogComponent implements OnInit, OnDestroy {
     public uiState: UiState | null = null;
 
     // The current select context info
@@ -24,10 +25,11 @@ export class BreakPointDialogComponent implements OnInit {
         private apiService: ApiService,
         public cd : ChangeDetectorRef,
         private uiStateService : UiStateService,
-        private systemCallService : SystemCallService) {
+        private breakPointService : BreakPointService) {
     }
 
     ngOnInit(): void {
+        this.breakPointService.setBreakPointVisibility(true);
         this.uiStateService.lastUiState$
             .pipe(
                 filter(s => !!s),
@@ -36,6 +38,10 @@ export class BreakPointDialogComponent implements OnInit {
                 tap(_ => this.computeCurrentContextInfo(this.breakPointState)),
                 tap( _ => this.cd.detectChanges()),
             ).subscribe();
+    }
+
+    ngOnDestroy(): void {
+        this.breakPointService.setBreakPointVisibility(false);
     }
 
     private computeCurrentContextInfo(breakPointState: BreakPointState) : void {
@@ -100,4 +106,5 @@ export class BreakPointDialogComponent implements OnInit {
         }
 
     }
+
 }

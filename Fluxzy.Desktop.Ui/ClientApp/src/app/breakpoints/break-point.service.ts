@@ -4,6 +4,8 @@ import {UiStateService} from "../services/ui.service";
 import {MenuService} from "../core/services/menu-service.service";
 import {DialogService} from "../services/dialog.service";
 import {ApiService} from "../services/api.service";
+import {BsModalService, ModalOptions} from "ngx-bootstrap/modal";
+import {BreakPointDialogComponent} from "./break-point-dialog/break-point-dialog.component";
 
 @Injectable({
     providedIn: 'root'
@@ -16,7 +18,8 @@ export class BreakPointService {
         private menuService : MenuService,
         private dialogService : DialogService,
         private apiService: ApiService,
-        private uiStateService : UiStateService)
+        private uiStateService : UiStateService,
+        private modalService: BsModalService)
     {
         this.breakPointVisible = this.$breakPointVisibility.value ;
 
@@ -33,9 +36,7 @@ export class BreakPointService {
 
     private init () : void {
         this.menuService.registerMenuEvent('breakpoint-window', () => {
-            if (this.breakPointVisible)
-                return ;
-            this.dialogService.openBreakPointDialog();
+            this.openBreakPointDialog();
         });
 
         this.menuService.registerMenuEvent('pause-all', () => {
@@ -57,7 +58,29 @@ export class BreakPointService {
             map(t => t.breakPointState.hasToPop),
             distinctUntilChanged(),
             filter(t => t),
-            tap(_ => this.dialogService.openBreakPointDialog()))
+            tap(_ => this.openBreakPointDialog()))
             .subscribe();
+    }
+
+
+
+
+    public openBreakPointDialog() : void {
+        // Avoid opening if it's already exist
+
+        if (this.breakPointVisible)
+            return ;
+
+        const config: ModalOptions = {
+            class: '',
+            initialState: {
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.modalService.show(
+            BreakPointDialogComponent,
+            config
+        );
     }
 }
