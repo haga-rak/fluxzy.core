@@ -11,6 +11,7 @@ using Fluxzy.Desktop.Services.Attributes;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
+using Fluxzy.Desktop.Services.Wizards;
 using Fluxzy.Desktop.Ui.ViewModels;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Metrics;
@@ -162,7 +163,6 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<SslInfo>()
                 .ApplyGenericProperties();
 
-
             builder.ExportAsInterface<ValidationError>()
                 .ApplyGenericProperties();
             
@@ -170,6 +170,15 @@ namespace Fluxzy.Desktop.Ui
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<SazExportRequest>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<CertificateWizardStatus>()
+                .ApplyGenericProperties();
+            
+            builder.ExportAsInterface<UiUserSetting>()
+                .ApplyGenericProperties();
+            
+            builder.ExportAsInterface<StartupWizardSettings>()
                 .ApplyGenericProperties();
         }
 

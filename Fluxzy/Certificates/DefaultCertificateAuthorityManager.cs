@@ -48,13 +48,19 @@ namespace Fluxzy.Certificates
 
         public override ValueTask<bool> InstallCertificate(X509Certificate2 certificate)
         {
-            using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
-            using var store = new X509Store(StoreName.Root);
+            try {
+                using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
+                using var store = new X509Store(StoreName.Root);
 
-            store.Open(OpenFlags.ReadWrite);
-            store.Add(newCertificate);
+                store.Open(OpenFlags.ReadWrite);
+                store.Add(newCertificate);
 
-            return default;
+                return default;
+            }
+            catch {
+                // Probably user as refused to install the certificate or user has not enough right 
+                return new ValueTask<bool>(false);
+            }
         }
 
         public override IEnumerable<CaCertificateInfo> EnumerateRootCertificates()

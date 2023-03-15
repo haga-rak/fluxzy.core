@@ -36,6 +36,9 @@ function runFrontEnd() : void {
 
         win.center();
 
+        let fullPath = '';
+
+
         if (serve) {
             const debug = require('electron-debug');
             debug();
@@ -52,11 +55,15 @@ function runFrontEnd() : void {
                 pathIndex = '../dist/index.html';
             }
 
-            win.loadURL(url.format({
+            fullPath = url.format({
                 pathname: path.join(__dirname, pathIndex),
                 protocol: 'file:',
                 slashes: true
-            }));
+            });
+
+            if (!isProduction) {
+
+            }
         }
 
         // Emitted when the window is closed.
@@ -75,6 +82,7 @@ function runFrontEnd() : void {
             launchFluxzyDaemonOrDie(commandLineArgs,(success : boolean, busyPort: boolean) => {
                 if (success) {
                     // Backend launched successfully
+                    win.loadURL(fullPath);
                     win.show();
                 } else {
                     if (busyPort) {

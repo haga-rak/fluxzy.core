@@ -121,7 +121,6 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
     }
 
     public selectInterface(ipAddress: string) : void {
-
         if (this.settingsHolder.viewModel.addresses.filter(t => t === ipAddress).length === 1){
             this.settingsHolder.viewModel.addresses = this.settingsHolder.viewModel.addresses.filter(t => t !== ipAddress);
             this.cd.detectChanges();
@@ -129,8 +128,6 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
         }
         this.settingsHolder.viewModel.addresses.push(ipAddress)
         this.cd.detectChanges();
-        // console.log(ipAddress);
-        // console.log(this.settingsHolder.viewModel);
     }
 
     public validateCertificate() : Observable<boolean> {

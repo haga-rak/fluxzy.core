@@ -96,6 +96,7 @@ import { SearchTextFilterFormComponent } from './settings/filter-forms/child-for
 import {BackendInterceptor} from "./core/backend.interceptor";
 import { ExchangeToolsComponent } from './widgets/exchange-tools/exchange-tools.component';
 import { ExchangeMetricsComponent } from './widgets/exchange-metrics/exchange-metrics.component';
+import { WizardComponent } from './settings/wizard/wizard.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -178,6 +179,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         SearchTextFilterFormComponent,
         ExchangeToolsComponent,
         ExchangeMetricsComponent,
+        WizardComponent,
 
 
     ],

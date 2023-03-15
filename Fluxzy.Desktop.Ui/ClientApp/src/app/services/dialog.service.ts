@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import {BehaviorSubject, delay, filter, finalize, map, Observable, Subject, switchMap, take, tap} from 'rxjs';
 import {
-    Action,
+    Action, CertificateWizardStatus,
     CommentUpdateModel,
     Filter,
     HttpArchiveSavingSetting,
@@ -24,6 +24,7 @@ import {WaitDialogComponent} from "../shared/wait-dialog/wait-dialog.component";
 import {CommentApplyComponent} from "../shared/comment-apply/comment-apply.component";
 import {TagApplyComponent} from "../shared/tag-apply/tag-apply.component";
 import {HarExportSettingComponent} from "../shared/har-export-setting/har-export-setting.component";
+import {WizardComponent} from "../settings/wizard/wizard.component";
 
 @Injectable({
     providedIn: 'root',
@@ -59,6 +60,28 @@ export class DialogService {
             config
         );
         this.bsModalRef.content.closeBtnName = 'Close';
+    }
+
+    public openWizardDialog(certificateWizardStatus : CertificateWizardStatus) : Observable<any> {
+        const subject = new Subject<any>();
+        const callback = (t : any) => { subject.next(t); subject.complete()};
+
+        const config: ModalOptions = {
+            initialState: {
+                certificateWizardStatus,
+                callback
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.bsModalRef = this.modalService.show(
+            WizardComponent,
+            config
+        );
+
+        this.bsModalRef.content.closeBtnName = 'Close';
+
+        return subject.asObservable().pipe(take(1));
     }
 
     public openManageRules() {

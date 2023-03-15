@@ -82,6 +82,9 @@ namespace Fluxzy.Cli.System
                 return result.ExitCode == 0;
             }
 
+            // Adding root certificate on macos s
+            // sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain r.cer 
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 var result = await ProcessUtils.QuickRunAsync("pkexec",
                     $"{_currentBinaryFullPath} install",

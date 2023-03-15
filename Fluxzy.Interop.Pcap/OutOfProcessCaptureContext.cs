@@ -1,7 +1,11 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Net;
 using System.Net.Sockets;
 using Fluxzy.Core;
 using Fluxzy.Interop.Pcap.Messages;
+using SharpPcap;
+using SharpPcap.LibPcap;
 
 namespace Fluxzy.Interop.Pcap
 {
@@ -19,9 +23,26 @@ namespace Fluxzy.Interop.Pcap
         {
             _port = (int) captureHost.Payload;
             _captureHost = captureHost;
-            _client = new TcpClient() {
+
+            _client = new TcpClient {
                 NoDelay = true
             };
+        }
+
+        public bool Available {
+            get
+            {
+                try {
+                    // No need to launch remote process to detect if pcap is enable or not 
+
+                    return CaptureDeviceList.Instance.OfType<PcapDevice>().Any();
+                }
+                catch {
+                    // ignore further warning 
+
+                    return false;
+                }
+            }
         }
 
         public async Task Start()

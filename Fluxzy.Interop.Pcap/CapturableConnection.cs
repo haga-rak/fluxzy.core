@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net;
 using System.Net.Sockets;
@@ -52,9 +52,10 @@ namespace Fluxzy.Interop.Pcap
 
                 var localPort = ((IPEndPoint?) _innerTcpClient.Client?.LocalEndPoint)?.Port;
 
-                if (localPort != null && localPort > 0)
+                if (localPort != null && localPort > 0) {
                     _subscription = context?.Subscribe(_outTraceFileName, remoteAddress, remotePort, localPort.Value) ??
                                     0;
+                }
 
                 if (connectError)
                     await Task.Delay(1000);

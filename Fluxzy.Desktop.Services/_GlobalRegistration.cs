@@ -1,6 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
+using Fluxzy.Certificates;
+using Fluxzy.Cli.System;
 using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Core.Proxy;
@@ -9,6 +12,7 @@ using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Services.Ui;
+using Fluxzy.Desktop.Services.Wizards;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Metrics;
@@ -27,6 +31,8 @@ namespace Fluxzy.Desktop.Services
     {
         public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
+            collection.AddSingleton<GlobalUiSettingStorage>();
+
             collection.AddSingleton<ProxyScope>(_ =>
                 new ProxyScope(() => new FluxzyNetOutOfProcessHost(), a => new OutOfProcessCaptureContext(a)));
 
@@ -47,6 +53,13 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<FileDynamicStatsManager>();
             collection.AddSingleton<LastOpenFileManager>();
             collection.AddSingleton<UaParserUserAgentInfoProvider>();
+
+            collection.AddSingleton<CertificateAuthorityManager>(t =>
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? t.GetRequiredService<DefaultCertificateAuthorityManager>()
+                    : new OutOfProcAuthorityManager(t.GetRequiredService<DefaultCertificateAuthorityManager>()));
+
+            collection.AddSingleton<DefaultCertificateAuthorityManager>();
 
             collection.AddSingleton
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
@@ -105,6 +118,9 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<CurlExportFolderManagement>(_ => new CurlExportFolderManagement());
             collection.AddScoped<FileExecutionManager>();
             collection.AddScoped<IRunningProxyProvider, RunningProxyProvider>();
+
+            collection.AddScoped<ICaptureAvailabilityChecker, CaptureAvailabilityChecker>();
+            collection.AddScoped<CertificateWizard>();
 
             collection
                 .AddSingleton<ISystemProxySetterManager,

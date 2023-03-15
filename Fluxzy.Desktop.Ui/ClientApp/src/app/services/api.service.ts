@@ -20,7 +20,7 @@ import {
     ArchiveMetaInformation,
     Certificate,
     CertificateOnStore,
-    CertificateValidationResult,
+    CertificateValidationResult, CertificateWizardStatus,
     CommentUpdateModel,
     ConnectionInfo,
     ContextMenuAction, CurlCommandResult, DescriptionInfo,
@@ -390,6 +390,26 @@ export class ApiService {
     }
 
     public actionLongDescription(typeKind : string) : Observable<DescriptionInfo>{
-            return this.httpClient.get<DescriptionInfo>(`api/action/description/${typeKind}`).pipe(take(1)) ;
+        return this.httpClient.get<DescriptionInfo>(`api/action/description/${typeKind}`).pipe(take(1)) ;
+    }
+
+    public wizardShouldAskCertificate() : Observable<CertificateWizardStatus> {
+        return this.httpClient.get<CertificateWizardStatus>(`api/wizard/certificate/check`).pipe(take(1)) ;
+    }
+
+    public wizardCheckRawCapture() : Observable<boolean> {
+        return this.httpClient.get<boolean>(`api/wizard/raw-capture/check`).pipe(take(1)) ;
+    }
+
+    public wizardInstallCertificate() : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/wizard/certificate/install`, null).pipe(take(1)) ;
+    }
+
+    public wizardRefuse() : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/wizard/certificate/refuse`, null).pipe(take(1)) ;
+    }
+
+    public wizardRevive() : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/wizard/certificate/revive`, null).pipe(take(1)) ;
     }
 }
