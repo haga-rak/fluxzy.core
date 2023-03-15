@@ -8,6 +8,7 @@ import {UiStateService} from '../services/ui.service';
 import {StatusBarService} from "../services/status-bar.service";
 import {DialogService} from "../services/dialog.service";
 import {SystemCallService} from "../core/services/system-call.service";
+import {BreakPointService} from "../breakpoints/break-point.service";
 
 @Component({
     selector: 'app-status-bar',
@@ -29,6 +30,7 @@ export class StatusBarComponent implements OnInit {
         private statusBarService : StatusBarService,
         private dialogService : DialogService,
         private systemCallService : SystemCallService,
+        private breakPointService : BreakPointService
 
     ) {
     }
@@ -98,6 +100,6 @@ export class StatusBarComponent implements OnInit {
     }
 
     showBreakPointWindow() {
-        this.dialogService.openBreakPointDialog();
+        this.breakPointService.openBreakPointDialog();
     }
 }

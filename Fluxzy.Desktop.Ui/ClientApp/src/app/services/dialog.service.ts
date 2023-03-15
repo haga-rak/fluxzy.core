@@ -388,23 +388,4 @@ export class DialogService {
         return subject.asObservable().pipe(take(1));
     }
 
-
-
-    public openBreakPointDialog() : void {
-        // Avoid opening if it's already exist
-
-        const config: ModalOptions = {
-            class: '',
-            initialState: {
-            },
-            ignoreBackdropClick : true
-        };
-
-        let modalInstance = this.modalService.show(
-            BreakPointDialogComponent,
-            config
-        );
-
-        this.breakPointDialog = modalInstance;
-    }
 }
