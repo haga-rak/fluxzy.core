@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
@@ -9,6 +10,7 @@ namespace Fluxzy.Rules.Actions
 {
     public class BreakPointAction : Action
     {
+        [JsonIgnore]
         public ExchangeContext? ExchangeContext { get; private set; }
 
         public override FilterScope ActionScope => FilterScope.OutOfScope;
