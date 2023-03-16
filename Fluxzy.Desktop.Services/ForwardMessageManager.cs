@@ -8,6 +8,7 @@ namespace Fluxzy.Desktop.Services
     public class ForwardMessageManager
     {
         private readonly Channel<ForwardMessage> _bufferedChannel = Channel.CreateUnbounded<ForwardMessage>();
+        private CancellationTokenSource? _cts; 
 
         public void Send<T>(T payload) where T : notnull
         {
@@ -18,16 +19,41 @@ namespace Fluxzy.Desktop.Services
         {
             var list = new List<ForwardMessage>();
 
-            while (true) {
-                if (!await _bufferedChannel.Reader.WaitToReadAsync())
-                    break; 
+            CancellationToken token;
 
-                _bufferedChannel.Reader.TryReadAll(list);
-                
-                if (list.Count > 0)
-                    break;
+            lock (this)
+            {
+                if (_cts != null)
+                {
+                    _cts.Cancel();
+                    _cts.Dispose();
+                    _cts = null;
+                }
+
+                _cts = new CancellationTokenSource();
+                token = _cts.Token;
             }
+           
 
+            try {
+
+                while (true)
+                {
+                    if (!await _bufferedChannel.Reader.WaitToReadAsync(token))
+                        break;
+
+                    await Task.Delay(30, token);
+
+                    _bufferedChannel.Reader.TryReadAll(list);
+
+                    if (list.Count > 0)
+                        break;
+                }
+
+            }
+            catch (OperationCanceledException) {
+
+            }
 
             return list;
         }
