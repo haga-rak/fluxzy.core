@@ -11,6 +11,8 @@ namespace Fluxzy
 
         string KnownAuthority { get; }
 
+        int KnownPort { get; }
+
         string HttpVersion { get; }
 
         string Method { get; }

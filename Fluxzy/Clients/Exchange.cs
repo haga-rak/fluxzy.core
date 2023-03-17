@@ -133,6 +133,7 @@ namespace Fluxzy.Clients
 
         public ExchangeContext Context { get; }
 
+
         public string? HttpVersion { get; set; }
 
         public bool IsWebSocket => Request.Header.IsWebSocketRequest;
@@ -142,6 +143,8 @@ namespace Fluxzy.Clients
         public string FullUrl => Request.Header.GetFullUrl();
 
         public string KnownAuthority => Authority.HostName;
+
+        public int KnownPort => Authority.Port;
 
         public string Method => Request.Header.Method.ToString();
 

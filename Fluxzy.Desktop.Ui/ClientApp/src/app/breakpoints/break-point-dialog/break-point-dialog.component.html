@@ -57,13 +57,11 @@
                     </span>
                 </div>
                 <div class="col-md-6 text-end">
-                    <div class="btn-group" role="group" aria-label="">
-                        <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-primary" (click)="continueNext()" title="Skip">
-                            <i class="fa fa-step-forward"></i> &nbsp; skip once</button>
-                        <button  [disabled]="currentContextInfo.done"  type="button" class="btn btn-primary" (click)="continueUntilEnd()" title="Skip until end">
-                            &nbsp;
+                    <div class="btn-group btn-command" role="group" aria-label="">
+                        <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-warning no-shadow" (click)="continueNext()" title="Skip">
+                            <i class="fa fa-step-forward"></i></button>
+                        <button  [disabled]="currentContextInfo.done"  type="button" class="btn btn-warning no-shadow" (click)="continueUntilEnd()" title="Skip until end">
                             <i class="fa fa-fast-forward"></i>
-                            skip until the end
                         </button>
                     </div>
                 </div>
@@ -73,15 +71,24 @@
             <div class="col-md-4">
                 <div class="alert alert-info">
 
-                    <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span></p>
+                    <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span>
+                        &nbsp;<span class="badge bg-success text-gray-600" *ngIf="currentContextInfo.done">done</span></p>
                     <ul class="fa-ul border-right">
-                        <li *ngFor="let item of currentContextInfo.stepInfos">
+                        <li *ngFor="let item of currentContextInfo.stepInfos" class="lead">
 
-                            <span class="fa-li" *ngIf="item.status === 'AlreadyRun'"><i class="fa fa-check-circle text-green" title="Done"></i></span>
+                            <span class="fa-li" *ngIf="item.status === 'AlreadyRun'">
+                                <i class="fa fa-check-circle text-gray-200" title="Done"></i></span>
 
-                            <span class="fa-li" *ngIf="item.status === 'Current'"><i class="fa fa-pause text-warning"></i></span>
-                            <span class="fa-li"  *ngIf="item.status === 'Pending'"><i class="fa fa-minus" title="Not run yet"></i></span>
-                            <span>{{ item.stepName}}</span>
+                            <span class="fa-li" *ngIf="item.status === 'Current'">
+                                <i class="fa fa-pause text-warning"></i>
+                            </span>
+                            <span class="fa-li"  *ngIf="item.status === 'Pending'">
+                                <i class="fa fa-minus" title="Not run yet"></i>
+                            </span>
+
+                            <a href="javascript:;" class="nul"
+                               (click)="setSelectedStepInfo(item)"
+                               [class]="{'text-info' : item.status !== 'Current', 'sinfo-selected' : item === selectedStepInfo}">{{ item.stepName}}</a>
                         </li>
 
                     </ul>
@@ -90,13 +97,18 @@
             <div class="col-md-8">
                 <div class="alert" style="min-height: 480px">
 
-                    <h4 class="soft-title text-info">Receiving authority</h4>
-                    <p class="text-center lead">
-                        <i class="fa fa-info-circle" aria-hidden="true"></i>
-                        A terminated step could not be altered anymore.
-                    </p>
+                    <div class="lead text-center"  *ngIf="!selectedStepInfo">No step selected</div>
+                    <div style="padding : 8px" *ngIf="selectedStepInfo">
 
-                    <div class="row">
+                        <h4 class="soft-title">{{ selectedStepInfo.stepName }}</h4>
+
+                        <div class="text-center lead p-3 text-info" *ngIf="selectedStepInfo.status === 'AlreadyRun'" >
+                            <i class="fa fa-info-circle text-warning" aria-hidden="true"></i>
+                            A terminated step could not be altered anymore.
+                            <br/>
+                        </div>
+
+                        <app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-authority>
 
                     </div>
                 </div>
@@ -107,5 +119,7 @@
 
 </div>
 <div class="modal-footer">
-    <button class="btn btn-primary" (click)="bsModalRef.hide()">Close</button>
+    <button *ngIf="breakPointState && breakPointState.activeEntries > 0" class="btn btn-outline-warning" (click)="disableAllAndQuit()">
+        Disable breakpoint and skip all ({{ breakPointState.activeEntries }})</button>
+    <button class="btn btn-outline-primary" (click)="bsModalRef.hide()">Close</button>
 </div>
