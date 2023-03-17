@@ -51,7 +51,7 @@ namespace Fluxzy.Core.Breakpoints
 
         public async ValueTask Init(Exchange exchange)
         {
-            FlatHeader = exchange.Request.ToString();
+            FlatHeader = exchange.Response.ToString();
 
             // rewind body 
 
@@ -87,22 +87,16 @@ namespace Fluxzy.Core.Breakpoints
 
         public void Alter(Exchange exchange)
         {
-            // Gather the request body 
+            Stream? body;
 
-            Stream? body = exchange.Response.Body;
-
-            if (EditBody)
+            if (FromFile)
             {
-
-                if (FromFile)
-                {
-                    body = File.Exists(FileName) ? File.OpenRead(FileName) : Stream.Null;
-                }
-                else
-                {
-                    body = string.IsNullOrEmpty(ContentBody) ?
-                        Stream.Null : new MemoryStream(Encoding.UTF8.GetBytes(ContentBody));
-                }
+                body = FileName != null && File.Exists(FileName) ? File.OpenRead(FileName) : Stream.Null;
+            }
+            else
+            {
+                body = string.IsNullOrEmpty(ContentBody) ?
+                    Stream.Null : new MemoryStream(Encoding.UTF8.GetBytes(ContentBody));
             }
 
             var tryParseResult = EditableResponseHeaderSet.TryParse(FlatHeader!, (int)(body?.Length ?? 0), out var headerSet);

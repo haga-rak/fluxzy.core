@@ -269,6 +269,11 @@ namespace Fluxzy.Clients
         public ResponseHeader? Header { get; set; }
 
         public Stream? Body { get; set; }
+
+        public override string ToString()
+        {
+            return Header?.ToString() ?? string.Empty;
+        }
     }
 
     public class Error
