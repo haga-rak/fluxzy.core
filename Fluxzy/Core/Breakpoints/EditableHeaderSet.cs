@@ -49,6 +49,7 @@ namespace Fluxzy.Core.Breakpoints
             // We are removing any content length header 
 
             headers.RemoveAll(t => t.Name.Equals(Http11Constants.ContentLength));
+            headers.RemoveAll(t => Http11Constants.UnEditableHeaders.Contains(t.Name));
 
             result = new EditableRequestHeaderSet(
                 headers.Select(h => new EditableHeader(
@@ -111,8 +112,10 @@ namespace Fluxzy.Core.Breakpoints
 
             // We are removing any content length header 
 
-            var count = headers.RemoveAll(t =>
+            headers.RemoveAll(t =>
                 t.Name.Span.Equals(Http11Constants.ContentLength.Span, StringComparison.OrdinalIgnoreCase));
+
+            headers.RemoveAll(t => Http11Constants.UnEditableHeaders.Contains(t.Name));
 
             result = new EditableResponseHeaderSet(headers.Select(h => new EditableHeader(
                 h.Name.ToString(), h.Value.ToString())).ToList());

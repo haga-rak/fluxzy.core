@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -107,6 +107,11 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         public static readonly HashSet<ReadOnlyMemory<char>> ControlHeaders =
             new(new[] {
                 MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, StatusVerb
+            }, new SpanCharactersIgnoreCaseComparer());
+
+        public static readonly HashSet<ReadOnlyMemory<char>> UnEditableHeaders =
+            new(new[] {
+                TransferEncodingVerb, UpgradeVerb, Upgrade, Trailer, ConnectionVerb
             }, new SpanCharactersIgnoreCaseComparer());
 
         public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
