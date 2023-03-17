@@ -7,5 +7,6 @@ namespace Fluxzy
     public static class FluxzySharedSetting
     {
         public static bool IsRunningInDesktop => Environment.GetEnvironmentVariable("Desktop") == "true";
+        
     }
 }

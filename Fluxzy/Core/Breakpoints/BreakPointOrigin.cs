@@ -2,21 +2,29 @@
 
 using System;
 using System.Threading.Tasks;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Core.Breakpoints
 {
-    public class BreakPointOrigin<T> : IBreakPoint
+    public class BreakPointOrigin<T> : IBreakPoint where T : class, IBreakPointAlterationModel, new()
     {
+        private readonly Exchange _exchange;
         private readonly Action<BreakPointLocation?> _updateReceiver;
-        private readonly TaskCompletionSource<T?> _waitForValueCompletionSource;
+        private readonly TaskCompletionSource<bool> _waitForValueCompletionSource;
 
-        public BreakPointOrigin(BreakPointLocation location, Action<BreakPointLocation?> updateReceiver)
+        public BreakPointOrigin(Exchange exchange,
+            BreakPointLocation location, Action<BreakPointLocation?> updateReceiver)
         {
+            _exchange = exchange;
             _updateReceiver = updateReceiver;
+            Value = new T();
             Location = location;
-            _waitForValueCompletionSource = new TaskCompletionSource<T?>();
+            _waitForValueCompletionSource = new TaskCompletionSource<bool>();
         }
+        
+        public T Value { get; private set; }
 
+        
         public BreakPointLocation Location { get; }
 
         /// <summary>
@@ -29,13 +37,23 @@ namespace Fluxzy.Core.Breakpoints
             SetValue(default);
         }
 
-        public async Task<T?> WaitForValue()
+        public async Task WaitForEdit()
         {
             Running = true;
+            
+            await Value.Init(_exchange);
+            
             _updateReceiver(Location);
 
             try {
-                return await _waitForValueCompletionSource.Task;
+                // We init the value of location 
+                
+                var res = await _waitForValueCompletionSource.Task;
+
+                if (res) {
+                    Value.Alter(_exchange);
+                }
+
             }
             finally {
                 Running = false;
@@ -45,7 +63,11 @@ namespace Fluxzy.Core.Breakpoints
 
         public void SetValue(T? value)
         {
-            _waitForValueCompletionSource.TrySetResult(value);
+            if (value != null) {
+                Value = value;
+            }
+            
+            _waitForValueCompletionSource.TrySetResult(value != null);
         }
     }
 }

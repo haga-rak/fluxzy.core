@@ -1,8 +1,10 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
+using System.IO;
 using System.Text;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Misc
 {
@@ -45,6 +47,35 @@ namespace Fluxzy.Misc
                 if (heapCharBuffer != null)
                     ArrayPool<char>.Shared.Return(heapCharBuffer);
             }
+        }
+
+
+        public static bool IsText(Stream stream, int maxCheckLength = 1024, Encoding? encoding = null)
+        {
+            if (!stream.CanSeek)
+                throw new ArgumentException("Stream must be seekable");
+
+            byte[]? buffer = null;
+
+            Span<byte> arrayBuffer = maxCheckLength < 1024 ? stackalloc byte[maxCheckLength]
+                : buffer = ArrayPool<byte>.Shared.Rent(maxCheckLength);
+
+            try {
+
+                var maxRead = stream.ReadMaximum(arrayBuffer);
+
+                return IsText(arrayBuffer.Slice(0, maxRead), maxCheckLength, encoding);
+            }
+            finally {
+                if (buffer != null)
+                    ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
+        public static bool IsText(string fileName, int maxCheckLength = 1024, Encoding? encoding = null)
+        {
+            using var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            return IsText(stream, maxCheckLength, encoding);
         }
     }
 }

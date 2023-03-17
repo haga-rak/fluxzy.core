@@ -225,6 +225,25 @@ namespace Fluxzy.Misc.Streams
 
             return true;
         }
+        public static int ReadMaximum(this Stream origin, Span<byte> buffer)
+        {
+            var readen = 0;
+            var currentIndex = 0;
+            var remain = buffer.Length;
+
+            while (readen < buffer.Length) {
+                var currentRead = origin.Read(buffer.Slice(currentIndex, remain));
+
+                if (currentRead <= 0)
+                    return readen;
+
+                currentIndex += currentRead;
+                remain -= currentRead;
+                readen += currentRead;
+            }
+
+            return readen;
+        }
 
         public static int SeekableStreamToBytes(this Stream origin, byte[] buffer)
         {

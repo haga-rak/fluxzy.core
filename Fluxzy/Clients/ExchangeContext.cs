@@ -40,6 +40,8 @@ namespace Fluxzy.Clients
         /// </summary>
         public bool BlindMode { get; set; }
 
+        public bool ForceNewConnection { get; set; } = false;
+
         public PreMadeResponse? PreMadeResponse { get; set; }
 
         public List<SslApplicationProtocol>? SslApplicationProtocols { get; set; }

@@ -98,6 +98,13 @@ namespace Fluxzy.Core
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);
 
+
+                            if (exchange.Context.BreakPointContext != null)
+                            {
+                                await exchange.Context.BreakPointContext.ConnectionSetupCompletion
+                                              .WaitForEdit();
+                            }
+
                             // Run header alteration 
 
                             foreach (var requestHeaderAlteration in exchange.Context.RequestHeaderAlterations) {
@@ -105,13 +112,8 @@ namespace Fluxzy.Core
                             }
 
                             if (exchange.Context.BreakPointContext != null) {
-                                var request = await exchange.Context.BreakPointContext.RequestHeaderCompletion
-                                                            .WaitForValue();
-
-                                if (request != null) {
-                                    exchange.Request.Header = request.Header;
-                                    exchange.Request.Body = request.Body;
-                                }
+                                await exchange.Context.BreakPointContext.RequestHeaderCompletion
+                                                            .WaitForEdit();
                             }
 
                             IHttpConnectionPool connectionPool;
@@ -189,14 +191,9 @@ namespace Fluxzy.Core
 
                                 // Setup break point for response 
 
-                                if (exchange.Context.BreakPointContext != null && exchange.Response.Header != null) {
-                                    var response = await exchange.Context.BreakPointContext.ResponseHeaderCompletion
-                                                                 .WaitForValue();
-
-                                    if (response != null) {
-                                        exchange.Response.Header = response.Header;
-                                        exchange.Response.Body = response.Body;
-                                    }
+                                if (exchange.Context.BreakPointContext != null) {
+                                    await exchange.Context.BreakPointContext.ResponseHeaderCompletion
+                                                                 .WaitForEdit();
                                 }
 
                                 if (exchange.Response.Header.ContentLength == -1 &&

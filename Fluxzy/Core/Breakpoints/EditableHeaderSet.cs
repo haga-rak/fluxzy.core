@@ -13,16 +13,14 @@ namespace Fluxzy.Core.Breakpoints
     public class EditableRequestHeaderSet :
         EditableHeaderSet
     {
-        private EditableRequestHeaderSet(List<EditableHeader> headers, byte[] payload)
+        private EditableRequestHeaderSet(List<EditableHeader> headers)
             : base(headers)
         {
-            Payload = payload;
         }
-
-        public byte[] Payload { get; }
+        
 
         public static EditableHeaderParsingResult TryParse(
-            string rawHttp11, byte[] payload, out EditableRequestHeaderSet? result)
+            string rawHttp11, int payloadLength, out EditableRequestHeaderSet? result)
         {
             result = null;
             var indexOfEnd = rawHttp11.IndexOf("\r\n\r\n", StringComparison.Ordinal);
@@ -52,21 +50,22 @@ namespace Fluxzy.Core.Breakpoints
 
             headers.RemoveAll(t => t.Name.Equals(Http11Constants.ContentLength));
 
-            result = new EditableRequestHeaderSet(headers.Select(h => new EditableHeader(
-                h.Name.ToString(), h.Value.ToString())).ToList(), payload);
+            result = new EditableRequestHeaderSet(
+                headers.Select(h => new EditableHeader(
+                h.Name.ToString(), h.Value.ToString())).ToList());
 
             result.Headers.Add(
                 new EditableHeader(Http11Constants.ContentLength.ToString(),
-                    payload.Length.ToString()));
+                    payloadLength.ToString()));
 
             return new EditableHeaderParsingResult(true);
         }
 
-        public Request ToRequest()
+        public Request ToRequest(Stream ? body)
         {
             var request = new Request(new RequestHeader(Headers.Select(s => new HeaderField(s.Name, s.Value))));
 
-            request.Body = new MemoryStream(Payload);
+            request.Body = body;
 
             return request;
         }
@@ -75,28 +74,22 @@ namespace Fluxzy.Core.Breakpoints
     public class EditableResponseHeaderSet :
         EditableHeaderSet
     {
-        private EditableResponseHeaderSet(List<EditableHeader> headers, byte[] payload)
+        private EditableResponseHeaderSet(List<EditableHeader> headers)
             : base(headers)
         {
-            Payload = payload;
         }
-
-        public byte[] Payload { get; }
-
-        public Response ToResponse()
+        
+        public Response ToResponse(Stream ? body)
         {
             var response = new Response {
                 Header = new ResponseHeader(Headers.Select(s => new HeaderField(s.Name, s.Value))),
-                Body = new MemoryStream(Payload)
+                Body = body
             };
-
-            response.Body = new MemoryStream(Payload);
-
             return response;
         }
 
         public static EditableHeaderParsingResult TryParse(
-            string rawHttp11, byte[] payload, out EditableResponseHeaderSet? result)
+            string rawHttp11, int payloadLength, out EditableResponseHeaderSet? result)
         {
             result = null;
             var indexOfEnd = rawHttp11.IndexOf("\r\n\r\n", StringComparison.Ordinal);
@@ -122,11 +115,11 @@ namespace Fluxzy.Core.Breakpoints
                 t.Name.Span.Equals(Http11Constants.ContentLength.Span, StringComparison.OrdinalIgnoreCase));
 
             result = new EditableResponseHeaderSet(headers.Select(h => new EditableHeader(
-                h.Name.ToString(), h.Value.ToString())).ToList(), payload);
+                h.Name.ToString(), h.Value.ToString())).ToList());
 
             result.Headers.Add(
                 new EditableHeader(Http11Constants.ContentLength.ToString(),
-                    payload.Length.ToString()));
+                    payloadLength.ToString()));
 
             return new EditableHeaderParsingResult(true);
         }

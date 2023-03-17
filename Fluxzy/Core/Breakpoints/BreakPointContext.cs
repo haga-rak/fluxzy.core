@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
@@ -18,24 +18,24 @@ namespace Fluxzy.Core.Breakpoints
         private readonly List<IBreakPoint> _breakPoints = new();
         private bool _previousStatus = false; 
 
-        public BreakPointContext(Exchange exchange,
-            Filter filter, 
+        public BreakPointContext(Exchange exchange,  Filter filter, 
             Action<BreakPointContext> statusChanged)
         {
             _exchange = exchange;
             _filter = filter;
             _statusChanged = statusChanged;
 
-            EndPointCompletion = new BreakPointOrigin<IPEndPoint?>(BreakPointLocation.WaitingEndPoint,
+            ConnectionSetupCompletion = 
+                new BreakPointOrigin<ConnectionSetupStepModel>(exchange, BreakPointLocation.WaitingEndPoint,
                 OnBreakPointStatusUpdate);
 
-            RequestHeaderCompletion = new BreakPointOrigin<Request?>(BreakPointLocation.WaitingRequest,
+            RequestHeaderCompletion = new BreakPointOrigin<RequestSetupStepModel>(exchange, BreakPointLocation.WaitingRequest,
                 OnBreakPointStatusUpdate);
 
-            ResponseHeaderCompletion = new BreakPointOrigin<Response?>(BreakPointLocation.WaitingResponse,
+            ResponseHeaderCompletion = new BreakPointOrigin<ResponseSetupStepModel>(exchange, BreakPointLocation.WaitingResponse,
                 OnBreakPointStatusUpdate);
 
-            _breakPoints.Add(EndPointCompletion);
+            _breakPoints.Add(ConnectionSetupCompletion);
             _breakPoints.Add(RequestHeaderCompletion);
             _breakPoints.Add(ResponseHeaderCompletion);
         }
@@ -54,11 +54,11 @@ namespace Fluxzy.Core.Breakpoints
             breakPoint?.Continue();
         }
 
-        public BreakPointOrigin<Request?> RequestHeaderCompletion { get; set; }
+        public BreakPointOrigin<ConnectionSetupStepModel> ConnectionSetupCompletion { get; set; }
 
-        public BreakPointOrigin<Response?> ResponseHeaderCompletion { get; set; }
+        public BreakPointOrigin<RequestSetupStepModel> RequestHeaderCompletion { get; set; }
 
-        public BreakPointOrigin<IPEndPoint?> EndPointCompletion { get; }
+        public BreakPointOrigin<ResponseSetupStepModel> ResponseHeaderCompletion { get; }
 
         private void OnBreakPointStatusUpdate(BreakPointLocation? location)
         {
@@ -87,5 +87,17 @@ namespace Fluxzy.Core.Breakpoints
             _previousStatus = (_previousStatus) || (_exchange.Complete.IsCompleted || _exchange.Complete.Status >= TaskStatus.RanToCompletion);
             return new(ExchangeInfo, _previousStatus, LastLocation, CurrentHit, _filter); 
         }
+    }
+
+    /// <summary>
+    /// Définit une modèle d'aleration d'un econnection 
+    /// </summary>
+    public interface IBreakPointAlterationModel : IValidatableObject
+    {
+        ValueTask Init(Exchange exchange); 
+        
+        void Alter(Exchange exchange);
+
+        bool Done { get; }
     }
 }
