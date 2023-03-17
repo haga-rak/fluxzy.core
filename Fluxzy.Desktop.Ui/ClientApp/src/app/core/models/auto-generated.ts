@@ -798,6 +798,7 @@ export interface BreakPointContextInfo
 }
 export interface BreakPointContextStepInfo
 {
+	locationIndex: number;
 	stepName: string;
 	status: string;
 }
@@ -915,6 +916,7 @@ export interface ExchangeInfo
 	httpVersion: string;
 	fullUrl: string;
 	knownAuthority: string;
+	knownPort: number;
 	method: string;
 	path: string;
 	statusCode: number;

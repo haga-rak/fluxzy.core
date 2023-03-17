@@ -40,7 +40,9 @@ namespace Fluxzy.Core.Breakpoints
         public IEnumerable<BreakPointContextStepInfo> StepInfos {
             get
             {
-                // enumerate breakpoint location 
+                // enumerate breakpoint locationIndex 
+
+                int index = 1; 
 
                 foreach (BreakPointLocation location in Enum.GetValues(typeof(BreakPointLocation))) {
                     // TODO : minimize the cost of reflection here by using caching 
@@ -58,7 +60,7 @@ namespace Fluxzy.Core.Breakpoints
                         status = BreakPointStatus.AlreadyRun; 
                     }
                     
-                    var stepInfo = new BreakPointContextStepInfo(description, status);
+                    var stepInfo = new BreakPointContextStepInfo((int) location, $"{index++} - {description}", status);
 
                     yield return stepInfo;
                 }
@@ -68,11 +70,14 @@ namespace Fluxzy.Core.Breakpoints
 
     public class BreakPointContextStepInfo
     {
-        public BreakPointContextStepInfo(string stepName, BreakPointStatus status)
+        public BreakPointContextStepInfo(int locationIndex, string stepName, BreakPointStatus status)
         {
+            LocationIndex = locationIndex;
             StepName = stepName;
             Status = status; 
         }
+
+        public int LocationIndex { get; }
 
         public string StepName { get; }
 

@@ -28,6 +28,9 @@ html, body {
     font-family: "Roboto";
 }
 
+a.nul {
+    text-decoration: none;
+}
 
 .shady-box {
     box-shadow:  var(--bs-gray-700) 0px 3px 8px;
@@ -305,7 +308,7 @@ pre > code {
     background-color: var(--bs-gray-900) ;
 }
 
-.btn {
+.btn:not(.no-shadow) {
     box-shadow: var(--bs-gray-500) 0px 1px 2px 0px, var(--bs-gray-500) 0px 2px 6px 2px;
 }
 
@@ -374,4 +377,9 @@ a.auto-color {
 .badge {
     padding : 4px ;
     border-radius : 2px;
+}
+
+.soft-title {
+
+    border-bottom: 1px solid var(--bs-gray-300);
 }

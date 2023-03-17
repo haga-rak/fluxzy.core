@@ -4,7 +4,12 @@ import {ApiService} from "../../services/api.service";
 import {SystemCallService} from "../../core/services/system-call.service";
 import {UiStateService} from "../../services/ui.service";
 import {filter, tap} from "rxjs";
-import {BreakPointContextInfo, BreakPointState, UiState} from "../../core/models/auto-generated";
+import {
+    BreakPointContextInfo,
+    BreakPointContextStepInfo,
+    BreakPointState,
+    UiState
+} from "../../core/models/auto-generated";
 import {BreakPointService} from "../break-point.service";
 
 @Component({
@@ -19,6 +24,7 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
     public currentExchangeId : number | null = null ;
     public currentContextInfo : BreakPointContextInfo | null ;
     private breakPointState: BreakPointState | null;
+    public selectedStepInfo : BreakPointContextStepInfo | null = null;
 
     constructor(
         public bsModalRef: BsModalRef,
@@ -104,7 +110,15 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
             this.computeCurrentContextInfo(this.breakPointState);
             this.cd.detectChanges();
         }
-
     }
 
+    public setSelectedStepInfo(stepInfo : BreakPointContextStepInfo) : void {
+        this.selectedStepInfo = stepInfo;
+        this.cd.detectChanges();
+    }
+
+    disableAllAndQuit() {
+        this.bsModalRef.hide();
+        this.apiService.breakPointDeleteAll() ;
+    }
 }

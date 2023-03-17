@@ -31,14 +31,18 @@ namespace Fluxzy
             IsWebSocket = exchange.IsWebSocket;
             WebSocketMessages = exchange.WebSocketMessages;
             ClientErrors = exchange.ClientErrors;
+            KnownAuthority = exchange.KnownAuthority; 
+            KnownPort = exchange.KnownPort;
         }
 
         [JsonConstructor]
         public ExchangeInfo(
             int id, int connectionId, string httpVersion,
             RequestHeaderInfo requestHeader, ResponseHeaderInfo? responseHeader,
-            ExchangeMetrics metrics, string egressIp, bool pending, string? comment, HashSet<Tag>? tags,
-            bool isWebSocket, List<WsMessage> webSocketMessages, Agent? agent, List<ClientError> clientErrors)
+            ExchangeMetrics metrics,
+            string egressIp, bool pending, string? comment, HashSet<Tag>? tags,
+            bool isWebSocket, List<WsMessage> webSocketMessages,
+            Agent? agent, List<ClientError> clientErrors, string knownAuthority, int knownPort)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -53,7 +57,9 @@ namespace Fluxzy
             WebSocketMessages = webSocketMessages;
             Agent = agent;
             ClientErrors = clientErrors;
+            KnownAuthority = knownAuthority;
             Tags = tags ?? new HashSet<Tag>();
+            KnownPort = knownPort;
         }
 
         [JsonPropertyOrder(-10)]
@@ -81,7 +87,10 @@ namespace Fluxzy
 
         public string FullUrl => RequestHeader.GetFullUrl();
 
-        public string KnownAuthority => RequestHeader.Authority.ToString();
+        public string KnownAuthority { get; }
+
+
+        public int KnownPort { get;  }
 
         public string Method => RequestHeader.Method.ToString();
 
