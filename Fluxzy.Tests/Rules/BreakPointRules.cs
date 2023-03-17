@@ -6,9 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
@@ -69,7 +67,6 @@ namespace Fluxzy.Tests.Rules
             await proxy.WaitUntilDone();
         }
 
-
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
@@ -103,8 +100,6 @@ namespace Fluxzy.Tests.Rules
 
             await proxy.WaitUntilDone();
         }
-
-
 
         [Theory]
         [InlineData(TestConstants.Http11Host)]
@@ -161,20 +156,21 @@ namespace Fluxzy.Tests.Rules
             await proxy.WaitUntilDone();
         }
 
-
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
-        [InlineData(TestConstants.PlainHttp11)]
-        public async Task ChangeEntireRequest(string host)
+        [MemberData(nameof(GetRequestBreakAndChangeParams))]
+        public async Task ChangeEntireRequest(string host, TestBreakpointPayloadType payloadType)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
+            var stepModel = payloadType.GetRequestStepModel(out var payloadLength);
+
             var newRequestHeader =
-                "GET /gloglo.txt HTTP/1.1\r\n" +
+                "GET /global-health-check HTTP/1.1\r\n" +
                 "host: sandbox.smartizy.com\r\n" +
                 "x-header-added: value\r\n" +
                 "\r\n";
+
+            stepModel.FlatHeader = newRequestHeader;
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -192,7 +188,7 @@ namespace Fluxzy.Tests.Rules
             using var httpClient = new HttpClient(clientHandler);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"{host}/global-health-check");
+                $"{host}/gloglo.text");
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
@@ -204,26 +200,24 @@ namespace Fluxzy.Tests.Rules
             var responseTask = httpClient.SendAsync(requestMessage);
 
             var context = await completionSourceContext.Task;
-            
 
-            context.RequestHeaderCompletion.SetValue(new RequestSetupStepModel() {
-                FlatHeader = newRequestHeader
-            });
+            context.RequestHeaderCompletion.SetValue(stepModel);
 
             context.ContinueUntilEnd();
 
             var response = await responseTask;
 
-            var _ = await response.Content.ReadAsStringAsync();
+            var checkResult = await response.GetCheckResult();
 
-            Assert.Equal(404, (int) response.StatusCode);
+            Assert.Equal(200, (int) response.StatusCode);
+            Assert.Equal(payloadLength, checkResult.RequestContent.Length); 
 
             await proxy.WaitUntilDone();
         }
 
         [Theory]
         [MemberData(nameof(GetResponseBreakAndChangeParams))]
-        public async Task ResponseBreakAndChange(string host, TestBreakpointPayloadType payloadType)
+        public async Task ChangeEntireResponse(string host, TestBreakpointPayloadType payloadType)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
@@ -280,9 +274,25 @@ namespace Fluxzy.Tests.Rules
 
             await proxy.WaitUntilDone();
         }
-
-
+        
         public static IEnumerable<object[]> GetResponseBreakAndChangeParams
+        {
+            get
+            {
+                var hosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11 };
+
+                var breakpointPayloadTypes =
+                    (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
+
+                foreach (var host in hosts)
+                foreach (var withPcap in breakpointPayloadTypes)
+                {
+                    yield return new object[] { host, withPcap};
+                }
+            }
+        }
+        
+        public static IEnumerable<object[]> GetRequestBreakAndChangeParams
         {
             get
             {
@@ -332,6 +342,38 @@ namespace Fluxzy.Tests.Rules
                 case TestBreakpointPayloadType.FromString:
                     payloadLength = "FromString".Length;
                     return new ResponseSetupStepModel()
+                    {
+                        ContentBody =  "FromString",
+                        FromFile = false
+                    };
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type)); 
+            }
+        }
+        
+        public static RequestSetupStepModel GetRequestStepModel(this TestBreakpointPayloadType type, out int payloadLength)
+        {
+            var fileName = Guid.NewGuid() + ".temp"; 
+            
+            switch (type) {
+                case TestBreakpointPayloadType.NoPayload:
+                    payloadLength = 0; 
+                    return new RequestSetupStepModel() {
+                        ContentBody = string.Empty,
+                        FromFile = false
+                    }; 
+                case TestBreakpointPayloadType.FromFile:
+                    File.WriteAllText(fileName, "FromFile");
+                    payloadLength = "FromFile".Length;
+                    return new RequestSetupStepModel()
+                    {
+                        ContentBody = "FromFile",
+                        FromFile = true,
+                        FileName = fileName
+                    };
+                case TestBreakpointPayloadType.FromString:
+                    payloadLength = "FromString".Length;
+                    return new RequestSetupStepModel()
                     {
                         ContentBody =  "FromString",
                         FromFile = false
