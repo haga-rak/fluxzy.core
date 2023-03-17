@@ -6,3 +6,7 @@
     text-overflow: ellipsis;
     max-width: 70px;
 }
+
+.better-placeholder::placeholder{
+    color: var(--bs-gray-300);
+}

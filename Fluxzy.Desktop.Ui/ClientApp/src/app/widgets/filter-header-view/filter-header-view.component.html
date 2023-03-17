@@ -1,35 +1,13 @@
 <!-- <span>Filters</span> : &nbsp; &nbsp; -->
-<div class="btn-group" role="group" *ngIf="uiState">
-    <div class="btn-group" role="group" dropdown>
-        <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
-            aria-expanded="false" dropdownToggle>
-            <span style="white-space: nowrap">
-                <span *ngIf="uiState.viewFilter.sourceFilter.typeKind === 'AnyFilter'">
-                    View per source ({{uiState.templateToolBarFilterModel.agentFilters.length}})
-                </span>
-                <span class="limit-lengthd" *ngIf="uiState.viewFilter.sourceFilter.typeKind !== 'AnyFilter'">
-                    {{uiState.viewFilter.sourceFilter.friendlyName}}
-                </span>
-            </span>
-        </button>
-        <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
-            <li role="menuitem" >
-                <a class="dropdown-item" href="javascript:;" (click)=" resetSourceFilter()">
-                    <i class="fa fa-check" *ngIf="isSourceFilterEmpty()"></i>
-                All sources</a>
-            </li>
-            <li class="divider dropdown-divider" *ngIf="uiState.templateToolBarFilterModel.agentFilters.length > 0"></li>
-            <li role="menuitem" *ngFor="let agentFilter of uiState.templateToolBarFilterModel.agentFilters">
-                <a class="dropdown-item" href="javascript:;" (click)="applySourceFilter(agentFilter)"
-                        [ngClass]="{'text-gray-300' : !isSourceAgentSelect(agentFilter)}">
-<!--                    <i class="fa fa-check" *ngIf="isSourceAgentSelect(agentFilter)"></i>-->
-                    <i   [ngClass]="SourceAgentIconFunc(agentFilter.friendlyName)"></i>
-                    {{ agentFilter.friendlyName }}</a></li>
-        </ul>
+<div class="btn-toolbar" *ngIf="uiState">
+    <div class="input-group">
+        <div class="input-group-text bg-dark"  id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
+        <input type="text" class="form-control text-info better-placeholder"
+               style="width:350px"
+               placeholder="type filter, action, rules settings here" aria-label="Input group example" aria-describedby="btnGroupAddon">
     </div>
-</div>
-&nbsp;
-<div class="btn-group" role="group" *ngIf="uiState">
+    &nbsp;
+    &nbsp;<div class="btn-group" role="group" >
 
     <button *ngFor="let toolBarFilter of uiState.toolBarFilters" type="button" href="javascript:;"
 
@@ -49,25 +27,66 @@
 
 
     <div class="btn-group" role="group" dropdown *ngIf="uiState.templateToolBarFilterModel">
-        <button  type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
-            aria-expanded="false" dropdownToggle>
+        <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+                aria-expanded="false" dropdownToggle>
             more filters
         </button>
         <ul class="dropdown-menu bg-light text-primary" *dropdownMenu aria-labelledby="btnGroupDrop851">
             <li role="menuitem" *ngFor="let filter of uiState.templateToolBarFilterModel.quickFilters">
-                <a class="dropdown-item" href="javascript:;" (click)="createTemplateFilter(filter)">{{ filter.friendlyName}}</a>
+                <a class="dropdown-item" href="javascript:;"
+                   (click)="createTemplateFilter(filter)">{{ filter.friendlyName}}</a>
             </li>
 
             <ng-container *ngIf="uiState.templateToolBarFilterModel.lastUsedFilters.length > 0 ">
                 <li class="divider dropdown-divider"></li>
-                <li role="menuitem" (click)="skipEvent($event)" ><span class="dropdown-item"><i>Last used filters</i></span></li>
-                <li role="menuitem"  *ngFor="let filter of uiState.templateToolBarFilterModel.lastUsedFilters">
-                    <a class="dropdown-item small" href="javascript:;" (click)="selectFilter(filter)">{{filter.friendlyName}}</a></li>
+                <li role="menuitem" (click)="skipEvent($event)"><span
+                    class="dropdown-item"><i>Last used filters</i></span></li>
+                <li role="menuitem" *ngFor="let filter of uiState.templateToolBarFilterModel.lastUsedFilters">
+                    <a class="dropdown-item small" href="javascript:;"
+                       (click)="selectFilter(filter)">{{filter.friendlyName}}</a></li>
             </ng-container>
 
             <li class="divider dropdown-divider"></li>
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="createCustomFilter()">Other filters</a></li>
-            <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="openManagedFilters()">Load saved filter (from computer)</a></li>
+            <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="createCustomFilter()">Other
+                filters</a></li>
+            <li role="menuitem"><a class="dropdown-item" href="javascript:;" (click)="openManagedFilters()">Load saved
+                filter (from computer)</a></li>
         </ul>
     </div>
+    &nbsp;
+
+    <div class="btn-group" role="group" >
+        <div class="btn-group" role="group" dropdown>
+            <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false" dropdownToggle>
+            <span style="white-space: nowrap">
+                <span *ngIf="uiState.viewFilter.sourceFilter.typeKind === 'AnyFilter'">
+                    View per source ({{uiState.templateToolBarFilterModel.agentFilters.length}})
+                </span>
+                <span class="limit-lengthd" *ngIf="uiState.viewFilter.sourceFilter.typeKind !== 'AnyFilter'">
+                    {{uiState.viewFilter.sourceFilter.friendlyName}}
+                </span>
+            </span>
+            </button>
+            <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
+                <li role="menuitem">
+                    <a class="dropdown-item" href="javascript:;" (click)=" resetSourceFilter()">
+                        <i class="fa fa-check" *ngIf="isSourceFilterEmpty()"></i>
+                        All sources</a>
+                </li>
+                <li class="divider dropdown-divider"
+                    *ngIf="uiState.templateToolBarFilterModel.agentFilters.length > 0"></li>
+                <li role="menuitem" *ngFor="let agentFilter of uiState.templateToolBarFilterModel.agentFilters">
+                    <a class="dropdown-item" href="javascript:;" (click)="applySourceFilter(agentFilter)"
+                       [ngClass]="{'text-gray-300' : !isSourceAgentSelect(agentFilter)}">
+                        <!--                    <i class="fa fa-check" *ngIf="isSourceAgentSelect(agentFilter)"></i>-->
+                        <i [ngClass]="SourceAgentIconFunc(agentFilter.friendlyName)"></i>
+                        {{ agentFilter.friendlyName }}</a></li>
+            </ul>
+        </div>
+    </div>
+    &nbsp;
+    </div>
+
 </div>
