@@ -6,21 +6,28 @@
 
 <div [hidden]="!uiState">
     <app-context-menu></app-context-menu>
-    <div class="" style="width: 100%; height: 100%">
+    <div class="filter-holder" style="">
+        <app-filter-header-view></app-filter-header-view>
+    </div>
+    <div class="" style="width: 100%; height: calc(100vh - 76px)">
 
         <as-split direction="horizontal"  unit="percent"  style="height:100%;">
             <as-split-area [size]="50" style="height: 100%;" >
 
                 <div class="block-left-parent" #objectPane style="">
-                    <div class="title-box">
-                        <div class="filter-header">
-                            <app-filter-header-view></app-filter-header-view>
-                        </div>
-                    </div>
-                    <div class="block-left" >
-                        <div class="filter-pane shady-box" style="padding: 8px; margin-left: 5px;">
-                            <app-exchange-table-view style="height:100vh"></app-exchange-table-view>
-                        </div>
+<!--                    <div class="title-box">-->
+<!--                        <div class="filter-header">-->
+<!--                            -->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="block-left" >-->
+<!--                        <div class="filter-pane shady-box" style="padding: 8px; margin-left: 5px;">-->
+<!--                            <app-exchange-table-view style="height:100vh"></app-exchange-table-view>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+                    <div class="filter-pane shady-box" style="padding: 8px; margin-left: 5px;">
+                        <app-exchange-table-view style="height:100vh"></app-exchange-table-view>
                     </div>
                 </div>
 
