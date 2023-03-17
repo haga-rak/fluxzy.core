@@ -45,8 +45,7 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
-            {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -117,8 +116,7 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -129,8 +127,7 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
-            {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -138,11 +135,11 @@ namespace Fluxzy.Tests.Rules
 
             var context = await completionSourceContext.Task;
 
-            context.ConnectionSetupCompletion.SetValue(new ConnectionSetupStepModel() {
-                IpAddress = IPAddress.Loopback.ToString(), 
+            context.ConnectionSetupCompletion.SetValue(new ConnectionSetupStepModel {
+                IpAddress = IPAddress.Loopback.ToString(),
                 Port = 523
             });
-            
+
             context.ContinueUntilEnd();
 
             var response = await responseTask;
@@ -151,7 +148,7 @@ namespace Fluxzy.Tests.Rules
 
             var _ = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(528, (int)response.StatusCode);
+            Assert.Equal(528, (int) response.StatusCode);
 
             await proxy.WaitUntilDone();
         }
@@ -180,8 +177,7 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -192,8 +188,7 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
-            {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -210,11 +205,11 @@ namespace Fluxzy.Tests.Rules
             var checkResult = await response.GetCheckResult();
 
             Assert.Equal(200, (int) response.StatusCode);
-            Assert.Equal(payloadLength, checkResult.RequestContent.Length); 
+            Assert.Equal(payloadLength, checkResult.RequestContent.Length);
 
             await proxy.WaitUntilDone();
         }
-        
+
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
@@ -223,7 +218,7 @@ namespace Fluxzy.Tests.Rules
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            TestBreakpointPayloadType payloadType = TestBreakpointPayloadType.FromString;
+            var payloadType = TestBreakpointPayloadType.FromString;
 
             var stepModel = payloadType.GetRequestStepModel(out var payloadLength);
 
@@ -245,8 +240,7 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -257,8 +251,7 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
-            {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -275,7 +268,7 @@ namespace Fluxzy.Tests.Rules
             var checkResult = await response.GetCheckResult();
 
             Assert.Equal(200, (int) response.StatusCode);
-            Assert.Equal(payloadLength, checkResult.RequestContent.Length); 
+            Assert.Equal(payloadLength, checkResult.RequestContent.Length);
 
             await proxy.WaitUntilDone();
         }
@@ -286,8 +279,8 @@ namespace Fluxzy.Tests.Rules
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            var stepModel = payloadType.GetResponseStepModel(out var payloadLength); 
-            
+            var stepModel = payloadType.GetResponseStepModel(out var payloadLength);
+
             var fullResponseHeader =
                 "HTTP/1.1 203 OkBuddy\r\n" +
                 "Content-length: 900\r\n" +
@@ -304,8 +297,7 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -316,15 +308,14 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
-            {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
             var responseTask = httpClient.SendAsync(requestMessage);
 
             var context = await completionSourceContext.Task;
-            
+
             context.ResponseHeaderCompletion.SetValue(stepModel);
 
             context.ContinueUntilEnd();
@@ -333,13 +324,13 @@ namespace Fluxzy.Tests.Rules
 
             var actualBodyString = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(203, (int)response.StatusCode);
+            Assert.Equal(203, (int) response.StatusCode);
             Assert.Equal(payloadLength, actualBodyString.Length);
             Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added"));
 
             await proxy.WaitUntilDone();
         }
-        
+
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
@@ -347,11 +338,11 @@ namespace Fluxzy.Tests.Rules
         public async Task ChangeEntireResponseInvalidHeaders(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
-            
-            TestBreakpointPayloadType payloadType = TestBreakpointPayloadType.FromFile;
-            
-            var stepModel = payloadType.GetResponseStepModel(out var payloadLength); 
-            
+
+            var payloadType = TestBreakpointPayloadType.FromFile;
+
+            var stepModel = payloadType.GetResponseStepModel(out var payloadLength);
+
             var fullResponseHeader =
                 "HTTP/1.1 203 OkBuddy\r\n" +
                 "Content-length: 900\r\n" +
@@ -370,8 +361,7 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -382,15 +372,14 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
-            {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
             var responseTask = httpClient.SendAsync(requestMessage);
 
             var context = await completionSourceContext.Task;
-            
+
             context.ResponseHeaderCompletion.SetValue(stepModel);
 
             context.ContinueUntilEnd();
@@ -399,44 +388,39 @@ namespace Fluxzy.Tests.Rules
 
             var actualBodyString = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(203, (int)response.StatusCode);
+            Assert.Equal(203, (int) response.StatusCode);
             Assert.Equal(payloadLength, actualBodyString.Length);
             Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added"));
 
             await proxy.WaitUntilDone();
         }
-        
-        
-        public static IEnumerable<object[]> GetResponseBreakAndChangeParams
-        {
+
+        public static IEnumerable<object[]> GetResponseBreakAndChangeParams {
             get
             {
-                var hosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11 };
+                var hosts = new[] {TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11};
 
                 var breakpointPayloadTypes =
                     (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
 
                 foreach (var host in hosts)
-                foreach (var withPcap in breakpointPayloadTypes)
-                {
-                    yield return new object[] { host, withPcap};
+                foreach (var withPcap in breakpointPayloadTypes) {
+                    yield return new object[] {host, withPcap};
                 }
             }
         }
-        
-        public static IEnumerable<object[]> GetRequestBreakAndChangeParams
-        {
+
+        public static IEnumerable<object[]> GetRequestBreakAndChangeParams {
             get
             {
-                var hosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11 };
+                var hosts = new[] {TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11};
 
                 var breakpointPayloadTypes =
                     (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
 
                 foreach (var host in hosts)
-                foreach (var withPcap in breakpointPayloadTypes)
-                {
-                    yield return new object[] { host, withPcap};
+                foreach (var withPcap in breakpointPayloadTypes) {
+                    yield return new object[] {host, withPcap};
                 }
             }
         }
@@ -444,76 +428,85 @@ namespace Fluxzy.Tests.Rules
 
     public enum TestBreakpointPayloadType
     {
-        NoPayload, 
-        FromString, 
+        NoPayload,
+        FromString,
         FromFile
     }
 
     public static class TestBreakPointPayloadExtensions
     {
-        public static ResponseSetupStepModel GetResponseStepModel(this TestBreakpointPayloadType type, out int payloadLength)
+        public static ResponseSetupStepModel GetResponseStepModel(
+            this TestBreakpointPayloadType type, out int payloadLength)
         {
-            var fileName = Guid.NewGuid() + ".temp"; 
-            
+            var fileName = Guid.NewGuid() + ".temp";
+
             switch (type) {
                 case TestBreakpointPayloadType.NoPayload:
-                    payloadLength = 0; 
-                    return new ResponseSetupStepModel() {
+                    payloadLength = 0;
+
+                    return new ResponseSetupStepModel {
                         ContentBody = string.Empty,
                         FromFile = false
-                    }; 
+                    };
+
                 case TestBreakpointPayloadType.FromFile:
                     File.WriteAllText(fileName, "FromFile");
                     payloadLength = "FromFile".Length;
-                    return new ResponseSetupStepModel()
-                    {
+
+                    return new ResponseSetupStepModel {
                         ContentBody = "FromFile",
                         FromFile = true,
                         FileName = fileName
                     };
+
                 case TestBreakpointPayloadType.FromString:
                     payloadLength = "FromString".Length;
-                    return new ResponseSetupStepModel()
-                    {
-                        ContentBody =  "FromString",
+
+                    return new ResponseSetupStepModel {
+                        ContentBody = "FromString",
                         FromFile = false
                     };
+
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(type)); 
+                    throw new ArgumentOutOfRangeException(nameof(type));
             }
         }
-        
-        public static RequestSetupStepModel GetRequestStepModel(this TestBreakpointPayloadType type, out int payloadLength)
+
+        public static RequestSetupStepModel GetRequestStepModel(
+            this TestBreakpointPayloadType type, out int payloadLength)
         {
-            var fileName = Guid.NewGuid() + ".temp"; 
-            
+            var fileName = Guid.NewGuid() + ".temp";
+
             switch (type) {
                 case TestBreakpointPayloadType.NoPayload:
-                    payloadLength = 0; 
-                    return new RequestSetupStepModel() {
+                    payloadLength = 0;
+
+                    return new RequestSetupStepModel {
                         ContentBody = string.Empty,
                         FromFile = false
-                    }; 
+                    };
+
                 case TestBreakpointPayloadType.FromFile:
                     File.WriteAllText(fileName, "FromFile");
                     payloadLength = "FromFile".Length;
-                    return new RequestSetupStepModel()
-                    {
+
+                    return new RequestSetupStepModel {
                         ContentBody = "FromFile",
                         FromFile = true,
                         FileName = fileName
                     };
+
                 case TestBreakpointPayloadType.FromString:
                     payloadLength = "FromString".Length;
-                    return new RequestSetupStepModel()
-                    {
-                        ContentBody =  "FromString",
+
+                    return new RequestSetupStepModel {
+                        ContentBody = "FromString",
                         FromFile = false
                     };
+
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(type)); 
+                    throw new ArgumentOutOfRangeException(nameof(type));
             }
         }
     }
-    
 }

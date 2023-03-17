@@ -225,6 +225,7 @@ namespace Fluxzy.Misc.Streams
 
             return true;
         }
+
         public static int ReadMaximum(this Stream origin, Span<byte> buffer)
         {
             var readen = 0;

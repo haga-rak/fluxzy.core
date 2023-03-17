@@ -4,20 +4,18 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core.Breakpoints
 {
     /// <summary>
-    /// Per proxy instance of breakpoint holders 
+    ///     Per proxy instance of breakpoint holders
     /// </summary>
     public class BreakPointManager
     {
         private readonly ConcurrentDictionary<int, BreakPointContext> _runningContext = new();
-        
+
         public BreakPointContext GetOrCreate(Exchange exchange, Filter filter, FilterScope filterScope)
         {
             lock (_runningContext) {
@@ -45,7 +43,7 @@ namespace Fluxzy.Core.Breakpoints
         }
 
         private void UpdateContext(
-            IBreakPointAlterationModel breakPointAlterationModel, 
+            IBreakPointAlterationModel breakPointAlterationModel,
             BreakPointContext breakPointContext)
         {
             OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointAlterationModel, breakPointContext));
