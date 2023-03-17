@@ -24,9 +24,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Rules\Filters\NewFolder\**" />
-	  <EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
-	  <None Remove="Rules\Filters\NewFolder\**" />
+		<Compile Remove="Rules\Filters\NewFolder\**" />
+		<EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
+		<None Remove="Rules\Filters\NewFolder\**" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -55,7 +55,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Core\Utils\" />
+		<Folder Include="Core\Utils\" />
 	</ItemGroup>
 
 </Project>

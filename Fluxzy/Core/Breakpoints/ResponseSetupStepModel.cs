@@ -26,19 +26,15 @@ namespace Fluxzy.Core.Breakpoints
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-
             if (string.IsNullOrWhiteSpace(FlatHeader))
                 yield break;
 
-            if (EditBody)
-            {
-                if (FromFile)
-                {
+            if (EditBody) {
+                if (FromFile) {
                     if (string.IsNullOrWhiteSpace(FileName))
-                        yield return new ValidationResult("File name is required", new[] { nameof(FileName) });
-                    else
-                    if (!File.Exists(FileName))
-                        yield return new ValidationResult("File does not exist", new[] { nameof(FileName) });
+                        yield return new ValidationResult("File name is required", new[] {nameof(FileName)});
+                    else if (!File.Exists(FileName))
+                        yield return new ValidationResult("File does not exist", new[] {nameof(FileName)});
                 }
             }
 
@@ -46,7 +42,7 @@ namespace Fluxzy.Core.Breakpoints
                 1, out var headerSet);
 
             if (!tryParseResult.Success)
-                yield return new ValidationResult(tryParseResult.Message, new[] { nameof(EditBody) });
+                yield return new ValidationResult(tryParseResult.Message, new[] {nameof(EditBody)});
         }
 
         public async ValueTask Init(Exchange exchange)
@@ -55,13 +51,10 @@ namespace Fluxzy.Core.Breakpoints
 
             // rewind body 
 
-            if (exchange.Response.Body != null)
-            {
-
+            if (exchange.Response.Body != null) {
                 var tempFileName = Path.GetTempFileName();
 
-                await using (var fileStream = File.Create(tempFileName))
-                {
+                await using (var fileStream = File.Create(tempFileName)) {
                     await exchange.Response.Body.CopyToAsync(fileStream);
                 }
 
@@ -72,12 +65,10 @@ namespace Fluxzy.Core.Breakpoints
                 FromFile = true;
                 FileName = tempFileInfo.FullName;
 
-                if (fileLength < 0x10000)
-                {
+                if (fileLength < 0x10000) {
                     var isText = ArrayTextUtilities.IsText(tempFileName, 0x10000);
 
-                    if (isText)
-                    {
+                    if (isText) {
                         FromFile = false;
                         ContentBody = await File.ReadAllTextAsync(tempFileName);
                     }
@@ -90,19 +81,18 @@ namespace Fluxzy.Core.Breakpoints
             Stream? body;
 
             if (FromFile)
-            {
                 body = FileName != null && File.Exists(FileName) ? File.OpenRead(FileName) : Stream.Null;
-            }
-            else
-            {
-                body = string.IsNullOrEmpty(ContentBody) ?
-                    Stream.Null : new MemoryStream(Encoding.UTF8.GetBytes(ContentBody));
+            else {
+                body = string.IsNullOrEmpty(ContentBody)
+                    ? Stream.Null
+                    : new MemoryStream(Encoding.UTF8.GetBytes(ContentBody));
             }
 
-            var tryParseResult = EditableResponseHeaderSet.TryParse(FlatHeader!, (int)(body?.Length ?? 0), out var headerSet);
+            var tryParseResult =
+                EditableResponseHeaderSet.TryParse(FlatHeader!, (int) (body?.Length ?? 0), out var headerSet);
 
             if (!tryParseResult.Success)
-                throw new ClientErrorException(0, $"User provided header was invalid");
+                throw new ClientErrorException(0, "User provided header was invalid");
 
             var response = headerSet!.ToResponse(body);
 

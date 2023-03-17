@@ -99,8 +99,7 @@ namespace Fluxzy.Core
                                 exchange.Connection, exchange);
 
 
-                            if (exchange.Context.BreakPointContext != null)
-                            {
+                            if (exchange.Context.BreakPointContext != null) {
                                 await exchange.Context.BreakPointContext.ConnectionSetupCompletion
                                               .WaitForEdit();
                             }
@@ -115,13 +114,11 @@ namespace Fluxzy.Core
                             IHttpConnectionPool connectionPool;
 
                             try {
-
-                                if (exchange.Context.BreakPointContext != null)
-                                {
+                                if (exchange.Context.BreakPointContext != null) {
                                     await exchange.Context.BreakPointContext.RequestHeaderCompletion
                                                   .WaitForEdit();
                                 }
-                                
+
                                 if (_archiveWriter != null) {
                                     _archiveWriter.Update(
                                         exchange,
@@ -196,7 +193,7 @@ namespace Fluxzy.Core
 
                                 if (exchange.Context.BreakPointContext != null) {
                                     await exchange.Context.BreakPointContext.ResponseHeaderCompletion
-                                                                 .WaitForEdit();
+                                                  .WaitForEdit();
                                 }
 
                                 if (exchange.Response.Header.ContentLength == -1 &&

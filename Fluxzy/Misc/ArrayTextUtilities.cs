@@ -49,7 +49,6 @@ namespace Fluxzy.Misc
             }
         }
 
-
         public static bool IsText(Stream stream, int maxCheckLength = 1024, Encoding? encoding = null)
         {
             if (!stream.CanSeek)
@@ -57,11 +56,11 @@ namespace Fluxzy.Misc
 
             byte[]? buffer = null;
 
-            Span<byte> arrayBuffer = maxCheckLength < 1024 ? stackalloc byte[maxCheckLength]
+            var arrayBuffer = maxCheckLength < 1024
+                ? stackalloc byte[maxCheckLength]
                 : buffer = ArrayPool<byte>.Shared.Rent(maxCheckLength);
 
             try {
-
                 var maxRead = stream.ReadMaximum(arrayBuffer);
 
                 return IsText(arrayBuffer.Slice(0, maxRead), maxCheckLength, encoding);
@@ -75,6 +74,7 @@ namespace Fluxzy.Misc
         public static bool IsText(string fileName, int maxCheckLength = 1024, Encoding? encoding = null)
         {
             using var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
             return IsText(stream, maxCheckLength, encoding);
         }
     }

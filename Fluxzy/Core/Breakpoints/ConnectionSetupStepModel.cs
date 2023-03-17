@@ -11,32 +11,30 @@ namespace Fluxzy.Core.Breakpoints
     public class ConnectionSetupStepModel : IBreakPointAlterationModel
     {
         /// <summary>
-        /// Force exchange to create new connection instead picking from connection pool.
-        /// If this setting is false, the following properties may not being set as the connection is picked
-        /// from the connection pool.  
+        ///     Force exchange to create new connection instead picking from connection pool.
+        ///     If this setting is false, the following properties may not being set as the connection is picked
+        ///     from the connection pool.
         /// </summary>
-        public bool ForceNewConnection { get; set; } = false;
+        public bool ForceNewConnection { get; set; }
 
         /// <summary>
-        /// Whether we should skip certificate validation
+        ///     Whether we should skip certificate validation
         /// </summary>
 
-        public bool SkipRemoteCertificateValidation { get; set; } = false;
-
+        public bool SkipRemoteCertificateValidation { get; set; }
 
         /// <summary>
-        /// Use Ip Address 
+        ///     Use Ip Address
         /// </summary>
         public string? IpAddress { get; set; }
 
         /// <summary>
-        /// Used port
+        ///     Used port
         /// </summary>
         public int? Port { get; set; }
 
-        
         /// <summary>
-        /// Initialization of the alteration model 
+        ///     Initialization of the alteration model
         /// </summary>
         /// <param name="exchange"></param>
         public ValueTask Init(Exchange exchange)
@@ -52,30 +50,28 @@ namespace Fluxzy.Core.Breakpoints
             ForceNewConnection = exchange.Context.ForceNewConnection;
             SkipRemoteCertificateValidation = exchange.Context.SkipRemoteCertificateValidation;
 
-            return default; 
+            return default;
         }
 
         public void Alter(Exchange exchange)
         {
-            if (!string.IsNullOrWhiteSpace(IpAddress) && IPAddress.TryParse(IpAddress, out var ip)) {
-                exchange.Context.RemoteHostIp = ip; 
-            }
+            if (!string.IsNullOrWhiteSpace(IpAddress) && IPAddress.TryParse(IpAddress, out var ip))
+                exchange.Context.RemoteHostIp = ip;
 
-            if (Port != null && Port > 0 && Port < ushort.MaxValue) {
+            if (Port != null && Port > 0 && Port < ushort.MaxValue)
                 exchange.Context.RemoteHostPort = Port.Value;
-            }
 
             exchange.Context.ForceNewConnection = ForceNewConnection;
-            exchange.Context.SkipRemoteCertificateValidation = SkipRemoteCertificateValidation; 
+            exchange.Context.SkipRemoteCertificateValidation = SkipRemoteCertificateValidation;
 
-            Done = true; 
+            Done = true;
         }
 
         public bool Done { get; private set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            yield break; 
+            yield break;
         }
     }
 }

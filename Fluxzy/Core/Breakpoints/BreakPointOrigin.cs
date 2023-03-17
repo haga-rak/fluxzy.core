@@ -12,7 +12,8 @@ namespace Fluxzy.Core.Breakpoints
         private readonly Action<IBreakPointAlterationModel, BreakPointLocation?> _updateReceiver;
         private readonly TaskCompletionSource<T?> _waitForValueCompletionSource;
 
-        public BreakPointOrigin(Exchange exchange,
+        public BreakPointOrigin(
+            Exchange exchange,
             BreakPointLocation location, Action<IBreakPointAlterationModel, BreakPointLocation?> updateReceiver)
         {
             _exchange = exchange;
@@ -40,7 +41,7 @@ namespace Fluxzy.Core.Breakpoints
             var originalValue = new T();
 
             await originalValue.Init(_exchange);
-            
+
             _updateReceiver(originalValue, Location);
 
             try {
@@ -49,8 +50,7 @@ namespace Fluxzy.Core.Breakpoints
                 var updatedValue = await _waitForValueCompletionSource.Task;
 
                 if (updatedValue != null) {
-                    
-                    originalValue = updatedValue; 
+                    originalValue = updatedValue;
                     updatedValue.Alter(_exchange);
                 }
                 else {
@@ -58,7 +58,6 @@ namespace Fluxzy.Core.Breakpoints
                     // Set back content body 
                     originalValue.Alter(_exchange);
                 }
-
             }
             finally {
                 Running = false;

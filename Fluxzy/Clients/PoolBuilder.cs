@@ -105,14 +105,11 @@ namespace Fluxzy.Clients
                     await semaphorePerAuthority.WaitAsync(cancellationToken);
 
                 // Looking for existing HttpPool
-                
+
                 if (!exchange.Context.ForceNewConnection) {
-                    lock (_connectionPools)
-                    {
-                        while (_connectionPools.TryGetValue(exchange.Authority, out var pool))
-                        {
-                            if (pool.Complete)
-                            {
+                    lock (_connectionPools) {
+                        while (_connectionPools.TryGetValue(exchange.Authority, out var pool)) {
+                            if (pool.Complete) {
                                 _connectionPools.Remove(pool.Authority);
 
                                 continue;
