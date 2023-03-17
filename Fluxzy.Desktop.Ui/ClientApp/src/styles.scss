@@ -190,6 +190,10 @@ pre > code {
     box-shadow:  var(--bs-gray-500) 0px 13px 18px;
 }
 
+.larger {
+    font-size: 1.1em;
+}
+
 .modal-dialog {
     min-width: 1000px !important;
     width: 90% !important;
@@ -382,4 +386,9 @@ a.auto-color {
 .soft-title {
 
     border-bottom: 1px solid var(--bs-gray-300);
+    margin-bottom: 12px;
+}
+
+.form-floating input:read-only {
+    color: var(--bs-gray-300);
 }

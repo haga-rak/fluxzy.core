@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -81,7 +82,7 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             context!.ContinueOnce();
         }
 
-        public void SetEndPoint(int exchangeId, IPAddress ipAddress, int port)
+        public void SetEndPoint(int exchangeId, ConnectionSetupStepModel model)
         {
             var breakPointManager = _watcher.BreakPointManager;
 
@@ -91,7 +92,7 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             if (!breakPointManager.TryGet(exchangeId, out var context))
                 return;
 
-            context!.EndPointCompletion.SetValue(new IPEndPoint(ipAddress, port));
+            context!.ConnectionSetupCompletion.SetValue(model);
         }
 
         public void ContinueEndPoint(int exchangeId)
@@ -104,7 +105,7 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             if (!breakPointManager.TryGet(exchangeId, out var context))
                 return;
 
-            context!.EndPointCompletion.SetValue(default);
+            context!.ConnectionSetupCompletion.SetValue(default);
         }
     }
 }

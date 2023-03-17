@@ -40,13 +40,10 @@ namespace Fluxzy.Core.Breakpoints
         public ValueTask Init(Exchange exchange)
         {
             // We do nothing to init 
-
-            if (exchange.Context.RemoteHostIp != null)
-                IpAddress = exchange.Context.RemoteHostIp.ToString();
-
-            if (exchange.Context.RemoteHostPort != null)
-                Port = exchange.Context.RemoteHostPort.Value;
-
+            
+            IpAddress = exchange.EgressIp ?? exchange.Context.RemoteHostIp?.ToString() ?? "dns solved";
+            Port = exchange.Context.RemoteHostPort ?? exchange.Authority.Port;
+            
             ForceNewConnection = exchange.Context.ForceNewConnection;
             SkipRemoteCertificateValidation = exchange.Context.SkipRemoteCertificateValidation;
 

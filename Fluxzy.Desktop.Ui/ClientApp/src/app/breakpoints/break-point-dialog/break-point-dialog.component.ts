@@ -66,6 +66,14 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
 
                 this.currentContextInfo = array[array.length -1];
                 this.currentExchangeId = this.currentContextInfo.exchangeId;
+
+                // select lastt step
+
+                const allSteps = this.currentContextInfo.stepInfos.filter(t => t.status !== 'Pending');
+                if (allSteps.length){
+                    this.selectedStepInfo = allSteps[allSteps.length -1];
+                }
+
             }
 
             return ;
@@ -73,6 +81,11 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
 
         this.currentContextInfo = currentStates[0];
         this.currentExchangeId = this.currentContextInfo.exchangeId;
+
+        const allSteps = this.currentContextInfo.stepInfos.filter(t => t.status !== 'Pending');
+        if (allSteps.length){
+            this.selectedStepInfo = allSteps[allSteps.length -1];
+        }
     }
 
     public continueUntilEnd() : void {
@@ -113,6 +126,9 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
     }
 
     public setSelectedStepInfo(stepInfo : BreakPointContextStepInfo) : void {
+        if (this.selectedStepInfo?.stepName === stepInfo.stepName)
+            return;
+
         this.selectedStepInfo = stepInfo;
         this.cd.detectChanges();
     }

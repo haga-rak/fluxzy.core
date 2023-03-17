@@ -46,6 +46,7 @@ namespace Fluxzy.Core.Breakpoints
             IBreakPointAlterationModel breakPointAlterationModel,
             BreakPointContext breakPointContext)
         {
+
             OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointAlterationModel, breakPointContext));
         }
 

@@ -11,17 +11,14 @@ namespace Fluxzy.Core.Breakpoints
     {
         Start = 0,
         
-        [Description("After authority received")]
-        ReceivingAuthority = 1,
+        [Description("Connection set up")]
+        PreparingRequest = 1,
 
-        [Description("Request")]
-        WaitingRequest,
+        [Description("Edit request")]
+        Request,
 
-        [Description("Solving DNS")]
-        WaitingEndPoint,
-
-        [Description("Response")]
-        WaitingResponse
+        [Description("Edit response")]
+        Response,
     }
 
     public static class DescriptionHelper

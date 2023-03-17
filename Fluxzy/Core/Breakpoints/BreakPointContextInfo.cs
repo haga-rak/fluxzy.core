@@ -2,24 +2,28 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core.Breakpoints
 {
     public class BreakPointContextInfo
     {
+        private readonly IDictionary<BreakPointLocation, IBreakPointAlterationModel> _currentModels;
+
         public BreakPointContextInfo(
+            IDictionary<BreakPointLocation, IBreakPointAlterationModel> currentModels,
             ExchangeInfo exchange,
             bool exchangeComplete,
             BreakPointLocation lastLocation,
-            BreakPointLocation? currentHit, Filter originFilter)
+            BreakPointLocation? currentHit, 
+            Filter originFilter)
         {
+            _currentModels = currentModels;
             Exchange = exchange;
             LastLocation = lastLocation;
             CurrentHit = currentHit;
             OriginFilter = originFilter;
-            Done = LastLocation == BreakPointLocation.WaitingResponse && CurrentHit == null; 
+            Done = LastLocation == BreakPointLocation.Response && CurrentHit == null; 
         }
 
         public int ExchangeId => Exchange.Id; 
@@ -31,7 +35,7 @@ namespace Fluxzy.Core.Breakpoints
         public BreakPointLocation? CurrentHit { get; }
 
         public bool Done { get; }
-
+        
         /// <summary>
         /// The filter that triggers this break point
         /// </summary>
@@ -59,29 +63,16 @@ namespace Fluxzy.Core.Breakpoints
                     if (Done) {
                         status = BreakPointStatus.AlreadyRun; 
                     }
-                    
-                    var stepInfo = new BreakPointContextStepInfo((int) location, $"{index++} - {description}", status);
+
+                    _currentModels.TryGetValue(location, out var alterationModel); 
+
+                    var stepInfo = new BreakPointContextStepInfo(
+                        (int) location, $"{index++} - {description}", status, alterationModel);
 
                     yield return stepInfo;
                 }
             }
         }
-    }
-
-    public class BreakPointContextStepInfo
-    {
-        public BreakPointContextStepInfo(int locationIndex, string stepName, BreakPointStatus status)
-        {
-            LocationIndex = locationIndex;
-            StepName = stepName;
-            Status = status; 
-        }
-
-        public int LocationIndex { get; }
-
-        public string StepName { get; }
-
-        public BreakPointStatus Status { get; }
     }
 
     public enum BreakPointStatus

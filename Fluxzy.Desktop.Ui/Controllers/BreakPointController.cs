@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Desktop.Services.BreakPoints;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
@@ -83,9 +84,9 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("{exchangeId}/endpoint")]
-        public ActionResult<bool> SetEndPoint(int exchangeId, [FromBody] IPEndPoint ipEndPoint)
+        public ActionResult<bool> SetConnectionSetupStep(int exchangeId, [FromBody] ConnectionSetupStepModel connectionSetupStepModel)
         {
-            _handler.SetEndPoint(exchangeId, ipEndPoint.Address, ipEndPoint.Port);
+            _handler.SetEndPoint(exchangeId, connectionSetupStepModel);
 
             return true;
         }
