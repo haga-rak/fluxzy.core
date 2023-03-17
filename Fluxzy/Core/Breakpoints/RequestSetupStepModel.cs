@@ -48,10 +48,12 @@ namespace Fluxzy.Core.Breakpoints
         
         public async ValueTask Init(Exchange exchange)
         {
-            FlatHeader = exchange.Request.ToString(); 
-            
+            FlatHeader = exchange.Request.ToString();
+
             // rewind body 
 
+            // Drinking request body to temp file or memory stream
+            
             if (exchange.Request.Body != null) {
 
                 var tempFileName = Path.GetTempFileName();
@@ -82,20 +84,21 @@ namespace Fluxzy.Core.Breakpoints
         public void Alter(Exchange exchange)
         {
             // Gather the request body 
+            
+            // Request body stream is dead, already drinked by Init 
+            // must retrieved back from this model 
+            
 
-            Stream? body = exchange.Request.Body;
+            Stream? body;
 
-            if (EditBody) {
-
-                if (FromFile)
-                {
-                    body = File.Exists(FileName) ? File.OpenRead(FileName) : Stream.Null;
-                }
-                else
-                {
-                    body = string.IsNullOrEmpty(ContentBody) ?
-                        Stream.Null : new MemoryStream(Encoding.UTF8.GetBytes(ContentBody));
-                }
+            if (FromFile)
+            {
+                body = FileName != null && File.Exists(FileName) ? File.OpenRead(FileName) : Stream.Null;
+            }
+            else
+            {
+                body = string.IsNullOrEmpty(ContentBody) ?
+                    Stream.Null : new MemoryStream(Encoding.UTF8.GetBytes(ContentBody));
             }
 
             var tryParseResult = EditableRequestHeaderSet.TryParse(FlatHeader!, (int) (body?.Length ?? 0), out var headerSet);

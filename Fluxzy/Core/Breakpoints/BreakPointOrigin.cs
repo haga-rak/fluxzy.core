@@ -9,22 +9,18 @@ namespace Fluxzy.Core.Breakpoints
     public class BreakPointOrigin<T> : IBreakPoint where T : class, IBreakPointAlterationModel, new()
     {
         private readonly Exchange _exchange;
-        private readonly Action<BreakPointLocation?> _updateReceiver;
-        private readonly TaskCompletionSource<bool> _waitForValueCompletionSource;
+        private readonly Action<IBreakPointAlterationModel, BreakPointLocation?> _updateReceiver;
+        private readonly TaskCompletionSource<T?> _waitForValueCompletionSource;
 
         public BreakPointOrigin(Exchange exchange,
-            BreakPointLocation location, Action<BreakPointLocation?> updateReceiver)
+            BreakPointLocation location, Action<IBreakPointAlterationModel, BreakPointLocation?> updateReceiver)
         {
             _exchange = exchange;
             _updateReceiver = updateReceiver;
-            Value = new T();
             Location = location;
-            _waitForValueCompletionSource = new TaskCompletionSource<bool>();
+            _waitForValueCompletionSource = new TaskCompletionSource<T?>();
         }
-        
-        public T Value { get; private set; }
 
-        
         public BreakPointLocation Location { get; }
 
         /// <summary>
@@ -40,34 +36,39 @@ namespace Fluxzy.Core.Breakpoints
         public async Task WaitForEdit()
         {
             Running = true;
+
+            var originalValue = new T();
+
+            await originalValue.Init(_exchange);
             
-            await Value.Init(_exchange);
-            
-            _updateReceiver(Location);
+            _updateReceiver(originalValue, Location);
 
             try {
                 // We init the value of location 
-                
-                var res = await _waitForValueCompletionSource.Task;
 
-                if (res) {
-                    Value.Alter(_exchange);
+                var updatedValue = await _waitForValueCompletionSource.Task;
+
+                if (updatedValue != null) {
+                    
+                    originalValue = updatedValue; 
+                    updatedValue.Alter(_exchange);
+                }
+                else {
+                    // undo 
+                    // Set back content body 
+                    originalValue.Alter(_exchange);
                 }
 
             }
             finally {
                 Running = false;
-                _updateReceiver(null);
+                _updateReceiver(originalValue, null);
             }
         }
 
         public void SetValue(T? value)
         {
-            if (value != null) {
-                Value = value;
-            }
-            
-            _waitForValueCompletionSource.TrySetResult(value != null);
+            _waitForValueCompletionSource.TrySetResult(value);
         }
     }
 }

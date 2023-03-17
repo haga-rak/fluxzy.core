@@ -1,11 +1,14 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
@@ -20,7 +23,8 @@ namespace Fluxzy.Tests.Rules
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
-        public async Task EndPointAndChangeToLocalHost(string host)
+        [InlineData(TestConstants.PlainHttp11)]
+        public async Task ContinueUntilEnd(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
@@ -41,26 +45,35 @@ namespace Fluxzy.Tests.Rules
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/global-health-check");
 
+            var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
+
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
+                completionSourceContext.TrySetResult(args.Context);
+            };
+
             var responseTask = httpClient.SendAsync(requestMessage);
 
-            var context = await proxy.InternalProxy.ExecutionContext.BreakPointManager.ContextQueue.ReadAsync();
-
-            context.EndPointCompletion.SetValue(new IPEndPoint(IPAddress.Loopback, 852));
+            var context = await completionSourceContext.Task;
 
             context.ContinueUntilEnd();
 
             var response = await responseTask;
 
-            var actualBodyString = await response.Content.ReadAsStringAsync();
+            //var response = await httpClient.SendAsync(requestMessage);
 
-            Assert.Equal(528, (int) response.StatusCode);
+            var _ = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(200, (int) response.StatusCode);
 
             await proxy.WaitUntilDone();
         }
 
+
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
+        [InlineData(TestConstants.PlainHttp11)]
         public async Task FilterSkip(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
@@ -91,10 +104,69 @@ namespace Fluxzy.Tests.Rules
             await proxy.WaitUntilDone();
         }
 
+
+
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
-        public async Task RequestBreakAndChange(string host)
+        [InlineData(TestConstants.PlainHttp11)]
+        public async Task ChangeDnsMapping(string host)
+        {
+            await using var proxy = new AddHocConfigurableProxy(1, 10);
+
+            proxy.StartupSetting.AlterationRules.Add(
+                new Rule(
+                    new BreakPointAction(),
+                    new HostFilter("sandbox.smartizy.com")
+                ));
+
+            var endPoint = proxy.Run().First();
+
+            using var clientHandler = new HttpClientHandler
+            {
+                Proxy = new WebProxy($"http://{endPoint}")
+            };
+
+            using var httpClient = new HttpClient(clientHandler);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"{host}/global-health-check");
+
+            var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
+
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
+                completionSourceContext.TrySetResult(args.Context);
+            };
+
+            var responseTask = httpClient.SendAsync(requestMessage);
+
+            var context = await completionSourceContext.Task;
+
+            context.ConnectionSetupCompletion.SetValue(new ConnectionSetupStepModel() {
+                IpAddress = IPAddress.Loopback.ToString(), 
+                Port = 523
+            });
+            
+            context.ContinueUntilEnd();
+
+            var response = await responseTask;
+
+            //var response = await httpClient.SendAsync(requestMessage);
+
+            var _ = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(528, (int)response.StatusCode);
+
+            await proxy.WaitUntilDone();
+        }
+
+
+        [Theory]
+        [InlineData(TestConstants.Http11Host)]
+        [InlineData(TestConstants.Http2Host)]
+        [InlineData(TestConstants.PlainHttp11)]
+        public async Task ChangeEntireRequest(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
@@ -112,7 +184,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -121,22 +194,27 @@ namespace Fluxzy.Tests.Rules
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/global-health-check");
 
+            var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
+
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
+                completionSourceContext.TrySetResult(args.Context);
+            };
+
             var responseTask = httpClient.SendAsync(requestMessage);
 
-            var context = await proxy.InternalProxy.ExecutionContext.BreakPointManager.ContextQueue.ReadAsync();
+            var context = await completionSourceContext.Task;
+            
 
-            if (!EditableRequestHeaderSet.TryParse(newRequestHeader,
-                    Array.Empty<byte>(),
-                    out var headerSet).Success)
-                Assert.Fail("Fail to parse request header, check your test arrangement");
-
-            context.RequestHeaderCompletion.SetValue(headerSet!.ToRequest());
+            context.RequestHeaderCompletion.SetValue(new RequestSetupStepModel() {
+                FlatHeader = newRequestHeader
+            });
 
             context.ContinueUntilEnd();
 
             var response = await responseTask;
 
-            var actualBodyString = await response.Content.ReadAsStringAsync();
+            var _ = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(404, (int) response.StatusCode);
 
@@ -144,21 +222,20 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host, "")]
-        [InlineData(TestConstants.Http2Host, "")]
-        [InlineData(TestConstants.Http11Host, "abcedef")]
-        [InlineData(TestConstants.Http2Host, "abcedef")]
-        public async Task ResponseBreakAndChange(string host, string payloadString)
+        [MemberData(nameof(GetResponseBreakAndChangeParams))]
+        public async Task ResponseBreakAndChange(string host, TestBreakpointPayloadType payloadType)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            var payload = Encoding.UTF8.GetBytes(payloadString);
-
+            var stepModel = payloadType.GetResponseStepModel(out var payloadLength); 
+            
             var fullResponseHeader =
                 "HTTP/1.1 203 OkBuddy\r\n" +
                 "Content-length: 900\r\n" +
                 "x-header-added: value\r\n" +
                 "\r\n";
+
+            stepModel.FlatHeader = fullResponseHeader;
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
@@ -168,7 +245,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -177,16 +255,18 @@ namespace Fluxzy.Tests.Rules
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/global-health-check");
 
+            var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
+
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
+                completionSourceContext.TrySetResult(args.Context);
+            };
+
             var responseTask = httpClient.SendAsync(requestMessage);
 
-            var context = await proxy.InternalProxy.ExecutionContext.BreakPointManager.ContextQueue.ReadAsync();
-
-            if (!EditableResponseHeaderSet.TryParse(fullResponseHeader,
-                    payload,
-                    out var headerSet).Success)
-                Assert.Fail("Fail to parse response header, check your test arrangement");
-
-            context.ResponseHeaderCompletion.SetValue(headerSet!.ToResponse());
+            var context = await completionSourceContext.Task;
+            
+            context.ResponseHeaderCompletion.SetValue(stepModel);
 
             context.ContinueUntilEnd();
 
@@ -194,11 +274,72 @@ namespace Fluxzy.Tests.Rules
 
             var actualBodyString = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(203, (int) response.StatusCode);
-            Assert.Equal(payloadString, actualBodyString);
+            Assert.Equal(203, (int)response.StatusCode);
+            Assert.Equal(payloadLength, actualBodyString.Length);
             Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added"));
 
             await proxy.WaitUntilDone();
         }
+
+
+        public static IEnumerable<object[]> GetResponseBreakAndChangeParams
+        {
+            get
+            {
+                var hosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11 };
+
+                var breakpointPayloadTypes =
+                    (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
+
+                foreach (var host in hosts)
+                foreach (var withPcap in breakpointPayloadTypes)
+                {
+                    yield return new object[] { host, withPcap};
+                }
+            }
+        }
     }
+
+    public enum TestBreakpointPayloadType
+    {
+        NoPayload, 
+        FromString, 
+        FromFile
+    }
+
+    public static class TestBreakPointPayloadExtensions
+    {
+        public static ResponseSetupStepModel GetResponseStepModel(this TestBreakpointPayloadType type, out int payloadLength)
+        {
+            var fileName = Guid.NewGuid() + ".temp"; 
+            
+            switch (type) {
+                case TestBreakpointPayloadType.NoPayload:
+                    payloadLength = 0; 
+                    return new ResponseSetupStepModel() {
+                        ContentBody = string.Empty,
+                        FromFile = false
+                    }; 
+                case TestBreakpointPayloadType.FromFile:
+                    File.WriteAllText(fileName, "FromFile");
+                    payloadLength = "FromFile".Length;
+                    return new ResponseSetupStepModel()
+                    {
+                        ContentBody = "FromFile",
+                        FromFile = true,
+                        FileName = fileName
+                    };
+                case TestBreakpointPayloadType.FromString:
+                    payloadLength = "FromString".Length;
+                    return new ResponseSetupStepModel()
+                    {
+                        ContentBody =  "FromString",
+                        FromFile = false
+                    };
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type)); 
+            }
+        }
+    }
+    
 }

@@ -11,19 +11,13 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core.Breakpoints
 {
+    /// <summary>
+    /// Per proxy instance of breakpoint holders 
+    /// </summary>
     public class BreakPointManager
     {
-        public BreakPointManager()
-        {
-
-        }
-
-        private readonly Channel<BreakPointContext> _contextQueue = Channel.CreateUnbounded<BreakPointContext>();
-
         private readonly ConcurrentDictionary<int, BreakPointContext> _runningContext = new();
-
-        public ChannelReader<BreakPointContext> ContextQueue => _contextQueue.Reader;
-
+        
         public BreakPointContext GetOrCreate(Exchange exchange, Filter filter, FilterScope filterScope)
         {
             lock (_runningContext) {
@@ -50,18 +44,11 @@ namespace Fluxzy.Core.Breakpoints
             }
         }
 
-        private void UpdateContext(BreakPointContext breakPointContext)
+        private void UpdateContext(
+            IBreakPointAlterationModel breakPointAlterationModel, 
+            BreakPointContext breakPointContext)
         {
-            // TODO: feed only writer in a debugging context
-
-            if (Environment.GetEnvironmentVariable("TEST_CONTEXT") == "true")
-                _contextQueue.Writer.TryWrite(breakPointContext);
-
-            Task.Run(async () => {
-                await Task.Delay(50); // TODO : Find a better trick than this. The main issue is that this event is trigger earlier 
-                // compared to the availability of BreakPointContext from UiState point of view
-                OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointContext));
-            }); 
+            OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointAlterationModel, breakPointContext));
         }
 
         public BreakPointState GetState()
@@ -85,10 +72,13 @@ namespace Fluxzy.Core.Breakpoints
 
     public class OnContextUpdatedArgs : EventArgs
     {
-        public OnContextUpdatedArgs(BreakPointContext context)
+        public OnContextUpdatedArgs(IBreakPointAlterationModel breakPointAlterationModel, BreakPointContext context)
         {
+            BreakPointAlterationModel = breakPointAlterationModel;
             Context = context;
         }
+
+        public IBreakPointAlterationModel BreakPointAlterationModel { get; }
 
         public BreakPointContext Context { get; }
     }

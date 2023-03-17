@@ -111,14 +111,17 @@ namespace Fluxzy.Core
                                 requestHeaderAlteration.Apply(exchange.Request.Header);
                             }
 
-                            if (exchange.Context.BreakPointContext != null) {
-                                await exchange.Context.BreakPointContext.RequestHeaderCompletion
-                                                            .WaitForEdit();
-                            }
 
                             IHttpConnectionPool connectionPool;
 
                             try {
+
+                                if (exchange.Context.BreakPointContext != null)
+                                {
+                                    await exchange.Context.BreakPointContext.RequestHeaderCompletion
+                                                  .WaitForEdit();
+                                }
+                                
                                 if (_archiveWriter != null) {
                                     _archiveWriter.Update(
                                         exchange,

@@ -14,12 +14,12 @@ namespace Fluxzy.Core.Breakpoints
     {
         private readonly Exchange _exchange;
         private readonly Filter _filter;
-        private readonly Action<BreakPointContext> _statusChanged;
+        private readonly Action<IBreakPointAlterationModel, BreakPointContext> _statusChanged;
         private readonly List<IBreakPoint> _breakPoints = new();
         private bool _previousStatus = false; 
 
         public BreakPointContext(Exchange exchange,  Filter filter, 
-            Action<BreakPointContext> statusChanged)
+            Action<IBreakPointAlterationModel, BreakPointContext> statusChanged)
         {
             _exchange = exchange;
             _filter = filter;
@@ -60,7 +60,7 @@ namespace Fluxzy.Core.Breakpoints
 
         public BreakPointOrigin<ResponseSetupStepModel> ResponseHeaderCompletion { get; }
 
-        private void OnBreakPointStatusUpdate(BreakPointLocation? location)
+        private void OnBreakPointStatusUpdate(IBreakPointAlterationModel alterationModel, BreakPointLocation? location)
         {
             if (location != null)
             {
@@ -71,7 +71,7 @@ namespace Fluxzy.Core.Breakpoints
 
             // Warn parent about context changed 
 
-            _statusChanged(this);
+            _statusChanged(alterationModel, this);
         }
 
         public BreakPointLocation LastLocation { get; set; } = BreakPointLocation.Start;
