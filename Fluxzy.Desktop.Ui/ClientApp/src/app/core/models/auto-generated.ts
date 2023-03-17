@@ -801,6 +801,34 @@ export interface BreakPointContextStepInfo
 	locationIndex: number;
 	stepName: string;
 	status: string;
+	internalAlterationModel?: any;
+	model?: any;
+}
+export interface ConnectionSetupStepModel
+{
+	forceNewConnection: boolean;
+	skipRemoteCertificateValidation: boolean;
+	ipAddress?: string;
+	port?: number;
+	done: boolean;
+}
+export interface RequestSetupStepModel
+{
+	done: boolean;
+	flatHeader?: string;
+	editBody: boolean;
+	fromFile: boolean;
+	fileName?: string;
+	contentBody?: string;
+}
+export interface ResponseSetupStepModel
+{
+	done: boolean;
+	flatHeader?: string;
+	editBody: boolean;
+	fromFile: boolean;
+	fileName?: string;
+	contentBody?: string;
 }
 export interface FluxzySettingsHolder
 {

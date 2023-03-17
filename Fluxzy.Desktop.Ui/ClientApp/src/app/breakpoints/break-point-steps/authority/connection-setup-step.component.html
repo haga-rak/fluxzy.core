@@ -1,24 +1,66 @@
 
 
+<div class="main-edit">
+    <div *ngIf="model">
+        <div class="row">
+            <div class="offset-0 col-6">
+                <div class="form-check form-switch">
+                    <input  class="form-check-input" type="checkbox" id="forceNewConnection" [(ngModel)]="model.forceNewConnection">
+                    <label class="form-check-label" for="forceNewConnection">Force new connection</label>
 
-<div>
+                    <div class="text-info">
+                        Instead of picking and new connection from the pool, a new connection will be created.
+                    </div>
+                </div>
+                <br/>
 
-    <div class="row">
-        <div class="col-6">
-            <div class="form-floating">
-                <input type="text" class="form-control" id="floatingInputValue"  [(ngModel)]="context.exchange.knownAuthority" placeholder="host">
-                <label for="floatingInputValue">Host</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="skipValidation" [(ngModel)]="model.skipRemoteCertificateValidation">
+                    <label class="form-check-label" for="skipValidation">Skip SSL validation</label>
+
+                    <div class="text-info">
+                        Do not verify remote server certificate
+                    </div>
+                </div>
+                <br/>
+
+            </div>
+            <div class="col-6">
+
+                <div class="text-info">
+                    Skip host resolution, use this IP
+                </div>
+                <div class="form-floating">
+                    <input [readOnly]="done"  type="text" class="form-control" style="width: 200px" id="floatingIpAddress"  [(ngModel)]="model.ipAddress" placeholder="host">
+                    <label for="floatingIpAddress">IP address</label>
+                </div>
+                <br/>
+
+                <div class="text-info">
+                   Use the following instead of the one requested by downstream
+                </div>
+                <div class="form-floating">
+                    <input [readOnly]="done" type="number" class="form-control"  style="width: 200px" id="floatingPort"  min="1" max="65535" [(ngModel)]="model.port">
+                    <label for="floatingPort">Port</label>
+                </div>
             </div>
         </div>
-        <div class="col-6">
-            <div class="form-floating">
-                <input type="number" class="form-control"  min="1" max="65535" [(ngModel)]="context.exchange.knownPort">
-                <label for="floatingInputValue">Port</label>
-            </div>
-        </div>
+
+    </div>
+    <div *ngIf="!model">
+        <p class="lead  text-center">
+            Not run yet
+        </p>
     </div>
 
 </div>
-
-
-
+<div class="text-end">
+    <div *ngIf="done">
+        <span class="text-success">This step is already done</span>
+    </div>
+    <span class=""  *ngIf="!done">
+        <button  class="btn btn-warning" (click)="saveAndContinue()">Save edit and continue</button>
+        &nbsp;
+        <button *ngIf="!done" class="btn btn-outline-warning" (click)="skip()">Skip</button>
+    </span>
+</div>

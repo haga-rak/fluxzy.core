@@ -15,7 +15,11 @@ namespace Fluxzy.Core.Breakpoints
         private readonly Exchange _exchange;
         private readonly Filter _filter;
         private readonly Action<IBreakPointAlterationModel, BreakPointContext> _statusChanged;
-        private readonly List<IBreakPoint> _breakPoints = new();
+        private readonly Dictionary<BreakPointLocation, IBreakPointAlterationModel> _alterationModels =
+            new();
+
+        internal List<IBreakPoint> BreakPoints { get; } = new();
+
         private bool _previousStatus;
 
         public BreakPointContext(
@@ -27,32 +31,32 @@ namespace Fluxzy.Core.Breakpoints
             _statusChanged = statusChanged;
 
             ConnectionSetupCompletion =
-                new BreakPointOrigin<ConnectionSetupStepModel>(exchange, BreakPointLocation.WaitingEndPoint,
+                new BreakPointOrigin<ConnectionSetupStepModel>(exchange, BreakPointLocation.PreparingRequest,
                     OnBreakPointStatusUpdate);
 
             RequestHeaderCompletion = new BreakPointOrigin<RequestSetupStepModel>(exchange,
-                BreakPointLocation.WaitingRequest,
+                BreakPointLocation.Request,
                 OnBreakPointStatusUpdate);
 
             ResponseHeaderCompletion = new BreakPointOrigin<ResponseSetupStepModel>(exchange,
-                BreakPointLocation.WaitingResponse,
+                BreakPointLocation.Response,
                 OnBreakPointStatusUpdate);
 
-            _breakPoints.Add(ConnectionSetupCompletion);
-            _breakPoints.Add(RequestHeaderCompletion);
-            _breakPoints.Add(ResponseHeaderCompletion);
+            BreakPoints.Add(ConnectionSetupCompletion);
+            BreakPoints.Add(RequestHeaderCompletion);
+            BreakPoints.Add(ResponseHeaderCompletion);
         }
 
         public void ContinueUntilEnd()
         {
-            foreach (var breakPoint in _breakPoints) {
+            foreach (var breakPoint in BreakPoints) {
                 breakPoint.Continue();
             }
         }
 
         public void ContinueOnce()
         {
-            var breakPoint = _breakPoints.FirstOrDefault(b => b.Running == true);
+            var breakPoint = BreakPoints.FirstOrDefault(b => b.Running == true);
             breakPoint?.Continue();
         }
 
@@ -68,6 +72,9 @@ namespace Fluxzy.Core.Breakpoints
                 LastLocation = location.Value;
 
             CurrentHit = location;
+
+            if (location != null)
+                _alterationModels[location.Value] = alterationModel;
 
             // Warn parent about context changed 
 
@@ -87,7 +94,8 @@ namespace Fluxzy.Core.Breakpoints
             _previousStatus = _previousStatus || _exchange.Complete.IsCompleted ||
                               _exchange.Complete.Status >= TaskStatus.RanToCompletion;
 
-            return new BreakPointContextInfo(ExchangeInfo, _previousStatus, LastLocation, CurrentHit, _filter);
+            return new BreakPointContextInfo(_alterationModels,
+                ExchangeInfo, _previousStatus, LastLocation, CurrentHit, _filter);
         }
     }
 

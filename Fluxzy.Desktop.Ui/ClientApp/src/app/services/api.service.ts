@@ -22,7 +22,7 @@ import {
     CertificateOnStore,
     CertificateValidationResult, CertificateWizardStatus,
     CommentUpdateModel,
-    ConnectionInfo,
+    ConnectionInfo, ConnectionSetupStepModel,
     ContextMenuAction, CurlCommandResult, DescriptionInfo,
     ExchangeBrowsingState, ExchangeMetricInfo,
     ExchangeState,
@@ -445,8 +445,8 @@ export class ApiService {
         return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/continue/once`, null).pipe(take(1)) ;
     }
 
-    public breakPointEndPointSet(exchangeId : number, ipEndPoint : IPEndPoint) : Observable<boolean> {
-        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/endpoint`, ipEndPoint).pipe(take(1)) ;
+    public breakPointEndPointSet(exchangeId : number, model : ConnectionSetupStepModel) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/endpoint`, model).pipe(take(1)) ;
     }
 
     public breakPointEndPointContinue(exchangeId : number) : Observable<boolean> {

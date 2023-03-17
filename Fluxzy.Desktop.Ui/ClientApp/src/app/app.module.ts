@@ -98,7 +98,8 @@ import { ExchangeToolsComponent } from './widgets/exchange-tools/exchange-tools.
 import { ExchangeMetricsComponent } from './widgets/exchange-metrics/exchange-metrics.component';
 import { WizardComponent } from './settings/wizard/wizard.component';
 import { BreakPointDialogComponent } from './breakpoints/break-point-dialog/break-point-dialog.component';
-import { AuthorityComponent } from './breakpoints/break-point-steps/authority/authority.component';
+import { ConnectionSetupStepComponent } from './breakpoints/break-point-steps/authority/connection-setup-step.component';
+import { EditRequestComponent } from './breakpoints/break-point-steps/edit-request/edit-request.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -183,7 +184,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ExchangeMetricsComponent,
         WizardComponent,
         BreakPointDialogComponent,
-        AuthorityComponent,
+        ConnectionSetupStepComponent,
+        EditRequestComponent,
 
 
     ],
