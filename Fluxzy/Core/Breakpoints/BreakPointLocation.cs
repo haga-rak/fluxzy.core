@@ -10,16 +10,17 @@ namespace Fluxzy.Core.Breakpoints
     public enum BreakPointLocation
     {
         Start = 0,
+        
         [Description("After authority received")]
         ReceivingAuthority = 1,
 
-        [Description("Before sending request")]
+        [Description("Request")]
         WaitingRequest,
 
         [Description("Solving DNS")]
         WaitingEndPoint,
 
-        [Description("Before sending response")]
+        [Description("Response")]
         WaitingResponse
     }
 

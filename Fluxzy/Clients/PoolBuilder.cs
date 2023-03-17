@@ -105,21 +105,26 @@ namespace Fluxzy.Clients
                     await semaphorePerAuthority.WaitAsync(cancellationToken);
 
                 // Looking for existing HttpPool
+                
+                if (!exchange.Context.ForceNewConnection) {
+                    lock (_connectionPools)
+                    {
+                        while (_connectionPools.TryGetValue(exchange.Authority, out var pool))
+                        {
+                            if (pool.Complete)
+                            {
+                                _connectionPools.Remove(pool.Authority);
 
-                lock (_connectionPools) {
-                    while (_connectionPools.TryGetValue(exchange.Authority, out var pool)) {
-                        if (pool.Complete) {
-                            _connectionPools.Remove(pool.Authority);
+                                continue;
+                            }
 
-                            continue;
+                            if (exchange.Metrics.RetrievingPool == default)
+                                exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+
+                            exchange.Metrics.ReusingConnection = true;
+
+                            return pool;
                         }
-
-                        if (exchange.Metrics.RetrievingPool == default)
-                            exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
-
-                        exchange.Metrics.ReusingConnection = true;
-
-                        return pool;
                     }
                 }
 
