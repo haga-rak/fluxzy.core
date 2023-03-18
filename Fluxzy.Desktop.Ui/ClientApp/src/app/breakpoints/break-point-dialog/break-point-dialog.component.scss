@@ -77,7 +77,19 @@ li.active a.nav-link.active {
     text-decoration: none;
 }
 
-.large-butt a.btn {
+.large-butt .btn {
     width : 100%;
     margin-bottom : 8px;
+}
+
+.table-bp-layout {
+    width : 100%;
+}
+.table-bp-layout td {
+    vertical-align: top;
+}
+.table-bp-layout td:first-child {
+    padding-right: 16px;
+    width: 250px;
+    height: calc(100vh - 300px);
 }

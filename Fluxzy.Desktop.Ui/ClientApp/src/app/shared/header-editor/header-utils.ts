@@ -11,6 +11,26 @@ export const InArray = (header: string, templateHeaders : string []) : boolean =
 }
 
 
+export const ParseHeaderLine = (headerLine: string) : Header | null => {
+    const tab = headerLine.split(': ');
+
+    if (tab.length >= 2) {
+        return {
+            name: tab[0],
+            value: tab.slice(1).join(': ')
+        };
+    }
+
+    return null;
+}
+
+
+
+export interface Header {
+    name: string;
+    value: string;
+}
+
 
 
 

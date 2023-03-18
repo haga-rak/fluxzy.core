@@ -72,7 +72,7 @@ export class BreakPointService {
             return ;
 
         const config: ModalOptions = {
-            class: '',
+            class: 'flexible-width',
             initialState: {
             },
             ignoreBackdropClick : true

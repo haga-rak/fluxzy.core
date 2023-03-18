@@ -5,6 +5,8 @@ import {
     ConnectionSetupStepModel, RequestSetupStepModel
 } from "../../../core/models/auto-generated";
 import {ApiService} from "../../../services/api.service";
+import {Subject, tap} from "rxjs";
+import {Header} from "../../../shared/header-editor/header-utils";
 
 @Component({
     selector: 'app-edit-request',
@@ -18,11 +20,20 @@ export class EditRequestComponent implements OnInit {
     public model: RequestSetupStepModel | null;
     public done : boolean = false;
 
+    private selectedHeader$ = new Subject<Header | null>();
+    public selectedHeader : Header | null = null;
+
+
     constructor(private apiService : ApiService) {
     }
 
     ngOnInit(): void {
         this.setupModel();
+
+        this.selectedHeader$.pipe(
+            tap(t => this.selectedHeader = t)
+        ).subscribe() ;
+
         console.log(this.stepInfo)
     }
 
@@ -37,5 +48,9 @@ export class EditRequestComponent implements OnInit {
 
     dumpYoyo() {
         console.log(document.querySelector("#yoyo").textContent);
+    }
+
+    onHeaderSelected($event: Header | null) {
+        this.selectedHeader$.next($event);
     }
 }

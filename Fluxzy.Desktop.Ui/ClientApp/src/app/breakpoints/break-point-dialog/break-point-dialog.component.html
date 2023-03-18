@@ -18,7 +18,7 @@
         <div class="p-3">
 
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-6">
                     <div class="btn-group" role="group" dropdown>
                         <button  type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
                                  aria-expanded="false" dropdownToggle>
@@ -56,7 +56,7 @@
                         </span>
                     </span>
                 </div>
-                <div class="col-md-6 text-end">
+                <div class="col-6 text-end">
                     <div class="btn-group btn-command" role="group" aria-label="">
                         <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-warning no-shadow" (click)="continueNext()" title="Skip">
                             <i class="fa fa-step-forward"></i></button>
@@ -67,55 +67,67 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-3">
-                <div class="alert">
 
-                    <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span>
-                        &nbsp;<span class="badge bg-success text-gray-600" *ngIf="currentContextInfo.done">done</span></p>
-                    <ul class="fa-ul border-right ul-step">
-                        <li *ngFor="let item of currentContextInfo.stepInfos" class="larger">
+        <table style="width: 100%" class="table-bp-layout">
+            <tr>
+                <td style="">
+
+                    <div class="alert">
+
+                        <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span>
+                            &nbsp;<span class="badge bg-success text-gray-600" *ngIf="currentContextInfo.done">done</span></p>
+                        <ul class="fa-ul border-right ul-step">
+                            <li *ngFor="let item of currentContextInfo.stepInfos" class="larger">
 
                             <span class="fa-li" *ngIf="item.status === 'AlreadyRun'">
                                 <i class="fa fa-check-circle text-gray-200" title="Done"></i></span>
 
-                            <span class="fa-li" *ngIf="item.status === 'Current'">
+                                <span class="fa-li" *ngIf="item.status === 'Current'">
                                 <i class="fa fa-pause text-warning"></i>
                             </span>
-                            <span class="fa-li"  *ngIf="item.status === 'Pending'">
+                                <span class="fa-li"  *ngIf="item.status === 'Pending'">
                                 <i class="fa fa-minus" title="Not run yet"></i>
                             </span>
 
-                            <a href="javascript:;" class="nul"
-                               (click)="setSelectedStepInfo(item)"
-                               [class]="{'text-info' : item.status !== 'Current', 'sinfo-selected' : item === selectedStepInfo}">{{ item.stepName}}</a>
-                        </li>
+                                <a href="javascript:;" class="nul"
+                                   (click)="setSelectedStepInfo(item)"
+                                   [class]="{'text-info' : item.status !== 'Current', 'sinfo-selected' : item === selectedStepInfo}">{{ item.stepName}}</a>
+                            </li>
 
-                    </ul>
-                </div>
-            </div>
-            <div class="col-md-9">
-                <div class="alert">
+                        </ul>
+                    </div>
+                </td>
+                <td>
 
-                    <div class="lead text-center"  *ngIf="!selectedStepInfo">No step selected</div>
-                    <div style="padding : 8px" *ngIf="selectedStepInfo">
+                    <div class="alert">
 
-                        <h4 class="soft-border">
-                            {{ selectedStepInfo.stepName }}
-                            <small class="badge bg-success text-gray-600" *ngIf="selectedStepInfo.status === 'AlreadyRun'">
-<!--                                <i class="fa fa-info-circle" aria-hidden="true"></i> -->
-                                done</small>
-                        </h4>
-                        <div class="bp-form-container">
-                            <app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-authority>
-                            <app-edit-request *ngIf="selectedStepInfo.locationIndex === 2" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-request>
-                            <app-edit-response *ngIf="selectedStepInfo.locationIndex === 3" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-response>
+                        <div class="lead text-center"  *ngIf="!selectedStepInfo">No step selected</div>
+                        <div style="padding : 8px" *ngIf="selectedStepInfo">
+
+                            <h4 class="soft-border">
+                                {{ selectedStepInfo.stepName }}
+                                <small class="badge bg-success text-gray-600" *ngIf="selectedStepInfo.status === 'AlreadyRun'">
+                                    <!--                                <i class="fa fa-info-circle" aria-hidden="true"></i> -->
+                                    done</small>
+                            </h4>
+                            <div class="bp-form-container">
+                                <app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-authority>
+                                <app-edit-request *ngIf="selectedStepInfo.locationIndex === 2" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-request>
+                                <app-edit-response *ngIf="selectedStepInfo.locationIndex === 3" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-response>
+
+                            </div>
+
 
                         </div>
-
-
                     </div>
-                </div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="row">
+            <div class="col-3">
+            </div>
+            <div class="col-9">
             </div>
         </div>
 
