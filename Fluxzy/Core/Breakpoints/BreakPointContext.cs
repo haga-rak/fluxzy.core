@@ -106,7 +106,7 @@ namespace Fluxzy.Core.Breakpoints
     {
         ValueTask Init(Exchange exchange);
 
-        void Alter(Exchange exchange);
+        ValueTask Alter(Exchange exchange);
 
         bool Done { get; }
     }

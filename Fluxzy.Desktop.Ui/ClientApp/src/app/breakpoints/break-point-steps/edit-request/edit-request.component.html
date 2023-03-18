@@ -1,5 +1,27 @@
 <div class="main-edit">
-
-    <p>edit-request works!</p>
+        <div class="btn-group" role="group" aria-label="Basic example">
+            <button type="button" class="btn btn-dark">Header</button>
+            <button type="button" class="btn btn-gray-400">Body</button>
+        </div>
+        <div class="row button-col" style="margin-top : 10px; height : calc(100% - 40px)">
+                <div class="col-9">
+                    <pre id="yoyo" contenteditable="true" spellcheck="false"  class="cool-text-area" [(ngModel)]="model.flatHeader" style=" ">{{ model.flatHeader }}<span style="color:red">youo</span></pre>
+                </div>
+                <div class="col-3 large-butt">
+                    <a href="javascript:;" class="btn btn- btn-dark btn-outline-primary" (click)="dumpYoyo()">Add header</a>
+                    <a href="javascript:;" class="btn btn-dark btn-outline-primary">Add cookie</a>
+                    <a href="javascript:;" class="btn btn-dark btn-outline-primary">Validate</a>
+                </div>
+        </div>
+</div>
+<div class="text-end main-edit-footer">
+    <div *ngIf="done">
+        <span class="text-success">This step is already done</span>
+    </div>
+    <span class=""  *ngIf="!done">
+        <button  class="btn btn-warning" (click)="saveAndContinue()">Save edit and continue</button>
+        &nbsp;
+        <button *ngIf="!done" class="btn btn-outline-warning" (click)="skip()">Skip</button>
+    </span>
 </div>
 
