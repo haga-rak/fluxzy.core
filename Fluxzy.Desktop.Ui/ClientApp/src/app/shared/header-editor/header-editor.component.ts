@@ -5,6 +5,7 @@ import {
     ViewEncapsulation
 } from '@angular/core';
 import {debounceTime, Subject, Subscription, tap} from "rxjs";
+import {InArray, WarningHeaders} from "./header-utils";
 
 @Component({
     selector: 'header-editor',
@@ -97,16 +98,16 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                 res.htmlModel.push(""); // Ignore empty lines
                 continue;
             }
-            const headerParts = headerLine.split(":");
+            const headerParts = headerLine.split(": ");
 
             if (headerParts.length <= 1) {
                 res.errorMessages.push("Invalid header line");
-                res.htmlModel.push(this.getLineWithError(headerLine, 'Header must be a key value separated by \':\' '));
+                res.htmlModel.push(this.getLineWithError(headerLine, 'Header must be a key value separated by \': \' '));
                 continue;
             }
 
             const headerName = headerParts[0];
-            const headerValue =  headerParts.slice(1, headerParts.length).join(':');
+            const headerValue =  headerParts.slice(1, headerParts.length).join(': ');
 
             if (headerName.trim().length == 0) {
                 res.errorMessages.push("Invalid header name");
@@ -126,7 +127,13 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                 continue;
             }
 
-            res.htmlModel.push(`<span class="good-header">${headerName.trim()}</span>:${headerValue}`);
+            if (InArray(headerName, WarningHeaders)) {
+                res.errorMessages.push("Transport header will be ignored");
+                res.htmlModel.push(this.getHeaderOnWarning(headerName, headerValue, 'Transport related header will be ignored'));
+                continue;
+            }
+
+            res.htmlModel.push(`<span class="good-header">${headerName.trim()}</span>: ${headerValue}`);
         }
 
         return res;
@@ -140,6 +147,10 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         return `<span class="error good-header" title="${message}">${headerName}</span>: ${headerValue}`;
     }
 
+    private getHeaderOnWarning(headerName  : string, headerValue : string, message : string) : string {
+        return `<span class="warning good-header" title="${message}">${headerName}</span>: ${headerValue}`;
+    }
+
     public isValidRequestLine(line : string) : boolean {
         const parts = line.split(" ").filter(t => t.trim().length > 0);
         if (parts.length != 3) {
@@ -148,7 +159,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
         let validHttpMethods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE"];
 
-        if (!validHttpMethods.includes(parts[0])) {
+        if (validHttpMethods.indexOf(parts[0]?.toUpperCase()) < 0) {
             return false;
         }
 
@@ -186,8 +197,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         if (!parentElement)
             return;
 
-        var selection = window.getSelection(),
-            charCount = -1,
+        const selection = window.getSelection();
+        let charCount = -1,
             node;
 
         if (selection.focusNode) {
@@ -222,7 +233,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             return;
 
         if (chars >= 0) {
-            var selection = window.getSelection();
+            const selection = window.getSelection();
 
             let range = this._createRange(element, { count: chars }, null);
 
@@ -230,6 +241,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                 range.collapse(false);
                 selection.removeAllRanges();
                 selection.addRange(range);
+
             }
         }
     }
@@ -252,7 +264,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                     chars.count = 0;
                 }
             } else {
-                for (var lp = 0; lp < node.childNodes.length; lp++) {
+                for (let lp = 0; lp < node.childNodes.length; lp++) {
                     range = this._createRange(node.childNodes[lp], chars, range);
 
                     if (chars.count === 0) {
@@ -298,6 +310,64 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             document.execCommand('insertLineBreak');
             $event.preventDefault();
         }
+    }
+
+    mouseup($event: MouseEvent) {
+        // console.log($event);
+        // console.log(this.getCaret(document.querySelector('#' + this.blockId)));
+        const selection = window.getSelection();
+
+        if (selection.focusNode) {
+            let text = selection.focusNode.textContent;
+
+
+            {
+                let previousSibling = selection.focusNode.previousSibling;
+                while (previousSibling != null && previousSibling.textContent.indexOf(('\n')) < 0 ) {
+                    text = previousSibling.textContent + text;
+                    previousSibling = previousSibling.previousSibling;
+                }
+            }
+
+
+            {
+                let nextSibling = selection.focusNode.nextSibling;
+
+                if (!nextSibling) {
+                    nextSibling = selection.focusNode.parentNode.nextSibling;
+                    if (nextSibling?.textContent)
+                        console.log(nextSibling.textContent.indexOf(('\n'))) ;
+
+
+                    while (nextSibling != null) {
+
+                        let index =  nextSibling.textContent.indexOf(('\n'));
+
+                        if (index < 0) {
+
+                            text = text + nextSibling.textContent;
+                            nextSibling = nextSibling.nextSibling;
+                        }
+                        if (index > 0) {
+                            text = text + nextSibling.textContent.substring(0, index);
+                            nextSibling = null;
+                        }
+
+                        if (index === 0)
+                            break;
+                    }
+                }
+
+            }
+
+            console.log(text) ;
+
+
+        }
+
+        // console.log(selection.focusNode);
+        // console.log(selection.focusNode.previousSibling);
+        // console.log(selection.focusNode.nextSibling);
     }
 }
 
