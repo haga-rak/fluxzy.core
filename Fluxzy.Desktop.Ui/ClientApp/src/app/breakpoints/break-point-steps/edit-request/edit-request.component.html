@@ -1,25 +1,39 @@
 <div class="main-edit">
-        <div class="btn-group" role="group" aria-label="Basic example">
-            <button type="button" class="btn btn-dark">Header</button>
-            <button type="button" class="btn btn-gray-400">Body</button>
+    <div class="btn-group" role="group" aria-label="Basic example">
+        <button type="button" class="btn btn-dark">Header</button>
+        <button type="button" class="btn btn-gray-400">Body</button>
+    </div>
+    <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
+        <div class="col-9">
+            <header-editor [isRequest]="true" [(model)]="model.flatHeader"
+                           (headerSelected)="onHeaderSelected($event)"></header-editor>
         </div>
-        <div class="row button-col" style="margin-top : 10px; height : calc(100% - 40px)">
-                <div class="col-9">
-                    <header-editor [isRequest]="true" [(model)]="model.flatHeader"></header-editor>
-                </div>
-                <div class="col-3 large-butt">
-                    <a href="javascript:;" class="btn btn- btn-dark btn-outline-primary" (click)="dumpYoyo()">Add header</a>
-                    <a href="javascript:;" class="btn btn-dark btn-outline-primary">Add cookie</a>
-                    <a href="javascript:;" class="btn btn-dark btn-outline-primary">Validate</a>
-                </div>
+        <div class="col-3 large-butt">
+            <div style="margin-top : 8px" class="alert">
+            <span class="text-info">
+                <i class="fa fa-lightbulb-o text-primary" aria-hidden="true"></i> You can edit directly the raw header content</span>
+            </div>
+            <br/>
+
+            <button class="btn btn-gray-500 btn-outline-primary">Change Url</button>
+            <br/>
+            <button [disabled]="!selectedHeader" class="btn btn- btn-gray-500 btn-outline-primary" (click)="dumpYoyo()">
+                Delete header
+            </button>
+            <br/>
+            <button class="btn btn- btn-gray-500 btn-outline-primary" (click)="dumpYoyo()">Add header</button>
+            <br/>
+            <button class="btn btn-gray-500 btn-outline-primary">Add cookie</button>
+            <br/>
         </div>
+    </div>
 </div>
 <div class="text-end main-edit-footer">
     <div *ngIf="done">
         <span class="text-success">This step is already done</span>
     </div>
-    <span class=""  *ngIf="!done">
-        <button  class="btn btn-warning" (click)="saveAndContinue()">Save edit and continue</button>
+    <span class="" *ngIf="!done">
+        <button class="btn btn-warning" (click)="saveAndContinue()">Save edit and continue</button>
         &nbsp;
         <button *ngIf="!done" class="btn btn-outline-warning" (click)="skip()">Skip</button>
     </span>

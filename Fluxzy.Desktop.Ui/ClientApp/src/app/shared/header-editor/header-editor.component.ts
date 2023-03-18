@@ -5,7 +5,7 @@ import {
     ViewEncapsulation
 } from '@angular/core';
 import {debounceTime, Subject, Subscription, tap} from "rxjs";
-import {InArray, WarningHeaders} from "./header-utils";
+import {Header, InArray, ParseHeaderLine, WarningHeaders} from "./header-utils";
 
 @Component({
     selector: 'header-editor',
@@ -17,6 +17,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     @Input() public model: string;
     @Input() public isRequest: boolean;
     @Output() public modelChange = new EventEmitter<string>();
+    @Output() public headerSelected = new EventEmitter<Header>();
 
     private changeDetector$ = new Subject<string>() ;
 
@@ -312,18 +313,25 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         }
     }
 
-    mouseup($event: MouseEvent) {
+    reEvaluateHeaderLine($event: MouseEvent) {
         // console.log($event);
         // console.log(this.getCaret(document.querySelector('#' + this.blockId)));
         const selection = window.getSelection();
+        const selectedHeader = this.getCurrentHeader(selection);
 
+        this.headerSelected.emit(selectedHeader);
+
+        console.log(selectedHeader) ;
+    }
+
+    private getCurrentHeader(selection: Selection) : Header | null {
         if (selection.focusNode) {
             let text = selection.focusNode.textContent;
 
 
             {
                 let previousSibling = selection.focusNode.previousSibling;
-                while (previousSibling != null && previousSibling.textContent.indexOf(('\n')) < 0 ) {
+                while (previousSibling != null && previousSibling.textContent.indexOf(('\n')) < 0) {
                     text = previousSibling.textContent + text;
                     previousSibling = previousSibling.previousSibling;
                 }
@@ -335,13 +343,10 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
                 if (!nextSibling) {
                     nextSibling = selection.focusNode.parentNode.nextSibling;
-                    if (nextSibling?.textContent)
-                        console.log(nextSibling.textContent.indexOf(('\n'))) ;
-
 
                     while (nextSibling != null) {
 
-                        let index =  nextSibling.textContent.indexOf(('\n'));
+                        let index = nextSibling.textContent.indexOf(('\n'));
 
                         if (index < 0) {
 
@@ -360,14 +365,13 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
             }
 
-            console.log(text) ;
 
+            const result = ParseHeaderLine(text);
 
+            return result;
         }
 
-        // console.log(selection.focusNode);
-        // console.log(selection.focusNode.previousSibling);
-        // console.log(selection.focusNode.nextSibling);
+        return null ;
     }
 }
 

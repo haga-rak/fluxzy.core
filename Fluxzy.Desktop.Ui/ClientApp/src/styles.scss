@@ -401,3 +401,9 @@ a.auto-color {
 .form-floating input:read-only {
     color: var(--bs-gray-300);
 }
+
+.flexible-width{
+    max-width : 2100px !important;
+    min-width : 900px !important;
+    width: 90% !important;
+}
