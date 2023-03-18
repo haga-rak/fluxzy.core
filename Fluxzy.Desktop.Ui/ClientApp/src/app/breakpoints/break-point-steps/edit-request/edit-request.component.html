@@ -5,7 +5,7 @@
         </div>
         <div class="row button-col" style="margin-top : 10px; height : calc(100% - 40px)">
                 <div class="col-9">
-                    <pre id="yoyo" contenteditable="true" spellcheck="false"  class="cool-text-area" [(ngModel)]="model.flatHeader" style=" ">{{ model.flatHeader }}<span style="color:red">youo</span></pre>
+                    <header-editor [isRequest]="true" [(model)]="model.flatHeader"></header-editor>
                 </div>
                 <div class="col-3 large-butt">
                     <a href="javascript:;" class="btn btn- btn-dark btn-outline-primary" (click)="dumpYoyo()">Add header</a>
