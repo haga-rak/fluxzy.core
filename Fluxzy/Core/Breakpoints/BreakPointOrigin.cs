@@ -51,12 +51,12 @@ namespace Fluxzy.Core.Breakpoints
 
                 if (updatedValue != null) {
                     originalValue = updatedValue;
-                    updatedValue.Alter(_exchange);
+                    await updatedValue.Alter(_exchange);
                 }
                 else {
                     // undo 
                     // Set back content body 
-                    originalValue.Alter(_exchange);
+                    await originalValue.Alter(_exchange);
                 }
             }
             finally {

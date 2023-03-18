@@ -100,6 +100,7 @@ import { WizardComponent } from './settings/wizard/wizard.component';
 import { BreakPointDialogComponent } from './breakpoints/break-point-dialog/break-point-dialog.component';
 import { ConnectionSetupStepComponent } from './breakpoints/break-point-steps/authority/connection-setup-step.component';
 import { EditRequestComponent } from './breakpoints/break-point-steps/edit-request/edit-request.component';
+import { EditResponseComponent } from './breakpoints/break-point-steps/edit-response/edit-response.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -186,6 +187,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         BreakPointDialogComponent,
         ConnectionSetupStepComponent,
         EditRequestComponent,
+        EditResponseComponent,
 
 
     ],

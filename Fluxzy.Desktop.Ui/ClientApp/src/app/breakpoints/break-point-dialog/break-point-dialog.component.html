@@ -69,11 +69,11 @@
         </div>
         <div class="row">
             <div class="col-md-3">
-                <div class="alert alert-info">
+                <div class="alert">
 
                     <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span>
                         &nbsp;<span class="badge bg-success text-gray-600" *ngIf="currentContextInfo.done">done</span></p>
-                    <ul class="fa-ul border-right">
+                    <ul class="fa-ul border-right ul-step">
                         <li *ngFor="let item of currentContextInfo.stepInfos" class="larger">
 
                             <span class="fa-li" *ngIf="item.status === 'AlreadyRun'">
@@ -95,20 +95,24 @@
                 </div>
             </div>
             <div class="col-md-9">
-                <div class="alert" style="min-height: 480px">
+                <div class="alert">
 
                     <div class="lead text-center"  *ngIf="!selectedStepInfo">No step selected</div>
                     <div style="padding : 8px" *ngIf="selectedStepInfo">
 
                         <h4 class="soft-title">
                             {{ selectedStepInfo.stepName }}
-                            <small class="badge bg-success text-gray-600">
+                            <small class="badge bg-success text-gray-600" *ngIf="selectedStepInfo.status === 'AlreadyRun'">
 <!--                                <i class="fa fa-info-circle" aria-hidden="true"></i> -->
                                 done</small>
                         </h4>
+                        <div class="bp-form-container">
+                            <app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-authority>
+                            <app-edit-request *ngIf="selectedStepInfo.locationIndex === 2" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-request>
+                            <app-edit-response *ngIf="selectedStepInfo.locationIndex === 3" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-response>
 
-                        <app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-authority>
-                        <app-edit-request *ngIf="selectedStepInfo.locationIndex === 2" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-request>
+                        </div>
+
 
                     </div>
                 </div>

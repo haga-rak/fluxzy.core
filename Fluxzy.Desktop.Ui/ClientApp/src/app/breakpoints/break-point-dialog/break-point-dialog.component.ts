@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import {BsModalRef} from "ngx-bootstrap/modal";
 import {ApiService} from "../../services/api.service";
 import {SystemCallService} from "../../core/services/system-call.service";
@@ -15,7 +15,8 @@ import {BreakPointService} from "../break-point.service";
 @Component({
     selector: 'app-break-point-dialog',
     templateUrl: './break-point-dialog.component.html',
-    styleUrls: ['./break-point-dialog.component.scss']
+    styleUrls: ['./break-point-dialog.component.scss'],
+    encapsulation: ViewEncapsulation.None
 })
 export class BreakPointDialogComponent implements OnInit, OnDestroy {
     public uiState: UiState | null = null;

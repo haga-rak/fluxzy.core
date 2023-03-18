@@ -19,7 +19,6 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: "Roboto";
 }
 
 /* CAN (MUST) BE REMOVED ! Sample Global style */
@@ -191,7 +190,11 @@ pre > code {
 }
 
 .larger {
-    font-size: 1.1em;
+    font-size: 1.05em;
+}
+
+li.larger {
+    margin-bottom: 6px;
 }
 
 .modal-dialog {
@@ -384,9 +387,9 @@ a.auto-color {
 }
 
 .soft-title {
-
-    border-bottom: 1px solid var(--bs-gray-300);
-    margin-bottom: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--bs-gray-600);
+    margin-bottom: 4px;
 }
 
 .form-floating input:read-only {

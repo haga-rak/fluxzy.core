@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Clients.Dns;
 
 namespace Fluxzy.Core.Breakpoints
 {
@@ -41,7 +42,7 @@ namespace Fluxzy.Core.Breakpoints
         {
             // We do nothing to init 
             
-            IpAddress = exchange.EgressIp ?? exchange.Context.RemoteHostIp?.ToString() ?? "dns solved";
+            IpAddress = exchange.EgressIp ?? exchange.Context.RemoteHostIp?.ToString() ?? "-/-";
             Port = exchange.Context.RemoteHostPort ?? exchange.Authority.Port;
             
             ForceNewConnection = exchange.Context.ForceNewConnection;
@@ -50,10 +51,17 @@ namespace Fluxzy.Core.Breakpoints
             return default;
         }
 
-        public void Alter(Exchange exchange)
+        public async ValueTask Alter(Exchange exchange)
         {
             if (!string.IsNullOrWhiteSpace(IpAddress) && IPAddress.TryParse(IpAddress, out var ip))
                 exchange.Context.RemoteHostIp = ip;
+            else {
+                exchange.Context.RemoteHostIp =
+                    (await new DefaultDnsSolver().SolveDnsQuietly(exchange.Authority.HostName));
+
+                if (exchange.Context.RemoteHostIp != null)
+                    IpAddress = exchange.Context.RemoteHostIp.ToString();
+            }
 
             if (Port != null && Port > 0 && Port < ushort.MaxValue)
                 exchange.Context.RemoteHostPort = Port.Value;

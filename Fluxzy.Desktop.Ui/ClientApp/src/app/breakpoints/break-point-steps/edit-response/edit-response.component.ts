@@ -2,20 +2,20 @@ import {Component, Input, OnInit, SimpleChanges} from '@angular/core';
 import {
     BreakPointContextInfo,
     BreakPointContextStepInfo,
-    ConnectionSetupStepModel, RequestSetupStepModel
+    RequestSetupStepModel, ResponseSetupStepModel
 } from "../../../core/models/auto-generated";
 import {ApiService} from "../../../services/api.service";
 
 @Component({
-    selector: 'app-edit-request',
-    templateUrl: './edit-request.component.html',
-    styleUrls: ['./edit-request.component.scss']
+  selector: 'app-edit-response',
+  templateUrl: './edit-response.component.html',
+  styleUrls: ['./edit-response.component.scss']
 })
-export class EditRequestComponent implements OnInit {
+export class EditResponseComponent implements OnInit {
 
     @Input() public context : BreakPointContextInfo ;
     @Input() public stepInfo : BreakPointContextStepInfo;
-    public model: RequestSetupStepModel | null;
+    public model: ResponseSetupStepModel | null;
     public done : boolean = false;
 
     constructor(private apiService : ApiService) {
@@ -31,11 +31,8 @@ export class EditRequestComponent implements OnInit {
     }
 
     private setupModel() : void {
-        this.model = this.stepInfo.model as RequestSetupStepModel | null;
+        this.model = this.stepInfo.model as ResponseSetupStepModel | null;
         this.done = this.stepInfo.status == 'AlreadyRun'
     }
 
-    dumpYoyo() {
-        console.log(document.querySelector("#yoyo").textContent);
-    }
 }

@@ -7,3 +7,80 @@
     box-shadow : none !important;
     border : 1px solid var(--bs-gray-400) !important;
 }
+
+.bp-form-container .main-edit {
+    //border : 5px solid green;
+    height : 360px;
+    border : 1px solid var(--bs-gray-400) !important;
+    padding : 8px;
+    border-radius : 8px;
+    margin-bottom : 8px;
+
+}
+.bp-form-container .main-edit-footer {
+    //border : 5px solid green;
+    height : 30px;
+}
+
+div.alert {
+    padding : 8px
+}
+
+.table-bp-done-result {
+    width : 100% ;
+}
+
+.table-bp-done-result tr td:first-child{
+    width : 150px ;
+    text-align: right;
+    color: var(--bs-gray-300);
+    border-right: 1px dashed var(--bs-gray-600) ;
+}
+
+.table-bp-done-result td {
+    padding-right : 16px;
+    padding-left  : 16px;
+    font-size: 1.02em;
+}
+
+a.nav-link {
+    color : var(--bs-gray-100) !important;
+}
+
+ul.nav-tabs {
+    border-bottom: none;
+}
+
+li.active a.nav-link.active {
+    background : var(--bs-gray-300) !important;
+    border-bottom: none !important;
+    border : none;
+}
+
+.tabg-content {
+    padding : 8px;
+}
+
+.cool-text-area {
+    width:100%; height:100%; font-family: Lucida Sans; background: black;
+    font-size: 0.9em;
+    color: var(--bs-gray-200);
+    overflow: auto;
+    padding : 8px;
+}
+
+.ul-step {
+    margin-left: 16px;
+    padding-left: 32px;
+    border-left: 4px solid var(--bs-gray-200);
+}
+
+.button-col a {
+    color : var(--bs-gray-100) !important;
+    text-decoration: none;
+}
+
+.large-butt a.btn {
+    width : 100%;
+    margin-bottom : 8px;
+}
