@@ -54,7 +54,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         const caret = this.getCaret(element);
         this.content = result.htmlModel.join('\n');
         this.cd.detectChanges();
-        this.setCaret(element, caret);
+        this.setCaret(caret, element);
     }
 
     private validate(model : string) : HeaderValidationResult {
@@ -65,12 +65,12 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             htmlModel :  []
         };
 
-        const originalLines = model.trim().replace('\r', '').split('\n');
+        const originalLines = model.replace('\r', '').split('\n');
 
         if (originalLines.length == 0) {
             // empty lines, throw error
             res.errorMessages.push("Empty lines in header");
-            res.htmlModel.push(this.getLineWithError("  "));
+            res.htmlModel.push(this.getLineWithError("  ", 'Header line missing'));
             return ;
         }
 
@@ -78,7 +78,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         let firstLineInvalid = false;
 
         if (this.isRequest && !this.isValidRequestLine(firstLine)) {
-            res.htmlModel.push(this.getLineWithError(firstLine));
+            res.htmlModel.push(this.getLineWithError(firstLine, 'Invalid request line'));
             res.errorMessages.push("Invalid request line");
             firstLineInvalid = true;
         }
@@ -97,41 +97,47 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                 res.htmlModel.push(""); // Ignore empty lines
                 continue;
             }
-            const headerParts = headerLine.split(":", 2);
+            const headerParts = headerLine.split(":");
 
             if (headerParts.length <= 1) {
                 res.errorMessages.push("Invalid header line");
-                res.htmlModel.push(this.getLineWithError(headerLine));
+                res.htmlModel.push(this.getLineWithError(headerLine, 'Header must be a key value separated by \':\' '));
                 continue;
             }
 
             const headerName = headerParts[0];
-            const headerValue = headerParts[1];
+            const headerValue =  headerParts.slice(1, headerParts.length).join(':');
 
             if (headerName.trim().length == 0) {
                 res.errorMessages.push("Invalid header name");
-                res.htmlModel.push(this.getHeaderOnError(headerName, headerValue));
+                res.htmlModel.push(this.getHeaderOnError(headerName, headerValue, 'Cannot be empty'));
                 continue;
             }
 
             if (headerValue.trim().length == 0) {
                 res.errorMessages.push("Invalid header value");
-                res.htmlModel.push(this.getHeaderOnError(headerName, headerValue));
+                res.htmlModel.push(this.getHeaderOnError(headerName, headerValue, 'Cannot be empty'));
                 continue;
             }
 
-            res.htmlModel.push(`<span class="good-header">${headerName.trim()}</span>: ${headerValue.trim()}`);
+            if (headerName.indexOf(' ') >= 0) {
+                res.errorMessages.push("Invalid header name");
+                res.htmlModel.push(this.getHeaderOnError(headerName, headerValue, 'Header name cannot contain spaces'));
+                continue;
+            }
+
+            res.htmlModel.push(`<span class="good-header">${headerName.trim()}</span>:${headerValue}`);
         }
 
         return res;
     }
 
-    private getLineWithError(lineContent : string) : string {
-        return `<span class="error">${lineContent}</span>`;
+    private getLineWithError(lineContent : string, message : string) : string {
+        return `<span class="error" title="${message}">${lineContent}</span>`;
     }
 
-    private getHeaderOnError(headerName  : string, headerValue : string) : string {
-        return `<span class="error">${headerName}</span>: ${headerValue}`;
+    private getHeaderOnError(headerName  : string, headerValue : string, message : string) : string {
+        return `<span class="error good-header" title="${message}">${headerName}</span>: ${headerValue}`;
     }
 
     public isValidRequestLine(line : string) : boolean {
@@ -173,48 +179,101 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
     onNameChange(event: any) {
         let newModel = event.target.textContent ;
-        console.log(this.getCaret(event.target));
         this.changeDetector$.next(newModel);
-        this.modelChange.emit(newModel);
     }
 
-    private getCaret(element) {
-        if (!element)
+    private getCaret(parentElement) {
+        if (!parentElement)
             return;
 
-        let caretOffset = 0;
-        const doc = element.ownerDocument || element.document;
-        const win = doc.defaultView || doc.parentWindow;
-        let sel;
-        if (typeof win.getSelection != "undefined") {
-            sel = win.getSelection();
-            if (sel.rangeCount > 0) {
-                const range = win.getSelection().getRangeAt(0);
-                const preCaretRange = range.cloneRange();
-                preCaretRange.selectNodeContents(element);
-                preCaretRange.setEnd(range.endContainer, range.endOffset);
-                caretOffset = preCaretRange.toString().length;
+        var selection = window.getSelection(),
+            charCount = -1,
+            node;
+
+        if (selection.focusNode) {
+            if (this._isChildOf(selection.focusNode, parentElement)) {
+                node = selection.focusNode;
+                charCount = selection.focusOffset;
+
+                while (node) {
+                    if (node === parentElement) {
+                        break;
+                    }
+
+                    if (node.previousSibling) {
+                        node = node.previousSibling;
+                        charCount += node.textContent.length;
+                    } else {
+                        node = node.parentNode;
+                        if (node === null) {
+                            break;
+                        }
+                    }
+                }
             }
-        } else if ( (sel = doc.selection) && sel.type != "Control") {
-            const textRange = sel.createRange();
-            const preCaretTextRange = doc.body.createTextRange();
-            preCaretTextRange.moveToElementText(element);
-            preCaretTextRange.setEndPoint("EndToEnd", textRange);
-            caretOffset = preCaretTextRange.text.length;
         }
-        return caretOffset;
+
+        return charCount;
     }
 
-    private setCaret(element, caretPos : number) {
+    private setCaret(chars, element) {
+
         if (!element)
             return;
 
-        const range = document.createRange();
-        const sel = window.getSelection();
-        range.setStart(element.childNodes[2], 5);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
+        if (chars >= 0) {
+            var selection = window.getSelection();
+
+            let range = this._createRange(element, { count: chars }, null);
+
+            if (range) {
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+    }
+
+    private _createRange(node, chars, range) {
+        if (!range) {
+            range = document.createRange()
+            range.selectNode(node);
+            range.setStart(node, 0);
+        }
+
+        if (chars.count === 0) {
+            range.setEnd(node, chars.count);
+        } else if (node && chars.count >0) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                if (node.textContent.length < chars.count) {
+                    chars.count -= node.textContent.length;
+                } else {
+                    range.setEnd(node, chars.count);
+                    chars.count = 0;
+                }
+            } else {
+                for (var lp = 0; lp < node.childNodes.length; lp++) {
+                    range = this._createRange(node.childNodes[lp], chars, range);
+
+                    if (chars.count === 0) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return range;
+    }
+
+    private _isChildOf(node, parentElement) {
+        while (node !== null) {
+            if (node === parentElement) {
+                return true;
+            }
+            node = node.parentNode;
+        }
+
+        return false;
     }
 
     private handlePaste(element) {
@@ -233,6 +292,13 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     ngAfterViewInit(): void {
         this.handlePaste(document.querySelector('#' + this.blockId));
     }
+
+    onEdit($event: KeyboardEvent) {
+        if ($event.key === 'Enter') {
+            document.execCommand('insertLineBreak');
+            $event.preventDefault();
+        }
+    }
 }
 
 interface HeaderValidationResult {
@@ -242,4 +308,7 @@ interface HeaderValidationResult {
     errorMessages : string [] ;
 }
 
+
+class Cursor {
+}
 
