@@ -1,3 +1,4 @@
+import {escapeRegExp} from "lodash";
 
 export const WarningHeaders = ['Connection', 'Transfer-Encoding'];
 
@@ -24,13 +25,19 @@ export const ParseHeaderLine = (headerLine: string) : Header | null => {
     return null;
 }
 
-
+export const NormalizeHeader = (flatHeader : string) : string => {
+    let res = replaceAll(flatHeader, '\r\n', '\n') ;
+    return replaceAll(res, '\r', '\n');
+}
 
 export interface Header {
     name: string;
     value: string;
 }
 
+export function replaceAll(str, find, replace) {
+    return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+}
 
 
 
