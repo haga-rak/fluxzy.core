@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, SimpleChanges} from '@angular/core';
+import {Component, Input, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {
     BreakPointContextInfo,
     BreakPointContextStepInfo,
@@ -7,6 +7,7 @@ import {
 import {ApiService} from "../../../services/api.service";
 import {Subject, tap} from "rxjs";
 import {Header} from "../../../shared/header-editor/header-utils";
+import {HeaderEditorComponent} from "../../../shared/header-editor/header-editor.component";
 
 @Component({
     selector: 'app-edit-request',
@@ -22,6 +23,8 @@ export class EditRequestComponent implements OnInit {
 
     private selectedHeader$ = new Subject<Header | null>();
     public selectedHeader : Header | null = null;
+
+    @ViewChild('editor') editor : HeaderEditorComponent;
 
 
     constructor(private apiService : ApiService) {
@@ -52,5 +55,9 @@ export class EditRequestComponent implements OnInit {
 
     onHeaderSelected($event: Header | null) {
         this.selectedHeader$.next($event);
+    }
+
+    removeHeader(selectedHeader: Header) {
+        this.editor.deleteHeader(selectedHeader);
     }
 }

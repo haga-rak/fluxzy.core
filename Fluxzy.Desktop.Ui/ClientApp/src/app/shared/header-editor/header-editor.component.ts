@@ -5,7 +5,8 @@ import {
     ViewEncapsulation
 } from '@angular/core';
 import {debounceTime, Subject, Subscription, tap} from "rxjs";
-import {Header, InArray, ParseHeaderLine, WarningHeaders} from "./header-utils";
+import {Header, InArray, NormalizeHeader, ParseHeaderLine, replaceAll, WarningHeaders} from "./header-utils";
+import * as _ from "lodash";
 
 @Component({
     selector: 'header-editor',
@@ -49,6 +50,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         this.propagateModelChange();
     }
 
+    // Update view from the model
     private propagateModelChange() {
         let result = this.validate(this.model);
         const element = document.querySelector('#' + this.blockId);
@@ -67,7 +69,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             htmlModel :  []
         };
 
-        const originalLines = model.replace('\r', '').split('\n');
+        const originalLines = replaceAll(model, '\r', '').split('\n');
 
         if (originalLines.length == 0) {
             // empty lines, throw error
@@ -314,14 +316,10 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     }
 
     reEvaluateHeaderLine($event: MouseEvent) {
-        // console.log($event);
-        // console.log(this.getCaret(document.querySelector('#' + this.blockId)));
         const selection = window.getSelection();
         const selectedHeader = this.getCurrentHeader(selection);
 
         this.headerSelected.emit(selectedHeader);
-
-        console.log(selectedHeader) ;
     }
 
     private getCurrentHeader(selection: Selection) : Header | null {
@@ -366,12 +364,21 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             }
 
 
-            const result = ParseHeaderLine(text);
+            const result = ParseHeaderLine(_.trimEnd( text, '\n'));
 
             return result;
         }
 
         return null ;
+    }
+
+    public deleteHeader(header : Header) : void{
+
+        const flattenheader = `${header.name}: ${header.value}` ;
+        let normalizedFlatHeader =  NormalizeHeader(this.model);
+        const array = normalizedFlatHeader.split('\n').filter(l => l !== flattenheader);
+        const newModel = array.join('\n') ;
+        this.modelChange.emit(newModel);
     }
 }
 

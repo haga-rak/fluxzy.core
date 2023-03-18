@@ -5,7 +5,7 @@
     </div>
     <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
         <div class="col-9">
-            <header-editor [isRequest]="true" [(model)]="model.flatHeader"
+            <header-editor [isRequest]="true" [(model)]="model.flatHeader" #editor
                            (headerSelected)="onHeaderSelected($event)"></header-editor>
         </div>
         <div class="col-3 large-butt">
@@ -17,7 +17,7 @@
 
             <button class="btn btn-gray-500 btn-outline-primary">Change Url</button>
             <br/>
-            <button [disabled]="!selectedHeader" class="btn btn- btn-gray-500 btn-outline-primary" (click)="dumpYoyo()">
+            <button [disabled]="!selectedHeader" class="btn btn- btn-gray-500 btn-outline-primary" (click)="removeHeader(selectedHeader)">
                 Delete header
             </button>
             <br/>
