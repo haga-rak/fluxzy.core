@@ -1,4 +1,5 @@
 <pre id="{{ blockId }}" contenteditable="true" spellcheck="false" (keydown)="onEdit($event)"
+     (mouseup)="mouseup($event)"
      class="cool-text-area"
      (input)="onNameChange($event)"
      innerHTML="{{content}}"></pre>

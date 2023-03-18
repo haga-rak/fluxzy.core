@@ -392,6 +392,12 @@ a.auto-color {
     margin-bottom: 4px;
 }
 
+.soft-border {
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--bs-gray-600);
+    margin-bottom: 4px;
+}
+
 .form-floating input:read-only {
     color: var(--bs-gray-300);
 }

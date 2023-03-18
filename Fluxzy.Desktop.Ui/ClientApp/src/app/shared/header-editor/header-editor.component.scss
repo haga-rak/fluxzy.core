@@ -9,7 +9,11 @@
 
 
 .error {
-    border-bottom: 2px dashed red;
+    border-bottom: 2px dashed var(--bs-danger);
+}
+
+.warning {
+    border-bottom: 2px dashed var(--bs-warning);
 }
 
 .good-header {

@@ -10,16 +10,21 @@
 
 .bp-form-container .main-edit {
     //border : 5px solid green;
-    height : 360px;
+    height : 400px;
     border : 1px solid var(--bs-gray-400) !important;
     padding : 8px;
     border-radius : 8px;
     margin-bottom : 8px;
 
+
 }
 .bp-form-container .main-edit-footer {
     //border : 5px solid green;
     height : 30px;
+
+    padding-top: 8px;
+    border-top: 1px solid var(--bs-gray-600);
+    margin-bottom: 4px;
 }
 
 div.alert {
