@@ -69,7 +69,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             htmlModel :  []
         };
 
-        const originalLines = replaceAll(model, '\r', '').split('\n');
+        const originalLines = model.replaceAll( '\r', '').split('\n');
 
         if (originalLines.length == 0) {
             // empty lines, throw error

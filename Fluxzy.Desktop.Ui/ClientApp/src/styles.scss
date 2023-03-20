@@ -407,3 +407,20 @@ a.auto-color {
     min-width : 900px !important;
     width: 90% !important;
 }
+
+
+table.generic-form-layout {
+    width : 100% ;
+}
+
+table.generic-form-layout > tr > td {
+    vertical-align: top;
+    padding: 16px;
+    height: auto;
+}
+
+table.generic-form-layout > tr > td:first-child {
+    width : 180px;
+    text-align: right;
+}
+

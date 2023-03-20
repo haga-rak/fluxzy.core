@@ -1,0 +1,15 @@
+table.req-edit-table {
+    width : 100% ;
+    height: 100%;
+}
+
+table.req-edit-table > tr > td:last-child{
+    width : 200px;
+}
+table.req-edit-table > tr > td{
+    vertical-align: top;
+}
+
+.bg-choose input::file-selector-button {
+    background: var(--bs-gray-600);
+}
