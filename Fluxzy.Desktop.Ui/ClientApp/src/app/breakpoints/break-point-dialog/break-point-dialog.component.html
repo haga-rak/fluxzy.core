@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        <table style="width: 100%" class="table-bp-layout">
+        <table style="width: 100%;height:100%" class="table-bp-layout">
             <tr>
                 <td style="">
 
@@ -99,18 +99,27 @@
                 </td>
                 <td>
 
-                    <div class="alert">
+                    <div class="alert edit-container" style="height:100%">
 
                         <div class="lead text-center"  *ngIf="!selectedStepInfo">No step selected</div>
-                        <div style="padding : 8px" *ngIf="selectedStepInfo">
+                        <div style="padding : 8px; display: flex; align-items: stretch; width : 100%" *ngIf="selectedStepInfo" >
 
-                            <h4 class="soft-border">
-                                {{ selectedStepInfo.stepName }}
-                                <small class="badge bg-success text-gray-600" *ngIf="selectedStepInfo.status === 'AlreadyRun'">
-                                    <!--                                <i class="fa fa-info-circle" aria-hidden="true"></i> -->
-                                    done</small>
-                            </h4>
-                            <div class="bp-form-container">
+<!--                            <h4 class="soft-border">-->
+<!--                                {{ selectedStepInfo.stepName }}-->
+<!--                                <small class="badge bg-success text-gray-600" *ngIf="selectedStepInfo.status === 'AlreadyRun'">-->
+<!--                                    &lt;!&ndash;                                <i class="fa fa-info-circle" aria-hidden="true"></i> &ndash;&gt;-->
+<!--                                    done</small>-->
+<!--                            </h4>-->
+
+                            <div *ngIf="selectedStepInfo.status === 'Pending'" class="bp-form-container lead text-center"
+                            style="margin-top:32px">
+                                <div class="main-edit">
+                                    This step is not triggered yet</div>
+                                <div class="main-edit-footer"></div>
+
+                            </div>
+
+                            <div class="bp-form-container" *ngIf="selectedStepInfo.status !== 'Pending'" style="width: 100%">
                                 <app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-authority>
                                 <app-edit-request *ngIf="selectedStepInfo.locationIndex === 2" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-request>
                                 <app-edit-response *ngIf="selectedStepInfo.locationIndex === 3" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-edit-response>

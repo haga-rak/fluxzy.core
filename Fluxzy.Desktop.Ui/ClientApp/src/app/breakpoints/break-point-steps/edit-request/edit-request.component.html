@@ -1,32 +1,93 @@
-<div class="main-edit">
+<div class="main-edit" style="">
     <div class="btn-group" role="group" aria-label="Basic example">
-        <button type="button" class="btn btn-dark">Header</button>
-        <button type="button" class="btn btn-gray-400">Body</button>
+        <button (click)="showHeader(true)" type="button" class="btn btn-dark"
+                [class]="{ 'btn-gray-400' : !headerShown }">Header</button>
+        <button (click)="showHeader(false)" type="button" class="btn btn-dark"
+         [class]="{ 'btn-gray-400' : headerShown }">Body</button>
     </div>
     <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
-        <div class="col-9">
-            <header-editor [isRequest]="true" [(model)]="model.flatHeader" #editor
-                           (headerSelected)="onHeaderSelected($event)"></header-editor>
-        </div>
-        <div class="col-3 large-butt">
-            <div style="margin-top : 8px" class="alert">
-            <span class="text-info">
-                <i class="fa fa-lightbulb-o text-primary" aria-hidden="true"></i> You can edit directly the raw header content</span>
-            </div>
-            <br/>
 
-            <button class="btn btn-gray-500 btn-outline-primary">Change Url</button>
-            <br/>
-            <button [disabled]="!selectedHeader" class="btn btn- btn-gray-500 btn-outline-primary" (click)="removeHeader(selectedHeader)">
-                Delete header
-            </button>
-            <br/>
-            <button class="btn btn- btn-gray-500 btn-outline-primary" (click)="dumpYoyo()">Add header</button>
-            <br/>
-            <button class="btn btn-gray-500 btn-outline-primary">Add cookie</button>
-            <br/>
+        <table  *ngIf="headerShown" class="req-edit-table">
+            <tr>
+                <td>
+                    <header-editor [isRequest]="true" [(model)]="model.flatHeader" #editor
+                                   (headerSelected)="onHeaderSelected($event)"></header-editor>
+                </td>
+                <td>
+
+                    <div class="large-butt" style="padding-left:20px">
+                        <div style="margin-top : 8px" class="alert">
+                            <table style="width:100%">
+                                <tr>
+                                    <td style="width : 16px; vertical-align: center">
+                                        <i class="fa fa-lightbulb-o text-primary" aria-hidden="true"></i>
+                                    </td>
+                                    <td>
+                                        You can edit directly the raw header content
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <br/>
+
+                        <button class="btn btn-gray-500 btn-outline-primary">Change Url</button>
+                        <br/>
+                        <button [disabled]="!selectedHeader" class="btn btn- btn-gray-500 btn-outline-primary" (click)="removeHeader(selectedHeader)">
+                            Delete header
+                        </button>
+                        <br/>
+                        <button class="btn btn- btn-gray-500 btn-outline-primary" (click)="dumpYoyo()">Add header</button>
+                        <br/>
+                        <button class="btn btn-gray-500 btn-outline-primary">Add cookie</button>
+                        <br/>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+
+        <table  *ngIf="!headerShown"  class="generic-form-layout ">
+            <tr>
+                <td>Content origin</td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" [(ngModel)]="model.fromFile" [value]="false" name="flexRadioDefault" id="flexFromText" checked>
+                        <label class="form-check-label" for="flexFromText">
+                            From text
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" [(ngModel)]="model.fromFile" [value]="true" name="flexRadioDefault" id="flexFromFile">
+                        <label class="form-check-label" for="flexFromFile">
+                            From file
+                        </label>
+                    </div>
+                    <div style="margin-top : 32px">
+                        <div *ngIf="model.fromFile" >
+                            <button class="btn btn-dark" (click)="selectAFile()">Select a file</button>
+                            &nbsp;
+                            <span class="text-info">
+                                Selected file:
+                            </span>
+                            <span>
+                                {{model.fileName}}
+                            </span>
+                        </div>
+                        <div class="form-floating" *ngIf="!model.fromFile" >
+                            <textarea [(ngModel)]="model.contentBody" class="form-control" placeholder="Enter request body here" id="floatingTextarea2" style="height: 250px"></textarea>
+                            <label for="floatingTextarea2">Place content body here</label>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+        </table>
+
+        <div [hidden]="headerShown"  style="width:100%">
+
         </div>
-    </div>
+
+
 </div>
 <div class="text-end main-edit-footer">
     <div *ngIf="done">
