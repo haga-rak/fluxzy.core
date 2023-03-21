@@ -1,1 +1,25 @@
-<p>add-header works!</p>
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        <span *ngIf="model.edit">Edit existing header</span>
+        <span *ngIf="!model.edit">Add new header</span>
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 50px">
+    <div>
+          <div class="form-group">
+                <label for="headerName">Header name</label>
+                <input type="text" class="form-control" [readOnly]="model.edit" id="headerName" [(ngModel)]="model.name" placeholder="Header name">
+          </div>
+          <div class="form-group">
+                <label for="headerValue">Header value</label>
+                <input type="text" class="form-control" id="headerValue" [(ngModel)]="model.value" placeholder="Header value">
+          </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="save()">Save</button>
+    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+</div>

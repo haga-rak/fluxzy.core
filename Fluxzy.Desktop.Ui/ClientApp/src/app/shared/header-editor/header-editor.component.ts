@@ -4,9 +4,19 @@ import {
     Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges,
     ViewEncapsulation
 } from '@angular/core';
-import {debounceTime, Subject, Subscription, tap} from "rxjs";
-import {Header, InArray, NormalizeHeader, ParseHeaderLine, replaceAll, WarningHeaders} from "./header-utils";
+import {BehaviorSubject, combineLatest, debounceTime, Subject, Subscription, tap} from "rxjs";
+import {
+    Header,
+    HeaderValidationResult, IEditableHeaderOption,
+    InArray,
+    NormalizeHeader,
+    ParseHeaderLine,
+    replaceAll, RequestLine, ResponseLine,
+    WarningHeaders
+} from "./header-utils";
 import * as _ from "lodash";
+import {HeaderQuickEditHandler} from "./header-quick-edit-handler";
+import {HeaderService} from "./header.service";
 
 @Component({
     selector: 'header-editor',
@@ -20,14 +30,21 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     @Output() public modelChange = new EventEmitter<string>();
     @Output() public headerSelected = new EventEmitter<Header>();
 
-    private changeDetector$ = new Subject<string>() ;
+    private headerSelected$ = new BehaviorSubject<Header | null>(null);
+    private validationResult$ = new Subject<HeaderValidationResult>() ;
+    private changeDetector$ = new Subject<string>();
+    public editableOptions : IEditableHeaderOption[] | null  = null;
 
     public content: string = '';
     public blockId: string;
     private _subscription: Subscription;
+    private handler: HeaderQuickEditHandler;
 
-    constructor(private cd : ChangeDetectorRef) {
+    constructor(private cd: ChangeDetectorRef, private headerService : HeaderService) {
         this.blockId = 'yoyo';
+        this.handler  = new HeaderQuickEditHandler(() => headerService.openAddHeaderDialog({
+             name : '', value : '', edit : false
+            }) );
 
         // raise eventEmitter when changeDetoctor$ contains change in 100ms
         this._subscription = this.changeDetector$
@@ -36,6 +53,15 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                 debounceTime(800),
                 tap(s => this.modelChange.emit(s))
             ).subscribe();
+
+        combineLatest([
+            this.validationResult$.asObservable(),
+            this.headerSelected$.asObservable()
+        ]).pipe(
+            tap(t => {
+                this.editableOptions = this.handler.GetEditableHeaderOptions(t[0], t[1], this.isRequest)
+            })
+        ).subscribe();
     }
 
     ngOnDestroy(): void {
@@ -48,53 +74,69 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
     ngOnInit(): void {
         this.propagateModelChange();
+        this.headerSelected$.pipe(
+            tap(t => this.headerSelected.emit(t))
+        ).subscribe();
     }
 
     // Update view from the model
     private propagateModelChange() {
-        let result = this.validate(this.model);
+        const result = HeaderEditorComponent.validate(this.model, this.isRequest);
         const element = document.querySelector('#' + this.blockId);
-
         const caret = this.getCaret(element);
         this.content = result.htmlModel.join('\n');
+        this.validationResult$.next(result);
         this.cd.detectChanges();
         this.setCaret(caret, element);
     }
 
-    private validate(model : string) : HeaderValidationResult {
-        const res  : HeaderValidationResult = {
-            valid : false,
-            errorMessages : [],
-            model,
-            htmlModel :  []
-        };
 
-        const originalLines = model.replaceAll( '\r', '').split('\n');
+    private static validate(model: string, isRequest: boolean): HeaderValidationResult {
+        const res = new HeaderValidationResult ({
+            valid: false,
+            errorMessages: [],
+            model,
+            htmlModel: [],
+            headers: [],
+            isRequest,
+            requestLine: null,
+            responseLine: null
+        });
+
+        const originalLines = model.replaceAll('\r', '').split('\n');
 
         if (originalLines.length == 0) {
             // empty lines, throw error
             res.errorMessages.push("Empty lines in header");
             res.htmlModel.push(this.getLineWithError("  ", 'Header line missing'));
-            return ;
+            return res;
         }
 
         const firstLine = originalLines[0];
         let firstLineInvalid = false;
 
-        if (this.isRequest && !this.isValidRequestLine(firstLine)) {
-            res.htmlModel.push(this.getLineWithError(firstLine, 'Invalid request line'));
-            res.errorMessages.push("Invalid request line");
-            firstLineInvalid = true;
-        }
+        if (isRequest) {
+            res.requestLine = this.isValidRequestLine(firstLine);
+            if (!res.requestLine) {
+                res.htmlModel.push(this.getLineWithError(firstLine, 'Invalid request line'));
+                res.errorMessages.push("Invalid request line");
+                firstLineInvalid = true;
+            }
+        } else {
+            res.responseLine = this.isValidResponseLine(firstLine);
 
-        if (!this.isRequest && !this.isValidResponseLine(firstLine)) {
-            res.errorMessages.push("Invalid response line");
-            firstLineInvalid = true;
+            if (!res.responseLine) {
+                res.htmlModel.push(this.getLineWithError(firstLine, 'Invalid request line'));
+                res.errorMessages.push("Invalid response line");
+                firstLineInvalid = true;
+            }
         }
 
         if (!firstLineInvalid) {
             res.htmlModel.push(firstLine);
         }
+
+        res.valid = true;
 
         for (let headerLine of originalLines.slice(1, originalLines.length)) {
             if (headerLine === '') {
@@ -110,89 +152,117 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             }
 
             const headerName = headerParts[0];
-            const headerValue =  headerParts.slice(1, headerParts.length).join(': ');
+            const headerValue = headerParts.slice(1, headerParts.length).join(': ');
 
             if (headerName.trim().length == 0) {
                 res.errorMessages.push("Invalid header name");
                 res.htmlModel.push(this.getHeaderOnError(headerName, headerValue, 'Cannot be empty'));
+
+                res.headers.push({
+                    name: headerName,
+                    value: headerValue
+                })
+
                 continue;
             }
 
             if (headerValue.trim().length == 0) {
                 res.errorMessages.push("Invalid header value");
                 res.htmlModel.push(this.getHeaderOnError(headerName, headerValue, 'Cannot be empty'));
+
+                res.headers.push({
+                    name: headerName,
+                    value: headerValue
+                })
                 continue;
             }
 
             if (headerName.indexOf(' ') >= 0) {
                 res.errorMessages.push("Invalid header name");
                 res.htmlModel.push(this.getHeaderOnError(headerName, headerValue, 'Header name cannot contain spaces'));
+
+                res.headers.push({
+                    name: headerName,
+                    value: headerValue
+                })
+
                 continue;
             }
 
             if (InArray(headerName, WarningHeaders)) {
                 res.errorMessages.push("Transport header will be ignored");
                 res.htmlModel.push(this.getHeaderOnWarning(headerName, headerValue, 'Transport related header will be ignored'));
+
+                res.headers.push({
+                    name: headerName,
+                    value: headerValue
+                })
+
                 continue;
             }
 
+            res.headers.push({
+                name: headerName,
+                value: headerValue
+            })
             res.htmlModel.push(`<span class="good-header">${headerName.trim()}</span>: ${headerValue}`);
         }
 
         return res;
     }
 
-    private getLineWithError(lineContent : string, message : string) : string {
+    private static getLineWithError(lineContent: string, message: string): string {
         return `<span class="error" title="${message}">${lineContent}</span>`;
     }
 
-    private getHeaderOnError(headerName  : string, headerValue : string, message : string) : string {
+    private static getHeaderOnError(headerName: string, headerValue: string, message: string): string {
         return `<span class="error good-header" title="${message}">${headerName}</span>: ${headerValue}`;
     }
 
-    private getHeaderOnWarning(headerName  : string, headerValue : string, message : string) : string {
+    private static getHeaderOnWarning(headerName: string, headerValue: string, message: string): string {
         return `<span class="warning good-header" title="${message}">${headerName}</span>: ${headerValue}`;
     }
 
-    public isValidRequestLine(line : string) : boolean {
+    private static isValidRequestLine(line: string): RequestLine | null {
         const parts = line.split(" ").filter(t => t.trim().length > 0);
         if (parts.length != 3) {
-            return false;
+            return null;
         }
 
-        let validHttpMethods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE"];
+        const validHttpMethods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE"];
+        const methodIndex = validHttpMethods.indexOf(parts[0]?.toUpperCase());
 
-        if (validHttpMethods.indexOf(parts[0]?.toUpperCase()) < 0) {
-            return false;
+        if (methodIndex < 0) {
+            return null;
         }
 
         if (parts[2] !== "HTTP/1.1") {
-            return false;
+            return null;
         }
-        return true;
+        return new RequestLine(validHttpMethods[methodIndex], parts[1]);
     }
 
-    public isValidResponseLine(line : string) : boolean {
+    private static isValidResponseLine(line: string): ResponseLine | null {
         const parts = line.split(" ").filter(t => t.trim().length > 0);
         if (parts.length != 3) {
-            return false;
+            return null;
         }
 
         let validHttpMethods = ["HTTP/1.1", "HTTP/2"];
 
         if (!validHttpMethods.includes(parts[0])) {
-            return false;
+            return null;
         }
 
         if (!parts[1].match(/^\d{3}$/)) {
-            return false;
+            return null;
         }
 
-        return true;
+        return new ResponseLine(parseInt(parts[1]));
     }
 
-    onNameChange(event: any) {
-        let newModel = event.target.textContent ;
+    public onNameChange(event: any) {
+        let newModel = event.target.textContent;
         this.changeDetector$.next(newModel);
     }
 
@@ -238,7 +308,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         if (chars >= 0) {
             const selection = window.getSelection();
 
-            let range = this._createRange(element, { count: chars }, null);
+            let range = this._createRange(element, {count: chars}, null);
 
             if (range) {
                 range.collapse(false);
@@ -258,7 +328,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
         if (chars.count === 0) {
             range.setEnd(node, chars.count);
-        } else if (node && chars.count >0) {
+        } else if (node && chars.count > 0) {
             if (node.nodeType === Node.TEXT_NODE) {
                 if (node.textContent.length < chars.count) {
                     chars.count -= node.textContent.length;
@@ -292,7 +362,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     }
 
     private handlePaste(element) {
-        element.addEventListener("paste", function(e) {
+        element.addEventListener("paste", function (e) {
             // cancel paste
             e.preventDefault();
 
@@ -315,14 +385,14 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         }
     }
 
-    reEvaluateHeaderLine($event: MouseEvent) {
+    reEvaluateHeaderLine($event: any) {
+        this.propagateModelChange();
         const selection = window.getSelection();
         const selectedHeader = this.getCurrentHeader(selection);
-
-        this.headerSelected.emit(selectedHeader);
+        this.headerSelected$.next(selectedHeader);
     }
 
-    private getCurrentHeader(selection: Selection) : Header | null {
+    private getCurrentHeader(selection: Selection): Header | null {
         if (selection.focusNode) {
             let text = selection.focusNode.textContent;
 
@@ -364,29 +434,17 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             }
 
 
-            const result = ParseHeaderLine(_.trimEnd( text, '\n'));
+            const result = ParseHeaderLine(_.trimEnd(text, '\n'));
 
             return result;
         }
 
-        return null ;
+        return null;
     }
 
-    public deleteHeader(header : Header) : void{
+    doAction(item: IEditableHeaderOption) {
 
-        const flattenheader = `${header.name}: ${header.value}` ;
-        let normalizedFlatHeader =  NormalizeHeader(this.model);
-        const array = normalizedFlatHeader.split('\n').filter(l => l !== flattenheader);
-        const newModel = array.join('\n') ;
-        this.modelChange.emit(newModel);
     }
-}
-
-interface HeaderValidationResult {
-    valid : boolean;
-    model : string ;
-    htmlModel : string [];
-    errorMessages : string [] ;
 }
 
 
