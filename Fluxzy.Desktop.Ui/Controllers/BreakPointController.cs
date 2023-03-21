@@ -98,5 +98,42 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             return true;
         }
+
+
+        [HttpPost("{exchangeId}/request")]
+        public ActionResult<bool> SetRequest(int exchangeId, [FromBody] RequestSetupStepModel requestSetupStepModel)
+        {
+            _handler.SetRequest(exchangeId, requestSetupStepModel);
+
+            return true;
+        }
+
+
+        [HttpPost("{exchangeId}/request/continue")]
+        public ActionResult<bool> ContinueRequest(int exchangeId)
+        {
+            _handler.ContinueRequest(exchangeId);
+
+            return true;
+        }
+
+
+        [HttpPost("{exchangeId}/response")]
+        public ActionResult<bool> SetResponse(int exchangeId, [FromBody] ResponseSetupStepModel model)
+        {
+            _handler.SetResponse(exchangeId, model);
+
+            return true;
+        }
+
+
+        [HttpPost("{exchangeId}/response/continue")]
+        public ActionResult<bool> ContinueResponse(int exchangeId)
+        {
+            _handler.ContinueResponse(exchangeId);
+
+            return true;
+        }
+
     }
 }

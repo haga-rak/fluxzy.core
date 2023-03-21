@@ -102,6 +102,7 @@ import { ConnectionSetupStepComponent } from './breakpoints/break-point-steps/au
 import { EditRequestComponent } from './breakpoints/break-point-steps/edit-request/edit-request.component';
 import { EditResponseComponent } from './breakpoints/break-point-steps/edit-response/edit-response.component';
 import { HeaderEditorComponent } from './shared/header-editor/header-editor.component';
+import { AddOrEditHeaderComponent } from './shared/header-editor/dialogs/add-header/add-or-edit-header.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -190,6 +191,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         EditRequestComponent,
         EditResponseComponent,
         HeaderEditorComponent,
+        AddOrEditHeaderComponent,
 
 
     ],

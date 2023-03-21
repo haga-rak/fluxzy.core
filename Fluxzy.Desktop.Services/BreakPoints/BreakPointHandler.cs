@@ -107,5 +107,58 @@ namespace Fluxzy.Desktop.Services.BreakPoints
 
             context!.ConnectionSetupCompletion.SetValue(default);
         }
+
+
+        public void SetRequest(int exchangeId, RequestSetupStepModel model)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.RequestHeaderCompletion.SetValue(model);
+        }
+
+        public void ContinueRequest(int exchangeId)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.RequestHeaderCompletion.SetValue(default);
+        }
+
+        public void SetResponse(int exchangeId, ResponseSetupStepModel model)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.ResponseHeaderCompletion.SetValue(model);
+        }
+
+        public void ContinueResponse(int exchangeId)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.ResponseHeaderCompletion.SetValue(default);
+        }
     }
 }

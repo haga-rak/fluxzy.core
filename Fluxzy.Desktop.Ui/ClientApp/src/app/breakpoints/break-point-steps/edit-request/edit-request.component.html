@@ -7,44 +7,9 @@
     </div>
     <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
 
-        <table  *ngIf="headerShown" class="req-edit-table">
-            <tr>
-                <td>
-                    <header-editor [isRequest]="true" [(model)]="model.flatHeader" #editor
-                                   (headerSelected)="onHeaderSelected($event)"></header-editor>
-                </td>
-                <td>
+        <header-editor *ngIf="headerShown" [model]="model.flatHeader"  [isRequest]="isRequest">
 
-                    <div class="large-butt" style="padding-left:20px">
-                        <div style="margin-top : 8px" class="alert">
-                            <table style="width:100%">
-                                <tr>
-                                    <td style="width : 16px; vertical-align: center">
-                                        <i class="fa fa-lightbulb-o text-primary" aria-hidden="true"></i>
-                                    </td>
-                                    <td>
-                                        You can edit directly the raw header content
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <br/>
-
-                        <button class="btn btn-gray-500 btn-outline-primary">Change Url</button>
-                        <br/>
-                        <button [disabled]="!selectedHeader" class="btn btn- btn-gray-500 btn-outline-primary" (click)="removeHeader(selectedHeader)">
-                            Delete header
-                        </button>
-                        <br/>
-                        <button class="btn btn- btn-gray-500 btn-outline-primary" (click)="dumpYoyo()">Add header</button>
-                        <br/>
-                        <button class="btn btn-gray-500 btn-outline-primary">Add cookie</button>
-                        <br/>
-                    </div>
-                </td>
-            </tr>
-        </table>
-
+        </header-editor>
 
         <table  *ngIf="!headerShown"  class="generic-form-layout ">
             <tr>

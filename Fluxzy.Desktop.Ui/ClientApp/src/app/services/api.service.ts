@@ -36,7 +36,7 @@ import {
     FormattingResult,
     ForwardMessage, HarExportRequest, IPEndPoint,
     MultipartItem,
-    NetworkInterfaceInfo,
+    NetworkInterfaceInfo, RequestSetupStepModel, ResponseSetupStepModel,
     Rule,
     RuleContainer,
     SaveFileMultipartActionModel, SazExportRequest,
@@ -452,4 +452,21 @@ export class ApiService {
     public breakPointEndPointContinue(exchangeId : number) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/endpoint/continue`, null).pipe(take(1)) ;
     }
+
+    public breakPointSetRequest(exchangeId : number, model : RequestSetupStepModel) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/request`, model).pipe(take(1)) ;
+    }
+
+    public breakPointSetResponse(exchangeId : number, model : ResponseSetupStepModel) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/response`, model).pipe(take(1)) ;
+    }
+
+    public breakPointContinueRequest(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/request/continue`, null).pipe(take(1)) ;
+    }
+
+    public breakPointContinueResponse(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/response/continue`, null).pipe(take(1)) ;
+    }
+
 }

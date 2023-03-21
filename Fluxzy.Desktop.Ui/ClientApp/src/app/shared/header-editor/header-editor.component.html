@@ -1,6 +1,41 @@
-<pre id="{{ blockId }}" contenteditable="true" spellcheck="false" (keydown)="onEdit($event)"
-     (mouseup)="reEvaluateHeaderLine($event)"
-     (keyup)="reEvaluateHeaderLine($event)"
-     class="cool-text-area"
-     (input)="onNameChange($event)"
-     innerHTML="{{content}}"></pre>
+
+<table class="req-edit-table">
+    <tr>
+        <td>
+            <pre id="{{ blockId }}" contenteditable="true" spellcheck="false" (keydown)="onEdit($event)"
+                 (mouseup)="reEvaluateHeaderLine($event)"
+                 (keyup)="reEvaluateHeaderLine($event)"
+                 class="cool-text-area"
+                 (input)="onNameChange($event)"
+                 innerHTML="{{content}}"></pre>
+        </td>
+        <td>
+
+            <div class="large-butt" style="padding-left:20px">
+                <div style="margin-top : 8px" class="alert">
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width : 16px; vertical-align: center">
+                                <i class="fa fa-lightbulb-o text-primary" aria-hidden="true"></i>
+                            </td>
+                            <td>
+                                You can edit directly the raw header content
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <br/>
+
+                <div *ngIf="editableOptions">
+                    <div *ngFor="let item of editableOptions">
+                        <button class="btn btn-gray-500 btn-outline-primary" (click)="doAction(item)">{{ item.optionName }}</button>
+                        <br/>
+                    </div>
+                </div>
+
+            </div>
+        </td>
+    </tr>
+</table>
+
+
