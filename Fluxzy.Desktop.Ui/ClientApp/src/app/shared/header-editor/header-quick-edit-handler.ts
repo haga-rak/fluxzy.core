@@ -5,14 +5,17 @@ import {
     Header,
     HeaderValidationResult,
     IEditableHeaderOption,
-    RemoveHeaderOption
+    RemoveHeaderOption, RequestLine
 } from "./header-utils";
 import {Observable} from "rxjs";
 
 export class HeaderQuickEditHandler {
 
     constructor (
-        private addHeaderCallBack : (() => Observable<Header | null>), private editHeaderCallBack : ((header : Header) => Observable<Header | null>)) {
+        private addHeaderCallBack : (() => Observable<Header | null>),
+        private editHeaderCallBack : ((header : Header) => Observable<Header | null>),
+        private requestLineCallBack : ((model : RequestLine) => Observable<RequestLine | null>)
+        ) {
 
     }
 
@@ -26,7 +29,10 @@ export class HeaderQuickEditHandler {
         const result: IEditableHeaderOption [] = [];
 
         if (isRequest) {
-            result.push(new EditRequestLineOption());
+            if (headerValidationResult.requestLine && headerValidationResult.valid) {
+                result.push(new EditRequestLineOption(this.requestLineCallBack));
+            }
+
         } else {
             result.push(new EditResponseLineOption());
         }
