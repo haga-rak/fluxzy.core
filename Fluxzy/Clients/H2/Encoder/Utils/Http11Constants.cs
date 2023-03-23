@@ -91,6 +91,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         public static readonly ReadOnlyMemory<char> ConnectionVerb = "connection".AsMemory();
         public static readonly ReadOnlyMemory<char> UpgradeVerb = "upgrade".AsMemory();
         public static readonly ReadOnlyMemory<char> ContentLength = "content-length".AsMemory();
+        public static readonly ReadOnlyMemory<char> ContentEncoding = "content-encoding".AsMemory();
         public static readonly ReadOnlyMemory<char> TransferEncodingVerb = "transfer-encoding".AsMemory();
         public static readonly ReadOnlyMemory<char> KeepAliveVerb = "keep-alive".AsMemory();
         public static readonly ReadOnlyMemory<char> ProxyAuthenticate = "proxy-authenticate".AsMemory();
@@ -111,7 +112,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
         public static readonly HashSet<ReadOnlyMemory<char>> UnEditableHeaders =
             new(new[] {
-                TransferEncodingVerb, UpgradeVerb, Upgrade, Trailer, ConnectionVerb
+                TransferEncodingVerb, UpgradeVerb, Upgrade, Trailer, ConnectionVerb, ContentEncoding
             }, new SpanCharactersIgnoreCaseComparer());
 
         public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =

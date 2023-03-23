@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Extensions;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Core.Breakpoints
@@ -15,9 +16,7 @@ namespace Fluxzy.Core.Breakpoints
         public bool Done { get; private set; }
 
         public string? FlatHeader { get; set; } = string.Empty;
-
-        public bool EditBody { get; set; }
-
+        
         public bool FromFile { get; set; }
 
         public string? FileName { get; set; }
@@ -29,7 +28,7 @@ namespace Fluxzy.Core.Breakpoints
             if (string.IsNullOrWhiteSpace(FlatHeader))
                 yield break;
 
-            if (EditBody) {
+            if (true) {
                 if (FromFile) {
                     if (string.IsNullOrWhiteSpace(FileName))
                         yield return new ValidationResult("File name is required", new[] {nameof(FileName)});
@@ -42,7 +41,7 @@ namespace Fluxzy.Core.Breakpoints
                 1, out var headerSet);
 
             if (!tryParseResult.Success)
-                yield return new ValidationResult(tryParseResult.Message, new[] {nameof(EditBody)});
+                yield return new ValidationResult(tryParseResult.Message, new[] {nameof(ContentBody) });
         }
 
         public async ValueTask Init(Exchange exchange)
@@ -55,7 +54,11 @@ namespace Fluxzy.Core.Breakpoints
                 var tempFileName = Path.GetTempFileName();
 
                 await using (var fileStream = File.Create(tempFileName)) {
-                    await exchange.Response.Body.CopyToAsync(fileStream);
+
+                    // TODO : we need to decode here 
+                    
+                    await CompressionHelper.GetDecodedContentStream(new ExchangeInfo(exchange),
+                        exchange.Response.Body, out _).CopyToAsync(fileStream);
                 }
 
                 var tempFileInfo = new FileInfo(tempFileName);
