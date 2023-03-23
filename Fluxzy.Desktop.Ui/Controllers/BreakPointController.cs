@@ -58,6 +58,13 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
+        [HttpDelete("clear-done")]
+        public ActionResult<bool> DeleteAllDone()
+        {
+            _handler.ClearAllDone();
+            return true;
+        }
+
         [HttpPost("continue-all")]
         public ActionResult<bool> ContinueAll()
         {
