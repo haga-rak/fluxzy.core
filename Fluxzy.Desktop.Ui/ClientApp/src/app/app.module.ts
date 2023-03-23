@@ -99,7 +99,7 @@ import { ExchangeMetricsComponent } from './widgets/exchange-metrics/exchange-me
 import { WizardComponent } from './settings/wizard/wizard.component';
 import { BreakPointDialogComponent } from './breakpoints/break-point-dialog/break-point-dialog.component';
 import { ConnectionSetupStepComponent } from './breakpoints/break-point-steps/authority/connection-setup-step.component';
-import { EditRequestComponent } from './breakpoints/break-point-steps/edit-request/edit-request.component';
+import { EditRequestResponseComponent } from './breakpoints/break-point-steps/edit-request/edit-request-response.component';
 import { EditResponseComponent } from './breakpoints/break-point-steps/edit-response/edit-response.component';
 import { HeaderEditorComponent } from './shared/header-editor/header-editor.component';
 import { AddOrEditHeaderComponent } from './shared/header-editor/dialogs/add-header/add-or-edit-header.component';
@@ -190,7 +190,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         WizardComponent,
         BreakPointDialogComponent,
         ConnectionSetupStepComponent,
-        EditRequestComponent,
+        EditRequestResponseComponent,
         EditResponseComponent,
         HeaderEditorComponent,
         AddOrEditHeaderComponent,

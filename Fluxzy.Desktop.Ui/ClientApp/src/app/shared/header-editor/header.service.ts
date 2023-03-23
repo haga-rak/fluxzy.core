@@ -6,6 +6,10 @@ import {ManageFiltersComponent} from "../../settings/manage-filters/manage-filte
 import {Header} from "./header-utils";
 import {AddOrEditHeaderComponent, AddOrEditViewModel} from "./dialogs/add-header/add-or-edit-header.component";
 import {EditRequestLineComponent, RequestLineViewModel} from "./dialogs/edit-request-line/edit-request-line.component";
+import {
+    EditResponseLineComponent,
+    ResponseLineViewModel
+} from "./dialogs/edit-response-line/edit-response-line.component";
 
 @Injectable({
     providedIn: 'root'
@@ -60,6 +64,32 @@ export class HeaderService {
 
         this.modalService.show(
             EditRequestLineComponent,
+            config
+        );
+
+        return subject.asObservable().pipe(take(1));
+    }
+
+
+    public openEditResponseLineDialog(model : ResponseLineViewModel): Observable<ResponseLineViewModel | null> {
+
+        const subject = new Subject<ResponseLineViewModel | null>();
+        const callBack = (f: ResponseLineViewModel | null) => {
+            subject.next(f);
+            subject.complete()
+        };
+
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                model: model,
+                callBack
+            },
+            ignoreBackdropClick: true
+        };
+
+        this.modalService.show(
+            EditResponseLineComponent,
             config
         );
 

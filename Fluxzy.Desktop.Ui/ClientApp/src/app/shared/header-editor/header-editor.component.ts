@@ -74,6 +74,19 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
                     return new RequestLine(m.method, m.url);
                 })
+            ),
+            (model : ResponseLine) => headerService.openEditResponseLineDialog(
+                {
+                    statusText : model.statusText, statusCode : model.status
+                }
+            ).pipe(
+                map(m => {
+                    if (!m){
+                        return null ;
+                    }
+
+                    return new ResponseLine(m.statusCode, m.statusText);
+                })
             )
         );
 
@@ -318,7 +331,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             return null;
         }
 
-        return new ResponseLine(parseInt(parts[1]));
+        return new ResponseLine(parseInt(parts[1]), parts[2]);
     }
 
     public textChanged(event: any) {
