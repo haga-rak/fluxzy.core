@@ -1,5 +1,6 @@
 import {escapeRegExp} from "lodash";
 import {map, Observable, of} from "rxjs";
+import {RequestLineViewModel} from "./dialogs/edit-request-line/edit-request-line.component";
 
 export interface Header {
     name: string;
@@ -199,14 +200,35 @@ export class EditRequestLineOption implements IEditableHeaderOption {
     id: string;
     optionName: string = 'Edit request line';
 
+    constructor(private callBack : ((model : RequestLine) => Observable<RequestLine | null>)) {
+
+    }
+
     applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
-        return of(null);
+
+        const result = this.callBack(validationResult.requestLine) ;
+
+        if (!result)
+            return of (null) ;
+
+        return result.pipe(
+            map((requestLine : RequestLine | null) => {
+                if (requestLine) {
+                    validationResult.requestLine = requestLine;
+                    return validationResult.toHeaderString();
+                }
+                else{
+                    return null;
+                }
+            })) ;
     }
 }
 
 export class EditResponseLineOption implements IEditableHeaderOption {
     id: string;
     optionName: string = 'Edit response line';
+
+
 
     applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
         return of(null);

@@ -4,7 +4,18 @@ import {
     Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges,
     ViewEncapsulation
 } from '@angular/core';
-import {BehaviorSubject, combineLatest, debounceTime, distinct, filter, Subject, Subscription, take, tap} from "rxjs";
+import {
+    BehaviorSubject,
+    combineLatest,
+    debounceTime,
+    distinct,
+    filter,
+    map,
+    Subject,
+    Subscription,
+    take,
+    tap
+} from "rxjs";
 import {
     Header,
     HeaderValidationResult, IEditableHeaderOption,
@@ -50,7 +61,20 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             }) ,
             (header : Header) => headerService.openAddHeaderDialog({
                 name : header.name, value :header.value, edit : true
-            })
+            }),
+            (model : RequestLine) => headerService.openEditRequestLineDialog(
+                {
+                    url : model.url, method : model.method
+                }
+            ).pipe(
+                map(m => {
+                    if (!m){
+                        return null ;
+                    }
+
+                    return new RequestLine(m.method, m.url);
+                })
+            )
         );
 
         // raise eventEmitter when changeDetoctor$ contains change in 100ms
@@ -422,18 +446,13 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     }
 
     reEvaluateHeaderLine($event: any) {
-
         let keyBoardEvent = $event as KeyboardEvent;
 
         if (keyBoardEvent && (keyBoardEvent.ctrlKey || keyBoardEvent.metaKey || keyBoardEvent.altKey || keyBoardEvent.key === 'Control' || keyBoardEvent.key === 'Cmd')) {
             return;
         }
 
-
-        console.log('reevaluate');
-        console.log($event);
-
-        this.propagateModelChange();
+        // this.propagateModelChange();
         const selection = window.getSelection();
         const selectedHeader = HeaderEditorComponent.getCurrentHeader(selection);
         this.headerSelected$.next(selectedHeader);

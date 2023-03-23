@@ -1,1 +1,24 @@
-<p>edit-request-line works!</p>
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        Edit request line
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 50px">
+    <div>
+        <div class="form-group">
+            <label for="method">Method</label>
+            <input type="text" class="form-control" id="method" [(ngModel)]="model.method" placeholder="Header name">
+        </div>
+        <div class="form-group">
+            <label for="url">URL</label>
+            <input type="text" class="form-control" id="url" [(ngModel)]="model.url" placeholder="Header value">
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="save()">Save</button>
+    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+</div>

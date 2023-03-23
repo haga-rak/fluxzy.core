@@ -84,20 +84,4 @@ export class EditRequestComponent implements OnInit {
             .subscribe();
     }
 
-    addHeader() {
-        this.headerService.openAddHeaderDialog({
-            name: '',
-            value: '',
-            edit : false
-        }).subscribe();
-    }
-
-    editHeader(selectedHeader: Header) {
-
-        this.headerService.openAddHeaderDialog({
-            name: selectedHeader.name,
-            value: selectedHeader.value,
-            edit : true
-        }).subscribe();
-    }
 }
