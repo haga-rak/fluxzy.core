@@ -1,5 +1,5 @@
 import {
-    AddHeaderOption,
+    AddHeaderOption, EditHeaderOption,
     EditRequestLineOption,
     EditResponseLineOption,
     Header,
@@ -11,7 +11,8 @@ import {Observable} from "rxjs";
 
 export class HeaderQuickEditHandler {
 
-    constructor (private addHeaderCallBack : (() => Observable<Header | null>)) {
+    constructor (
+        private addHeaderCallBack : (() => Observable<Header | null>), private editHeaderCallBack : ((header : Header) => Observable<Header | null>)) {
 
     }
 
@@ -30,12 +31,11 @@ export class HeaderQuickEditHandler {
             result.push(new EditResponseLineOption());
         }
 
-
-
         result.push(new AddHeaderOption(this.addHeaderCallBack));
 
         if (selectedHeader) {
             result.push(new RemoveHeaderOption());
+            result.push(new EditHeaderOption(this.editHeaderCallBack));
         }
 
         // more option here for cookie
