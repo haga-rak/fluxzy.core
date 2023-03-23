@@ -4,7 +4,7 @@ import {
     Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges,
     ViewEncapsulation
 } from '@angular/core';
-import {BehaviorSubject, combineLatest, debounceTime, Subject, Subscription, tap} from "rxjs";
+import {BehaviorSubject, combineLatest, debounceTime, distinct, filter, Subject, Subscription, take, tap} from "rxjs";
 import {
     Header,
     HeaderValidationResult, IEditableHeaderOption,
@@ -26,10 +26,9 @@ import {HeaderService} from "./header.service";
 })
 export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, AfterViewInit {
     @Input() public model: string;
-    @Input() public isRequest: boolean;
     @Output() public modelChange = new EventEmitter<string>();
-    @Output() public headerSelected = new EventEmitter<Header>();
 
+    @Input() public isRequest: boolean;
     private headerSelected$ = new BehaviorSubject<Header | null>(null);
     private validationResult$ = new Subject<HeaderValidationResult>() ;
     private changeDetector$ = new Subject<string>();
@@ -40,19 +39,31 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     private _subscription: Subscription;
     private handler: HeaderQuickEditHandler;
 
+    public validationResult: HeaderValidationResult | null = null;
+    public headerSelected: Header | null = null
+
     constructor(private cd: ChangeDetectorRef, private headerService : HeaderService) {
         this.blockId = 'yoyo';
-        this.handler  = new HeaderQuickEditHandler(() => headerService.openAddHeaderDialog({
-             name : '', value : '', edit : false
-            }) );
+        this.handler  = new HeaderQuickEditHandler(
+            () => headerService.openAddHeaderDialog({
+             name : '', value : '', edit : false,
+            }) ,
+            (header : Header) => headerService.openAddHeaderDialog({
+                name : header.name, value :header.value, edit : true
+            })
+        );
 
         // raise eventEmitter when changeDetoctor$ contains change in 100ms
         this._subscription = this.changeDetector$
             .asObservable()
             .pipe(
-                debounceTime(800),
-                tap(s => this.modelChange.emit(s))
+                debounceTime(80),
+                tap(s => this.modelChange.emit(s)),
             ).subscribe();
+
+        this.validationResult$.pipe(
+            tap(t => this.validationResult = t)
+        ).subscribe();
 
         combineLatest([
             this.validationResult$.asObservable(),
@@ -62,6 +73,14 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                 this.editableOptions = this.handler.GetEditableHeaderOptions(t[0], t[1], this.isRequest)
             })
         ).subscribe();
+
+        this.modelChange.asObservable()
+            .pipe(
+                tap(t => this.model = t),
+                tap(t => this.propagateModelChange()),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe();
+
     }
 
     ngOnDestroy(): void {
@@ -74,20 +93,32 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
     ngOnInit(): void {
         this.propagateModelChange();
+
+
         this.headerSelected$.pipe(
-            tap(t => this.headerSelected.emit(t))
+            tap(t => this.headerSelected = t)
         ).subscribe();
     }
 
     // Update view from the model
     private propagateModelChange() {
+
         const result = HeaderEditorComponent.validate(this.model, this.isRequest);
+        let futureContent =  result.htmlModel.join('\n');
+
+        if (futureContent === this.content)
+            return;  // nochange
+
         const element = document.querySelector('#' + this.blockId);
+
+
         const caret = this.getCaret(element);
-        this.content = result.htmlModel.join('\n');
+
+        this.content = futureContent;
         this.validationResult$.next(result);
         this.cd.detectChanges();
         this.setCaret(caret, element);
+
     }
 
 
@@ -160,7 +191,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
                 res.headers.push({
                     name: headerName,
-                    value: headerValue
+                    value: headerValue,
+                    id : Math.random()
                 })
 
                 continue;
@@ -172,7 +204,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
                 res.headers.push({
                     name: headerName,
-                    value: headerValue
+                    value: headerValue,
+                    id : Math.random()
                 })
                 continue;
             }
@@ -183,7 +216,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
                 res.headers.push({
                     name: headerName,
-                    value: headerValue
+                    value: headerValue,
+                    id : Math.random()
                 })
 
                 continue;
@@ -195,7 +229,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
                 res.headers.push({
                     name: headerName,
-                    value: headerValue
+                    value: headerValue,
+                    id : Math.random()
                 })
 
                 continue;
@@ -203,7 +238,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
             res.headers.push({
                 name: headerName,
-                value: headerValue
+                value: headerValue,
+                id : Math.random()
             })
             res.htmlModel.push(`<span class="good-header">${headerName.trim()}</span>: ${headerValue}`);
         }
@@ -261,7 +297,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
         return new ResponseLine(parseInt(parts[1]));
     }
 
-    public onNameChange(event: any) {
+    public textChanged(event: any) {
         let newModel = event.target.textContent;
         this.changeDetector$.next(newModel);
     }
@@ -386,13 +422,24 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     }
 
     reEvaluateHeaderLine($event: any) {
+
+        let keyBoardEvent = $event as KeyboardEvent;
+
+        if (keyBoardEvent && (keyBoardEvent.ctrlKey || keyBoardEvent.metaKey || keyBoardEvent.altKey || keyBoardEvent.key === 'Control' || keyBoardEvent.key === 'Cmd')) {
+            return;
+        }
+
+
+        console.log('reevaluate');
+        console.log($event);
+
         this.propagateModelChange();
         const selection = window.getSelection();
-        const selectedHeader = this.getCurrentHeader(selection);
+        const selectedHeader = HeaderEditorComponent.getCurrentHeader(selection);
         this.headerSelected$.next(selectedHeader);
     }
 
-    private getCurrentHeader(selection: Selection): Header | null {
+    private static getCurrentHeader(selection: Selection): Header | null {
         if (selection.focusNode) {
             let text = selection.focusNode.textContent;
 
@@ -434,7 +481,7 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             }
 
 
-            const result = ParseHeaderLine(_.trimEnd(text, '\n'));
+            const result = ParseHeaderLine(_.trimEnd(text, '\n'),0);
 
             return result;
         }
@@ -443,6 +490,16 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     }
 
     doAction(item: IEditableHeaderOption) {
+
+        if (!this.validationResult || !this.validationResult.valid)
+            return;
+
+        item.applyTransform(this.validationResult, this.headerSelected)
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                tap(t => this.modelChange.emit(t))
+            ).subscribe();
 
     }
 }

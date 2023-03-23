@@ -4,6 +4,7 @@ import {map, Observable, of} from "rxjs";
 export interface Header {
     name: string;
     value: string;
+    id?: number
 }
 
 export class HeaderValidationResult {
@@ -67,13 +68,14 @@ export const InArray = (header: string, templateHeaders : string []) : boolean =
     return false;
 }
 
-export const ParseHeaderLine = (headerLine: string) : Header | null => {
+export const ParseHeaderLine = (headerLine: string, id : number) : Header | null => {
     const tab = headerLine.split(': ');
 
     if (tab.length >= 2) {
         return {
             name: tab[0],
-            value: tab.slice(1).join(': ')
+            value: tab.slice(1).join(': '),
+            id
         };
     }
 
@@ -94,7 +96,7 @@ export interface IEditableHeaderOption {
     id : string ;
     optionName : string;
 
-    applyTransform(validationResult : HeaderValidationResult): Observable<string | null>;
+    applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header): Observable<string | null>;
 }
 
 export class AddHeaderOption implements IEditableHeaderOption {
@@ -105,13 +107,8 @@ export class AddHeaderOption implements IEditableHeaderOption {
 
     }
 
-    applyTransform(validationResult : HeaderValidationResult):  Observable<string | null> {
-        if (!validationResult.valid) {
-            return null ;
-        }
-
+    applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
         const callBackResult = this.callBack();
-
         return callBackResult.pipe(
             map((header : Header | null) => {
                 if (header) {
@@ -126,13 +123,57 @@ export class AddHeaderOption implements IEditableHeaderOption {
     }
 }
 
+export class EditHeaderOption implements IEditableHeaderOption {
+    id: string;
+    optionName: string = 'Edit Header';
+
+    constructor(private callBack : ((header : Header) => Observable<Header | null>)) {
+
+    }
+
+    applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
+
+        if (!selectedHeader)
+            return null ;
+
+        const callBackResult = this.callBack(selectedHeader);
+
+        return callBackResult.pipe(
+            map((header : Header | null) => {
+                if (header) {
+                    let resultHeaders : Header[] = [];
+
+                    for (let existingHeader of validationResult.headers) {
+                        if (existingHeader.name === selectedHeader.name && existingHeader.value === selectedHeader.value) {
+                            resultHeaders.push(header);
+                        }
+                        else{
+                            resultHeaders.push(existingHeader);
+                        }
+                    }
+
+                    validationResult.headers = resultHeaders;
+                    return validationResult.toHeaderString();
+                }
+                else{
+                    return null;
+                }
+            }
+        ));
+    }
+}
+
 export class RemoveHeaderOption implements IEditableHeaderOption {
     id: string;
     optionName: string= 'Delete Header';
 
-    applyTransform(validationResult : HeaderValidationResult):  Observable<string | null>{
+    applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header | null):  Observable<string | null>{
+        if (!selectedHeader) {
+            return of(null);
+        }
 
-        return of(null);
+        validationResult.headers = validationResult.headers.filter(h => !(h.name === selectedHeader.name && h.value === selectedHeader.value));
+        return of(validationResult.toHeaderString());
     }
 }
 
@@ -140,7 +181,7 @@ export class MoveUpOption implements IEditableHeaderOption {
     id: string;
     optionName: string = 'Edit Header';
 
-    applyTransform(validationResult : HeaderValidationResult):  Observable<string | null> {
+    applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
         return of(null);
     }
 }
@@ -149,7 +190,7 @@ export class MoveDownOption implements IEditableHeaderOption {
     id: string;
     optionName: string = 'Move down';
 
-    applyTransform(validationResult : HeaderValidationResult): Observable<string | null> {
+    applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header): Observable<string | null> {
         return of(null);
     }
 }
@@ -158,7 +199,7 @@ export class EditRequestLineOption implements IEditableHeaderOption {
     id: string;
     optionName: string = 'Edit request line';
 
-    applyTransform(validationResult : HeaderValidationResult):  Observable<string | null> {
+    applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
         return of(null);
     }
 }
@@ -167,7 +208,7 @@ export class EditResponseLineOption implements IEditableHeaderOption {
     id: string;
     optionName: string = 'Edit response line';
 
-    applyTransform(validationResult : HeaderValidationResult):  Observable<string | null> {
+    applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
         return of(null);
     }
 }
