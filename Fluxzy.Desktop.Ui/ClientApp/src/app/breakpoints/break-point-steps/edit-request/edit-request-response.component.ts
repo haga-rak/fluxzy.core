@@ -2,37 +2,31 @@ import {ChangeDetectorRef, Component, Input, OnInit, SimpleChanges, ViewChild} f
 import {
     BreakPointContextInfo,
     BreakPointContextStepInfo,
-    ConnectionSetupStepModel, RequestSetupStepModel
+    RequestSetupStepModel
 } from "../../../core/models/auto-generated";
 import {ApiService} from "../../../services/api.service";
-import {filter, Subject, tap} from "rxjs";
-import {Header} from "../../../shared/header-editor/header-utils";
+import {filter, tap} from "rxjs";
 import {HeaderEditorComponent} from "../../../shared/header-editor/header-editor.component";
 import {SystemCallService} from "../../../core/services/system-call.service";
 import {HeaderService} from "../../../shared/header-editor/header.service";
 
 @Component({
     selector: 'app-edit-request',
-    templateUrl: './edit-request.component.html',
-    styleUrls: ['./edit-request.component.scss']
+    templateUrl: './edit-request-response.component.html',
+    styleUrls: ['./edit-request-response.component.scss']
 })
-export class EditRequestComponent implements OnInit {
+export class EditRequestResponseComponent implements OnInit {
 
     @Input() public context : BreakPointContextInfo ;
     @Input() public stepInfo : BreakPointContextStepInfo;
-
-    public isRequest = true;
+    @Input() public isRequest = true;
 
     public model: RequestSetupStepModel | null;
     public done : boolean = false;
 
-    private selectedHeader$ = new Subject<Header | null>();
-    public selectedHeader : Header | null = null;
-
     public headerShown = true;
 
     @ViewChild('editor') editor : HeaderEditorComponent;
-
 
     constructor(private apiService : ApiService, private cd : ChangeDetectorRef, private systemCallService : SystemCallService ,
                 private headerService : HeaderService) {
@@ -40,12 +34,6 @@ export class EditRequestComponent implements OnInit {
 
     ngOnInit(): void {
         this.setupModel();
-
-        this.selectedHeader$.pipe(
-            tap(t => this.selectedHeader = t)
-        ).subscribe() ;
-
-        console.log(this.stepInfo)
     }
 
     public showHeader(value : boolean) {

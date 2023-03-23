@@ -48,12 +48,12 @@ export class RequestLine {
 
 export class ResponseLine {
 
-    constructor(public status : number  ) {
+    constructor(public status : number, public statusText : string ) {
 
     }
 
     public ToHeaderString() : string {
-        return `HTTP/1.1 ${this.status} status_line`;
+        return `HTTP/1.1 ${this.status} ${this.statusText}`;
     }
 }
 
@@ -208,7 +208,7 @@ export class EditRequestLineOption implements IEditableHeaderOption {
 
         const result = this.callBack(validationResult.requestLine) ;
 
-        if (!result)
+        if (!result || !validationResult.isRequest)
             return of (null) ;
 
         return result.pipe(
@@ -228,10 +228,27 @@ export class EditResponseLineOption implements IEditableHeaderOption {
     id: string;
     optionName: string = 'Edit response line';
 
+    constructor(private callBack : ((model : ResponseLine) => Observable<ResponseLine | null>)) {
 
+    }
 
     applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
-        return of(null);
+
+        const result = this.callBack(validationResult.responseLine) ;
+
+        if (!result || validationResult.isRequest)
+            return of (null) ;
+
+        return result.pipe(
+            map((responseLine : ResponseLine | null) => {
+                if (responseLine) {
+                    validationResult.responseLine = responseLine;
+                    return validationResult.toHeaderString();
+                }
+                else{
+                    return null;
+                }
+            })) ;
     }
 }
 

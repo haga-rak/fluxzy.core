@@ -15,6 +15,7 @@ export class EditResponseComponent implements OnInit {
 
     @Input() public context : BreakPointContextInfo ;
     @Input() public stepInfo : BreakPointContextStepInfo;
+
     public model: ResponseSetupStepModel | null;
     public done : boolean = false;
 
@@ -23,7 +24,6 @@ export class EditResponseComponent implements OnInit {
 
     ngOnInit(): void {
         this.setupModel();
-        console.log(this.stepInfo)
     }
 
     ngOnChanges(changes: SimpleChanges): void {

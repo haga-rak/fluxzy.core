@@ -8,7 +8,6 @@
     <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
 
         <header-editor *ngIf="headerShown" [model]="model.flatHeader"  [isRequest]="isRequest">
-
         </header-editor>
 
         <table  *ngIf="!headerShown"  class="generic-form-layout ">
@@ -61,7 +60,7 @@
     <span class="" *ngIf="!done">
         <button class="btn btn-warning" (click)="saveAndContinue()">Save edit and continue</button>
         &nbsp;
-        <button *ngIf="!done" class="btn btn-outline-warning" (click)="skip()">Skip</button>
+        <button *ngIf="!done" class="btn btn-outline-warning" (click)="continue()">Skip</button>
     </span>
 </div>
 
