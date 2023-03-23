@@ -15,9 +15,7 @@ namespace Fluxzy.Core.Breakpoints
         public bool Done { get; private set; }
 
         public string? FlatHeader { get; set; } = string.Empty;
-
-        public bool EditBody { get; set; }
-
+        
         public bool FromFile { get; set; }
 
         public string? FileName { get; set; }
@@ -29,7 +27,7 @@ namespace Fluxzy.Core.Breakpoints
             if (string.IsNullOrWhiteSpace(FlatHeader))
                 yield break;
 
-            if (EditBody) {
+            if (true) {
                 if (FromFile) {
                     if (string.IsNullOrWhiteSpace(FileName))
                         yield return new ValidationResult("File name is required", new[] {nameof(FileName)});
@@ -42,7 +40,7 @@ namespace Fluxzy.Core.Breakpoints
                 1, out var headerSet);
 
             if (!tryParseResult.Success)
-                yield return new ValidationResult(tryParseResult.Message, new[] {nameof(EditBody)});
+                yield return new ValidationResult(tryParseResult.Message, new[] {nameof(FlatHeader) });
         }
 
         public async ValueTask Init(Exchange exchange)

@@ -58,7 +58,7 @@ export class ResponseLine {
 }
 
 
-export const WarningHeaders = ['Connection', 'Transfer-Encoding'];
+export const WarningHeaders = ['Connection', 'Transfer-Encoding', 'Content-Encoding'];
 
 export const InArray = (header: string, templateHeaders : string []) : boolean => {
     for (let templateHeader of templateHeaders) {

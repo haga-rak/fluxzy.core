@@ -816,7 +816,6 @@ export interface RequestSetupStepModel
 {
 	done: boolean;
 	flatHeader?: string;
-	editBody: boolean;
 	fromFile: boolean;
 	fileName?: string;
 	contentBody?: string;
@@ -825,7 +824,6 @@ export interface ResponseSetupStepModel
 {
 	done: boolean;
 	flatHeader?: string;
-	editBody: boolean;
 	fromFile: boolean;
 	fileName?: string;
 	contentBody?: string;

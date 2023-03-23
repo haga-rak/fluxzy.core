@@ -261,8 +261,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             }
 
             if (InArray(headerName, WarningHeaders)) {
-                res.errorMessages.push("Transport header will be ignored");
-                res.htmlModel.push(this.getHeaderOnWarning(headerName, headerValue, 'Transport related header will be ignored'));
+                res.errorMessages.push("Transport and content related hear will be ignored");
+                res.htmlModel.push(this.getHeaderOnWarning(headerName, headerValue, 'Transport and content related hear will be ignored'));
 
                 res.headers.push({
                     name: headerName,
