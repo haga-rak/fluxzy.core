@@ -7,7 +7,7 @@
     </div>
     <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
 
-        <header-editor *ngIf="headerShown" [model]="model.flatHeader"  [isRequest]="isRequest">
+        <header-editor *ngIf="headerShown" [(model)]="model.flatHeader" (modelChange)="modelChange($event)"  [isRequest]="isRequest">
         </header-editor>
 
         <table  *ngIf="!headerShown"  class="generic-form-layout ">

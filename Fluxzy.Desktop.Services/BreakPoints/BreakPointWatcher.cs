@@ -47,6 +47,18 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             BreakPointManager.OnContextUpdated += ContextUpdated;
         }
 
+        public void ClearAllDone()
+        {
+            BreakPointManager?.ClearAllDone();
+
+            if (BreakPointManager != null)
+            {
+                // Emit explicit change
+                _breakPointChangedWatcher.OnNext(true);
+
+            }
+        }
+
         private void ContextUpdated(object sender, OnContextUpdatedArgs args)
         {
             // Break point state has changed 

@@ -5,8 +5,8 @@
     </button>
 </div>
 <div class="modal-body" *ngIf="breakPointState" style="padding-top:2px">
-    <div *ngIf="breakPointState.entries.length === 0">
-        <p class="lead text-center">
+    <div *ngIf="breakPointState.entries.length === 0" class="p-4">
+        <p class="lead text-center text-info">
             There is no currently active breakpoint.
             <br/>
             You can toggle a breakpoint by replaying a capture request
@@ -58,9 +58,11 @@
                 </div>
                 <div class="col-6 text-end">
                     <div class="btn-group btn-command" role="group" aria-label="">
-                        <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-warning no-shadow" (click)="continueNext()" title="Skip">
+                        <button   type="button" class="btn btn-dark no-shadow" (click)="clearAllDone()" title="Clear all done">
+                            <i class="fa fa-times"></i></button>
+                        <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-gray-400 btn-outline-warning no-shadow" (click)="continueNext()" title="Skip">
                             <i class="fa fa-step-forward"></i></button>
-                        <button  [disabled]="currentContextInfo.done"  type="button" class="btn btn-warning no-shadow" (click)="continueUntilEnd()" title="Skip until end">
+                        <button  [disabled]="currentContextInfo.done"  type="button" class="btn btn-gray-400 btn-outline-warning no-shadow" (click)="continueUntilEnd()" title="Skip until end">
                             <i class="fa fa-fast-forward"></i>
                         </button>
                     </div>

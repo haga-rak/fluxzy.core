@@ -50,6 +50,18 @@ namespace Fluxzy.Core.Breakpoints
             OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointAlterationModel, breakPointContext));
         }
 
+        public void ClearAllDone()
+        {
+            lock (_runningContext)
+            {
+                foreach (var kp in _runningContext.ToList()) {
+                    if (kp.Value.GetInfo().Done) {
+                        _runningContext.TryRemove(kp.Key, out _);
+                    }
+                }
+            }
+        }
+
         public BreakPointState GetState()
         {
             lock (_runningContext) {

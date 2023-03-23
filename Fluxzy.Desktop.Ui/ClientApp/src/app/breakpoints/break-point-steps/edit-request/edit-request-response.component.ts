@@ -63,13 +63,30 @@ export class EditRequestResponseComponent implements OnInit {
         if (!this.model)
             return;
 
-        this.apiService.breakPointSetRequest(this.context.exchangeId, this.model)
-            .subscribe();
+        if (this.isRequest) {
+            this.apiService.breakPointSetRequest(this.context.exchangeId, this.model)
+                .subscribe();
+        }
+        else{
+
+            this.apiService.breakPointSetResponse(this.context.exchangeId, this.model)
+                .subscribe();
+        }
+
     }
 
     continue() {
-        this.apiService.breakPointContinueRequest(this.context.exchangeId)
-            .subscribe();
+        if (this.isRequest) {
+            this.apiService.breakPointContinueRequest(this.context.exchangeId)
+                .subscribe();
+        }
+        else{
+
+            this.apiService.breakPointContinueResponse(this.context.exchangeId)
+                .subscribe();
+        }
     }
 
+    modelChange(content : any) {
+    }
 }

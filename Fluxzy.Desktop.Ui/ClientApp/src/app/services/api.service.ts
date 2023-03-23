@@ -433,6 +433,10 @@ export class ApiService {
         return this.httpClient.delete<boolean>(`api/breakpoint/clear`).pipe(take(1)) ;
     }
 
+    public breakPointDeleteAllDone() : Observable<boolean> {
+        return this.httpClient.delete<boolean>(`api/breakpoint/clear-done`).pipe(take(1)) ;
+    }
+
     public breakPointContinueAll() : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/breakpoint/continue-all`, null).pipe(take(1)) ;
     }

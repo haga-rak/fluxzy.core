@@ -160,5 +160,10 @@ namespace Fluxzy.Desktop.Services.BreakPoints
 
             context!.ResponseHeaderCompletion.SetValue(default);
         }
+
+        public void ClearAllDone()
+        {
+            _watcher.ClearAllDone();
+        }
     }
 }
