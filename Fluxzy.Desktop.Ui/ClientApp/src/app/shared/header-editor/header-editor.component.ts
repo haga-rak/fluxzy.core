@@ -40,6 +40,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
     @Output() public modelChange = new EventEmitter<string>();
 
     @Input() public isRequest: boolean;
+    @Input() public readonly = false;
+
     private headerSelected$ = new BehaviorSubject<Header | null>(null);
     private validationResult$ = new Subject<HeaderValidationResult>() ;
     private changeDetector$ = new Subject<string>();
@@ -319,8 +321,9 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             return null;
         }
 
-        const validHttpMethods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE"];
+        const validHttpMethods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"];
         const methodIndex = validHttpMethods.indexOf(parts[0]?.toUpperCase());
+
 
         if (methodIndex < 0) {
             return null;

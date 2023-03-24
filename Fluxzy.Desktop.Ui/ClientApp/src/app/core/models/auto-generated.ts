@@ -948,6 +948,7 @@ export interface ExchangeInfo
 	fullUrl: string;
 	knownAuthority: string;
 	knownPort: number;
+	secure: boolean;
 	method: string;
 	path: string;
 	statusCode: number;

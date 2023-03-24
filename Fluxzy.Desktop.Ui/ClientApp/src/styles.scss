@@ -427,3 +427,22 @@ table.generic-form-layout > tr > td:first-child {
     color: var(--bs-gray-300) ;
 }
 
+.limited-text {
+    display: inline-block;
+    position: relative;
+    width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.form-control[disabled] {
+    background-color: var(--bs-gray-600);
+    color: var(--bs-gray-300);
+}
+
+.general-disabled {
+    background-color: var(--bs-gray-600);
+    color: var(--bs-gray-300);
+}
+

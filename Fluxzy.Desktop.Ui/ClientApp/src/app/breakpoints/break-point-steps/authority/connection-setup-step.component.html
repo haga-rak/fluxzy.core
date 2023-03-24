@@ -6,7 +6,7 @@
             <div class="text-info larger" style="margin-bottom: 16px; ">
                 <i class="fa fa-info-circle text-primary"></i>
                 A request to <span>{{ context.exchange.requestHeader.method}}</span>&nbsp;
-                <span class="text-white">{{ context.exchange.fullUrl }}</span> was caught and paused.
+                <span class="text-white" app-url-display [model]="context.exchange.fullUrl"></span> was caught and paused.
                 You can edit here the underlying connection settings before continuing.
 
             </div>
@@ -22,7 +22,7 @@
                     </div>
                     <br/>
 
-                    <div class="form-check form-switch">
+                    <div class="form-check form-switch" *ngIf="context.exchange.secure">
                         <input class="form-check-input" type="checkbox" id="skipValidation" [(ngModel)]="model.skipRemoteCertificateValidation">
                         <label class="form-check-label" for="skipValidation">Skip SSL validation</label>
 

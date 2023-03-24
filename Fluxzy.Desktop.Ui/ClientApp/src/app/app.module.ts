@@ -105,6 +105,7 @@ import { AddOrEditHeaderComponent } from './shared/header-editor/dialogs/add-hea
 import { EditRequestLineComponent } from './shared/header-editor/dialogs/edit-request-line/edit-request-line.component';
 import { EditResponseLineComponent } from './shared/header-editor/dialogs/edit-response-line/edit-response-line.component';
 import { SetRedirectionComponent } from './shared/header-editor/dialogs/set-redirection/set-redirection.component';
+import { UrlDisplayComponent } from './shared/url-display/url-display.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -196,6 +197,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         EditRequestLineComponent,
         EditResponseLineComponent,
         SetRedirectionComponent,
+        UrlDisplayComponent,
 
 
     ],
