@@ -31,6 +31,7 @@ export class EditRequestResponseComponent implements OnInit {
 
     @ViewChild('editor') editor : HeaderEditorComponent;
     public wasOriginalyFile: boolean;
+    public sampleContentTypes: string[] = ['application/json', 'application/xml', 'text/plain', 'text/html', 'application/x-www-form-urlencoded'];
 
     constructor(private apiService : ApiService, private cd : ChangeDetectorRef, private systemCallService : SystemCallService ,
                 private headerService : HeaderService) {

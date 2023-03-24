@@ -36,9 +36,15 @@
                     <tr>
                         <td>Content type</td>
                         <td>
-                        <span class="">
-                            {{ model.contentType }}
-                        </span>
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="floatingInputValue"
+                                       [(ngModel)]="model.contentType"
+                                       [typeahead]="sampleContentTypes"
+                                       [minLength]="0"
+                                       [isAnimated]="true"
+                                       placeholder="text/plain">
+                                <label for="floatingInputValue">Input with value</label>
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -58,18 +64,37 @@
                             </div>
                             <div style="margin-top : 8px">
                                 <div *ngIf="model.fromFile" >
+
+                                    <div class="text-info" style="margin-bottom: 16px">
+                                        Select a file from your computer. The file content will be the content body of the request/response.
+                                    </div>
+
                                     <button class="btn btn-dark" (click)="selectAFile()">Select a file</button>
-                                    &nbsp;
+                                    &nbsp;<br/>
+                                    &nbsp;<br/>
+                                    <div class="alert alert-info">
+
                                     <span class="text-info">
-                                Selected file:
-                            </span>
-                                    <span>
-                                {{model.fileName}}
-                            </span>
+                                            Currently selected file:
+                                      </span>
+                                        <span>
+
+                                        <br/>
+                                            {{model.fileName}}
+                                         </span>
+                                    </div>
                                 </div>
-                                <div class="form-floating" *ngIf="!model.fromFile" >
-                                    <textarea [(ngModel)]="model.contentBody" class="form-control" placeholder="Enter request body here" id="floatingTextarea2" style="height: 250px"></textarea>
-                                    <label for="floatingTextarea2">Place content body here</label>
+
+                                <div *ngIf="!model.fromFile">
+                                    <div class="text-info">
+                                        The following text will be encoded as UTF-8
+                                    </div>
+                                    <div class="form-floating"  >
+
+
+                                        <textarea [(ngModel)]="model.contentBody" class="form-control" placeholder="Enter request body here" id="floatingTextarea2" style="height: 250px"></textarea>
+                                        <label for="floatingTextarea2">Place content body here</label>
+                                    </div>
                                 </div>
                             </div>
 

@@ -106,6 +106,10 @@ namespace Fluxzy.Core.Breakpoints
             if (!tryParseResult.Success)
                 throw new ClientErrorException(0, "User provided header was invalid");
 
+
+            if (ContentType != null)
+                headerSet!.Headers.Add(new EditableHeader("Content-Type", ContentType));
+
             var response = headerSet!.ToResponse(body);
 
             exchange.Response.Header = response.Header;
