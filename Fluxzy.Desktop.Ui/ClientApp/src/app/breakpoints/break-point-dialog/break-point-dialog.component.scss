@@ -43,13 +43,13 @@ div.alert {
 }
 
 .table-bp-done-result tr td:first-child{
-    width : 150px ;
+    width : 250px ;
     text-align: right;
     color: var(--bs-gray-300);
     border-right: 1px dashed var(--bs-gray-600) ;
 }
 
-.table-bp-done-result tr > td > td {
+.table-bp-done-result > tr > td  {
     padding-right : 16px;
     padding-left  : 16px;
     font-size: 1.02em;
