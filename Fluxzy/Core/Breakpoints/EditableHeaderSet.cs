@@ -111,6 +111,9 @@ namespace Fluxzy.Core.Breakpoints
             headers.RemoveAll(t =>
                 t.Name.Span.Equals(Http11Constants.ContentLength.Span, StringComparison.OrdinalIgnoreCase));
 
+            headers.RemoveAll(t =>
+                t.Name.Span.Equals(Http11Constants.ContentType.Span, StringComparison.OrdinalIgnoreCase));
+
             headers.RemoveAll(t => Http11Constants.UnEditableHeaders.Contains(t.Name));
 
             result = new EditableResponseHeaderSet(headers.Select(h => new EditableHeader(

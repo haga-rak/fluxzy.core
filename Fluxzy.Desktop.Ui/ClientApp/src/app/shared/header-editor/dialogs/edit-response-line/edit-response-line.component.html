@@ -9,11 +9,14 @@
 <div class="modal-body" style="min-height: 50px">
     <div>
         <div class="form-group">
-            <label for="method">Method</label>
-            <input type="number" min="100" max="600" class="form-control" id="method" [(ngModel)]="model.statusCode" placeholder="Header name">
+            <label for="method">Status code</label>
+            <input type="number"
+                   min="100" max="600" class="form-control" id="method" [(ngModel)]="model.statusCode"
+                    (ngModelChange)="statusCodeChanged(model.statusCode)"
+                   placeholder="Header name">
         </div>
         <div class="form-group">
-            <label for="url">URL</label>
+            <label for="url">Status text</label>
             <input type="text" class="form-control" id="url" [(ngModel)]="model.statusText" placeholder="Header value">
         </div>
     </div>
