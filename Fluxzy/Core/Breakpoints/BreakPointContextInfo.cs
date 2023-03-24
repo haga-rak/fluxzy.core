@@ -67,7 +67,7 @@ namespace Fluxzy.Core.Breakpoints
                     _currentModels.TryGetValue(location, out var alterationModel); 
 
                     var stepInfo = new BreakPointContextStepInfo(
-                        (int) location, $"{description}", status, alterationModel);
+                         location, $"{description}", status, alterationModel);
 
                     yield return stepInfo;
                 }

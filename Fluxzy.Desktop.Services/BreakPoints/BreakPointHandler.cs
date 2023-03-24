@@ -56,6 +56,8 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             }
         }
 
+
+
         public void ContinueExchangeUntilEnd(int exchangeId)
         {
             var breakPointManager = _watcher.BreakPointManager;
@@ -68,6 +70,20 @@ namespace Fluxzy.Desktop.Services.BreakPoints
 
             context!.ContinueUntilEnd();
         }
+
+        public void ContinueExchangeUntil(int exchangeId, BreakPointLocation location)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.ContinueUntil(location);
+        }
+
 
         public void ContinueExchangeOnce(int exchangeId)
         {

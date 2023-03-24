@@ -96,7 +96,8 @@
                                    [class]="{'text-info' : item.status !== 'Current', 'sinfo-selected' : item === selectedStepInfo}">{{ item.stepName}}</a>
 
                                 <span class="float-end"  *ngIf="item.status === 'Pending'">
-                                    <a href="javascript:;" class="small text-warning" title="Skip until here">
+                                    <a href="javascript:;" class="small text-warning" title="Skip until here"
+                                            (click)="skipUntilBreakPoint(item.location)">
                                         <i class="fa fa-forward"></i>
                                     </a>
                                 </span>

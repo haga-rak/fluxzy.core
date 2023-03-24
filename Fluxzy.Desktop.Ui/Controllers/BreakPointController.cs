@@ -82,6 +82,15 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
 
+        [HttpPost("{exchangeId}/continue/until/{location}")]
+        public ActionResult<bool> ContinueExchangeUntilEnd(int exchangeId, BreakPointLocation location)
+        {
+            _handler.ContinueExchangeUntil(exchangeId, location);
+
+            return true;
+        }
+
+
         [HttpPost("{exchangeId}/continue/once")]
         public ActionResult<bool> ContinueExchangeOnce(int exchangeId)
         {
