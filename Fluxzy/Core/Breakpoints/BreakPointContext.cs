@@ -104,7 +104,7 @@ namespace Fluxzy.Core.Breakpoints
                               _exchange.Complete.Status >= TaskStatus.RanToCompletion;
 
             return new BreakPointContextInfo(_alterationModels,
-                ExchangeInfo, _previousStatus, LastLocation, CurrentHit, _filter);
+                ExchangeInfo, _exchange.Connection == null ? null : new ConnectionInfo(_exchange.Connection), _previousStatus, LastLocation, CurrentHit, _filter);
         }
     }
 

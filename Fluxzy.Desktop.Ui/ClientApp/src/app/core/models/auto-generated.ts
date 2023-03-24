@@ -790,6 +790,7 @@ export interface BreakPointContextInfo
 {
 	exchangeId: number;
 	exchange: ExchangeInfo;
+	connectionInfo?: ConnectionInfo;
 	lastLocation: string;
 	currentHit?: string;
 	done: boolean;

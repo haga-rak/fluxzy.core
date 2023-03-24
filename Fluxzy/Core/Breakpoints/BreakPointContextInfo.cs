@@ -13,6 +13,7 @@ namespace Fluxzy.Core.Breakpoints
         public BreakPointContextInfo(
             IDictionary<BreakPointLocation, IBreakPointAlterationModel> currentModels,
             ExchangeInfo exchange,
+            ConnectionInfo? connectionInfo,
             bool exchangeComplete,
             BreakPointLocation lastLocation,
             BreakPointLocation? currentHit, 
@@ -20,6 +21,7 @@ namespace Fluxzy.Core.Breakpoints
         {
             _currentModels = currentModels;
             Exchange = exchange;
+            ConnectionInfo = connectionInfo;
             LastLocation = lastLocation;
             CurrentHit = currentHit;
             OriginFilter = originFilter;
@@ -29,6 +31,8 @@ namespace Fluxzy.Core.Breakpoints
         public int ExchangeId => Exchange.Id; 
 
         public ExchangeInfo Exchange { get;  }
+
+        public ConnectionInfo? ConnectionInfo { get; }
 
         public BreakPointLocation LastLocation { get; }
 
