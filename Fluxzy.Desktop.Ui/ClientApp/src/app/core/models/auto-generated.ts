@@ -799,6 +799,7 @@ export interface BreakPointContextInfo
 export interface BreakPointContextStepInfo
 {
 	locationIndex: number;
+	location: string;
 	stepName: string;
 	status: string;
 	internalAlterationModel?: any;

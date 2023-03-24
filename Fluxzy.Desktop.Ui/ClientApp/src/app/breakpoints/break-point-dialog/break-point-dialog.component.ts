@@ -156,4 +156,14 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
             )
             .subscribe();
     }
+
+    skipUntilBreakPoint(location: string) {
+        if (!this.currentExchangeId)
+            return;
+
+        this.apiService.breakPointContinueUntilBreakPoint(this.currentExchangeId, location)
+            .pipe(
+            )
+            .subscribe();
+    }
 }

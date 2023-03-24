@@ -7,16 +7,19 @@ namespace Fluxzy.Core.Breakpoints
     public class BreakPointContextStepInfo
     {
         public BreakPointContextStepInfo(
-            int locationIndex, string stepName, BreakPointStatus status,
+            BreakPointLocation location, string stepName, BreakPointStatus status,
             IBreakPointAlterationModel? internalAlterationModel)
         {
-            LocationIndex = locationIndex;
+            LocationIndex = (int) location;
+            Location = location;
             StepName = stepName;
             Status = status;
             InternalAlterationModel = internalAlterationModel;
         }
 
         public int LocationIndex { get; }
+
+        public BreakPointLocation Location { get; }
 
         public string StepName { get; }
 

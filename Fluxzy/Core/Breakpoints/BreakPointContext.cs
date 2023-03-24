@@ -53,6 +53,15 @@ namespace Fluxzy.Core.Breakpoints
                 breakPoint.Continue();
             }
         }
+        public void ContinueUntil(BreakPointLocation location)
+        {
+            foreach (var breakPoint in BreakPoints) {
+                if (breakPoint.Location == location)
+                    return; 
+
+                breakPoint.Continue();
+            }
+        }
 
         public void ContinueOnce()
         {
