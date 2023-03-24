@@ -27,7 +27,7 @@
                                         <span class="badge bg-warning text-gray-600" *ngIf="!currentContextInfo.done">in pause</span>
                                         &nbsp;
                                     </span>
-                            Exchange #{{ currentContextInfo.exchangeId}} - <span class="text-info">{{ currentContextInfo.exchange.fullUrl}}</span>
+                            Exchange #{{ currentContextInfo.exchangeId}} - <span class="text-info"  app-url-display [model]="currentContextInfo.exchange.fullUrl"></span>
                         </button>
                         <ul class="dropdown-menu bg-light text-primary" *dropdownMenu >
                             <li role="menuitem" *ngFor="let entry of breakPointState.entries">
@@ -41,7 +41,7 @@
 
 
                                     #{{ entry.exchangeId}} -
-                                    <span class="text-info">{{ entry.exchange.fullUrl}}</span>
+                                    <span class="text-info"  app-url-display [model]="entry.exchange.fullUrl"></span>
                                 </a>
                             </li>
 

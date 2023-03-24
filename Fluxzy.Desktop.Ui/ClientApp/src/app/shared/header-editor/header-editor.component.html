@@ -2,12 +2,16 @@
 <table class="req-edit-table">
     <tr>
         <td>
-            <pre id="{{ blockId }}" contenteditable="true" spellcheck="false" (keydown)="onEdit($event)"
+            <pre id="{{ blockId }}" [attr.contenteditable]="readonly ? null : 'true'" spellcheck="false" (keydown)="onEdit($event)"
                  (mouseup)="reEvaluateHeaderLine($event)"
                  (keyup)="reEvaluateHeaderLine($event)"
                  class="cool-text-area"
                  (input)="textChanged($event)"
-                 innerHTML="{{content}}"></pre>
+                 style="overflow: auto; word-break: break-word"
+                 [ngClass]="{'general-disabled' : readonly }"
+                 innerHTML="{{content}}"
+
+            ></pre>
         </td>
         <td>
 
@@ -28,7 +32,7 @@
 
                 <div *ngIf="editableOptions">
                     <div *ngFor="let item of editableOptions">
-                        <button class="btn btn-gray-500 btn-outline-primary" (click)="doAction(item)">{{ item.optionName }}</button>
+                        <button [disabled]="readonly" class="btn btn-gray-500 btn-outline-primary" (click)="doAction(item)">{{ item.optionName }}</button>
                         <br/>
                     </div>
                 </div>

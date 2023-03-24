@@ -11,7 +11,8 @@
         </div>
         <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
 
-            <header-editor *ngIf="headerShown" [(model)]="model.flatHeader" (modelChange)="modelChange($event)"  [isRequest]="isRequest">
+            <header-editor *ngIf="headerShown" [(model)]="model.flatHeader" (modelChange)="modelChange($event)"  [isRequest]="isRequest"
+                [readonly]="model.done">
             </header-editor>
 
             <div *ngIf="!headerShown">
@@ -40,10 +41,11 @@
                                 <input type="text" class="form-control" id="floatingInputValue"
                                        [(ngModel)]="model.contentType"
                                        [typeahead]="sampleContentTypes"
+                                       [disabled]="model.done"
                                        [minLength]="0"
                                        [isAnimated]="true"
                                        placeholder="text/plain">
-                                <label for="floatingInputValue">Input with value</label>
+                                <label for="floatingInputValue">Enter content-type header </label>
                             </div>
                         </td>
                     </tr>
@@ -51,13 +53,13 @@
                         <td>Content body</td>
                         <td>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" [(ngModel)]="model.fromFile" [value]="false" name="flexRadioDefault" id="flexFromText" checked>
+                                <input class="form-check-input" type="radio" [disabled]="model.done" [(ngModel)]="model.fromFile" [value]="false" name="flexRadioDefault" id="flexFromText" checked>
                                 <label class="form-check-label" for="flexFromText">
                                     From raw text
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" [(ngModel)]="model.fromFile" [value]="true" name="flexRadioDefault" id="flexFromFile">
+                                <input class="form-check-input" type="radio" [disabled]="model.done" [(ngModel)]="model.fromFile" [value]="true" name="flexRadioDefault" id="flexFromFile">
                                 <label class="form-check-label" for="flexFromFile">
                                     From file
                                 </label>
@@ -69,7 +71,7 @@
                                         Select a file from your computer. The file content will be the content body of the request/response.
                                     </div>
 
-                                    <button class="btn btn-dark" (click)="selectAFile()">Select a file</button>
+                                    <button [disabled]="model.done" class="btn btn-dark" (click)="selectAFile()">Select a file</button>
                                     &nbsp;<br/>
                                     &nbsp;<br/>
                                     <div class="alert alert-info">
@@ -92,7 +94,7 @@
                                     <div class="form-floating"  >
 
 
-                                        <textarea [(ngModel)]="model.contentBody" class="form-control" placeholder="Enter request body here" id="floatingTextarea2" style="height: 250px"></textarea>
+                                        <textarea [disabled]="model.done" [(ngModel)]="model.contentBody" class="form-control" placeholder="Enter request body here" id="floatingTextarea2" style="height: 250px"></textarea>
                                         <label for="floatingTextarea2">Place content body here</label>
                                     </div>
                                 </div>
