@@ -57,7 +57,7 @@ export class BreakPointService {
         this.uiStateService.getUiState().pipe(
             map(t => t.breakPointState.hasToPop),
             distinctUntilChanged(),
-            filter(t => t),
+            filter(t => !!t),
             tap(_ => this.openBreakPointDialog()))
             .subscribe();
     }

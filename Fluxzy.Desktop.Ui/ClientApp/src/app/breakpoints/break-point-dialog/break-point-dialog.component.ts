@@ -3,7 +3,7 @@ import {BsModalRef} from "ngx-bootstrap/modal";
 import {ApiService} from "../../services/api.service";
 import {SystemCallService} from "../../core/services/system-call.service";
 import {UiStateService} from "../../services/ui.service";
-import {filter, tap} from "rxjs";
+import {debounce, debounceTime, delay, filter, tap} from "rxjs";
 import {
     BreakPointContextInfo,
     BreakPointContextStepInfo,
@@ -23,8 +23,8 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
 
     // The current select context info
     public currentExchangeId : number | null = null ;
+    public breakPointState: BreakPointState | null;
     public currentContextInfo : BreakPointContextInfo | null ;
-    private breakPointState: BreakPointState | null;
     public selectedStepInfo : BreakPointContextStepInfo | null = null;
 
     constructor(
@@ -39,10 +39,11 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
         this.breakPointService.setBreakPointVisibility(true);
         this.uiStateService.lastUiState$
             .pipe(
+                debounceTime(100),
                 filter(s => !!s),
                 tap(s => this.uiState = s),
                 tap(s => this.breakPointState = s.breakPointState),
-                tap(_ => this.computeCurrentContextInfo(this.breakPointState)),
+                tap(_ => this.computeSelectedContextInfo(this.breakPointState)),
                 tap( _ => this.cd.detectChanges()),
             ).subscribe();
     }
@@ -51,10 +52,12 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
         this.breakPointService.setBreakPointVisibility(false);
     }
 
-    private computeCurrentContextInfo(breakPointState: BreakPointState) : void {
-        let currentStates = breakPointState.entries.filter(e => e.exchangeId === this.currentExchangeId);
+    private computeSelectedContextInfo(breakPointState: BreakPointState) : void {
+        let selectedExchangesContext = breakPointState.entries.filter(e => e.exchangeId === this.currentExchangeId);
 
-        if (currentStates.length === 0) {
+        if (selectedExchangesContext.length === 0) {
+            // nothing selected
+
             this.currentContextInfo = null;
             this.currentExchangeId = null ;
 
@@ -68,24 +71,24 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
                 this.currentContextInfo = array[array.length -1];
                 this.currentExchangeId = this.currentContextInfo.exchangeId;
 
-                // select lastt step
+                // select last step
 
-                const allSteps = this.currentContextInfo.stepInfos.filter(t => t.status !== 'Pending');
-                if (allSteps.length){
-                    this.selectedStepInfo = allSteps[allSteps.length -1];
-                }
-
+                this.autoSelectLastStep();
             }
-
             return ;
         }
 
-        this.currentContextInfo = currentStates[0];
+        this.currentContextInfo = selectedExchangesContext[0];
         this.currentExchangeId = this.currentContextInfo.exchangeId;
 
+        this.autoSelectLastStep();
+
+    }
+
+    private autoSelectLastStep() {
         const allSteps = this.currentContextInfo.stepInfos.filter(t => t.status !== 'Pending');
-        if (allSteps.length){
-            this.selectedStepInfo = allSteps[allSteps.length -1];
+        if (allSteps.length) {
+            this.selectedStepInfo = allSteps[allSteps.length - 1];
         }
     }
 
@@ -102,7 +105,7 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
             return;
 
         this.currentExchangeId = entry.exchangeId;
-        this.computeCurrentContextInfo(this.breakPointState);
+        this.computeSelectedContextInfo(this.breakPointState);
         this.cd.detectChanges();
     }
 
@@ -121,7 +124,7 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
 
         if (pendingExchanges.length) {
             this.currentExchangeId = pendingExchanges[0].exchangeId;
-            this.computeCurrentContextInfo(this.breakPointState);
+            this.computeSelectedContextInfo(this.breakPointState);
             this.cd.detectChanges();
         }
     }
@@ -136,7 +139,7 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
 
     disableAllAndQuit() {
         this.bsModalRef.hide();
-        this.apiService.breakPointDeleteAll() ;
+        this.apiService.breakPointDeleteAll().subscribe() ;
     }
 
     clearAllDone() {
