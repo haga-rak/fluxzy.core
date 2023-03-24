@@ -16,7 +16,7 @@ namespace Fluxzy.Core.Breakpoints
         ///     If this setting is false, the following properties may not being set as the connection is picked
         ///     from the connection pool.
         /// </summary>
-        public bool ForceNewConnection { get; set; }
+        public bool ForceNewConnection { get; set; } = true; 
 
         /// <summary>
         ///     Whether we should skip certificate validation

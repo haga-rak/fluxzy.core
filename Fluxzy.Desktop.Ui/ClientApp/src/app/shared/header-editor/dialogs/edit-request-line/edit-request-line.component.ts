@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
-import {AddOrEditViewModel} from "../add-header/add-or-edit-header.component";
+import {uriEncodeButNotSlash} from "../../header-utils";
 
 @Component({
     selector: 'app-edit-request-line',
@@ -31,7 +31,7 @@ export class EditRequestLineComponent implements OnInit {
     }
 
     save() {
-        this.model.url = encodeURIComponent(this.model.url);
+        this.model.url = uriEncodeButNotSlash(this.model.url);
         this.callBack(this.model);
         this.bsModalRef.hide();
     }
