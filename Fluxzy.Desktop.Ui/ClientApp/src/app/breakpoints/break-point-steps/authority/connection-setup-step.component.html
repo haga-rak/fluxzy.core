@@ -56,40 +56,43 @@
         </div>
         <div *ngIf="done">
             <h4>Connection details</h4>
-            <table class="table-bp-done-result">
-                <tr>
-                    <td>Authority</td>
-                    <td>{{ context.exchange.knownAuthority }}</td>
-                </tr>
-                <tr>
-                    <td>Method</td>
-                    <td>{{ context.exchange.method }}</td>
-                </tr>
-                <tr>
-                    <td>User agent</td>
-                    <td>{{ context.exchange.agent.friendlyName }}</td>
-                </tr>
-                <tr>
-                    <td>Proxy client address</td>
-                    <td>{{ context.exchange.metrics.localAddress ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td>Proxy client port</td>
-                    <td>{{ context.exchange.metrics.localPort ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td>Destination IP Address</td>
-                    <td>{{ model.ipAddress }}</td>
-                </tr>
-                <tr>
-                    <td>Port</td>
-                    <td>{{ model.port }}</td>
-                </tr>
-                <tr>
-                    <td>Secure</td>
-                    <td>{{ context.exchange.secure ? 'yes' : 'no' }}</td>
-                </tr>
-            </table>
+            <div class="alert alert-info">
+
+                <table class="table-bp-done-result">
+                    <tr>
+                        <td>Requested authority</td>
+                        <td>{{ context.exchange.knownAuthority }}</td>
+                    </tr>
+                    <tr>
+                        <td>Requested port</td>
+                        <td>{{ model.port }}</td>
+                    </tr>
+                    <tr>
+                        <td>Method</td>
+                        <td>{{ context.exchange.method }}</td>
+                    </tr>
+                    <tr>
+                        <td>User agent</td>
+                        <td>{{ context.exchange.agent.friendlyName }}</td>
+                    </tr>
+                    <tr>
+                        <td>Proxy client address</td>
+                        <td>{{ context.exchange.metrics.localAddress ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Proxy client port</td>
+                        <td>{{ context.exchange.metrics.localPort ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Destination IP Address</td>
+                        <td>{{ model.ipAddress }}</td>
+                    </tr>
+                    <tr>
+                        <td>Secure</td>
+                        <td>{{ context.exchange.secure ? 'yes' : 'no' }}</td>
+                    </tr>
+                </table>
+            </div>
 
         </div>
     </div>
