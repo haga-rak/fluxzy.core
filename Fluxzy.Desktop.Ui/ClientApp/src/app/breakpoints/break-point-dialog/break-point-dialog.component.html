@@ -48,16 +48,19 @@
                         </ul>
                     </div>
 
-                    <span *ngIf="breakPointState.activeEntries > 0 && currentContextInfo.done"
-                    style="cursor:pointer" (click)="setSelectionToNextPending()" title="some requests wait for user input to continue">
-                        &nbsp;&nbsp;
-                        <span class="badge bg-warning text-gray-600" >
-                            pending ({{ breakPointState.activeEntries }})
-                        </span>
-                    </span>
+<!--                    <span *ngIf="breakPointState.activeEntries > 0 && currentContextInfo.done"-->
+<!--                    style="cursor:pointer" (click)="setSelectionToNextPending()" title="some requests are waiting to be edited to continue">-->
+<!--                        &nbsp;&nbsp;-->
+<!--                        <span class="badge btn-danger lead text-gray-200" >-->
+<!--                            PENDING ({{ breakPointState.activeEntries }})-->
+<!--                        </span>-->
+<!--                    </span>-->
                 </div>
                 <div class="col-6 text-end">
                     <div class="btn-group btn-command" role="group" aria-label="">
+                        <button *ngIf="breakPointState.activeEntries > 0 && currentContextInfo.done"  type="button" class="btn btn-danger text-gray-200" (click)="setSelectionToNextPending()" title="some requests are waiting to be edited to continue">
+                            pending ({{ breakPointState.activeEntries }})</button>
+
                         <button   type="button" class="btn btn-dark no-shadow" (click)="clearAllDone()" title="Clear all done">
                             <i class="fa fa-trash"></i></button>
                         <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-gray-400 btn-outline-warning no-shadow" (click)="continueNext()" title="Skip">
@@ -120,11 +123,21 @@
 <!--                                    done</small>-->
 <!--                            </h4>-->
 
-                            <div *ngIf="selectedStepInfo.status === 'Pending'" class="bp-form-container lead text-center"
-                            style="margin-top:32px">
+                            <div *ngIf="selectedStepInfo.status === 'Pending'" class="bp-form-container"
+                            style="margin-top:8px">
                                 <div class="main-edit">
-                                    This step is not triggered yet</div>
-                                <div class="main-edit-footer"></div>
+                                    <h4>{{ selectedStepInfo.stepName }}</h4>
+                                    <div class="text-info">
+
+                                        This step is waiting for a forgoing step to execute. You can
+                                        <a href="javascript:;" class="text-warning" (click)="skipUntilBreakPoint(selectedStepInfo.location)">
+                                        <i class="fa fa-forward"></i>
+                                        Skip until here</a> to arrive to this step immediately.
+                                    </div>
+                                </div>
+                                <div class="main-edit-footer">
+
+                                </div>
 
                             </div>
 
