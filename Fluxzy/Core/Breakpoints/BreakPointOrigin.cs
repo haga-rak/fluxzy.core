@@ -9,12 +9,12 @@ namespace Fluxzy.Core.Breakpoints
     public class BreakPointOrigin<T> : IBreakPoint where T : class, IBreakPointAlterationModel, new()
     {
         private readonly Exchange _exchange;
-        private readonly Action<IBreakPointAlterationModel, BreakPointLocation?> _updateReceiver;
+        private readonly Action<IBreakPointAlterationModel, BreakPointLocation, bool> _updateReceiver;
         private readonly TaskCompletionSource<T?> _waitForValueCompletionSource;
 
         public BreakPointOrigin(
             Exchange exchange,
-            BreakPointLocation location, Action<IBreakPointAlterationModel, BreakPointLocation?> updateReceiver)
+            BreakPointLocation location, Action<IBreakPointAlterationModel, BreakPointLocation, bool> updateReceiver)
         {
             _exchange = exchange;
             _updateReceiver = updateReceiver;
@@ -42,7 +42,7 @@ namespace Fluxzy.Core.Breakpoints
 
             await originalValue.Init(_exchange);
 
-            _updateReceiver(originalValue, Location);
+            _updateReceiver(originalValue, Location, false);
 
             try {
                 // We init the value of location 
@@ -51,6 +51,7 @@ namespace Fluxzy.Core.Breakpoints
 
                 if (updatedValue != null) {
                     originalValue = updatedValue;
+                    
                     await updatedValue.Alter(_exchange);
                 }
                 else {
@@ -61,7 +62,7 @@ namespace Fluxzy.Core.Breakpoints
             }
             finally {
                 Running = false;
-                _updateReceiver(originalValue, null);
+                _updateReceiver(originalValue, Location, true);
             }
         }
 

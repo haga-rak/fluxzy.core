@@ -66,15 +66,15 @@ namespace Fluxzy.Core.Breakpoints
 
         public BreakPointOrigin<ResponseSetupStepModel> ResponseHeaderCompletion { get; }
 
-        private void OnBreakPointStatusUpdate(IBreakPointAlterationModel alterationModel, BreakPointLocation? location)
+        private void OnBreakPointStatusUpdate(IBreakPointAlterationModel alterationModel,
+            BreakPointLocation definitiveLocation, bool done)
         {
-            if (location != null)
-                LastLocation = location.Value;
+            if (!done)
+                LastLocation = definitiveLocation;
 
-            CurrentHit = location;
-
-            if (location != null)
-                _alterationModels[location.Value] = alterationModel;
+            CurrentHit = done ? null : definitiveLocation;
+                
+            _alterationModels[definitiveLocation] = alterationModel; // had to update correctly here 
 
             // Warn parent about context changed 
 
