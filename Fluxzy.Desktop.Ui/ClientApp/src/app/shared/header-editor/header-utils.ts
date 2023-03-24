@@ -1,5 +1,6 @@
 import {escapeRegExp} from "lodash";
-import {map, Observable, of} from "rxjs";
+import {map, Observable, of, take} from "rxjs";
+import {StatusCodeVerb} from "../../core/models/exchange-extensions";
 
 export interface Header {
     name: string;
@@ -20,6 +21,7 @@ export class HeaderValidationResult {
     public constructor(init?:Partial<HeaderValidationResult>) {
         Object.assign(this, init);
     }
+
     public toHeaderString() : string
     {
         if (!this.valid) {
@@ -33,6 +35,26 @@ export class HeaderValidationResult {
         const fullHeader  = requestLine + '\r\n' + headers  ;
 
         return fullHeader;
+    }
+
+    public addOrReplaceHeader(name : string, value : string) : void {
+        this.removeHeader(name);
+        this.addHeader(name, value);
+    }
+
+    public addHeader(name : string, value : string) : void {
+        this.headers.push({name, value});
+    }
+
+    public removeHeader(name : string) : void {
+        this.headers = this.headers.filter(h => h.name.toLowerCase() !== name.toLowerCase());
+    }
+
+    public setStatusCode (statusCode : number, statusText : string) : void {
+        if (this.responseLine) {
+            this.responseLine.status = statusCode;
+            this.responseLine.statusText = statusText;
+        }
     }
 }
 
@@ -183,7 +205,7 @@ export class RemoveHeaderOption implements IEditableHeaderOption {
 
 export class MoveUpOption implements IEditableHeaderOption {
     id: string;
-    optionName: string = 'Edit Header';
+    optionName: string = 'Move up';
 
     applyTransform(validationResult : HeaderValidationResult, selectedHeader : Header):  Observable<string | null> {
         return of(null);
@@ -254,6 +276,41 @@ export class EditResponseLineOption implements IEditableHeaderOption {
             })) ;
     }
 }
+
+export class SetRedirectionOption implements  IEditableHeaderOption {
+    id: string;
+    optionName: string = 'Set redirection';
+
+    constructor(private callBack : (() => Observable<RedirectionModel | null>)) {
+
+    }
+
+
+    applyTransform(validationResult: HeaderValidationResult, selectedHeader: Header): Observable<string | null> {
+        let callBackResult = this.callBack();
+
+        return callBackResult
+            .pipe(
+                take(1),
+                map((redirectionModel : RedirectionModel | null) => {
+                    if (redirectionModel) {
+                        validationResult.setStatusCode(parseInt(redirectionModel.statusCode), StatusCodeVerb[redirectionModel.statusCode] ?? 'RandomRedir');
+                        validationResult.addOrReplaceHeader('Location', redirectionModel.location) ;
+                        return validationResult.toHeaderString();
+                    }
+                    else{
+                        return null;
+                    }
+                }));
+    }
+
+}
+
+export interface RedirectionModel {
+    statusCode : string ;
+    location: string;
+}
+
 
 export interface AlertOption {
     headerValidationResult : HeaderValidationResult ;
