@@ -4,8 +4,8 @@ import {
     EditResponseLineOption,
     Header,
     HeaderValidationResult,
-    IEditableHeaderOption,
-    RemoveHeaderOption, RequestLine, ResponseLine
+    IEditableHeaderOption, RedirectionModel,
+    RemoveHeaderOption, RequestLine, ResponseLine, SetRedirectionOption
 } from "./header-utils";
 import {Observable} from "rxjs";
 
@@ -16,6 +16,7 @@ export class HeaderQuickEditHandler {
         private editHeaderCallBack : ((header : Header) => Observable<Header | null>),
         private requestLineCallBack : ((model : RequestLine) => Observable<RequestLine | null>),
         private responseLineCallBack : ((model : ResponseLine) => Observable<ResponseLine | null>),
+        private setRedirectionCallBack : (() => Observable<RedirectionModel | null>),
         ) {
 
     }
@@ -37,6 +38,7 @@ export class HeaderQuickEditHandler {
         } else {
             if (headerValidationResult.responseLine && headerValidationResult.valid && !headerValidationResult.isRequest) {
                 result.push(new EditResponseLineOption(this.responseLineCallBack));
+                result.push(new SetRedirectionOption(this.setRedirectionCallBack));
             }
         }
 

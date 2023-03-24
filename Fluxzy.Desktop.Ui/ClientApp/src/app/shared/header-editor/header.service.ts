@@ -3,13 +3,14 @@ import {Observable, Subject, take} from "rxjs";
 import {Filter} from "../../core/models/auto-generated";
 import {BsModalService, ModalOptions} from "ngx-bootstrap/modal";
 import {ManageFiltersComponent} from "../../settings/manage-filters/manage-filters.component";
-import {Header} from "./header-utils";
+import {Header, RedirectionModel} from "./header-utils";
 import {AddOrEditHeaderComponent, AddOrEditViewModel} from "./dialogs/add-header/add-or-edit-header.component";
 import {EditRequestLineComponent, RequestLineViewModel} from "./dialogs/edit-request-line/edit-request-line.component";
 import {
     EditResponseLineComponent,
     ResponseLineViewModel
 } from "./dialogs/edit-response-line/edit-response-line.component";
+import {SetRedirectionComponent} from "./dialogs/set-redirection/set-redirection.component";
 
 @Injectable({
     providedIn: 'root'
@@ -90,6 +91,31 @@ export class HeaderService {
 
         this.modalService.show(
             EditResponseLineComponent,
+            config
+        );
+
+        return subject.asObservable().pipe(take(1));
+    }
+
+    public openSetRedirectionDialog(model : RedirectionModel): Observable<RedirectionModel | null> {
+        const subject = new Subject<RedirectionModel | null>();
+
+        const callBack = (f: RedirectionModel | null) => {
+            subject.next(f);
+            subject.complete()
+        };
+
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                model: model,
+                callBack
+            },
+            ignoreBackdropClick: true
+        };
+
+        this.modalService.show(
+            SetRedirectionComponent,
             config
         );
 

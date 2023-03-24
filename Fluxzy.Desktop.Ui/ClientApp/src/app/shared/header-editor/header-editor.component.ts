@@ -21,7 +21,7 @@ import {
     HeaderValidationResult, IEditableHeaderOption,
     InArray,
     NormalizeHeader,
-    ParseHeaderLine,
+    ParseHeaderLine, RedirectionModel,
     replaceAll, RequestLine, ResponseLine,
     WarningHeaders
 } from "./header-utils";
@@ -86,6 +86,23 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                     }
 
                     return new ResponseLine(m.statusCode, m.statusText);
+                })
+            ),
+            () => headerService.openSetRedirectionDialog(
+                {
+                    statusCode : "302",
+                    location : "/redirect_uri"
+                }
+            ).pipe(
+                map(m => {
+                    if (!m){
+                        return null ;
+                    }
+
+                    return {
+                        statusCode : m.statusCode,
+                        location : m.location
+                    }
                 })
             )
         );
