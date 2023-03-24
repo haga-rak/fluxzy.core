@@ -415,12 +415,15 @@ table.generic-form-layout {
 
 table.generic-form-layout > tr > td {
     vertical-align: top;
-    padding: 16px;
+    padding: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
     height: auto;
 }
 
 table.generic-form-layout > tr > td:first-child {
     width : 180px;
     text-align: right;
+    color: var(--bs-gray-300) ;
 }
 

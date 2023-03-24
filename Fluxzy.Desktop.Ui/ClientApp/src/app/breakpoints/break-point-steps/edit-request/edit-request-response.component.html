@@ -1,61 +1,93 @@
 <div class="main-edit" style="">
-    <div class="btn-group" role="group" aria-label="Basic example">
-        <button (click)="showHeader(true)" type="button" class="btn btn-dark"
-                [class]="{ 'btn-gray-400' : !headerShown }">Header</button>
-        <button (click)="showHeader(false)" type="button" class="btn btn-dark"
-         [class]="{ 'btn-gray-400' : headerShown }">Body</button>
-    </div>
-    <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
+        <div class="btn-group" role="group">
+            <button (click)="showHeader(true)" type="button" class="btn btn-dark"
+                    [class]="{ 'btn-gray-400' : !headerShown }">
+                <i *ngIf="headerShown" class="fa fa-edit"></i>
+                Edit header</button>
+            <button (click)="showHeader(false)" type="button" class="btn btn-dark"
+                    [class]="{ 'btn-gray-400' : headerShown }">
+                <i   *ngIf="!headerShown" class="fa fa-edit"></i>
+                Edit body</button>
+        </div>
+        <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
 
-        <header-editor *ngIf="headerShown" [(model)]="model.flatHeader" (modelChange)="modelChange($event)"  [isRequest]="isRequest">
-        </header-editor>
+            <header-editor *ngIf="headerShown" [(model)]="model.flatHeader" (modelChange)="modelChange($event)"  [isRequest]="isRequest">
+            </header-editor>
 
-        <table  *ngIf="!headerShown"  class="generic-form-layout ">
-            <tr>
-                <td>Content origin</td>
-                <td>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" [(ngModel)]="model.fromFile" [value]="false" name="flexRadioDefault" id="flexFromText" checked>
-                        <label class="form-check-label" for="flexFromText">
-                            From text
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" [(ngModel)]="model.fromFile" [value]="true" name="flexRadioDefault" id="flexFromFile">
-                        <label class="form-check-label" for="flexFromFile">
-                            From file
-                        </label>
-                    </div>
-                    <div style="margin-top : 32px">
-                        <div *ngIf="model.fromFile" >
-                            <button class="btn btn-dark" (click)="selectAFile()">Select a file</button>
-                            &nbsp;
-                            <span class="text-info">
+            <div *ngIf="!headerShown">
+                <div class="alert text-info btn-gray-900" *ngIf="!isRequest" style="margin-top:16px;">
+                    <i class="fa fa-info-circle text-primary" ></i>
+                    You can edit here the response body before the client receives it.
+                    <br/>
+                    <span *ngIf="wasOriginalyFile">
+                     <i class="fa fa-warning text-warning" ></i>
+                    The content body was saved as file because of its size or because it contains binary data.
+                </span>
+                </div>
+                <table  class="generic-form-layout ">
+                    <tr>
+                        <td>Original content length</td>
+                        <td>
+                        <span class="">
+                            {{ formatBytes(model.bodyLength) }}
+                        </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Content type</td>
+                        <td>
+                        <span class="">
+                            {{ model.contentType }}
+                        </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Content body</td>
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" [(ngModel)]="model.fromFile" [value]="false" name="flexRadioDefault" id="flexFromText" checked>
+                                <label class="form-check-label" for="flexFromText">
+                                    From raw text
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" [(ngModel)]="model.fromFile" [value]="true" name="flexRadioDefault" id="flexFromFile">
+                                <label class="form-check-label" for="flexFromFile">
+                                    From file
+                                </label>
+                            </div>
+                            <div style="margin-top : 8px">
+                                <div *ngIf="model.fromFile" >
+                                    <button class="btn btn-dark" (click)="selectAFile()">Select a file</button>
+                                    &nbsp;
+                                    <span class="text-info">
                                 Selected file:
                             </span>
-                            <span>
+                                    <span>
                                 {{model.fileName}}
                             </span>
-                        </div>
-                        <div class="form-floating" *ngIf="!model.fromFile" >
-                            <textarea [(ngModel)]="model.contentBody" class="form-control" placeholder="Enter request body here" id="floatingTextarea2" style="height: 250px"></textarea>
-                            <label for="floatingTextarea2">Place content body here</label>
-                        </div>
-                    </div>
+                                </div>
+                                <div class="form-floating" *ngIf="!model.fromFile" >
+                                    <textarea [(ngModel)]="model.contentBody" class="form-control" placeholder="Enter request body here" id="floatingTextarea2" style="height: 250px"></textarea>
+                                    <label for="floatingTextarea2">Place content body here</label>
+                                </div>
+                            </div>
 
-                </td>
-            </tr>
-        </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
 
-        <div [hidden]="headerShown"  style="width:100%">
+            <div [hidden]="headerShown"  style="width:100%">
+
+            </div>
+
 
         </div>
-
-
 </div>
-<div class="text-end main-edit-footer">
+<div class="text-end main-edit-footer" style="top: 0; margin-top: 0">
     <div *ngIf="done">
-        <span class="text-success">This step is already done</span>
+        <span class="text-success lead">This step is already done</span>
     </div>
     <span class="" *ngIf="!done">
         <button class="btn btn-warning" (click)="saveAndContinue()">Save edit and continue</button>

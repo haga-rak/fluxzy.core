@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Extensions;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Core.Breakpoints
@@ -21,6 +22,10 @@ namespace Fluxzy.Core.Breakpoints
         public string? FileName { get; set; }
 
         public string? ContentBody { get; set; }
+
+        public string? ContentType { get; set; }
+
+        public long BodyLength { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -73,6 +78,10 @@ namespace Fluxzy.Core.Breakpoints
                         ContentBody = await File.ReadAllTextAsync(tempFileName);
                     }
                 }
+
+                BodyLength = fileLength;
+
+                ContentType = exchange.GetRequestHeaderValue("Content-type") ?? "application/octet-stream";
             }
         }
 

@@ -23,6 +23,11 @@ namespace Fluxzy.Core.Breakpoints
 
         public string? ContentBody { get; set; }
 
+        public string? ContentType { get; set; }
+
+        public long BodyLength { get; set; }
+        
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (string.IsNullOrWhiteSpace(FlatHeader))
@@ -76,6 +81,10 @@ namespace Fluxzy.Core.Breakpoints
                         ContentBody = await File.ReadAllTextAsync(tempFileName);
                     }
                 }
+
+                BodyLength = fileLength;
+
+                ContentType = exchange.GetResponseHeaderValue("Content-type") ?? "application/octet-stream";
             }
         }
 

@@ -21,7 +21,7 @@
 
 .bp-form-container .main-edit-footer {
     //border : 5px solid green;
-    height : 30px;
+    height : 50px;
 
     padding-top: 8px;
     border-top: 1px solid var(--bs-gray-600);
@@ -29,6 +29,9 @@
 }
 
 .bp-form-container {
+}
+.bp-form-container > * {
+    height : 100%;
 }
 
 div.alert {
@@ -75,7 +78,9 @@ li.active a.nav-link.active {
     padding-left: 32px;
     border-left: 4px solid var(--bs-gray-200);
 }
-
+.ul-step li {
+    padding-right: 16px;
+}
 .button-col a {
     color : var(--bs-gray-100) !important;
     text-decoration: none;
@@ -94,7 +99,7 @@ li.active a.nav-link.active {
 }
 .table-bp-layout > tr > td:first-child {
     padding-right: 16px;
-    width: 250px;
+    width: 320px;
     height: calc(100vh - 300px);
 }
 
