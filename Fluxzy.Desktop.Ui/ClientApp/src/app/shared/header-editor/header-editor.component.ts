@@ -167,7 +167,6 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
         const element = document.querySelector('#' + this.blockId);
 
-
         const caret = this.getCaret(element);
 
         this.content = futureContent;
@@ -208,6 +207,10 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                 res.htmlModel.push(this.getLineWithError(firstLine, 'Invalid request line'));
                 res.errorMessages.push("Invalid request line");
                 firstLineInvalid = true;
+
+            }
+            else{
+                res.htmlModel.push(`<span class="highlight">${res.requestLine.method}</span> <span class="highlight-2">${res.requestLine.url}</span> HTTP/1.1`);
             }
         } else {
             res.responseLine = this.isValidResponseLine(firstLine);
@@ -217,10 +220,13 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
                 res.errorMessages.push("Invalid response line");
                 firstLineInvalid = true;
             }
+            else{
+                res.htmlModel.push(`HTTP/1.1 <span class="highlight">${res.responseLine.status}</span> ${res.responseLine.statusText}`);
+            }
         }
 
         if (!firstLineInvalid) {
-            res.htmlModel.push(firstLine);
+            // res.htmlModel.push(firstLine);
         }
 
         res.valid = true;
@@ -337,13 +343,13 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
 
     private static isValidResponseLine(line: string): ResponseLine | null {
         const parts = line.split(" ").filter(t => t.trim().length > 0);
-        if (parts.length != 3) {
+        if (parts.length < 3) {
             return null;
         }
 
-        let validHttpMethods = ["HTTP/1.1", "HTTP/2"];
+        let validHttpVersion = ["HTTP/1.0", "HTTP/1.1", "HTTP/2"];
 
-        if (!validHttpMethods.includes(parts[0])) {
+        if (!validHttpVersion.includes(parts[0])) {
             return null;
         }
 
@@ -351,7 +357,8 @@ export class HeaderEditorComponent implements OnInit, OnChanges, OnDestroy, Afte
             return null;
         }
 
-        return new ResponseLine(parseInt(parts[1]), parts[2]);
+        return new ResponseLine(parseInt(parts[1]),
+            parts.slice(2, parts.length).join(" "));
     }
 
     public textChanged(event: any) {
