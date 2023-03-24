@@ -1,5 +1,5 @@
 <div class="modal-header" style="padding:4px; padding-left: 16px">
-    <h4 class="modal-title pull-left">Edit & continue</h4>
+    <h4 class="modal-title pull-left">Live edit</h4>
     <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
         <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
@@ -59,7 +59,7 @@
                 <div class="col-6 text-end">
                     <div class="btn-group btn-command" role="group" aria-label="">
                         <button *ngIf="breakPointState.activeEntries > 0 && currentContextInfo.done"  type="button" class="btn btn-danger text-gray-200" (click)="setSelectionToNextPending()" title="some requests are waiting to be edited to continue">
-                            pending ({{ breakPointState.activeEntries }})</button>
+                            {{ breakPointState.activeEntries }} request{{ breakPointState.activeEntries > 1 ? 's': ''}} in pause</button>
 
                         <button   type="button" class="btn btn-dark no-shadow" (click)="clearAllDone()" title="Clear all done">
                             <i class="fa fa-trash"></i></button>
@@ -79,7 +79,7 @@
 
                     <div class="alert">
 
-                        <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span>
+                        <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span> steps
                             &nbsp;<span class="badge bg-success text-gray-600" *ngIf="currentContextInfo.done">done</span></p>
                         <ul class="fa-ul border-right ul-step">
                             <li *ngFor="let item of currentContextInfo.stepInfos" class="larger">

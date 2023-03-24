@@ -95,4 +95,9 @@ export class EditRequestResponseComponent implements OnInit {
 
     modelChange(content : any) {
     }
+
+    continueExchange() {
+        this.apiService.breakPointContinueUntilEnd(this.context.exchangeId)
+            .subscribe();
+    }
 }

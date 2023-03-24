@@ -13,7 +13,7 @@ namespace Fluxzy.Core.Breakpoints
     public class BreakPointContext
     {
         private readonly Exchange _exchange;
-        private readonly Filter _filter;
+
         private readonly Action<IBreakPointAlterationModel, BreakPointContext> _statusChanged;
         private readonly Dictionary<BreakPointLocation, IBreakPointAlterationModel> _alterationModels =
             new();
@@ -27,7 +27,7 @@ namespace Fluxzy.Core.Breakpoints
             Action<IBreakPointAlterationModel, BreakPointContext> statusChanged)
         {
             _exchange = exchange;
-            _filter = filter;
+            Filter = filter;
             _statusChanged = statusChanged;
 
             ConnectionSetupCompletion =
@@ -46,6 +46,8 @@ namespace Fluxzy.Core.Breakpoints
             BreakPoints.Add(RequestHeaderCompletion);
             BreakPoints.Add(ResponseHeaderCompletion);
         }
+
+        public Filter Filter { get; }
 
         public void ContinueUntilEnd()
         {
@@ -104,7 +106,7 @@ namespace Fluxzy.Core.Breakpoints
                               _exchange.Complete.Status >= TaskStatus.RanToCompletion;
 
             return new BreakPointContextInfo(_alterationModels,
-                ExchangeInfo, _exchange.Connection == null ? null : new ConnectionInfo(_exchange.Connection), _previousStatus, LastLocation, CurrentHit, _filter);
+                ExchangeInfo, _exchange.Connection == null ? null : new ConnectionInfo(_exchange.Connection), _previousStatus, LastLocation, CurrentHit, Filter);
         }
     }
 

@@ -117,9 +117,11 @@
         <span class="text-success lead">This step is already done</span>
     </div>
     <span class="" *ngIf="!done">
-        <button class="btn btn-warning" (click)="saveAndContinue()">Save edit and continue</button>
+        <button class="btn btn-warning" (click)="saveAndContinue()">Save step and continue</button>
         &nbsp;
-        <button *ngIf="!done" class="btn btn-outline-warning" (click)="continue()">Skip</button>
+        <button *ngIf="!done" class="btn btn-outline-warning" (click)="continueExchange()">Skip this exchange</button>
+        &nbsp;
+        <button *ngIf="!done" class="btn btn-outline-warning" (click)="continue()">Skip this step</button>
     </span>
 </div>
 

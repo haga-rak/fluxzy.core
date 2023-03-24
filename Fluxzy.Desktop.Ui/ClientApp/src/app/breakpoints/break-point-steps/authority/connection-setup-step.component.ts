@@ -50,4 +50,9 @@ export class ConnectionSetupStepComponent implements OnInit, OnChanges {
         this.apiService.breakPointContinueOnce(this.context.exchangeId)
             .subscribe() ;
     }
+
+    continueExchange() {
+        this.apiService.breakPointContinueUntilEnd(this.context.exchangeId)
+            .subscribe() ;
+    }
 }

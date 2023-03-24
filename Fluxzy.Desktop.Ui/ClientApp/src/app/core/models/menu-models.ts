@@ -164,27 +164,38 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         ]
     },
     {
-        label : 'Debug',
+        label : 'Live edit',
         submenu : [
             {
-                label : 'Pause any requests',
+                label : 'Catch all',
                 id : 'pause-all'
             },
             {
-                label : 'Continue All',
+                label : 'Catch with filter',
+                id : 'pause-all-with-filter'
+            },
+            {
+                type :  'separator'
+            },
+            {
+                label : 'Resume all pending requests',
                 id : 'continue-all'
             },
             {
-                label : 'Disable all breakpoints',
+                label : 'Resume all pending requests and delete all catcher',
                 id : 'disable-all'
             },
             {
                 type :  'separator'
             },
             {
-                label : 'Show breakpoint window',
+                label : 'Show live edit dialog',
                 id : 'breakpoint-window',
                 accelerator : 'F11',
+            },
+            {
+                label : 'Show all enabled catcher ',
+                id : 'show-catcher',
             },
         ]
     },
