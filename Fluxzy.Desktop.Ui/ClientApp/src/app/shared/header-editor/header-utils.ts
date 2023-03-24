@@ -1,6 +1,5 @@
 import {escapeRegExp} from "lodash";
 import {map, Observable, of} from "rxjs";
-import {RequestLineViewModel} from "./dialogs/edit-request-line/edit-request-line.component";
 
 export interface Header {
     name: string;
@@ -91,6 +90,10 @@ export const NormalizeHeader = (flatHeader : string) : string => {
 
 export function replaceAll(str, find, replace) {
     return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+}
+
+export const uriEncodeButNotSlash = (str : string) : string => {
+    return str.split('/').map(encodeURIComponent).join('/') ;
 }
 
 export interface IEditableHeaderOption {
