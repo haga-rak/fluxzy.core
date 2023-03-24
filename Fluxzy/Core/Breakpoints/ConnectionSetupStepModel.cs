@@ -45,7 +45,7 @@ namespace Fluxzy.Core.Breakpoints
             IpAddress = exchange.EgressIp ?? exchange.Context.RemoteHostIp?.ToString() ?? "-/-";
             Port = exchange.Context.RemoteHostPort ?? exchange.Authority.Port;
             
-            ForceNewConnection = exchange.Context.ForceNewConnection;
+            ForceNewConnection = true;
             SkipRemoteCertificateValidation = exchange.Context.SkipRemoteCertificateValidation;
 
             return default;

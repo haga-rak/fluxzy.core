@@ -59,7 +59,7 @@
                 <div class="col-6 text-end">
                     <div class="btn-group btn-command" role="group" aria-label="">
                         <button   type="button" class="btn btn-dark no-shadow" (click)="clearAllDone()" title="Clear all done">
-                            <i class="fa fa-times"></i></button>
+                            <i class="fa fa-trash"></i></button>
                         <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-gray-400 btn-outline-warning no-shadow" (click)="continueNext()" title="Skip">
                             <i class="fa fa-step-forward"></i></button>
                         <button  [disabled]="currentContextInfo.done"  type="button" class="btn btn-gray-400 btn-outline-warning no-shadow" (click)="continueUntilEnd()" title="Skip until end">
@@ -94,6 +94,12 @@
                                 <a href="javascript:;" class="nul"
                                    (click)="setSelectedStepInfo(item)"
                                    [class]="{'text-info' : item.status !== 'Current', 'sinfo-selected' : item === selectedStepInfo}">{{ item.stepName}}</a>
+
+                                <span class="float-end"  *ngIf="item.status === 'Pending'">
+                                    <a href="javascript:;" class="small text-warning" title="Skip until here">
+                                        <i class="fa fa-forward"></i>
+                                    </a>
+                                </span>
                             </li>
 
                         </ul>
@@ -122,9 +128,9 @@
                             </div>
 
                             <div class="bp-form-container" *ngIf="selectedStepInfo.status !== 'Pending'" style="width: 100%">
-                                <app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></app-authority>
-                                <app-edit-request *ngIf="selectedStepInfo.locationIndex === 2" [context]="currentContextInfo" [stepInfo]="selectedStepInfo" [isRequest]="true"></app-edit-request>
-                                <app-edit-request *ngIf="selectedStepInfo.locationIndex === 3" [context]="currentContextInfo" [stepInfo]="selectedStepInfo" [isRequest]="false"></app-edit-request>
+                                <div app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></div>
+                                <div app-edit-request *ngIf="selectedStepInfo.locationIndex === 2" [context]="currentContextInfo" [stepInfo]="selectedStepInfo" [isRequest]="true"></div>
+                                <div app-edit-request *ngIf="selectedStepInfo.locationIndex === 3" [context]="currentContextInfo" [stepInfo]="selectedStepInfo" [isRequest]="false"></div>
 
 
                             </div>
@@ -149,5 +155,7 @@
 <div class="modal-footer">
     <button *ngIf="breakPointState && breakPointState.activeEntries > 0" class="btn btn-outline-warning" (click)="disableAllAndQuit()">
         Disable breakpoint and skip all ({{ breakPointState.activeEntries }})</button>
+    <button *ngIf="breakPointState && breakPointState.activeEntries > 0" class="btn btn-outline-warning" (click)="skipAll()">
+        Skip all ({{ breakPointState.activeEntries }})</button>
     <button class="btn btn-outline-primary" (click)="bsModalRef.hide()">Close</button>
 </div>

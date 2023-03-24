@@ -8,7 +8,7 @@ import {
 import {ApiService} from "../../../services/api.service";
 
 @Component({
-    selector: 'app-authority',
+    selector: '[app-authority]',
     templateUrl: './connection-setup-step.component.html',
     styleUrls: ['./connection-setup-step.component.scss']
 })

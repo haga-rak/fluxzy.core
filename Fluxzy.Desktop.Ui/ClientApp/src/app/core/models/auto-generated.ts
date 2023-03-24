@@ -819,6 +819,8 @@ export interface RequestSetupStepModel
 	fromFile: boolean;
 	fileName?: string;
 	contentBody?: string;
+	contentType?: string;
+	bodyLength: number;
 }
 export interface ResponseSetupStepModel
 {
@@ -827,6 +829,8 @@ export interface ResponseSetupStepModel
 	fromFile: boolean;
 	fileName?: string;
 	contentBody?: string;
+	contentType?: string;
+	bodyLength: number;
 }
 export interface FluxzySettingsHolder
 {

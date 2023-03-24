@@ -138,11 +138,22 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
     }
 
     disableAllAndQuit() {
-        this.bsModalRef.hide();
-        this.apiService.breakPointDeleteAll().subscribe() ;
+        this.apiService.breakPointDeleteAll()
+            .pipe(
+                tap(_ => this.bsModalRef.hide())
+            )
+            .subscribe();
     }
 
     clearAllDone() {
         this.apiService.breakPointDeleteAllDone().subscribe() ;
+    }
+
+    skipAll() {
+        this.apiService.breakPointContinueAll()
+            .pipe(
+                tap(_ => this.bsModalRef.hide())
+            )
+            .subscribe();
     }
 }

@@ -34,23 +34,22 @@
 
                 </div>
                 <div class="col-6">
+<!--                    <div class="text-info">-->
+<!--                        Skip host resolution, use this IP-->
+<!--                    </div>-->
+<!--                    <div class="form-floating">-->
+<!--                        <input [readOnly]="done"  type="text" class="form-control" style="width: 200px" id="floatingIpAddress"  [(ngModel)]="model.ipAddress" placeholder="host">-->
+<!--                        <label for="floatingIpAddress">IP address</label>-->
+<!--                    </div>-->
+<!--                    <br/>-->
 
-                    <div class="text-info">
-                        Skip host resolution, use this IP
-                    </div>
-                    <div class="form-floating">
-                        <input [readOnly]="done"  type="text" class="form-control" style="width: 200px" id="floatingIpAddress"  [(ngModel)]="model.ipAddress" placeholder="host">
-                        <label for="floatingIpAddress">IP address</label>
-                    </div>
-                    <br/>
-
-                    <div class="text-info">
-                        Use the following instead of the one requested by downstream
-                    </div>
-                    <div class="form-floating">
-                        <input [readOnly]="done" type="number" class="form-control"  style="width: 200px" id="floatingPort"  min="1" max="65535" [(ngModel)]="model.port">
-                        <label for="floatingPort">Port</label>
-                    </div>
+<!--                    <div class="text-info">-->
+<!--                        Use the following instead of the one requested by downstream-->
+<!--                    </div>-->
+<!--                    <div class="form-floating">-->
+<!--                        <input [readOnly]="done" type="number" class="form-control"  style="width: 200px" id="floatingPort"  min="1" max="65535" [(ngModel)]="model.port">-->
+<!--                        <label for="floatingPort">Port</label>-->
+<!--                    </div>-->
                 </div>
             </div>
 
@@ -87,7 +86,7 @@
 </div>
 <div class="text-end main-edit-footer">
     <div *ngIf="done">
-        <span class="text-success">This step is already done</span>
+        <span class="text-success lead">This step is already done</span>
     </div>
     <span class=""  *ngIf="!done">
         <button  class="btn btn-warning" (click)="saveAndContinue()">Save edit and continue</button>
