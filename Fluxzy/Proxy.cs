@@ -206,13 +206,16 @@ namespace Fluxzy
         {
             SessionId = sessionId;
             StartupSetting = startupSetting;
+                
+            BreakPointManager = new(startupSetting.AlterationRules.Where(r => r.Action is BreakPointAction)
+                                                  .Select(a => a.Filter)); 
         }
 
         public string SessionId { get; }
 
         public FluxzySetting StartupSetting { get; }
 
-        public BreakPointManager BreakPointManager { get; } = new();
+        public BreakPointManager BreakPointManager { get; }
 
     }
 

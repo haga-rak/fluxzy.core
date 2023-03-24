@@ -15,6 +15,12 @@ namespace Fluxzy.Core.Breakpoints
     public class BreakPointManager
     {
         private readonly ConcurrentDictionary<int, BreakPointContext> _runningContext = new();
+        private readonly List<Filter> _breakPointFilters;
+
+        public BreakPointManager(IEnumerable<Filter> breakPointFilters)
+        {
+            _breakPointFilters = breakPointFilters.ToList(); 
+        }
 
         public BreakPointContext GetOrCreate(Exchange exchange, Filter filter, FilterScope filterScope)
         {
@@ -46,7 +52,6 @@ namespace Fluxzy.Core.Breakpoints
             IBreakPointAlterationModel breakPointAlterationModel,
             BreakPointContext breakPointContext)
         {
-
             OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointAlterationModel, breakPointContext));
         }
 
@@ -65,7 +70,7 @@ namespace Fluxzy.Core.Breakpoints
         public BreakPointState GetState()
         {
             lock (_runningContext) {
-                return new BreakPointState(_runningContext.Values.Select(c => c.GetInfo()).ToList());
+                return new BreakPointState(_runningContext.Values.Select(c => c.GetInfo()).ToList(), _breakPointFilters);
             }
         }
 

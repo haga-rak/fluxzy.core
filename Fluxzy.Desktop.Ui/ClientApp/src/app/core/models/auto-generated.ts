@@ -784,6 +784,10 @@ export interface BreakPointState
 	hasToPop: boolean;
 	activeEntries: number;
 	entries: BreakPointContextInfo[];
+	anyEnabled: boolean;
+	isCatching: boolean;
+	anyPendingRequest: boolean;
+	activeFilters: Filter[];
 	emptyEntries: BreakPointState;
 }
 export interface BreakPointContextInfo
