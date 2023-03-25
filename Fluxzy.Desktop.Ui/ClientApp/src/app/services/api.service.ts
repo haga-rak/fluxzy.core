@@ -216,8 +216,8 @@ export class ApiService {
         return this.httpClient.get<CurlCommandResult>(`api/exchange/${exchangeId}/curl`).pipe(take(1));
     }
 
-    public exchangeReplay(exchangeId: number) : Observable<boolean> {
-        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/replay`, null).pipe(take(1));
+    public exchangeReplay(exchangeId: number, runInLiveEdit : boolean) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/replay?runInLiveEdit=${runInLiveEdit}`, null).pipe(take(1));
     }
 
     public exchangeMetrics(exchangeId: number) : Observable<ExchangeMetricInfo> {

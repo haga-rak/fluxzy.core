@@ -36,6 +36,14 @@ export class ContextMenuExecutionService {
                 ).subscribe() ;
         }
 
+        if (contextMenuAction.id === 'replay') {
+            return this.apiService.exchangeReplay(exchangeId, false);
+        }
+
+        if (contextMenuAction.id === 'replay-live-edit') {
+            return this.apiService.exchangeReplay(exchangeId, true);
+        }
+
         if (contextMenuAction.filter) {
             if (!liveEdit) {
 

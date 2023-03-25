@@ -101,6 +101,8 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         public static readonly ReadOnlyMemory<char> AltSvc = "alt-svc".AsMemory();
         public static readonly ReadOnlyMemory<char> Expect = "expect".AsMemory();
 
+        public static readonly ReadOnlyMemory<char> FluxzyLiveEdit = "x-fluxzy-live-edit".AsMemory();
+
         public static readonly HashSet<ReadOnlyMemory<char>> AvoidAutoParseHttp11Headers =
             new(new[] {
                 MethodVerb, SchemeVerb, AuthorityVerb, PathVerb, CookieVerb, StatusVerb
@@ -118,7 +120,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
         public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
             new(new[] {
-                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade, AltSvc, Expect
+                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade, AltSvc, Expect, FluxzyLiveEdit
             }, new SpanCharactersIgnoreCaseComparer());
 
         public static ReadOnlyMemory<char> GetStatusLine(ReadOnlyMemory<char> statusCode)
