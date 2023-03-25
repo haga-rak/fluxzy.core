@@ -46,7 +46,9 @@ namespace Fluxzy.Core.Breakpoints
         /// <summary>
         /// Filter enabling break point 
         /// </summary>
-        public List<Filter> ActiveFilters { get; } 
+        public List<Filter> ActiveFilters { get; }
+
+        public int [] PausedExchangeIds => Entries.Where(e => e.CurrentHit != null).Select(s => s.ExchangeId).ToArray();
 
 
         public static BreakPointState EmptyEntries { get; } = new(new List<BreakPointContextInfo>(), new());

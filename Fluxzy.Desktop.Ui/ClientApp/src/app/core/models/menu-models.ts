@@ -178,6 +178,10 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 id : 'pause-all-with-filter'
             },
             {
+                label : 'Delete all live edit filters',
+                id : 'delete-all-filters'
+            },
+            {
                 type :  'separator'
             },
             {
@@ -185,7 +189,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 id : 'continue-all'
             },
             {
-                label : 'Resume all pending requests and delete all catcher',
+                label : 'Resume all pending requests and delete live edit filters',
                 id : 'disable-all'
             },
             {

@@ -20,7 +20,7 @@
                 <tr *ngFor="let filter of filters">
                     <td>
                         <a href="javascript:;" *ngIf="!isBeingRemoved(filter)" (click)="markForRemoval(filter)">
-                            <i class="fa fa-check text-success" title="Filter enabled. Click to remove"></i>
+                            <i class="fa fa-circle text-danger" title="Filter enabled. Click to remove"></i>
                         </a>
                         <a href="javascript:;" *ngIf="isBeingRemoved(filter)" (click)="unmarkForRemoval(filter)">
                             <i class="fa fa-times text-gray-300" title="Filter disabled. Click to enable."></i>
@@ -39,7 +39,7 @@
     </div>
 </div>
 <div class="modal-footer">
-    <button class="btn btn-primary" (click)="removeAllAndQuit()">Remove all & close</button>
+    <button class="btn btn-outline-primary" (click)="removeAllAndQuit()">Remove all & close</button>
     <button class="btn btn-primary" (click)="save()">Ok</button>
     <button class="btn btn-outline-primary" (click)="cancel()">Cancel</button>
 </div>

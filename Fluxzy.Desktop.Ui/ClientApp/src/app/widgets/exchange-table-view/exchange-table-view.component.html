@@ -18,7 +18,13 @@
             <tr *ngFor="let exchangeContainer of exchangeState.exchanges;   trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchangeContainer.id] }"
             (mouseup)="setSelectionChange($event, exchangeContainer.exchangeInfo)">
                 <td class="text-center">
-                    <span [title]="exchangeContainer.exchangeInfo.statusCode" [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).textClass"><i [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).iconClass"></i></span>
+                    <span *ngIf="!isPausing(exchangeContainer.exchangeInfo.id)" [title]="exchangeContainer.exchangeInfo.statusCode" [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).textClass">
+                        <i [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).iconClass"></i>
+                    </span>
+                    <span  *ngIf="isPausing(exchangeContainer.exchangeInfo.id)" title="This exchange is currently live edited"
+                        class="text-warning forced-cursor " (click)="showBreakPointDialog(exchangeContainer.exchangeInfo.id)">
+                        <i class="fa fa-pause fa-spin fa-fw"></i>
+                    </span>
 
                 </td>
                 <td [title]="exchangeContainer.exchangeInfo.knownAuthority">
