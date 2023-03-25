@@ -2,11 +2,34 @@
     <div class="context-menu-action"*ngFor="let contextMenuAction of contextMenuModel.contextMenuActions"
             [ngClass]="{'context-menu-action-clickable' : !contextMenuAction.isDivider,'context-menu-action-divider' : contextMenuAction.isDivider}"
             [title]="contextMenuAction.label"
-            (mousedown)="triggered($event, contextMenuAction)" (mouseup)="mouseUp($event)">
+            (mousedown)="triggered($event, contextMenuAction, ctrlKeyOn, shiftKeyOn)" (mouseup)="mouseUp($event)">
         <span style="display : inline-block; width : 16px; min-width: 16px; max-width: 16px;">
             <i class="bi" [ngClass]="getIcon(contextMenuAction)"></i>
         </span>
-
+        <span *ngIf="shiftKeyOn && contextMenuAction.filter" class="text-warning" title="Add to live edit">
+            live edit ...
+        </span>
+        <span *ngIf="!shiftKeyOn && ctrlKeyOn  && contextMenuAction.filter" class="text-success" title="Add this filter to current">
+            and ...
+        </span>
         {{contextMenuAction.label}}
     </div>
+    <ng-container>
+        <div class="context-menu-action context-menu-action-divider">
+
+        </div>
+        <div *ngIf="!shiftKeyOn && !ctrlKeyOn" class="context-menu-action context-menu-action-clickable text-info" (mousedown)="hintClicked($event)">
+            <span style="display : inline-block; width : 16px; min-width: 16px; max-width: 16px;">
+                <i class="fa fa-lightbulb-o text-primary" aria-hidden="true"></i>
+            </span>
+            Press <span class="text-white">Ctrl</span> to add shown filter to the current one
+        </div>
+        <div   *ngIf="!shiftKeyOn" class="context-menu-action context-menu-action-clickable text-info" (mousedown)="hintClickedDebug($event)">
+            <span style="display : inline-block; width : 16px; min-width: 16px; max-width: 16px;">
+                <i class="fa fa-lightbulb-o  text-primary" aria-hidden="true"></i>
+            </span>
+            Press <span class="text-white">Shift</span> to add shown filter to live edit trigger
+        </div>
+    </ng-container>
+
 </div>

@@ -13,7 +13,7 @@ export class ContextMenuExecutionService {
     constructor(private apiService : ApiService, private exchangeManagementService : ExchangeManagementService, private systemCallService : SystemCallService) {
     }
 
-    public executeAction(contextMenuAction: ContextMenuAction, exchangeId : number) : Observable<any> {
+    public executeAction(contextMenuAction: ContextMenuAction, exchangeId : number, and : boolean, liveEdit : boolean) : Observable<any> {
         if (contextMenuAction.id === 'delete') {
             return this.exchangeManagementService.exchangeDelete([exchangeId]);
         }
@@ -37,7 +37,22 @@ export class ContextMenuExecutionService {
         }
 
         if (contextMenuAction.filter) {
-            return this.apiService.filterApplyToview(contextMenuAction.filter);
+            if (!liveEdit) {
+
+                if (!and) {
+                    return this.apiService.filterApplyToview(contextMenuAction.filter);
+                }
+                else {
+
+                    return this.apiService.filterApplyToViewAnd(contextMenuAction.filter);
+                }
+            }
+            else{
+                // add to live edit
+                return this.apiService.breakPointAdd(contextMenuAction.filter);
+            }
+
+
         }
 
         if (contextMenuAction.sourceFilter) {

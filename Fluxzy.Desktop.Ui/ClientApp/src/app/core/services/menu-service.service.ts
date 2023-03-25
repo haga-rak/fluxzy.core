@@ -214,6 +214,7 @@ export class MenuService {
         }
 
         FindMenuByName(menus, 'pause-all').enabled = !uiState.breakPointState.anyEnabled;
+        FindMenuByName(menus, 'pause-all-with-filter').enabled = !uiState.breakPointState.anyEnabled;
         FindMenuByName(menus, 'continue-all').enabled = uiState.breakPointState.anyPendingRequest;
         FindMenuByName(menus, 'disable-all').enabled = uiState.breakPointState.anyPendingRequest ||
             uiState.breakPointState.activeFilters.length > 0;

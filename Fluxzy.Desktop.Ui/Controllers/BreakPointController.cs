@@ -30,7 +30,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<bool> Add(Filter filter)
         {
             _handler.AddBreakPoint(filter);
-
             return true;
         }
 
