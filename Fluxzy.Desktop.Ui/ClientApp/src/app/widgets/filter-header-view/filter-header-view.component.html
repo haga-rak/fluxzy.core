@@ -36,7 +36,12 @@
             (click)="selectFilter(toolBarFilter.filter)"
             [title]="toolBarFilter.filter.friendlyName"
             class="btn btn-dark" aria-current="page"
-            [ngClass]=" {'active' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier, 'bg-primary' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier}"
+            [ngClass]=" {
+            'active' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier,
+             'bg-primary' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier && !ctrlKeyOn,
+            'and-filter' :  uiState.viewFilter.filter.identifier  && ctrlKeyOn
+
+             }"
     >{{ toolBarFilter.filter.shortName }}</button>
 
     <button *ngIf="selectedFilter" type="button" href="javascript:;"
@@ -44,7 +49,12 @@
             (click)="selectFilter(selectedFilter)"
             [title]="selectedFilter.friendlyName"
             class="btn btn-dark" aria-current="page"
-            [ngClass]=" {'active' : selectedFilter.identifier === uiState.viewFilter.filter.identifier, 'bg-primary' : selectedFilter.identifier === uiState.viewFilter.filter.identifier}"
+            [ngClass]=" {'active' : selectedFilter.identifier === uiState.viewFilter.filter.identifier,
+            'bg-primary' : selectedFilter.identifier === uiState.viewFilter.filter.identifier && !ctrlKeyOn,
+            'and-filter' :  uiState.viewFilter.filter.identifier  && ctrlKeyOn
+
+
+            }"
     >{{ selectedFilter.shortName }} <i class="bi bi-pencil"></i></button>
 
 

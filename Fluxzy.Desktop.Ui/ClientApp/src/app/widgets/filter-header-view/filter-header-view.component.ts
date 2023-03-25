@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import { DialogService } from '../../services/dialog.service';
 import {UiStateService} from "../../services/ui.service";
 import {tap, filter, switchMap, take} from "rxjs";
 import {Filter, UiState} from "../../core/models/auto-generated";
 import {ApiService} from "../../services/api.service";
 import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
+import {InputService} from "../../services/input.service";
 
 @Component({
     selector: 'app-filter-header-view',
@@ -16,8 +17,13 @@ export class FilterHeaderViewComponent implements OnInit {
     public selectedFilter : Filter | null ;
 
     public  SourceAgentIconFunc = SourceAgentIconFunc;
+    public ctrlKeyOn: boolean = false;
 
-    constructor(private dialogService : DialogService, private uiStateService : UiStateService, private apiService: ApiService) {}
+    constructor(private dialogService : DialogService,
+                private uiStateService : UiStateService,
+                private apiService: ApiService,
+                private inputService : InputService,
+                private cd : ChangeDetectorRef) {}
 
     ngOnInit(): void {
         this.uiStateService.getUiState()
@@ -32,6 +38,11 @@ export class FilterHeaderViewComponent implements OnInit {
                 })
 
             ).subscribe() ;
+
+        this.inputService.keyBoardCtrlOn$.pipe(
+            tap(t => this.ctrlKeyOn = t),
+            tap(t => this.cd.detectChanges()),
+        ).subscribe();
 
     }
 
@@ -68,7 +79,14 @@ export class FilterHeaderViewComponent implements OnInit {
             return;
         }
 
-        this.apiService.filterApplyToview(filterItem).subscribe();
+        if (this.ctrlKeyOn){
+            this.apiService.filterApplyToViewAnd(filterItem).subscribe();
+        }
+        else {
+            this.apiService.filterApplyToview(filterItem).subscribe();
+        }
+
+
     }
 
     public skipEvent($event: MouseEvent) : void {
