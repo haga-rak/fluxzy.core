@@ -788,6 +788,7 @@ export interface BreakPointState
 	isCatching: boolean;
 	anyPendingRequest: boolean;
 	activeFilters: Filter[];
+	pausedExchangeIds: number[];
 	emptyEntries: BreakPointState;
 }
 export interface BreakPointContextInfo

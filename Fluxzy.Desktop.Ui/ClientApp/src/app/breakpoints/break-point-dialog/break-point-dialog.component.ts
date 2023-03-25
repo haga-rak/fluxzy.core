@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {BsModalRef} from "ngx-bootstrap/modal";
+import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
 import {ApiService} from "../../services/api.service";
 import {SystemCallService} from "../../core/services/system-call.service";
 import {UiStateService} from "../../services/ui.service";
@@ -11,6 +11,9 @@ import {
     UiState
 } from "../../core/models/auto-generated";
 import {BreakPointService} from "../break-point.service";
+import {
+    ResponseLineViewModel
+} from "../../shared/header-editor/dialogs/edit-response-line/edit-response-line.component";
 
 @Component({
     selector: 'app-break-point-dialog',
@@ -29,10 +32,15 @@ export class BreakPointDialogComponent implements OnInit, OnDestroy {
 
     constructor(
         public bsModalRef: BsModalRef,
+        private modalOptions : ModalOptions,
         private apiService: ApiService,
         public cd : ChangeDetectorRef,
         private uiStateService : UiStateService,
         private breakPointService : BreakPointService) {
+        const exchangeId = modalOptions.initialState.exchangeId as number | null    ;
+        if (exchangeId) {
+            this.currentExchangeId = exchangeId;
+        }
     }
 
     ngOnInit(): void {
