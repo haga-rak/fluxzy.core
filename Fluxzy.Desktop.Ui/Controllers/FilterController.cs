@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Filters;
@@ -49,6 +49,78 @@ namespace Fluxzy.Desktop.Ui.Controllers
         {
             activeViewFilterManager.UpdateViewFilter(filter);
             filterProvider.SetNewFilter(filter);
+
+            return true;
+        }
+
+
+        /// <summary>
+        /// Appending a view filter view and rule
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <param name="activeViewFilterManager"></param>
+        /// <param name="filterProvider"></param>
+        /// <returns></returns>
+        [HttpPost("apply/regular/and")]
+        public ActionResult<bool> ApplyToViewAddAnd(
+            Filter filter,
+            [FromServices]
+            ActiveViewFilterManager activeViewFilterManager,
+            [FromServices]
+            TemplateToolBarFilterProvider filterProvider)
+        {
+            var currentFilter = activeViewFilterManager.Current;
+
+            if (currentFilter.Filter is AnyFilter) {
+
+                activeViewFilterManager.UpdateViewFilter(filter);
+                filterProvider.SetNewFilter(filter);
+
+                return true; 
+            }
+
+
+            var filterCollection = new FilterCollection(currentFilter.Filter, filter) {
+                Operation = SelectorCollectionOperation.And
+            }; 
+
+            activeViewFilterManager.UpdateViewFilter(filterCollection);
+            filterProvider.SetNewFilter(filterCollection);
+
+            return true;
+        }
+        /// <summary>
+        /// Appending a view filter view and rule
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <param name="activeViewFilterManager"></param>
+        /// <param name="filterProvider"></param>
+        /// <returns></returns>
+        [HttpPost("apply/regular/or")]
+        public ActionResult<bool> ApplyToViewAddOr(
+            Filter filter,
+            [FromServices]
+            ActiveViewFilterManager activeViewFilterManager,
+            [FromServices]
+            TemplateToolBarFilterProvider filterProvider)
+        {
+            var currentFilter = activeViewFilterManager.Current;
+
+            if (currentFilter.Filter is AnyFilter)
+            {
+
+                activeViewFilterManager.UpdateViewFilter(filter);
+                filterProvider.SetNewFilter(filter);
+
+                return true;
+            }
+
+            var filterCollection = new FilterCollection(currentFilter.Filter, filter) {
+                Operation = SelectorCollectionOperation.Or
+            }; 
+
+            activeViewFilterManager.UpdateViewFilter(filterCollection);
+            filterProvider.SetNewFilter(filterCollection);
 
             return true;
         }

@@ -299,6 +299,14 @@ export class ApiService {
         return this.httpClient.post<boolean>(`api/filter/apply/regular`, filter).pipe(take(1));
     }
 
+    public filterApplyToViewAnd(filter: Filter) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/filter/apply/regular/and`, filter).pipe(take(1));
+    }
+
+    public filterApplyToViewOr(filter: Filter) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/filter/apply/regular/or`, filter).pipe(take(1));
+    }
+
     public filterApplySource(filter: Filter) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/filter/apply/source`, filter).pipe(take(1));
     }

@@ -80,7 +80,6 @@ namespace Fluxzy.Desktop.Services
             _inMemoryRules.OnNext(_inMemoryRules.Value.RemoveAll(t => t.Filter.Identifier == filterIdentifier));
         }
 
-
         public void RemoveInMemoryRules(IReadOnlyCollection<Guid> filterIdentifiers)
         {
             _inMemoryRules.OnNext(_inMemoryRules.Value.RemoveAll(t => filterIdentifiers.Contains(t.Filter.Identifier)));
