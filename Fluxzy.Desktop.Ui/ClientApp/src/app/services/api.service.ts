@@ -429,6 +429,10 @@ export class ApiService {
         return this.httpClient.delete<boolean>(`api/breakpoint/${filterId}`).pipe(take(1)) ;
     }
 
+    public breakPointDeleteMultiple(filterIds: string[]) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/delete`, filterIds).pipe(take(1)) ;
+    }
+
     public breakPointDeleteAll() : Observable<boolean> {
         return this.httpClient.delete<boolean>(`api/breakpoint/clear`).pipe(take(1)) ;
     }

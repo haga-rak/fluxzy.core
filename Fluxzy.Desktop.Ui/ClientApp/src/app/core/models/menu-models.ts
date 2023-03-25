@@ -25,6 +25,9 @@ export const FindMenu : (arrayf : MenuItemConstructorOptions [] , condition : (i
         return null;
     }
 
+export const FindMenuByName = (array : MenuItemConstructorOptions [] , name : string ) : MenuItemConstructorOptions => {
+    return FindMenu(array, (item) => item.id === name);
+}
 
 export const GlobalMenuItems : MenuItemConstructorOptions []=  [
     {
@@ -194,7 +197,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 accelerator : 'F11',
             },
             {
-                label : 'Show all enabled catcher ',
+                label : 'Show active live edit filters',
                 id : 'show-catcher',
             },
         ]

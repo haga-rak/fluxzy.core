@@ -49,6 +49,14 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
+        [HttpPost("delete")]
+        public ActionResult<bool> DeleteMultipleFilter([FromBody] Guid  [] filterIds)
+        {
+            _handler.DeleteBreakPoints(filterIds);
+
+            return true;
+        }
+
         [HttpDelete("clear")]
         public ActionResult<bool> DeleteAll()
         {

@@ -1,0 +1,45 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        Active live edit filters
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 50px">
+    <div>
+        <p *ngIf="filters === null">
+            Loading active live edit filters ... please wait
+        </p>
+        <div  *ngIf="filters !== null">
+            <p *ngIf="filters.length === 0">
+                <span class="text-info">No live edit filter configured</span>
+            </p>
+
+            <table class="live-edit-filter-table" *ngIf="filters.length > 0">
+                <tr *ngFor="let filter of filters">
+                    <td>
+                        <a href="javascript:;" *ngIf="!isBeingRemoved(filter)" (click)="markForRemoval(filter)">
+                            <i class="fa fa-check text-success" title="Filter enabled. Click to remove"></i>
+                        </a>
+                        <a href="javascript:;" *ngIf="isBeingRemoved(filter)" (click)="unmarkForRemoval(filter)">
+                            <i class="fa fa-times text-gray-300" title="Filter disabled. Click to enable."></i>
+                        </a>
+                    </td>
+                    <td class="text-info">
+                        {{ filter.friendlyName }}
+                    </td>
+                    <td>
+                        <a href="javascript:;" class="btn btn-sm btn-dark" *ngIf="!isBeingRemoved(filter)" (click)="markForRemoval(filter)">Remove filter</a>
+                        <a href="javascript:;" class="btn btn-sm btn-dark" *ngIf="isBeingRemoved(filter)" (click)="unmarkForRemoval(filter)">Add filter</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="removeAllAndQuit()">Remove all & close</button>
+    <button class="btn btn-primary" (click)="save()">Ok</button>
+    <button class="btn btn-outline-primary" (click)="cancel()">Cancel</button>
+</div>
