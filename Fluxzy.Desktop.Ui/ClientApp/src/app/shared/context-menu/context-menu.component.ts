@@ -119,13 +119,13 @@ export class ContextMenuComponent implements OnInit {
 
 
     hintClicked(event : Event) {
-        this.inputService.setKeyboardCtrlOn(true);
+        this.inputService.setKeyboardCtrlOn(!this.ctrlKeyOn);
         event.stopPropagation();
         event.preventDefault();
     }
 
     hintClickedDebug($event: MouseEvent) {
-        this.inputService.setKeyboardShiftOn(true);
+        this.inputService.setKeyboardShiftOn(!this.shiftKeyOn);
         event.stopPropagation();
         event.preventDefault();
 
