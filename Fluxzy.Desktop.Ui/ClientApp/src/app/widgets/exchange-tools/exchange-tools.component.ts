@@ -86,8 +86,8 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
             ).subscribe();
     }
 
-    public replay() : void {
-        this.apiService.exchangeReplay(this.exchange.id)
+    public replay(runInLiveEdit : boolean) : void {
+        this.apiService.exchangeReplay(this.exchange.id,runInLiveEdit)
             .pipe(
                 tap(result => result? this.statusBarService.addMessage('Request executed', 1000)
                 : this.statusBarService.addMessage('An error occurred while executing request', 1000))

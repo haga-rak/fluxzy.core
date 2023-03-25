@@ -6,6 +6,7 @@ using System.Net.Security;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Rules;
+using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
 
@@ -68,20 +69,25 @@ namespace Fluxzy.Clients
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
-            if (_effectiveRules == null) {
-                _effectiveRules = _startupSetting.FixedRules()
-                                                 .Concat(_startupSetting.AlterationRules)
-                                                 .ToList();
-            }
-
-            // out of scope action needs to be run everytime 
-
+            _effectiveRules ??= _startupSetting.FixedRules()
+                                               .Concat(_startupSetting.AlterationRules)
+                                               .ToList();
+            
             foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope
                                                             || a.Action.ActionScope == FilterScope.OutOfScope)) {
                 await rule.Enforce(
                     context, exchange, connection, filterScope,
                     ExecutionContext.BreakPointManager);
             }
+
+            if (exchange?.RunInLiveEdit ?? false) {
+                var breakPointAction = new BreakPointAction();
+                var rule = new Rule(breakPointAction, AnyFilter.Default); 
+
+                await rule.Enforce(context, exchange, connection, filterScope, 
+                    ExecutionContext.BreakPointManager);
+            }
+
         }
     }
 }

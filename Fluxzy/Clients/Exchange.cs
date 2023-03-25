@@ -47,6 +47,16 @@ namespace Fluxzy.Clients
             ExchangeCompletionSource.SetResult(false);
         }
 
+        /// <summary>
+        /// runtime constructor 
+        /// </summary>
+        /// <param name="idProvider"></param>
+        /// <param name="context"></param>
+        /// <param name="authority"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="bodyStream"></param>
+        /// <param name="httpVersion"></param>
+        /// <param name="receivedFromProxy"></param>
         public Exchange(
             IIdProvider idProvider,
             ExchangeContext context,
@@ -66,6 +76,12 @@ namespace Fluxzy.Clients
             };
 
             Metrics.ReceivedFromProxy = receivedFromProxy;
+
+            RunInLiveEdit = requestHeader.HeaderFields
+                                         .Any(h => h.Name.Span.Equals("x-fluxzy-live-edit",
+                                             StringComparison.OrdinalIgnoreCase));
+
+            
         }
 
         /// <summary>
@@ -156,6 +172,8 @@ namespace Fluxzy.Clients
         public string? Comment { get; set; } = null;
 
         public HashSet<Tag>? Tags { get; set; } = null;
+
+        public bool RunInLiveEdit { get; set; } = false; 
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {

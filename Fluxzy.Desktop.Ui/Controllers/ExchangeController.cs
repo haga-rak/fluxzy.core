@@ -105,7 +105,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
             [FromServices]
             IRequestReplayManager requestReplayManager,
             [FromServices]
-            IArchiveReaderProvider archiveReaderProvider)
+            IArchiveReaderProvider archiveReaderProvider,
+            [FromQuery(Name="runInLiveEdit")] bool runInLiveEdit = false)
         {
             var archiveReader = await archiveReaderProvider.Get();
             var exchangeInfo = archiveReader!.ReadExchange(exchangeId);
@@ -113,7 +114,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             if (exchangeInfo == null)
                 return new NotFoundObjectResult(exchangeId);
 
-            return await requestReplayManager.Replay(archiveReader, exchangeInfo);
+            return await requestReplayManager.Replay(archiveReader, exchangeInfo, runInLiveEdit);
         }
 
         [HttpGet("{exchangeId}/metrics")]
