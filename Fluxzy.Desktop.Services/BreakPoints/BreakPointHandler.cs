@@ -35,6 +35,11 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             _activeRuleManager.RemoveInMemoryRule(filterId);
         }
 
+        public void DeleteBreakPoints(IReadOnlyCollection<Guid> filterIds)
+        {
+            _activeRuleManager.RemoveInMemoryRules(filterIds);
+        }
+
         public void DeleteAllBreakPoints()
         {
             _activeRuleManager.ClearInMemoryRules();
