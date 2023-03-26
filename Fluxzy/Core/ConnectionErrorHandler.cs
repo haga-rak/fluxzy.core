@@ -116,8 +116,8 @@ namespace Fluxzy.Core
                     header.AsMemory(),
                     exchange.Authority.Secure);
 
-                if (DebugContext.EnableDumpStackTraceOn502)
-                    Console.WriteLine(message);
+                //if (DebugContext.EnableDumpStackTraceOn502)
+                //    Console.WriteLine(message);
 
                 exchange.Response.Body = new MemoryStream(messageBinary);
 
