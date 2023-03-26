@@ -1,8 +1,9 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
@@ -37,7 +38,9 @@ namespace Fluxzy.Rules.Actions
                 ? "Add request header"
                 : $"Add request header ({HeaderName}, {HeaderValue})";
 
-        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
+        public override ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.RequestHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName, HeaderValue));
 

@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
@@ -17,7 +18,9 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => "Remove cache";
 
-        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
+        public override ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             // TODO : reuse the same HeaderAlteration instance here instead of allocating new ones each call
 

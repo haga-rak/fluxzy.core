@@ -22,14 +22,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Rules\Filters\NewFolder\**" />
-	  <EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
-	  <None Remove="Rules\Filters\NewFolder\**" />
+		<Compile Remove="Rules\Filters\NewFolder\**" />
+		<EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
+		<None Remove="Rules\Filters\NewFolder\**" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
 		<PackageReference Include="SharpZipLib" Version="1.4.2" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
 		<PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
 		<PackageReference Include="System.Text.Json" Version="6.0.7" />
 		<PackageReference Include="System.Threading.Channels" Version="6.0.0" />
@@ -49,10 +50,6 @@
 			<LastGenOutput>FileStore.Designer.cs</LastGenOutput>
 			<Generator>PublicResXFileCodeGenerator</Generator>
 		</EmbeddedResource>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Core\Utils\" />
 	</ItemGroup>
 
 </Project>

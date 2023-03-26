@@ -1,18 +1,44 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Clients
 {
     public class RequestHeader : Header
     {
+        /// <summary>
+        ///     Building from flat H11
+        /// </summary>
+        /// <param name="headerContent"></param>
+        /// <param name="isSecure"></param>
         public RequestHeader(
             ReadOnlyMemory<char> headerContent,
             bool isSecure)
             : base(headerContent, isSecure)
+        {
+            Authority = this[Http11Constants.AuthorityVerb].First().Value;
+            Path = this[Http11Constants.PathVerb].First().Value;
+            Method = this[Http11Constants.MethodVerb].First().Value;
+            Scheme = this[Http11Constants.SchemeVerb].First().Value;
+
+            IsWebSocketRequest = this[Http11Constants.ConnectionVerb]
+                                     .Any(c => c.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
+                                 &&
+                                 this[Http11Constants.Upgrade]
+                                     .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        ///     Building from explicit headers
+        /// </summary>
+        /// <param name="headers"></param>
+        public RequestHeader(IEnumerable<HeaderField> headers)
+            : base(headers)
         {
             Authority = this[Http11Constants.AuthorityVerb].First().Value;
             Path = this[Http11Constants.PathVerb].First().Value;
@@ -80,10 +106,29 @@ namespace Fluxzy.Clients
 
     public class ResponseHeader : Header
     {
+        /// <summary>
+        ///     Building from flat header
+        /// </summary>
+        /// <param name="headerContent"></param>
+        /// <param name="isSecure"></param>
         public ResponseHeader(
             ReadOnlyMemory<char> headerContent,
             bool isSecure)
             : base(headerContent, isSecure)
+        {
+            StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
+
+            ConnectionCloseRequest = HeaderFields.Any(
+                r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
+                     && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        ///     Building from direct header
+        /// </summary>
+        /// <param name="headers"></param>
+        public ResponseHeader(IEnumerable<HeaderField> headers)
+            : base(headers)
         {
             StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
 

@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
@@ -18,7 +19,9 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => "Do not decrypt".Trim();
 
-        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
+        public override ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.BlindMode = true;
 

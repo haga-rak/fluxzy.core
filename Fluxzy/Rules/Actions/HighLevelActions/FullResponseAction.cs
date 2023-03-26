@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions
@@ -26,7 +27,9 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         public override string DefaultDescription => "Full response substitution";
 
-        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
+        public override ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.PreMadeResponse = PreMadeResponse;
 

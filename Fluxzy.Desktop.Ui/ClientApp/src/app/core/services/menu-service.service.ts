@@ -2,9 +2,8 @@ import {Injectable} from '@angular/core';
 import {filter, map, Observable, Subject, tap, switchMap, of} from 'rxjs';
 import {IApplicationMenuEvent} from '../../../../app/menu-prepare';
 import {ApiService} from '../../services/api.service';
-import {ExchangeSelectionService} from '../../services/exchange-selection.service';
 import {FileOpeningRequestViewModel, UiState} from '../models/auto-generated';
-import {FindMenu, GlobalMenuItems} from '../models/menu-models';
+import {FindMenu, FindMenuByName, GlobalMenuItems} from '../models/menu-models';
 import {ElectronService} from './electron/electron.service';
 import {DialogService} from "../../services/dialog.service";
 
@@ -144,7 +143,6 @@ export class MenuService {
         return ConfirmResult.Cancel;
     }
 
-
     public registerMenuEvent(menuId: string, callback: () => void): void {
         this.callBacks[menuId] = callback;
     }
@@ -214,6 +212,14 @@ export class MenuService {
             recentMenu.submenu = [];
             recentMenu.enabled = false;
         }
+
+        FindMenuByName(menus, 'pause-all').enabled = !uiState.breakPointState.anyEnabled;
+        FindMenuByName(menus, 'pause-all-with-filter').enabled = !uiState.breakPointState.anyEnabled;
+        FindMenuByName(menus, 'continue-all').enabled = uiState.breakPointState.anyPendingRequest;
+        FindMenuByName(menus, 'disable-all').enabled = uiState.breakPointState.anyPendingRequest ||
+            uiState.breakPointState.activeFilters.length > 0;
+
+
 
         this.electronService.ipcRenderer.sendSync('install-menu-bar', this._currentMenu);
     }

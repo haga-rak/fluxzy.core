@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Clients;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
@@ -36,7 +37,9 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => "Set client certificate".Trim();
 
-        public override ValueTask Alter(ExchangeContext context, Exchange? exchange, Connection? connection)
+        public override ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
             context.ClientCertificates ??= new X509Certificate2Collection();
             context.ClientCertificates.Add(ClientCertificate.GetCertificate());

@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -59,7 +59,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 if (kpValue.Length != 2)
                     throw new HPackCodecException($"Invalid header on line {line}");
 
-                var headerName = kpValue[0].Trim();
+                var headerName = kpValue[0].Trim(); // should we trim here? 
 
                 if (!keepNonForwardableHeader && Http11Constants.NonH2Header.Contains(headerName))
                     continue;

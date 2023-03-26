@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Net;
@@ -7,6 +7,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Core.Breakpoints;
 
 namespace Fluxzy.Clients
 {
@@ -39,6 +40,8 @@ namespace Fluxzy.Clients
         /// </summary>
         public bool BlindMode { get; set; }
 
+        public bool ForceNewConnection { get; set; } = false;
+
         public PreMadeResponse? PreMadeResponse { get; set; }
 
         public List<SslApplicationProtocol>? SslApplicationProtocols { get; set; }
@@ -50,5 +53,7 @@ namespace Fluxzy.Clients
         public List<HeaderAlteration> RequestHeaderAlterations { get; } = new();
 
         public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new();
+
+        public BreakPointContext? BreakPointContext { get; set; }
     }
 }

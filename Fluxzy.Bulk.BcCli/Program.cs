@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -6,21 +8,19 @@ using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
-using Fluxzy.Interop.Pcap.Pcapng;
-using Fluxzy.Interop.Pcap.Pcapng.Structs;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
 namespace Fluxzy.Bulk.BcCli
 {
     /// <summary>
-    /// Check list ALPN
-    /// Client Certificate (OK) 
-    /// Master KEY NOn (OK pour client random et server random )
+    ///     Check list ALPN
+    ///     Client Certificate (OK)
+    ///     Master KEY NOn (OK pour client random et server random )
     /// </summary>
     internal class Program
     {
-        static async Task Main()
+        private static async Task Main()
         {
             await QuickCaptureWithBouncy();
 
@@ -32,26 +32,25 @@ namespace Fluxzy.Bulk.BcCli
             //writer.WriteInterfaceDescription(fileStream, new InterfaceDescription(1)
             //{
             //    Name = "WAN",
-            //    Description = "Superinterface très bien"
+            //    Description = "Superinterface trÃ¨s bien"
             //});
         }
 
         private static async Task QuickCaptureWithBouncy()
         {
             var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
-                (a) => new OutOfProcessCaptureContext(a));
+                a => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = await CapturedTcpConnectionProvider.Create(scope, false);
-            
 
             var uriRaw
-              //  = "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ";
-            // = "https://extranet.2befficient.fr/ip";
-                    = "https://sandbox.smartizy.com/ip";
-            
-            if (!Uri.TryCreate(uriRaw, UriKind.Absolute, out var uri)) {
+
+                //  = "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ";
+                // = "https://extranet.2befficient.fr/ip";
+                = "https://sandbox.smartizy.com/ip";
+
+            if (!Uri.TryCreate(uriRaw, UriKind.Absolute, out var uri))
                 throw new Exception("Invalid URI");
-            }
 
             var connection = tcpProvider.Create("testos.pcapng");
 
@@ -63,22 +62,19 @@ namespace Fluxzy.Bulk.BcCli
 
             var entireRequest = $"GET {uri.PathAndQuery} HTTP/1.1\r\n" +
                                 $"Host: {uri.Host}\r\n" +
-                                $"User-Agent: Coco\r\n" +
-                                $"Accept: text/plain\r\n" +
-                                $"Connection: close\r\n" +
-                                $"X-Header-Popo: Dodo\r\n\r\n";
+                                "User-Agent: Coco\r\n" +
+                                "Accept: text/plain\r\n" +
+                                "Connection: close\r\n" +
+                                "X-Header-Popo: Dodo\r\n\r\n";
 
             var stream = connection.GetStream();
 
             using var nssWriter = new NssLogWriter(File.Create("ssl.txt")) {
-                KeyHandler = (s =>
-                {
-                    connection.OnKeyReceived(s);
-                })
+                KeyHandler = s => { connection.OnKeyReceived(s); }
             };
 
             var fluxzyTlsClient = new FluxzyTlsClient(uri.Host, SslProtocols.Tls12 | SslProtocols.Tls11,
-                new[] {SslApplicationProtocol.Http11,});
+                new[] { SslApplicationProtocol.Http11 });
 
             var protocol = new FluxzyClientProtocol(stream, nssWriter);
 
@@ -90,7 +86,7 @@ namespace Fluxzy.Bulk.BcCli
 
             var listOfCertificate = new List<TlsCertificate>();
 
-            for (int i = 0; i < protocol.SessionParameters.PeerCertificate.Length; i++) {
+            for (var i = 0; i < protocol.SessionParameters.PeerCertificate.Length; i++) {
                 var cert = (BcTlsCertificate) protocol.SessionParameters.PeerCertificate.GetCertificateAt(i);
                 listOfCertificate.Add(cert);
 

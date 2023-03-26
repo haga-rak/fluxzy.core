@@ -1,13 +1,14 @@
 import { AfterViewInit, ChangeDetectorRef, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
-import { tap } from 'rxjs';
+import {filter, tap} from 'rxjs';
 import {
+    BreakPointState,
     ExchangeBrowsingState,
     ExchangeContainer,
     ExchangeInfo,
     ExchangeState,
     FilteredExchangeState,
-    TrunkState
+    TrunkState, UiState
 } from '../../core/models/auto-generated';
 import { ExchangeStyle } from '../../core/models/exchange-extensions';
 import { ExchangeContentService } from '../../services/exchange-content.service';
@@ -16,6 +17,8 @@ import { ExchangeSelection, ExchangeSelectionService } from '../../services/exch
 import {ContextMenuService, Coordinate} from "../../services/context-menu.service";
 import {ContextMenuExecutionService} from "../../services/context-menu-execution.service";
 import {ApiService} from "../../services/api.service";
+import {UiStateService} from "../../services/ui.service";
+import {BreakPointService} from "../../breakpoints/break-point.service";
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -33,6 +36,8 @@ export class ExchangeTableViewComponent implements OnInit {
     @ViewChild('perfectScroll') private perfectScroll: PerfectScrollbarComponent;
 
     private trunkState: TrunkState;
+    public breakPointState: BreakPointState | null = null;
+    public breakingIds: Set<number> | null = null;
 
     constructor(
         private exchangeManagementService : ExchangeManagementService,
@@ -41,7 +46,9 @@ export class ExchangeTableViewComponent implements OnInit {
         private exchangeContentService : ExchangeContentService,
         private contextMenuService : ContextMenuService,
         private contextMenuExchangeService : ContextMenuExecutionService,
-        private apiService: ApiService
+        private apiService: ApiService,
+        private uiStateService : UiStateService,
+        private breakPointService : BreakPointService
         ) { }
 
     ngOnInit(): void {
@@ -68,6 +75,19 @@ export class ExchangeTableViewComponent implements OnInit {
         this.exchangeManagementService.getBrowsingState().pipe(
                 tap(browsingState => this.browsingState = browsingState)
         ).subscribe();
+
+        this.uiStateService.lastUiState$
+            .pipe(
+                filter(t => !!t),
+                tap(t => this.breakingIds = new Set<number>(t.breakPointState.pausedExchangeIds))
+            ).subscribe();
+    }
+
+    public isPausing(exchangeId  : number) : boolean {
+        if (!this.breakingIds)
+            return false;
+
+        return this.breakingIds.has(exchangeId);
     }
 
     public scrollY(event : any) {
@@ -171,6 +191,10 @@ export class ExchangeTableViewComponent implements OnInit {
                     actions
                 ))
             ).subscribe();
+    }
+
+    showBreakPointDialog(id: number) {
+        this.breakPointService.openBreakPointDialog(id);
     }
 }
 

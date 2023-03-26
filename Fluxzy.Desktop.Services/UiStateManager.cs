@@ -1,10 +1,12 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Rules;
+using Fluxzy.Rules.Actions;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -22,6 +24,7 @@ namespace Fluxzy.Desktop.Services
             IObservable<TemplateToolBarFilterModel> templateToolBarFilterModel,
             IObservable<List<Rule>> activeRulesObservable,
             IObservable<LastOpenFileState> lastOpenFileStateObservable,
+            IObservable<BreakPointState> breakPointStateObservable,
             ForwardMessageManager forwardMessageManager,
             ToolBarFilterProvider toolBarFilterProvider)
         {
@@ -33,15 +36,16 @@ namespace Fluxzy.Desktop.Services
                 templateToolBarFilterModel,
                 activeRulesObservable,
                 lastOpenFileStateObservable,
+                breakPointStateObservable,
                 (
                     f, p, s, sp, v, tt,
-                    aro, lop) => {
+                    aro, lop, bs) => {
                     var defaultToolBarFilters = toolBarFilterProvider.GetDefault().ToList();
 
                     return new UiState(f, p,
                         s, sp,
                         v, defaultToolBarFilters,
-                        tt, aro, lop);
+                        tt, aro.Where(r => r.Action.GetType() != typeof(BreakPointAction)).ToList() , lop, bs);
                 });
 
             Observable = _stateObservable

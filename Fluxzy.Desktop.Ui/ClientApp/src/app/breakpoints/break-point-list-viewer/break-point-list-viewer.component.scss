@@ -1,0 +1,18 @@
+.live-edit-filter-table {
+    width: 100%;
+}
+
+.live-edit-filter-table > tr > td:first-child {
+    width : 32px;
+    text-align: center;
+}
+
+.live-edit-filter-table > tr:nth-child(odd) > td {
+    padding-bottom: 8px;
+}
+
+.live-edit-filter-table > tr > td:last-child {
+    width : 128px;
+    text-align: right;
+}
+

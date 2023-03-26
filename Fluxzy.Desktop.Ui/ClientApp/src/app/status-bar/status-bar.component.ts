@@ -8,6 +8,7 @@ import {UiStateService} from '../services/ui.service';
 import {StatusBarService} from "../services/status-bar.service";
 import {DialogService} from "../services/dialog.service";
 import {SystemCallService} from "../core/services/system-call.service";
+import {BreakPointService} from "../breakpoints/break-point.service";
 
 @Component({
     selector: 'app-status-bar',
@@ -28,7 +29,9 @@ export class StatusBarComponent implements OnInit {
         private apiService: ApiService,
         private statusBarService : StatusBarService,
         private dialogService : DialogService,
-        private systemCallService : SystemCallService
+        private systemCallService : SystemCallService,
+        private breakPointService : BreakPointService
+
     ) {
     }
 
@@ -41,7 +44,8 @@ export class StatusBarComponent implements OnInit {
             ).subscribe();
 
         this.selectionService.getCurrenSelectionCount().pipe(
-            tap(n => this.selectedCount = n)
+            tap(n => this.selectedCount = n),
+            tap(_ => this.cdr.detectChanges()),
         ).subscribe();
 
         this.exchangeManagementService.exchangeState$.pipe(
@@ -52,13 +56,13 @@ export class StatusBarComponent implements OnInit {
         this.uiStateService.getUiState()
             .pipe(
                 tap(u => this.uiState = u),
-
                 tap(_ => this.cdr.detectChanges()),
             ).subscribe();
 
         this.uiStateService.getFileState()
             .pipe(
-                tap(f => this.fileState = f)
+                tap(f => this.fileState = f),
+                tap(_ => this.cdr.detectChanges()),
             ).subscribe();
     }
 
@@ -93,6 +97,9 @@ export class StatusBarComponent implements OnInit {
 
     selectRule() {
         this.dialogService.openManageRules();
+    }
 
+    showBreakPointWindow() {
+        this.breakPointService.openBreakPointDialog();
     }
 }

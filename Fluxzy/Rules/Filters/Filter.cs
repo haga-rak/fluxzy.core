@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using Fluxzy.Misc.Converters;
@@ -78,4 +78,5 @@ namespace Fluxzy.Rules.Filters
             return !Inverted ? internalApplyResult : !internalApplyResult;
         }
     }
+    
 }

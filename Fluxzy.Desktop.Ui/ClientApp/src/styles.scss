@@ -19,7 +19,6 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: "Roboto";
 }
 
 /* CAN (MUST) BE REMOVED ! Sample Global style */
@@ -28,6 +27,9 @@ html, body {
     font-family: "Roboto";
 }
 
+a.nul {
+    text-decoration: none;
+}
 
 .shady-box {
     box-shadow:  var(--bs-gray-700) 0px 3px 8px;
@@ -187,6 +189,14 @@ pre > code {
     box-shadow:  var(--bs-gray-500) 0px 13px 18px;
 }
 
+.larger {
+    font-size: 1.05em;
+}
+
+li.larger {
+    margin-bottom: 6px;
+}
+
 .modal-dialog {
     min-width: 1000px !important;
     width: 90% !important;
@@ -305,7 +315,7 @@ pre > code {
     background-color: var(--bs-gray-900) ;
 }
 
-.btn {
+.btn:not(.no-shadow) {
     box-shadow: var(--bs-gray-500) 0px 1px 2px 0px, var(--bs-gray-500) 0px 2px 6px 2px;
 }
 
@@ -330,6 +340,11 @@ a {
 
     min-width: 600px !important;
     width: 600px  !important;
+}
+.modal-dialog-very-small {
+
+    min-width: 400px !important;
+    width: 400px  !important;
 }
 
 
@@ -370,4 +385,77 @@ a.auto-color {
 .list-group-item {
     background: transparent;
     border: none;
+}
+.badge {
+    padding : 4px ;
+    border-radius : 2px;
+}
+
+.soft-title {
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--bs-gray-600);
+    margin-bottom: 4px;
+}
+
+.soft-border {
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--bs-gray-600);
+    margin-bottom: 4px;
+}
+
+.form-floating input:read-only {
+    color: var(--bs-gray-300);
+}
+
+.flexible-width{
+    max-width : 2100px !important;
+    min-width : 900px !important;
+    width: 90% !important;
+}
+
+
+table.generic-form-layout {
+    width : 100% ;
+}
+
+table.generic-form-layout > tr > td {
+    vertical-align: top;
+    padding: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    height: auto;
+}
+
+table.generic-form-layout > tr > td:first-child {
+    width : 180px;
+    text-align: right;
+    color: var(--bs-gray-300) ;
+}
+
+.limited-text {
+    display: inline-block;
+    position: relative;
+    width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.form-control[disabled] {
+    background-color: var(--bs-gray-600);
+    color: var(--bs-gray-300);
+}
+
+.general-disabled {
+    background-color: var(--bs-gray-600);
+    color: var(--bs-gray-300);
+}
+
+.text-purple {
+    color: var(--bs-purple);
+
+}
+.text-teal {
+    color: var(--bs-teal);
+
 }
