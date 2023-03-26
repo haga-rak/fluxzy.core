@@ -54,7 +54,6 @@ namespace Fluxzy
         /// <summary>
         ///     Ssl protocols for remote host connection
         /// </summary>
-
         [JsonInclude]
         public SslProtocols ServerProtocols { get; internal set; } =
             SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
