@@ -3,6 +3,7 @@ import {ContextMenuModel, ContextMenuService} from "../../services/context-menu.
 import {tap} from "rxjs";
 import {ContextMenuAction} from "../../core/models/auto-generated";
 import {ContextMenuExecutionService} from "../../services/context-menu-execution.service";
+import {InputService} from "../../services/input.service";
 
 @Component({
     selector: 'app-context-menu',
@@ -14,9 +15,15 @@ export class ContextMenuComponent implements OnInit {
     public menuHide = true;
     private yCorrection = 0 ;
 
+    public ctrlKeyOn: boolean;
+    public shiftKeyOn: boolean;
+
     @ViewChild('contextMenuBlock') contextMenuBlock:ElementRef;
 
-    constructor(private contextMenuService : ContextMenuService, private contextMenuExchangeService : ContextMenuExecutionService, private cd : ChangeDetectorRef) {
+    constructor(private contextMenuService : ContextMenuService,
+                private contextMenuExchangeService : ContextMenuExecutionService,
+                private inputService : InputService,
+                private cd : ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -26,8 +33,17 @@ export class ContextMenuComponent implements OnInit {
                 tap(t => this.cd.detectChanges()),
                 tap(t => this.prepareMenu() ), // Compute the position
             ).subscribe();
-    }
 
+        this.inputService.keyBoardCtrlOn$.pipe(
+            tap(t => this.ctrlKeyOn = t),
+            tap(t => this.cd.detectChanges()),
+        ).subscribe();
+
+        this.inputService.keyBoardShiftOn$.pipe(
+            tap(t => this.shiftKeyOn = t),
+            tap(t => this.cd.detectChanges()),
+        ).subscribe();
+    }
 
     private prepareMenu() : void {
         const blockHeight : number = this.contextMenuBlock.nativeElement.offsetHeight;
@@ -61,7 +77,7 @@ export class ContextMenuComponent implements OnInit {
         event.preventDefault();
     }
 
-    public triggered(event: MouseEvent, contextMenuAction : ContextMenuAction) : void {
+    public triggered(event: MouseEvent, contextMenuAction : ContextMenuAction, and : boolean, liveEdit : boolean) : void {
         let data = event as any ;
         data.menuWasClicked = true;
 
@@ -69,7 +85,7 @@ export class ContextMenuComponent implements OnInit {
         event.preventDefault();
 
         this
-            .contextMenuExchangeService.executeAction(contextMenuAction, this.contextMenuModel.exchangeId)
+            .contextMenuExchangeService.executeAction(contextMenuAction, this.contextMenuModel.exchangeId, and, liveEdit)
             .pipe(
                 tap(_ => {
 
@@ -79,6 +95,7 @@ export class ContextMenuComponent implements OnInit {
             ).subscribe();
 
 
+        this.inputService.setKeyboardCtrlOn(false);
     }
 
     @HostListener('document:mousedown', ['$event'])
@@ -88,9 +105,6 @@ export class ContextMenuComponent implements OnInit {
         if (data.menuWasClicked){
             return;
         }
-
-
-
         this.contextMenuModel = null ;
         this.cd.detectChanges();
     }
@@ -104,4 +118,16 @@ export class ContextMenuComponent implements OnInit {
     }
 
 
+    hintClicked(event : Event) {
+        this.inputService.setKeyboardCtrlOn(!this.ctrlKeyOn);
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    hintClickedDebug($event: MouseEvent) {
+        this.inputService.setKeyboardShiftOn(!this.shiftKeyOn);
+        event.stopPropagation();
+        event.preventDefault();
+
+    }
 }

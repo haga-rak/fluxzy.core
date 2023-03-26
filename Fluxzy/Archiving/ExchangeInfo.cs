@@ -33,6 +33,7 @@ namespace Fluxzy
             ClientErrors = exchange.ClientErrors;
             KnownAuthority = exchange.KnownAuthority; 
             KnownPort = exchange.KnownPort;
+            Secure = exchange.Authority.Secure; 
         }
 
         [JsonConstructor]
@@ -42,7 +43,7 @@ namespace Fluxzy
             ExchangeMetrics metrics,
             string egressIp, bool pending, string? comment, HashSet<Tag>? tags,
             bool isWebSocket, List<WsMessage> webSocketMessages,
-            Agent? agent, List<ClientError> clientErrors, string knownAuthority, int knownPort)
+            Agent? agent, List<ClientError> clientErrors, string knownAuthority, int knownPort, bool secure)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -60,6 +61,7 @@ namespace Fluxzy
             KnownAuthority = knownAuthority;
             Tags = tags ?? new HashSet<Tag>();
             KnownPort = knownPort;
+            Secure = secure;
         }
 
         [JsonPropertyOrder(-10)]
@@ -91,6 +93,8 @@ namespace Fluxzy
 
 
         public int KnownPort { get;  }
+
+        public bool Secure { get; }
 
         public string Method => RequestHeader.Method.ToString();
 

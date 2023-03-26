@@ -13,27 +13,23 @@ namespace Fluxzy.Core.Breakpoints
     public class EditableRequestHeaderSet :
         EditableHeaderSet
     {
-        private EditableRequestHeaderSet(List<EditableHeader> headers, byte[] payload)
+        private EditableRequestHeaderSet(List<EditableHeader> headers)
             : base(headers)
         {
-            Payload = payload;
         }
-
-        public byte[] Payload { get; }
+        
 
         public static EditableHeaderParsingResult TryParse(
-            string rawHttp11, byte[] payload, out EditableRequestHeaderSet? result)
+            string rawHttp11, int payloadLength, out EditableRequestHeaderSet? result)
         {
             result = null;
-            var indexOfEnd = rawHttp11.IndexOf("\r\n\r\n", StringComparison.Ordinal);
 
-            if (indexOfEnd < 0)
-                return new EditableHeaderParsingResult("Must contains double CRLF");
+            rawHttp11 = rawHttp11.Trim('\r', '\n');
 
             List<HeaderField> headers;
 
             try {
-                headers = Http11Parser.Read(rawHttp11.AsMemory().Slice(0, indexOfEnd)).ToList();
+                headers = Http11Parser.Read(rawHttp11.AsMemory()).ToList();
             }
             catch (Exception _) {
                 return new EditableHeaderParsingResult("Some header lines are invalid");
@@ -50,23 +46,25 @@ namespace Fluxzy.Core.Breakpoints
 
             // We are removing any content length header 
 
-            headers.RemoveAll(t => t.Name.Equals(Http11Constants.ContentLength));
+            headers.RemoveAll(t => t.Name.Span.Equals(Http11Constants.ContentLength.Span, StringComparison.OrdinalIgnoreCase));
+            headers.RemoveAll(t => Http11Constants.UnEditableHeaders.Contains(t.Name));
 
-            result = new EditableRequestHeaderSet(headers.Select(h => new EditableHeader(
-                h.Name.ToString(), h.Value.ToString())).ToList(), payload);
+            result = new EditableRequestHeaderSet(
+                headers.Select(h => new EditableHeader(
+                h.Name.ToString(), h.Value.ToString())).ToList());
 
             result.Headers.Add(
                 new EditableHeader(Http11Constants.ContentLength.ToString(),
-                    payload.Length.ToString()));
+                    payloadLength.ToString()));
 
             return new EditableHeaderParsingResult(true);
         }
 
-        public Request ToRequest()
+        public Request ToRequest(Stream ? body)
         {
             var request = new Request(new RequestHeader(Headers.Select(s => new HeaderField(s.Name, s.Value))));
 
-            request.Body = new MemoryStream(Payload);
+            request.Body = body;
 
             return request;
         }
@@ -75,39 +73,31 @@ namespace Fluxzy.Core.Breakpoints
     public class EditableResponseHeaderSet :
         EditableHeaderSet
     {
-        private EditableResponseHeaderSet(List<EditableHeader> headers, byte[] payload)
+        private EditableResponseHeaderSet(List<EditableHeader> headers)
             : base(headers)
         {
-            Payload = payload;
         }
-
-        public byte[] Payload { get; }
-
-        public Response ToResponse()
+        
+        public Response ToResponse(Stream ? body)
         {
             var response = new Response {
                 Header = new ResponseHeader(Headers.Select(s => new HeaderField(s.Name, s.Value))),
-                Body = new MemoryStream(Payload)
+                Body = body
             };
-
-            response.Body = new MemoryStream(Payload);
-
             return response;
         }
 
         public static EditableHeaderParsingResult TryParse(
-            string rawHttp11, byte[] payload, out EditableResponseHeaderSet? result)
+            string rawHttp11, int payloadLength, out EditableResponseHeaderSet? result)
         {
             result = null;
-            var indexOfEnd = rawHttp11.IndexOf("\r\n\r\n", StringComparison.Ordinal);
 
-            if (indexOfEnd < 0)
-                return new EditableHeaderParsingResult("Must contains double CRLF");
+            rawHttp11 = rawHttp11.Trim('\r', '\n');
 
             List<HeaderField> headers;
 
             try {
-                headers = Http11Parser.Read(rawHttp11.AsMemory().Slice(0, indexOfEnd)).ToList();
+                headers = Http11Parser.Read(rawHttp11.AsMemory()).ToList();
             }
             catch (Exception _) {
                 return new EditableHeaderParsingResult("Some header lines are invalid");
@@ -118,15 +108,20 @@ namespace Fluxzy.Core.Breakpoints
 
             // We are removing any content length header 
 
-            var count = headers.RemoveAll(t =>
+            headers.RemoveAll(t =>
                 t.Name.Span.Equals(Http11Constants.ContentLength.Span, StringComparison.OrdinalIgnoreCase));
 
+            headers.RemoveAll(t =>
+                t.Name.Span.Equals(Http11Constants.ContentType.Span, StringComparison.OrdinalIgnoreCase));
+
+            headers.RemoveAll(t => Http11Constants.UnEditableHeaders.Contains(t.Name));
+
             result = new EditableResponseHeaderSet(headers.Select(h => new EditableHeader(
-                h.Name.ToString(), h.Value.ToString())).ToList(), payload);
+                h.Name.ToString(), h.Value.ToString())).ToList());
 
             result.Headers.Add(
                 new EditableHeader(Http11Constants.ContentLength.ToString(),
-                    payload.Length.ToString()));
+                    payloadLength.ToString()));
 
             return new EditableHeaderParsingResult(true);
         }

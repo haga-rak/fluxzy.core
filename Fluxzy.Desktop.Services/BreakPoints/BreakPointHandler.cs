@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -34,6 +35,11 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             _activeRuleManager.RemoveInMemoryRule(filterId);
         }
 
+        public void DeleteBreakPoints(IReadOnlyCollection<Guid> filterIds)
+        {
+            _activeRuleManager.RemoveInMemoryRules(filterIds);
+        }
+
         public void DeleteAllBreakPoints()
         {
             _activeRuleManager.ClearInMemoryRules();
@@ -55,6 +61,8 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             }
         }
 
+
+
         public void ContinueExchangeUntilEnd(int exchangeId)
         {
             var breakPointManager = _watcher.BreakPointManager;
@@ -67,6 +75,20 @@ namespace Fluxzy.Desktop.Services.BreakPoints
 
             context!.ContinueUntilEnd();
         }
+
+        public void ContinueExchangeUntil(int exchangeId, BreakPointLocation location)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.ContinueUntil(location);
+        }
+
 
         public void ContinueExchangeOnce(int exchangeId)
         {
@@ -81,7 +103,7 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             context!.ContinueOnce();
         }
 
-        public void SetEndPoint(int exchangeId, IPAddress ipAddress, int port)
+        public void SetEndPoint(int exchangeId, ConnectionSetupStepModel model)
         {
             var breakPointManager = _watcher.BreakPointManager;
 
@@ -91,7 +113,7 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             if (!breakPointManager.TryGet(exchangeId, out var context))
                 return;
 
-            context!.EndPointCompletion.SetValue(new IPEndPoint(ipAddress, port));
+            context!.ConnectionSetupCompletion.SetValue(model);
         }
 
         public void ContinueEndPoint(int exchangeId)
@@ -104,7 +126,65 @@ namespace Fluxzy.Desktop.Services.BreakPoints
             if (!breakPointManager.TryGet(exchangeId, out var context))
                 return;
 
-            context!.EndPointCompletion.SetValue(default);
+            context!.ConnectionSetupCompletion.SetValue(default);
+        }
+
+
+        public void SetRequest(int exchangeId, RequestSetupStepModel model)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.RequestHeaderCompletion.SetValue(model);
+        }
+
+        public void ContinueRequest(int exchangeId)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.RequestHeaderCompletion.SetValue(default);
+        }
+
+        public void SetResponse(int exchangeId, ResponseSetupStepModel model)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.ResponseHeaderCompletion.SetValue(model);
+        }
+
+        public void ContinueResponse(int exchangeId)
+        {
+            var breakPointManager = _watcher.BreakPointManager;
+
+            if (breakPointManager == null)
+                return;
+
+            if (!breakPointManager.TryGet(exchangeId, out var context))
+                return;
+
+            context!.ResponseHeaderCompletion.SetValue(default);
+        }
+
+        public void ClearAllDone()
+        {
+            _watcher.ClearAllDone();
         }
     }
 }

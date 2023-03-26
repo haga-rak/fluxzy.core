@@ -1,0 +1,127 @@
+<div class="main-edit" style="">
+        <div class="btn-group" role="group">
+            <button (click)="showHeader(true)" type="button" class="btn btn-primary"
+                    [class]="{ 'btn-gray-400' : !headerShown }">
+                <i *ngIf="headerShown" class="fa fa-edit"></i>
+                Edit header</button>
+            <button (click)="showHeader(false)" type="button" class="btn btn-primary"
+                    [class]="{ 'btn-gray-400' : headerShown }">
+                <i   *ngIf="!headerShown" class="fa fa-edit"></i>
+                Edit body</button>
+        </div>
+        <div class="row button-col" style="margin-top : 10px; height : calc(100% - 56px)">
+
+            <header-editor *ngIf="headerShown" [(model)]="model.flatHeader" (modelChange)="modelChange($event)"  [isRequest]="isRequest"
+                [readonly]="model.done">
+            </header-editor>
+
+            <div *ngIf="!headerShown">
+                <div class="alert text-info btn-gray-900" *ngIf="!isRequest" style="margin-top:16px;">
+                    <i class="fa fa-info-circle text-primary" ></i>
+                    You can edit here the response body before the client receives it.
+                    <br/>
+                    <span *ngIf="wasOriginalyFile">
+                     <i class="fa fa-warning text-warning" ></i>
+                    The content body was saved as file because of its size or because it contains binary data.
+                </span>
+                </div>
+                <table  class="generic-form-layout ">
+                    <tr>
+                        <td>Original content length</td>
+                        <td>
+                        <span class="">
+                            {{ formatBytes(model.bodyLength) }}
+                        </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Content type</td>
+                        <td>
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="floatingInputValue"
+                                       [(ngModel)]="model.contentType"
+                                       [typeahead]="sampleContentTypes"
+                                       [disabled]="model.done"
+                                       [minLength]="0"
+                                       [isAnimated]="true"
+                                       placeholder="text/plain">
+                                <label for="floatingInputValue">Enter content-type header </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Content body</td>
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" [disabled]="model.done" [(ngModel)]="model.fromFile" [value]="false" name="flexRadioDefault" id="flexFromText" checked>
+                                <label class="form-check-label" for="flexFromText">
+                                    From raw text
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" [disabled]="model.done" [(ngModel)]="model.fromFile" [value]="true" name="flexRadioDefault" id="flexFromFile">
+                                <label class="form-check-label" for="flexFromFile">
+                                    From file
+                                </label>
+                            </div>
+                            <div style="margin-top : 8px">
+                                <div *ngIf="model.fromFile" >
+
+                                    <div class="text-info" style="margin-bottom: 16px">
+                                        Select a file from your computer. The file content will be the content body of the request/response.
+                                    </div>
+
+                                    <button [disabled]="model.done" class="btn btn-dark" (click)="selectAFile()">Select a file</button>
+                                    &nbsp;<br/>
+                                    &nbsp;<br/>
+                                    <div class="alert alert-info">
+
+                                    <span class="text-info">
+                                            Currently selected file:
+                                      </span>
+                                        <span>
+
+                                        <br/>
+                                            {{model.fileName}}
+                                         </span>
+                                    </div>
+                                </div>
+
+                                <div *ngIf="!model.fromFile">
+                                    <div class="text-info">
+                                        The following text will be encoded as UTF-8
+                                    </div>
+                                    <div class="form-floating"  >
+
+
+                                        <textarea [disabled]="model.done" [(ngModel)]="model.contentBody" class="form-control" placeholder="Enter request body here" id="floatingTextarea2" style="height: 250px"></textarea>
+                                        <label for="floatingTextarea2">Place content body here</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div [hidden]="headerShown"  style="width:100%">
+
+            </div>
+
+
+        </div>
+</div>
+<div class="text-end main-edit-footer" style="top: 0; margin-top: 0">
+    <div *ngIf="done">
+        <span class="text-success lead">This step is already done</span>
+    </div>
+    <span class="" *ngIf="!done">
+        <button class="btn btn-warning" (click)="saveAndContinue()">Save step and continue</button>
+        &nbsp;
+        <button *ngIf="!done" class="btn btn-outline-warning" (click)="continueExchange()">Skip this exchange</button>
+        &nbsp;
+        <button *ngIf="!done" class="btn btn-outline-warning" (click)="continue()">Skip this step</button>
+    </span>
+</div>
+

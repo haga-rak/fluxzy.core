@@ -1,6 +1,6 @@
 // noinspection ES6UnusedImports
 
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import {ChangeDetectorRef, Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuItemConstructorOptions } from 'electron';
 import {filter, switchMap, tap} from 'rxjs';
@@ -13,6 +13,7 @@ import { DialogService } from '../services/dialog.service';
 import { ExchangeSelectionService } from '../services/exchange-selection.service';
 import { UiStateService } from '../services/ui.service';
 import {BreakPointService} from "../breakpoints/break-point.service";
+import {InputService} from "../services/input.service";
 
 @Component({
     selector: 'app-home',
@@ -31,7 +32,8 @@ export class HomeComponent implements OnInit {
         private uiStateService : UiStateService,
         private apiService : ApiService,
         private _ : BreakPointService, // init the servie only
-        private cdr: ChangeDetectorRef) { }
+        private cdr: ChangeDetectorRef,
+        private inputService : InputService) { }
 
     ngOnInit(): void {
         // Check for the necessity to launch certificate wizard
@@ -50,14 +52,35 @@ export class HomeComponent implements OnInit {
         this.menuService.init();
         this.dialogService.init();
 
-
         this.exchangeSelectionService.getSelected()
             .pipe(
                     tap(t => this.selectedExchange = t),
                     // tap(t => console.log('yoi')),
                     // tap(t => console.log(this.selectedExchange )),
                     tap(t => setTimeout(() => this.cdr.detectChanges(),2)), // TODO : check issue here
-            ).subscribe()
+            ).subscribe() ;
     };
+
+    @HostListener('document:keydown', ['$event'])
+    handleKeyBoardDown(event: KeyboardEvent) {
+        if (event.ctrlKey || event.key === 'Control') {
+            this.inputService.setKeyboardCtrlOn(true);
+        }
+
+        if (event.key === 'Shift') {
+            this.inputService.setKeyboardShiftOn(true);
+        }
+    }
+
+    @HostListener('document:keyup', ['$event'])
+    handleKeyBoardUp(event: KeyboardEvent) {
+        if (event.key === 'Control') {
+            this.inputService.setKeyboardCtrlOn(false);
+        }
+
+        if (event.key === 'Shift') {
+            this.inputService.setKeyboardShiftOn(false);
+        }
+    }
 
 }

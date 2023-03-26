@@ -10,8 +10,8 @@ $main-primary : #48b4ea;
 // scss-docs-start gray-color-variables
 $white:    #fff ;
 $gray-100: #e9ecef ;
-$gray-200: #e9ecef ;
-$gray-300: #888888 ;
+$gray-200: rgba(233, 236, 239, 0.92);
+$gray-300: rgba(142, 147, 150, 0.92);
 $gray-400: #373737 ;
 $gray-450: #2d2d2d;
 $gray-500: #1c2027 ;
@@ -45,7 +45,7 @@ $info: rgba(159, 159, 159, 0);
 
 
 $font-family-sans-serif:     "Roboto";
-$font-size-root: 13px;
+$font-size-root: 13.2px;
 $material-icons-font-size : 24px;
 
 $min-contrast-ratio:   2 ;
