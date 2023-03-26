@@ -1,7 +1,8 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.IO.Compression;
+using Fluxzy.Clients;
 using Fluxzy.Misc.Streams;
 using ICSharpCode.SharpZipLib.Lzw;
 
@@ -66,6 +67,7 @@ namespace Fluxzy.Extensions
 
             return workStream;
         }
+        
     }
 
     public class CompressionInfo

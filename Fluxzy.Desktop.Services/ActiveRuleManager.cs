@@ -1,5 +1,6 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Immutable;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Rules;
@@ -9,6 +10,11 @@ namespace Fluxzy.Desktop.Services
 {
     public class ActiveRuleManager : ObservableProvider<HashSet<Guid>>
     {
+        /// <summary>
+        ///     Rules that stays on memory (not persisted), mostly breakpoints
+        /// </summary>
+        private readonly BehaviorSubject<ImmutableList<Rule>> _inMemoryRules = new(ImmutableList.Create<Rule>());
+
         private readonly IRuleStorage _ruleStorage;
 
         public ActiveRuleManager(IRuleStorage ruleStorage)
@@ -16,13 +22,21 @@ namespace Fluxzy.Desktop.Services
             _ruleStorage = ruleStorage;
             var subject = new BehaviorSubject<HashSet<Guid>>(new HashSet<Guid>());
 
-            ActiveRules = subject.AsObservable()
-                                 .Select(s => Observable.FromAsync(async () => {
-                                     var ruleContainers = await ruleStorage.ReadRules();
+            ActiveRules =
+                _inMemoryRules.AsObservable()
+                              .CombineLatest(
+                                  subject.AsObservable()
+                                         .Select(s => Observable.FromAsync(async () => {
+                                             var ruleContainers = await ruleStorage.ReadRules();
 
-                                     return ruleContainers.Where(r => s.Contains(r.Rule.Identifier))
-                                                          .Select(r => r.Rule).ToList();
-                                 })).Concat();
+                                             // TODO : unload breakpoint actions here 
+
+                                             return ruleContainers.Where(r => s.Contains(r.Rule.Identifier))
+                                                                  .Select(r => r.Rule).ToList();
+                                         })).Concat())
+                              .Select(s => s.Second.Concat(s.First).ToList());
+
+            ;
 
             Subject = subject;
         }
@@ -49,6 +63,36 @@ namespace Fluxzy.Desktop.Services
                 return;
 
             Subject.OnNext(current);
+        }
+
+        public void AddInMemoryRule(Rule rule)
+        {
+            _inMemoryRules.OnNext(_inMemoryRules.Value.Add(rule));
+        }
+
+        public void SetInMemoryRule(Rule rule)
+        {
+            _inMemoryRules.OnNext(_inMemoryRules.Value.Clear().Add(rule));
+        }
+
+        public void RemoveInMemoryRule(Guid filterIdentifier)
+        {
+            _inMemoryRules.OnNext(_inMemoryRules.Value.RemoveAll(t => t.Filter.Identifier == filterIdentifier));
+        }
+
+        public void RemoveInMemoryRules(IReadOnlyCollection<Guid> filterIdentifiers)
+        {
+            _inMemoryRules.OnNext(_inMemoryRules.Value.RemoveAll(t => filterIdentifiers.Contains(t.Filter.Identifier)));
+        }
+
+        public void ClearInMemoryRules()
+        {
+            _inMemoryRules.OnNext(ImmutableList.Create<Rule>());
+        }
+
+        public IEnumerable<Rule> GetInMemoryRules()
+        {
+            return _inMemoryRules.Value;
         }
     }
 }

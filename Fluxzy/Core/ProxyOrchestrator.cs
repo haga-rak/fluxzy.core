@@ -66,7 +66,7 @@ namespace Fluxzy.Core
                     var exchange =
                         localConnection.ProvisionalExchange;
 
-                    var endPoint = (IPEndPoint) client.Client.RemoteEndPoint;
+                    var endPoint = (IPEndPoint) client.Client.RemoteEndPoint!;
 
                     exchange.Metrics.LocalPort = endPoint.Port;
                     exchange.Metrics.LocalAddress = endPoint.Address.ToString();
@@ -88,13 +88,21 @@ namespace Fluxzy.Core
                                 // Solve user agent 
 
                                 exchange.Agent = Agent.Create(userAgentValue ?? string.Empty,
-                                    ((IPEndPoint) client.Client.LocalEndPoint).Address,
+                                    ((IPEndPoint) client.Client.LocalEndPoint!).Address,
                                     _proxyRuntimeSetting.UserAgentProvider);
                             }
+
+                            exchange.Step = ExchangeStep.Request;
 
                             await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);
+
+
+                            if (exchange.Context.BreakPointContext != null) {
+                                await exchange.Context.BreakPointContext.ConnectionSetupCompletion
+                                              .WaitForEdit();
+                            }
 
                             // Run header alteration 
 
@@ -102,9 +110,15 @@ namespace Fluxzy.Core
                                 requestHeaderAlteration.Apply(exchange.Request.Header);
                             }
 
+
                             IHttpConnectionPool connectionPool;
 
                             try {
+                                if (exchange.Context.BreakPointContext != null) {
+                                    await exchange.Context.BreakPointContext.RequestHeaderCompletion
+                                                  .WaitForEdit();
+                                }
+
                                 if (_archiveWriter != null) {
                                     _archiveWriter.Update(
                                         exchange,
@@ -169,10 +183,18 @@ namespace Fluxzy.Core
                             if (!exchange.Request.Header.IsWebSocketRequest && !exchange.Context.BlindMode
                                                                             && exchange.Response.Header != null) {
                                 // Request processed by IHttpConnectionPool returns before complete response body
+                                // Apply response alteration 
 
                                 await _proxyRuntimeSetting.EnforceRules(exchange.Context,
                                     FilterScope.ResponseHeaderReceivedFromRemote,
                                     exchange.Connection, exchange);
+
+                                // Setup break point for response 
+
+                                if (exchange.Context.BreakPointContext != null) {
+                                    await exchange.Context.BreakPointContext.ResponseHeaderCompletion
+                                                  .WaitForEdit();
+                                }
 
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     exchange.Response.Body != null &&
@@ -326,7 +348,7 @@ namespace Fluxzy.Core
                             );
 
                             if (exchange != null) {
-                                var ep2 = (IPEndPoint) client.Client.RemoteEndPoint;
+                                var ep2 = (IPEndPoint) client.Client.RemoteEndPoint!;
 
                                 exchange.Metrics.LocalPort = ep2.Port;
                                 exchange.Metrics.LocalAddress = ep2.Address.ToString();

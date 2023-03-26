@@ -1,11 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Org.BouncyCastle.Tls;
 using System;
 using System.IO;
 using System.Net.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Core;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
@@ -42,7 +44,15 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             var protocol = new FluxzyClientProtocol(innerStream, nssWriter);
 
-            await Task.Run(() => protocol.Connect(client), token); // BAD but necessary
+            await Task.Run(() => {
+                try {
+
+                    protocol.Connect(client);
+                }
+                catch (TlsFatalAlertReceived ex) {
+                    throw new ClientErrorException(0, $"Handshake with {request.TargetHost} has failed", ex.Message);
+                }
+            }, token); // BAD but necessary
 
             var keyInfos =
                 Encoding.UTF8.GetString(memoryStream.ToArray());

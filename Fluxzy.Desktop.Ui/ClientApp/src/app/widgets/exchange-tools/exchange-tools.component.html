@@ -38,10 +38,10 @@
             <div>
                 <div style="margin-bottom: 12px;">
                     <div  style=" line-height: 32px">
-                        <a class="btn btn-gray-800 btn-sm"  (click)=" replay()" href="javascript:;" title="Re-run request in fluxzy">
+                        <a class="btn btn-gray-800 btn-sm"  (click)="replay(false)" href="javascript:;" title="Re-run request in fluxzy">
                             <span>replay request</span>
                         </a>&nbsp;
-                        <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[0])" href="javascript:;">
+                        <a class="btn btn-gray-800 btn-sm"  (click)="replay(true)" href="javascript:;">
                             <span>edit and replay request</span>
                         </a>&nbsp;
                     </div>

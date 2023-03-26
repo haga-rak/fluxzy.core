@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Readers;
 using Fluxzy.Rules.Filters;
@@ -7,10 +7,15 @@ namespace Fluxzy.Desktop.Services.Models
 {
     public class ViewFilter
     {
+        private static int _viewFilterId = 0; 
+
         private readonly Filter _effectiveFilter;
 
         public ViewFilter(Filter filter, Filter sourceFilter)
         {
+            // unique id help to make distinct
+            Id = Interlocked.Increment(ref _viewFilterId);
+
             Filter = filter;
             SourceFilter = sourceFilter;
 
@@ -19,7 +24,10 @@ namespace Fluxzy.Desktop.Services.Models
                 : new FilterCollection(Filter, SourceFilter) {
                     Operation = SelectorCollectionOperation.And
                 };
+
         }
+
+        public int Id { get; }
 
         public Filter Filter { get; }
 

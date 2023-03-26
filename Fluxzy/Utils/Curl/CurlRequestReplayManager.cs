@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Misc;
@@ -18,12 +18,12 @@ namespace Fluxzy.Utils.Curl
             _runningProxyProvider = runningProxyProvider;
         }
 
-        public async Task<bool> Replay(IArchiveReader archiveReader, ExchangeInfo exchangeInfo)
+        public async Task<bool> Replay(IArchiveReader archiveReader, ExchangeInfo exchangeInfo, bool runInLiveEdit = false)
         {
             var configuration = await _runningProxyProvider.GetConfiguration();
 
             var curlCommandResult =
-                _requestConverter.BuildCurlRequest(archiveReader, exchangeInfo, configuration);
+                _requestConverter.BuildCurlRequest(archiveReader, exchangeInfo, configuration, runInLiveEdit);
 
             var args = curlCommandResult.GetProcessCompatibleArgs();
 

@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -21,7 +21,7 @@ namespace Fluxzy.Utils.Curl
         public CurlCommandResult BuildCurlRequest(
             IArchiveReader archiveReader,
             ExchangeInfo exchange,
-            IRunningProxyConfiguration? configuration)
+            IRunningProxyConfiguration? configuration, bool runInLiveEdit = false)
         {
             var result = new CurlCommandResult(configuration);
             var fullUrl = exchange.FullUrl;
@@ -45,6 +45,10 @@ namespace Fluxzy.Utils.Curl
                     continue;
 
                 result.AddOption("-H", $"{requestHeader.Name}: {requestHeader.Value}");
+            }
+
+            if (runInLiveEdit) {
+                result.AddOption("-H", $"x-fluxzy-live-edit: true");
             }
 
             using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);

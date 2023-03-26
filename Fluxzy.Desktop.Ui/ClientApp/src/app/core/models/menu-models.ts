@@ -25,6 +25,9 @@ export const FindMenu : (arrayf : MenuItemConstructorOptions [] , condition : (i
         return null;
     }
 
+export const FindMenuByName = (array : MenuItemConstructorOptions [] , name : string ) : MenuItemConstructorOptions => {
+    return FindMenu(array, (item) => item.id === name);
+}
 
 export const GlobalMenuItems : MenuItemConstructorOptions []=  [
     {
@@ -160,6 +163,46 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 label : 'Stop recording',
                 accelerator : 'Shift+F5',
                 icon : '',
+            },
+        ]
+    },
+    {
+        label : 'Live edit',
+        submenu : [
+            {
+                label : 'Catch all',
+                id : 'pause-all'
+            },
+            {
+                label : 'Catch with filter',
+                id : 'pause-all-with-filter'
+            },
+            {
+                label : 'Delete all live edit filters',
+                id : 'delete-all-filters'
+            },
+            {
+                type :  'separator'
+            },
+            {
+                label : 'Resume all pending requests',
+                id : 'continue-all'
+            },
+            {
+                label : 'Resume all pending requests and delete live edit filters',
+                id : 'disable-all'
+            },
+            {
+                type :  'separator'
+            },
+            {
+                label : 'Show live edit dialog',
+                id : 'breakpoint-window',
+                accelerator : 'F11',
+            },
+            {
+                label : 'Show active live edit filters',
+                id : 'show-catcher',
             },
         ]
     },

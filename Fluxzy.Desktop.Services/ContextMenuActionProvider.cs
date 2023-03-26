@@ -75,6 +75,11 @@ namespace Fluxzy.Desktop.Services
                 actions.AddRange(downloadActions);
             }
 
+
+            actions.Add(ContextMenuAction.GetDivider());
+            actions.Add(ContextMenuAction.CreateInstance("replay", "Replay request"));
+            actions.Add(ContextMenuAction.CreateInstance("replay-live-edit", "Replay request and live edit"));
+
             return actions.ToImmutableList();
         }
 

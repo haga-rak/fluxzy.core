@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -16,13 +16,9 @@ namespace Fluxzy.Clients
         private readonly ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields;
         private readonly List<HeaderField> _rawHeaderFields;
 
-        protected Header(
-            ReadOnlyMemory<char> rawHeader,
-            bool isSecure)
+        protected Header(IEnumerable<HeaderField> headerFields)
         {
-            HeaderLength = rawHeader.Length;
-
-            _rawHeaderFields = Http11Parser.Read(rawHeader, isSecure, true, false).ToList();
+            _rawHeaderFields = headerFields.ToList();
 
             _lookupFields = _rawHeaderFields
                 .ToLookup(t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
@@ -37,7 +33,12 @@ namespace Fluxzy.Clients
                 ContentLength = contentLength;
         }
 
-        public int HeaderLength { get; }
+        protected Header(
+            ReadOnlyMemory<char> rawHeader,
+            bool isSecure)
+            : this(Http11Parser.Read(rawHeader, isSecure, true, false))
+        {
+        }
 
         public IEnumerable<HeaderField> this[ReadOnlyMemory<char> key] => _lookupFields[key];
 

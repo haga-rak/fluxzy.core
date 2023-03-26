@@ -9,7 +9,6 @@ import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { AppComponent } from './app.component';
-import { MenuComponent } from './menu/menu.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { ToggleComponent } from './widgets/toggle/toggle.component';
@@ -97,6 +96,16 @@ import {BackendInterceptor} from "./core/backend.interceptor";
 import { ExchangeToolsComponent } from './widgets/exchange-tools/exchange-tools.component';
 import { ExchangeMetricsComponent } from './widgets/exchange-metrics/exchange-metrics.component';
 import { WizardComponent } from './settings/wizard/wizard.component';
+import { BreakPointDialogComponent } from './breakpoints/break-point-dialog/break-point-dialog.component';
+import { ConnectionSetupStepComponent } from './breakpoints/break-point-steps/authority/connection-setup-step.component';
+import { EditRequestResponseComponent } from './breakpoints/break-point-steps/edit-request/edit-request-response.component';
+import { HeaderEditorComponent } from './shared/header-editor/header-editor.component';
+import { AddOrEditHeaderComponent } from './shared/header-editor/dialogs/add-header/add-or-edit-header.component';
+import { EditRequestLineComponent } from './shared/header-editor/dialogs/edit-request-line/edit-request-line.component';
+import { EditResponseLineComponent } from './shared/header-editor/dialogs/edit-response-line/edit-response-line.component';
+import { SetRedirectionComponent } from './shared/header-editor/dialogs/set-redirection/set-redirection.component';
+import { UrlDisplayComponent } from './shared/url-display/url-display.component';
+import { BreakPointListViewerComponent } from './breakpoints/break-point-list-viewer/break-point-list-viewer.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -111,7 +120,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
 @NgModule({
     declarations: [
         AppComponent,
-        MenuComponent,
         ToggleComponent,
         HomeComponent,
         StatusBarComponent,
@@ -180,6 +188,16 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ExchangeToolsComponent,
         ExchangeMetricsComponent,
         WizardComponent,
+        BreakPointDialogComponent,
+        ConnectionSetupStepComponent,
+        EditRequestResponseComponent,
+        HeaderEditorComponent,
+        AddOrEditHeaderComponent,
+        EditRequestLineComponent,
+        EditResponseLineComponent,
+        SetRedirectionComponent,
+        UrlDisplayComponent,
+        BreakPointListViewerComponent,
 
 
     ],

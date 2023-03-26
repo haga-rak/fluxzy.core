@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +19,9 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpPost("consume")]
         public async Task<ActionResult<List<ForwardMessage>>> Consume()
         {
-            return await _manager.ReadAll();
+            var res =  await _manager.ReadAll();
+
+            return res; 
         }
     }
 }

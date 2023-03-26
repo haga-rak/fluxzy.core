@@ -22,7 +22,7 @@ import {
     CertificateOnStore,
     CertificateValidationResult, CertificateWizardStatus,
     CommentUpdateModel,
-    ConnectionInfo,
+    ConnectionInfo, ConnectionSetupStepModel,
     ContextMenuAction, CurlCommandResult, DescriptionInfo,
     ExchangeBrowsingState, ExchangeMetricInfo,
     ExchangeState,
@@ -34,9 +34,9 @@ import {
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult,
-    ForwardMessage, HarExportRequest,
+    ForwardMessage, HarExportRequest, IPEndPoint,
     MultipartItem,
-    NetworkInterfaceInfo,
+    NetworkInterfaceInfo, RequestSetupStepModel, ResponseSetupStepModel,
     Rule,
     RuleContainer,
     SaveFileMultipartActionModel, SazExportRequest,
@@ -216,8 +216,8 @@ export class ApiService {
         return this.httpClient.get<CurlCommandResult>(`api/exchange/${exchangeId}/curl`).pipe(take(1));
     }
 
-    public exchangeReplay(exchangeId: number) : Observable<boolean> {
-        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/replay`, null).pipe(take(1));
+    public exchangeReplay(exchangeId: number, runInLiveEdit : boolean) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/exchange/${exchangeId}/replay?runInLiveEdit=${runInLiveEdit}`, null).pipe(take(1));
     }
 
     public exchangeMetrics(exchangeId: number) : Observable<ExchangeMetricInfo> {
@@ -297,6 +297,14 @@ export class ApiService {
 
     public filterApplyToview(filter: Filter) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/filter/apply/regular`, filter).pipe(take(1));
+    }
+
+    public filterApplyToViewAnd(filter: Filter) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/filter/apply/regular/and`, filter).pipe(take(1));
+    }
+
+    public filterApplyToViewOr(filter: Filter) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/filter/apply/regular/or`, filter).pipe(take(1));
     }
 
     public filterApplySource(filter: Filter) : Observable<boolean> {
@@ -412,4 +420,72 @@ export class ApiService {
     public wizardRevive() : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/wizard/certificate/revive`, null).pipe(take(1)) ;
     }
+
+    public breakPointActiveBreakPoints() : Observable<Rule[]> {
+        return this.httpClient.get<Rule[]>(`api/breakpoint`).pipe(take(1)) ;
+    }
+
+    public breakPointAdd(filter: Filter) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint`, filter).pipe(take(1)) ;
+    }
+
+    public breakPointBreakAll() : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/all`, null).pipe(take(1)) ;
+    }
+
+    public breakPointDelete(filterId: string) : Observable<boolean> {
+        return this.httpClient.delete<boolean>(`api/breakpoint/${filterId}`).pipe(take(1)) ;
+    }
+
+    public breakPointDeleteMultiple(filterIds: string[]) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/delete`, filterIds).pipe(take(1)) ;
+    }
+
+    public breakPointDeleteAll() : Observable<boolean> {
+        return this.httpClient.delete<boolean>(`api/breakpoint/clear`).pipe(take(1)) ;
+    }
+
+    public breakPointDeleteAllDone() : Observable<boolean> {
+        return this.httpClient.delete<boolean>(`api/breakpoint/clear-done`).pipe(take(1)) ;
+    }
+
+    public breakPointContinueAll() : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/continue-all`, null).pipe(take(1)) ;
+    }
+
+    public breakPointContinueUntilEnd(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/continue`, null).pipe(take(1)) ;
+    }
+    public breakPointContinueUntilBreakPoint(exchangeId : number, location : string) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/continue/until/${location}`, null).pipe(take(1)) ;
+    }
+
+    public breakPointContinueOnce(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/continue/once`, null).pipe(take(1)) ;
+    }
+
+    public breakPointEndPointSet(exchangeId : number, model : ConnectionSetupStepModel) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/endpoint`, model).pipe(take(1)) ;
+    }
+
+    public breakPointEndPointContinue(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/endpoint/continue`, null).pipe(take(1)) ;
+    }
+
+    public breakPointSetRequest(exchangeId : number, model : RequestSetupStepModel) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/request`, model).pipe(take(1)) ;
+    }
+
+    public breakPointSetResponse(exchangeId : number, model : ResponseSetupStepModel) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/response`, model).pipe(take(1)) ;
+    }
+
+    public breakPointContinueRequest(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/request/continue`, null).pipe(take(1)) ;
+    }
+
+    public breakPointContinueResponse(exchangeId : number) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/response/continue`, null).pipe(take(1)) ;
+    }
+
 }

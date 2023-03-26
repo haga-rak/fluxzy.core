@@ -15,6 +15,7 @@ using Fluxzy.Clients.Ssl;
 using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Core;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
@@ -205,10 +206,18 @@ namespace Fluxzy
         {
             SessionId = sessionId;
             StartupSetting = startupSetting;
+                
+            BreakPointManager = new(startupSetting.AlterationRules.Where(r => r.Action is BreakPointAction)
+                                                  .Select(a => a.Filter)); 
         }
 
         public string SessionId { get; }
 
         public FluxzySetting StartupSetting { get; }
+
+        public BreakPointManager BreakPointManager { get; }
+
     }
+
+
 }

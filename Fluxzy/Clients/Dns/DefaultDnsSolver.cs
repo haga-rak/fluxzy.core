@@ -30,5 +30,15 @@ namespace Fluxzy.Clients.Dns
                 throw clientErrorException;
             }
         }
+        public async Task<IPAddress?> SolveDnsQuietly(string hostName)
+        {
+            try {
+                return await SolveDns(hostName).ConfigureAwait(false); 
+            }
+            catch {
+                // it's quiet solving 
+                return null; 
+            }
+        }
     }
 }

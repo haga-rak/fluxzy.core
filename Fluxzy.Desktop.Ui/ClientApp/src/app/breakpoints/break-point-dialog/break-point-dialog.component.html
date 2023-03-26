@@ -1,0 +1,175 @@
+<div class="modal-header" style="padding:4px; padding-left: 16px">
+    <h4 class="modal-title pull-left">Live edit</h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="bsModalRef.hide()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" *ngIf="breakPointState" style="padding-top:2px">
+    <div *ngIf="breakPointState.entries.length === 0" class="p-4">
+        <p class="lead text-center text-info">
+            There is no currently active breakpoint.
+            <br/>
+            You can toggle a breakpoint by replaying a capture request
+            <br/>
+            or by setting directly a breakpoint from the debug menu.
+        </p>
+    </div>
+    <div  *ngIf="currentContextInfo">
+        <div class="p-3">
+
+            <div class="row">
+                <div class="col-6">
+                    <div class="btn-group" role="group" dropdown>
+                        <button  type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+                                 aria-expanded="false" dropdownToggle>
+                                    <span>
+                                        <span class="badge bg-success text-gray-600" *ngIf="currentContextInfo.done">done</span>
+                                        <span class="badge bg-warning text-gray-600" *ngIf="!currentContextInfo.done">in pause</span>
+                                        &nbsp;
+                                    </span>
+                            Exchange #{{ currentContextInfo.exchangeId}} - <span class="text-info"  app-url-display [model]="currentContextInfo.exchange.fullUrl"></span>
+                        </button>
+                        <ul class="dropdown-menu bg-light text-primary" *dropdownMenu >
+                            <li role="menuitem" *ngFor="let entry of breakPointState.entries">
+                                <a class="dropdown-item" href="javascript:;" (click)="selectEntry(entry)">
+
+                                    <span>
+                                        <span class="badge bg-success text-gray-600" *ngIf="entry.done">done</span>
+                                        <span class="badge bg-warning text-gray-600" *ngIf="!entry.done">in pause</span>
+                                        &nbsp;
+                                    </span>
+
+
+                                    #{{ entry.exchangeId}} -
+                                    <span class="text-info"  app-url-display [model]="entry.exchange.fullUrl"></span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+
+<!--                    <span *ngIf="breakPointState.activeEntries > 0 && currentContextInfo.done"-->
+<!--                    style="cursor:pointer" (click)="setSelectionToNextPending()" title="some requests are waiting to be edited to continue">-->
+<!--                        &nbsp;&nbsp;-->
+<!--                        <span class="badge btn-danger lead text-gray-200" >-->
+<!--                            PENDING ({{ breakPointState.activeEntries }})-->
+<!--                        </span>-->
+<!--                    </span>-->
+                </div>
+                <div class="col-6 text-end">
+                    <div class="btn-group btn-command" role="group" aria-label="">
+                        <button *ngIf="breakPointState.activeEntries > 0 && currentContextInfo.done"  type="button" class="btn btn-danger text-gray-200" (click)="setSelectionToNextPending()" title="some requests are waiting to be edited to continue">
+                            {{ breakPointState.activeEntries }} request{{ breakPointState.activeEntries > 1 ? 's': ''}} in pause</button>
+
+                        <button   type="button" class="btn btn-dark no-shadow" (click)="clearAllDone()" title="Clear all done">
+                            <i class="fa fa-trash"></i></button>
+                        <button [disabled]="currentContextInfo.done"  type="button" class="btn btn-gray-400 btn-outline-warning no-shadow" (click)="continueNext()" title="Skip">
+                            <i class="fa fa-step-forward"></i></button>
+                        <button  [disabled]="currentContextInfo.done"  type="button" class="btn btn-gray-400 btn-outline-warning no-shadow" (click)="continueUntilEnd()" title="Skip until end">
+                            <i class="fa fa-fast-forward"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table style="width: 100%;height:100%" class="table-bp-layout">
+            <tr>
+                <td style="">
+
+                    <div class="alert">
+
+                        <p class="lead text-info">Exchange <span class="text-white">#{{ currentContextInfo.exchangeId }}</span> steps
+                            &nbsp;<span class="badge bg-success text-gray-600" *ngIf="currentContextInfo.done">done</span></p>
+                        <ul class="fa-ul border-right ul-step">
+                            <li *ngFor="let item of currentContextInfo.stepInfos" class="larger">
+
+                            <span class="fa-li" *ngIf="item.status === 'AlreadyRun'">
+                                <i class="fa fa-check-circle text-gray-200" title="Done"></i></span>
+
+                                <span class="fa-li" *ngIf="item.status === 'Current'">
+                                <i class="fa fa-pause text-warning"></i>
+                            </span>
+                                <span class="fa-li"  *ngIf="item.status === 'Pending'">
+                                <i class="fa fa-minus" title="Not run yet"></i>
+                            </span>
+
+                                <a href="javascript:;" class="nul"
+                                   (click)="setSelectedStepInfo(item)"
+                                   [class]="{'text-info' : item.status !== 'Current', 'sinfo-selected' : item === selectedStepInfo}">{{ item.stepName}}</a>
+
+                                <span class="float-end"  *ngIf="item.status === 'Pending'">
+                                    <a href="javascript:;" class="small text-warning" title="Skip until here"
+                                            (click)="skipUntilBreakPoint(item.location)">
+                                        <i class="fa fa-forward"></i>
+                                    </a>
+                                </span>
+                            </li>
+
+                        </ul>
+                    </div>
+                </td>
+                <td>
+
+                    <div class="alert edit-container" style="height:100%">
+
+                        <div class="lead text-center"  *ngIf="!selectedStepInfo">No step selected</div>
+                        <div style="padding : 8px; display: flex; align-items: stretch; width : 100%" *ngIf="selectedStepInfo" >
+
+<!--                            <h4 class="soft-border">-->
+<!--                                {{ selectedStepInfo.stepName }}-->
+<!--                                <small class="badge bg-success text-gray-600" *ngIf="selectedStepInfo.status === 'AlreadyRun'">-->
+<!--                                    &lt;!&ndash;                                <i class="fa fa-info-circle" aria-hidden="true"></i> &ndash;&gt;-->
+<!--                                    done</small>-->
+<!--                            </h4>-->
+
+                            <div *ngIf="selectedStepInfo.status === 'Pending'" class="bp-form-container"
+                            style="margin-top:8px">
+                                <div class="main-edit">
+                                    <h4>{{ selectedStepInfo.stepName }}</h4>
+                                    <div class="text-info">
+
+                                        This step is waiting for a forgoing step to execute. You can
+                                        <a href="javascript:;" class="text-warning" (click)="skipUntilBreakPoint(selectedStepInfo.location)">
+                                        <i class="fa fa-forward"></i>
+                                        Skip until here</a> to arrive to this step immediately.
+                                    </div>
+                                </div>
+                                <div class="main-edit-footer">
+
+                                </div>
+
+                            </div>
+
+                            <div class="bp-form-container" *ngIf="selectedStepInfo.status !== 'Pending'" style="width: 100%">
+                                <div app-authority *ngIf="selectedStepInfo.locationIndex === 1" [context]="currentContextInfo" [stepInfo]="selectedStepInfo"></div>
+                                <div app-edit-request *ngIf="selectedStepInfo.locationIndex === 2" [context]="currentContextInfo" [stepInfo]="selectedStepInfo" [isRequest]="true"></div>
+                                <div app-edit-request *ngIf="selectedStepInfo.locationIndex === 3" [context]="currentContextInfo" [stepInfo]="selectedStepInfo" [isRequest]="false"></div>
+
+
+                            </div>
+
+
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="row">
+            <div class="col-3">
+            </div>
+            <div class="col-9">
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<div class="modal-footer">
+    <button *ngIf="breakPointState && breakPointState.activeEntries > 0" class="btn btn-outline-warning" (click)="disableAllAndQuit()">
+        Resume all and disable live edit filters ({{ breakPointState.activeEntries }})</button>
+    <button *ngIf="breakPointState && breakPointState.activeEntries > 0" class="btn btn-outline-warning" (click)="skipAll()">
+        Skip all ({{ breakPointState.activeEntries }})</button>
+    <button class="btn btn-outline-primary" (click)="bsModalRef.hide()">Close</button>
+</div>

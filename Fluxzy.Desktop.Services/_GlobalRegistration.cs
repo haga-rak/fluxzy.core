@@ -7,6 +7,7 @@ using Fluxzy.Cli.System;
 using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Core.Proxy;
+using Fluxzy.Desktop.Services.BreakPoints;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
@@ -53,6 +54,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<FileDynamicStatsManager>();
             collection.AddSingleton<LastOpenFileManager>();
             collection.AddSingleton<UaParserUserAgentInfoProvider>();
+            collection.AddSingleton<BreakPointWatcher>();
 
             collection.AddSingleton<CertificateAuthorityManager>(t =>
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -81,6 +83,9 @@ namespace Fluxzy.Desktop.Services
                 (s => s.GetRequiredService<ProxyControl>().WriterObservable);
 
             collection.AddSingleton
+                (s => s.GetRequiredService<BreakPointWatcher>().ProvidedObservable);
+
+            collection.AddSingleton
                 (s => s.GetRequiredService<ActiveViewFilterManager>().ProvidedObservable);
 
             collection.AddSingleton
@@ -105,6 +110,7 @@ namespace Fluxzy.Desktop.Services
             (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
                    .Select(t => t.Observable).Switch());
 
+            collection.AddScoped<BreakPointHandler>();
             collection.AddScoped<IArchiveReaderProvider, ArchiveReaderProvider>();
             collection.AddScoped<FilterTemplateManager>();
             collection.AddScoped<ContextMenuActionProvider>();

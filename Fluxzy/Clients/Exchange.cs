@@ -47,6 +47,16 @@ namespace Fluxzy.Clients
             ExchangeCompletionSource.SetResult(false);
         }
 
+        /// <summary>
+        /// runtime constructor 
+        /// </summary>
+        /// <param name="idProvider"></param>
+        /// <param name="context"></param>
+        /// <param name="authority"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="bodyStream"></param>
+        /// <param name="httpVersion"></param>
+        /// <param name="receivedFromProxy"></param>
         public Exchange(
             IIdProvider idProvider,
             ExchangeContext context,
@@ -66,8 +76,22 @@ namespace Fluxzy.Clients
             };
 
             Metrics.ReceivedFromProxy = receivedFromProxy;
+
+            RunInLiveEdit = requestHeader.HeaderFields
+                                         .Any(h => h.Name.Span.Equals("x-fluxzy-live-edit",
+                                             StringComparison.OrdinalIgnoreCase));
+
+            
         }
 
+        /// <summary>
+        ///     Creating exchange from handler
+        /// </summary>
+        /// <param name="idProvider"></param>
+        /// <param name="authority"></param>
+        /// <param name="requestHeaderPlain"></param>
+        /// <param name="httpVersion"></param>
+        /// <param name="receivedFromProxy"></param>
         public Exchange(
             IIdProvider idProvider,
             Authority authority,
@@ -82,6 +106,8 @@ namespace Fluxzy.Clients
         }
 
         public int Id { get; }
+
+        public ExchangeStep Step { get; set; } = ExchangeStep.Received;
 
         /// <summary>
         ///     This tasks indicates the status of the exchange
@@ -133,6 +159,8 @@ namespace Fluxzy.Clients
 
         public string KnownAuthority => Authority.HostName;
 
+        public int KnownPort => Authority.Port;
+
         public string Method => Request.Header.Method.ToString();
 
         public string Path => Request.Header.Path.ToString();
@@ -144,6 +172,8 @@ namespace Fluxzy.Clients
         public string? Comment { get; set; } = null;
 
         public HashSet<Tag>? Tags { get; set; } = null;
+
+        public bool RunInLiveEdit { get; set; } = false; 
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
@@ -225,6 +255,14 @@ namespace Fluxzy.Clients
         }
     }
 
+    public enum ExchangeStep
+    {
+        Received,
+        Request,
+        Connection,
+        Response
+    }
+
     public class Request
     {
         public Request(RequestHeader header)
@@ -232,7 +270,7 @@ namespace Fluxzy.Clients
             Header = header;
         }
 
-        public RequestHeader Header { get; }
+        public RequestHeader Header { get; internal set; }
 
         public Stream? Body { get; set; }
 
@@ -247,6 +285,11 @@ namespace Fluxzy.Clients
         public ResponseHeader? Header { get; set; }
 
         public Stream? Body { get; set; }
+
+        public override string ToString()
+        {
+            return Header?.ToString() ?? string.Empty;
+        }
     }
 
     public class Error
