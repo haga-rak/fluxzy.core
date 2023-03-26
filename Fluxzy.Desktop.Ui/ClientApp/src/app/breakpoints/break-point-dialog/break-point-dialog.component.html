@@ -168,7 +168,7 @@
 </div>
 <div class="modal-footer">
     <button *ngIf="breakPointState && breakPointState.activeEntries > 0" class="btn btn-outline-warning" (click)="disableAllAndQuit()">
-        Disable breakpoint and skip all ({{ breakPointState.activeEntries }})</button>
+        Resume all and disable live edit filters ({{ breakPointState.activeEntries }})</button>
     <button *ngIf="breakPointState && breakPointState.activeEntries > 0" class="btn btn-outline-warning" (click)="skipAll()">
         Skip all ({{ breakPointState.activeEntries }})</button>
     <button class="btn btn-outline-primary" (click)="bsModalRef.hide()">Close</button>
