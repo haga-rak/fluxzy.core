@@ -21,7 +21,7 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context,
             Exchange? exchange,
             Connection? connection,
-            FilterScope scope, 
+            FilterScope scope,
             BreakPointManager breakPointManager)
         {
             if (exchange == null || exchange.Id == 0)
@@ -29,7 +29,8 @@ namespace Fluxzy.Rules.Actions
 
             if (context.BreakPointContext == null) {
                 ExchangeContext = context;
-                context.BreakPointContext = breakPointManager.GetOrCreate(exchange, 
+
+                context.BreakPointContext = breakPointManager.GetOrCreate(exchange,
                     AnyFilter.Default, // Propage filter until action
                     scope);
             }

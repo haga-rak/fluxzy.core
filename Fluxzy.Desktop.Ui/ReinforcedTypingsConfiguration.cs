@@ -98,6 +98,15 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<BreakPointContextStepInfo>()
                    .ApplyGenericProperties();
 
+            builder.ExportAsInterface<ConnectionSetupStepModel>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RequestSetupStepModel>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ResponseSetupStepModel>()
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<FluxzySettingsHolder>()
                 .ApplyGenericProperties();
 

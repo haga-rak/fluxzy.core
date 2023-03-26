@@ -784,12 +784,18 @@ export interface BreakPointState
 	hasToPop: boolean;
 	activeEntries: number;
 	entries: BreakPointContextInfo[];
+	anyEnabled: boolean;
+	isCatching: boolean;
+	anyPendingRequest: boolean;
+	activeFilters: Filter[];
+	pausedExchangeIds: number[];
 	emptyEntries: BreakPointState;
 }
 export interface BreakPointContextInfo
 {
 	exchangeId: number;
 	exchange: ExchangeInfo;
+	connectionInfo?: ConnectionInfo;
 	lastLocation: string;
 	currentHit?: string;
 	done: boolean;
@@ -799,8 +805,39 @@ export interface BreakPointContextInfo
 export interface BreakPointContextStepInfo
 {
 	locationIndex: number;
+	location: string;
 	stepName: string;
 	status: string;
+	internalAlterationModel?: any;
+	model?: any;
+}
+export interface ConnectionSetupStepModel
+{
+	forceNewConnection: boolean;
+	skipRemoteCertificateValidation: boolean;
+	ipAddress?: string;
+	port?: number;
+	done: boolean;
+}
+export interface RequestSetupStepModel
+{
+	done: boolean;
+	flatHeader?: string;
+	fromFile: boolean;
+	fileName?: string;
+	contentBody?: string;
+	contentType?: string;
+	bodyLength: number;
+}
+export interface ResponseSetupStepModel
+{
+	done: boolean;
+	flatHeader?: string;
+	fromFile: boolean;
+	fileName?: string;
+	contentBody?: string;
+	contentType?: string;
+	bodyLength: number;
 }
 export interface FluxzySettingsHolder
 {
@@ -917,6 +954,7 @@ export interface ExchangeInfo
 	fullUrl: string;
 	knownAuthority: string;
 	knownPort: number;
+	secure: boolean;
 	method: string;
 	path: string;
 	statusCode: number;

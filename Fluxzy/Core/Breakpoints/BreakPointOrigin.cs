@@ -2,16 +2,21 @@
 
 using System;
 using System.Threading.Tasks;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Core.Breakpoints
 {
-    public class BreakPointOrigin<T> : IBreakPoint
+    public class BreakPointOrigin<T> : IBreakPoint where T : class, IBreakPointAlterationModel, new()
     {
-        private readonly Action<BreakPointLocation?> _updateReceiver;
+        private readonly Exchange _exchange;
+        private readonly Action<IBreakPointAlterationModel, BreakPointLocation, bool> _updateReceiver;
         private readonly TaskCompletionSource<T?> _waitForValueCompletionSource;
 
-        public BreakPointOrigin(BreakPointLocation location, Action<BreakPointLocation?> updateReceiver)
+        public BreakPointOrigin(
+            Exchange exchange,
+            BreakPointLocation location, Action<IBreakPointAlterationModel, BreakPointLocation, bool> updateReceiver)
         {
+            _exchange = exchange;
             _updateReceiver = updateReceiver;
             Location = location;
             _waitForValueCompletionSource = new TaskCompletionSource<T?>();
@@ -29,17 +34,35 @@ namespace Fluxzy.Core.Breakpoints
             SetValue(default);
         }
 
-        public async Task<T?> WaitForValue()
+        public async Task WaitForEdit()
         {
             Running = true;
-            _updateReceiver(Location);
+
+            var originalValue = new T();
+
+            await originalValue.Init(_exchange);
+
+            _updateReceiver(originalValue, Location, false);
 
             try {
-                return await _waitForValueCompletionSource.Task;
+                // We init the value of location 
+
+                var updatedValue = await _waitForValueCompletionSource.Task;
+
+                if (updatedValue != null) {
+                    originalValue = updatedValue;
+                    
+                    await updatedValue.Alter(_exchange);
+                }
+                else {
+                    // undo 
+                    // Set back content body 
+                    await originalValue.Alter(_exchange);
+                }
             }
             finally {
                 Running = false;
-                _updateReceiver(null);
+                _updateReceiver(originalValue, Location, true);
             }
         }
 

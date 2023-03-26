@@ -1,12 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-		<AssemblyVersion>0.1.3.0</AssemblyVersion>
-		<FileVersion>0.1.3.0</FileVersion>
-		<Version>0.2.001</Version>
+		<Version>0.3.0</Version>
 		<Company>smartizy.com</Company>
 		<Authors>Haga Rakotoharivelo</Authors>
 		<Description>fluxzy is an cross-platform HTTP engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
@@ -24,14 +22,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Rules\Filters\NewFolder\**" />
-	  <EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
-	  <None Remove="Rules\Filters\NewFolder\**" />
+		<Compile Remove="Rules\Filters\NewFolder\**" />
+		<EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
+		<None Remove="Rules\Filters\NewFolder\**" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
 		<PackageReference Include="SharpZipLib" Version="1.4.2" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
 		<PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
 		<PackageReference Include="System.Text.Json" Version="6.0.7" />
 		<PackageReference Include="System.Threading.Channels" Version="6.0.0" />
@@ -51,10 +50,6 @@
 			<LastGenOutput>FileStore.Designer.cs</LastGenOutput>
 			<Generator>PublicResXFileCodeGenerator</Generator>
 		</EmbeddedResource>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Core\Utils\" />
 	</ItemGroup>
 
 </Project>

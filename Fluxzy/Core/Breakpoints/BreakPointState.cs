@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core.Breakpoints
 {
@@ -10,9 +11,10 @@ namespace Fluxzy.Core.Breakpoints
     /// </summary>
     public class BreakPointState
     {
-        public BreakPointState(List<BreakPointContextInfo> entries)
+        public BreakPointState(List<BreakPointContextInfo> entries, List<Filter> activeFilters)
         {
             Entries = entries;
+            ActiveFilters = activeFilters;
         }
 
         /// <summary>
@@ -26,6 +28,30 @@ namespace Fluxzy.Core.Breakpoints
 
         public List<BreakPointContextInfo> Entries { get; }
 
-        public static BreakPointState EmptyEntries { get; } = new(new List<BreakPointContextInfo>());
+        /// <summary>
+        /// true, if anyfilter is present 
+        /// </summary>
+        public bool AnyEnabled => ActiveFilters.Any(f => f is AnyFilter);
+
+        /// <summary>
+        /// Is Catching 
+        /// </summary>
+        public bool IsCatching => ActiveFilters.Any(); 
+
+        /// <summary>
+        /// true, if any request is pending 
+        /// </summary>
+        public bool AnyPendingRequest => ActiveEntries > 0; 
+
+        /// <summary>
+        /// Filter enabling break point 
+        /// </summary>
+        public List<Filter> ActiveFilters { get; }
+
+        public int [] PausedExchangeIds => Entries.Where(e => e.CurrentHit != null).Select(s => s.ExchangeId).ToArray();
+
+
+        public static BreakPointState EmptyEntries { get; } = new(new List<BreakPointContextInfo>(), new());
+
     }
 }

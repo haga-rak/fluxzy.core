@@ -4,25 +4,23 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core.Breakpoints
 {
+    /// <summary>
+    ///     Per proxy instance of breakpoint holders
+    /// </summary>
     public class BreakPointManager
     {
-        public BreakPointManager()
-        {
-
-        }
-
-        private readonly Channel<BreakPointContext> _contextQueue = Channel.CreateUnbounded<BreakPointContext>();
-
         private readonly ConcurrentDictionary<int, BreakPointContext> _runningContext = new();
+        private readonly List<Filter> _breakPointFilters;
 
-        public ChannelReader<BreakPointContext> ContextQueue => _contextQueue.Reader;
+        public BreakPointManager(IEnumerable<Filter> breakPointFilters)
+        {
+            _breakPointFilters = breakPointFilters.ToList(); 
+        }
 
         public BreakPointContext GetOrCreate(Exchange exchange, Filter filter, FilterScope filterScope)
         {
@@ -50,24 +48,29 @@ namespace Fluxzy.Core.Breakpoints
             }
         }
 
-        private void UpdateContext(BreakPointContext breakPointContext)
+        private void UpdateContext(
+            IBreakPointAlterationModel breakPointAlterationModel,
+            BreakPointContext breakPointContext)
         {
-            // TODO: feed only writer in a debugging context
+            OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointAlterationModel, breakPointContext));
+        }
 
-            if (Environment.GetEnvironmentVariable("TEST_CONTEXT") == "true")
-                _contextQueue.Writer.TryWrite(breakPointContext);
-
-            Task.Run(async () => {
-                await Task.Delay(50); // TODO : Find a better trick than this. The main issue is that this event is trigger earlier 
-                // compared to the availability of BreakPointContext from UiState point of view
-                OnContextUpdated?.Invoke(this, new OnContextUpdatedArgs(breakPointContext));
-            }); 
+        public void ClearAllDone()
+        {
+            lock (_runningContext)
+            {
+                foreach (var kp in _runningContext.ToList()) {
+                    if (kp.Value.GetInfo().Done) {
+                        _runningContext.TryRemove(kp.Key, out _);
+                    }
+                }
+            }
         }
 
         public BreakPointState GetState()
         {
             lock (_runningContext) {
-                return new BreakPointState(_runningContext.Values.Select(c => c.GetInfo()).ToList());
+                return new BreakPointState(_runningContext.Values.Select(c => c.GetInfo()).ToList(), _breakPointFilters);
             }
         }
 
@@ -85,10 +88,13 @@ namespace Fluxzy.Core.Breakpoints
 
     public class OnContextUpdatedArgs : EventArgs
     {
-        public OnContextUpdatedArgs(BreakPointContext context)
+        public OnContextUpdatedArgs(IBreakPointAlterationModel breakPointAlterationModel, BreakPointContext context)
         {
+            BreakPointAlterationModel = breakPointAlterationModel;
             Context = context;
         }
+
+        public IBreakPointAlterationModel BreakPointAlterationModel { get; }
 
         public BreakPointContext Context { get; }
     }
