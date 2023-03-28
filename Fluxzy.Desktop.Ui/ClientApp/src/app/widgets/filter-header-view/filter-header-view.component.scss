@@ -14,3 +14,23 @@
 .and-filter:hover {
     background : var(--bs-purple)
 }
+
+.btn-toolbar {
+    padding-bottom: 0px;
+}
+
+.capture {
+   // background: var(--bs-gray-300);
+}
+
+.soft-grey {
+    background: var(--bs-gray-600);
+}
+
+.btn-toolbar > div {
+    margin-bottom:8px;
+}
+
+.proxy-command-button button {
+    width : 100px;
+}

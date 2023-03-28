@@ -1,13 +1,32 @@
 <!-- <span>Filters</span> : &nbsp; &nbsp; -->
 <div class="btn-toolbar" *ngIf="uiState">
-    <div class="input-group">
-        <div class="input-group-text bg-dark"  id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
-        <input type="text" class="form-control text-info better-placeholder"
-               style="width:350px"
-               placeholder="type filter, action, rules settings here" aria-label="Input group example" aria-describedby="btnGroupAddon">
+
+
+    &nbsp;
+    &nbsp;<div class="btn-group proxy-command-button" role="group">
+            <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
+                    [hidden]="uiState.haltEnabled"
+            class="btn btn-dark capture" aria-current="page" title="capture OS trafic" (click)="enableCapture()">
+                <i class="fa fa-bolt text-success" style="font-size:16px" aria-hidden="true"></i>&nbsp;
+                capture</button>
+            <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
+                    [hidden]="!uiState.haltEnabled"
+            class="btn btn-dark capture" aria-current="page" title="halt traffic capture" (click)="haltCapture()">
+                <i class="fa fa-pause text-danger" style="font-size:16px" aria-hidden="true"></i>&nbsp;
+                capturing</button>
     </div>
     &nbsp;
-    &nbsp;<div class="btn-group" role="group" >
+    &nbsp;
+
+    <div class="input-group">
+        <div class="input-group-text bg-dark" id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
+        <input type="text" class="form-control text-info better-placeholder"
+               style="width:350px"
+               placeholder="type filter, action, rules settings here" aria-label="Input group example"
+               aria-describedby="btnGroupAddon">
+    </div>
+    &nbsp;
+    &nbsp;<div class="btn-group" role="group">
 
     <button *ngFor="let toolBarFilter of uiState.toolBarFilters" type="button" href="javascript:;"
 
@@ -63,11 +82,11 @@
                 filter (from computer)</a></li>
         </ul>
     </div>
-    &nbsp;
+    &nbsp;&nbsp;
 
-    <div class="btn-group" role="group" >
+    <div class="btn-group" role="group">
         <div class="btn-group" role="group" dropdown>
-            <button id="btnGroupDrop851" type="button" class="btn btn-secondary dropdown-toggle"
+            <button id="btnGroupDrop851" type="button" class="btn btn-primary dropdown-toggle"
                     data-bs-toggle="dropdown"
                     aria-expanded="false" dropdownToggle>
             <span style="white-space: nowrap">
@@ -97,6 +116,42 @@
         </div>
     </div>
     &nbsp;
-    </div>
+</div>
+    &nbsp;
+    &nbsp;
+    &nbsp;
+    <div class="btn-group" role="group">
 
+        <div class="btn-group" role="group" dropdown>
+            <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+                    aria-expanded="false" dropdownToggle>
+                <i class="fa fa-bug" aria-hidden="true"></i>&nbsp;
+                live edit
+            </button>
+            <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
+                <li role="menuitem">
+                    <a class="dropdown-item" href="javascript:;" (click)="catchAll()">
+                        all traffic</a></li>
+                <li role="menuitem">
+                    <a class="dropdown-item" href="javascript:;" (click)="catchWithFilter()">
+                        catch with filter</a></li>
+                <li class="divider dropdown-divider"></li>
+                <li role="menuitem">
+                    <a class="dropdown-item" href="javascript:;" (click)="showActiveLiveEditFilters()">
+                        Show active live edit filters</a></li>
+            </ul>
+         </div>
+        <button type="button" href="javascript:;"
+                [disabled]="!(uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)"
+                (click)="deleteAll()"
+                class="btn btn-dark " disabled aria-current="page">
+                        <i class="fa fa-stop" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;
+            halt live edit</button>
+        <button type="button" href="javascript:;"
+                [disabled]="!uiState.breakPointState.anyPendingRequest"
+                (click)="resumeAll()"
+                class="btn btn-dark " aria-current="page">
+            <i class="fa fa-play" [ngClass]="{'text-success' : uiState.breakPointState.anyPendingRequest}"></i>&nbsp;
+            resume all</button>
+    </div>
 </div>

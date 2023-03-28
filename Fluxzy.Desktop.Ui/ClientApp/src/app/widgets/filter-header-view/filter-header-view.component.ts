@@ -6,6 +6,7 @@ import {Filter, UiState} from "../../core/models/auto-generated";
 import {ApiService} from "../../services/api.service";
 import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
 import {InputService} from "../../services/input.service";
+import {BreakPointService} from "../../breakpoints/break-point.service";
 
 @Component({
     selector: 'app-filter-header-view',
@@ -23,6 +24,7 @@ export class FilterHeaderViewComponent implements OnInit {
                 private uiStateService : UiStateService,
                 private apiService: ApiService,
                 private inputService : InputService,
+                private breakPointService : BreakPointService,
                 private cd : ChangeDetectorRef) {}
 
     ngOnInit(): void {
@@ -118,5 +120,39 @@ export class FilterHeaderViewComponent implements OnInit {
 
     public applySourceFilter(filter: Filter) : void {
         this.apiService.filterApplySource(filter).subscribe() ;
+    }
+
+    public enableCapture() : void {
+        this.apiService.proxyOn().subscribe();
+    }
+
+    public haltCapture() : void {
+        this.apiService.proxyOff().subscribe();
+    }
+
+    catchAll() {
+        this.apiService.breakPointBreakAll().subscribe() ;
+    }
+
+    catchWithFilter() {
+
+        this.dialogService.openFilterCreate()
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(t => this.apiService.breakPointAdd(t))
+            ).subscribe();
+    }
+
+    resumeAll() {
+        this.apiService.breakPointContinueAll().subscribe() ;
+    }
+
+    deleteAll() {
+        this.apiService.breakPointResumeDeleteAll().subscribe() ;
+    }
+
+    showActiveLiveEditFilters() {
+        this.breakPointService.openBreakPointList() ;
     }
 }

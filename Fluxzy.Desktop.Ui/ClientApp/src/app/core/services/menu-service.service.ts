@@ -171,9 +171,9 @@ export class MenuService {
             let captureWithFilter = FindMenu(menus, (menu) => menu.id === 'capture-with-filter');
             let haltCapture = FindMenu(menus, (menu) => menu.id === 'halt-capture');
 
-            captureMenu.enabled = (!(uiState.proxyState?.onError ?? true)) && !(uiState.systemProxyState?.on ?? false);
-            captureWithFilter.enabled = (!(uiState.proxyState?.onError ?? true)) && !(uiState.systemProxyState?.on ?? false);
-            haltCapture.enabled =  (!(uiState.proxyState?.onError ?? true)) && (uiState.systemProxyState?.on ?? false);
+            captureMenu.enabled = uiState.captureEnabled;
+            captureWithFilter.enabled = uiState.captureEnabled;
+            haltCapture.enabled =  uiState.haltEnabled;
         }
 
         // Delete status
