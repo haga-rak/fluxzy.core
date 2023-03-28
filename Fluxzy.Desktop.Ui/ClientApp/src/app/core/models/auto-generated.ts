@@ -718,6 +718,8 @@ export interface UiState
 	settingsHolder: FluxzySettingsHolder;
 	lastOpenFileState: LastOpenFileState;
 	breakPointState: BreakPointState;
+	captureEnabled: boolean;
+	haltEnabled: boolean;
 }
 export interface ForwardMessage
 {

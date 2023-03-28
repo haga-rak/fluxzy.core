@@ -178,7 +178,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 id : 'pause-all-with-filter'
             },
             {
-                label : 'Delete all live edit filters',
+                label : 'Stop catching',
                 id : 'delete-all-filters'
             },
             {

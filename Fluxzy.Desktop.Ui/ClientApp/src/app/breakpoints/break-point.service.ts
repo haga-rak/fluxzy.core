@@ -68,7 +68,7 @@ export class BreakPointService {
                 ).subscribe();
         });
         this.menuService.registerMenuEvent('delete-all-filters', () => {
-            this.apiService.breakPointDeleteAll().subscribe() ;
+            this.apiService.breakPointResumeDeleteAll().subscribe() ;
         });
 
         this.uiStateService.getUiState().pipe(
