@@ -1,0 +1,21 @@
+
+
+<perfect-scrollbar [usePSClass]="true" style="height: 100%">
+
+<div *ngIf="!items">
+    <p class="lead text-center text-info">
+        <i class="fa fa-spinner fa-spin fa-fw"></i> Loading please ...
+    </p>
+</div>
+<table style="width : 100%"  *ngIf="items">
+        <tr *ngFor="let item of items">
+            <td style="width : 100px">
+                <span class="text-info">
+                    {{ item.category }}
+                </span>
+            </td>
+            <td> {{ item.title }}</td>
+        </tr>
+
+    </table>
+</perfect-scrollbar>
