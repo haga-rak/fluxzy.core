@@ -16,6 +16,7 @@ import {BreakPointService} from "../../breakpoints/break-point.service";
 export class FilterHeaderViewComponent implements OnInit {
     public uiState: UiState;
     public selectedFilter : Filter | null ;
+    public alwaysSelectedFilter : Filter | null ;
 
     public  SourceAgentIconFunc = SourceAgentIconFunc;
     public ctrlKeyOn: boolean = false;
@@ -33,6 +34,7 @@ export class FilterHeaderViewComponent implements OnInit {
                 tap(t => this.uiState = t),
                 tap(t => {
                     this.selectedFilter = this.uiState.viewFilter?.filter ;
+                    this.alwaysSelectedFilter = this.uiState.viewFilter?.filter ;
 
                     if (this.selectedFilter && this.uiState.toolBarFilters.filter(f => f.filter.identifier === this.selectedFilter.identifier).length !== 0){
                         this.selectedFilter = null ;
