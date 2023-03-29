@@ -1,5 +1,5 @@
 <!-- <span>Filters</span> : &nbsp; &nbsp; -->
-<div class="btn-toolbar" *ngIf="uiState">
+<div class="btn-toolbar" *ngIf="uiState" >
 
 
     &nbsp;
@@ -21,14 +21,14 @@
     <div class="input-group">
         <div class="input-group-text bg-dark" id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
         <input type="text" class="form-control text-info better-placeholder"
-               style="width:350px"
+               style="width:250px"
                placeholder="type filter, action, rules settings here" aria-label="Input group example"
                aria-describedby="btnGroupAddon">
     </div>
     &nbsp;
     &nbsp;<div class="btn-group" role="group">
 
-    <button *ngFor="let toolBarFilter of uiState.toolBarFilters" type="button" href="javascript:;"
+    <button *ngFor="let toolBarFilter of uiState.toolBarFilters; let i = index" type="button" href="javascript:;"
 
             (click)="selectFilter(toolBarFilter.filter)"
             [title]="toolBarFilter.filter.friendlyName"
@@ -36,7 +36,9 @@
             [ngClass]=" {
             'active' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier,
              'bg-primary' : toolBarFilter.filter.identifier === uiState.viewFilter.filter.identifier && !ctrlKeyOn,
-            'and-filter' :  uiState.viewFilter.filter.identifier  && ctrlKeyOn
+            'and-filter' :  uiState.viewFilter.filter.identifier  && ctrlKeyOn,
+            'd-none' : i > 0,
+            'd-xl-inline' : i > 0
 
              }"
     >{{ toolBarFilter.filter.shortName }}</button>
@@ -45,22 +47,42 @@
 
             (click)="selectFilter(selectedFilter)"
             [title]="selectedFilter.friendlyName"
-            class="btn btn-dark" aria-current="page"
+            class="btn btn-dark d-lg-none d-xl-inline " aria-current="page"
             [ngClass]=" {'active' : selectedFilter.identifier === uiState.viewFilter.filter.identifier,
             'bg-primary' : selectedFilter.identifier === uiState.viewFilter.filter.identifier && !ctrlKeyOn,
             'and-filter' :  uiState.viewFilter.filter.identifier  && ctrlKeyOn
-
-
             }"
     >{{ selectedFilter.shortName }} <i class="bi bi-pencil"></i></button>
 
+    <button *ngIf="alwaysSelectedFilter && alwaysSelectedFilter.typeKind !== 'AnyFilter'" type="button" href="javascript:;"
+            (click)="selectFilter(alwaysSelectedFilter)"
+            [title]="alwaysSelectedFilter.friendlyName"
+            class="btn btn-dark d-lg-block d-xl-none" aria-current="page"
+            [ngClass]=" {'active' : alwaysSelectedFilter.identifier === uiState.viewFilter.filter.identifier,
+            'bg-primary' : alwaysSelectedFilter.identifier === uiState.viewFilter.filter.identifier && !ctrlKeyOn,
+            'and-filter' :  uiState.viewFilter.filter.identifier  && ctrlKeyOn
+            }"
+    >{{ alwaysSelectedFilter.shortName }}</button>
+
 
     <div class="btn-group" role="group" dropdown *ngIf="uiState.templateToolBarFilterModel">
-        <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+        <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" title="show more filters"
                 aria-expanded="false" dropdownToggle>
-            more filters
+            more
+            <span class="d-none d-xxl-inline">filters</span>
+
         </button>
         <ul class="dropdown-menu bg-light text-primary" *dropdownMenu aria-labelledby="btnGroupDrop851">
+
+            <li class=" d-lg-block d-xl-none" role="menuitem "  *ngFor="let toolBarFilter of uiState.toolBarFilters" >
+                <a class="dropdown-item" href="javascript:;"
+                   (click)="selectFilter(toolBarFilter.filter)"
+                   [title]="toolBarFilter.filter.friendlyName">
+                    {{ toolBarFilter.filter.friendlyName }}</a></li>
+
+
+            <li class="divider dropdown-divider d-lg-block d-xl-none"></li>
+
             <li role="menuitem" *ngFor="let filter of uiState.templateToolBarFilterModel.quickFilters">
                 <a class="dropdown-item" href="javascript:;"
                    (click)="createTemplateFilter(filter)">{{ filter.friendlyName}}</a>
@@ -91,7 +113,9 @@
                     aria-expanded="false" dropdownToggle>
             <span style="white-space: nowrap">
                 <span *ngIf="uiState.viewFilter.sourceFilter.typeKind === 'AnyFilter'">
-                    View per source ({{uiState.templateToolBarFilterModel.agentFilters.length}})
+                    <span class="d-none d-xxl-inline">view per source</span>
+                    <span class="d-xxl-none">source</span>
+                        ({{uiState.templateToolBarFilterModel.agentFilters.length}})
                 </span>
                 <span class="limit-lengthd" *ngIf="uiState.viewFilter.sourceFilter.typeKind !== 'AnyFilter'">
                     {{uiState.viewFilter.sourceFilter.friendlyName}}
@@ -125,8 +149,8 @@
         <div class="btn-group" role="group" dropdown>
             <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
                     aria-expanded="false" dropdownToggle>
-                <i class="fa fa-bug" aria-hidden="true"></i>&nbsp;
-                live edit
+                <i class="fa fa-bug text-warning" aria-hidden="true"></i>&nbsp;
+                <span class="d-none d-xxl-inline ">live edit</span>
             </button>
             <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
                 <li role="menuitem">
@@ -142,16 +166,38 @@
             </ul>
          </div>
         <button type="button" href="javascript:;"
+                title="halt live edit and resume all pending exchanges"
                 [disabled]="!(uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)"
                 (click)="deleteAll()"
                 class="btn btn-dark " disabled aria-current="page">
                         <i class="fa fa-stop" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;
-            halt live edit</button>
-        <button type="button" href="javascript:;"
+
+            <span class="d-none d-xxl-inline">halt live edit</span></button>
+        <button type="button" href="javascript:;" title="resume all pending exchanges in live edit"
                 [disabled]="!uiState.breakPointState.anyPendingRequest"
                 (click)="resumeAll()"
                 class="btn btn-dark " aria-current="page">
             <i class="fa fa-play" [ngClass]="{'text-success' : uiState.breakPointState.anyPendingRequest}"></i>&nbsp;
-            resume all</button>
+
+            <span class="d-none d-xxl-inline">resume all</span></button>
+    </div>
+    &nbsp;
+    &nbsp;
+    <div class="btn-group" role="group">
+
+        <button type="button" href="javascript:;"
+                title="halt live edit and resume all pending exchanges"
+                (click)="replay()"
+                class="btn btn-dark " aria-current="page">
+                        <i class="fa fa-refresh" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;
+
+            <span class="d-none d-xxl-inline">replay</span></button>
+        <button type="button" href="javascript:;" title="resume all pending exchanges in live edit"
+
+                (click)="replayInLiveEdit()"
+                class="btn btn-dark " aria-current="page">
+            <i class="fa fa-refresh text-warning" ></i>&nbsp;
+
+            <span class="d-none d-xxl-inline">replay and live edit</span></button>
     </div>
 </div>
