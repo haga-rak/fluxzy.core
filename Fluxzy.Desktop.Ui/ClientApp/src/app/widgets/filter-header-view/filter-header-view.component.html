@@ -24,6 +24,10 @@
                style="width:250px"
                placeholder="type filter, action, rules settings here" aria-label="Input group example"
                aria-describedby="btnGroupAddon">
+
+        <div class="alert search-completion"  style="" >
+
+        </div>
     </div>
     &nbsp;
     &nbsp;<div class="btn-group" role="group">
@@ -187,6 +191,7 @@
 
         <button type="button" href="javascript:;"
                 title="halt live edit and resume all pending exchanges"
+                [disabled]="currentExchangeId === null"
                 (click)="replay()"
                 class="btn btn-dark " aria-current="page">
                         <i class="fa fa-refresh" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;
@@ -194,10 +199,11 @@
             <span class="d-none d-xxl-inline">replay</span></button>
         <button type="button" href="javascript:;" title="resume all pending exchanges in live edit"
 
+                [disabled]="currentExchangeId === null"
                 (click)="replayInLiveEdit()"
                 class="btn btn-dark " aria-current="page">
             <i class="fa fa-refresh text-warning" ></i>&nbsp;
 
-            <span class="d-none d-xxl-inline">replay and live edit</span></button>
+            <span class="d-none d-xxl-inline">replay w/ live edit</span></button>
     </div>
 </div>
