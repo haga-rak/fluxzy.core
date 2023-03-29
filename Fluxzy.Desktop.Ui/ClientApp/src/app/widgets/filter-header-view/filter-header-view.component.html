@@ -22,11 +22,13 @@
         <div class="input-group-text bg-dark" id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
         <input type="text" class="form-control text-info better-placeholder"
                style="width:250px"
-               placeholder="type filter, action, rules settings here" aria-label="Input group example"
+               placeholder="type filter, action, rules settings here"
+               (input)="onTextFocus($event)"
+               (click)="onTextFocus($event)"
                aria-describedby="btnGroupAddon">
 
-        <div class="alert search-completion"  style="" >
-
+        <div class="alert search-completion"  style="" *ngIf="completionShown">
+                <div app-completion style="height: 100%" (onClickOutSide)="completionShouldHide()"></div>
         </div>
     </div>
     &nbsp;

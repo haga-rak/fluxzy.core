@@ -37,8 +37,12 @@
 
 
 .search-completion {
-    width : 500px; height: 400px;
-    position : absolute; z-index: 9999; margin-top: 34px; margin-left: 32px;
+    width : 500px;
+    height: 400px;
+    position : absolute;
+    z-index: 9999;
+    margin-top: 34px;
+    left: 0px;
     background:var(--bs-gray-800);
     border-radius : 8px;
 

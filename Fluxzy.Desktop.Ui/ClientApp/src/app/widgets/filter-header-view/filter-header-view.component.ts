@@ -23,6 +23,8 @@ export class FilterHeaderViewComponent implements OnInit {
     public ctrlKeyOn: boolean = false;
     private currentExchangeId: number | null = null;
 
+    public completionShown = false;
+
     constructor(private dialogService : DialogService,
                 private uiStateService : UiStateService,
                 private apiService: ApiService,
@@ -172,5 +174,15 @@ export class FilterHeaderViewComponent implements OnInit {
     replayInLiveEdit() {
 
         this.apiService.exchangeReplay(this.currentExchangeId, true).subscribe() ;
+    }
+
+    onTextFocus($event: FocusEvent) {
+        this.completionShown = true;
+        this.cd.detectChanges();
+    }
+
+    completionShouldHide() {
+        this.completionShown = false;
+        this.cd.detectChanges();
     }
 }
