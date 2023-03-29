@@ -7,6 +7,7 @@ import {ApiService} from "../../services/api.service";
 import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
 import {InputService} from "../../services/input.service";
 import {BreakPointService} from "../../breakpoints/break-point.service";
+import {ExchangeSelection, ExchangeSelectionService} from "../../services/exchange-selection.service";
 
 @Component({
     selector: 'app-filter-header-view',
@@ -20,12 +21,14 @@ export class FilterHeaderViewComponent implements OnInit {
 
     public  SourceAgentIconFunc = SourceAgentIconFunc;
     public ctrlKeyOn: boolean = false;
+    private currentExchangeId: number | null = null;
 
     constructor(private dialogService : DialogService,
                 private uiStateService : UiStateService,
                 private apiService: ApiService,
                 private inputService : InputService,
                 private breakPointService : BreakPointService,
+                private exchangeSelectionService : ExchangeSelectionService,
                 private cd : ChangeDetectorRef) {}
 
     ngOnInit(): void {
@@ -48,6 +51,10 @@ export class FilterHeaderViewComponent implements OnInit {
             tap(t => this.cd.detectChanges()),
         ).subscribe();
 
+        this.exchangeSelectionService.getCurrentSelection()
+            .pipe(
+                tap(t =>this.currentExchangeId = t?.lastSelectedExchangeId ?? null)
+            ).subscribe() ;
     }
 
     public openManagedFilters() : void {
@@ -156,5 +163,14 @@ export class FilterHeaderViewComponent implements OnInit {
 
     showActiveLiveEditFilters() {
         this.breakPointService.openBreakPointList() ;
+    }
+
+    replay() {
+        this.apiService.exchangeReplay(this.currentExchangeId, false).subscribe() ;
+    }
+
+    replayInLiveEdit() {
+
+        this.apiService.exchangeReplay(this.currentExchangeId, true).subscribe() ;
     }
 }
