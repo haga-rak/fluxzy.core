@@ -1,9 +1,9 @@
 <div class="exchange-viewer-main-content" style="height : calc(100% - 32px)">
 
-    <div style="margin-bottom: 8px;border-bottom: 2px solid var(--bs-primary); padding-bottom:6px" class="">
+    <div style="" class="btn-tab-tool">
         <ng-container *ngFor="let tab of tabs">
-            <a class="btn" [class]="{'btn-primary' : tab === context.currentTab,
-            'btn-gray-900' : tab !== context.currentTab
+            <a class="btn btn-tab" [class]="{
+                'btn-tab-selected' : tab === context.currentTab
               }"
                (click)="context.currentTab = tab"
                href="javascript:;">
