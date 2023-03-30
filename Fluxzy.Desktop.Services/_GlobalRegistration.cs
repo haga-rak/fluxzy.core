@@ -8,6 +8,7 @@ using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Core.Proxy;
 using Fluxzy.Desktop.Services.BreakPoints;
+using Fluxzy.Desktop.Services.ContextualFilters;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
@@ -55,6 +56,8 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<LastOpenFileManager>();
             collection.AddSingleton<UaParserUserAgentInfoProvider>();
             collection.AddSingleton<BreakPointWatcher>();
+            collection.AddSingleton<ContextualFilterBuilder>();
+            collection.AddSingleton<QuickActionBuilder>();
 
             collection.AddSingleton<CertificateAuthorityManager>(t =>
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -62,6 +65,12 @@ namespace Fluxzy.Desktop.Services
                     : new OutOfProcAuthorityManager(t.GetRequiredService<DefaultCertificateAuthorityManager>()));
 
             collection.AddSingleton<DefaultCertificateAuthorityManager>();
+
+            collection.AddSingleton
+                (s => s.GetRequiredService<ContextualFilterBuilder>().ProvidedObservable);
+            
+            collection.AddSingleton
+                (s => s.GetRequiredService<QuickActionBuilder>().ProvidedObservable);
 
             collection.AddSingleton
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
@@ -106,6 +115,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton
                 (s => s.GetRequiredService<IObservable<FileState>>().Select(v => v.ContentOperation));
 
+            // TrunkState Observable
             collection.AddSingleton
             (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
                    .Select(t => t.Observable).Switch());

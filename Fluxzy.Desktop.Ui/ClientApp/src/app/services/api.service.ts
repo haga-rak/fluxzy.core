@@ -36,7 +36,7 @@ import {
     FormattingResult,
     ForwardMessage, HarExportRequest, IPEndPoint,
     MultipartItem,
-    NetworkInterfaceInfo, RequestSetupStepModel, ResponseSetupStepModel,
+    NetworkInterfaceInfo, QuickActionResult, RequestSetupStepModel, ResponseSetupStepModel,
     Rule,
     RuleContainer,
     SaveFileMultipartActionModel, SazExportRequest,
@@ -492,4 +492,7 @@ export class ApiService {
         return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/response/continue`, null).pipe(take(1)) ;
     }
 
+    public quickActionList() : Observable<QuickActionResult> {
+        return this.httpClient.get<QuickActionResult>(`api/quickaction`).pipe(take(1));
+    }
 }
