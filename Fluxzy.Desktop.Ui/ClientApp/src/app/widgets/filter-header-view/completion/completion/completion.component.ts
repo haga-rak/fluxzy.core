@@ -1,4 +1,6 @@
 import {ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, OnInit, Output} from '@angular/core';
+import {QuickActionResult} from "../../../../core/models/auto-generated";
+import {ApiService} from "../../../../services/api.service";
 
 @Component({
     selector: '[app-completion]',
@@ -6,31 +8,19 @@ import {ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, On
     styleUrls: ['./completion.component.scss']
 })
 export class CompletionComponent implements OnInit {
-    public items : CompletionContent[] | null = null  ;
+    public quickActionResult : QuickActionResult | null = null ;
     @Output() public onClickOutSide : EventEmitter<any> = new EventEmitter<any>();
 
-    constructor(private eRef: ElementRef, private cd: ChangeDetectorRef) {
+    constructor(private eRef: ElementRef, private cd: ChangeDetectorRef, private apiService: ApiService) {
+
     }
 
     ngOnInit(): void {
-
-        const randomCategory = ['filter', 'whatever', 'setting', 'rule'] ;
-
-        setTimeout(() => {
-
-            this.items = [];
-
-            for (let i = 0; i < 50; i++) {
-                this.items.push({
-                    category : randomCategory[Math.floor(Math.random() * 4)],
-                    title : 'title ' + i
-                });
-            }
-
-            this.cd.detectChanges();
-
-        }, 1000);
-
+        this.apiService.quickActionList()
+            .subscribe((res) => {
+                this.quickActionResult = res;
+                this.cd.detectChanges();
+            });
     }
 
     @HostListener('document:mouseup', ['$event'])
@@ -45,9 +35,4 @@ export class CompletionComponent implements OnInit {
     onEscape(event: KeyboardEvent) {
         this.onClickOutSide.emit(null);
     }
-}
-
-export interface CompletionContent {
-    category : string;
-    title : string;
 }

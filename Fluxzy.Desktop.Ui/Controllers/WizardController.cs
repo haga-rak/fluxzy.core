@@ -7,7 +7,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WizardController
+    public class WizardController : ControllerBase
     {
         private readonly CertificateWizard _certificateWizard;
 

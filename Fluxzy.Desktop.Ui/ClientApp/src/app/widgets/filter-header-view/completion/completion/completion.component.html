@@ -2,19 +2,19 @@
 
 <perfect-scrollbar [usePSClass]="true" style="height: 100%">
 
-<div *ngIf="!items">
+<div *ngIf="!quickActionResult">
     <p class="lead text-center text-info">
         <i class="fa fa-spinner fa-spin fa-fw"></i> Loading please ...
     </p>
 </div>
-<table style="width : 100%"  *ngIf="items">
-        <tr *ngFor="let item of items">
+<table style="width : 100%"  *ngIf="quickActionResult">
+        <tr *ngFor="let item of quickActionResult.actions">
             <td style="width : 100px">
                 <span class="text-info">
                     {{ item.category }}
                 </span>
             </td>
-            <td> {{ item.title }}</td>
+            <td> {{ item.label }}</td>
         </tr>
 
     </table>

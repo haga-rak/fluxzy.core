@@ -1093,3 +1093,30 @@ export interface StartupWizardSettings
 {
 	noCertificateInstallExplicit: boolean;
 }
+export interface QuickActionResult
+{
+	actions: QuickAction[];
+}
+export interface QuickAction
+{
+	id: string;
+	type: string;
+	category: string;
+	label: string;
+	needExchangeId: boolean;
+	quickActionPayload: QuickActionPayload;
+	keywords: string[];
+}
+export interface QuickActionPayload
+{
+	filter?: Filter;
+}
+export interface ContextualFilterResult
+{
+	contextualFilters: ContextualFilter[];
+}
+export interface ContextualFilter
+{
+	filter: Filter;
+	weight: number;
+}
