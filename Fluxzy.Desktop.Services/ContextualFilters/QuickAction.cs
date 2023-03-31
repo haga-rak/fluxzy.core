@@ -63,7 +63,7 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
 
         public QuickActionPayload QuickActionPayload { get;  }
 
-        public List<string> Keywords { get; } = new();
+        public string[] Keywords { get; set; } = Array.Empty<string>();
     }
 
 

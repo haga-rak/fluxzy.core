@@ -89,7 +89,7 @@ export class CompletionComponent implements OnInit, OnChanges {
             const inputString = action.label +  ' ' + action.keywords.join(' ');
             return globalStringSearch(this.searchString,inputString);
 
-        }));
+        }).slice(0, 20));
     }
 
     @HostListener('document:mouseup', ['$event'])

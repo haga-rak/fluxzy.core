@@ -3,6 +3,9 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
+using Fluxzy.Rules.Filters.ResponseFilters;
 
 namespace Fluxzy.Desktop.Services.ContextualFilters
 {
@@ -46,16 +49,39 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
         {
             var listActions = new List<QuickAction>();
 
-            listActions.AddRange(
-                _toolBarFilterProvider.GetDefault().Select(f =>
-                    new QuickAction(f.Filter.Identifier.ToString(),
-                        "Filter",
-                        f.Filter.FriendlyName,
-                        false,
-                        new QuickActionPayload(f.Filter), QuickActionType.Filter)));
+            listActions.Add(BuildFromFilter(new ContentTypeJsonFilter()));
+            listActions.Add(BuildFromFilter(new ContentTypeXmlFilter()));
+            listActions.Add(BuildFromFilter(new ImageFilter(), "png", "jpeg", "jpg", "gif", "bitmap", "svg"));
+            listActions.Add(BuildFromFilter(new CssStyleFilter(), "sass", "scss", "cascading", "sheet"));
+
+            var allHttpMethods = new string[] {"GET", "POST", "PUT", "PATCH", "DELETE"};
+
+            foreach (var method in allHttpMethods) {
+                listActions.Add(BuildFromFilter(new MethodFilter(method)));
+            }
+
+            listActions.Add(BuildFromFilter(new StatusCodeSuccessFilter()));
+            listActions.Add(BuildFromFilter(new StatusCodeClientErrorFilter(), Enumerable.Range(400,100).Select(s => s.ToString()).ToArray()));
+            listActions.Add(BuildFromFilter(new StatusCodeServerErrorFilter(), Enumerable.Range(500,100).Select(s => s.ToString()).ToArray()));
+            
+
+
+           // listActions.Add(BuildFromFilter(new ClientEr));
+            
 
 
             return new QuickActionResult(listActions); 
+        }
+
+        private static QuickAction BuildFromFilter(Filter filter, params string[] keywords)
+        {
+            return new QuickAction(filter.Identifier.ToString(),
+                "Filter",
+                filter.FriendlyName,
+                false,
+                new QuickActionPayload(filter), QuickActionType.Filter) {
+                Keywords = keywords
+            };
         }
     }
 }
