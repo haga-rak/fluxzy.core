@@ -7,7 +7,7 @@ import {ApiService} from "../../services/api.service";
 import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
 import {InputService} from "../../services/input.service";
 import {BreakPointService} from "../../breakpoints/break-point.service";
-import {ExchangeSelection, ExchangeSelectionService} from "../../services/exchange-selection.service";
+import {ExchangeSelectionService} from "../../services/exchange-selection.service";
 
 @Component({
     selector: 'app-filter-header-view',
@@ -24,6 +24,8 @@ export class FilterHeaderViewComponent implements OnInit {
     private currentExchangeId: number | null = null;
 
     public completionShown = false;
+
+    public searchString = '';
 
     constructor(private dialogService : DialogService,
                 private uiStateService : UiStateService,
@@ -176,7 +178,11 @@ export class FilterHeaderViewComponent implements OnInit {
         this.apiService.exchangeReplay(this.currentExchangeId, true).subscribe() ;
     }
 
-    onTextFocus($event: FocusEvent) {
+    onTextFocus($event: any) {
+
+        if ($event?.target)
+            $event.target.select();
+
         this.completionShown = true;
         this.cd.detectChanges();
     }
@@ -184,5 +190,9 @@ export class FilterHeaderViewComponent implements OnInit {
     completionShouldHide() {
         this.completionShown = false;
         this.cd.detectChanges();
+    }
+
+    onValidate() {
+        this.searchString = '';
     }
 }
