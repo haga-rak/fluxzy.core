@@ -184,7 +184,7 @@ export interface ExchangeSelection {
 export const ExchangeSelectedIds = (selection : ExchangeSelection) : number[] => {
     const res : number [] = [];
 
-    for (var key in selection.map) {
+    for (const key in selection.map) {
         if (selection.map.hasOwnProperty(key) && selection.map[key]) {
             res.push(parseInt(key)) ;
         }
