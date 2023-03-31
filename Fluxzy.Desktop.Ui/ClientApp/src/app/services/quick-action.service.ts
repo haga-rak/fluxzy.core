@@ -36,7 +36,16 @@ export class QuickActionService {
                     tap(t =>  this.exchangeIds = t)
 
                 ),
-                this.apiService.quickActionListStatic()
+                this.apiService.quickActionListStatic().pipe(
+                    tap(t =>  {
+                        t.actions.forEach(a =>
+                        {
+                            if (a.type === 'Filter') {
+                                a.iconClass = ['fa', 'fa-filter'];
+                                a.otherClasses = ['text-primary'];
+                            }
+                        });
+                    }))
             ]
         ).pipe(
             tap(([localQuickActions, quickActionResult, selectedIds, staticActionResult]) => {

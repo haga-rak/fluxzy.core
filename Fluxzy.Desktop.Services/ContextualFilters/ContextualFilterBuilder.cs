@@ -49,8 +49,6 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
                 yield return new ContextualFilter(new HostFilter(subDomain!, StringSelectorOperation.EndsWith) {
                     Description = $"Subdomain : *.{subDomain}"
                 }, weight);
-
-
         }
 
     }
