@@ -14,7 +14,10 @@
                     {{ item.category }}
                 </span>
             </td>
-            <td> {{ item.label }}</td>
+            <td>
+                <a href="javascript:;" (click)="selectionAction(item)">{{ item.label }}</a>
+
+            </td>
         </tr>
 
     </table>
