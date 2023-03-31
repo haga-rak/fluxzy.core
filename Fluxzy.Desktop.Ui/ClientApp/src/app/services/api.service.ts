@@ -495,4 +495,8 @@ export class ApiService {
     public quickActionList() : Observable<QuickActionResult> {
         return this.httpClient.get<QuickActionResult>(`api/quickaction`).pipe(take(1));
     }
+
+    public quickActionListStatic() : Observable<QuickActionResult> {
+        return this.httpClient.get<QuickActionResult>(`api/quickaction/static`).pipe(take(1));
+    }
 }

@@ -21,21 +21,24 @@ export class QuickActionRegistrationService {
             "global-settings", "Settings", "Access global settings", false,
             { callBack : (exchangeIds : number []) => {
                     this.dialogService.openGlobalSettings()
-                }}
+                }},
+            ["fa", "fa-cog"],
         );
 
         this.quickActionService.registerLocalAction(
             "manage-rules", "Settings", "Manage rules", false,
             { callBack : (exchangeIds : number []) => {
                     this.dialogService.openManageRules();
-                }}
+                }},
+            ["fa", "fa-cog"],
         );
 
         this.quickActionService.registerLocalAction(
             "manage-filters", "Settings", "Manage computer saved filters", false,
             { callBack : (exchangeIds : number []) => {
                     this.dialogService.openManageFilters(false).subscribe(); ;
-                }}
+                }},
+            ["fa", "fa-cog"],
         );
 
         this.quickActionService.registerLocalAction(
@@ -46,7 +49,9 @@ export class QuickActionRegistrationService {
                             concatMap(ids => this.apiService.exchangeReplay(ids, false)))
                             .subscribe();
                     }
-                }}
+                }},
+            ["fa", "fa-refresh"],
+            ["text-warning"]
         );
     }
 }

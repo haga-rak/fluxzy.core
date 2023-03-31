@@ -1103,6 +1103,8 @@ export interface QuickAction
 	type: string;
 	category: string;
 	label: string;
+	iconClass: string[];
+	otherClasses: string[];
 	needExchangeId: boolean;
 	quickActionPayload: QuickActionPayload;
 	keywords: string[];

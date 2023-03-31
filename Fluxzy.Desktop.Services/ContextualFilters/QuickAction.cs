@@ -1,43 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Desktop.Services.ContextualFilters
 {
-    public class QuickActionBuilder : ObservableProvider<QuickActionResult>
-    {
-        protected override BehaviorSubject<QuickActionResult> Subject { get; } = new(new(new())); 
-
-        public QuickActionBuilder(IObservable<TrunkState> trunkStateObservable,
-            IObservable<ContextualFilterResult> contextFilterResult)
-        {
-            trunkStateObservable.CombineLatest(
-                        contextFilterResult)
-                                .Select(t => Build(t.First, t.Second))
-                                .Do(t => Subject.OnNext(t))
-                                .Subscribe();
-        }
-        
-        private QuickActionResult Build(TrunkState _, ContextualFilterResult contextFilterResult)
-        {
-
-            var quickActions = contextFilterResult.ContextualFilters
-                                                  .Select(s =>
-                                                      new QuickAction(s.Filter.Identifier.ToString(),
-                                                          "Filter",
-                                                          s.Filter.FriendlyName,
-                                                          false,
-                                                          new QuickActionPayload(s.Filter), QuickActionType.Filter)).ToList();
-
-            return new QuickActionResult(quickActions);
-        }
-
-    }
-
-
     public class QuickActionResult
     {
         public QuickActionResult(List<QuickAction> actions)
@@ -78,7 +44,17 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
         public string Category { get; }
         
 
-        public string Label { get;  } 
+        public string Label { get;  }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string[] IconClass { get; set; } = new string[0];
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string[] OtherClasses { get; set; } = new string[0];
 
         /// <summary>
         /// 

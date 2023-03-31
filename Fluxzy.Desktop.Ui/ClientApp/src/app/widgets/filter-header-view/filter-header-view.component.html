@@ -22,13 +22,15 @@
         <div class="input-group-text bg-dark" id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
         <input type="text" class="form-control text-info better-placeholder"
                style="width:250px"
+               [(ngModel)]="searchString"
                placeholder="type filter, action, rules settings here"
-               (input)="onTextFocus($event)"
+               (input)="onTextFocus(null)"
                (click)="onTextFocus($event)"
                aria-describedby="btnGroupAddon">
 
-        <div class="alert search-completion"  style="" *ngIf="completionShown">
-                <div app-completion style="height: 100%" (onClickOutSide)="completionShouldHide()"></div>
+        <div class="search-completion"  style="" *ngIf="completionShown">
+                <div app-completion [searchString]="searchString" style="height: 100%" (onClickOutSide)="completionShouldHide()"
+                 (onValidate)="onValidate()"></div>
         </div>
     </div>
     &nbsp;
@@ -37,6 +39,7 @@
     <button *ngFor="let toolBarFilter of uiState.toolBarFilters; let i = index" type="button" href="javascript:;"
 
             (click)="selectFilter(toolBarFilter.filter)"
+
             [title]="toolBarFilter.filter.friendlyName"
             class="btn btn-dark" aria-current="page"
             [ngClass]=" {

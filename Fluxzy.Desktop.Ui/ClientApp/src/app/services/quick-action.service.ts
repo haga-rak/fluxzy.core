@@ -20,18 +20,28 @@ export class QuickActionService {
                 this.localQuickActions.asObservable(),
                 this.uiStateService.lastUiState$.asObservable()
                     .pipe(
-                        switchMap(t => this.apiService.quickActionList())
+                        switchMap(t => this.apiService.quickActionList()),
+                        tap(t =>  {
+                            t.actions.forEach(a =>
+                            {
+                                if (a.type === 'Filter') {
+                                    a.iconClass = ['fa', 'fa-filter'];
+                                    a.otherClasses = ['text-primary'];
+                                }
+                            });
+                        })
                     ),
                 this.exchangeSelectionService.getCurrentSelection().pipe(
                     map(t => ExchangeSelectedIds(t)),
                     tap(t =>  this.exchangeIds = t)
 
-                )
+                ),
+                this.apiService.quickActionListStatic()
             ]
         ).pipe(
-            tap(([localQuickActions, quickActionResult, selectedIds]) => {
+            tap(([localQuickActions, quickActionResult, selectedIds, staticActionResult]) => {
                 this._quickActionResult$.next({actions:
-                        localQuickActions.concat(quickActionResult.actions)
+                        localQuickActions.concat(staticActionResult.actions).concat(quickActionResult.actions)
                             .filter(a => !a.needExchangeId || selectedIds.length > 0)
                 })
             })
@@ -57,7 +67,7 @@ export class QuickActionService {
     public registerLocalAction(
         id: string, category: string, label: string,
         needExchangeId: boolean,
-        callback: QuickActionCallBack) {
+        callback: QuickActionCallBack, iconClass : string[] = [], otherClasses : string[] = []) {
 
         let quickAction: QuickAction = {
             category: category,
@@ -66,7 +76,9 @@ export class QuickActionService {
             keywords: [],
             type: 'ClientOperation',
             id: id,
-            needExchangeId
+            needExchangeId,
+            iconClass : iconClass,
+            otherClasses : otherClasses
         };
 
         this.callbacks[id] = callback;
