@@ -50,7 +50,7 @@ export class QuickActionService {
         ).pipe(
             tap(([localQuickActions, quickActionResult, selectedIds, staticActionResult]) => {
                 this._quickActionResult$.next({actions:
-                        localQuickActions.concat(staticActionResult.actions).concat(quickActionResult.actions)
+                        localQuickActions.concat(quickActionResult.actions).concat(staticActionResult.actions)
                             .filter(a => !a.needExchangeId || selectedIds.length > 0)
                 })
             })
@@ -77,6 +77,10 @@ export class QuickActionService {
         id: string, category: string, label: string,
         needExchangeId: boolean,
         callback: QuickActionCallBack, iconClass : string[] = [], otherClasses : string[] = []) {
+
+        if (this.callbacks[id]) {
+            return;
+        }
 
         let quickAction: QuickAction = {
             category: category,
