@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Xml.Schema;
 using Fluxzy.Misc.Converters;
 using YamlDotNet.Serialization;
 
@@ -9,8 +10,9 @@ namespace Fluxzy.Rules.Filters
     public abstract class Filter : PolymorphicObject
     {
         [YamlIgnore]
-        public virtual Guid Identifier { get; init; } = Guid.NewGuid();
+        public virtual Guid Identifier => this.BuildDistinctiveIdentifier();
 
+        [FilterDistinctive]
         public bool Inverted { get; set; }
 
         [YamlIgnore]
@@ -32,7 +34,7 @@ namespace Fluxzy.Rules.Filters
 
         [YamlIgnore]
         public virtual string? ShortName { get; } = "custom";
-
+        
         public virtual string? Description { get; set; }
 
         [YamlIgnore]
@@ -78,5 +80,4 @@ namespace Fluxzy.Rules.Filters
             return !Inverted ? internalApplyResult : !internalApplyResult;
         }
     }
-    
 }
