@@ -14,6 +14,7 @@ import {ApiService} from "../../../../services/api.service";
 import {QuickActionService} from "../../../../services/quick-action.service";
 import {globalStringSearch} from "../../../../core/models/functions";
 import {BehaviorSubject, combineLatest, filter, tap} from "rxjs";
+import {InputService} from "../../../../services/input.service";
 
 @Component({
     selector: '[app-completion]',
@@ -28,6 +29,7 @@ export class CompletionComponent implements OnInit, OnChanges {
 
     public filteredActions : QuickAction[] | null = null;
     public focusedAction : QuickAction | null = null;
+    public keyboardCtrlOn: boolean = false;
 
     @Output() public onClickOutSide: EventEmitter<any> = new EventEmitter<any>();
     @Output() public onValidate: EventEmitter<any> = new EventEmitter<any>();
@@ -35,7 +37,10 @@ export class CompletionComponent implements OnInit, OnChanges {
     private focusedIndex$ = new BehaviorSubject<number>(0);
 
 
-    constructor(private eRef: ElementRef, private cd: ChangeDetectorRef, private apiService: ApiService,
+    constructor(private eRef: ElementRef,
+                private cd: ChangeDetectorRef,
+                private apiService: ApiService,
+                private inputService : InputService,
                 private quickActionService: QuickActionService) {
     }
 
@@ -45,7 +50,6 @@ export class CompletionComponent implements OnInit, OnChanges {
     }
 
     ngOnInit(): void {
-
         combineLatest([this.filteredActions$.pipe(tap(t => this.filteredActions = t), filter(t => !!t)),this.focusedIndex$])
             .pipe(tap(t => {
                 const index = t[1];
@@ -68,7 +72,10 @@ export class CompletionComponent implements OnInit, OnChanges {
                 this.runChanges();
             });
 
-
+        this.inputService.keyBoardCtrlOn$.pipe(
+            tap(t => this.keyboardCtrlOn = t),
+            tap(_ => this.cd.detectChanges())
+        ).subscribe() ;
 
     }
 
@@ -132,17 +139,23 @@ export class CompletionComponent implements OnInit, OnChanges {
         if (!this.focusedAction)
             return;
 
-        this.selectionAction(this.focusedAction);
+        this.selectionAction(this.focusedAction, this.keyboardCtrlOn);
     }
 
-    selectionAction(item: QuickAction) {
+    selectionAction(item: QuickAction, ctrlKey: boolean) {
 
         if  (item.type === 'ClientOperation') {
             this.quickActionService.executeQuickAction(item.id);
         }
 
         if  (item.type === 'Filter') {
-            this.apiService.filterApplyToview(item.quickActionPayload.filter!).subscribe() ;
+            if (!ctrlKey) {
+                this.apiService.filterApplyToview(item.quickActionPayload.filter!).subscribe() ;
+            }
+            else{
+                this.apiService.filterApplyToViewAnd(item.quickActionPayload.filter!).subscribe() ;
+            }
+
         }
 
         this.onValidate.emit(null);

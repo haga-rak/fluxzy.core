@@ -71,6 +71,12 @@ namespace Fluxzy.Desktop.Ui.Controllers
         {
             var currentFilter = activeViewFilterManager.Current;
 
+            if (currentFilter.Filter.Identifier == filter.Identifier)
+            {
+                // We do nothing here
+                return true;
+            }
+
             if (currentFilter.Filter is AnyFilter) {
 
                 activeViewFilterManager.UpdateViewFilter(filter);
@@ -79,6 +85,25 @@ namespace Fluxzy.Desktop.Ui.Controllers
                 return true; 
             }
 
+            if (currentFilter.Filter is FilterCollection andFilterCollection && andFilterCollection.Operation ==
+                SelectorCollectionOperation.And) {
+
+                if (andFilterCollection.Children.Any(c => c.Identifier == filter.Identifier)) {
+
+                    activeViewFilterManager.UpdateViewFilter(filter);
+                    filterProvider.SetNewFilter(filter);
+
+                    return true;
+                }
+
+                // Append to an existing and collection
+
+                andFilterCollection.Children.Add(filter);
+                activeViewFilterManager.UpdateViewFilter(andFilterCollection);
+                filterProvider.SetNewFilter(andFilterCollection);
+
+                return true;
+            }
 
             var filterCollection = new FilterCollection(currentFilter.Filter, filter) {
                 Operation = SelectorCollectionOperation.And

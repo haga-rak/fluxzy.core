@@ -60,6 +60,7 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
                 listActions.Add(BuildFromFilter(new MethodFilter(method)));
             }
 
+            listActions.Add(BuildFromFilter(new NetworkErrorFilter()));
             listActions.Add(BuildFromFilter(new StatusCodeSuccessFilter()));
             listActions.Add(BuildFromFilter(new StatusCodeClientErrorFilter(), Enumerable.Range(400,100).Select(s => s.ToString()).ToArray()));
             listActions.Add(BuildFromFilter(new StatusCodeServerErrorFilter(), Enumerable.Range(500,100).Select(s => s.ToString()).ToArray()));
