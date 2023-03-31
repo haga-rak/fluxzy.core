@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Net;
@@ -21,6 +21,11 @@ namespace Fluxzy
         protected bool Equals(Agent other)
         {
             return Id == other.Id && FriendlyName == other.FriendlyName;
+        }
+
+        public override string ToString()
+        {
+            return FriendlyName;
         }
 
         public override bool Equals(object? obj)
