@@ -123,8 +123,8 @@
                     aria-expanded="false" dropdownToggle>
             <span style="white-space: nowrap">
                 <span *ngIf="uiState.viewFilter.sourceFilter.typeKind === 'AnyFilter'">
-                    <span class="d-none d-xxl-inline">view per source</span>
-                    <span class="d-xxl-none">source</span>
+                    <span class="d-none d-xxl-inline">any origin</span>
+                    <span class="d-xxl-none">origin</span>
                         ({{uiState.templateToolBarFilterModel.agentFilters.length}})
                 </span>
                 <span class="limit-lengthd" *ngIf="uiState.viewFilter.sourceFilter.typeKind !== 'AnyFilter'">
@@ -202,7 +202,7 @@
                 class="btn btn-dark " aria-current="page">
                         <i class="fa fa-refresh" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;
 
-            <span class="d-none d-xxl-inline">replay</span></button>
+            <span class="d-none d-xxl-inline"></span></button>
         <button type="button" href="javascript:;" title="resume all pending exchanges in live edit"
 
                 [disabled]="currentExchangeId === null"
@@ -210,6 +210,6 @@
                 class="btn btn-dark " aria-current="page">
             <i class="fa fa-refresh text-warning" ></i>&nbsp;
 
-            <span class="d-none d-xxl-inline">replay w/ live edit</span></button>
+            <span class="d-none d-xxl-inline"></span></button>
     </div>
 </div>
