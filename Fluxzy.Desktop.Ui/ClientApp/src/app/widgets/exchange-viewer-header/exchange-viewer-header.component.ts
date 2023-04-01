@@ -5,6 +5,7 @@ import {DialogService} from "../../services/dialog.service";
 import {filter, switchMap, take, tap} from 'rxjs';
 import {ApiService} from "../../services/api.service";
 import {SystemCallService} from "../../core/services/system-call.service";
+import {MetaInformationService} from "../../services/meta-information.service";
 
 @Component({
     selector: 'app-exchange-viewer-header',
@@ -20,7 +21,12 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
 
     @Input() public exchange: ExchangeInfo;
 
-    constructor(private statusBarService : StatusBarService, private dialogService : DialogService, private apiService : ApiService, private systemCallService : SystemCallService) {
+    constructor(
+        private statusBarService : StatusBarService,
+        private dialogService : DialogService,
+        private apiService : ApiService,
+        private metaInformationService : MetaInformationService,
+        private systemCallService : SystemCallService) {
 
     }
 
@@ -36,29 +42,12 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     }
 
     public tag(): void {
-        const model : TagGlobalApplyModel = {
-            exchangeIds  : [this.exchange.id],
-            tagIdentifiers : this.exchange.tags.map(t => t.identifier)
-        } ;
-
-        this.dialogService.openTagApplyDialog(model)
-            .pipe(
-                take(1),
-                filter(t => !!t),
-                switchMap(t => this.apiService.metaInfoGlobalApply(t)),
-                tap(_ => this.statusBarService.addMessage('Tag applied', 1000))
-
-            ).subscribe();
+        this.metaInformationService.tag(this.exchange.id);
     }
 
     public comment() : void {
-        this.dialogService.openCommentApplyDialog(this.exchange.comment ?? '',
-            [this.exchange.id])
-            .pipe(
-                filter (c => !! c),
-                switchMap(t => this.apiService.metaInfoApplyComment(t)),
-                tap(_ => this.statusBarService.addMessage("Comment applied"))
-            ).subscribe();
+
+        this.metaInformationService.comment(this.exchange.id) ;
 
     }
 

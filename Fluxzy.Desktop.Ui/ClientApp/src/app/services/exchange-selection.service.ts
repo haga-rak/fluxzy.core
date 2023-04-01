@@ -149,9 +149,7 @@ export class ExchangeSelectionService {
         return this.currentSelectedIds$;
     }
 
-
     public setUpMenuEvents ()  : void {
-
         this.menuService.registerMenuEvent('invert-selection', () => {
                 if (!this.trunkState || !this.selectedIds)
                     return ;
@@ -165,14 +163,8 @@ export class ExchangeSelectionService {
                 }
 
                 this.setSelection(...result) ;
-
-
         });
     }
-
-
-
-
 }
 
 export interface ExchangeSelection {

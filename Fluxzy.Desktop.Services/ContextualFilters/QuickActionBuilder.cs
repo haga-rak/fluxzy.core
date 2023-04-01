@@ -54,7 +54,7 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             listActions.Add(BuildFromFilter(new ImageFilter(), "png", "jpeg", "jpg", "gif", "bitmap", "svg"));
             listActions.Add(BuildFromFilter(new CssStyleFilter(), "sass", "scss", "cascading", "sheet"));
 
-            var allHttpMethods = new string[] {"GET", "POST", "PUT", "PATCH", "DELETE"};
+            var allHttpMethods = new string[] {"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"};
 
             foreach (var method in allHttpMethods) {
                 listActions.Add(BuildFromFilter(new MethodFilter(method)));

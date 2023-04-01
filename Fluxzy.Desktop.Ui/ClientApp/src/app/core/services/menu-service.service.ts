@@ -30,6 +30,28 @@ export class MenuService {
         return this.applicationMenuEvents$.asObservable();
     }
 
+    public raiseMenuEvents(menuId : string) : void {
+        this.applicationMenuEvents$.next({menuId : menuId, menuLabel : ''});
+    }
+
+
+    public openFile() : void {
+        const fileName = this.electronService.ipcRenderer.sendSync('request-file-opening', null) as string ;
+        this.nextOpenFile$.next(fileName);
+    }
+    public newFile() : void {
+        this.nextOpenFile$.next('');
+    }
+
+    public saveAs() : void {
+        const fileName = this.electronService.ipcRenderer.sendSync('request-file-saving', null) as string ;
+
+        if (!fileName)
+            return;
+
+        this.nextSaveFile$.next(fileName);
+    }
+
     public init(): void {
         if (this._initied)
             return;
@@ -46,8 +68,7 @@ export class MenuService {
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'open'),
-                map(e => this.electronService.ipcRenderer.sendSync('request-file-opening', null) as string),
-                tap(t => this.nextOpenFile$.next(t)),
+                tap(_ => this.openFile())
             ).subscribe();
 
             this.applicationMenuEvents$.pipe(
@@ -57,14 +78,12 @@ export class MenuService {
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'save-as'),
-                map(_ => this.electronService.ipcRenderer.sendSync('request-file-saving', null) as string),
-                filter(t => !!t),
-                tap(t => this.nextSaveFile$.next(t)),
+                map(_ => this.saveAs() ),
             ).subscribe();
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'new'),
-                tap(t => this.nextOpenFile$.next('')),
+                tap(_ => this.newFile()),
             ).subscribe();
 
             this.applicationMenuEvents$.pipe(
