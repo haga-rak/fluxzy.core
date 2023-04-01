@@ -27,6 +27,7 @@ import {HarExportSettingComponent} from "../shared/har-export-setting/har-export
 import {WizardComponent} from "../settings/wizard/wizard.component";
 import {BreakPointDialogComponent} from "../breakpoints/break-point-dialog/break-point-dialog.component";
 import {BreakPointService} from "../breakpoints/break-point.service";
+import {DisplayStringComponent} from "../widgets/display-string/display-string.component";
 
 @Injectable({
     providedIn: 'root',
@@ -386,6 +387,23 @@ export class DialogService {
         );
 
         return subject.asObservable().pipe(take(1));
+    }
+
+    public openStringDisplay(title : string, value : string) : void {
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                class: 'little-down modal-dialog-small',
+                title,
+                value
+            },
+            ignoreBackdropClick : false
+        };
+
+        this.waitModalRef = this.modalService.show(
+            DisplayStringComponent,
+            config
+        );
     }
 
 }
