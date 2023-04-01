@@ -61,14 +61,18 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             }
 
             listActions.Add(BuildFromFilter(new NetworkErrorFilter()));
-            listActions.Add(BuildFromFilter(new StatusCodeSuccessFilter()));
+            listActions.Add(BuildFromFilter(new StatusCodeSuccessFilter(), "200", "201", "204"));
+            listActions.Add(BuildFromFilter(new StatusCodeRedirectionFilter(), "301", "302", "307"));
             listActions.Add(BuildFromFilter(new StatusCodeClientErrorFilter(), Enumerable.Range(400,100).Select(s => s.ToString()).ToArray()));
             listActions.Add(BuildFromFilter(new StatusCodeServerErrorFilter(), Enumerable.Range(500,100).Select(s => s.ToString()).ToArray()));
-            
+            listActions.Add(BuildFromFilter(new IsWebSocketFilter()));
+
+            listActions.Add(BuildFromFilter(new FontFilter(), "woff", "ttf"));
 
 
-           // listActions.Add(BuildFromFilter(new ClientEr));
-            
+
+            // listActions.Add(BuildFromFilter(new ClientEr));
+
 
 
             return new QuickActionResult(listActions); 
