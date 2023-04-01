@@ -58,8 +58,6 @@ export class HomeComponent implements OnInit {
         this.exchangeSelectionService.getSelected()
             .pipe(
                     tap(t => this.selectedExchange = t),
-                    // tap(t => console.log('yoi')),
-                    // tap(t => console.log(this.selectedExchange )),
                     tap(t => setTimeout(() => this.cdr.detectChanges(),2)), // TODO : check issue here
             ).subscribe() ;
 
