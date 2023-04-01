@@ -26,6 +26,7 @@
                placeholder="type filter, action, rules settings here"
                (input)="onTextFocus(null)"
                (click)="onTextFocus($event)"
+               (mousedown)="selectAll($event)"
                aria-describedby="btnGroupAddon">
 
         <div class="search-completion"  style="" *ngIf="completionShown">

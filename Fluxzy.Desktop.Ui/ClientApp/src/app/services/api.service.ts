@@ -34,7 +34,7 @@ import {
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult,
-    ForwardMessage, HarExportRequest, IPEndPoint,
+    ForwardMessage, FullUrlSearchViewModel, HarExportRequest, IPEndPoint,
     MultipartItem,
     NetworkInterfaceInfo, QuickActionResult, RequestSetupStepModel, ResponseSetupStepModel,
     Rule,
@@ -293,6 +293,10 @@ export class ApiService {
 
     public filterValidate(filter: Filter) : Observable<Filter> {
         return this.httpClient.post<Filter>(`api/filter/validate`, filter).pipe(take(1));
+    }
+
+    public filterApplyToViewUrlSearch( model : FullUrlSearchViewModel, and : boolean) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/filter/apply/url-search?and=${and}` , model).pipe(take(1));
     }
 
     public filterApplyToview(filter: Filter) : Observable<boolean> {

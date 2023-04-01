@@ -225,6 +225,9 @@ namespace Fluxzy.Desktop.Ui
             
             builder.ExportAsInterface<FileSaveViewModel>()
                    .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FullUrlSearchViewModel>()
+                   .ApplyGenericProperties();
         }
         
         private static void ConfigureProducers(ConfigurationBuilder builder)

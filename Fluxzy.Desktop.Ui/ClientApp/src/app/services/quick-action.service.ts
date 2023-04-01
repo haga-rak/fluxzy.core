@@ -76,7 +76,7 @@ export class QuickActionService {
     public registerLocalAction(
         id: string, category: string, label: string,
         needExchangeId: boolean,
-        callback: QuickActionCallBack, iconClass : string[] = [], otherClasses : string[] = []) {
+        callback: QuickActionCallBack, iconClass : string[] = [], otherClasses : string[] = [], ... keywords : string [] ) {
 
         if (this.callbacks[id]) {
             return;
@@ -85,8 +85,10 @@ export class QuickActionService {
         let quickAction: QuickAction = {
             category: category,
             label: label,
-            quickActionPayload: {},
-            keywords: [],
+            quickActionPayload: {
+
+            },
+            keywords: keywords,
             type: 'ClientOperation',
             id: id,
             needExchangeId,

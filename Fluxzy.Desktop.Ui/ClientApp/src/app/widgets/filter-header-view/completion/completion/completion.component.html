@@ -24,7 +24,8 @@
                 </span>
                 </td>
                 <td>
-                    <span *ngIf="item.category === 'Filter' && keyboardCtrlOn" class="text-purple">...and </span>
+                    <span *ngIf="(item.category === 'Filter' || item.category === 'Search') && keyboardCtrlOn" class="text-purple"
+                    title="Add this filter to the current existing">...and </span>
                     <a href="javascript:;" (click)="selectionAction(item, keyboardCtrlOn)">{{ item.label }}</a>
 
                 </td>
