@@ -53,7 +53,7 @@ export class QuickActionRegistrationService {
                                 }
                             },
                             ['fa', 'fa-pause'],
-                            ['text-danger'])
+                            ['text-danger'], 'halt')
                     }
                     else{
                         this.quickActionService.unregisterLocalAction('stop-capture');

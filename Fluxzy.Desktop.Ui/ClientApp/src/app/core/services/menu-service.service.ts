@@ -57,7 +57,7 @@ export class MenuService {
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'save-as'),
-                map(e => this.electronService.ipcRenderer.sendSync('request-file-saving', null) as string),
+                map(_ => this.electronService.ipcRenderer.sendSync('request-file-saving', null) as string),
                 filter(t => !!t),
                 tap(t => this.nextSaveFile$.next(t)),
             ).subscribe();

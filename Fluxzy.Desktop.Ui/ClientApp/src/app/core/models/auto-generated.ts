@@ -14,6 +14,10 @@ export interface FileSaveViewModel
 {
 	fileName: string;
 }
+export interface FullUrlSearchViewModel
+{
+	pattern: string;
+}
 export interface ExchangeContextInfo
 {
 	responseBodyText?: string;

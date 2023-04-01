@@ -96,7 +96,22 @@ export class CompletionComponent implements OnInit, OnChanges {
             const inputString = action.label +  ' ' + action.keywords.join(' ');
             return globalStringSearch(this.searchString,inputString);
 
-        }).slice(0, 20));
+        }).slice(0, 20).concat([ this.buildDefaultSearchByUrlAction()]));
+    }
+
+    private buildDefaultSearchByUrlAction() {
+        return {
+            category: 'Search',
+            keywords: [this.searchString],
+            type: 'Search',
+            label: `Search for “${this.searchString}” in URL`,
+            iconClass: ['fa', 'fa-search'],
+            id: 'search',
+            needExchangeId: false,
+            quickActionPayload: {},
+            otherClasses: ['text-primary'],
+
+        };
     }
 
     @HostListener('document:mouseup', ['$event'])
@@ -148,6 +163,11 @@ export class CompletionComponent implements OnInit, OnChanges {
             this.quickActionService.executeQuickAction(item.id);
         }
 
+        if  (item.type === 'Search') {
+            const searchPattern = item.keywords[0];
+            this.apiService.filterApplyToViewUrlSearch({ pattern : searchPattern }, this.keyboardCtrlOn).subscribe();
+        }
+
         if  (item.type === 'Filter') {
             if (!ctrlKey) {
                 this.apiService.filterApplyToview(item.quickActionPayload.filter!).subscribe() ;
@@ -155,7 +175,6 @@ export class CompletionComponent implements OnInit, OnChanges {
             else{
                 this.apiService.filterApplyToViewAnd(item.quickActionPayload.filter!).subscribe() ;
             }
-
         }
 
         this.onValidate.emit(null);

@@ -195,4 +195,8 @@ export class FilterHeaderViewComponent implements OnInit {
     onValidate() {
         this.searchString = '';
     }
+
+    selectAll($event: MouseEvent) {
+
+    }
 }
