@@ -6,7 +6,7 @@
 
     <div class="" *ngIf="curlResult" style="width : 100%">
         <div>
-            <h4>Copy cURL command</h4>
+            <h4>Export cURL command</h4>
             <div style="margin-bottom: 12px;">
                 <div class="alert alert-warning" *ngIf="curlResult.fileName">
                     <strong class="text-warning">Note </strong> This request contains binary or large payload. In order to use this curl command, you need to
@@ -14,19 +14,19 @@
                 </div>
 
                 <div  style=" line-height: 32px">
-                    <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[0])" title="copy to clipboard" href="javascript:;">
+                    <a class="btn btn-gray-800 btn-sm"  (click)=" openDisplayStringDialog('Curl cmd command', values[0])" title="view command" href="javascript:;">
                         <span>cmd</span>
                     </a>&nbsp;
-                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[2])" title="copy to clipboard"  href="javascript:;">
+                    <a class="btn btn-gray-800 btn-sm"  (click)=" openDisplayStringDialog('Bash command', values[2])" title="view command"  href="javascript:;">
                         <span>bash</span>
                     </a>&nbsp;
-                    <a class="btn btn-gray-800 btn-sm"  (click)=" copyToClipboard(values[1])" title="copy to clipboard"  href="javascript:;">
+                    <a class="btn btn-gray-800 btn-sm"  (click)=" openDisplayStringDialog('Bash command', values[1])" title="view command"  href="javascript:;">
                         <span>cmd (with proxy)</span>
                     </a>&nbsp;
-                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[3])" title="copy to clipboard"  href="javascript:;">
+                    <a class="btn btn-gray-800 btn-sm"  (click)="openDisplayStringDialog('Bash command', values[3])" title="view command"  href="javascript:;">
                         <span>bash (with proxy)</span>
                     </a>&nbsp;
-                    <a class="btn btn-gray-800 btn-sm"  (click)="copyToClipboard(values[2])" title="a postman compatible curl command"  href="javascript:;">
+                    <a class="btn btn-gray-800 btn-sm"  (click)="openDisplayStringDialog('Bash command', values[2])" title="view postman compatible curl command"  href="javascript:;">
                         <span>postman</span>
                     </a>&nbsp;
                  </div>
