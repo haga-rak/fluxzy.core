@@ -107,14 +107,6 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 type :  'separator'
             },
             {
-                id : 'duplicate',
-                label : 'Duplicate selection',
-                accelerator: 'Ctrl+D',
-            },
-            {
-                type :  'separator'
-            },
-            {
                 id : 'delete',
                 label : 'Delete selected exchanges',
                 accelerator: 'Delete',
@@ -178,7 +170,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 id : 'pause-all-with-filter'
             },
             {
-                label : 'Delete all live edit filters',
+                label : 'Stop catching',
                 id : 'delete-all-filters'
             },
             {

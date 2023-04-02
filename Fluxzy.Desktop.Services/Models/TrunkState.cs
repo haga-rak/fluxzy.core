@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Desktop.Services.Models
 {
@@ -19,6 +19,8 @@ namespace Fluxzy.Desktop.Services.Models
 
                 if (exchange.ExchangeInfo.Agent != null)
                     agents.Add(exchange.ExchangeInfo.Agent);
+
+                // Here we trigger the contextual filter
             }
 
             for (var index = 0; index < Connections.Count; index++) {

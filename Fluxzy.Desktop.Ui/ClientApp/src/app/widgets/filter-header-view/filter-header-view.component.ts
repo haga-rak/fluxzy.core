@@ -6,6 +6,8 @@ import {Filter, UiState} from "../../core/models/auto-generated";
 import {ApiService} from "../../services/api.service";
 import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
 import {InputService} from "../../services/input.service";
+import {BreakPointService} from "../../breakpoints/break-point.service";
+import {ExchangeSelectionService} from "../../services/exchange-selection.service";
 
 @Component({
     selector: 'app-filter-header-view',
@@ -15,14 +17,22 @@ import {InputService} from "../../services/input.service";
 export class FilterHeaderViewComponent implements OnInit {
     public uiState: UiState;
     public selectedFilter : Filter | null ;
+    public alwaysSelectedFilter : Filter | null ;
 
     public  SourceAgentIconFunc = SourceAgentIconFunc;
     public ctrlKeyOn: boolean = false;
+    private currentExchangeId: number | null = null;
+
+    public completionShown = false;
+
+    public searchString = '';
 
     constructor(private dialogService : DialogService,
                 private uiStateService : UiStateService,
                 private apiService: ApiService,
                 private inputService : InputService,
+                private breakPointService : BreakPointService,
+                private exchangeSelectionService : ExchangeSelectionService,
                 private cd : ChangeDetectorRef) {}
 
     ngOnInit(): void {
@@ -31,6 +41,7 @@ export class FilterHeaderViewComponent implements OnInit {
                 tap(t => this.uiState = t),
                 tap(t => {
                     this.selectedFilter = this.uiState.viewFilter?.filter ;
+                    this.alwaysSelectedFilter = this.uiState.viewFilter?.filter ;
 
                     if (this.selectedFilter && this.uiState.toolBarFilters.filter(f => f.filter.identifier === this.selectedFilter.identifier).length !== 0){
                         this.selectedFilter = null ;
@@ -44,6 +55,10 @@ export class FilterHeaderViewComponent implements OnInit {
             tap(t => this.cd.detectChanges()),
         ).subscribe();
 
+        this.exchangeSelectionService.getCurrentSelection()
+            .pipe(
+                tap(t =>this.currentExchangeId = t?.lastSelectedExchangeId ?? null)
+            ).subscribe() ;
     }
 
     public openManagedFilters() : void {
@@ -118,5 +133,70 @@ export class FilterHeaderViewComponent implements OnInit {
 
     public applySourceFilter(filter: Filter) : void {
         this.apiService.filterApplySource(filter).subscribe() ;
+    }
+
+    public enableCapture() : void {
+        this.apiService.proxyOn().subscribe();
+    }
+
+    public haltCapture() : void {
+        this.apiService.proxyOff().subscribe();
+    }
+
+    catchAll() {
+        this.apiService.breakPointBreakAll().subscribe() ;
+    }
+
+    catchWithFilter() {
+
+        this.dialogService.openFilterCreate()
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(t => this.apiService.breakPointAdd(t))
+            ).subscribe();
+    }
+
+    resumeAll() {
+        this.apiService.breakPointContinueAll().subscribe() ;
+    }
+
+    deleteAll() {
+        this.apiService.breakPointResumeDeleteAll().subscribe() ;
+    }
+
+    showActiveLiveEditFilters() {
+        this.breakPointService.openBreakPointList() ;
+    }
+
+    replay() {
+        this.apiService.exchangeReplay(this.currentExchangeId, false).subscribe() ;
+    }
+
+    replayInLiveEdit() {
+
+        this.apiService.exchangeReplay(this.currentExchangeId, true).subscribe() ;
+    }
+
+    onTextFocus($event: any) {
+
+        if ($event?.target)
+            $event.target.select();
+
+        this.completionShown = true;
+        this.cd.detectChanges();
+    }
+
+    completionShouldHide() {
+        this.completionShown = false;
+        this.cd.detectChanges();
+    }
+
+    onValidate() {
+        this.searchString = '';
+    }
+
+    selectAll($event: MouseEvent) {
+
     }
 }

@@ -28,7 +28,6 @@ export class ContextMenuExecutionService {
         }
 
         if (contextMenuAction.id === 'download-response-body') {
-
             this.systemCallService.requestFileSave(`exchange-response-${exchangeId}.data`)
                 .pipe(
                     filter(t => !!t),

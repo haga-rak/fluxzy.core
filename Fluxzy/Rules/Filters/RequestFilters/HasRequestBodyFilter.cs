@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using Fluxzy.Misc;
@@ -13,8 +13,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     )]
     public class HasRequestBodyFilter : Filter
     {
-        public override Guid Identifier => $"{GetType().Name}{Inverted}".GetMd5Guid();
-
         public override FilterScope FilterScope => FilterScope.ResponseBodyReceivedFromRemote;
 
         public override string GenericName => "Has Request body";

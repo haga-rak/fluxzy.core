@@ -34,9 +34,9 @@ import {
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult,
-    ForwardMessage, HarExportRequest, IPEndPoint,
+    ForwardMessage, FullUrlSearchViewModel, HarExportRequest, IPEndPoint,
     MultipartItem,
-    NetworkInterfaceInfo, RequestSetupStepModel, ResponseSetupStepModel,
+    NetworkInterfaceInfo, QuickActionResult, RequestSetupStepModel, ResponseSetupStepModel,
     Rule,
     RuleContainer,
     SaveFileMultipartActionModel, SazExportRequest,
@@ -295,6 +295,10 @@ export class ApiService {
         return this.httpClient.post<Filter>(`api/filter/validate`, filter).pipe(take(1));
     }
 
+    public filterApplyToViewUrlSearch( model : FullUrlSearchViewModel, and : boolean) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/filter/apply/url-search?and=${and}` , model).pipe(take(1));
+    }
+
     public filterApplyToview(filter: Filter) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/filter/apply/regular`, filter).pipe(take(1));
     }
@@ -337,6 +341,10 @@ export class ApiService {
 
     public ruleUpdateContainer(containers : RuleContainer[]) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/rule/container`,containers).pipe(take(1)) ;
+    }
+
+    public ruleAddToExisting(rule : Rule) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/rule/container/add`,rule).pipe(take(1)) ;
     }
 
     public actionValidate(action: Action) : Observable<Action> {
@@ -437,11 +445,15 @@ export class ApiService {
         return this.httpClient.delete<boolean>(`api/breakpoint/${filterId}`).pipe(take(1)) ;
     }
 
+    public breakPointDeleteAll() : Observable<boolean> {
+        return this.httpClient.delete<boolean>(`api/breakpoint/delete/all`).pipe(take(1)) ;
+    }
+
     public breakPointDeleteMultiple(filterIds: string[]) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/breakpoint/delete`, filterIds).pipe(take(1)) ;
     }
 
-    public breakPointDeleteAll() : Observable<boolean> {
+    public breakPointResumeDeleteAll() : Observable<boolean> {
         return this.httpClient.delete<boolean>(`api/breakpoint/clear`).pipe(take(1)) ;
     }
 
@@ -488,4 +500,11 @@ export class ApiService {
         return this.httpClient.post<boolean>(`api/breakpoint/${exchangeId}/response/continue`, null).pipe(take(1)) ;
     }
 
+    public quickActionList() : Observable<QuickActionResult> {
+        return this.httpClient.get<QuickActionResult>(`api/quickaction`).pipe(take(1));
+    }
+
+    public quickActionListStatic() : Observable<QuickActionResult> {
+        return this.httpClient.get<QuickActionResult>(`api/quickaction/static`).pipe(take(1));
+    }
 }

@@ -56,11 +56,19 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
+        [HttpDelete("delete/all")]
+        public ActionResult<bool> DeleteAllBreakPoints()
+        {
+            _handler.DeleteAllBreakPoints();
+
+            return true;
+        }
+
         [HttpDelete("clear")]
         public ActionResult<bool> DeleteAll()
         {
-            _handler.ContinueAll();
             _handler.DeleteAllBreakPoints();
+            _handler.ContinueAll();
 
             return true;
         }

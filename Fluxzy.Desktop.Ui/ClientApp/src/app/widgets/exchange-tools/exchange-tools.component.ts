@@ -4,6 +4,7 @@ import {CurlCommandResult, ExchangeInfo} from "../../core/models/auto-generated"
 import {filter, switchMap, tap} from "rxjs";
 import {SystemCallService} from "../../core/services/system-call.service";
 import {StatusBarService} from "../../services/status-bar.service";
+import {DialogService} from "../../services/dialog.service";
 
 @Component({
     selector: 'div[exchange-tools]',
@@ -18,7 +19,12 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
     public index : number = 1 ;
     public values : string [] = ['','','',''] ;
 
-    constructor(private apiService: ApiService, public cd : ChangeDetectorRef, private systemCallService: SystemCallService, private statusBarService : StatusBarService) {
+    constructor(
+        private apiService: ApiService,
+        private dialogService : DialogService,
+        public cd : ChangeDetectorRef,
+        private systemCallService: SystemCallService,
+        private statusBarService : StatusBarService) {
 
     }
 
@@ -73,6 +79,10 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
     public copyToClipboard(text : string) {
         this.systemCallService.setClipBoard(text ) ;
         this.statusBarService.addMessage('Copied!', 1000);
+    }
+
+    public openDisplayStringDialog(title : string, value : string) : void {
+        this.dialogService.openStringDisplay(title, value   );
     }
 
     public saveCurlPayload(fileName : string) {

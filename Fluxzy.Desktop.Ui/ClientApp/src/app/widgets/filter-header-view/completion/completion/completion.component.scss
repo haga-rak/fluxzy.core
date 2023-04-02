@@ -1,0 +1,30 @@
+.completion-table{
+    width: 100% ;
+}
+.completion-table > tr > td:first-child{
+    width: 32px;
+    text-align: center;
+}
+
+.completion-table > tr > td:nth-child(2){
+    width: 64px;
+}
+
+.completion-table > tr > td:nth-child(3) a{
+    text-decoration: none;
+    color: var(--bs-gray-300)
+}
+
+.quick-action-line >  td:nth-child(3){
+}
+
+.focused-action > td {
+    background: var(--bs-gray-500);
+}
+
+.focused-action > td:nth-child(3) a{
+    text-decoration: underline !important;
+}
+.focused-action > td a{
+    color : white !important;
+}

@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Rules.Filters;
@@ -20,8 +20,7 @@ namespace Fluxzy.Desktop.Services
                 ) {
                     Operation = SelectorCollectionOperation.Or,
                     ExplicitShortName = "err",
-                    Description = "Error 4XX and 5XX",
-                    Identifier = Guid.Parse("E4B4D0B9-44CC-453B-9B13-8B06F1008B89")
+                    Description = "Error 4XX and 5XX"
                 }
             ),
             new ToolBarFilter(new IsWebSocketFilter())

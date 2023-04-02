@@ -27,6 +27,7 @@ import {HarExportSettingComponent} from "../shared/har-export-setting/har-export
 import {WizardComponent} from "../settings/wizard/wizard.component";
 import {BreakPointDialogComponent} from "../breakpoints/break-point-dialog/break-point-dialog.component";
 import {BreakPointService} from "../breakpoints/break-point.service";
+import {DisplayStringComponent} from "../widgets/display-string/display-string.component";
 
 @Injectable({
     providedIn: 'root',
@@ -177,6 +178,7 @@ export class DialogService {
         return subject.asObservable().pipe(take(1));;
     }
 
+
     public openFilterPreCreate(): Observable<Filter | null> {
         const subject = new Subject<Filter | null>() ;
 
@@ -230,6 +232,20 @@ export class DialogService {
 
         this.bsModalRef.content.closeBtnName = 'Close';
         return subject.asObservable().pipe(take(1));;
+    }
+
+
+    public openRuleCreateFromActionWithDialog(action: Action): Observable<any> {
+        return this.openRuleCreateFromAction(action).
+        pipe(
+            take(1),
+            filter(t => !!t),
+            switchMap(t => this.apiService.ruleAddToExisting(t))
+            // We need to apply this immediately
+        );
+
+        // this.openRuleCreateFromAction(action)
+        //     .pipe(
     }
 
     public openRuleCreateFromAction(action : Action) : Observable<Rule | null> {
@@ -338,7 +354,6 @@ export class DialogService {
         }
     }
 
-
     public openCommentApplyDialog(comment : string, exchangeIds : number[]) : Observable<CommentUpdateModel | null> {
         const subject = new Subject<CommentUpdateModel>() ;
         const callBack = (f : CommentUpdateModel | null) => {  subject.next(f); subject.complete()};
@@ -386,6 +401,23 @@ export class DialogService {
         );
 
         return subject.asObservable().pipe(take(1));
+    }
+
+    public openStringDisplay(title : string, value : string) : void {
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                class: 'little-down modal-dialog-small',
+                title,
+                value
+            },
+            ignoreBackdropClick : false
+        };
+
+        this.waitModalRef = this.modalService.show(
+            DisplayStringComponent,
+            config
+        );
     }
 
 }
