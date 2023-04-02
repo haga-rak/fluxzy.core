@@ -3,6 +3,7 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
@@ -69,11 +70,10 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
 
             listActions.Add(BuildFromFilter(new FontFilter(), "woff", "ttf"));
 
-
-
+            listActions.Add(BuildFromAction(new ForceHttp2Action()));
+            listActions.Add(BuildFromAction(new AddRequestHeaderAction(string.Empty, string.Empty)));
+            
             // listActions.Add(BuildFromFilter(new ClientEr));
-
-
 
             return new QuickActionResult(listActions); 
         }
@@ -87,6 +87,16 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
                 new QuickActionPayload(filter), QuickActionType.Filter) {
                 Keywords = keywords
             };
+        }
+
+        public static QuickAction BuildFromAction(Fluxzy.Rules.Action action)
+        {
+            return new QuickAction(action.Identifier.ToString(),
+                               "Action",
+                                              action.FriendlyName,
+                                              false,
+                                              new QuickActionPayload(action),
+                               QuickActionType.Action);
         }
     }
 }

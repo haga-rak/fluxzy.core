@@ -15,6 +15,7 @@ import {QuickActionService} from "../../../../services/quick-action.service";
 import {globalStringSearch} from "../../../../core/models/functions";
 import {BehaviorSubject, combineLatest, filter, tap} from "rxjs";
 import {InputService} from "../../../../services/input.service";
+import {DialogService} from "../../../../services/dialog.service";
 
 @Component({
     selector: '[app-completion]',
@@ -41,7 +42,8 @@ export class CompletionComponent implements OnInit, OnChanges {
                 private cd: ChangeDetectorRef,
                 private apiService: ApiService,
                 private inputService : InputService,
-                private quickActionService: QuickActionService) {
+                private quickActionService: QuickActionService,
+                private dialogService : DialogService) {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -175,6 +177,10 @@ export class CompletionComponent implements OnInit, OnChanges {
             else{
                 this.apiService.filterApplyToViewAnd(item.quickActionPayload.filter!).subscribe() ;
             }
+        }
+
+        if  (item.type === 'Action' && item.quickActionPayload.action) {
+            this.dialogService.openRuleCreateFromActionWithDialog(item.quickActionPayload.action).subscribe();
         }
 
         this.onValidate.emit(null);

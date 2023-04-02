@@ -343,6 +343,10 @@ export class ApiService {
         return this.httpClient.post<boolean>(`api/rule/container`,containers).pipe(take(1)) ;
     }
 
+    public ruleAddToExisting(rule : Rule) : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/rule/container/add`,rule).pipe(take(1)) ;
+    }
+
     public actionValidate(action: Action) : Observable<Action> {
         return this.httpClient.post<Action>(`api/rule/action/validate`,action).pipe(take(1)) ;
     }

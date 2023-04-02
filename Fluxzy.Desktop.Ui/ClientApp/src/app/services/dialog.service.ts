@@ -178,6 +178,7 @@ export class DialogService {
         return subject.asObservable().pipe(take(1));;
     }
 
+
     public openFilterPreCreate(): Observable<Filter | null> {
         const subject = new Subject<Filter | null>() ;
 
@@ -231,6 +232,20 @@ export class DialogService {
 
         this.bsModalRef.content.closeBtnName = 'Close';
         return subject.asObservable().pipe(take(1));;
+    }
+
+
+    public openRuleCreateFromActionWithDialog(action: Action): Observable<any> {
+        return this.openRuleCreateFromAction(action).
+        pipe(
+            take(1),
+            filter(t => !!t),
+            switchMap(t => this.apiService.ruleAddToExisting(t))
+            // We need to apply this immediately
+        );
+
+        // this.openRuleCreateFromAction(action)
+        //     .pipe(
     }
 
     public openRuleCreateFromAction(action : Action) : Observable<Rule | null> {
@@ -338,7 +353,6 @@ export class DialogService {
             this.waitModalRef = null ;
         }
     }
-
 
     public openCommentApplyDialog(comment : string, exchangeIds : number[]) : Observable<CommentUpdateModel | null> {
         const subject = new Subject<CommentUpdateModel>() ;
