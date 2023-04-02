@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Rules;
@@ -34,6 +34,21 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             activeRuleManager.SetCurrentSelection(
                 containers.Where(c => c.Enabled).Select(c => c.Rule.Identifier));
+
+            return true;
+        }
+
+        [HttpPost("container/add")]
+        public async Task<ActionResult<bool>> AddToExisting([FromBody]  Rule rule, 
+            [FromServices] ActiveRuleManager activeRuleManager)
+        {
+            var currentRuleContainers = await _ruleStorage.ReadRules();
+            currentRuleContainers.Add(new RuleContainer(rule, true));
+
+            await _ruleStorage.Update(currentRuleContainers);
+
+            activeRuleManager.SetCurrentSelection(
+                currentRuleContainers.Where(c => c.Enabled).Select(c => c.Rule.Identifier));
 
             return true;
         }

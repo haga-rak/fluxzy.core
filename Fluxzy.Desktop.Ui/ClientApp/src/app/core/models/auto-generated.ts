@@ -1126,6 +1126,7 @@ export interface QuickAction
 export interface QuickActionPayload
 {
 	filter?: Filter;
+	action?: Action;
 }
 export interface ContextualFilterResult
 {

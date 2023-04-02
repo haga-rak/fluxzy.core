@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Rules.Filters;
+using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy.Desktop.Services.ContextualFilters
 {
@@ -71,7 +72,8 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
     {
         BackendCall,
         ClientOperation,
-        Filter
+        Filter, 
+        Action, 
     }
 
     public class QuickActionPayload
@@ -81,6 +83,13 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             Filter = filter;
         }
 
-        public Filter? Filter { get; }
+        public QuickActionPayload(Action? action)
+        {
+            Action = action;
+        }
+
+        public Filter? Filter { get; } = null; 
+
+        public Action? Action { get; } = null;
     }
 }

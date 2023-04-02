@@ -38,7 +38,7 @@ export class QuickActionService {
                 ),
                 this.apiService.quickActionListStatic().pipe(
                     tap(t =>  {
-                        t.actions.forEach(a =>
+                        t.actions.filter(a => a.type === 'Filter').forEach(a =>
                         {
                             if (a.type === 'Filter') {
                                 a.iconClass = ['fa', 'fa-filter'];
