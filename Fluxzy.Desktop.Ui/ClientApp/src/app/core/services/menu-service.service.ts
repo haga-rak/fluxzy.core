@@ -34,7 +34,6 @@ export class MenuService {
         this.applicationMenuEvents$.next({menuId : menuId, menuLabel : ''});
     }
 
-
     public openFile() : void {
         const fileName = this.electronService.ipcRenderer.sendSync('request-file-opening', null) as string ;
         this.nextOpenFile$.next(fileName);
@@ -50,6 +49,10 @@ export class MenuService {
             return;
 
         this.nextSaveFile$.next(fileName);
+    }
+
+    public delete() : void {
+        this.deleteEvent$.next(true);
     }
 
     public init(): void {
@@ -111,7 +114,7 @@ export class MenuService {
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'delete'),
-                tap(e => this.deleteEvent$.next(true))
+                tap(_ => this.delete())
             ).subscribe();
 
             // raise callbacks
@@ -203,7 +206,6 @@ export class MenuService {
             menu.enabled = selectionCount > 0;
         }
 
-        FindMenu(menus, (menu) => menu.id === 'duplicate').enabled = selectionCount > 0;
         FindMenu(menus, (menu) => menu.id === 'tag').enabled = selectionCount > 0;
         FindMenu(menus, (menu) => menu.id === 'comment').enabled = selectionCount > 0;
 

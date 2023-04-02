@@ -7,6 +7,8 @@ import {BreakPointService} from "../breakpoints/break-point.service";
 import {UiStateService} from "./ui.service";
 import {MenuService} from "../core/services/menu-service.service";
 import {MetaInformationService} from "./meta-information.service";
+import {SystemCallService} from "../core/services/system-call.service";
+import {ExchangeContentService} from "./exchange-content.service";
 
 @Injectable({
     providedIn: 'root'
@@ -20,6 +22,8 @@ export class QuickActionRegistrationService {
         private breakPointService : BreakPointService,
         private uiStateService : UiStateService,
         private metaInformationService : MetaInformationService,
+        private systemCallService : SystemCallService,
+        private exchangeContentService : ExchangeContentService,
         private menuService : MenuService) {
 
         this.uiStateService.lastUiState$.pipe(
@@ -36,7 +40,8 @@ export class QuickActionRegistrationService {
                                 }
                             },
                             ['fa', 'fa-bolt'],
-                            ['text-success'])
+                            ['text-success'],
+                            "record")
                     }
                     else{
                         this.quickActionService.unregisterLocalAction('capture-start');
@@ -57,7 +62,7 @@ export class QuickActionRegistrationService {
                                 }
                             },
                             ['fa', 'fa-pause'],
-                            ['text-danger'], 'halt')
+                            ['text-danger'], 'halt', 'record')
                     }
                     else{
                         this.quickActionService.unregisterLocalAction('stop-capture');
@@ -209,8 +214,69 @@ export class QuickActionRegistrationService {
                     }
                     this.metaInformationService.tag(exchangeIds[0]);
                 }},
-            ["fa", "fa-pin"],
+            ["fa", "fa-tag"],
                 []
+        );
+
+        this.quickActionService.registerLocalAction(
+            "download-request-body", "General", "Download request body", true,
+            { callBack : (exchangeIds : number []) => {
+                    if (!exchangeIds.length){
+                        return;
+                    }
+                    const exchangeId = exchangeIds[0];
+
+                    this.systemCallService.requestFileSave(`exchange-request-${exchangeId}.data`)
+                        .pipe(
+                            filter(t => !!t),
+                            switchMap(fileName => this.apiService.exchangeSaveRequestBody(exchangeId, fileName) ),
+                        ).subscribe() ;
+                }},
+            ["fa", "fa-download"],
+                []
+        );
+
+        this.quickActionService.registerLocalAction(
+            "download-response-body", "General", "Download response body", true,
+            { callBack : (exchangeIds : number []) => {
+                    if (!exchangeIds.length){
+                        return;
+                    }
+                    const exchangeId = exchangeIds[0];
+
+                    this.systemCallService.requestFileSave(`exchange-response-${exchangeId}.data`)
+                        .pipe(
+                            filter(t => !!t),
+                            switchMap(fileName => this.apiService.exchangeSaveResponseBody(exchangeId, fileName, true) ),
+                        ).subscribe() ;
+                }},
+            ["fa", "fa-download"],
+                []
+        );
+
+        this.quickActionService.registerLocalAction(
+            "delete", "General", "Delete selected exchanges", true,
+            { callBack : (exchangeIds : number []) => {
+                    if (!exchangeIds.length){
+                        return;
+                    }
+
+                    this.menuService.delete();
+                }},
+            ["fa", "fa-trash"],
+                [], 'remove', 'suppress'
+        );
+
+        this.quickActionService.registerLocalAction(
+            "clear-all", "General", "Delete all exchanges", false,
+            { callBack : (exchangeIds : number []) => {
+                    this.apiService.trunkClear()
+                        .pipe(
+                            tap(trunkState => this.exchangeContentService.update(trunkState))
+                        ).subscribe();
+                }},
+            ["fa", "fa-trash"],
+                [], 'remove', 'suppress', 'clear', 'truncate'
         );
 
     }

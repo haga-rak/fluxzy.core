@@ -107,14 +107,6 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 type :  'separator'
             },
             {
-                id : 'duplicate',
-                label : 'Duplicate selection',
-                accelerator: 'Ctrl+D',
-            },
-            {
-                type :  'separator'
-            },
-            {
                 id : 'delete',
                 label : 'Delete selected exchanges',
                 accelerator: 'Delete',
