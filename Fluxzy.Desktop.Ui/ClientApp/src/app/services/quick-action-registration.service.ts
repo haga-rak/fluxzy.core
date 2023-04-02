@@ -218,23 +218,6 @@ export class QuickActionRegistrationService {
                 []
         );
 
-        this.quickActionService.registerLocalAction(
-            "download-request-body", "General", "Download request body", true,
-            { callBack : (exchangeIds : number []) => {
-                    if (!exchangeIds.length){
-                        return;
-                    }
-                    const exchangeId = exchangeIds[0];
-
-                    this.systemCallService.requestFileSave(`exchange-request-${exchangeId}.data`)
-                        .pipe(
-                            filter(t => !!t),
-                            switchMap(fileName => this.apiService.exchangeSaveRequestBody(exchangeId, fileName) ),
-                        ).subscribe() ;
-                }},
-            ["fa", "fa-download"],
-                []
-        );
 
         this.quickActionService.registerLocalAction(
             "download-response-body", "General", "Download response body", true,
@@ -248,6 +231,24 @@ export class QuickActionRegistrationService {
                         .pipe(
                             filter(t => !!t),
                             switchMap(fileName => this.apiService.exchangeSaveResponseBody(exchangeId, fileName, true) ),
+                        ).subscribe() ;
+                }},
+            ["fa", "fa-download"],
+            []
+        );
+
+        this.quickActionService.registerLocalAction(
+            "download-request-body", "General", "Download request body", true,
+            { callBack : (exchangeIds : number []) => {
+                    if (!exchangeIds.length){
+                        return;
+                    }
+                    const exchangeId = exchangeIds[0];
+
+                    this.systemCallService.requestFileSave(`exchange-request-${exchangeId}.data`)
+                        .pipe(
+                            filter(t => !!t),
+                            switchMap(fileName => this.apiService.exchangeSaveRequestBody(exchangeId, fileName) ),
                         ).subscribe() ;
                 }},
             ["fa", "fa-download"],
