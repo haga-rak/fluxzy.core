@@ -9,6 +9,7 @@ using Fluxzy.Clients.H11;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Attributes;
+using Fluxzy.Desktop.Services.ContextualFilters;
 using Fluxzy.Desktop.Services.Filters;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
@@ -199,6 +200,21 @@ namespace Fluxzy.Desktop.Ui
             
             builder.ExportAsInterface<StartupWizardSettings>()
                 .ApplyGenericProperties();
+
+            builder.ExportAsInterface<QuickActionResult>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<QuickAction>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<QuickActionPayload>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ContextualFilterResult>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<ContextualFilter>()
+                .ApplyGenericProperties();
         }
 
 
@@ -208,6 +224,9 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
             
             builder.ExportAsInterface<FileSaveViewModel>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FullUrlSearchViewModel>()
                    .ApplyGenericProperties();
         }
         
@@ -375,6 +394,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(BreakPointStatus), new RtSimpleTypeName("string"))
+                .Substitute(typeof(QuickActionType), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)
@@ -401,6 +421,7 @@ namespace Fluxzy.Desktop.Ui
                 .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
                 .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
                 .Substitute(typeof(BreakPointStatus), new RtSimpleTypeName("string"))
+                .Substitute(typeof(QuickActionType), new RtSimpleTypeName("string"))
                 .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
                 .DontIncludeToNamespace()
                 .AutoI(false)

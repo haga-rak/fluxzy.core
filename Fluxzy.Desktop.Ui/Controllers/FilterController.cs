@@ -2,7 +2,10 @@
 
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Filters;
+using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Desktop.Ui.ViewModels;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxzy.Desktop.Ui.Controllers
@@ -39,6 +42,33 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return AnyFilter.Default;
         }
 
+        [HttpPost("apply/url-search")]
+        public ActionResult<bool> ApplySearchOnUrl(FullUrlSearchViewModel model,
+            [FromServices]
+            ActiveViewFilterManager activeViewFilterManager,
+            [FromServices]
+            TemplateToolBarFilterProvider filterProvider,
+            [FromQuery] bool and = false)
+        {
+            var urlFilter = new FullUrlFilter(model.Pattern, StringSelectorOperation.Contains) {
+                CaseSensitive = false
+            };
+
+            if (!and) {
+                activeViewFilterManager.UpdateViewFilter(urlFilter);
+                filterProvider.SetNewFilter(urlFilter);
+                return true; 
+            }
+            else {
+                InternalApplyAnd(urlFilter, activeViewFilterManager,
+                    filterProvider, activeViewFilterManager.Current);
+            }
+
+            return true; 
+
+        }
+
+
         [HttpPost("apply/regular")]
         public ActionResult<bool> ApplyToView(
             Filter filter,
@@ -62,7 +92,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         /// <param name="filterProvider"></param>
         /// <returns></returns>
         [HttpPost("apply/regular/and")]
-        public ActionResult<bool> ApplyToViewAddAnd(
+        public ActionResult<bool> ApplyAndFilter(
             Filter filter,
             [FromServices]
             ActiveViewFilterManager activeViewFilterManager,
@@ -71,24 +101,56 @@ namespace Fluxzy.Desktop.Ui.Controllers
         {
             var currentFilter = activeViewFilterManager.Current;
 
-            if (currentFilter.Filter is AnyFilter) {
+            InternalApplyAnd(filter, activeViewFilterManager, filterProvider, currentFilter); 
 
+            return true;
+        }
+
+        private static bool InternalApplyAnd(
+            Filter filter, ActiveViewFilterManager activeViewFilterManager, 
+            TemplateToolBarFilterProvider filterProvider,
+            ViewFilter currentFilter)
+        {
+            if (currentFilter.Filter.Identifier == filter.Identifier) {
+                // We do nothing here
+                return true;
+            }
+
+            if (currentFilter.Filter is AnyFilter) {
                 activeViewFilterManager.UpdateViewFilter(filter);
                 filterProvider.SetNewFilter(filter);
 
-                return true; 
+                return true;
             }
 
+            if (currentFilter.Filter is FilterCollection andFilterCollection && andFilterCollection.Operation ==
+                SelectorCollectionOperation.And) {
+                if (andFilterCollection.Children.Any(c => c.Identifier == filter.Identifier)) {
+                    activeViewFilterManager.UpdateViewFilter(filter);
+                    filterProvider.SetNewFilter(filter);
+
+                    return true;
+                }
+
+                // Append to an existing and collection
+
+                andFilterCollection.Children.Add(filter);
+                activeViewFilterManager.UpdateViewFilter(andFilterCollection);
+                filterProvider.SetNewFilter(andFilterCollection);
+
+                return true;
+            }
 
             var filterCollection = new FilterCollection(currentFilter.Filter, filter) {
                 Operation = SelectorCollectionOperation.And
-            }; 
+            };
 
             activeViewFilterManager.UpdateViewFilter(filterCollection);
             filterProvider.SetNewFilter(filterCollection);
 
-            return true;
+            return false;
         }
+
         /// <summary>
         /// Appending a view filter view and rule
         /// </summary>
@@ -134,9 +196,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
             TemplateToolBarFilterProvider filterProvider)
         {
             activeViewFilterManager.UpdateSourceFilter(filter);
-
-            // filterProvider.SetNewFilter(filter);
-
             return true;
         }
 

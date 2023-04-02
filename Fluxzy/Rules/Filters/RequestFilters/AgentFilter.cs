@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -15,6 +15,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             Agent = agent;
         }
 
+        [FilterDistinctive]
         public Agent? Agent { get; set; }
 
         public override FilterScope FilterScope { get; } = FilterScope.RequestHeaderReceivedFromClient;

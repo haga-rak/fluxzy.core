@@ -30,6 +30,31 @@ export class MenuService {
         return this.applicationMenuEvents$.asObservable();
     }
 
+    public raiseMenuEvents(menuId : string) : void {
+        this.applicationMenuEvents$.next({menuId : menuId, menuLabel : ''});
+    }
+
+    public openFile() : void {
+        const fileName = this.electronService.ipcRenderer.sendSync('request-file-opening', null) as string ;
+        this.nextOpenFile$.next(fileName);
+    }
+    public newFile() : void {
+        this.nextOpenFile$.next('');
+    }
+
+    public saveAs() : void {
+        const fileName = this.electronService.ipcRenderer.sendSync('request-file-saving', null) as string ;
+
+        if (!fileName)
+            return;
+
+        this.nextSaveFile$.next(fileName);
+    }
+
+    public delete() : void {
+        this.deleteEvent$.next(true);
+    }
+
     public init(): void {
         if (this._initied)
             return;
@@ -46,8 +71,7 @@ export class MenuService {
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'open'),
-                map(e => this.electronService.ipcRenderer.sendSync('request-file-opening', null) as string),
-                tap(t => this.nextOpenFile$.next(t)),
+                tap(_ => this.openFile())
             ).subscribe();
 
             this.applicationMenuEvents$.pipe(
@@ -57,14 +81,12 @@ export class MenuService {
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'save-as'),
-                map(e => this.electronService.ipcRenderer.sendSync('request-file-saving', null) as string),
-                filter(t => !!t),
-                tap(t => this.nextSaveFile$.next(t)),
+                map(_ => this.saveAs() ),
             ).subscribe();
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'new'),
-                tap(t => this.nextOpenFile$.next('')),
+                tap(_ => this.newFile()),
             ).subscribe();
 
             this.applicationMenuEvents$.pipe(
@@ -92,7 +114,7 @@ export class MenuService {
 
             this.applicationMenuEvents$.pipe(
                 filter(e => e.menuId === 'delete'),
-                tap(e => this.deleteEvent$.next(true))
+                tap(_ => this.delete())
             ).subscribe();
 
             // raise callbacks
@@ -171,9 +193,9 @@ export class MenuService {
             let captureWithFilter = FindMenu(menus, (menu) => menu.id === 'capture-with-filter');
             let haltCapture = FindMenu(menus, (menu) => menu.id === 'halt-capture');
 
-            captureMenu.enabled = (!(uiState.proxyState?.onError ?? true)) && !(uiState.systemProxyState?.on ?? false);
-            captureWithFilter.enabled = (!(uiState.proxyState?.onError ?? true)) && !(uiState.systemProxyState?.on ?? false);
-            haltCapture.enabled =  (!(uiState.proxyState?.onError ?? true)) && (uiState.systemProxyState?.on ?? false);
+            captureMenu.enabled = uiState.captureEnabled;
+            captureWithFilter.enabled = uiState.captureEnabled;
+            haltCapture.enabled =  uiState.haltEnabled;
         }
 
         // Delete status
@@ -184,7 +206,6 @@ export class MenuService {
             menu.enabled = selectionCount > 0;
         }
 
-        FindMenu(menus, (menu) => menu.id === 'duplicate').enabled = selectionCount > 0;
         FindMenu(menus, (menu) => menu.id === 'tag').enabled = selectionCount > 0;
         FindMenu(menus, (menu) => menu.id === 'comment').enabled = selectionCount > 0;
 

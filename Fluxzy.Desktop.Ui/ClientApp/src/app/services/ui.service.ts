@@ -11,7 +11,7 @@ import {
     switchMap,
     combineLatest,
     distinct,
-    pipe, BehaviorSubject, finalize, catchError, timeout, delay, delayWhen,
+    pipe, BehaviorSubject, finalize, catchError, timeout, delay, delayWhen, distinctUntilChanged,
 } from 'rxjs';
 import {
     ExchangeBrowsingState,
@@ -70,8 +70,8 @@ export class UiStateService {
             .subscribe();
 
         combineLatest([
-            this.uiState$.pipe(filter(u => !!u), map(u => u.viewFilter.id), distinct()),
-            this.getFileState().pipe(map(f => f.workingDirectory), distinct()),
+            this.uiState$.pipe(filter(u => !!u), map(u => u.viewFilter.id), distinctUntilChanged()),
+            this.getFileState().pipe(map(f => f.workingDirectory), distinctUntilChanged()),
         ]).pipe(
             map(t => t[1]),
             tap(t => console.log(t)),

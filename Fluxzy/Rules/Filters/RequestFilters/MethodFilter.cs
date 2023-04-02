@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -18,8 +18,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             : base(pattern, StringSelectorOperation.Exact)
         {
         }
-
-        public override Guid Identifier => $"{Pattern}|{Operation}".GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 

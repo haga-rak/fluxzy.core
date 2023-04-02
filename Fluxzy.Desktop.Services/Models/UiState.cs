@@ -3,6 +3,7 @@
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Desktop.Services.Ui;
 using Fluxzy.Rules;
+using Microsoft.VisualBasic;
 
 namespace Fluxzy.Desktop.Services.Models
 {
@@ -48,5 +49,9 @@ namespace Fluxzy.Desktop.Services.Models
         public LastOpenFileState LastOpenFileState { get; }
 
         public BreakPointState BreakPointState { get; }
+
+        public bool CaptureEnabled => (!(ProxyState.OnError)) && !(SystemProxyState.On);
+
+        public bool HaltEnabled => (!(ProxyState.OnError)) && (SystemProxyState.On);
     }
 }

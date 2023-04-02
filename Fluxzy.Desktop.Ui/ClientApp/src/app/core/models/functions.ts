@@ -10,3 +10,12 @@ export const formatDuration = (inputMicroSeconds : number) : string  => {
 
     return (inputMicroSeconds / 1000000).toFixed(2) + ' s' ;
 }
+
+export const globalStringSearch = (searchString : string, input : string) : boolean  => {
+    const searchStrings = searchString.split(' ').filter(t => t.length > 0) ;
+    for (const s of searchStrings) {
+        if (input.toLowerCase().indexOf(s.toLowerCase()) === -1)
+            return false ;
+    }
+    return true ;
+}

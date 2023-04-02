@@ -35,10 +35,10 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 
 builder.Services.AddFluxzyDesktopServices();
 
-builder.Services.AddSignalR().AddJsonProtocol(
-    options =>
-        options.PayloadSerializerOptions = GlobalArchiveOption.DefaultSerializerOptions
-);
+//builder.Services.AddSignalR().AddJsonProtocol(
+//    options =>
+//        options.PayloadSerializerOptions = GlobalArchiveOption.DefaultSerializerOptions
+//);
 
 var app = builder.Build();
 

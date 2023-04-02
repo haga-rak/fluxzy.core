@@ -1,0 +1,36 @@
+
+<div style="height: 200px" *ngIf="searchString">
+
+    <perfect-scrollbar [usePSClass]="true" style="height: 100%; padding: 8px">
+
+        <div *ngIf="!filteredActions">
+            <p class="lead text-center text-info">
+                <i class="fa fa-spinner fa-spin fa-fw"></i> Loading please ...
+            </p>
+        </div>
+        <table class="completion-table" *ngIf="filteredActions">
+            <tr *ngFor="let item of filteredActions" class="quick-action-line" [ngClass]="{ 'focused-action' : item === focusedAction}">
+                <td [ngClass]="item.otherClasses">
+                <span *ngIf="item.iconClass.length">
+                    <i [ngClass]="item.iconClass"></i>
+                </span>
+                    <span *ngIf="!item.iconClass.length">
+                    <i class="fa fa-arrow-right"></i>
+                </span>
+                </td>
+                <td>
+                <span class="text-info">
+                    {{ item.category }}
+                </span>
+                </td>
+                <td>
+                    <span *ngIf="(item.category === 'Filter' || item.category === 'Search') && keyboardCtrlOn" class="text-purple"
+                    title="Add this filter to the current existing">...and </span>
+                    <a href="javascript:;" (click)="selectionAction(item, keyboardCtrlOn)">{{ item.label }}</a>
+
+                </td>
+            </tr>
+
+        </table>
+    </perfect-scrollbar>
+</div>
