@@ -76,8 +76,8 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             listActions.Add(BuildFromAction(new AddResponseHeaderAction(string.Empty, string.Empty)));
             listActions.Add(BuildFromAction(new ApplyCommentAction(string.Empty)));
             listActions.Add(BuildFromAction(new ApplyTagAction()));
-            listActions.Add(BuildFromAction(new DeleteRequestHeaderAction("")));
-            listActions.Add(BuildFromAction(new DeleteResponseHeaderAction("")));
+            listActions.Add(BuildFromAction(new DeleteRequestHeaderAction(""), "delete"));
+            listActions.Add(BuildFromAction(new DeleteResponseHeaderAction(""), "delete"));
             listActions.Add(BuildFromAction(new RemoveCacheAction()));
             listActions.Add(BuildFromAction(new SetClientCertificateAction(null)));
             listActions.Add(BuildFromAction(new SkipRemoteCertificateValidationAction()));
@@ -101,14 +101,15 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             };
         }
 
-        public static QuickAction BuildFromAction(Fluxzy.Rules.Action action)
+        public static QuickAction BuildFromAction(Fluxzy.Rules.Action action, params string[] keywords)
         {
             return new QuickAction(action.Identifier.ToString(),
                                "Action",
                                               action.FriendlyName,
                                               false,
-                                              new QuickActionPayload(action),
-                               QuickActionType.Action);
+                                              new QuickActionPayload(action)  , QuickActionType.Action) {
+                Keywords = keywords
+            };
         }
     }
 }

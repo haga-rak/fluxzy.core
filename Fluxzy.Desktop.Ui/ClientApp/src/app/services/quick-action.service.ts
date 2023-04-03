@@ -44,6 +44,13 @@ export class QuickActionService {
                                 a.iconClass = ['fa', 'fa-filter'];
                                 a.otherClasses = ['text-primary'];
                             }
+
+                        });
+
+                        t.actions.filter(a => a.type === 'Action').forEach(a =>
+                        {
+                            a.iconClass = ['fa', 'fa-bolt'];
+                            a.otherClasses = ['text-purple'];
                         });
                     }))
             ]
