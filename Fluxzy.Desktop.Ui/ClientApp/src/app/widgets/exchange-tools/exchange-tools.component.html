@@ -42,7 +42,40 @@
                             <span>replay request</span>
                         </a>&nbsp;
                         <a class="btn btn-gray-800 btn-sm"  (click)="replay(true)" href="javascript:;">
-                            <span>edit and replay request</span>
+                            <i class="fa fa-bug  text-warning"></i>&nbsp;
+                            <span class="">replay request in live edit</span>
+                        </a>&nbsp;
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h4>Save bodies</h4>
+            <div>
+                <div style="margin-bottom: 12px;">
+                    <div  style=" line-height: 32px">
+                        <button class="btn btn-gray-800 btn-sm" [disabled]="!hasRequestBody" (click)="saveRequestBody()"  title="Save request body to local file">
+                            <span>export request body</span>
+                        </button>&nbsp;
+                        <button class="btn btn-gray-800 btn-sm" [disabled]="!hasResponseBody"  (click)="saveResponseBody()" title="Save response body to local file">
+                            <span>export response body</span>
+                        </button>&nbsp;
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h4>Export to other format</h4>
+            <div>
+                <div style="margin-bottom: 12px;">
+                    <div  style=" line-height: 32px">
+                        <a class="btn btn-gray-800 btn-sm"  (click)="replay(false)" href="javascript:;" title="Re-run request in fluxzy">
+                            <span>export selection as HAR</span>
+                        </a>&nbsp;
+                        <a class="btn btn-gray-800 btn-sm"  (click)="replay(true)" href="javascript:;">
+                            <span>export selection as SAZ</span>
                         </a>&nbsp;
                     </div>
                 </div>

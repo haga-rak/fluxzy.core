@@ -19,6 +19,10 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
     public index : number = 1 ;
     public values : string [] = ['','','',''] ;
 
+    public hasRequestBody : boolean = false ;
+    public hasResponseBody : boolean = false ;
+
+
     constructor(
         private apiService: ApiService,
         private dialogService : DialogService,
@@ -29,7 +33,8 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
     }
 
     ngOnInit(): void {
-        this.refresh();
+       // this.refresh();
+
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -74,6 +79,19 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
                 }),
                 tap(_ => this.cd.detectChanges())
             ).subscribe();
+
+
+        this.apiService.exchangeHasRequestBody(this.exchange.id)
+            .pipe(
+                tap(t => this.hasRequestBody = t),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe();
+
+        this.apiService.exchangeHasResponseBody(this.exchange.id)
+            .pipe(
+                tap(t => this.hasResponseBody = t),
+                tap(_ => this.cd.detectChanges())
+            ).subscribe();
     }
 
     public copyToClipboard(text : string) {
@@ -102,5 +120,22 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
                 tap(result => result? this.statusBarService.addMessage('Request executed', 1000)
                 : this.statusBarService.addMessage('An error occurred while executing request', 1000))
             ).subscribe();
+    }
+
+    public saveRequestBody() {
+
+        this.systemCallService.requestFileSave(`exchange-request-${this.exchange.id}.data`)
+            .pipe(
+                filter(t => !!t),
+                switchMap(fileName => this.apiService.exchangeSaveRequestBody(this.exchange.id, fileName) ),
+            ).subscribe() ;
+    }
+
+    public saveResponseBody() {
+        this.systemCallService.requestFileSave(`exchange-response-${this.exchange.id}.data`)
+            .pipe(
+                filter(t => !!t),
+                switchMap(fileName => this.apiService.exchangeSaveResponseBody(this.exchange.id, fileName, true) ),
+            ).subscribe() ;
     }
 }

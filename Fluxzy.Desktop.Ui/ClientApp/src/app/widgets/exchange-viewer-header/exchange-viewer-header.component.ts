@@ -13,7 +13,7 @@ import {MetaInformationService} from "../../services/meta-information.service";
     styleUrls: ['./exchange-viewer-header.component.scss']
 })
 export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
-    public tabs: string [] = ['Content', 'Connection',  'Metrics', 'Tools','MetaInformation'];
+    public tabs: string [] = ['Content', 'Connection',  'Metrics', 'Tools'];
     public currentTab: string = 'Content';
     public hasRawCapture : boolean ;
 

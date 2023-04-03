@@ -22,6 +22,27 @@ namespace Fluxzy.Desktop.Ui.Controllers
             _producerFactory = producerFactory;
         }
 
+        [HttpGet("{exchangeId}/has-request-body")]
+        public async Task<ActionResult<bool>> HasRequestBody(
+            int exchangeId,
+            [FromServices]
+            IArchiveReaderProvider archiveReaderProvider)
+        {
+            var archiveReader = await archiveReaderProvider.Get()!;
+            return archiveReader!.HasRequestBody(exchangeId);
+        }
+
+        [HttpGet("{exchangeId}/has-response-body")]
+        public async Task<ActionResult<bool>> HasResponseBody(
+            int exchangeId,
+            [FromServices]
+            IArchiveReaderProvider archiveReaderProvider)
+        {
+            var archiveReader = await archiveReaderProvider.Get();
+            return archiveReader!.HasResponseBody(exchangeId);
+        }
+
+
         [HttpPost("{exchangeId}/save-request-body")]
         public async Task<ActionResult<bool>> SaveRequestBody(
             int exchangeId,
