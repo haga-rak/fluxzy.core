@@ -163,40 +163,49 @@ export class UiStateService {
         })
 
         this.menuService.registerMenuEvent('export-to-saz', () => {
-            this.systemCallService.requestFileSave("export.saz")
-                .pipe(
-                    take(1),
-                    filter(t => !!t),
-                    switchMap(fileName => this.apiService.fileExportSaz({
-                        fileName,
-                        exchangeIds: null
-                    }))
-                ).subscribe();
+            this.exportAsSaz();
         });
 
         this.menuService.registerMenuEvent('export-to-har', () => {
-
-            this.dialogService.openHarExportSettingDialog()
-                .pipe(
-                    take(1),
-                    filter(t => !!t),
-                    switchMap(saveSetting => {
-                        return  this.systemCallService.requestFileSave("export.har")
-                            .pipe(
-                                take(1),
-                                filter(t => !!t),
-                                map(t => { return {saveSetting, fileName : t} } )
-                            )
-                    }),
-                    filter(t => !!t.fileName),
-                    switchMap(t => this.apiService.fileExportHar({
-                        fileName : t.fileName,
-                        saveSetting : t.saveSetting,
-                        exchangeIds: null
-                    }))
-                ).subscribe();
+            this.exportHar();
         });
 
+    }
+
+    public exportAsSaz(exchangeIds : number [] | null = null) {
+        this.systemCallService.requestFileSave("export.saz")
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(fileName => this.apiService.fileExportSaz({
+                    fileName,
+                    exchangeIds: exchangeIds
+                }))
+            ).subscribe();
+    }
+
+    public exportHar(exchangeIds : number [] | null = null) {
+        this.dialogService.openHarExportSettingDialog()
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(saveSetting => {
+                    return this.systemCallService.requestFileSave("export.har")
+                        .pipe(
+                            take(1),
+                            filter(t => !!t),
+                            map(t => {
+                                return {saveSetting, fileName: t}
+                            })
+                        )
+                }),
+                filter(t => !!t.fileName),
+                switchMap(t => this.apiService.fileExportHar({
+                    fileName: t.fileName,
+                    saveSetting: t.saveSetting,
+                    exchangeIds: exchangeIds
+                }))
+            ).subscribe();
     }
 
     public getUiState(): Observable<UiState> {

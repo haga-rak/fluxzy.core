@@ -1,10 +1,11 @@
 import {ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {ApiService} from "../../services/api.service";
 import {CurlCommandResult, ExchangeInfo} from "../../core/models/auto-generated";
-import {filter, switchMap, tap} from "rxjs";
+import {filter, map, switchMap, take, tap} from "rxjs";
 import {SystemCallService} from "../../core/services/system-call.service";
 import {StatusBarService} from "../../services/status-bar.service";
 import {DialogService} from "../../services/dialog.service";
+import {UiStateService} from "../../services/ui.service";
 
 @Component({
     selector: 'div[exchange-tools]',
@@ -28,6 +29,7 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
         private dialogService : DialogService,
         public cd : ChangeDetectorRef,
         private systemCallService: SystemCallService,
+        private uiStateService : UiStateService,
         private statusBarService : StatusBarService) {
 
     }
@@ -137,5 +139,13 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
                 filter(t => !!t),
                 switchMap(fileName => this.apiService.exchangeSaveResponseBody(this.exchange.id, fileName, true) ),
             ).subscribe() ;
+    }
+
+    public exportHar() {
+        this.uiStateService.exportHar([this.exchange.id]) ;
+    }
+
+    public exportAsSaz() {
+        this.uiStateService.exportAsSaz([this.exchange.id]) ;
     }
 }
