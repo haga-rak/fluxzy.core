@@ -70,8 +70,20 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
 
             listActions.Add(BuildFromFilter(new FontFilter(), "woff", "ttf"));
 
+            listActions.Add(BuildFromAction(new ForceHttp11Action()));
             listActions.Add(BuildFromAction(new ForceHttp2Action()));
             listActions.Add(BuildFromAction(new AddRequestHeaderAction(string.Empty, string.Empty)));
+            listActions.Add(BuildFromAction(new AddResponseHeaderAction(string.Empty, string.Empty)));
+            listActions.Add(BuildFromAction(new ApplyCommentAction(string.Empty)));
+            listActions.Add(BuildFromAction(new ApplyTagAction()));
+            listActions.Add(BuildFromAction(new DeleteRequestHeaderAction("")));
+            listActions.Add(BuildFromAction(new DeleteResponseHeaderAction("")));
+            listActions.Add(BuildFromAction(new RemoveCacheAction()));
+            listActions.Add(BuildFromAction(new SetClientCertificateAction(null)));
+            listActions.Add(BuildFromAction(new SkipRemoteCertificateValidationAction()));
+            listActions.Add(BuildFromAction(new SpoofDnsAction()));
+            listActions.Add(BuildFromAction(new UpdateRequestHeaderAction(string.Empty, string.Empty)));
+            listActions.Add(BuildFromAction(new UpdateResponseHeaderAction(string.Empty, string.Empty)));
             
             // listActions.Add(BuildFromFilter(new ClientEr));
 
