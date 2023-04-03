@@ -37,12 +37,12 @@ namespace Fluxzy.Writers
             Directory.CreateDirectory(_contentDirectory);
             Directory.CreateDirectory(_captureDirectory);
 
-            UpdateMeta();
+            UpdateMeta(false);
         }
 
-        private void UpdateMeta()
+        private void UpdateMeta(bool force)
         {
-            if (File.Exists(_archiveMetaInformationPath))
+            if (!force && File.Exists(_archiveMetaInformationPath))
                 return;
 
             using var fileStream = File.Create(_archiveMetaInformationPath);
@@ -55,7 +55,7 @@ namespace Fluxzy.Writers
                 _archiveMetaInformation.Tags.Add(tag);
             }
 
-            UpdateMeta();
+            UpdateMeta(true);
         }
 
         public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
@@ -79,7 +79,7 @@ namespace Fluxzy.Writers
                 }
 
                 if (modified)
-                    UpdateMeta();
+                    UpdateMeta(true);
             }
 
             return true;
