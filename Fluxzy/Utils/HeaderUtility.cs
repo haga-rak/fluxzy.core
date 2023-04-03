@@ -1,12 +1,118 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.IO;
 using System.Linq;
 
 namespace Fluxzy.Utils
 {
     public static class HeaderUtility
     {
+        public static string GetResponseSuggestedExtension(IExchange exchange)
+        {
+            var contentTypeHeader = exchange
+                                    .GetResponseHeaders()
+                                    ?.Where(r => r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
+                                    .LastOrDefault();
+
+            if (contentTypeHeader == null) {
+                return "data"; 
+            }
+
+            if (contentTypeHeader.Value.Span.Contains("json", StringComparison.OrdinalIgnoreCase))
+                return "json";
+
+            if (contentTypeHeader.Value.Span.Contains("html", StringComparison.OrdinalIgnoreCase))
+                return "html";
+
+            if (contentTypeHeader.Value.Span.Contains("css", StringComparison.OrdinalIgnoreCase))
+                return "css";
+
+            if (contentTypeHeader.Value.Span.Contains("xml", StringComparison.OrdinalIgnoreCase))
+                return "xml";
+
+            if (contentTypeHeader.Value.Span.Contains("javascript", StringComparison.OrdinalIgnoreCase))
+                return "js";
+
+            if (contentTypeHeader.Value.Span.Contains("font", StringComparison.OrdinalIgnoreCase))
+                return "font";
+
+            if (contentTypeHeader.Value.Span.Contains("png", StringComparison.OrdinalIgnoreCase))
+                return "png";
+
+            if (contentTypeHeader.Value.Span.Contains("jpeg", StringComparison.OrdinalIgnoreCase)
+                || contentTypeHeader.Value.Span.Contains("jpg", StringComparison.OrdinalIgnoreCase)
+                )
+                return "jpeg";
+
+            if (contentTypeHeader.Value.Span.Contains("gif", StringComparison.OrdinalIgnoreCase))
+                return "gif";
+
+            if (contentTypeHeader.Value.Span.Contains("svg", StringComparison.OrdinalIgnoreCase))
+                return "svg";
+
+            if (contentTypeHeader.Value.Span.Contains("pdf", StringComparison.OrdinalIgnoreCase))
+                return "pdf";
+            
+            if (contentTypeHeader.Value.Span.Contains("text", StringComparison.OrdinalIgnoreCase))
+                return "txt";
+
+            return "data";
+        }
+
+        public static string GetRequestSuggestedExtension(IExchange exchange)
+        {
+            var contentTypeHeader = exchange
+                                    .GetRequestHeaders()
+                                    ?.Where(r => r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
+                                    .LastOrDefault();
+
+            if (contentTypeHeader == null) {
+                return "data"; 
+            }
+
+            if (contentTypeHeader.Value.Span.Contains("json", StringComparison.OrdinalIgnoreCase))
+                return "json";
+
+            if (contentTypeHeader.Value.Span.Contains("html", StringComparison.OrdinalIgnoreCase))
+                return "html";
+
+            if (contentTypeHeader.Value.Span.Contains("css", StringComparison.OrdinalIgnoreCase))
+                return "css";
+
+            if (contentTypeHeader.Value.Span.Contains("xml", StringComparison.OrdinalIgnoreCase))
+                return "xml";
+
+            if (contentTypeHeader.Value.Span.Contains("javascript", StringComparison.OrdinalIgnoreCase))
+                return "js";
+
+            if (contentTypeHeader.Value.Span.Contains("font", StringComparison.OrdinalIgnoreCase))
+                return "font";
+
+            if (contentTypeHeader.Value.Span.Contains("png", StringComparison.OrdinalIgnoreCase))
+                return "png";
+
+            if (contentTypeHeader.Value.Span.Contains("jpeg", StringComparison.OrdinalIgnoreCase)
+                || contentTypeHeader.Value.Span.Contains("jpg", StringComparison.OrdinalIgnoreCase)
+                )
+                return "jpeg";
+
+            if (contentTypeHeader.Value.Span.Contains("gif", StringComparison.OrdinalIgnoreCase))
+                return "gif";
+
+            if (contentTypeHeader.Value.Span.Contains("svg", StringComparison.OrdinalIgnoreCase))
+                return "svg";
+
+            if (contentTypeHeader.Value.Span.Contains("pdf", StringComparison.OrdinalIgnoreCase))
+                return "pdf";
+            
+            if (contentTypeHeader.Value.Span.Contains("text", StringComparison.OrdinalIgnoreCase))
+                return "txt";
+
+            return "data";
+        }
+
+
         public static string? GetSimplifiedContentType(IExchange exchange)
         {
             // check into the response Content-Type header first 
@@ -107,6 +213,53 @@ namespace Fluxzy.Utils
             subDomain = null;
 
             return false;
+        }
+    }
+
+    public static class ExchangeUtility
+    {
+        public static string GetRequestBodyFileNameSuggestion(IExchange exchange)
+        {
+            var url = exchange.FullUrl;
+
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                var fileName = Path.GetFileName(uri.LocalPath);
+
+                if (!string.IsNullOrWhiteSpace(fileName))
+                {
+
+                    if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
+                    {
+                        return fileName + "." + HeaderUtility.GetRequestSuggestedExtension(exchange);
+                    }
+
+                    return fileName;
+                }
+            }
+
+            return $"exchange-request-{exchange.Id}.data";
+        }
+
+        public static string GetResponseBodyFileNameSuggestion(ExchangeInfo exchange)
+        {
+            var url = exchange.FullUrl;
+            
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
+                var fileName = Path.GetFileName(uri.LocalPath);
+
+                if (!string.IsNullOrWhiteSpace(fileName)) {
+
+                    if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
+                    {
+                        return fileName + "." + HeaderUtility.GetResponseSuggestedExtension(exchange);
+                    }
+
+                    return fileName; 
+                }
+            }
+
+            return $"exchange-response-{exchange.Id}.data";
         }
     }
 }

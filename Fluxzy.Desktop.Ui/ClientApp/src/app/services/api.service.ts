@@ -266,6 +266,14 @@ export class ApiService {
         return this.httpClient.get<boolean>(`api/exchange/${exchangeId}/has-response-body`).pipe(take(1));
     }
 
+    public exchangeGetSuggestedRequestBodyFileName(exchangeId: number) : Observable<string> {
+        return this.httpClient.get<string>(`api/exchange/${exchangeId}/suggested-request-body-file-name`).pipe(take(1));
+    }
+
+    public exchangeGetSuggestedResponseBodyFileName(exchangeId: number) : Observable<string> {
+        return this.httpClient.get<string>(`api/exchange/${exchangeId}/suggested-response-body-file-name`).pipe(take(1));
+    }
+
     public connectionGet(connectionId: number) : Observable<ConnectionInfo> {
         return this.httpClient.get<ConnectionInfo>(`api/connection/${connectionId}`).pipe(take(1));
     }

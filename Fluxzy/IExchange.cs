@@ -7,6 +7,8 @@ namespace Fluxzy
 {
     public interface IExchange
     {
+        int Id { get; }
+
         string FullUrl { get; }
 
         string KnownAuthority { get; }

@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Clients.H11;
+using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Metrics;
@@ -42,6 +43,27 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return archiveReader!.HasResponseBody(exchangeId);
         }
 
+        [HttpGet("{exchangeId}/suggested-request-body-file-name")]
+        public async Task<ActionResult<string>> GetSuggestedRequestBodyFileName(int exchangeId,
+            [FromServices]
+            IArchiveReaderProvider archiveReaderProvider)
+        {
+            var archiveReader = await archiveReaderProvider.Get();
+            var exchange = archiveReader!.ReadExchange(exchangeId)!;
+
+            return new JsonResult(ExchangeUtility.GetRequestBodyFileNameSuggestion(exchange));
+        }
+
+        [HttpGet("{exchangeId}/suggested-response-body-file-name")]
+        public async Task<ActionResult<string>> GetSuggestedResponseBodyFileName(int exchangeId,
+            [FromServices]
+            IArchiveReaderProvider archiveReaderProvider)
+        {
+            var archiveReader = await archiveReaderProvider.Get();
+            var exchange = archiveReader!.ReadExchange(exchangeId)!;
+
+            return new JsonResult(ExchangeUtility.GetResponseBodyFileNameSuggestion(exchange));
+        }
 
         [HttpPost("{exchangeId}/save-request-body")]
         public async Task<ActionResult<bool>> SaveRequestBody(

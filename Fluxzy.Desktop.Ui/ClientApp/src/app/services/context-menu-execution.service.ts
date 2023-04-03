@@ -4,13 +4,17 @@ import {ApiService} from "./api.service";
 import {filter, Observable, of, switchMap} from "rxjs";
 import {ExchangeManagementService} from "./exchange-management.service";
 import {SystemCallService} from "../core/services/system-call.service";
+import {GlobalActionService} from "./global-action.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class ContextMenuExecutionService {
 
-    constructor(private apiService : ApiService, private exchangeManagementService : ExchangeManagementService, private systemCallService : SystemCallService) {
+    constructor(private apiService : ApiService,
+                private exchangeManagementService : ExchangeManagementService,
+                private globalActionService : GlobalActionService,
+                private systemCallService : SystemCallService) {
     }
 
     public executeAction(contextMenuAction: ContextMenuAction, exchangeId : number, and : boolean, liveEdit : boolean) : Observable<any> {
@@ -19,20 +23,11 @@ export class ContextMenuExecutionService {
         }
 
         if (contextMenuAction.id === 'download-request-body') {
-
-            this.systemCallService.requestFileSave(`exchange-request-${exchangeId}.data`)
-                .pipe(
-                    filter(t => !!t),
-                    switchMap(fileName => this.apiService.exchangeSaveRequestBody(exchangeId, fileName) ),
-                ).subscribe() ;
+            this.globalActionService.saveRequestBody(exchangeId).subscribe() ;
         }
 
         if (contextMenuAction.id === 'download-response-body') {
-            this.systemCallService.requestFileSave(`exchange-response-${exchangeId}.data`)
-                .pipe(
-                    filter(t => !!t),
-                    switchMap(fileName => this.apiService.exchangeSaveResponseBody(exchangeId, fileName, true) ),
-                ).subscribe() ;
+            this.globalActionService.saveResponseBody(exchangeId).subscribe() ;
         }
 
         if (contextMenuAction.id === 'replay') {
