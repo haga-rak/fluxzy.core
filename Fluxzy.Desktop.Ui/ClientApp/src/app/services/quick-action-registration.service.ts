@@ -9,6 +9,7 @@ import {MenuService} from "../core/services/menu-service.service";
 import {MetaInformationService} from "./meta-information.service";
 import {SystemCallService} from "../core/services/system-call.service";
 import {ExchangeContentService} from "./exchange-content.service";
+import {GlobalActionService} from "./global-action.service";
 
 @Injectable({
     providedIn: 'root'
@@ -24,6 +25,7 @@ export class QuickActionRegistrationService {
         private metaInformationService : MetaInformationService,
         private systemCallService : SystemCallService,
         private exchangeContentService : ExchangeContentService,
+        private globalActionService : GlobalActionService,
         private menuService : MenuService) {
 
         this.uiStateService.lastUiState$.pipe(
@@ -227,11 +229,7 @@ export class QuickActionRegistrationService {
                     }
                     const exchangeId = exchangeIds[0];
 
-                    this.systemCallService.requestFileSave(`exchange-response-${exchangeId}.data`)
-                        .pipe(
-                            filter(t => !!t),
-                            switchMap(fileName => this.apiService.exchangeSaveResponseBody(exchangeId, fileName, true) ),
-                        ).subscribe() ;
+                    this.globalActionService.saveResponseBody(exchangeId).subscribe();
                 }},
             ["fa", "fa-download"],
             []
@@ -244,12 +242,7 @@ export class QuickActionRegistrationService {
                         return;
                     }
                     const exchangeId = exchangeIds[0];
-
-                    this.systemCallService.requestFileSave(`exchange-request-${exchangeId}.data`)
-                        .pipe(
-                            filter(t => !!t),
-                            switchMap(fileName => this.apiService.exchangeSaveRequestBody(exchangeId, fileName) ),
-                        ).subscribe() ;
+                    this.globalActionService.saveRequestBody(exchangeId).subscribe();
                 }},
             ["fa", "fa-download"],
                 []

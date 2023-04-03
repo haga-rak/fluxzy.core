@@ -6,6 +6,7 @@ import {SystemCallService} from "../../core/services/system-call.service";
 import {StatusBarService} from "../../services/status-bar.service";
 import {DialogService} from "../../services/dialog.service";
 import {UiStateService} from "../../services/ui.service";
+import {GlobalActionService} from "../../services/global-action.service";
 
 @Component({
     selector: 'div[exchange-tools]',
@@ -30,6 +31,7 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
         public cd : ChangeDetectorRef,
         private systemCallService: SystemCallService,
         private uiStateService : UiStateService,
+        private globalActionService : GlobalActionService,
         private statusBarService : StatusBarService) {
 
     }
@@ -126,19 +128,11 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
 
     public saveRequestBody() {
 
-        this.systemCallService.requestFileSave(`exchange-request-${this.exchange.id}.data`)
-            .pipe(
-                filter(t => !!t),
-                switchMap(fileName => this.apiService.exchangeSaveRequestBody(this.exchange.id, fileName) ),
-            ).subscribe() ;
+        this.globalActionService.saveRequestBody(this.exchange.id).subscribe(); ;
     }
 
     public saveResponseBody() {
-        this.systemCallService.requestFileSave(`exchange-response-${this.exchange.id}.data`)
-            .pipe(
-                filter(t => !!t),
-                switchMap(fileName => this.apiService.exchangeSaveResponseBody(this.exchange.id, fileName, true) ),
-            ).subscribe() ;
+        this.globalActionService.saveResponseBody(this.exchange.id).subscribe(); ;
     }
 
     public exportHar() {
