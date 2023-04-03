@@ -264,6 +264,7 @@ export class DialogService {
 
         const config: ModalOptions = {
             initialState: {
+                class: 'little-down modal-dialog-small',
                 callBack,
                 isEdit,
                 rule

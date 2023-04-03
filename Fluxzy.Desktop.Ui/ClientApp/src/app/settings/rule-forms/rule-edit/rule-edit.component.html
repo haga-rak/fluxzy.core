@@ -1,9 +1,9 @@
 <div class="modal-header">
-    <h4 class="modal-title pull-left">
+    <h3 class="modal-title pull-left">
         <span *ngIf="isEdit">Edit</span>
-        <span *ngIf="!isEdit">Create</span>
+        <span *ngIf="!isEdit">Add new</span>
         rule
-    </h4>
+    </h3>
     <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="cancel()">
         <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
@@ -22,39 +22,81 @@
 
         <div class="">
 
-            <h4>Filter</h4>
-            <div class="shady-box rule-form-box" style="">
-                <div class="row">
-                    <div class="col-md-8 offset-2">
-                        <div class="text-info">
-                            Filter decides when this rule applies.
-                        </div>
-                        <div style="margin-bottom: 8px" class="lead">{{ rule.filter.friendlyName }} <a href="javascript:;" (click)="editFilter(rule.filter)">Edit</a></div>
-                        <a href="javascript:;" class="btn btn-gray-800" (click)="changeToAnyFilter()">All requests</a>
-                        &nbsp;
-                        <a href="javascript:;" class="btn btn-gray-800" (click)="changeFilter()">Select from template</a>
-                        &nbsp;
-                        <a href="javascript:;" class="btn btn-gray-800" (click)="selectLocalFilter()">Select local filter</a>
-                    </div>
-                </div>
-            </div>
-            <br/>
-            <h4>Action ({{action.friendlyName}})</h4>
+            <p class="">
+                Rules are active alterations applied to HTTP traffic during capture.
+                Rules can be any changes made on request, response, both or several transport settings.
+                Goto
+                <a href="javascript:;">https://fluxzy.io/docs/rules</a> for more information.
+            </p>
+
+            <h4>
+                <i class="fa fa-bolt text-purple"></i>
+                {{action.friendlyName}}</h4>
+
             <div class="shady-box rule-form-box">
 
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="" style="padding: 16px">
+                        <div class="" style="padding: 8px">
 
-                            <div class="alert alert-info" *ngIf="longDescription" [innerHTML]="longDescription"></div>
+                            <table style="width: 100%; margin-bottom: 24px" *ngIf="longDescription">
+                                <tr>
+                                    <td style="width: 32px; text-align : center">
+                                        <i class="fa fa-info-circle text-primary" style="font-size: 24px"></i>
+                                    </td>
+                                    <td>
+                                        <div class="lead text-info"  [innerHTML]="longDescription"></div>
+                                    </td>
+                                </tr>
+                            </table>
+
 
                             <app-rule-render [action]="action"  [validationSource]="validationSource"></app-rule-render>
-                            <p *ngIf="targets.length === 0">This action has no editable setting.</p>
+                            <p class="text-center " *ngIf="targets.length === 0">This action has no editable setting.</p>
                         </div>
                     </div>
                 </div>
 
             </div>
+            <br/>
+            <h4>
+                <span><i class="fa fa-filter text-primary" aria-hidden="true"></i></span>
+                <span class="text-info">Apply to </span>
+
+                <div class="btn-group" role="group" dropdown>
+                    <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+                            aria-expanded="false" dropdownToggle>
+<!--                        <i class="fa fa-bug text-warning" aria-hidden="true"></i>&nbsp;-->
+                        {{ rule.filter.friendlyName }}
+                    </button>
+                    <ul class="dropdown-menu bg-light text-primary" *dropdownMenu>
+                        <li role="menuitem">
+                            <a class="dropdown-item" href="javascript:;" (click)="editFilter(rule.filter)">
+                                Edit <strong>{{ rule.filter.friendlyName }}</strong> settings</a></li>
+                        <li class="divider dropdown-divider"></li>
+                        <li role="menuitem">
+                            <a class="dropdown-item" href="javascript:;" (click)="changeToAnyFilter()">
+                                Any requests</a></li>
+                        <li role="menuitem">
+                            <a class="dropdown-item" href="javascript:;" (click)="changeFilter()">
+                                Create new filter</a></li>
+                        <li class="divider dropdown-divider"></li>
+                        <li role="menuitem">
+                            <a class="dropdown-item" href="javascript:;" (click)="selectLocalFilter()">
+                                Load filters from local storage</a></li>
+                    </ul>
+                </div>
+            </h4>
+<!--            <div class="alert" style="">-->
+<!--                <div class="row">-->
+<!--                    <div class="col-md-8 offset-2">-->
+
+<!--                        <div class="text-info">-->
+<!--                            Filter decides when this rule applies.-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
         </div>
     </div>
 </div>

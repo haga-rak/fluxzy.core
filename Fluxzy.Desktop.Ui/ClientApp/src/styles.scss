@@ -336,11 +336,18 @@ a {
 }
 
 
+.modal-dialog-md {
+
+    min-width: 800px !important;
+    width: 800px  !important;
+}
+
 .modal-dialog-small {
 
     min-width: 600px !important;
     width: 600px  !important;
 }
+
 .modal-dialog-very-small {
 
     min-width: 400px !important;
