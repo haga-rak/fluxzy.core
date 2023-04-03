@@ -38,7 +38,7 @@ export class CreateTagComponent implements OnInit {
 
     }
 
-    public create() {
+    public save() {
 
         if (!this.tagUpdateModel.name){
             this.validationMessage = 'Tag name cannot be empty';

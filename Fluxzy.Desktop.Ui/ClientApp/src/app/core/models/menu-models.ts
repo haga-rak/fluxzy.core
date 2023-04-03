@@ -199,7 +199,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
         ]
     },
     {
-        label : 'Rule',
+        label : 'Settings',
         submenu : [
             {
                 label : 'Manage rules',
@@ -212,22 +212,17 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             {
                 type :  'separator'
             },
-        ]
-    },
-    {
-        label : 'Settings',
-        submenu : [
             {
-                label : 'Proxy settings',
-                id : 'global-settings'
+                label : 'Run certificate wizard',
+                id : 'certificate-wizard'
             },
             {
                 type :  'separator'
             },
             {
-                label : 'Run certificate wizard',
-                id : 'certificate-wizard'
-            }
+                label : 'Proxy settings',
+                id : 'global-settings'
+            },
         ]
     },
     {

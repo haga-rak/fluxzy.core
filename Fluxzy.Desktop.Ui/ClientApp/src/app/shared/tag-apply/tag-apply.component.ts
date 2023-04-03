@@ -82,11 +82,11 @@ export class TagApplyComponent implements OnInit {
             .pipe(
                 take(1),
                 filter (t => !!t),
-                tap(_ => console.log(this.model.tagIdentifiers)),
                 tap (t => {
                         this.model.tagIdentifiers = this.model.tagIdentifiers;
                         this.model.tagIdentifiers.push(t.identifier);
                         this.model.tagIdentifiers = _.uniq(this.model.tagIdentifiers);
+                        console.log(this.model.tagIdentifiers);
                     }
                 ),
                 switchMap (t => this.refreshTagList())
