@@ -258,6 +258,14 @@ export class ApiService {
         return this.httpClient.post<FormattingResult[]>(`api/exchange/${exchangeId}/save-multipart-Content`, payload).pipe(take(1));
     }
 
+    public exchangeHasRequestBody(exchangeId: number) : Observable<boolean> {
+        return this.httpClient.get<boolean>(`api/exchange/${exchangeId}/has-request-body`).pipe(take(1));
+    }
+
+    public exchangeHasResponseBody(exchangeId: number) : Observable<boolean> {
+        return this.httpClient.get<boolean>(`api/exchange/${exchangeId}/has-response-body`).pipe(take(1));
+    }
+
     public connectionGet(connectionId: number) : Observable<ConnectionInfo> {
         return this.httpClient.get<ConnectionInfo>(`api/connection/${connectionId}`).pipe(take(1));
     }

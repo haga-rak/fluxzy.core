@@ -24,7 +24,7 @@ export class ExchangeConnectivityComponent implements OnInit, OnChanges {
     }
 
     ngOnInit(): void {
-        this.refresh();
+       // this.refresh();
     }
 
     ngOnChanges(changes: SimpleChanges): void {

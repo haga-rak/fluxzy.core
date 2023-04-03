@@ -30,7 +30,7 @@ export class ExchangeMetricsComponent implements OnInit, OnChanges {
     }
 
     ngOnInit(): void {
-        this.refresh();
+       // this.refresh();
     }
 
     ngOnChanges(changes: SimpleChanges): void {
