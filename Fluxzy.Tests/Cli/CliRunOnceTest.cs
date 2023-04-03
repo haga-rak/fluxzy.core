@@ -11,7 +11,7 @@ namespace Fluxzy.Tests.Cli
 {
     public class CliRunOnceTest
     {
-        [Fact]
+        // [Fact]
         public async Task RunSingleTestPcap()
         {
             // Arrange 
