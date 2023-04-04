@@ -6,45 +6,57 @@
     <table style="width:100%" class="exchange-table-view noselect">
         <thead>
             <tr>
-                <th style="width:20px">&nbsp;</th>
-                <th style="width:120px">Host</th>
-                <th  style="width:50px">Method</th>
-                <th>Path</th>
-                <th  style="width:45px">Status</th>
-                <th  style="width:50px">Type</th>
+                <th *ngFor="let cellModel of cellModels" [style.width.px]="cellModel.width" [title]="cellModel.name">{{ cellModel.shortLabel }}</th>
             </tr>
         </thead>
         <tbody>
             <tr *ngFor="let exchangeContainer of exchangeState.exchanges;   trackBy: identify" [ngClass]="{'exchange-selected' : !!exchangeSelection.map[exchangeContainer.id] }"
             (mouseup)="setSelectionChange($event, exchangeContainer.exchangeInfo)">
-                <td class="text-center">
-                    <span *ngIf="!isPausing(exchangeContainer.exchangeInfo.id)" [title]="exchangeContainer.exchangeInfo.statusCode" [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).textClass">
-                        <i [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).iconClass"></i>
-                    </span>
-                    <span  *ngIf="isPausing(exchangeContainer.exchangeInfo.id)" title="This exchange is currently live edited"
-                        class="text-warning forced-cursor " (click)="showBreakPointDialog(exchangeContainer.exchangeInfo.id)">
-                        <i class="fa fa-pause fa-spin fa-fw"></i>
-                    </span>
 
-                </td>
-                <td [title]="exchangeContainer.exchangeInfo.knownAuthority">
-                    <div style="direction:rtl; text-align: left;  white-space: nowrap; max-width:150px; overflow : hidden; text-overflow: ellipsis;">
-                        {{ exchangeContainer.exchangeInfo.knownAuthority }}
-                        <!-- <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i> -->
-                    </div></td>
-                <td class="text-end">
-                    <span class="">{{ exchangeContainer.exchangeInfo.method }}</span>
-                    &nbsp;&nbsp;</td>
-                <td  [title]="exchangeContainer.exchangeInfo.path"  class="text-info" style="overflow: hidden; max-width: 0; white-space: nowrap; text-overflow: ellipsis;">
-                    {{ exchangeContainer.exchangeInfo.path }}
-                </td>
-                <!-- <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td> -->
-                <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td>
-                <td [title]="exchangeContainer.exchangeInfo.contentType">
-                    <span  style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; ">
-                        {{ exchangeContainer.exchangeInfo.contentType }}&nbsp;
-                    </span>
-                </td>
+                        <td app-cell-rendering *ngFor="let cellModel of cellModels;   trackBy: identifyCellModel"
+                            [columnModel]="cellModel"
+                            [exchangeContainer]="exchangeContainer"
+                            [ngClass]="cellModel.classes"
+
+                        >
+                        </td>
+
+
+
+
+
+
+<!--                <td class="text-center">-->
+<!--                    <span *ngIf="!isPausing(exchangeContainer.exchangeInfo.id)" [title]="exchangeContainer.exchangeInfo.statusCode" [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).textClass">-->
+<!--                        <i [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).iconClass"></i>-->
+<!--                    </span>-->
+<!--                    <span  *ngIf="isPausing(exchangeContainer.exchangeInfo.id)" title="This exchange is currently live edited"-->
+<!--                        class="text-warning forced-cursor " (click)="showBreakPointDialog(exchangeContainer.exchangeInfo.id)">-->
+<!--                        <i class="fa fa-pause fa-spin fa-fw"></i>-->
+<!--                    </span>-->
+<!--                </td>-->
+<!--                <td [title]="exchangeContainer.exchangeInfo.knownAuthority">-->
+<!--                    <div style="direction:rtl; text-align: left;  white-space: nowrap; max-width:150px; overflow : hidden; text-overflow: ellipsis;">-->
+<!--                        {{ exchangeContainer.exchangeInfo.knownAuthority }}-->
+<!--                        &lt;!&ndash; <i class="bi bi-lock-fill" style="color:var(&#45;&#45;bs-gray-300)"></i> &ndash;&gt;-->
+<!--                    </div></td>-->
+<!--                <td class="text-end">-->
+<!--                    <span class="">{{ exchangeContainer.exchangeInfo.method }}</span>-->
+<!--                    &nbsp;&nbsp;</td>-->
+<!--                <td  [title]="exchangeContainer.exchangeInfo.path"  class="text-info" style="overflow: hidden; max-width: 0; white-space: nowrap; text-overflow: ellipsis;">-->
+<!--                    {{ exchangeContainer.exchangeInfo.path }}-->
+<!--                </td>-->
+<!--                &lt;!&ndash; <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td> &ndash;&gt;-->
+<!--                <td class="text-center">-->
+<!--                    <a href="javascript:;" class="text-primary" *ngIf="exchangeContainer.exchangeInfo.comment"-->
+<!--                    [title]="exchangeContainer.exchangeInfo.comment"><i class="fa fa-comment"></i></a>-->
+<!--                </td>-->
+<!--                <td class="text-center">{{ exchangeContainer.exchangeInfo.statusCode }}</td>-->
+<!--                <td [title]="exchangeContainer.exchangeInfo.contentType" class="text-center">-->
+<!--                    <span  style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; ">-->
+<!--                        {{ exchangeContainer.exchangeInfo.contentType }}&nbsp;-->
+<!--                    </span>-->
+<!--                </td>-->
             </tr>
         </tbody>
     </table>

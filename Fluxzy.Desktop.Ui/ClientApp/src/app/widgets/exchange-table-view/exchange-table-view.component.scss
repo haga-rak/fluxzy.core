@@ -17,7 +17,7 @@
 
 }
 
-.exchange-table-view th { position: sticky; top: 0px; z-index: 99; padding: 4px; background: var(--bs-gray-500);
+.exchange-table-view th { position: sticky; top: 0px; z-index: 99; padding: 4px; background: var(--bs-gray-900);
 color: var(--bs-gray-300)}
 .exchange-table-view tr:first-child {  }
 
@@ -79,4 +79,8 @@ color: var(--bs-gray-300)}
 
 .forced-cursor {
     cursor: pointer;
+}
+
+.path-cell {
+    overflow: hidden; max-width: 0; white-space: nowrap; text-overflow: ellipsis;
 }

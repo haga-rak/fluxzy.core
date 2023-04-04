@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectorRef, Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
+import {ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {PerfectScrollbarComponent} from 'ngx-perfect-scrollbar';
 import {filter, tap} from 'rxjs';
 import {
     BreakPointState,
@@ -7,18 +7,22 @@ import {
     ExchangeContainer,
     ExchangeInfo,
     ExchangeState,
-    FilteredExchangeState,
-    TrunkState, UiState
+    TrunkState
 } from '../../core/models/auto-generated';
-import { ExchangeStyle } from '../../core/models/exchange-extensions';
-import { ExchangeContentService } from '../../services/exchange-content.service';
-import {   FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
-import { ExchangeSelection, ExchangeSelectionService } from '../../services/exchange-selection.service';
+import {ExchangeStyle} from '../../core/models/exchange-extensions';
+import {ExchangeContentService} from '../../services/exchange-content.service';
+import {
+    ExchangeManagementService,
+    NextBrowsingState,
+    PreviousBrowsingState
+} from '../../services/exchange-management.service';
+import {ExchangeSelection, ExchangeSelectionService} from '../../services/exchange-selection.service';
 import {ContextMenuService, Coordinate} from "../../services/context-menu.service";
 import {ContextMenuExecutionService} from "../../services/context-menu-execution.service";
 import {ApiService} from "../../services/api.service";
 import {UiStateService} from "../../services/ui.service";
 import {BreakPointService} from "../../breakpoints/break-point.service";
+import {ExchangeCellModel} from "./exchange-cell.model";
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -26,6 +30,52 @@ import {BreakPointService} from "../../breakpoints/break-point.service";
     styleUrls: ['./exchange-table-view.component.scss']
 })
 export class ExchangeTableViewComponent implements OnInit {
+
+    public cellModels : ExchangeCellModel[] = [
+        {
+            name: 'Bullet',
+            width : 20,
+            shortLabel : '',
+            classes : ['']
+        },
+        {
+            name: 'Host',
+            width : 120,
+            shortLabel : 'host',
+            classes : ['text-center']
+        },
+        {
+            name: 'Method',
+            width : 50,
+            shortLabel : 'method',
+            classes : ['text-center']
+        },
+        {
+            name: 'Path',
+            width : null,
+            shortLabel : 'path',
+            classes : ['path-cell', 'text-info']
+        },
+        {
+            name: 'Comment',
+            width : 45,
+            shortLabel : 'cmt.',
+            classes : ['text-center']
+        },
+        {
+            name: 'Status',
+            width : 45,
+            shortLabel : 'status',
+            classes : ['text-center']
+        },
+        {
+            name: 'ContentType',
+            width : 50,
+            shortLabel : 'type',
+            classes : ['text-center']
+        },
+
+    ];
 
     public exchangeState : ExchangeState;
     public exchangeSelection : ExchangeSelection ;
@@ -66,7 +116,7 @@ export class ExchangeTableViewComponent implements OnInit {
                 tap(t => this.trunkState = t),
                 tap(t => console.log('trunk state changed')),
                 tap(_ => this.cdr.detectChanges()),
-                tap(_ => this.perfectScroll.directiveRef.scrollToBottom())
+                //tap(_ => this.perfectScroll.directiveRef.scrollToBottom(0,0))
             )
             .subscribe() ;
 
@@ -143,6 +193,10 @@ export class ExchangeTableViewComponent implements OnInit {
         return item.id;
     }
 
+    public identifyCellModel(index : number, cellModel : ExchangeCellModel) : string {
+        return cellModel.name;
+    }
+
     public setSelectionChange (event : MouseEvent, exchange : ExchangeInfo) : void {
         this.contextMenu(event, exchange) ;
         if (event.ctrlKey){
@@ -196,5 +250,4 @@ export class ExchangeTableViewComponent implements OnInit {
         this.breakPointService.openBreakPointDialog(id);
     }
 }
-
 

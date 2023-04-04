@@ -109,6 +109,7 @@ import { BreakPointListViewerComponent } from './breakpoints/break-point-list-vi
 import { CompletionComponent } from './widgets/filter-header-view/completion/completion/completion.component';
 import { DisplayStringComponent } from './widgets/display-string/display-string.component';
 import { AuthorizationBasicResultComponent } from './widgets/exchange-viewer/details-request/authorization-basic-result/authorization-basic-result.component';
+import { CellRenderingComponent } from './widgets/exchange-table-view/cell-rendering/cell-rendering.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -204,6 +205,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         CompletionComponent,
         DisplayStringComponent,
         AuthorizationBasicResultComponent,
+        CellRenderingComponent,
 
 
     ],
