@@ -123,7 +123,6 @@ export class ExchangeManagementService {
             // update the field
             trukstateCopy.exchanges[trukstateCopy.exchangesIndexer[exchangeInfo.id]].exchangeInfo = exchangeInfo;
 
-
             this.exchangeContentService.update(trukstateCopy);
         });
     }
