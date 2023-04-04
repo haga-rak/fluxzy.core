@@ -1,6 +1,7 @@
 .exchange-table-view-container {
     font-size: 11px;
     max-height: calc(100vh - 0px);
+    //margin-top : 16px;
 }
 
 .exchange-table-view {
@@ -16,11 +17,16 @@
 
 }
 
-.exchange-table-view th:first {
+.exchange-table-view th { position: sticky; top: 0px; z-index: 99; padding: 4px; background: var(--bs-gray-500);
+color: var(--bs-gray-300)}
+.exchange-table-view tr:first-child {  }
+
+
+
+.exchange-table-view th:first-child {
     border-top-left-radius: 8px;
 }
-
-.exchange-table-view th:last {
+.exchange-table-view th:last-child {
     border-top-right-radius: 8px;
 }
 

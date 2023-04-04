@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {debounceTime, Observable, Subject} from 'rxjs';
+import {debounceTime, Observable, of, Subject, switchMap} from 'rxjs';
 import {ExchangeInfo, TrunkState} from '../core/models/auto-generated';
 
 @Injectable({
@@ -12,8 +12,9 @@ export class ExchangeContentService {
 
     constructor() {
         this.trunkStateObservable$ = this.trunkState$.asObservable().pipe(
-            debounceTime(10)
+            debounceTime(50),
         );
+
         this.trunkState$.subscribe(t => this.trunkState = t);
     }
 
@@ -22,7 +23,7 @@ export class ExchangeContentService {
     }
 
     public getTrunkState(): Observable<TrunkState> {
-        return this.trunkStateObservable$;
+        return this.trunkState$.asObservable();
     }
 
     public getExchangeInfo(exchangeId: number): ExchangeInfo | null {

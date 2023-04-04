@@ -111,8 +111,7 @@ namespace Fluxzy.Utils
 
             return "data";
         }
-
-
+        
         public static string? GetSimplifiedContentType(IExchange exchange)
         {
             // check into the response Content-Type header first 

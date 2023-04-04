@@ -65,8 +65,8 @@ export class ExchangeTableViewComponent implements OnInit {
             .pipe(
                 tap(t => this.trunkState = t),
                 tap(t => console.log('trunk state changed')),
-                tap(_ => this.cdr.detectChanges())
-
+                tap(_ => this.cdr.detectChanges()),
+                tap(_ => this.perfectScroll.directiveRef.scrollToBottom())
             )
             .subscribe() ;
 
@@ -132,6 +132,7 @@ export class ExchangeTableViewComponent implements OnInit {
             let y = position.y as number;
 
             if (y && nextState.type == 1) {
+
                 this.perfectScroll.directiveRef.scrollToY(y-2);
                 this.perfectScroll.directiveRef.update();
             }
