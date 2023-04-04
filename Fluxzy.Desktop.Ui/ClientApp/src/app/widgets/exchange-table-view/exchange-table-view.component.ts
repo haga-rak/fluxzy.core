@@ -23,6 +23,7 @@ import {ApiService} from "../../services/api.service";
 import {UiStateService} from "../../services/ui.service";
 import {BreakPointService} from "../../breakpoints/break-point.service";
 import {ExchangeCellModel} from "./exchange-cell.model";
+import {ExchangeTableService} from "./exchange-table.service";
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -31,51 +32,7 @@ import {ExchangeCellModel} from "./exchange-cell.model";
 })
 export class ExchangeTableViewComponent implements OnInit {
 
-    public cellModels : ExchangeCellModel[] = [
-        {
-            name: 'Bullet',
-            width : 20,
-            shortLabel : '',
-            classes : ['']
-        },
-        {
-            name: 'Host',
-            width : 120,
-            shortLabel : 'host',
-            classes : ['text-center']
-        },
-        {
-            name: 'Method',
-            width : 50,
-            shortLabel : 'method',
-            classes : ['text-center']
-        },
-        {
-            name: 'Path',
-            width : null,
-            shortLabel : 'path',
-            classes : ['path-cell', 'text-info']
-        },
-        {
-            name: 'Comment',
-            width : 45,
-            shortLabel : 'cmt.',
-            classes : ['text-center']
-        },
-        {
-            name: 'Status',
-            width : 45,
-            shortLabel : 'status',
-            classes : ['text-center']
-        },
-        {
-            name: 'ContentType',
-            width : 50,
-            shortLabel : 'type',
-            classes : ['text-center']
-        },
-
-    ];
+    public cellModels : ExchangeCellModel[] = [];
 
     public exchangeState : ExchangeState;
     public exchangeSelection : ExchangeSelection ;
@@ -98,10 +55,16 @@ export class ExchangeTableViewComponent implements OnInit {
         private contextMenuExchangeService : ContextMenuExecutionService,
         private apiService: ApiService,
         private uiStateService : UiStateService,
-        private breakPointService : BreakPointService
+        private breakPointService : BreakPointService,
+        private exchangeTableService : ExchangeTableService
         ) { }
 
     ngOnInit(): void {
+        this.exchangeTableService.visibleCellModels.pipe(
+            tap(t => this.cellModels = t),
+            tap(_ => this.cdr.detectChanges()),
+        ).subscribe() ;
+
         this.selectionService.getCurrentSelection().pipe(
             tap(e => this.exchangeSelection = e)
         ).subscribe() ;
@@ -198,7 +161,9 @@ export class ExchangeTableViewComponent implements OnInit {
     }
 
     public setSelectionChange (event : MouseEvent, exchange : ExchangeInfo) : void {
+
         this.contextMenu(event, exchange) ;
+
         if (event.ctrlKey){
             // adding
 
@@ -248,6 +213,19 @@ export class ExchangeTableViewComponent implements OnInit {
 
     showBreakPointDialog(id: number) {
         this.breakPointService.openBreakPointDialog(id);
+    }
+
+    triggerContextMenuHeader($event: MouseEvent, cellModel : ExchangeCellModel) {
+
+        if ($event.button !== 2)
+            return;
+
+        const coordinate : Coordinate = {
+            y : $event.clientY,
+            x: $event.clientX
+        };
+
+        this.contextMenuService.showTableHeaderPopup(coordinate, cellModel);
     }
 }
 

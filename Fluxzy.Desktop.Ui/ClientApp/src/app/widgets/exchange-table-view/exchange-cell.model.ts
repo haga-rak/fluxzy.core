@@ -3,5 +3,6 @@ export interface ExchangeCellModel {
     shortLabel: string;
     width : number | null;
     hide? : boolean;
-    classes : string []
+    classes : string [] ;
+    readonly? : boolean;
 }
