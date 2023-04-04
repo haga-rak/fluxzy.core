@@ -5,7 +5,7 @@
             <a class="btn btn-tab" [class]="{
                 'btn-tab-selected' : tab === context.currentTab
               }"
-               (click)="context.currentTab = tab"
+               (click)="setTab(tab)"
                href="javascript:;">
                 {{tab}}
             </a>&nbsp;

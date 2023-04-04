@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {ExchangeInfo, TagGlobalApplyModel} from '../../core/models/auto-generated';
 import {StatusBarService} from "../../services/status-bar.service";
 import {DialogService} from "../../services/dialog.service";
@@ -26,7 +26,8 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
         private dialogService : DialogService,
         private apiService : ApiService,
         private metaInformationService : MetaInformationService,
-        private systemCallService : SystemCallService) {
+        private systemCallService : SystemCallService,
+        private  cd : ChangeDetectorRef) {
 
     }
 
@@ -70,4 +71,8 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
             ).subscribe();
     }
 
+    setTab(tab: string) {
+        this.context.currentTab = tab
+        this.cd.detectChanges();
+    }
 }
