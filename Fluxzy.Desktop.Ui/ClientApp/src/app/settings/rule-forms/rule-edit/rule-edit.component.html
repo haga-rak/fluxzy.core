@@ -41,16 +41,14 @@
 
                             <table style="width: 100%; margin-bottom: 24px" *ngIf="longDescription">
                                 <tr>
-                                    <td style="width: 32px; text-align : center">
-                                        <i class="fa fa-info-circle text-primary" style="font-size: 24px"></i>
+                                    <td style="width: 64px; padding : 16px; text-align : center">
+                                        <i class="fa fa-info-circle text-primary" style="font-size: 32px"></i>
                                     </td>
                                     <td>
                                         <div class="lead text-info"  [innerHTML]="longDescription"></div>
                                     </td>
                                 </tr>
                             </table>
-
-
                             <app-rule-render [action]="action"  [validationSource]="validationSource"></app-rule-render>
                             <p class="text-center " *ngIf="targets.length === 0">This action has no editable setting.</p>
                         </div>
