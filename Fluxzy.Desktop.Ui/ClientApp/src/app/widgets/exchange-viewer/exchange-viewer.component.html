@@ -88,6 +88,10 @@
                                                  [formatter]="C(propertyContext.requestFormattingResult)" >
                     </app-authorization-bearer-result>
 
+                    <app-authorization-basic-result *ngIf="ofTypeRequest('AuthorizationBasicResult')"
+                                                 [formatter]="C(propertyContext.requestFormattingResult)" >
+                    </app-authorization-basic-result>
+
                 </perfect-scrollbar>
 
                 <!-- </div> -->
