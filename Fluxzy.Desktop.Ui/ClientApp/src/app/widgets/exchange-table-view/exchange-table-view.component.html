@@ -6,7 +6,8 @@
     <table style="width:100%" class="exchange-table-view noselect">
         <thead>
             <tr>
-                <th *ngFor="let cellModel of cellModels" [style.width.px]="cellModel.width" [title]="cellModel.name">{{ cellModel.shortLabel }}</th>
+                <th *ngFor="let cellModel of cellModels;   trackBy: identifyCellModel" [style.width.px]="cellModel.width" [title]="cellModel.name"
+                 (mouseup)="triggerContextMenuHeader($event, cellModel)">{{ cellModel.shortLabel }}</th>
             </tr>
         </thead>
         <tbody>
@@ -21,7 +22,6 @@
                             (onBreakPointDialogRequest)="showBreakPointDialog($event)"
                         >
                         </td>
-
             </tr>
         </tbody>
     </table>

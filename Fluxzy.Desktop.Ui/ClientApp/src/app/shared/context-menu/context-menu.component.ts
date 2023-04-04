@@ -65,6 +65,14 @@ export class ContextMenuComponent implements OnInit {
         return [this.contextMenuService.getIconClass(contextMenuAction)];
     }
 
+    public getLeft() : number {
+        if (!this.contextMenuModel) {
+            return 0 ;
+        }
+
+        return this.contextMenuModel.coordinate.x;
+    }
+
     public getTop() : number {
         if (!this.contextMenuModel) {
             return 0 ;
@@ -108,15 +116,6 @@ export class ContextMenuComponent implements OnInit {
         this.contextMenuModel = null ;
         this.cd.detectChanges();
     }
-
-    public getLeft() : number {
-        if (!this.contextMenuModel) {
-            return 0 ;
-        }
-
-        return this.contextMenuModel.coordinate.x;
-    }
-
 
     hintClicked(event : Event) {
         this.inputService.setKeyboardCtrlOn(!this.ctrlKeyOn);

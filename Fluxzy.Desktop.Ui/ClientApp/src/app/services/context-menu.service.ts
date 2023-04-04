@@ -1,12 +1,14 @@
 import {Injectable} from '@angular/core';
 import {Observable, Subject} from "rxjs";
 import {ContextMenuAction} from "../core/models/auto-generated";
+import {ExchangeCellModel} from "../widgets/exchange-table-view/exchange-cell.model";
 
 @Injectable({
     providedIn: 'root'
 })
 export class ContextMenuService {
     private contextMenu$ = new Subject<ContextMenuModel>() ;
+    private globalContextMenuCoordinate$ = new Subject<GlobalContextMenuCoordinate>() ;
 
     constructor() {
 
@@ -21,10 +23,21 @@ export class ContextMenuService {
         this.contextMenu$.next(model);
     }
 
+    public showTableHeaderPopup(coordinate : Coordinate, cellModel : ExchangeCellModel) : void {
+        const model : GlobalContextMenuCoordinate = {
+            coordinate, cellModel
+        } ;
+
+        this.globalContextMenuCoordinate$.next(model);
+    }
+
     public getContextMenuModel() : Observable<ContextMenuModel> {
         return this.contextMenu$.asObservable();
     }
 
+    public getTableHeaderContextMenuModel() : Observable<GlobalContextMenuCoordinate> {
+        return this.globalContextMenuCoordinate$.asObservable();
+    }
 
     public getIconClass(contextMenuAction: ContextMenuAction) : string {
         if (contextMenuAction.filter){
@@ -49,4 +62,11 @@ export interface ContextMenuModel {
     coordinate : Coordinate;
     exchangeId : number;
 
+}
+
+
+export interface GlobalContextMenuCoordinate {
+
+    coordinate : Coordinate;
+    cellModel : ExchangeCellModel
 }
