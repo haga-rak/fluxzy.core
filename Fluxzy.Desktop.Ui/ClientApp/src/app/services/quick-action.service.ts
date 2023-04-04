@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {QuickAction, QuickActionResult} from "../core/models/auto-generated";
-import {BehaviorSubject, combineLatest, map, Observable, switchMap, tap} from "rxjs";
+import {BehaviorSubject, combineLatest, debounceTime, map, Observable, switchMap, tap} from "rxjs";
 import {ApiService} from "./api.service";
 import {UiStateService} from "./ui.service";
 import {ExchangeSelectedIds, ExchangeSelectionService} from "./exchange-selection.service";
@@ -20,6 +20,7 @@ export class QuickActionService {
                 this.localQuickActions.asObservable(),
                 this.uiStateService.lastUiState$.asObservable()
                     .pipe(
+                        debounceTime(1500),
                         switchMap(t => this.apiService.quickActionList()),
                         tap(t =>  {
                             t.actions.forEach(a =>
