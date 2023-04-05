@@ -9,7 +9,7 @@
         "emitDecoratorMetadata": false,
         "experimentalDecorators": true,
         "allowJs": true,
-        "target": "es6",
+        "target": "es2020",
         "typeRoots": [
             "node_modules/@types"
         ],

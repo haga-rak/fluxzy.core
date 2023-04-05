@@ -5,7 +5,7 @@ namespace Fluxzy.Desktop.Services.UiSettings
     public class UiSettingHolder
     {
         private readonly string _fullPath;
-        private readonly Dictionary<string, object> _localSettings  = new();
+        private readonly Dictionary<string, string> _localSettings  = new();
 
         public UiSettingHolder()
         {
@@ -19,7 +19,7 @@ namespace Fluxzy.Desktop.Services.UiSettings
                     try
                     {
                         _localSettings =
-                            JsonSerializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(_fullPath))!;
+                            JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(_fullPath))!;
                     }
                     catch
                     {
@@ -35,19 +35,19 @@ namespace Fluxzy.Desktop.Services.UiSettings
             return _localSettings.ContainsKey(key); 
         }
         
-        public bool TryGet<T>(string key, out T? result) where T : class
+        public bool TryGet(string key, out string? result) 
         {
             result = default; 
             
             if (_localSettings.TryGetValue(key, out var @object)) {
-                result = (T) @object; 
+                result = @object; 
                 return true; 
             }
 
             return false; 
         }
 
-        public bool Update<T>(string key, T value) where T : class
+        public bool Update(string key, string value)
         {
             lock (this)
             {

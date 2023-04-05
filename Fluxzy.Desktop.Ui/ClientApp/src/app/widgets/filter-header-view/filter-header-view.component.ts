@@ -21,7 +21,7 @@ export class FilterHeaderViewComponent implements OnInit {
 
     public  SourceAgentIconFunc = SourceAgentIconFunc;
     public ctrlKeyOn: boolean = false;
-    private currentExchangeId: number | null = null;
+    public currentExchangeId: number | null = null;
 
     public completionShown = false;
 
