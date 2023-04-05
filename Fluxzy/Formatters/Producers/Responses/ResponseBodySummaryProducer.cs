@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using Fluxzy.Extensions;
@@ -24,7 +24,7 @@ namespace Fluxzy.Formatters.Producers.Responses
                 !string.IsNullOrWhiteSpace(uri.LocalPath))
                 preferredFileName = uri.LocalPath;
 
-            return new ResponseBodySummaryResult(ResultTitle, context.ResponseBodyLength.Value,
+            return new ResponseBodySummaryResult($"{ResultTitle} ({exchangeInfo.ContentType})", context.ResponseBodyLength.Value,
                 context.CompressionInfo.CompressionName!, exchangeInfo.GetResponseHeaderValue("content-type"),
                 context.ResponseBodyText, preferredFileName);
         }
