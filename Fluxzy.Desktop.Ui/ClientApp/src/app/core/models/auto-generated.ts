@@ -735,6 +735,10 @@ export interface UiState
 	captureEnabled: boolean;
 	haltEnabled: boolean;
 }
+export interface UiSetting
+{
+	value: string;
+}
 export interface ForwardMessage
 {
 	type: string;

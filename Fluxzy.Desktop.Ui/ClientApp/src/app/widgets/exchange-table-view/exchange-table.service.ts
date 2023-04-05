@@ -1,43 +1,49 @@
 import {Injectable} from '@angular/core';
 import {ExchangeCellModel} from "./exchange-cell.model";
-import {BehaviorSubject, filter, map, Observable} from "rxjs";
+import {BehaviorSubject, defaultIfEmpty, filter, map, Observable, Subject, switchMap, take, tap} from "rxjs";
+import {ApiService} from "../../services/api.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class ExchangeTableService {
-    private _visibleCellModels : BehaviorSubject<ExchangeCellModel[]> = new BehaviorSubject( [
+    public static  defaultCellModels : ExchangeCellModel[] = [
         {
             name: 'Bullet',
             width : 20,
             shortLabel : '',
             classes : [''],
-            readonly : true
+            readonly : true,
+            defaultHide : false
         },
         {
             name: 'Host',
             width : 120,
             shortLabel : 'host',
-            classes : ['text-center']
+            classes : ['text-center'],
+            defaultHide : false
         },
         {
             name: 'Method',
             width : 50,
             shortLabel : 'method',
-            classes : ['text-center']
+            classes : ['text-center'],
+            defaultHide : false
         },
         {
             name: 'Path',
             width : null,
             shortLabel : 'path',
             classes : ['path-cell', 'text-info'],
-            readonly : true
+            readonly : true,
+            defaultHide : false
         },
         {
             name: 'Comment',
             width : 45,
             shortLabel : 'cmt.',
-            classes : ['text-center']
+            classes : ['text-center'],
+            defaultHide : false
         },
         {
             name: 'Status',
@@ -45,6 +51,7 @@ export class ExchangeTableService {
             shortLabel : 'status',
             classes : ['text-center'],
             headerClasses : ['text-center'],
+            defaultHide : false,
         },
         {
             name: 'ContentType',
@@ -52,6 +59,7 @@ export class ExchangeTableService {
             shortLabel : 'type',
             classes : ['text-center'],
             headerClasses : ['text-center'],
+            defaultHide : false,
         },
         {
             name: 'Total byte received',
@@ -59,6 +67,7 @@ export class ExchangeTableService {
             shortLabel : 'recv.',
             classes : ['text-center'],
             headerClasses : ['text-center'],
+            defaultHide : false,
         },
         {
             name: 'Total byte sent',
@@ -67,11 +76,43 @@ export class ExchangeTableService {
             classes : ['text-center'],
             hide : true,
             headerClasses : ['text-center'],
+            defaultHide : true,
         },
-    ]);
+    ];
 
-    constructor() {
+    private _visibleCellModels : BehaviorSubject<ExchangeCellModel[]> = new BehaviorSubject<ExchangeCellModel[]>([]);
 
+    private _defaultVisibility: ColumnVisibility [];
+
+    constructor(private apiService : ApiService) {
+        this._defaultVisibility = ExchangeTableService.defaultCellModels
+            .map(t => {
+                return {
+                    name: t.name,
+                    hide: t.defaultHide
+                }
+            });
+
+        apiService.uiSettingHasKey('columnVisibility')
+            .pipe(
+
+                filter(t => t),
+                switchMap(t => apiService.uiSettingGet('columnVisibility')),
+                map(t => (JSON.parse(t) as ColumnVisibility [])),
+                defaultIfEmpty(this._defaultVisibility),
+                tap(t => {
+                    const cellModels = ExchangeTableService.defaultCellModels.map(
+                        exchangeCellModel => {
+                        const item = t.find(t2 => t2.name === exchangeCellModel.name);
+                        return {
+                            ...exchangeCellModel,
+                            hide: item ? item.hide : exchangeCellModel.defaultHide
+                        }
+                    });
+                    this._visibleCellModels.next(cellModels);
+                },
+                    take(1),)
+            ).subscribe();
     }
 
     get visibleCellModels(): Observable<ExchangeCellModel[]> {
@@ -91,5 +132,18 @@ export class ExchangeTableService {
         const index = cellModels.findIndex(t => t.name === cellModel.name);
         cellModels[index] = cellModel;
         this._visibleCellModels.next(cellModels);
+
+        this.apiService.uiSettingUpdate('columnVisibility',
+            JSON.stringify(cellModels.map(t => {
+                return {
+                    name: t.name,
+                    hide: t.hide
+                }
+            }))).subscribe() ;
     }
+}
+
+export interface ColumnVisibility {
+    name: string;
+    hide: boolean;
 }

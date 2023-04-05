@@ -14,6 +14,7 @@ using Fluxzy.Desktop.Services.Filters.Implementations;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Desktop.Services.Rules;
 using Fluxzy.Desktop.Services.Ui;
+using Fluxzy.Desktop.Services.UiSettings;
 using Fluxzy.Desktop.Services.Wizards;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
@@ -58,6 +59,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<BreakPointWatcher>();
             collection.AddSingleton<ContextualFilterBuilder>();
             collection.AddSingleton<QuickActionBuilder>();
+            collection.AddSingleton<UiSettingHolder>();
 
             collection.AddSingleton<CertificateAuthorityManager>(t =>
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
