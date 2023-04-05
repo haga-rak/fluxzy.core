@@ -6,7 +6,7 @@ import {
     ExchangeBrowsingState,
     ExchangeContainer,
     ExchangeInfo,
-    ExchangeState,
+    ExchangeState, IExchangeLine,
     TrunkState
 } from '../../core/models/auto-generated';
 import {ExchangeStyle} from '../../core/models/exchange-extensions';
@@ -160,7 +160,7 @@ export class ExchangeTableViewComponent implements OnInit {
         return cellModel.name;
     }
 
-    public setSelectionChange (event : MouseEvent, exchange : ExchangeInfo) : void {
+    public setSelectionChange (event : MouseEvent, exchange : IExchangeLine) : void {
 
         this.contextMenu(event, exchange) ;
 
@@ -172,8 +172,8 @@ export class ExchangeTableViewComponent implements OnInit {
         }
 
         if (event.shiftKey && this.exchangeSelection.lastSelectedExchangeId) {
-            var start =  this.exchangeSelection.lastSelectedExchangeId < exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ;
-            var end = this.exchangeSelection.lastSelectedExchangeId > exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ;
+            const start =  this.exchangeSelection.lastSelectedExchangeId < exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ;
+            const end = this.exchangeSelection.lastSelectedExchangeId > exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ;
 
             const result : number [] = [] ;
 
@@ -192,7 +192,7 @@ export class ExchangeTableViewComponent implements OnInit {
 
     }
 
-    public contextMenu(event : MouseEvent, exchange : ExchangeInfo) {
+    public contextMenu(event : MouseEvent, exchange : IExchangeLine) {
         if (event.button !== 2)
             return;
 

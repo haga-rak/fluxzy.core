@@ -23,6 +23,24 @@ namespace Fluxzy.Desktop.Ui.Controllers
             _producerFactory = producerFactory;
         }
 
+        [HttpGet("{exchangeId}")]
+        public async Task<ActionResult<ExchangeInfo>> GetExchange(
+            int exchangeId,
+            [FromServices]
+            IArchiveReaderProvider archiveReaderProvider)
+        {
+            var archiveReader = await archiveReaderProvider.Get()!;
+
+            var exchange = archiveReader!.ReadExchange(exchangeId);
+
+            if (exchange == null)
+            {
+                return new NotFoundResult();
+            }
+            
+            return exchange; 
+        }
+
         [HttpGet("{exchangeId}/has-request-body")]
         public async Task<ActionResult<bool>> HasRequestBody(
             int exchangeId,

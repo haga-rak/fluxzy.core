@@ -37,7 +37,7 @@
                 <div class="block-right">
                     <div class="middle-content">
                         <!-- <p>{{selectedExchange.id}}</p> -->
-                        <app-exchange-viewer-header *ngIf="selectedExchange" [exchange]="selectedExchange" style="width:100%"></app-exchange-viewer-header>
+                        <app-exchange-viewer-header *ngIf="selectedExchange" [exchangeId]="selectedExchange.id" style="width:100%"></app-exchange-viewer-header>
                         <div *ngIf="!selectedExchange"  style="width:100%; height: 100%; display: flex; align-items: center;text-align: center" >
                             <div style="width:100%" class="lead text-center">
                                 <p class="display-6">

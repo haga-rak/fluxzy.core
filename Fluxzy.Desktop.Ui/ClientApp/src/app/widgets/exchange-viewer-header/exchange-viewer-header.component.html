@@ -1,4 +1,4 @@
-<div class="exchange-viewer-main-content" style="height : calc(100% - 32px)">
+<div *ngIf="exchange" class="exchange-viewer-main-content" style="height : calc(100% - 32px)">
 
     <div style="" class="btn-tab-tool">
         <ng-container *ngFor="let tab of tabs">

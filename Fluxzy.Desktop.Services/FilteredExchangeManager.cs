@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -35,7 +35,7 @@ namespace Fluxzy.Desktop.Services
 
                                         var filteredIds =
                                             trunkState.Exchanges
-                                                      .Where(e => viewFilter.Apply(null!, e.ExchangeInfo,
+                                                      .Where(e => viewFilter.Apply(null!, (ExchangeInfo) e.ExchangeInfo,
                                                           archiveReader))
                                                       .Select(e => e.Id);
 

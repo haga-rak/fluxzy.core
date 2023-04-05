@@ -17,8 +17,10 @@ namespace Fluxzy.Desktop.Services.Models
                 ExchangesIndexer[exchange.Id] = index;
                 MaxExchangeId = exchange.Id;
 
-                if (exchange.ExchangeInfo.Agent != null)
-                    agents.Add(exchange.ExchangeInfo.Agent);
+                var exchangeInfo = (ExchangeInfo) exchange.ExchangeInfo;
+
+                if (exchangeInfo.Agent != null)
+                    agents.Add(exchangeInfo.Agent);
 
                 // Here we trigger the contextual filter
             }

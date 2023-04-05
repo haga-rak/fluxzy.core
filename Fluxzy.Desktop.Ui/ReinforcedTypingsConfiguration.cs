@@ -155,8 +155,10 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<Tag>()
                 .ApplyGenericProperties();
 
-
             builder.ExportAsInterface<ExchangeInfo>()
+                .ApplyGenericProperties();
+
+            builder.ExportAsInterface<IExchangeLine>()
                 .ApplyGenericProperties();
 
             builder.ExportAsInterface<RequestHeaderInfo>()
