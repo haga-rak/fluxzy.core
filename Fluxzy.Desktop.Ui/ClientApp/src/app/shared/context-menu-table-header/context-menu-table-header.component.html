@@ -1,17 +1,11 @@
 <div  #contextMenuBlock [hidden]="menuHide"  class="context-menu shady-box-primary" *ngIf="contextModel"
       [style.top]="getTop() +'px'" [style.left]="getLeft()+'px'">
     <div class="context-menu-action" *ngFor="let cellModel of allCellModels" style="" (mousedown)="changeVisibility(cellModel)">
-        <a href="javascript:;" class="text-info eliminate-a-behavior" *ngIf="!cellModel.readonly">
+        <a href="javascript:;" [ngClass]="{'text-info' : !!cellModel.hide, 'text-white' : !cellModel.hide}" class="text-info eliminate-a-behavior" *ngIf="!cellModel.readonly">
             <i class="fa fa-check" *ngIf="!cellModel.hide"></i>
             <i class="fa fa-minus" *ngIf="cellModel.hide"></i>
             &nbsp;
             <span class="text-info">{{ cellModel.name }}</span>
         </a>
-    </div>
-    <div class="context-menu-action">
-        <i class="fa fa-sort" aria-hidden="true"></i>
-        &nbsp;
-        &nbsp;
-        Reorder columns
     </div>
 </div>

@@ -29,7 +29,18 @@
 </ng-container>
 <ng-container   *ngIf="columnModel.name === 'Status'" class="text-center">{{ exchangeContainer.exchangeInfo.statusCode }}</ng-container>
 <ng-container   *ngIf="columnModel.name === 'ContentType'"  class="text-center">
-                    <span style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; " [title]="exchangeContainer.exchangeInfo.contentType">
+                    <span style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; max-height:14px;" [title]="exchangeContainer.exchangeInfo.contentType">
                         {{ exchangeContainer.exchangeInfo.contentType }}&nbsp;
+                    </span>
+</ng-container>
+<ng-container   *ngIf="columnModel.name === 'Total byte received'"  class="text-center">
+                    <span style="" [title]="exchangeContainer.exchangeInfo.received + ' bytes'">
+                        {{ exchangeContainer.exchangeInfo.received | size : 0 : 1 }}&nbsp;
+                    </span>
+</ng-container>
+
+<ng-container   *ngIf="columnModel.name === 'Total byte sent'"  class="text-center">
+                    <span style="" [title]="exchangeContainer.exchangeInfo.sent + ' bytes'">
+                        {{ exchangeContainer.exchangeInfo.sent   | size : 0 : 1 }}&nbsp;
                     </span>
 </ng-container>

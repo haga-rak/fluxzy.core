@@ -13,7 +13,7 @@
     border: solid 1px transparent;
     border-style: none solid solid none;
     vertical-align: middle;
-    padding: 1px 0px 1px 0px;
+    padding: 2px 0px 2px 0px;
 
 }
 
@@ -60,6 +60,9 @@ color: var(--bs-gray-300)}
 .exchange-table-view tbody tr:hover td {
     background-color: var(--bs-gray-900);
     cursor: default;
+}
+.exchange-table-view  td {
+    //padding : 4px;
 }
 
 .exchange-table-view tbody tr.exchange-selected td {

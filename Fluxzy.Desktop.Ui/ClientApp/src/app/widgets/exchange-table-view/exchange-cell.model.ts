@@ -4,5 +4,6 @@ export interface ExchangeCellModel {
     width : number | null;
     hide? : boolean;
     classes : string [] ;
+    headerClasses? : string [] ;
     readonly? : boolean;
 }
