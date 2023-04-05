@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, tap } from 'rxjs';
-import {ExchangeInfo, TrunkState} from '../core/models/auto-generated';
+import {ExchangeInfo, IExchangeLine, TrunkState} from '../core/models/auto-generated';
 import { ExchangeContentService } from './exchange-content.service';
 import {MenuService} from "../core/services/menu-service.service";
 
@@ -14,7 +14,7 @@ export class ExchangeSelectionService {
     private currentRawSelectionObservable$: Observable<ExchangeSelection>;
     private currentSelectedIds$: Observable<number[]>;
     private currenSelectionCount$: Observable<number>;
-    private selected$ : BehaviorSubject<ExchangeInfo | null> = new BehaviorSubject<ExchangeInfo | null>(null);
+    private selected$ : BehaviorSubject<IExchangeLine | null> = new BehaviorSubject<IExchangeLine | null>(null);
 
 
     private currentSelection: ExchangeSelection = {
@@ -132,7 +132,7 @@ export class ExchangeSelectionService {
         this.currentRawSelection$.next(nextResult);
     }
 
-    public getSelected() : Observable<ExchangeInfo> {
+    public getSelected() : Observable<IExchangeLine> {
         return this.selected$.asObservable() ;
     }
 

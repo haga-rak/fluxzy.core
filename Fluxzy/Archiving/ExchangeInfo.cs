@@ -9,7 +9,7 @@ using Fluxzy.Utils;
 
 namespace Fluxzy
 {
-    public class ExchangeInfo : IExchange
+    public class ExchangeInfo : IExchange, IExchangeLine
     {
         public ExchangeInfo(Exchange exchange)
         {

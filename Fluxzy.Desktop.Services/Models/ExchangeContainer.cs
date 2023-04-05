@@ -1,10 +1,10 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Desktop.Services.Models
 {
     public class ExchangeContainer : IEquatable<ExchangeContainer>
     {
-        public ExchangeContainer(ExchangeInfo exchangeInfo)
+        public ExchangeContainer(IExchangeLine exchangeInfo)
         {
             Id = exchangeInfo.Id;
             ExchangeInfo = exchangeInfo;
@@ -12,7 +12,7 @@ namespace Fluxzy.Desktop.Services.Models
 
         public int Id { get; }
 
-        public ExchangeInfo ExchangeInfo { get; set; }
+        public IExchangeLine ExchangeInfo { get; set; }
 
         public bool Equals(ExchangeContainer? other)
         {

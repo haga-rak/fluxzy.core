@@ -24,7 +24,7 @@ import {
     CommentUpdateModel,
     ConnectionInfo, ConnectionSetupStepModel,
     ContextMenuAction, CurlCommandResult, DescriptionInfo,
-    ExchangeBrowsingState, ExchangeMetricInfo,
+    ExchangeBrowsingState, ExchangeInfo, ExchangeMetricInfo,
     ExchangeState,
     FileContentDelete,
     FileSaveViewModel,
@@ -210,6 +210,10 @@ export class ApiService {
                     });
                 })
             );
+    }
+
+    public exchangeGet(exchangeId: number) : Observable<ExchangeInfo> {
+        return this.httpClient.get<ExchangeInfo>(`api/exchange/${exchangeId}`).pipe(take(1));
     }
 
     public exchangeGetCurlCommandResult(exchangeId: number) : Observable<CurlCommandResult> {

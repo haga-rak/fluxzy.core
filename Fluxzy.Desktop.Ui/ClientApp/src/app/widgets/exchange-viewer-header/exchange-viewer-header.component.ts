@@ -19,7 +19,8 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
 
     public context: { currentTab: string } = {currentTab: 'Content'}
 
-    @Input() public exchange: ExchangeInfo;
+    public exchange: ExchangeInfo | null;
+    @Input() public exchangeId: number;
 
     constructor(
         private statusBarService : StatusBarService,
@@ -35,10 +36,14 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        this.apiService.connectionHasRawCapture(this.exchange.connectionId)
+
+        this.apiService.exchangeGet(this.exchangeId)
             .pipe(
                 take(1),
-                tap(hasRawCapture => this.hasRawCapture = hasRawCapture)
+                tap(e => this.exchange = e),
+                switchMap(e => this.apiService.connectionHasRawCapture(e.connectionId)),
+                tap(hasRawCapture => this.hasRawCapture = hasRawCapture),
+                tap(_ => this.cd.detectChanges())
             ).subscribe();
     }
 

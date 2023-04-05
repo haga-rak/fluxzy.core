@@ -15,57 +15,57 @@ export class MetaInformationService {
         private apiService: ApiService,
         private statusBarService: StatusBarService,
         private dialogService: DialogService,
-        private exchangeContentService :ExchangeContentService
-    ){
+        private exchangeContentService: ExchangeContentService
+    ) {
     }
 
-    public commentMultiple(exchangeIds : number []) : void {
-       this.dialogService.openCommentApplyDialog('',
-           exchangeIds)
+    public commentMultiple(exchangeIds: number []): void {
+        this.dialogService.openCommentApplyDialog('',
+            exchangeIds)
             .pipe(
                 take(1),
-                filter (c => !! c),
+                filter(c => !!c),
                 switchMap(t => this.apiService.metaInfoApplyComment(t)),
                 tap(_ => this.statusBarService.addMessage("Comment applied"))
             ).subscribe();
     }
 
-    public comment(exchangeId : number) : void {
+    public comment(exchangeId: number): void {
         const exchangeInfo = this.exchangeContentService.getExchangeInfo(exchangeId);
 
         if (!exchangeInfo) {
             return;
         }
 
-       this.dialogService.openCommentApplyDialog(exchangeInfo.comment ?? '',
+        this.dialogService.openCommentApplyDialog(exchangeInfo.comment ?? '',
             [exchangeId])
             .pipe(
                 take(1),
-                filter (c => !! c),
+                filter(c => !!c),
                 switchMap(t => this.apiService.metaInfoApplyComment(t)),
                 tap(_ => this.statusBarService.addMessage("Comment applied"))
             ).subscribe();
     }
 
-    public tag(exchangeId : number): void {
+    public tag(exchangeId: number): void {
         const exchangeInfo = this.exchangeContentService.getExchangeInfo(exchangeId);
 
         if (!exchangeInfo) {
             return;
         }
 
-        const model : TagGlobalApplyModel = {
-            exchangeIds  : [exchangeId],
-            tagIdentifiers : exchangeInfo.tags.map(t => t.identifier)
-        } ;
-
-        this.dialogService.openTagApplyDialog(model)
+        this.apiService.exchangeGet(exchangeId)
             .pipe(
                 take(1),
-                filter(t => !!t),
-                switchMap(t => this.apiService.metaInfoGlobalApply(t)),
-                tap(_ => this.statusBarService.addMessage('Tag applied', 1000))
-
-            ).subscribe();
+                switchMap(e => this.dialogService.openTagApplyDialog({
+                    exchangeIds: [exchangeId],
+                    tagIdentifiers: e.tags.map(t => t.identifier)
+                })
+                    .pipe(
+                        take(1),
+                        filter(t => !!t),
+                        switchMap(t => this.apiService.metaInfoGlobalApply(t)),
+                        tap(_ => this.statusBarService.addMessage('Tag applied', 1000))
+                    ))).subscribe();
     }
 }

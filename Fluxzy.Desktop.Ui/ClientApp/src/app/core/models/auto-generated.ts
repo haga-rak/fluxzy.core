@@ -916,7 +916,7 @@ export interface ExchangeBrowsingState
 export interface ExchangeContainer
 {
 	id: number;
-	exchangeInfo: ExchangeInfo;
+	exchangeInfo: IExchangeLine;
 }
 export interface ConnectionContainer
 {
@@ -956,7 +956,7 @@ export interface Tag
 	identifier: string;
 	value: string;
 }
-export interface ExchangeInfo
+export interface ExchangeInfo extends IExchangeLine
 {
 	connectionId: number;
 	id: number;
@@ -981,6 +981,20 @@ export interface ExchangeInfo
 	webSocketMessages?: WsMessage[];
 	agent?: Agent;
 	clientErrors: ClientError[];
+}
+export interface IExchangeLine
+{
+	id: number;
+	connectionId: number;
+	method: string;
+	path: string;
+	knownAuthority: string;
+	knownPort: number;
+	secure: boolean;
+	statusCode: number;
+	comment?: string;
+	pending: boolean;
+	contentType?: string;
 }
 export interface RequestHeaderInfo
 {
