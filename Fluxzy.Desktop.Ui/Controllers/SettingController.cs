@@ -60,7 +60,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<UiSetting> Get(string key, 
             [FromServices] UiSettingHolder settingHolder)
         {
-            if (!settingHolder.TryGet<string>(key, out var settingValue)) {
+            if (!settingHolder.TryGet(key, out var settingValue)) {
                 return new NotFoundObjectResult(key); 
             }
 
