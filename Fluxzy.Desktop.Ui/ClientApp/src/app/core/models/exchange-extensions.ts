@@ -1,5 +1,5 @@
 
-import { ExchangeBrowsingState, ExchangeInfo, ExchangeState } from "./auto-generated";
+import {ExchangeBrowsingState, ExchangeInfo, ExchangeState, IExchangeLine} from "./auto-generated";
 
 export interface ExchangeStyle {
     iconClass : string [],
@@ -28,9 +28,9 @@ export const SourceAgentIconFunc = (friendlyName : string) : string [] => {
     return ['fa', 'fa-globe'];
 }
 
-export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
+export const ExchangeStyle = (exchangeInfo : IExchangeLine) : ExchangeStyle => {
 
-    if (!exchangeInfo || !exchangeInfo.responseHeader || !exchangeInfo.responseHeader.statusCode){
+    if (!exchangeInfo || !exchangeInfo.statusCode){
         if (exchangeInfo.pending){
             return   {
                 iconClass : ["fa",  "fa-spinner", "fa-spin", "fa-fw"],
@@ -46,21 +46,21 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
 
 
 
-    if (exchangeInfo.responseHeader.statusCode < 200) {
+    if (exchangeInfo.statusCode < 200) {
         return   {
             iconClass : ["bi",  "bi-sign-turn-slight-left-fill"],
             textClass : ["text-teal"]
         };
     }
 
-    if (exchangeInfo.responseHeader.statusCode < 300) {
+    if (exchangeInfo.statusCode < 300) {
         return   {
             iconClass : ["fa",  "fa-circle"],
             textClass : ["text-success"]
         };
     }
 
-    if (exchangeInfo.responseHeader.statusCode < 400) {
+    if (exchangeInfo.statusCode < 400) {
         return   {
             //fa fa-spinner fa-spin fa-3x fa-fw
             iconClass : ["bi",  "bi bi-arrow-right-circle-fill"],
@@ -68,21 +68,21 @@ export const ExchangeStyle = (exchangeInfo : ExchangeInfo) : ExchangeStyle => {
         };
     }
 
-    if (exchangeInfo.responseHeader.statusCode < 500) {
+    if (exchangeInfo.statusCode < 500) {
         return   {
             iconClass : ["fa",  "fa-minus-circle"],
             textClass : ["text-danger", "bold"]
         };
     }
 
-    if (exchangeInfo.responseHeader.statusCode == 528) {
+    if (exchangeInfo.statusCode == 528) {
         return   {
             iconClass : ["fa",  "fa-exclamation-circle"],
             textClass : ["text-warning", "bold"]
         };
     }
 
-    if (exchangeInfo.responseHeader.statusCode < 600) {
+    if (exchangeInfo.statusCode < 600) {
         return   {
             iconClass : ["fa",  "fa-exclamation-triangle"],
             textClass : ["text-danger"]

@@ -9,7 +9,7 @@ using Fluxzy.Utils;
 
 namespace Fluxzy
 {
-    public class ExchangeInfo : IExchange
+    public class ExchangeInfo : IExchange, IExchangeLine
     {
         public ExchangeInfo(Exchange exchange)
         {
@@ -33,7 +33,8 @@ namespace Fluxzy
             ClientErrors = exchange.ClientErrors;
             KnownAuthority = exchange.KnownAuthority; 
             KnownPort = exchange.KnownPort;
-            Secure = exchange.Authority.Secure; 
+            Secure = exchange.Authority.Secure;
+            
         }
 
         [JsonConstructor]
@@ -77,6 +78,10 @@ namespace Fluxzy
         public ExchangeMetrics Metrics { get; }
 
         public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
+        
+        public long Received => Metrics.TotalReceived;
+        
+        public long Sent => Metrics.TotalSent; 
 
         /// <summary>
         /// Misleading

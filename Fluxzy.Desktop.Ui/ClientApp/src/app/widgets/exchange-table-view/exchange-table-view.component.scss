@@ -13,11 +13,11 @@
     border: solid 1px transparent;
     border-style: none solid solid none;
     vertical-align: middle;
-    padding: 1px 0px 1px 0px;
+    padding: 2px 0px 2px 0px;
 
 }
 
-.exchange-table-view th { position: sticky; top: 0px; z-index: 99; padding: 4px; background: var(--bs-gray-500);
+.exchange-table-view th { position: sticky; top: 0px; z-index: 99; padding: 4px; background: var(--bs-gray-900);
 color: var(--bs-gray-300)}
 .exchange-table-view tr:first-child {  }
 
@@ -61,6 +61,9 @@ color: var(--bs-gray-300)}
     background-color: var(--bs-gray-900);
     cursor: default;
 }
+.exchange-table-view  td {
+    //padding : 4px;
+}
 
 .exchange-table-view tbody tr.exchange-selected td {
     background-color: var(--bs-gray-800);
@@ -79,4 +82,8 @@ color: var(--bs-gray-300)}
 
 .forced-cursor {
     cursor: pointer;
+}
+
+.path-cell {
+    overflow: hidden; max-width: 0; white-space: nowrap; text-overflow: ellipsis;
 }

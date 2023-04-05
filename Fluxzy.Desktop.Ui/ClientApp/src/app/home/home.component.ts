@@ -4,7 +4,7 @@ import {ChangeDetectorRef, Component, HostListener, OnInit, ViewChild} from '@an
 import { Router } from '@angular/router';
 import { MenuItemConstructorOptions } from 'electron';
 import {filter, switchMap, tap} from 'rxjs';
-import {ExchangeInfo, UiState} from '../core/models/auto-generated';
+import {ExchangeInfo, IExchangeLine, UiState} from '../core/models/auto-generated';
 import { GlobalMenuItems } from '../core/models/menu-models';
 import { ElectronService } from '../core/services';
 import { MenuService } from '../core/services/menu-service.service';
@@ -24,7 +24,7 @@ import {QuickActionRegistrationService} from "../services/quick-action-registrat
 })
 export class HomeComponent implements OnInit {
 
-    public selectedExchange: ExchangeInfo;
+    public selectedExchange: IExchangeLine;
     public uiState: UiState | null = null;
 
     constructor(private router: Router,

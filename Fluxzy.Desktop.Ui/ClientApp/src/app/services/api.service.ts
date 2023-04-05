@@ -24,7 +24,7 @@ import {
     CommentUpdateModel,
     ConnectionInfo, ConnectionSetupStepModel,
     ContextMenuAction, CurlCommandResult, DescriptionInfo,
-    ExchangeBrowsingState, ExchangeMetricInfo,
+    ExchangeBrowsingState, ExchangeInfo, ExchangeMetricInfo,
     ExchangeState,
     FileContentDelete,
     FileSaveViewModel,
@@ -44,8 +44,8 @@ import {
     Tag,
     TagGlobalApplyModel,
     TagUpdateModel,
-    TrunkState,
-    UiState,
+    TrunkState, UiSetting,
+    UiState, UiUserSetting,
     ValidationError
 } from '../core/models/auto-generated';
 import {FilterHolder} from "../settings/manage-filters/manage-filters.component";
@@ -210,6 +210,10 @@ export class ApiService {
                     });
                 })
             );
+    }
+
+    public exchangeGet(exchangeId: number) : Observable<ExchangeInfo> {
+        return this.httpClient.get<ExchangeInfo>(`api/exchange/${exchangeId}`).pipe(take(1));
     }
 
     public exchangeGetCurlCommandResult(exchangeId: number) : Observable<CurlCommandResult> {
@@ -522,5 +526,23 @@ export class ApiService {
 
     public quickActionListStatic() : Observable<QuickActionResult> {
         return this.httpClient.get<QuickActionResult>(`api/quickaction/static`).pipe(take(1));
+    }
+
+    public uiSettingGet(key : string) : Observable<string> {
+        return  this.httpClient.get<UiSetting>(`api/setting/ui/${key}`).pipe(
+            take(1), map((setting : UiSetting) => setting.value));
+    }
+
+    public uiSettingHasKey(key : string) : Observable<boolean> {
+        return this.httpClient.get<boolean>(`api/setting/ui/${key}/contains`).pipe(take(1));
+    }
+
+    public uiSettingUpdate(key : string, value : string) : Observable<boolean> {
+        const payload : UiSetting = {
+            value
+        } ;
+        
+        return this.httpClient
+            .put<boolean>(`api/setting/ui/${key}`,payload).pipe(take(1));
     }
 }
