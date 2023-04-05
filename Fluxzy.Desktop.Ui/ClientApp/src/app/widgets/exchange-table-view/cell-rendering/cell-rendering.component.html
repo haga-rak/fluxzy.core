@@ -20,7 +20,7 @@
     &nbsp;&nbsp;
 </ng-container>
 <ng-container  *ngIf="columnModel.name === 'Path'" >
-    {{ exchangeContainer.exchangeInfo.path }}
+    <span [title]="exchangeContainer.exchangeInfo.path">{{ exchangeContainer.exchangeInfo.path }}</span>
 </ng-container>
 <!-- <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td> -->
 <ng-container class="text-center"  *ngIf="columnModel.name === 'Comment'">
