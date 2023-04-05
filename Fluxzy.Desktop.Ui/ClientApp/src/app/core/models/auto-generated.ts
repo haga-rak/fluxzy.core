@@ -964,6 +964,8 @@ export interface ExchangeInfo extends IExchangeLine
 	responseHeader?: ResponseHeaderInfo;
 	metrics: ExchangeMetrics;
 	contentType?: string;
+	received: number;
+	sent: number;
 	done: boolean;
 	pending: boolean;
 	httpVersion: string;
@@ -995,6 +997,8 @@ export interface IExchangeLine
 	comment?: string;
 	pending: boolean;
 	contentType?: string;
+	received: number;
+	sent: number;
 }
 export interface RequestHeaderInfo
 {

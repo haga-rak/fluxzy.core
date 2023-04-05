@@ -27,5 +27,10 @@ namespace Fluxzy
         bool Pending { get; }
 
         string? ContentType { get; }
+
+        long Received { get;  }
+
+        long Sent { get;  }
+
     }
 }

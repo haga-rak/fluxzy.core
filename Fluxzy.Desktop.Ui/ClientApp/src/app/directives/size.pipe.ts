@@ -7,6 +7,8 @@ import { formatBytes } from '../core/models/model-extensions';
 export class SizePipe implements PipeTransform {
     transform(value: number, ...args: number[]): string {
         let decimals = args.length < 0 ? 0 : args[0];
-        return formatBytes(value, decimals);
+        let shortByteWord : boolean = args.length < 1 ? false : args[1] > 0;
+
+        return formatBytes(value, decimals, shortByteWord);
     }
 }

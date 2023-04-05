@@ -43,15 +43,31 @@ export class ExchangeTableService {
             name: 'Status',
             width : 45,
             shortLabel : 'status',
-            classes : ['text-center']
+            classes : ['text-center'],
+            headerClasses : ['text-center'],
         },
         {
             name: 'ContentType',
             width : 50,
             shortLabel : 'type',
-            classes : ['text-center']
+            classes : ['text-center'],
+            headerClasses : ['text-center'],
         },
-
+        {
+            name: 'Total byte received',
+            width : 50,
+            shortLabel : 'recv.',
+            classes : ['text-center'],
+            headerClasses : ['text-center'],
+        },
+        {
+            name: 'Total byte sent',
+            width : 50,
+            shortLabel : 'snt.',
+            classes : ['text-center'],
+            hide : true,
+            headerClasses : ['text-center'],
+        },
     ]);
 
     constructor() {
@@ -59,7 +75,7 @@ export class ExchangeTableService {
     }
 
     get visibleCellModels(): Observable<ExchangeCellModel[]> {
-        return this._visibleCellModels.asObservable().pipe(map(t => t.filter(r => !r.hide)));
+        return this.allCellModels.pipe(map(t => t.filter(r => !r.hide)));
     }
 
     get allCellModels(): Observable<ExchangeCellModel[]> {
