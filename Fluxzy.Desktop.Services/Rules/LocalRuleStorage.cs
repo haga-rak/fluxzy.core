@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Text.Json;
 using Fluxzy.Rules;
@@ -13,7 +13,7 @@ namespace Fluxzy.Desktop.Services.Rules
 
         public LocalRuleStorage()
         {
-            var basePath = Environment.ExpandEnvironmentVariables("%appdata%/fluxzy/rules");
+            var basePath = Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy.Desktop/rules");
             Directory.CreateDirectory(basePath);
             _filterDirectory = new DirectoryInfo(basePath);
 
