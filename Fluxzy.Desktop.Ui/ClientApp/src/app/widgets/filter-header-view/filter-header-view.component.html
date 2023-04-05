@@ -1,7 +1,5 @@
 <!-- <span>Filters</span> : &nbsp; &nbsp; -->
 <div class="btn-toolbar" *ngIf="uiState" >
-
-
     &nbsp;
     &nbsp;<div class="btn-group proxy-command-button" role="group">
             <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
@@ -15,8 +13,7 @@
                 <i class="fa fa-pause text-danger" style="font-size:16px" aria-hidden="true"></i>&nbsp;
                 capturing</button>
     </div>
-    &nbsp;
-    &nbsp;
+    &nbsp;    &nbsp;
 
     <div class="input-group">
         <div class="input-group-text bg-dark" id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
@@ -38,9 +35,7 @@
     &nbsp;<div class="btn-group" role="group">
 
     <button *ngFor="let toolBarFilter of uiState.toolBarFilters; let i = index" type="button" href="javascript:;"
-
             (click)="selectFilter(toolBarFilter.filter)"
-
             [title]="toolBarFilter.filter.friendlyName"
             class="btn btn-dark" aria-current="page"
             [ngClass]=" {
@@ -49,7 +44,6 @@
             'and-filter' :  uiState.viewFilter.filter.identifier  && ctrlKeyOn,
             'd-none' : i > 0,
             'd-xl-inline' : i > 0
-
              }"
     >{{ toolBarFilter.filter.shortName }}</button>
 
@@ -193,14 +187,14 @@
     <div class="btn-group" role="group">
 
         <button type="button" href="javascript:;"
-                title="halt live edit and resume all pending exchanges"
+                title="replay selected exchanges"
                 [disabled]="currentExchangeId === null"
                 (click)="replay()"
                 class="btn btn-dark " aria-current="page">
                         <i class="fa fa-refresh" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;
 
             <span class="d-none d-xxl-inline"></span></button>
-        <button type="button" href="javascript:;" title="resume all pending exchanges in live edit"
+        <button type="button" href="javascript:;" title="replay selected exchanges in live edit"
 
                 [disabled]="currentExchangeId === null"
                 (click)="replayInLiveEdit()"
