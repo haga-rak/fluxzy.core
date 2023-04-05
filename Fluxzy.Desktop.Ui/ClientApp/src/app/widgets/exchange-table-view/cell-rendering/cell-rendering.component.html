@@ -1,0 +1,46 @@
+<ng-container class="text-center" *ngIf="columnModel.name === 'Bullet'">
+                    <span *ngIf="!isPausing" [title]="exchangeContainer.exchangeInfo.statusCode"
+                          [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).textClass">
+                        <i [ngClass]="ExchangeStyle(exchangeContainer.exchangeInfo).iconClass"></i>
+                    </span>
+    <span *ngIf="isPausing" title="This exchange is currently live edited"
+          class="text-warning forced-cursor " (click)="showBreakPointDialog(exchangeContainer.exchangeInfo.id)">
+                        <i class="fa fa-pause fa-spin fa-fw"></i>
+                    </span>
+</ng-container>
+<ng-container   *ngIf="columnModel.name === 'Host'">
+    <div [title]="exchangeContainer.exchangeInfo.knownAuthority"
+        style="direction:rtl; text-align: left;  white-space: nowrap; max-width:150px; overflow : hidden; text-overflow: ellipsis;">
+        {{ exchangeContainer.exchangeInfo.knownAuthority }}
+        <!-- <i class="bi bi-lock-fill" style="color:var(--bs-gray-300)"></i> -->
+    </div>
+</ng-container>
+<ng-container class="text-end"   *ngIf="columnModel.name === 'Method'">
+    <span class="">{{ exchangeContainer.exchangeInfo.method }}</span>
+    &nbsp;&nbsp;
+</ng-container>
+<ng-container  *ngIf="columnModel.name === 'Path'" >
+    <span [title]="exchangeContainer.exchangeInfo.path">{{ exchangeContainer.exchangeInfo.path }}</span>
+</ng-container>
+<!-- <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td> -->
+<ng-container class="text-center"  *ngIf="columnModel.name === 'Comment'">
+    <a href="javascript:;" class="text-primary" *ngIf="exchangeContainer.exchangeInfo.comment"
+       [title]="exchangeContainer.exchangeInfo.comment"><i class="fa fa-comment"></i></a>
+</ng-container>
+<ng-container   *ngIf="columnModel.name === 'Status'" class="text-center">{{ exchangeContainer.exchangeInfo.statusCode }}</ng-container>
+<ng-container   *ngIf="columnModel.name === 'ContentType'"  class="text-center">
+                    <span style="display: inline-block; width:50px; overflow: hidden; white-space: nowrap; max-height:14px;" [title]="exchangeContainer.exchangeInfo.contentType">
+                        {{ exchangeContainer.exchangeInfo.contentType }}&nbsp;
+                    </span>
+</ng-container>
+<ng-container   *ngIf="columnModel.name === 'Total byte received'"  class="text-center">
+                    <span style="" [title]="exchangeContainer.exchangeInfo.received + ' bytes'">
+                        {{ exchangeContainer.exchangeInfo.received | size : 0 : 1 }}&nbsp;
+                    </span>
+</ng-container>
+
+<ng-container   *ngIf="columnModel.name === 'Total byte sent'"  class="text-center">
+                    <span style="" [title]="exchangeContainer.exchangeInfo.sent + ' bytes'">
+                        {{ exchangeContainer.exchangeInfo.sent   | size : 0 : 1 }}&nbsp;
+                    </span>
+</ng-container>

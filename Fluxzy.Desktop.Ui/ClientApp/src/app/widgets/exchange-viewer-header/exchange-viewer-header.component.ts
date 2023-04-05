@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {ExchangeInfo, TagGlobalApplyModel} from '../../core/models/auto-generated';
 import {StatusBarService} from "../../services/status-bar.service";
 import {DialogService} from "../../services/dialog.service";
@@ -19,14 +19,16 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
 
     public context: { currentTab: string } = {currentTab: 'Content'}
 
-    @Input() public exchange: ExchangeInfo;
+    public exchange: ExchangeInfo | null;
+    @Input() public exchangeId: number;
 
     constructor(
         private statusBarService : StatusBarService,
         private dialogService : DialogService,
         private apiService : ApiService,
         private metaInformationService : MetaInformationService,
-        private systemCallService : SystemCallService) {
+        private systemCallService : SystemCallService,
+        private  cd : ChangeDetectorRef) {
 
     }
 
@@ -34,10 +36,14 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        this.apiService.connectionHasRawCapture(this.exchange.connectionId)
+
+        this.apiService.exchangeGet(this.exchangeId)
             .pipe(
                 take(1),
-                tap(hasRawCapture => this.hasRawCapture = hasRawCapture)
+                tap(e => this.exchange = e),
+                switchMap(e => this.apiService.connectionHasRawCapture(e.connectionId)),
+                tap(hasRawCapture => this.hasRawCapture = hasRawCapture),
+                tap(_ => this.cd.detectChanges())
             ).subscribe();
     }
 
@@ -70,4 +76,8 @@ export class ExchangeViewerHeaderComponent implements OnInit, OnChanges {
             ).subscribe();
     }
 
+    setTab(tab: string) {
+        this.context.currentTab = tab
+        this.cd.detectChanges();
+    }
 }

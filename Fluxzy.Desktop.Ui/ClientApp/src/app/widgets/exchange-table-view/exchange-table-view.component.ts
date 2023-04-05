@@ -1,24 +1,29 @@
-import { AfterViewInit, ChangeDetectorRef, Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { PerfectScrollbarComponent } from 'ngx-perfect-scrollbar';
+import {ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {PerfectScrollbarComponent} from 'ngx-perfect-scrollbar';
 import {filter, tap} from 'rxjs';
 import {
     BreakPointState,
     ExchangeBrowsingState,
     ExchangeContainer,
     ExchangeInfo,
-    ExchangeState,
-    FilteredExchangeState,
-    TrunkState, UiState
+    ExchangeState, IExchangeLine,
+    TrunkState
 } from '../../core/models/auto-generated';
-import { ExchangeStyle } from '../../core/models/exchange-extensions';
-import { ExchangeContentService } from '../../services/exchange-content.service';
-import {   FreezeBrowsingState, NextBrowsingState, PreviousBrowsingState, ExchangeManagementService } from '../../services/exchange-management.service';
-import { ExchangeSelection, ExchangeSelectionService } from '../../services/exchange-selection.service';
+import {ExchangeStyle} from '../../core/models/exchange-extensions';
+import {ExchangeContentService} from '../../services/exchange-content.service';
+import {
+    ExchangeManagementService,
+    NextBrowsingState,
+    PreviousBrowsingState
+} from '../../services/exchange-management.service';
+import {ExchangeSelection, ExchangeSelectionService} from '../../services/exchange-selection.service';
 import {ContextMenuService, Coordinate} from "../../services/context-menu.service";
 import {ContextMenuExecutionService} from "../../services/context-menu-execution.service";
 import {ApiService} from "../../services/api.service";
 import {UiStateService} from "../../services/ui.service";
 import {BreakPointService} from "../../breakpoints/break-point.service";
+import {ExchangeCellModel} from "./exchange-cell.model";
+import {ExchangeTableService} from "./exchange-table.service";
 
 @Component({
     selector: 'app-exchange-table-view',
@@ -26,6 +31,8 @@ import {BreakPointService} from "../../breakpoints/break-point.service";
     styleUrls: ['./exchange-table-view.component.scss']
 })
 export class ExchangeTableViewComponent implements OnInit {
+
+    public cellModels : ExchangeCellModel[] = [];
 
     public exchangeState : ExchangeState;
     public exchangeSelection : ExchangeSelection ;
@@ -48,10 +55,16 @@ export class ExchangeTableViewComponent implements OnInit {
         private contextMenuExchangeService : ContextMenuExecutionService,
         private apiService: ApiService,
         private uiStateService : UiStateService,
-        private breakPointService : BreakPointService
+        private breakPointService : BreakPointService,
+        private exchangeTableService : ExchangeTableService
         ) { }
 
     ngOnInit(): void {
+        this.exchangeTableService.visibleCellModels.pipe(
+            tap(t => this.cellModels = t),
+            tap(_ => this.cdr.detectChanges()),
+        ).subscribe() ;
+
         this.selectionService.getCurrentSelection().pipe(
             tap(e => this.exchangeSelection = e)
         ).subscribe() ;
@@ -66,7 +79,7 @@ export class ExchangeTableViewComponent implements OnInit {
                 tap(t => this.trunkState = t),
                 tap(t => console.log('trunk state changed')),
                 tap(_ => this.cdr.detectChanges()),
-                tap(_ => this.perfectScroll.directiveRef.scrollToBottom())
+                //tap(_ => this.perfectScroll.directiveRef.scrollToBottom(0,0))
             )
             .subscribe() ;
 
@@ -143,8 +156,14 @@ export class ExchangeTableViewComponent implements OnInit {
         return item.id;
     }
 
-    public setSelectionChange (event : MouseEvent, exchange : ExchangeInfo) : void {
+    public identifyCellModel(index : number, cellModel : ExchangeCellModel) : string {
+        return cellModel.name;
+    }
+
+    public setSelectionChange (event : MouseEvent, exchange : IExchangeLine) : void {
+
         this.contextMenu(event, exchange) ;
+
         if (event.ctrlKey){
             // adding
 
@@ -153,8 +172,8 @@ export class ExchangeTableViewComponent implements OnInit {
         }
 
         if (event.shiftKey && this.exchangeSelection.lastSelectedExchangeId) {
-            var start =  this.exchangeSelection.lastSelectedExchangeId < exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ;
-            var end = this.exchangeSelection.lastSelectedExchangeId > exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ;
+            const start =  this.exchangeSelection.lastSelectedExchangeId < exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ;
+            const end = this.exchangeSelection.lastSelectedExchangeId > exchange.id ? this.exchangeSelection.lastSelectedExchangeId  : exchange.id  ;
 
             const result : number [] = [] ;
 
@@ -173,7 +192,7 @@ export class ExchangeTableViewComponent implements OnInit {
 
     }
 
-    public contextMenu(event : MouseEvent, exchange : ExchangeInfo) {
+    public contextMenu(event : MouseEvent, exchange : IExchangeLine) {
         if (event.button !== 2)
             return;
 
@@ -195,6 +214,18 @@ export class ExchangeTableViewComponent implements OnInit {
     showBreakPointDialog(id: number) {
         this.breakPointService.openBreakPointDialog(id);
     }
-}
 
+    triggerContextMenuHeader($event: MouseEvent, cellModel : ExchangeCellModel) {
+
+        if ($event.button !== 2)
+            return;
+
+        const coordinate : Coordinate = {
+            y : $event.clientY,
+            x: $event.clientX
+        };
+
+        this.contextMenuService.showTableHeaderPopup(coordinate, cellModel);
+    }
+}
 
