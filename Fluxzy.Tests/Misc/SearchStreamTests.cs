@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +18,7 @@ namespace Fluxzy.Tests.Misc
             var inputStream = input.ToMemoryStream();
             var searchSequence = searchString.ToArray();
 
-            var searchStream = new SearchStream(inputStream, searchSequence);
+            var searchStream = new SearchStream(inputStream, searchSequence, true);
 
             searchStream.Drain(bufferSize);
 
