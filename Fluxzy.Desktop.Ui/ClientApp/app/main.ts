@@ -30,6 +30,7 @@ function runFrontEnd() : void {
             height: 840,
             frame: true,
             show : false,
+            icon: '../assets/icon.png',
             webPreferences: {
                 nodeIntegration: true,
                 allowRunningInsecureContent: (serve) ? true : false,

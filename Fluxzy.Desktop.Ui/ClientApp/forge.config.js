@@ -1,5 +1,7 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
+const fs = require('fs');
+const rcedit = require('rcedit');
 
 
 module.exports = {
@@ -28,13 +30,26 @@ module.exports = {
     hooks : {
         prePackage : async (forgeConfig, platform, arch) => {
         //    await exec('npm run build:prod');
+        },
+        postPackage: async (forgeConfig, options) => {
+            const fullName = options.outputPaths[0] + '\\fluxzy.exe';
+            await rcedit(fullName, {
+                'version-string': {
+                    LegalCopyright: `Copyright © ${new Date().getFullYear()} Haga Rakotoharivelo`,
+                    CompanyName : 'smartizy.com'
+                },
+            }) ;
         }
     },
     rebuildConfig: {},
     makers: [
         {
             name: '@electron-forge/maker-squirrel',
-            config: {},
+            config: {
+                iconUrl: 'https://www.fluxzy.io/resources/icons/icon.ico',
+                // The ICO file to use as the icon for the generated Setup.exe
+                setupIcon: '.assets/icon.ico',
+            },
         },
         {
             name: '@electron-forge/maker-zip',
@@ -42,11 +57,19 @@ module.exports = {
         },
         {
             name: '@electron-forge/maker-deb',
-            config: {},
+            config: {
+                options: {
+                    icon: '.assets/icon.png'
+                }
+            },
         },
         {
             name: '@electron-forge/maker-rpm',
-            config: {},
+            config: {
+                options: {
+                    icon: '.assets/icon.png'
+                }
+            },
         },
     ],
 };
