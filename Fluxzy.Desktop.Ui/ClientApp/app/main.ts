@@ -5,7 +5,10 @@ import * as url from 'url';
 import {InstallMenuBar, InstallRestoreEvent} from './menu-prepare';
 import {InstallSystemEvents} from './system-events';
 import {spawn} from "child_process";
+import {checkSquirrelStartup} from "./__squirrel-startup";
 
+if(checkSquirrelStartup())
+    app.quit();
 
 function runFrontEnd() : void {
 
