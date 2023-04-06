@@ -73,6 +73,9 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             StatusLineMappingStr.ToDictionary(t => t.Key.AsMemory(), t => t.Value.AsMemory(),
                 new SpanCharactersIgnoreCaseComparer());
 
+        public static readonly byte [] DoubleCrLf = new byte[] {13, 10, 13, 10};
+
+
         public static readonly HashSet<char> LineSeparators = new(new[] {'\r', '\n'});
         public static readonly HashSet<char> SpaceSeparators = new(new[] {' ', '\t'});
         public static readonly HashSet<char> HeaderSeparator = new(new[] {':'});
