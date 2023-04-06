@@ -37,7 +37,13 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                     onKeyReceived(nss);
 
                     lock (SslFileLocker) {
-                        File.AppendAllText(str, nss);
+                        try
+                        {
+                            File.AppendAllText(str, nss);
+                        }
+                        catch {
+                            // ignore ERROR. SSLKEYLOGFILE May be locked by other process
+                        }
                     }
                 };
             }
