@@ -9,30 +9,29 @@ using System.Linq;
 using System.Security.Authentication;
 using System.Text;
 using System.Xml.Linq;
-using System.Xml.XPath;
 using Fluxzy.Clients;
+using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
-using Org.BouncyCastle.Asn1.Tsp;
 
 namespace Fluxzy.Readers
 {
-    public class SazArchiveReader 
+    public class SazArchiveReader
     {
         public bool IsSazArchive(string fileName)
         {
             try {
                 using var zipArchive = ZipFile.Open(fileName, ZipArchiveMode.Read);
-                var entry = zipArchive.GetEntry("raw/"); 
+                var entry = zipArchive.GetEntry("raw/");
 
-                return entry?.Length == 0; 
+                return entry?.Length == 0;
             }
             catch {
                 // ignore zip reading error 
-                return false; 
+                return false;
             }
         }
 
@@ -40,34 +39,38 @@ namespace Fluxzy.Readers
         {
             using var zipArchive = ZipFile.Open(fileName, ZipArchiveMode.Read);
             
+
             var directoryArchiveWriter = new DirectoryArchiveWriter(directory, null);
 
-            var mainEntry = zipArchive.GetEntry("raw/");
+            directoryArchiveWriter.Init();
 
             var textEntries = zipArchive.Entries
-                      .Where(r => r.FullName.StartsWith("raw/") && r.Name.EndsWith("_c.txt"))
-                      .ToList();
-            
+                                        .Where(r => r.FullName.StartsWith("raw/") && r.Name.EndsWith("_c.txt"))
+                                        .ToList();
+
+            InternalParse(directoryArchiveWriter, textEntries, zipArchive);
+
             // Read all connectionInfo 
         }
 
-        private static void ReadConnectionInfo(
+
+        private static void InternalParse(
             DirectoryArchiveWriter writer,
             IEnumerable<ZipArchiveEntry> textEntries, ZipArchive archive)
         {
-            Dictionary<int, ConnectionInfo> connections = new(); 
+            Dictionary<int, ConnectionInfo> connections = new();
             Dictionary<int, ExchangeInfo> exchanges = new();
 
-            int connectionId = 1;
-            int exchangeId = 1;
+            var connectionId = 1;
+            var exchangeId = 1;
 
             foreach (var requestEntry in textEntries) {
                 // Read file to \r\n
 
                 if (!TryGetId(requestEntry.Name, out var id))
-                    continue;  // No id no party 
+                    continue; // No id no party 
 
-                int doubleCrLf = -1;
+                var doubleCrLf = -1;
 
                 var xmlEntry = archive.Entries.FirstOrDefault(e => e.Name == $"{id}_m.xml");
 
@@ -85,10 +88,10 @@ namespace Fluxzy.Readers
                 if (sid == 0)
                     continue;
 
-                var requestStream = ReadHeaders(requestEntry, out var requestHeaders);
+                var requestBodyStream = ReadHeaders(requestEntry, out var requestHeaders);
 
-                if (requestStream == null)
-                    continue; 
+                if (requestBodyStream == null)
+                    continue;
 
                 var methodHeader = requestHeaders.FirstOrDefault(s => s.Name.Span.Equals(
                     Http11Constants.MethodVerb.Span, StringComparison.Ordinal));
@@ -101,7 +104,7 @@ namespace Fluxzy.Readers
                 var authorityHeader = requestHeaders.FirstOrDefault(s => s.Name.Span.Equals(
                     Http11Constants.AuthorityVerb.Span
                     , StringComparison.Ordinal));
-                
+
                 if (authorityHeader.Name.Length == 0)
                     continue;
 
@@ -109,10 +112,10 @@ namespace Fluxzy.Readers
 
                 if (!AuthorityUtility.TryParse(flatAuthority, out var host, out var port))
                     continue;
-                
+
                 var responseEntry = archive.Entries.FirstOrDefault(e => e.Name == $"{id}_s.txt");
 
-                var responseStream = ReadHeaders(responseEntry, out var responseHeaders);
+                var responseBodyStream = ReadHeaders(responseEntry, out var responseHeaders);
 
                 var serverConnected = element.GetSessionTimersValue("ServerConnected")!.Value;
                 var sslStart = serverConnected.AddMilliseconds(-element.GetSessionDurationValue("HTTPSHandshakeTime"));
@@ -121,14 +124,14 @@ namespace Fluxzy.Readers
                 var received = element.GetSessionTimersValue("GotRequestHeaders")!.Value;
 
                 if (isConnect) {
-                    var connectRequestBody = requestStream.ReadToEndGreedy();
+                    var connectRequestBody = requestBodyStream.ReadToEndGreedy();
 
                     if (string.IsNullOrWhiteSpace(connectRequestBody))
                         continue;
-                    
-                    var responseBodyString = responseStream?.ReadToEndGreedy() ?? null; 
 
-                        // Read flat body 
+                    var responseBodyString = responseBodyStream?.ReadToEndGreedy() ?? null;
+
+                    // Read flat body 
 
                     // Parse TLS Version 
 
@@ -144,7 +147,7 @@ namespace Fluxzy.Readers
                         CipherAlgorithmType.Aes256
                     );
 
-                    var connectionInfo = new ConnectionInfo(
+                    var connectConnectionInfo = new ConnectionInfo(
                         connectionId++,
                         new AuthorityInfo(host!, port, true),
                         sslInfo,
@@ -161,16 +164,18 @@ namespace Fluxzy.Readers
                         "HTTP/1.1"
                     );
 
-                    connections[sid] = connectionInfo;
-                    writer.Update(connectionInfo, default);
+                    connections[sid] = connectConnectionInfo;
+                    writer.Update(connectConnectionInfo, default);
 
-                    continue; 
+                    continue;
                 }
 
                 // Check if plain has connect info 
 
+                ConnectionInfo? connectionInfo = null;
+
                 if (element.IsConnectionOpener()) {
-                    var connectionInfo = new ConnectionInfo(
+                    connectionInfo = new ConnectionInfo(
                         connectionId++,
                         new AuthorityInfo(host!, port, false),
                         null,
@@ -191,9 +196,57 @@ namespace Fluxzy.Readers
                     writer.Update(connectionInfo, default);
                 }
 
+                if (connectionInfo == null) {
+                    // get server pipe reuse 
+
+                    var connectId = element.GetConnectId();
+
+                    if (connectId == null)
+                        continue; // We dont have a connect id here 
+
+                    if (!connections.TryGetValue(connectId.Value, out connectionInfo))
+                        continue; // ordering problem 
+
+                    connectionInfo.RequestProcessed++;
+                }
+
+                var agentInfoName = element.GetSessionFlagsAttributeAsString("x-processinfo") ?? "unspecified";
+
+                var exchangeInfo = new ExchangeInfo(
+                    exchangeId++,
+                    connectionInfo.Id,
+                    "HTTP/1.1",
+                    new RequestHeaderInfo(
+                        new RequestHeader(requestHeaders)),
+                    new ResponseHeaderInfo(
+                        new ResponseHeader(responseHeaders)),
+                    new ExchangeMetrics(),
+                    connectionInfo.RemoteAddress!,
+                    false,
+                    null,
+                    null,
+                    false,
+                    new List<WsMessage>(),
+                    new Agent(agentInfoName.GetHashCode(), agentInfoName),
+                    new List<ClientError>(),
+                    connectionInfo.Authority.HostName,
+                    connectionInfo.Authority.Port,
+                    connectionInfo.SslInfo != null
+                );
+
+                writer.Update(exchangeInfo, default);
+                
+                
+                if (requestBodyStream.CanRead)
+                    requestBodyStream?.CopyTo(writer.CreateRequestBodyStream(exchangeInfo.Id));
+
+
+                if (requestBodyStream?.CanRead ?? false)
+                    responseBodyStream?.CopyTo(writer.CreateResponseBodyStream(exchangeInfo.Id));
+                
+
                 // Read exchanges 
             }
-            
         }
 
         private static Stream? ReadHeaders(ZipArchiveEntry? entry, out List<HeaderField> headers)
@@ -218,33 +271,35 @@ namespace Fluxzy.Readers
             string requestHeaderString;
 
             try {
-                stream.ReadExact(buffer);
+                //stream.ReadExact(buffer);
 
-                if (!stream.ReadExact(buffer))
+                if (!stream.ReadExact(buffer.AsSpan().Slice(0, doubleCrLf)))
                     return null;
 
-                requestHeaderString = Encoding.UTF8.GetString(buffer);
+                requestHeaderString = Encoding.UTF8.GetString(buffer, 0, doubleCrLf);
             }
             finally {
                 ArrayPool<byte>.Shared.Return(buffer);
             }
 
-            headers = Http11Parser.Read(requestHeaderString.AsMemory(), true).ToList();
+            headers = Http11Parser.Read(requestHeaderString.AsMemory()).ToList();
 
-            stream.Drain(4);
+            stream.Drain(4); // SKIP DOUBLE CRLF
+
             return stream;
         }
 
         private static int ReadUntilDoubleCrlLf(Stream stream)
         {
             var searchStream = new SearchStream(stream, Http11Constants.DoubleCrLf);
-            searchStream.Drain(); 
+            searchStream.Drain();
+
             return (int) (searchStream.Result?.OffsetFound ?? -1);
         }
 
         private static string? GetConnectBodyString(Stream stream, int offset)
         {
-            stream.DrainUntil(offset + 4); 
+            stream.DrainUntil(offset + 4);
 
             using var streamReader = new StreamReader(stream);
 
@@ -266,6 +321,5 @@ namespace Fluxzy.Readers
 
     public static class ZipUtility
     {
-
     }
 }

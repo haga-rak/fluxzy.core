@@ -57,7 +57,7 @@ namespace Fluxzy
 
         public SslInfo? SslInfo { get; }
 
-        public int RequestProcessed { get; }
+        public int RequestProcessed { get; set; }
 
         public DateTime DnsSolveStart { get; }
 
