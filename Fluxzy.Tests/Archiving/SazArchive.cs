@@ -56,6 +56,10 @@ namespace Fluxzy.Tests.Archiving
             Assert.Equal("POST", exchanges[0].Method);
             Assert.Equal("GET", exchanges[1].Method);
             Assert.Equal("GET", exchanges[2].Method);
+
+            Assert.DoesNotContain(exchanges[0].GetRequestHeaders(),
+                h => h.Name.ToString().Equals("Transfer-Encoding")
+                     && h.Value.ToString().Equals("chunked"));
             
             Assert.Contains(exchanges[0].GetRequestHeaders(),
                 h => h.Name.ToString().Equals("User-Agent") 
@@ -78,7 +82,7 @@ namespace Fluxzy.Tests.Archiving
             var exchange3RequestBody = directoryArchiveReader.GetRequestBody(exchanges[2].Id)
                                                              ?.ReadToEndGreedy(); 
 
-            var exchange2ResponseBody = directoryArchiveReader.GetResponseBody(exchanges[1].Id)
+            var exchange2ResponseBody = directoryArchiveReader.GetDecodedResponseBody(exchanges[1])
                                                              ?.ReadToEndGreedy(); 
 
             Assert.Equal(string.Empty, exchange1RequestBody);

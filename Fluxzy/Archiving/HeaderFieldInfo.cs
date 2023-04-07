@@ -9,12 +9,16 @@ namespace Fluxzy
 {
     public class HeaderFieldInfo
     {
-        public HeaderFieldInfo(HeaderField original)
+        public HeaderFieldInfo(HeaderField original, bool doNotForwardConnectionHeader = false)
         {
             Name = original.Name;
             Value = original.Value;
             
             Forwarded = !Http11Constants.IsNonForwardableHeader(original.Name);
+
+            if (doNotForwardConnectionHeader && Forwarded && Http11Constants.UnEditableHeaders.Contains(Name)) {
+                Forwarded = false; 
+            }
         }
 
         [JsonConstructor]
