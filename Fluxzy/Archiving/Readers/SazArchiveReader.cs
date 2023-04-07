@@ -16,6 +16,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
+using Org.BouncyCastle.Asn1.Tsp;
 
 namespace Fluxzy.Readers
 {
@@ -50,11 +51,12 @@ namespace Fluxzy.Readers
             // Read all connectionInfo 
         }
 
-        private static Dictionary<string, ConnectionInfo> ReadConnectionInfo(
+        private static void ReadConnectionInfo(
+            DirectoryArchiveWriter writer,
             IEnumerable<ZipArchiveEntry> textEntries, ZipArchive archive)
         {
-            Dictionary<string, ConnectionInfo> connections = new(); 
-            Dictionary<string, ExchangeInfo> exchanges = new();
+            Dictionary<int, ConnectionInfo> connections = new(); 
+            Dictionary<int, ExchangeInfo> exchanges = new();
 
             int connectionId = 1;
             int exchangeId = 1;
@@ -77,6 +79,11 @@ namespace Fluxzy.Readers
                 using (var tempStream = xmlEntry.Open()) {
                     element = XElement.Load(tempStream);
                 }
+
+                var sid = element.GetSessionId();
+
+                if (sid == 0)
+                    continue;
 
                 var requestStream = ReadHeaders(requestEntry, out var requestHeaders);
 
@@ -104,65 +111,108 @@ namespace Fluxzy.Readers
                     continue;
                 
                 var responseEntry = archive.Entries.FirstOrDefault(e => e.Name == $"{id}_s.txt");
-                
-                if (isConnect) {
 
+                var responseStream = ReadHeaders(responseEntry, out var responseHeaders);
+
+                var serverConnected = element.GetSessionTimersValue("ServerConnected")!.Value;
+                var sslStart = serverConnected.AddMilliseconds(-element.GetSessionDurationValue("HTTPSHandshakeTime"));
+                var tcpConnectStart = sslStart.AddMilliseconds(-element.GetSessionDurationValue("TCPConnectTime"));
+                var dnsStart = tcpConnectStart.AddMilliseconds(-element.GetSessionDurationValue("DNSTime"));
+                var received = element.GetSessionTimersValue("GotRequestHeaders")!.Value;
+
+                if (isConnect) {
                     var connectRequestBody = requestStream.ReadToEndGreedy();
 
                     if (string.IsNullOrWhiteSpace(connectRequestBody))
                         continue;
-
                     
-                    // Read flat body 
+                    var responseBodyString = responseStream?.ReadToEndGreedy() ?? null; 
+
+                        // Read flat body 
 
                     // Parse TLS Version 
-                    
+
                     var sslInfo = new SslInfo(
                         SazConnectBodyUtility.GetSslVersion(connectRequestBody) ?? SslProtocols.None,
-                        
-
-
-
-                        )
-
-
-
-                    element.XPathSelectElement()
-
+                        SazConnectBodyUtility.GetCertificateIssuer(responseBodyString) ?? string.Empty,
+                        SazConnectBodyUtility.GetCertificateIssuer(responseBodyString) ?? string.Empty,
+                        SazConnectBodyUtility.GetCertificateCn(responseBodyString) ?? string.Empty,
+                        SazConnectBodyUtility.GetCertificateCn(responseBodyString) ?? string.Empty,
+                        "HTTP/1.1",
+                        SazConnectBodyUtility.GetKeyExchange(responseBodyString) ?? string.Empty,
+                        HashAlgorithmType.Sha384,
+                        CipherAlgorithmType.Aes256
+                    );
 
                     var connectionInfo = new ConnectionInfo(
-                        connectionId ++,
-                        new AuthorityInfo(host, port), 
-                        new SslInfo(
-                            
-                            )
-                    )
+                        connectionId++,
+                        new AuthorityInfo(host!, port, true),
+                        sslInfo,
+                        1,
+                        dnsStart,
+                        tcpConnectStart,
+                        tcpConnectStart,
+                        sslStart,
+                        sslStart,
+                        serverConnected,
+                        element.GetSessionFlagsAttributeAsInteger("x-egressport"),
+                        "not set",
+                        element.GetSessionFlagsAttributeAsString("x-hostip") ?? "not set",
+                        "HTTP/1.1"
+                    );
+
+                    connections[sid] = connectionInfo;
+                    writer.Update(connectionInfo, default);
+
+                    continue; 
                 }
 
+                // Check if plain has connect info 
 
-                Http11Parser.Read()
+                if (element.IsConnectionOpener()) {
+                    var connectionInfo = new ConnectionInfo(
+                        connectionId++,
+                        new AuthorityInfo(host!, port, false),
+                        null,
+                        1,
+                        dnsStart,
+                        tcpConnectStart,
+                        tcpConnectStart,
+                        sslStart,
+                        sslStart,
+                        serverConnected,
+                        element.GetSessionFlagsAttributeAsInteger("x-egressport"),
+                        "not set",
+                        element.GetSessionFlagsAttributeAsString("x-hostip") ?? "not set",
+                        "HTTP/1.1"
+                    );
 
+                    connections[sid] = connectionInfo;
+                    writer.Update(connectionInfo, default);
+                }
 
-
+                // Read exchanges 
             }
-
-            return connections; 
+            
         }
 
-        private static Stream? ReadHeaders(ZipArchiveEntry requestEntry, out List<HeaderField> headers)
+        private static Stream? ReadHeaders(ZipArchiveEntry? entry, out List<HeaderField> headers)
         {
             headers = new List<HeaderField>();
 
+            if (entry == null)
+                return null;
+
             int doubleCrLf;
 
-            using (var tempStream = requestEntry.Open()) {
+            using (var tempStream = entry.Open()) {
                 doubleCrLf = ReadUntilDoubleCrlLf(tempStream);
             }
 
             if (doubleCrLf < 0)
                 return null;
 
-            using var stream = requestEntry.Open();
+            using var stream = entry.Open();
 
             var buffer = ArrayPool<byte>.Shared.Rent(doubleCrLf);
             string requestHeaderString;
