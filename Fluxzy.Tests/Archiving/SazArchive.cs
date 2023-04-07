@@ -37,10 +37,10 @@ namespace Fluxzy.Tests.Archiving
         public void TestMinimalArchive()
         {
 
-            var outputDirectory = "archive-saz-test";
-            var inputFile = "archive-saz-test.saz";
+            var outputDirectory = "minimal-archive-saz-test";
+            var inputFile = "minimal-archive-saz-test.saz";
 
-            File.WriteAllBytes(inputFile, StorageContext.testarchive);
+            File.WriteAllBytes(inputFile, StorageContext.minimal);
 
             try
             {
@@ -51,11 +51,11 @@ namespace Fluxzy.Tests.Archiving
             finally
             {
 
-                if (Directory.Exists(outputDirectory))
-                    Directory.Delete(outputDirectory, true);
+                //if (Directory.Exists(outputDirectory))
+                //    Directory.Delete(outputDirectory, true);
 
-                if (File.Exists(inputFile))
-                    File.Delete(inputFile);
+                //if (File.Exists(inputFile))
+                //    File.Delete(inputFile);
             }
         }
     }

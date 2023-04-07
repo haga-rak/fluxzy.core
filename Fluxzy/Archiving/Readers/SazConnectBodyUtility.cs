@@ -87,7 +87,7 @@ namespace Fluxzy.Readers
 
         public static DateTime ?  GetSessionTimersValue(this XElement element, string attributeName)
         {
-            var res = DateTime.TryParse(element.XPathSelectElement($"//SessionTimers[@{attributeName}]")?.Value, out var result);
+            var res = DateTime.TryParse(element.XPathSelectElement($"//SessionTimers")?.Attribute(attributeName)?.Value, out var result);
 
             if (!res)
                 return null; 
@@ -128,6 +128,23 @@ namespace Fluxzy.Readers
             
             return target?.Attribute("V")?.Value; 
         }
+
+
+        public static int? GetConnectId(this XElement element)
+        {
+            var rawValue = element.GetSessionFlagsAttributeAsString("x-serversocket"); 
+
+            if (string.IsNullOrWhiteSpace(rawValue))
+                return null;
+
+            rawValue = rawValue.Replace("REUSE ServerPipe#", string.Empty);
+
+            if (!int.TryParse(rawValue, out var result))
+                return null; 
+
+            return result;
+        }
+
 
         public static bool IsConnectionOpener(this XElement element)
         {

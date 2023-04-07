@@ -292,6 +292,9 @@ namespace Fluxzy.Misc.Streams
 
         public static string ReadToEndGreedy(this Stream stream)
         {
+            if (!stream.CanRead)
+                return string.Empty; 
+
             using var streamReader = new StreamReader(stream);
 
             return streamReader.ReadToEnd();
