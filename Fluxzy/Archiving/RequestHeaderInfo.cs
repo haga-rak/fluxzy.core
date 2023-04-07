@@ -13,13 +13,13 @@ namespace Fluxzy
     /// </summary>
     public class RequestHeaderInfo
     {
-        public RequestHeaderInfo(RequestHeader originalHeader)
+        public RequestHeaderInfo(RequestHeader originalHeader, bool doNotForwardConnectionHeader = false)
         {
             Method = originalHeader.Method;
             Scheme = originalHeader.Scheme;
             Path = originalHeader.Path;
             Authority = originalHeader.Authority;
-            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s));
+            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s, doNotForwardConnectionHeader));
         }
 
         [JsonConstructor]

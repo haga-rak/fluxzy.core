@@ -50,6 +50,7 @@ namespace Fluxzy.Clients
                                  &&
                                  this[Http11Constants.Upgrade]
                                      .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
+
         }
 
         public ReadOnlyMemory<char> Authority { get; internal set; }

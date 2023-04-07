@@ -258,9 +258,9 @@ namespace Fluxzy.Readers
                     connectionInfo.Id,
                     "HTTP/1.1",
                     new RequestHeaderInfo(
-                        new RequestHeader(requestHeaders)),
+                        new RequestHeader(requestHeaders), true),
                     new ResponseHeaderInfo(
-                        new ResponseHeader(responseHeaders)),
+                        new ResponseHeader(responseHeaders), true),
                     metrics,
                     connectionInfo.RemoteAddress!,
                     false,
@@ -285,9 +285,7 @@ namespace Fluxzy.Readers
                         .CopyToThenDisposeDestination(writer.CreateRequestBodyStream(exchangeInfo.Id));
 
                 if (responseBodyStream?.CanRead ?? false)
-                    CompressionHelper.GetDecodedContentStream(exchangeInfo,
-                            responseBodyStream,
-                            out _, true)?
+                    responseBodyStream
                         .CopyToThenDisposeDestination(writer.CreateResponseBodyStream(exchangeInfo.Id));
                 
                 // Read exchanges 
