@@ -299,5 +299,11 @@ namespace Fluxzy.Misc.Streams
 
             return streamReader.ReadToEnd();
         }
+
+        public static void CopyToThenDisposeDestination(this Stream src, Stream dest)
+        {
+            src.CopyTo(dest);
+            dest.Dispose();
+        }
     }
 }
