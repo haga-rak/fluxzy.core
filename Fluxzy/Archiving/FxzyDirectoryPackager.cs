@@ -20,6 +20,12 @@ namespace Fluxzy
                 fileName.EndsWith(".fluxzy.zip", StringComparison.CurrentCultureIgnoreCase);
         }
 
+        public async Task Pack(string directory, string outputFileName, HashSet<int>? exchangeIds = null)
+        {
+            using var outputStream = new FileStream(outputFileName, FileMode.Create);
+            await Pack(directory, outputStream, exchangeIds);
+        }
+
         public override async Task Pack(string directory, Stream outputStream, HashSet<int>? exchangeIds)
         {
             var baseDirectory = new DirectoryInfo(directory);

@@ -13,6 +13,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
@@ -88,7 +89,7 @@ namespace Fluxzy.Readers
                 if (sid == 0)
                     continue;
 
-                var requestBodyStream = ReadHeaders(requestEntry, out var requestHeaders);
+                using var requestBodyStream = ReadHeaders(requestEntry, out var requestHeaders);
 
                 if (requestBodyStream == null)
                     continue;
@@ -99,8 +100,6 @@ namespace Fluxzy.Readers
                 if (methodHeader.Value.Length == 0)
                     continue;
 
-                var isConnect = methodHeader.Value.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase);
-
                 var authorityHeader = requestHeaders.FirstOrDefault(s => s.Name.Span.Equals(
                     Http11Constants.AuthorityVerb.Span
                     , StringComparison.Ordinal));
@@ -108,14 +107,11 @@ namespace Fluxzy.Readers
                 if (authorityHeader.Name.Length == 0)
                     continue;
 
-                var flatAuthority = authorityHeader.Value.ToString();
-
-                if (!AuthorityUtility.TryParse(flatAuthority, out var host, out var port))
-                    continue;
-
+                var isConnect = methodHeader.Value.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase);
+                
                 var responseEntry = archive.Entries.FirstOrDefault(e => e.Name == $"{id}_s.txt");
 
-                var responseBodyStream = ReadHeaders(responseEntry, out var responseHeaders);
+                using var responseBodyStream = ReadHeaders(responseEntry, out var responseHeaders);
 
                 var serverConnected = element.GetSessionTimersValue("ServerConnected")!.Value;
                 var sslStart = serverConnected.AddMilliseconds(-element.GetSessionDurationValue("HTTPSHandshakeTime"));
@@ -130,6 +126,11 @@ namespace Fluxzy.Readers
                         continue;
 
                     var responseBodyString = responseBodyStream?.ReadToEndGreedy() ?? null;
+
+                    var flatAuthority = authorityHeader.Value.ToString();
+
+                    if (!AuthorityUtility.TryParse(flatAuthority, out var host, out var port))
+                        continue;
 
                     // Read flat body 
 
@@ -146,7 +147,7 @@ namespace Fluxzy.Readers
                         HashAlgorithmType.Sha384,
                         CipherAlgorithmType.Aes256
                     );
-
+                    
                     var connectConnectionInfo = new ConnectionInfo(
                         connectionId++,
                         new AuthorityInfo(host!, port, true),
@@ -175,6 +176,16 @@ namespace Fluxzy.Readers
                 ConnectionInfo? connectionInfo = null;
 
                 if (element.IsConnectionOpener()) {
+
+                    // PLAIN http 
+                    
+                    var flatAuthority = authorityHeader.Value.ToString();
+
+                    if (!AuthorityUtility.TryParse(flatAuthority, out var host, out var port)) {
+                        host = flatAuthority;
+                        port = 80; 
+                    }
+
                     connectionInfo = new ConnectionInfo(
                         connectionId++,
                         new AuthorityInfo(host!, port, false),
@@ -196,6 +207,8 @@ namespace Fluxzy.Readers
                     writer.Update(connectionInfo, default);
                 }
 
+                var newConnection = false; 
+
                 if (connectionInfo == null) {
                     // get server pipe reuse 
 
@@ -208,9 +221,37 @@ namespace Fluxzy.Readers
                         continue; // ordering problem 
 
                     connectionInfo.RequestProcessed++;
+
+                    newConnection = true; 
                 }
 
                 var agentInfoName = element.GetSessionFlagsAttributeAsString("x-processinfo") ?? "unspecified";
+
+                var requestHeaderLength = requestHeaders.Sum(s => s.Name.Length + s.Value.Length);
+                var responseHeaderLength = responseHeaders.Sum(s => s.Name.Length + s.Value.Length);
+
+                var metrics = new ExchangeMetrics() {
+                    LocalPort = element.GetSessionFlagsAttributeAsInteger("x-egressport"), 
+                    CreateCertEnd = received,
+                    CreateCertStart = received,
+                    ErrorInstant = default, 
+                    LocalAddress = "not set",
+                    ReceivedFromProxy = received,
+                    RemoteClosed = default, 
+                    RequestHeaderLength = requestHeaderLength,
+                    ResponseHeaderLength = responseHeaderLength,
+                    RetrievingPool = received,
+                    RequestHeaderSending = element.GetSessionTimersValue("FiddlerBeginRequest")! ?? default,
+                    RequestHeaderSent = element.GetSessionTimersValue("ServerGotRequest")! ?? default,
+                    RequestBodySent = element.GetSessionTimersValue("ServerGotRequest")! ?? default,
+                    ResponseHeaderStart = element.GetSessionTimersValue("ServerBeginResponse")! ?? default,
+                    ResponseHeaderEnd = element.GetSessionTimersValue("GotResponseHeaders")! ?? default,
+                    ResponseBodyStart = element.GetSessionTimersValue("GotResponseHeaders")! ?? default,
+                    ResponseBodyEnd = element.GetSessionTimersValue("ServerDoneResponse")! ?? default,
+                    ReusingConnection = !newConnection,
+                    TotalReceived = responseHeaderLength + element.GetSessionFlagsAttributeAsInteger("x-responsebodytransferlength"),
+                    TotalSent = requestHeaderLength + element.GetSessionFlagsAttributeAsInteger("x-requestbodytransferlength"),
+                };
 
                 var exchangeInfo = new ExchangeInfo(
                     exchangeId++,
@@ -220,7 +261,7 @@ namespace Fluxzy.Readers
                         new RequestHeader(requestHeaders)),
                     new ResponseHeaderInfo(
                         new ResponseHeader(responseHeaders)),
-                    new ExchangeMetrics(),
+                    metrics,
                     connectionInfo.RemoteAddress!,
                     false,
                     null,
@@ -234,17 +275,21 @@ namespace Fluxzy.Readers
                     connectionInfo.SslInfo != null
                 );
 
+                // Fix header info 
+
                 writer.Update(exchangeInfo, default);
-                
-                
+
+
                 if (requestBodyStream.CanRead)
-                    requestBodyStream?.CopyTo(writer.CreateRequestBodyStream(exchangeInfo.Id));
+                    requestBodyStream
+                        .CopyToThenDisposeDestination(writer.CreateRequestBodyStream(exchangeInfo.Id));
 
-
-                if (requestBodyStream?.CanRead ?? false)
-                    responseBodyStream?.CopyTo(writer.CreateResponseBodyStream(exchangeInfo.Id));
+                if (responseBodyStream?.CanRead ?? false)
+                    CompressionHelper.GetDecodedContentStream(exchangeInfo,
+                            responseBodyStream,
+                            out _, true)?
+                        .CopyToThenDisposeDestination(writer.CreateResponseBodyStream(exchangeInfo.Id));
                 
-
                 // Read exchanges 
             }
         }
@@ -265,7 +310,7 @@ namespace Fluxzy.Readers
             if (doubleCrLf < 0)
                 return null;
 
-            using var stream = entry.Open();
+            var stream = entry.Open();
 
             var buffer = ArrayPool<byte>.Shared.Rent(doubleCrLf);
             string requestHeaderString;
@@ -284,7 +329,7 @@ namespace Fluxzy.Readers
 
             headers = Http11Parser.Read(requestHeaderString.AsMemory()).ToList();
 
-            stream.Drain(4); // SKIP DOUBLE CRLF
+            var res = stream.DrainUntil(4); // SKIP DOUBLE CRLF
 
             return stream;
         }

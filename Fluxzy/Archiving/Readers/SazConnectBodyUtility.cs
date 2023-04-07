@@ -107,12 +107,13 @@ namespace Fluxzy.Readers
 
         public static int GetSessionFlagsAttributeAsInteger(this XElement element, string keyName)
         {
-            var target = element.XPathSelectElement($"//SessionFlags/SessionFlag[@N={keyName}]");
+            var target = element.XPathSelectElement($"//SessionFlags/SessionFlag[@N=\"{keyName}\"]");
 
             int.TryParse(target?.Attribute("V")?.Value, out var result);
 
             return result; 
         }
+
         public static int GetSessionId(this XElement element)
         {
             var target = element.XPathSelectElement($"/")?.Attribute("SID")?.Value;
@@ -124,7 +125,7 @@ namespace Fluxzy.Readers
 
         public static string? GetSessionFlagsAttributeAsString(this XElement element, string keyName)
         {
-            var target = element.XPathSelectElement($"//SessionFlags/SessionFlag[@N={keyName}]");
+            var target = element.XPathSelectElement($"//SessionFlags/SessionFlag[@N=\"{keyName}\"]");
             
             return target?.Attribute("V")?.Value; 
         }
