@@ -36,9 +36,14 @@ namespace Fluxzy
             await ZipHelper.CompressWithFileInfos(baseDirectory, outputStream, packableFiles.Select(s => s.File));
         }
 
-        public async Task Unpack(Stream inputStream, string directoryOutput)
+        public async Task UnpackAsync(Stream inputStream, string directoryOutput)
         {
-            await ZipHelper.Decompress(inputStream, new DirectoryInfo(directoryOutput));
+            await ZipHelper.DecompressAsync(inputStream, new DirectoryInfo(directoryOutput));
+        }
+
+        public void Unpack(Stream inputStream, string directoryOutput)
+        {
+             ZipHelper.Decompress(inputStream, new DirectoryInfo(directoryOutput));
         }
     }
 }

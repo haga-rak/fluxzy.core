@@ -13,16 +13,15 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
-using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Readers
 {
-    public class SazArchiveReader
+    public class SazImportEngine : IImportEngine
     {
-        public bool IsSazArchive(string fileName)
+        public bool IsFormat(string fileName)
         {
             try {
                 using var zipArchive = ZipFile.Open(fileName, ZipArchiveMode.Read);
@@ -53,7 +52,6 @@ namespace Fluxzy.Readers
 
             // Read all connectionInfo 
         }
-
 
         private static void InternalParse(
             DirectoryArchiveWriter writer,
@@ -360,9 +358,5 @@ namespace Fluxzy.Readers
 
             return int.TryParse(name.Substring(0, endIndex), out result);
         }
-    }
-
-    public static class ZipUtility
-    {
     }
 }
