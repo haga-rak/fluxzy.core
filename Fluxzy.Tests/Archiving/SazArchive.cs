@@ -25,9 +25,9 @@ namespace Fluxzy.Tests.Archiving
 
             File.WriteAllBytes(inputFile, StorageContext.testarchive);
             
-            var sazArchiveReader = new SazArchiveReader();
+            var sazArchiveReader = new SazImportEngine();
 
-            Assert.True(sazArchiveReader.IsSazArchive(inputFile));
+            Assert.True(sazArchiveReader.IsFormat(inputFile));
         }
 
         [Fact]
@@ -38,7 +38,7 @@ namespace Fluxzy.Tests.Archiving
 
             File.WriteAllBytes(inputFile, StorageContext.minimal);
 
-            var sazArchiveReader = new SazArchiveReader();
+            var sazArchiveReader = new SazImportEngine();
             sazArchiveReader.WriteToDirectory(inputFile, outputDirectory);
 
             using var directoryArchiveReader = new DirectoryArchiveReader(outputDirectory);

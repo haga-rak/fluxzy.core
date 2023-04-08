@@ -148,6 +148,7 @@ namespace Fluxzy.Desktop.Services
             collection.AddSingleton<SystemProxyRegistrationManager>();
 
             collection.AddTransient<FxzyDirectoryPackager>();
+            collection.AddSingleton<ImportEngineProvider>();
 
             collection.AddTransient<FormatSettings>(); // TODO move to hard settings 
 

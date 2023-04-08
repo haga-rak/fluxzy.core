@@ -1,9 +1,10 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Har;
+using Fluxzy.Readers;
 using Fluxzy.Saz;
 using Microsoft.Extensions.Configuration;
 
@@ -12,11 +13,15 @@ namespace Fluxzy.Desktop.Services
     public class FileManager : ObservableProvider<FileState>
     {
         private readonly FxzyDirectoryPackager _directoryPackager;
+        private readonly ImportEngineProvider _importEngineProvider;
+
         private readonly string _tempDirectory;
 
-        public FileManager(IConfiguration configuration, FxzyDirectoryPackager directoryPackager)
+        public FileManager(IConfiguration configuration, FxzyDirectoryPackager directoryPackager,
+            ImportEngineProvider importEngineProvider)
         {
             _directoryPackager = directoryPackager;
+            _importEngineProvider = importEngineProvider;
 
             _tempDirectory = configuration["UiSettings:CaptureTemp"]
                              ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -71,13 +76,24 @@ namespace Fluxzy.Desktop.Services
 
             var openFileInfo = new FileInfo(fileName);
 
-            await using var fileStream = openFileInfo.OpenRead();
+            var importEngine = _importEngineProvider.GetImportEngine(fileName); 
 
-            await _directoryPackager.Unpack(fileStream, directoryInfo.FullName);
+            if (importEngine == null)
+                throw new InvalidOperationException("No import engine found for file");
 
-            var result = new FileState(this, workingDirectory, fileName);
+            importEngine.WriteToDirectory(openFileInfo.FullName, directoryInfo.FullName);
 
-            Subject.OnNext(result);
+            if (importEngine is FxzyImportEngine)
+            {
+                // set open file name 
+                var result = new FileState(this, workingDirectory, fileName);
+                Subject.OnNext(result);
+            }
+            else
+            {
+                var result = new FileState(this, workingDirectory);
+                Subject.OnNext(result);
+            }
         }
 
         public void SetUnsaved(bool state)
