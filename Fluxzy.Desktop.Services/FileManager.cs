@@ -68,7 +68,7 @@ namespace Fluxzy.Desktop.Services
             return Task.CompletedTask;
         }
 
-        public async Task Open(string fileName)
+        public Task Open(string fileName)
         {
             var (_, workingDirectory) = GenerateNewDirectory(_tempDirectory);
 
@@ -94,6 +94,8 @@ namespace Fluxzy.Desktop.Services
                 var result = new FileState(this, workingDirectory);
                 Subject.OnNext(result);
             }
+
+            return Task.CompletedTask;
         }
 
         public void SetUnsaved(bool state)

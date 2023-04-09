@@ -41,6 +41,7 @@ namespace Fluxzy.Readers
                                         JsonSerializer.Deserialize<ExchangeInfo>(
                                             File.ReadAllText(f.FullName), GlobalArchiveOption.DefaultSerializerOptions))
                                     .Where(t => t != null)
+                                    .OrderBy(t => t!.Id)
                                     .Select(t => t!);
         }
 

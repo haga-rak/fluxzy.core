@@ -44,4 +44,23 @@ namespace Fluxzy.Desktop.Services.Models
             return Id;
         }
     }
+
+    public class ExchangeContainerSorter : IComparer<ExchangeContainer>
+    {
+        public int Compare(ExchangeContainer? x, ExchangeContainer? y)
+        {
+            if (ReferenceEquals(x, y))
+                return 0;
+
+            if (ReferenceEquals(null, y))
+                return 1;
+
+            if (ReferenceEquals(null, x))
+                return -1;
+
+            return x.Id.CompareTo(y.Id);
+        }
+
+        public static ExchangeContainerSorter IdSorter { get; } = new ExchangeContainerSorter(); 
+    }
 }
