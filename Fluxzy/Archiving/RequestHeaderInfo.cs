@@ -54,5 +54,16 @@ namespace Fluxzy
 
             return $"{Scheme}://{Authority}{stringPath}";
         }
+
+        public string GetPathOnly()
+        {
+            var stringPath = Path.ToString();
+
+            if (Uri.TryCreate(Path.ToString(), UriKind.Absolute, out var uri) &&
+                uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                return uri.PathAndQuery;
+
+            return $"{stringPath}";
+        }
     }
 }
