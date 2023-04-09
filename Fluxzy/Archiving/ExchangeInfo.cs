@@ -103,7 +103,7 @@ namespace Fluxzy
 
         public string Method => RequestHeader.Method.ToString();
 
-        public string Path => RequestHeader.Path.ToString();
+        public string Path => RequestHeader.GetPathOnly();
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
