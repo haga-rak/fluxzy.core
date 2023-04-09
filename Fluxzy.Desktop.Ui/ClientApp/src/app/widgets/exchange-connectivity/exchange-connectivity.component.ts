@@ -29,8 +29,6 @@ export class ExchangeConnectivityComponent implements OnInit, OnChanges {
 
     ngOnChanges(changes: SimpleChanges): void {
         this.refresh();
-
-        console.log(this.exchange);
     }
 
     private refresh(): void {
@@ -46,7 +44,8 @@ export class ExchangeConnectivityComponent implements OnInit, OnChanges {
             .pipe(
                 tap(
                     t => this.connection = t
-                )
+                ),
+                tap( _ => this.cd.detectChanges())
             ).subscribe();
 
         this.apiService.connectionGetRawCaptureKeys(this.connectionId)
