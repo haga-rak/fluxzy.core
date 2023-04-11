@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Archiving
     {
         public SazArchive()
         {
-            DisablePurge = true; 
+            DisablePurge = false; 
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace Fluxzy.Tests.Archiving
 
             var packager = new FxzyDirectoryPackager();
 
-            await packager.Pack(outputDirectory, @"d:\sortie.fxzy");
+            await packager.Pack(outputDirectory, RegisterFile(@"sortie.fxzy"));
         }
     }
 }
