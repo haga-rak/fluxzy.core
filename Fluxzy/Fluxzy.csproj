@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
@@ -31,9 +31,9 @@
 		<PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
 		<PackageReference Include="SharpZipLib" Version="1.4.2" />
 		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-		<PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
-		<PackageReference Include="System.Text.Json" Version="6.0.7" />
-		<PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+		<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+		<PackageReference Include="System.Text.Json" Version="7.0.2" />
+		<PackageReference Include="System.Threading.Channels" Version="7.0.0" />
 		<PackageReference Include="YamlDotNet" Version="13.0.1" />
 	</ItemGroup>
 
