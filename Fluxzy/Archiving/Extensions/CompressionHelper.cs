@@ -2,7 +2,6 @@
 
 using System.IO;
 using System.IO.Compression;
-using Fluxzy.Clients;
 using Fluxzy.Misc.Streams;
 using ICSharpCode.SharpZipLib.Lzw;
 
@@ -31,11 +30,11 @@ namespace Fluxzy.Extensions
 
         public static Stream GetDecodedContentStream(
             ExchangeInfo exchangeInfo, Stream responseBodyInStream,
-            out CompressionType compressionType)
+            out CompressionType compressionType, bool skipForwarded = false)
         {
             var workStream = responseBodyInStream;
 
-            if (exchangeInfo.IsChunkedTransferEncoded())
+            if (exchangeInfo.IsChunkedTransferEncoded(skipForwarded))
                 workStream = new ChunkedTransferReadStream(workStream, false);
 
             compressionType = exchangeInfo.GetCompressionType();

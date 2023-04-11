@@ -50,6 +50,9 @@ namespace Fluxzy.Clients
                                  &&
                                  this[Http11Constants.Upgrade]
                                      .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
+
+           // TODO: Request replay change method 
+
         }
 
         public ReadOnlyMemory<char> Authority { get; internal set; }

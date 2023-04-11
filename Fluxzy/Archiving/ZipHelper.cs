@@ -13,7 +13,7 @@ namespace Fluxzy
     /// </summary>
     internal static class ZipHelper
     {
-        public static Task Decompress(
+        public static Task DecompressAsync(
             Stream input,
             DirectoryInfo directoryInfo)
         {
@@ -24,6 +24,17 @@ namespace Fluxzy
                 s => true, ".*", ".*", true, true);
 
             return Task.CompletedTask;
+        }
+
+        public static void Decompress(
+            Stream input,
+            DirectoryInfo directoryInfo)
+        {
+            if (directoryInfo.Exists)
+                Directory.CreateDirectory(directoryInfo.FullName);
+
+            new FastZip().ExtractZip(input, directoryInfo.FullName, FastZip.Overwrite.Always,
+                s => true, ".*", ".*", true, true);
         }
 
         public static async Task Compress(
