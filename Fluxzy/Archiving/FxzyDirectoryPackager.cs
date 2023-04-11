@@ -20,6 +20,12 @@ namespace Fluxzy
                 fileName.EndsWith(".fluxzy.zip", StringComparison.CurrentCultureIgnoreCase);
         }
 
+        public async Task Pack(string directory, string outputFileName, HashSet<int>? exchangeIds = null)
+        {
+            using var outputStream = new FileStream(outputFileName, FileMode.Create);
+            await Pack(directory, outputStream, exchangeIds);
+        }
+
         public override async Task Pack(string directory, Stream outputStream, HashSet<int>? exchangeIds)
         {
             var baseDirectory = new DirectoryInfo(directory);
@@ -30,9 +36,14 @@ namespace Fluxzy
             await ZipHelper.CompressWithFileInfos(baseDirectory, outputStream, packableFiles.Select(s => s.File));
         }
 
-        public async Task Unpack(Stream inputStream, string directoryOutput)
+        public async Task UnpackAsync(Stream inputStream, string directoryOutput)
         {
-            await ZipHelper.Decompress(inputStream, new DirectoryInfo(directoryOutput));
+            await ZipHelper.DecompressAsync(inputStream, new DirectoryInfo(directoryOutput));
+        }
+
+        public void Unpack(Stream inputStream, string directoryOutput)
+        {
+             ZipHelper.Decompress(inputStream, new DirectoryInfo(directoryOutput));
         }
     }
 }

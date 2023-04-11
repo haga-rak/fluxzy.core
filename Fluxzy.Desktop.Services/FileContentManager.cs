@@ -7,13 +7,6 @@ using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services
 {
-    public interface IFileContentOperationManager
-    {
-        void AddOrUpdate(ExchangeInfo exchangeInfo);
-
-        void Delete(FileContentDelete deleteOp);
-    }
-
     public class FileContentOperationManager : IFileContentOperationManager
     {
         private readonly BehaviorSubject<TrunkState> _subject;
@@ -121,6 +114,8 @@ namespace Fluxzy.Desktop.Services
                 if (connection != null)
                     connections.Add(new ConnectionContainer(connection));
             }
+
+            exchanges.Sort(ExchangeContainerSorter.IdSorter);
 
             return new TrunkState(exchanges, connections);
         }

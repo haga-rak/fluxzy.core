@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Org.BouncyCastle.Bcpg;
 
 namespace Fluxzy.Utils
 {
@@ -259,6 +260,29 @@ namespace Fluxzy.Utils
             }
 
             return $"exchange-response-{exchange.Id}.data";
+        }
+    }
+
+    public static class AuthorityUtility
+    {
+        public static bool TryParse(string rawValue, out string?  host, out int port)
+        {
+            host = null; 
+            port = 0;
+
+            var splitted = rawValue.Split(new[] { ":" }, StringSplitOptions.None);
+            
+
+            if (splitted.Length < 2)
+                return false;
+
+            if (!int.TryParse(splitted[1], out port))
+                return false;
+
+
+            host = string.Join(":", splitted.Take(splitted.Length - 1));
+
+            return true;
         }
     }
 }

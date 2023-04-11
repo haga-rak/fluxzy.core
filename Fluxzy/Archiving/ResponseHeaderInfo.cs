@@ -1,5 +1,6 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -16,10 +17,10 @@ namespace Fluxzy
             Headers = headers;
         }
 
-        public ResponseHeaderInfo(ResponseHeader originalHeader)
+        public ResponseHeaderInfo(ResponseHeader originalHeader, bool doNotForwardConnectionHeader = false)
         {
             StatusCode = originalHeader.StatusCode;
-            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s));
+            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s, doNotForwardConnectionHeader));
         }
 
         public int StatusCode { get; }

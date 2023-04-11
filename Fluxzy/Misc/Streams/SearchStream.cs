@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -17,6 +17,7 @@ namespace Fluxzy.Misc.Streams
         private readonly Stream _innerStream;
         private readonly byte[] _rawBuffer;
         private readonly ReadOnlyMemory<byte> _searchPattern;
+        private readonly bool _haltOnFound;
 
         /// <summary>
         ///     The used length inside the buffer
@@ -28,19 +29,20 @@ namespace Fluxzy.Misc.Streams
         /// </summary>
         private long _bufferOffset;
 
-        public SearchStream(Stream innerStream, ReadOnlyMemory<byte> searchPattern)
+        public SearchStream(Stream innerStream, ReadOnlyMemory<byte> searchPattern, bool haltOnFound = false)
         {
             if (searchPattern.IsEmpty)
                 throw new ArgumentException("cannot be empty", nameof(searchPattern));
 
             _innerStream = innerStream;
             _searchPattern = searchPattern;
+            _haltOnFound = haltOnFound;
             _rawBuffer = ArrayPool<byte>.Shared.Rent(searchPattern.Length * 2 + 2);
             _bufferOffset = 0L;
             _bufferLength = 0;
         }
 
-        public StreamSearchResult? Result { get; private set; }
+        public SearchStreamResult? Result { get; private set; }
 
         public override bool CanRead => _innerStream.CanRead;
 
@@ -56,7 +58,7 @@ namespace Fluxzy.Misc.Streams
             set => _innerStream.Position = value;
         }
 
-        private StreamSearchResult? AddNewSequence(ReadOnlyMemory<byte> data)
+        private SearchStreamResult? AddNewSequence(ReadOnlyMemory<byte> data)
         {
             Span<byte> fixedBuffer = _rawBuffer;
 
@@ -78,7 +80,7 @@ namespace Fluxzy.Misc.Streams
                                .IndexOf(_searchPattern.Span);
 
                 if (matchingIndex >= 0)
-                    return new StreamSearchResult(_bufferOffset + matchingIndex);
+                    return new SearchStreamResult(_bufferOffset + matchingIndex);
 
                 var offsetDivision = fixedBuffer.Length / 2 + 1;
                 var shiftedLength = fixedBuffer.Length - offsetDivision;
@@ -106,7 +108,7 @@ namespace Fluxzy.Misc.Streams
                                .IndexOf(_searchPattern.Span);
 
                 if (matchingIndex >= 0)
-                    return new StreamSearchResult(_bufferOffset + matchingIndex);
+                    return new SearchStreamResult(_bufferOffset + matchingIndex);
             }
 
             return null;
@@ -119,12 +121,15 @@ namespace Fluxzy.Misc.Streams
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            if (_haltOnFound && Result != null && Result.OffsetFound >= 0)
+                return 0;
+
             var read = _innerStream.Read(buffer, offset, count);
 
             if (read > 0)
                 Result = AddNewSequence(buffer.AsMemory(offset, read));
             else
-                Result ??= StreamSearchResult.NotFound;
+                Result ??= SearchStreamResult.NotFound;
 
             return read;
         }
@@ -132,13 +137,16 @@ namespace Fluxzy.Misc.Streams
         public override async ValueTask<int> ReadAsync(
             Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
+            if (_haltOnFound && Result != null && Result.OffsetFound >= 0)
+                return 0; 
+
             var read = await _innerStream.ReadAsync(buffer, cancellationToken);
 
             if (read > 0)
                 Result = AddNewSequence(buffer.Slice(0, read));
             else
-                Result ??= StreamSearchResult.NotFound;
-
+                Result ??= SearchStreamResult.NotFound;
+            
             return read;
         }
 
@@ -168,15 +176,39 @@ namespace Fluxzy.Misc.Streams
         }
     }
 
-    public class StreamSearchResult
+    public class SearchStreamResult
     {
-        public StreamSearchResult(long offsetFound)
+        protected bool Equals(SearchStreamResult other)
+        {
+            return OffsetFound == other.OffsetFound;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            if (obj.GetType() != this.GetType())
+                return false;
+
+            return Equals((SearchStreamResult) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return OffsetFound.GetHashCode();
+        }
+
+        public SearchStreamResult(long offsetFound)
         {
             OffsetFound = offsetFound;
         }
 
         public long OffsetFound { get; }
 
-        public static StreamSearchResult NotFound => new(-1);
+        public static SearchStreamResult NotFound => new(-1);
     }
 }

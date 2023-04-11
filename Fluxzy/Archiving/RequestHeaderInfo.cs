@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -13,13 +13,13 @@ namespace Fluxzy
     /// </summary>
     public class RequestHeaderInfo
     {
-        public RequestHeaderInfo(RequestHeader originalHeader)
+        public RequestHeaderInfo(RequestHeader originalHeader, bool doNotForwardConnectionHeader = false)
         {
             Method = originalHeader.Method;
             Scheme = originalHeader.Scheme;
             Path = originalHeader.Path;
             Authority = originalHeader.Authority;
-            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s));
+            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s, doNotForwardConnectionHeader));
         }
 
         [JsonConstructor]
@@ -53,6 +53,17 @@ namespace Fluxzy
                 return stringPath;
 
             return $"{Scheme}://{Authority}{stringPath}";
+        }
+
+        public string GetPathOnly()
+        {
+            var stringPath = Path.ToString();
+
+            if (Uri.TryCreate(Path.ToString(), UriKind.Absolute, out var uri) &&
+                uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                return uri.PathAndQuery;
+
+            return $"{stringPath}";
         }
     }
 }

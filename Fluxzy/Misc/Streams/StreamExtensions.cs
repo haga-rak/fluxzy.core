@@ -49,6 +49,38 @@ namespace Fluxzy.Misc.Streams
             }
         }
 
+
+        public static bool DrainUntil(this Stream stream, int byteCount, int bufferSize = 16 * 1024, bool disposeStream = false)
+        {
+            // TODO improve perf with stackalloc when bufferSize is small than an arbitrary threshold
+
+            var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+
+
+            try {
+                int read;
+                var total = 0;
+
+                var remaining = byteCount;
+
+                while ((read = stream.Read(buffer, 0, Math.Min(remaining, buffer.Length))) > 0) {
+                    total += read;
+                    remaining -= read; 
+
+                    if (remaining <= 0)
+                        break;
+                }
+
+                if (disposeStream)
+                    stream.Dispose();
+
+                return byteCount == total;
+            }
+            finally {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
         public static async ValueTask<int> DrainAsync(
             this Stream stream, int bufferSize = 16 * 1024,
             bool disposeStream = false)
@@ -260,9 +292,18 @@ namespace Fluxzy.Misc.Streams
 
         public static string ReadToEndGreedy(this Stream stream)
         {
+            if (!stream.CanRead)
+                return string.Empty; 
+
             using var streamReader = new StreamReader(stream);
 
             return streamReader.ReadToEnd();
+        }
+
+        public static void CopyToThenDisposeDestination(this Stream src, Stream dest)
+        {
+            src.CopyTo(dest);
+            dest.Dispose();
         }
     }
 }
