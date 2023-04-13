@@ -32,6 +32,9 @@ module.exports = {
         //    await exec('npm run build:prod');
         },
         postPackage: async (forgeConfig, options) => {
+            if (process.platform !== 'win32')
+                return;
+
             const fullName = options.outputPaths[0] + '\\fluxzy.exe';
             await rcedit(fullName, {
                 'version-string': {
