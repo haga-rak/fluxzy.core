@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Fluxzy.Utils.Curl
 {
     /// <summary>
-    ///     TODO : inject this class instead of ugly singleton
+    ///    This class is used to manage the temporary folder used by the curl export feature.
     /// </summary>
     public class CurlExportFolderManagement
     {
