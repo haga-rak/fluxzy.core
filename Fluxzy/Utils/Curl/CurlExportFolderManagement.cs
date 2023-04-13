@@ -24,15 +24,6 @@ namespace Fluxzy.Utils.Curl
             Directory.CreateDirectory(TemporaryPath);
         }
 
-        //{
-        //    TemporaryPath = Environment.GetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA")
-        //                           ?? "%appdata%/Fluxzy/Curl/Temp";
-
-        //    TemporaryPath = Environment.ExpandEnvironmentVariables(TemporaryPath);
-
-        //    Directory.CreateDirectory(TemporaryPath);
-        //}
-
         public string TemporaryPath { get; internal set; }
 
         public string GetTemporaryPathFor(Guid fileId)
