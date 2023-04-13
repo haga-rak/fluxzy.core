@@ -65,6 +65,8 @@ class Program
                 await activeRuleManages.InitRules();
 
                 if (isDesktop) {
+                    await Task.Delay(1500); // Wait for the UI to be ready
+                    
                     Console.Out.WriteLine("FLUXZY_LISTENING");
                     Console.Out.Flush();
                 }

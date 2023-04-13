@@ -10,6 +10,7 @@ import {checkSquirrelStartup} from "./__squirrel-startup";
 if(checkSquirrelStartup())
     app.quit();
 
+
 function runFrontEnd() : void {
 
     let win: BrowserWindow = null;
@@ -180,6 +181,7 @@ function launchFluxzyDaemonOrDie(commandLineArgs : string [] , backedLaunchCallb
 
     fluxzydProc.on('exit', function (code) {
         backedLaunchCallback(false, false);
+        console.log('fluxzyd terminated with code ' + code);
     });
 }
 
