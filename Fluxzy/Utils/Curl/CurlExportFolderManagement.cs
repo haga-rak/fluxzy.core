@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Fluxzy.Utils.Curl
 {
     /// <summary>
-    ///     TODO : inject this class instead of ugly singleton
+    ///    This class is used to manage the temporary folder used by the curl export feature.
     /// </summary>
     public class CurlExportFolderManagement
     {
@@ -15,7 +15,7 @@ namespace Fluxzy.Utils.Curl
         {
             if (temporaryPath == null) {
                 temporaryPath = Environment.GetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA")
-                                ?? "%appdata%/Fluxzy/Curl/Temp";
+                                ?? "%appdata%/Fluxzy.Desktop/temp/curl";
 
                 temporaryPath = Environment.ExpandEnvironmentVariables(temporaryPath);
             }
@@ -23,15 +23,6 @@ namespace Fluxzy.Utils.Curl
             TemporaryPath = temporaryPath;
             Directory.CreateDirectory(TemporaryPath);
         }
-
-        //{
-        //    TemporaryPath = Environment.GetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA")
-        //                           ?? "%appdata%/Fluxzy/Curl/Temp";
-
-        //    TemporaryPath = Environment.ExpandEnvironmentVariables(TemporaryPath);
-
-        //    Directory.CreateDirectory(TemporaryPath);
-        //}
 
         public string TemporaryPath { get; internal set; }
 
