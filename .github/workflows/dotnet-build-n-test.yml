@@ -17,9 +17,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        token: ${{ secrets.ACCESS_TOKEN || github.token }}
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
