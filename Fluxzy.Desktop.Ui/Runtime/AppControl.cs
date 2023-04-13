@@ -19,13 +19,11 @@ namespace Fluxzy.Desktop.Ui.Runtime
 
             Environment.SetEnvironmentVariable("Desktop", "true");
 
-
             SetCurrentDirectoryToAppDirectory();
             
-
+            // Gather the parent pid and exit when the parent exit.
             if (CommandLineUtility.TryGetArgsValue(commandLineArgs, "--fluxzyw-pid", out var fluxzywPidString))
             {
-
                 if (int.TryParse(fluxzywPidString, out var fluxzywPid))
                 {
                     ExitWhenParentExit(fluxzywPid, cancellationTokenSource);
@@ -35,13 +33,13 @@ namespace Fluxzy.Desktop.Ui.Runtime
             isDesktop = true; 
         }
 
-        internal static void SetCurrentDirectoryToAppDirectory()
+        private static void SetCurrentDirectoryToAppDirectory()
         {
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
             Directory.SetCurrentDirectory(appDirectory);
         }
 
-        internal static void ExitWhenParentExit(int parentPid, CancellationTokenSource cancellationTokenSource)
+        private static void ExitWhenParentExit(int parentPid, CancellationTokenSource cancellationTokenSource)
         {
 
             Task.Run(async () =>
@@ -77,10 +75,6 @@ namespace Fluxzy.Desktop.Ui.Runtime
 
             using var res = await httpClient.PostAsync("http://localhost:5198/api/file/opening-request",
                 new StringContent(payloadString, Encoding.UTF8, "application/json"));
-
-
-
         }
-        
     }
 }
