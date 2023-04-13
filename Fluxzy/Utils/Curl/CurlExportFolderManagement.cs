@@ -15,7 +15,7 @@ namespace Fluxzy.Utils.Curl
         {
             if (temporaryPath == null) {
                 temporaryPath = Environment.GetEnvironmentVariable("FLUXZY_CURL_TEMP_DATA")
-                                ?? "%appdata%/Fluxzy/Curl/Temp";
+                                ?? "%appdata%/Fluxzy.Desktop/temp/curl";
 
                 temporaryPath = Environment.ExpandEnvironmentVariables(temporaryPath);
             }
