@@ -52,7 +52,8 @@ namespace Fluxzy.Utils
         public static bool TryGetAuthorityInfo(string fullUrl, out string hostName, out int port, out bool secure)
         {
             hostName = string.Empty;
-            port = 0; 
+            port = 0;
+            secure = false;
 
             if (!Uri.TryCreate(fullUrl, UriKind.Absolute, out var uri)) {
                 return false; 
