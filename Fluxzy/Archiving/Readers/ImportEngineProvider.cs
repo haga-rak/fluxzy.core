@@ -15,7 +15,8 @@ namespace Fluxzy.Readers
         {
             Engines = new ReadOnlyCollection<IImportEngine>(new List<IImportEngine>() {
                 new FxzyImportEngine(directoryPackager),
-                new SazImportEngine()
+                new SazImportEngine(),
+                new HarImportEngine(),
             }); 
         }
 

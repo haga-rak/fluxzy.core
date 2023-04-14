@@ -92,6 +92,16 @@ namespace Fluxzy.Tests._Files {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
+        internal static byte[] minimal1 {
+            get {
+                object obj = ResourceManager.GetObject("minimal1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Byte[].
+        /// </summary>
         internal static byte[] multipart_request_fxzy {
             get {
                 object obj = ResourceManager.GetObject("multipart_request_fxzy", resourceCulture);

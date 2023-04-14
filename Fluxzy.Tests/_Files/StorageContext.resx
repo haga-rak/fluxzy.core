@@ -133,4 +133,7 @@
   <data name="minimal" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Archives\minimal.saz;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="minimal1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Archives\minimal.har;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
