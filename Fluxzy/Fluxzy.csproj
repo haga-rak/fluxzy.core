@@ -34,7 +34,7 @@
 		<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
 		<PackageReference Include="System.Text.Json" Version="7.0.2" />
 		<PackageReference Include="System.Threading.Channels" Version="7.0.0" />
-		<PackageReference Include="YamlDotNet" Version="13.0.1" />
+		<PackageReference Include="YamlDotNet" Version="13.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
