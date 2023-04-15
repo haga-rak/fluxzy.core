@@ -29,6 +29,12 @@ namespace Fluxzy
             Forwarded = forwarded;
         }
 
+        public HeaderFieldInfo(string name, string value)
+            : this(name.AsMemory(), value.AsMemory(), !Http11Constants.IsNonForwardableHeader(name))
+        {
+
+        }
+
         public ReadOnlyMemory<char> Name { get; set; }
 
         public ReadOnlyMemory<char> Value { get; set; }

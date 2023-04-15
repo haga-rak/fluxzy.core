@@ -22,7 +22,7 @@ namespace Fluxzy.Tests._Files {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class StorageContext {
+    public class StorageContext {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Fluxzy.Tests._Files {
         ///   Retourne l'instance ResourceManager mise en cache utilisée par cette classe.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Fluxzy.Tests._Files.StorageContext", typeof(StorageContext).Assembly);
@@ -51,7 +51,7 @@ namespace Fluxzy.Tests._Files {
         ///   les recherches de ressources à l'aide de cette classe de ressource fortement typée.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace Fluxzy.Tests._Files {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
-        internal static byte[] client_cert {
+        public static byte[] client_cert {
             get {
                 object obj = ResourceManager.GetObject("client_cert", resourceCulture);
                 return ((byte[])(obj));
@@ -73,7 +73,7 @@ namespace Fluxzy.Tests._Files {
         /// <summary>
         ///   Recherche une chaîne localisée semblable à .
         /// </summary>
-        internal static string fluxzytest {
+        public static string fluxzytest {
             get {
                 return ResourceManager.GetString("fluxzytest", resourceCulture);
             }
@@ -82,7 +82,7 @@ namespace Fluxzy.Tests._Files {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
-        internal static byte[] minimal {
+        public static byte[] minimal {
             get {
                 object obj = ResourceManager.GetObject("minimal", resourceCulture);
                 return ((byte[])(obj));
@@ -92,7 +92,17 @@ namespace Fluxzy.Tests._Files {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
-        internal static byte[] multipart_request_fxzy {
+        public static byte[] minimal1 {
+            get {
+                object obj = ResourceManager.GetObject("minimal1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Byte[].
+        /// </summary>
+        public static byte[] multipart_request_fxzy {
             get {
                 object obj = ResourceManager.GetObject("multipart_request_fxzy", resourceCulture);
                 return ((byte[])(obj));
@@ -102,9 +112,29 @@ namespace Fluxzy.Tests._Files {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
-        internal static byte[] testarchive {
+        public static byte[] sandbox_smartizy_com {
+            get {
+                object obj = ResourceManager.GetObject("sandbox_smartizy_com", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Byte[].
+        /// </summary>
+        public static byte[] testarchive {
             get {
                 object obj = ResourceManager.GetObject("testarchive", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Byte[].
+        /// </summary>
+        public static byte[] with_payload {
+            get {
+                object obj = ResourceManager.GetObject("with_payload", resourceCulture);
                 return ((byte[])(obj));
             }
         }

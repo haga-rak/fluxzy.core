@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.IO;
 using System.Linq;
 using Org.BouncyCastle.Bcpg;
 
@@ -195,94 +194,6 @@ namespace Fluxzy.Utils
                 return "zip";
 
             return null;
-        }
-    }
-
-    public static class SubdomainUtility
-    {
-        public static bool TryGetSubDomain(string host, out string? subDomain)
-        {
-            var splittedHost = host.Split(new[] { "." }, StringSplitOptions.RemoveEmptyEntries);
-
-            if (splittedHost.Length > 2) {
-                subDomain = string.Join(".", splittedHost.Skip(1));
-
-                return true;
-            }
-
-            subDomain = null;
-
-            return false;
-        }
-    }
-
-    public static class ExchangeUtility
-    {
-        public static string GetRequestBodyFileNameSuggestion(IExchange exchange)
-        {
-            var url = exchange.FullUrl;
-
-            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            {
-                var fileName = Path.GetFileName(uri.LocalPath);
-
-                if (!string.IsNullOrWhiteSpace(fileName))
-                {
-
-                    if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
-                    {
-                        return fileName + "." + HeaderUtility.GetRequestSuggestedExtension(exchange);
-                    }
-
-                    return fileName;
-                }
-            }
-
-            return $"exchange-request-{exchange.Id}.data";
-        }
-
-        public static string GetResponseBodyFileNameSuggestion(ExchangeInfo exchange)
-        {
-            var url = exchange.FullUrl;
-            
-            if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
-                var fileName = Path.GetFileName(uri.LocalPath);
-
-                if (!string.IsNullOrWhiteSpace(fileName)) {
-
-                    if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
-                    {
-                        return fileName + "." + HeaderUtility.GetResponseSuggestedExtension(exchange);
-                    }
-
-                    return fileName; 
-                }
-            }
-
-            return $"exchange-response-{exchange.Id}.data";
-        }
-    }
-
-    public static class AuthorityUtility
-    {
-        public static bool TryParse(string rawValue, out string?  host, out int port)
-        {
-            host = null; 
-            port = 0;
-
-            var splitted = rawValue.Split(new[] { ":" }, StringSplitOptions.None);
-            
-
-            if (splitted.Length < 2)
-                return false;
-
-            if (!int.TryParse(splitted[1], out port))
-                return false;
-
-
-            host = string.Join(":", splitted.Take(splitted.Length - 1));
-
-            return true;
         }
     }
 }
