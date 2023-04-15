@@ -17,21 +17,46 @@ namespace Fluxzy.Desktop.Services
 
         private readonly string _tempDirectory;
 
-        public FileManager(IConfiguration configuration, FxzyDirectoryPackager directoryPackager,
+        public FileManager(
+            IConfiguration configuration, FxzyDirectoryPackager directoryPackager,
             ImportEngineProvider importEngineProvider)
         {
             _directoryPackager = directoryPackager;
             _importEngineProvider = importEngineProvider;
 
             _tempDirectory = configuration["UiSettings:CaptureTemp"]
-                             ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                 "Fluxzy.Desktop", "temp");
+                             ??
+                             Environment.ExpandEnvironmentVariables(
+                                 "%appdata%/Fluxzy.Desktop/temp/expand");
 
             _tempDirectory = Environment.ExpandEnvironmentVariables(_tempDirectory);
 
             Directory.CreateDirectory(_tempDirectory);
 
             Subject = new BehaviorSubject<FileState>(CreateNewFileState(_tempDirectory));
+
+            string? previous = null;
+
+            Subject.AsObservable()
+                   .Select(s => s.WorkingDirectory)
+                   .DistinctUntilChanged()
+                   .Do(current => {
+                           if (previous != null) {
+                               var prev = previous; 
+                               Task.Run(() => {
+                                   // fire and forget WorkingDirectory deletion 
+                                   try {
+                                       Directory.Delete(prev, true);
+                                   }
+                                   catch {
+                                       // Ignore delete errors
+                                   }
+                               });
+                           }
+                           previous = current;
+                       }
+                   )
+                   .Subscribe();
         }
 
         protected sealed override BehaviorSubject<FileState> Subject { get; }
@@ -76,21 +101,19 @@ namespace Fluxzy.Desktop.Services
 
             var openFileInfo = new FileInfo(fileName);
 
-            var importEngine = _importEngineProvider.GetImportEngine(fileName); 
+            var importEngine = _importEngineProvider.GetImportEngine(fileName);
 
             if (importEngine == null)
                 throw new InvalidOperationException("No import engine found for file");
 
             importEngine.WriteToDirectory(openFileInfo.FullName, directoryInfo.FullName);
 
-            if (importEngine is FxzyImportEngine)
-            {
+            if (importEngine is FxzyImportEngine) {
                 // set open file name 
                 var result = new FileState(this, workingDirectory, fileName);
                 Subject.OnNext(result);
             }
-            else
-            {
+            else {
                 var result = new FileState(this, workingDirectory);
                 Subject.OnNext(result);
             }
