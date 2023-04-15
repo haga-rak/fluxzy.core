@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,20 +11,20 @@ using Xunit;
 
 namespace Fluxzy.Tests.Archiving
 {
-    public class HarArchiveReading : ProduceDeletableItem
+    public class HttpArchiveReading : ProduceDeletableItem
     {
-        public HarArchiveReading()
+        public HttpArchiveReading()
         {
-            DisablePurge = false; 
+            DisablePurge = true; 
         }
 
         [Fact]
         public async Task TestMinimalArchive()
         {
-            var outputDirectory = RegisterDirectory("minimal-har");
+            var outputDirectory = RegisterDirectory("minimal-har" + Guid.NewGuid());
             var inputFile = RegisterFile("minimal.har");
 
-            File.WriteAllBytes(inputFile, StorageContext.minimal1);
+            await File.WriteAllBytesAsync(inputFile, StorageContext.sandbox_smartizy_com);
 
             var importEngine = new HarImportEngine();
 
@@ -33,11 +34,13 @@ namespace Fluxzy.Tests.Archiving
 
             var exchanges = directoryArchiveReader.ReadAllExchanges().ToList();
             var connections = directoryArchiveReader.ReadAllConnections().ToList();
-            
 
             var packager = new FxzyDirectoryPackager();
 
-            await packager.Pack(outputDirectory, RegisterFile(@"sortie-har.fxzy"));
+
+            Assert.Equal(3, exchanges.Count);
+
+            await packager.Pack(outputDirectory, RegisterFile(@"d:\sortie-har.fxzy"));
         }
     }
 }

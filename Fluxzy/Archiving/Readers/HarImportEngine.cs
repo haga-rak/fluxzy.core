@@ -9,7 +9,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using Fluxzy.Clients;
-using Fluxzy.Har;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
 
@@ -93,8 +92,9 @@ namespace Fluxzy.Readers
                 var exchange = new ExchangeInfo(exchangeId++, 
                     connection.Id, entry.Request.HttpVersion,
                     new RequestHeaderInfo(entry.Request.Method, entry.Request.Url, 
-                        entry.Request.Headers.Where(r => !r.Name.StartsWith(":")).Select(s => new HeaderFieldInfo(s.Name, s.Value))),
-                    new ResponseHeaderInfo(entry.Response.Status, entry.Response.Headers.Where(r => !r.Name.StartsWith(":")).Select(s => new HeaderFieldInfo(s.Name, s.Value))),
+                        entry.Request.Headers.Select(s => new HeaderFieldInfo(s.Name, s.Value)).StripContentAlterationHeaders()),
+                    new ResponseHeaderInfo(entry.Response.Status, entry.Response.Headers
+                                               .Select(s => new HeaderFieldInfo(s.Name, s.Value)).StripContentAlterationHeaders(), true),
                     new ExchangeMetrics() {
                         ResponseHeaderLength = entry.Response.EffectiveHeaderSize, 
                         RequestHeaderLength = entry.Request.EffectiveHeaderSize,
@@ -135,6 +135,18 @@ namespace Fluxzy.Readers
             }
 
 
+        }
+    }
+
+    internal static class HeaderExtension
+    {
+        public static IEnumerable<HeaderFieldInfo> StripContentAlterationHeaders(
+            this IEnumerable<HeaderFieldInfo> headerFieldInfos)
+        {
+
+            return headerFieldInfos.Where(s => 
+                !s.Name.Span.Equals("content-encoding", StringComparison.OrdinalIgnoreCase) &&
+                !s.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase));
         }
     }
 
@@ -196,7 +208,7 @@ namespace Fluxzy.Readers
         public int EffectiveHeaderSize {
             get
             {
-                if (HeaderSize < 0)
+                if (HeaderSize <= 0)
                     return Headers.Sum(s => s.Name.Length + s.Value.Length + 2) + 4; 
 
                 return HeaderSize;
@@ -295,15 +307,12 @@ namespace Fluxzy.Readers
         {
             get
             {
-                if (HeaderSize < 0)
+                if (HeaderSize <= 0)
                     return Headers.Sum(s => s.Name.Length + s.Value.Length + 2) + 4;
 
                 return HeaderSize;
             }
         }
-
-
-
 
         public int BodySize { get; set; }
 
@@ -332,7 +341,7 @@ namespace Fluxzy.Readers
 
         public string ? Encoding { get; set; }
 
-        public string ? Compression { get; set; }
+        public int ? Compression { get; set; }
 
         public void Write(Stream stream)
         {

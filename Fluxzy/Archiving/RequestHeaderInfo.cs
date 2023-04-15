@@ -42,6 +42,7 @@ namespace Fluxzy
         {
 
         }
+
         public RequestHeaderInfo(
             string method, string fullUrl, IEnumerable<HeaderFieldInfo> headers)
         {
@@ -51,7 +52,20 @@ namespace Fluxzy
             Scheme = uri.Scheme.AsMemory();
             Path = uri.PathAndQuery.AsMemory();
             Authority = uri.Authority.AsMemory();
-            Headers = headers;
+
+            var listHeaders = headers.ToList();
+
+            if (!listHeaders.Any(h => h.Name.Span.Equals(
+                    ":method".AsSpan(),
+                    StringComparison.OrdinalIgnoreCase))) {
+
+                listHeaders.Add(new HeaderFieldInfo(":method".AsMemory(), Method, true));
+                listHeaders.Add(new HeaderFieldInfo(":authority".AsMemory(), Authority, true));
+                listHeaders.Add(new HeaderFieldInfo(":path".AsMemory(), Path, true));
+                listHeaders.Add(new HeaderFieldInfo(":scheme".AsMemory(), Scheme, true));
+            }
+
+            Headers = listHeaders;
         }
 
         public ReadOnlyMemory<char> Method { get; }

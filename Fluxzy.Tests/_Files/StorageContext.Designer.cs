@@ -112,6 +112,16 @@ namespace Fluxzy.Tests._Files {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
+        internal static byte[] sandbox_smartizy_com {
+            get {
+                object obj = ResourceManager.GetObject("sandbox_smartizy_com", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Byte[].
+        /// </summary>
         internal static byte[] testarchive {
             get {
                 object obj = ResourceManager.GetObject("testarchive", resourceCulture);
