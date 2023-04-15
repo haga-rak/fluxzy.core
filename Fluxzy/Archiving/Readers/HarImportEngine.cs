@@ -243,7 +243,7 @@ namespace Fluxzy.Readers
         {
             var streamWriter = new StreamWriter(stream);
 
-            if (Params.Count == 0) {
+            if (!string.IsNullOrEmpty(Text)) {
                 streamWriter.Write(Text);
                 streamWriter.Flush();
                 return;
