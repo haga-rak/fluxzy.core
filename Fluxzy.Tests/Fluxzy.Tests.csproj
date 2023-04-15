@@ -72,7 +72,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="_Files\StorageContext.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>StorageContext.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
