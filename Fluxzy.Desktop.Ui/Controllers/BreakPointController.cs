@@ -1,6 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.Net;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Desktop.Services.BreakPoints;
 using Fluxzy.Rules;
@@ -30,6 +29,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<bool> Add(Filter filter)
         {
             _handler.AddBreakPoint(filter);
+
             return true;
         }
 
@@ -37,6 +37,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<bool> BreakAll()
         {
             _handler.BreakAll();
+
             return true;
         }
 
@@ -49,7 +50,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("delete")]
-        public ActionResult<bool> DeleteMultipleFilter([FromBody] Guid  [] filterIds)
+        public ActionResult<bool> DeleteMultipleFilter([FromBody] Guid[] filterIds)
         {
             _handler.DeleteBreakPoints(filterIds);
 
@@ -77,6 +78,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<bool> DeleteAllDone()
         {
             _handler.ClearAllDone();
+
             return true;
         }
 
@@ -96,7 +98,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
-
         [HttpPost("{exchangeId}/continue/until/{location}")]
         public ActionResult<bool> ContinueExchangeUntilEnd(int exchangeId, BreakPointLocation location)
         {
@@ -104,7 +105,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             return true;
         }
-
 
         [HttpPost("{exchangeId}/continue/once")]
         public ActionResult<bool> ContinueExchangeOnce(int exchangeId)
@@ -115,7 +115,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("{exchangeId}/endpoint")]
-        public ActionResult<bool> SetConnectionSetupStep(int exchangeId, [FromBody] ConnectionSetupStepModel connectionSetupStepModel)
+        public ActionResult<bool> SetConnectionSetupStep(
+            int exchangeId, [FromBody] ConnectionSetupStepModel connectionSetupStepModel)
         {
             _handler.SetEndPoint(exchangeId, connectionSetupStepModel);
 
@@ -130,7 +131,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
-
         [HttpPost("{exchangeId}/request")]
         public ActionResult<bool> SetRequest(int exchangeId, [FromBody] RequestSetupStepModel requestSetupStepModel)
         {
@@ -138,7 +138,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             return true;
         }
-
 
         [HttpPost("{exchangeId}/request/continue")]
         public ActionResult<bool> ContinueRequest(int exchangeId)
@@ -148,7 +147,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
-
         [HttpPost("{exchangeId}/response")]
         public ActionResult<bool> SetResponse(int exchangeId, [FromBody] ResponseSetupStepModel model)
         {
@@ -157,7 +155,6 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
-
         [HttpPost("{exchangeId}/response/continue")]
         public ActionResult<bool> ContinueResponse(int exchangeId)
         {
@@ -165,6 +162,5 @@ namespace Fluxzy.Desktop.Ui.Controllers
 
             return true;
         }
-
     }
 }

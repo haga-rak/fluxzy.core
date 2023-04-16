@@ -63,7 +63,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpPost("save-as")]
         public async Task<ActionResult<UiState>> SaveAs(
             FileSaveViewModel model, [FromServices] IObservable<TrunkState> trunkStateObservable,
-            [FromServices] LastOpenFileManager lastOpenFileManager)
+            [FromServices]
+            LastOpenFileManager lastOpenFileManager)
         {
             var trunkState = await trunkStateObservable.FirstAsync();
             await _fileManager.SaveAs(trunkState, model.FileName);

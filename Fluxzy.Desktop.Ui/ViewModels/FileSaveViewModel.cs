@@ -1,4 +1,6 @@
-﻿namespace Fluxzy.Desktop.Ui.ViewModels
+﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+namespace Fluxzy.Desktop.Ui.ViewModels
 {
     public class FileSaveViewModel
     {
@@ -7,6 +9,6 @@
             FileName = fileName;
         }
 
-        public string FileName { get;  }
+        public string FileName { get; }
     }
 }

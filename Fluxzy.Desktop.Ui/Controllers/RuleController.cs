@@ -39,8 +39,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("container/add")]
-        public async Task<ActionResult<bool>> AddToExisting([FromBody]  Rule rule, 
-            [FromServices] ActiveRuleManager activeRuleManager)
+        public async Task<ActionResult<bool>> AddToExisting(
+            [FromBody] Rule rule,
+            [FromServices]
+            ActiveRuleManager activeRuleManager)
         {
             var currentRuleContainers = await _ruleStorage.ReadRules();
             currentRuleContainers.Add(new RuleContainer(rule, true));
