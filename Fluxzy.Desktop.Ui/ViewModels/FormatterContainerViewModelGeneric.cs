@@ -5,7 +5,7 @@ using Fluxzy.Formatters;
 namespace Fluxzy.Desktop.Ui.ViewModels
 {
     /// <summary>
-    /// This is because System.Text.Json does not support serializing subclasses in .NET 6
+    ///     This is because System.Text.Json does not support serializing subclasses in .NET 6
     /// </summary>
     public class FormatterContainerViewModelGeneric
     {

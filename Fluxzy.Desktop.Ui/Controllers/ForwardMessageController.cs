@@ -19,9 +19,9 @@ namespace Fluxzy.Desktop.Ui.Controllers
         [HttpPost("consume")]
         public async Task<ActionResult<List<ForwardMessage>>> Consume()
         {
-            var res =  await _manager.ReadAll();
+            var res = await _manager.ReadAll();
 
-            return res; 
+            return res;
         }
     }
 }
