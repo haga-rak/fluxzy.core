@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
@@ -10,6 +10,9 @@ namespace Fluxzy.Formatters.Producers.Requests
         {
             if (context.RequestBodyText == null)
                 return null;
+
+            if (string.IsNullOrEmpty(context.RequestBodyText))
+                return null; 
 
             return new RequestTextBodyResult(ResultTitle, context.RequestBodyText);
         }

@@ -28,14 +28,14 @@
 
   <ItemGroup>
     <PackageReference Include="fluxzy.sandbox.models" Version="1.0.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="System.Threading.AccessControl" Version="7.0.1" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="3.1.0">
+    <PackageReference Include="coverlet.collector" Version="3.2.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -50,7 +50,6 @@
 
   <ItemGroup>
     <Folder Include="_Files\Certificates\" />
-    <Folder Include="_Files\Archives\" />
     <Folder Include="_Files\Outputs\" />
   </ItemGroup>
 
@@ -73,7 +72,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="_Files\StorageContext.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>StorageContext.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
@@ -32,6 +33,39 @@ namespace Fluxzy
             Path = path;
             Authority = authority;
             Headers = headers;
+        }
+
+        public RequestHeaderInfo(
+            string method, string scheme, string path,
+            string authority, IEnumerable<HeaderFieldInfo> headers)
+            : this (method.AsMemory(), scheme.AsMemory(), path.AsMemory(), authority.AsMemory(), headers)
+        {
+
+        }
+
+        public RequestHeaderInfo(
+            string method, string fullUrl, IEnumerable<HeaderFieldInfo> headers)
+        {
+            var uri = new Uri(fullUrl);
+
+            Method = method.AsMemory();
+            Scheme = uri.Scheme.AsMemory();
+            Path = uri.PathAndQuery.AsMemory();
+            Authority = uri.Authority.AsMemory();
+
+            var listHeaders = headers.ToList();
+
+            if (!listHeaders.Any(h => h.Name.Span.Equals(
+                    ":method".AsSpan(),
+                    StringComparison.OrdinalIgnoreCase))) {
+
+                listHeaders.Add(new HeaderFieldInfo(":method".AsMemory(), Method, true));
+                listHeaders.Add(new HeaderFieldInfo(":authority".AsMemory(), Authority, true));
+                listHeaders.Add(new HeaderFieldInfo(":path".AsMemory(), Path, true));
+                listHeaders.Add(new HeaderFieldInfo(":scheme".AsMemory(), Scheme, true));
+            }
+
+            Headers = listHeaders;
         }
 
         public ReadOnlyMemory<char> Method { get; }

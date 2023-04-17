@@ -1,4 +1,4 @@
-// Copyright © 2023 Haga RAKOTOHARIVELO
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Desktop.Ui.Runtime
 {
@@ -8,8 +8,7 @@ namespace Fluxzy.Desktop.Ui.Runtime
         {
             var current = original;
 
-            while (current != null)
-            {
+            while (current != null) {
                 if (predicate(current))
                     return current;
 

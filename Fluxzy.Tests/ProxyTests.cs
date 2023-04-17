@@ -495,7 +495,7 @@ namespace Fluxzy.Tests
         [Fact]
         public async Task Test_Url_Exceeding_Max_Line()
         {
-            var timeoutSeconds = 500;
+            var timeoutSeconds = 15;
             var requestReceived = new TaskCompletionSource<Exchange>();
             var bindHost = "127.0.0.1";
 
