@@ -160,6 +160,9 @@ namespace Fluxzy.Utils
             if (headerValue.Contains("css", StringComparison.OrdinalIgnoreCase))
                 return "css";
 
+            if (headerValue.Contains("svg", StringComparison.OrdinalIgnoreCase))
+                return "img";
+
             if (headerValue.Contains("xml", StringComparison.OrdinalIgnoreCase))
                 return "xml";
 
