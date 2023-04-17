@@ -138,5 +138,10 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         {
             return NonH2Header.Contains(headerName);
         }
+
+        public static bool IsNonForwardableHeader(string headerName)
+        {
+            return NonH2Header.Contains(headerName.AsMemory());
+        }
     }
 }

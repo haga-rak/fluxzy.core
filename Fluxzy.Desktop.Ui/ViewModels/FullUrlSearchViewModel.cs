@@ -9,6 +9,6 @@ namespace Fluxzy.Desktop.Ui.ViewModels
             Pattern = pattern;
         }
 
-        public string Pattern { get;  }
+        public string Pattern { get; }
     }
 }

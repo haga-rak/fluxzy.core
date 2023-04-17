@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Formatters;
 
@@ -6,7 +6,8 @@ namespace Fluxzy.Desktop.Ui.ViewModels
 {
     public class FormatterContainerViewModel
     {
-        public FormatterContainerViewModel(List<FormattingResult> requests, List<FormattingResult> responses, ExchangeContextInfo contextInfo)
+        public FormatterContainerViewModel(
+            List<FormattingResult> requests, List<FormattingResult> responses, ExchangeContextInfo contextInfo)
         {
             Requests = requests;
             Responses = responses;
@@ -17,6 +18,6 @@ namespace Fluxzy.Desktop.Ui.ViewModels
 
         public List<FormattingResult> Responses { get; }
 
-        public ExchangeContextInfo ContextInfo { get;  }
+        public ExchangeContextInfo ContextInfo { get; }
     }
 }

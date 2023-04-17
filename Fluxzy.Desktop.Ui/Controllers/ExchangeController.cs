@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Clients.H11;
-using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Metrics;
@@ -34,11 +33,9 @@ namespace Fluxzy.Desktop.Ui.Controllers
             var exchange = archiveReader!.ReadExchange(exchangeId);
 
             if (exchange == null)
-            {
                 return new NotFoundResult();
-            }
-            
-            return exchange; 
+
+            return exchange;
         }
 
         [HttpGet("{exchangeId}/has-request-body")]
@@ -48,6 +45,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             IArchiveReaderProvider archiveReaderProvider)
         {
             var archiveReader = await archiveReaderProvider.Get()!;
+
             return archiveReader!.HasRequestBody(exchangeId);
         }
 
@@ -58,11 +56,13 @@ namespace Fluxzy.Desktop.Ui.Controllers
             IArchiveReaderProvider archiveReaderProvider)
         {
             var archiveReader = await archiveReaderProvider.Get();
+
             return archiveReader!.HasResponseBody(exchangeId);
         }
 
         [HttpGet("{exchangeId}/suggested-request-body-file-name")]
-        public async Task<ActionResult<string>> GetSuggestedRequestBodyFileName(int exchangeId,
+        public async Task<ActionResult<string>> GetSuggestedRequestBodyFileName(
+            int exchangeId,
             [FromServices]
             IArchiveReaderProvider archiveReaderProvider)
         {
@@ -73,7 +73,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpGet("{exchangeId}/suggested-response-body-file-name")]
-        public async Task<ActionResult<string>> GetSuggestedResponseBodyFileName(int exchangeId,
+        public async Task<ActionResult<string>> GetSuggestedResponseBodyFileName(
+            int exchangeId,
             [FromServices]
             IArchiveReaderProvider archiveReaderProvider)
         {
@@ -167,7 +168,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
             IRequestReplayManager requestReplayManager,
             [FromServices]
             IArchiveReaderProvider archiveReaderProvider,
-            [FromQuery(Name="runInLiveEdit")] bool runInLiveEdit = false)
+            [FromQuery(Name = "runInLiveEdit")]
+            bool runInLiveEdit = false)
         {
             var archiveReader = await archiveReaderProvider.Get();
             var exchangeInfo = archiveReader!.ReadExchange(exchangeId);
