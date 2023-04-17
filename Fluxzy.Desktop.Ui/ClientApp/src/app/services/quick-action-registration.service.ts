@@ -273,5 +273,15 @@ export class QuickActionRegistrationService {
                 [], 'remove', 'suppress', 'clear', 'truncate'
         );
 
+        this.quickActionService.registerLocalAction(
+            "select-all", "General", "Select all exchanges", false,
+            { callBack : (exchangeIds : number []) => {
+
+                    this.menuService.raiseMenuEvents('select-all');
+                }},
+            ["fa", "fa-trash"],
+            [], 'remove', 'suppress'
+        );
+
     }
 }

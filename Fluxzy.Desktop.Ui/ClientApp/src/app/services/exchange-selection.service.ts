@@ -1,20 +1,21 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, tap } from 'rxjs';
+import {BehaviorSubject, combineLatest, distinctUntilChanged, filter, map, Observable, tap} from 'rxjs';
 import {ExchangeInfo, IExchangeLine, TrunkState} from '../core/models/auto-generated';
 import { ExchangeContentService } from './exchange-content.service';
 import {MenuService} from "../core/services/menu-service.service";
+import {DialogService} from "./dialog.service";
 
 @Injectable({
     providedIn: 'root',
 })
 export class ExchangeSelectionService {
-    private currentRawSelection$: BehaviorSubject<ExchangeSelection> =
+    private readonly currentRawSelection$: BehaviorSubject<ExchangeSelection> =
         new BehaviorSubject<ExchangeSelection>({ map: {} });
 
     private currentRawSelectionObservable$: Observable<ExchangeSelection>;
-    private currentSelectedIds$: Observable<number[]>;
-    private currenSelectionCount$: Observable<number>;
-    private selected$ : BehaviorSubject<IExchangeLine | null> = new BehaviorSubject<IExchangeLine | null>(null);
+    private readonly currentSelectedIds$: Observable<number[]>;
+    private readonly currenSelectionCount$: Observable<number>;
+    private readonly selected$ : BehaviorSubject<IExchangeLine | null> = new BehaviorSubject<IExchangeLine | null>(null);
 
 
     private currentSelection: ExchangeSelection = {
@@ -30,8 +31,6 @@ export class ExchangeSelectionService {
             .pipe(
                 distinctUntilChanged()
             );
-
-
 
         this.currentSelection$ = combineLatest([
             this.currentRawSelectionObservable$,
@@ -99,6 +98,13 @@ export class ExchangeSelectionService {
         this.setUpMenuEvents ();
     }
 
+    public setSelectAll() : void {
+        if (!this.trunkState?.exchanges)
+            return ;
+
+        this.setSelection(...this.trunkState.exchanges.map(e => e.id));
+    }
+
     public setSelection(...exchangeIds: number[]): void {
         if (exchangeIds.length > 0) {
             const exchangeSelection: ExchangeSelection = {
@@ -164,6 +170,14 @@ export class ExchangeSelectionService {
 
                 this.setSelection(...result) ;
         });
+
+
+        this.menuService.getApplicationMenuEvents()
+            .pipe(
+                filter((t) => t.menuId === 'select-all'),
+                tap((t) => this.setSelectAll())
+            )
+            .subscribe();
     }
 }
 

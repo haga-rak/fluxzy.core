@@ -152,6 +152,7 @@ export class MenuService {
                 )
                 .subscribe();
 
+
             this.apiService.registerEvent('FileOpeningRequestViewModel', (viewModel : FileOpeningRequestViewModel) => {
                 if (viewModel.fileName){
                     this.nextOpenFile$.next(viewModel.fileName);
