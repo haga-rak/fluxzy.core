@@ -111,6 +111,7 @@ import { DisplayStringComponent } from './widgets/display-string/display-string.
 import { AuthorizationBasicResultComponent } from './widgets/exchange-viewer/details-request/authorization-basic-result/authorization-basic-result.component';
 import { CellRenderingComponent } from './widgets/exchange-table-view/cell-rendering/cell-rendering.component';
 import { ContextMenuTableHeaderComponent } from './shared/context-menu-table-header/context-menu-table-header.component';
+import { AboutComponent } from './home/about/about.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -208,6 +209,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         AuthorizationBasicResultComponent,
         CellRenderingComponent,
         ContextMenuTableHeaderComponent,
+        AboutComponent,
 
 
     ],
