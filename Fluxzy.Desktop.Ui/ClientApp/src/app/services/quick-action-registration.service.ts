@@ -101,6 +101,14 @@ export class QuickActionRegistrationService {
                     this.dialogService.openManageRules();
                 }},
             ["fa", "fa-cog"],
+        )
+
+        this.quickActionService.registerLocalAction(
+            "about", "General", "About Fluxzy Desktop", false,
+            { callBack : (exchangeIds : number []) => {
+                    this.dialogService.openAboutDialog();
+                }},
+            ["fa", "fa-info-circle"],
         );
 
         this.quickActionService.registerLocalAction(
