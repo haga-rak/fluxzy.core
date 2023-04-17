@@ -137,7 +137,9 @@ function runFrontEnd() : void {
 function launchFluxzyDaemonOrDie(commandLineArgs : string [] , backedLaunchCallback : (success : boolean, busyPort : boolean) => void) : void {
     // Launch and wait for backend to be ready
     const exeName = process.platform === "win32"? "fluxzyd.exe" : "fluxzyd";
-    const backendPath:string = `resources/app/.publish/${exeName}`;
+    const processPath = path.dirname(process.argv[0]) ;
+    const backendPath:string = path.join(processPath, `resources/app/.publish/${exeName}`);
+
     const pid : string = `${process.pid}`;
 
     // Check if port is already busy
