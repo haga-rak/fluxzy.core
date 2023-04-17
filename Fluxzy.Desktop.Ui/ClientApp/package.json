@@ -26,8 +26,8 @@
         "e2e:show-trace": "playwright show-trace e2e/tracing/trace.zip",
         "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
         "lint": "ng lint",
-        "fluxzyd:build-win": "dotnet publish --self-contained --runtime win-x64 -c Release -o .publish  ../Fluxzy.Desktop.Ui.csproj",
-        "fluxzyd:build-linux": "dotnet publish --self-contained --runtime linux-x64 -c Release -o .publish  ../Fluxzy.Desktop.Ui.csproj",
+        "fluxzyd:build-win": "dotnet publish --runtime win-x64 -c Release -o .publish  ../Fluxzy.Desktop.Ui.csproj",
+        "fluxzyd:build-linux": "dotnet publish --use-current-runtime -c Release -o .publish  ../Fluxzy.Desktop.Ui.csproj",
         "package-win": "npm run fluxzyd:build-win && npm run build:prod && electron-forge package",
         "package-linux": "npm run fluxzyd:build-linux && npm run build:prod && electron-forge package",
         "make": "electron-forge make"
