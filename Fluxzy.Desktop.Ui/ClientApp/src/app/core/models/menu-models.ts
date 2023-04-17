@@ -242,6 +242,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 type :  'separator'
             },
             {
+                id : 'about',
                 label : 'About',
             },
         ]

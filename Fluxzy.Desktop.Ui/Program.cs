@@ -67,10 +67,10 @@ namespace Fluxzy.Desktop.Ui
                     await activeRuleManages.InitRules();
 
                     if (isDesktop) {
-                        await Task.Delay(1500); // Wait for the UI to be ready
+                        await Task.Delay(1500, haltTokenSource.Token); // Wait for the UI to be ready
 
-                        Console.Out.WriteLine("FLUXZY_LISTENING");
-                        Console.Out.Flush();
+                        await Console.Out.WriteLineAsync("FLUXZY_LISTENING");
+                        await Console.Out.FlushAsync();
                     }
                 }
                 catch (Exception ex) {
@@ -81,8 +81,8 @@ namespace Fluxzy.Desktop.Ui
                         throw;
 
                     if (isDesktop) {
-                        Console.Out.WriteLine("FLUXZY_PORT_ERROR");
-                        Console.Out.Flush();
+                        await Console.Out.WriteLineAsync("FLUXZY_PORT_ERROR");
+                        await Console.Out.FlushAsync();
 
                         if (CommandLineUtility.TryGetArgsValue(args, "--file", out var fileName) &&
                             fileName != null)
@@ -100,7 +100,7 @@ namespace Fluxzy.Desktop.Ui
                 Log.Fatal(ex, "fluxzy terminated unexpectedly");
             }
             finally {
-                Log.CloseAndFlush();
+                await Log.CloseAndFlushAsync();
             }
         }
 
@@ -116,7 +116,6 @@ namespace Fluxzy.Desktop.Ui
 #endif
 
             if (Environment.GetEnvironmentVariable("appdata") == null) {
-
                 // For Linux and OSX environment this EV is missing, so we need to set it manually because it's used everywhere
                 // usually XDG_DATA_HOME on linux and HOME on OSX
 

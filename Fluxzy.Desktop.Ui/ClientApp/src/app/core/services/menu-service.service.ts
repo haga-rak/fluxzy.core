@@ -144,6 +144,14 @@ export class MenuService {
                 )
                 .subscribe();
 
+
+            this.applicationMenuEvents$
+                .pipe(
+                    filter((t) => t.menuId === 'about'),
+                    tap((t) => this.dialogService.openAboutDialog())
+                )
+                .subscribe();
+
             this.apiService.registerEvent('FileOpeningRequestViewModel', (viewModel : FileOpeningRequestViewModel) => {
                 if (viewModel.fileName){
                     this.nextOpenFile$.next(viewModel.fileName);

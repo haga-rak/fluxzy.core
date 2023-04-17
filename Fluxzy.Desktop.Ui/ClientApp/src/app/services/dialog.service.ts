@@ -28,6 +28,7 @@ import {WizardComponent} from "../settings/wizard/wizard.component";
 import {BreakPointDialogComponent} from "../breakpoints/break-point-dialog/break-point-dialog.component";
 import {BreakPointService} from "../breakpoints/break-point.service";
 import {DisplayStringComponent} from "../widgets/display-string/display-string.component";
+import {AboutComponent} from "../home/about/about.component";
 
 @Injectable({
     providedIn: 'root',
@@ -279,6 +280,20 @@ export class DialogService {
 
         this.bsModalRef.content.closeBtnName = 'Close';
         return subject.asObservable().pipe(take(1));;
+    }
+
+    public openAboutDialog() : void {
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            ignoreBackdropClick : false
+        };
+
+        this.bsModalRef = this.modalService.show(
+            AboutComponent,
+            config
+        );
+
+        this.bsModalRef.content.closeBtnName = 'Close';
     }
 
     public openTagCreate() : Observable<Tag | null> {
