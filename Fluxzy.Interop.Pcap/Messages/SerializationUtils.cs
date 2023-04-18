@@ -20,7 +20,7 @@ namespace Fluxzy.Interop.Pcap.Messages
 
         public static void WriteString(this Stream stream, string str)
         {
-            Span<byte> buffer = stackalloc byte[str.Length * 2];
+            Span<byte> buffer = stackalloc byte[str.Length * 2 + 4];
 
             var length = Encoding.UTF8.GetBytes(str, buffer.Slice(4));
 
