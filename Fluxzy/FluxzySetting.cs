@@ -68,7 +68,7 @@ namespace Fluxzy
         ///     root certificate on the fly is expensive.
         /// </summary>
         [JsonInclude]
-        public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.echoes/cert-caches";
+        public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.fluxzy/cert-caches";
 
         /// <summary>
         ///     When set to true, echoes will automatically install default certificate when starting.
