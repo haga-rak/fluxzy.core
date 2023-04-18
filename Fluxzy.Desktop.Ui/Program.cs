@@ -126,7 +126,7 @@ namespace Fluxzy.Desktop.Ui
 
             Environment.SetEnvironmentVariable("FluxzyVersion", $"{version.Major}.{version.Minor}.{version.Build}");
 
-#if (!DEBUG)
+#if (DEBUG)
         Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
         Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
 #endif
