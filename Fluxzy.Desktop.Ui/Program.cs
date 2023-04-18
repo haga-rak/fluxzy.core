@@ -3,8 +3,10 @@
 using System.Net.Sockets;
 using System.Reflection;
 using Fluxzy.Desktop.Services;
+using Fluxzy.Desktop.Ui.Logging;
 using Fluxzy.Desktop.Ui.Runtime;
 using Serilog;
+using Serilog.Events;
 
 namespace Fluxzy.Desktop.Ui
 {
@@ -15,15 +17,25 @@ namespace Fluxzy.Desktop.Ui
             PrepareEnvVar();
 
             Log.Logger = new LoggerConfiguration()
+                         .MinimumLevel.Information()
+                         .Enrich.With(new EnvironmentInformationEnricher())
                          .WriteTo.File(
                              Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy.Desktop/logs/fluxzy.log.txt"),
                              rollingInterval: RollingInterval.Day,
                              rollOnFileSizeLimit: true,
                              fileSizeLimitBytes: 1024 * 512)
+                         .WriteTo.Seq("https://logs.fluxzy.io",
+                             messageHandler: new HttpClientHandler()
+                             {
+                                 Proxy = null,
+                                 UseProxy = false,
+                             },
+                             restrictedToMinimumLevel: LogEventLevel.Information,
+                             apiKey: "vMmUtrjFR2Vue5ZcKkuqttTpUDfh5hqNkB4yuveVLH7W3c2UkC")
                          .CreateLogger();
 
             try {
-                Log.Information("Starting fluxzy with args: {args}", args);
+                Log.Information("Starting fluxzyd: {CliArgs}", args);
 
                 var haltTokenSource = new CancellationTokenSource();
 
@@ -40,6 +52,10 @@ namespace Fluxzy.Desktop.Ui
                 });
 
                 builder.Services.AddFluxzyDesktopServices();
+
+                builder.Host.UseSerilog((context, configuration) => {
+                    configuration.MinimumLevel.Error();
+                });
 
                 var app = builder.Build();
 

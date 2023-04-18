@@ -344,7 +344,7 @@
                                         <input class="form-check-input" type="checkbox" id="flexSwitchRunMode"
                                                [(ngModel)]="settingsHolder.startupSetting.outOfProcCapture">
                                         <label class="form-check-label" for="flexSwitchRunMode">
-                                            Run the capture process out of Desktop process</label>
+                                            Run external process to capture raw packet</label>
                                     </div>
 
                                     <small class="text-info">
@@ -370,7 +370,6 @@
                                             Disable decryption
                                         </label>
                                         <div style="margin-top: 8px">
-
                                         <span class="text-info"
                                               *ngIf="settingsHolder.startupSetting.globalSkipSslDecryption">
                                             SSL decryption is disabled. Any rules affecting decryption is ignored.
