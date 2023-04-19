@@ -2,11 +2,11 @@
 
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Ui.Logging;
 using Fluxzy.Desktop.Ui.Runtime;
 using Serilog;
-using Serilog.Events;
 
 namespace Fluxzy.Desktop.Ui
 {
@@ -17,25 +17,18 @@ namespace Fluxzy.Desktop.Ui
             PrepareEnvVar();
 
             Log.Logger = new LoggerConfiguration()
-                         .MinimumLevel.Information()
-                         .Enrich.With(new EnvironmentInformationEnricher())
-                         .WriteTo.File(
-                             Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy.Desktop/logs/fluxzy.log.txt"),
-                             rollingInterval: RollingInterval.Day,
-                             rollOnFileSizeLimit: true,
-                             fileSizeLimitBytes: 1024 * 512)
-                         .WriteTo.Seq("https://logs.fluxzy.io",
-                             messageHandler: new HttpClientHandler()
-                             {
-                                 Proxy = null,
-                                 UseProxy = false,
-                             },
-                             restrictedToMinimumLevel: LogEventLevel.Information,
-                             apiKey: "vMmUtrjFR2Vue5ZcKkuqttTpUDfh5hqNkB4yuveVLH7W3c2UkC")
+                         .SetupLoggingConfiguration()
                          .CreateLogger();
 
             try {
-                Log.Information("Starting fluxzyd: {CliArgs}", args);
+                Log.Information("Starting fluxzyd with {CliArgs}. Configuration : {OSArchitecture} {OSDescription} " +
+                                "{RuntimeIdentifier} {Memory} Mb", 
+                    args, 
+                    RuntimeInformation.OSArchitecture,
+                    RuntimeInformation.OSDescription,
+                    RuntimeInformation.RuntimeIdentifier,
+                    (int) (GC.GetGCMemoryInfo().TotalAvailableMemoryBytes/ 1048576.0)
+                    );
 
                 var haltTokenSource = new CancellationTokenSource();
 
@@ -44,6 +37,9 @@ namespace Fluxzy.Desktop.Ui
                 var builder = WebApplication.CreateBuilder(args);
 
                 // Add services to the container.
+                builder.Host.UseSerilog((context, services, configuration) =>
+                    configuration
+                        .SetupLoggingConfiguration());
 
                 builder.Services.AddControllersWithViews().AddJsonOptions(options => {
                     foreach (var converter in GlobalArchiveOption.DefaultSerializerOptions.Converters) {
@@ -53,9 +49,6 @@ namespace Fluxzy.Desktop.Ui
 
                 builder.Services.AddFluxzyDesktopServices();
 
-                builder.Host.UseSerilog((context, configuration) => {
-                    configuration.MinimumLevel.Error();
-                });
 
                 var app = builder.Build();
 
@@ -103,9 +96,9 @@ namespace Fluxzy.Desktop.Ui
                         if (CommandLineUtility.TryGetArgsValue(args, "--file", out var fileName) &&
                             fileName != null)
                             await AppControl.AnnounceFileOpeningRequest(fileName);
-
-                        // This is a classic port error. 
                     }
+
+                    // Instance already exists
 
                     return;
                 }
@@ -127,8 +120,8 @@ namespace Fluxzy.Desktop.Ui
             Environment.SetEnvironmentVariable("FluxzyVersion", $"{version.Major}.{version.Minor}.{version.Build}");
 
 #if (DEBUG)
-        Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
-        Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
+            Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
+            Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
 #endif
 
             if (Environment.GetEnvironmentVariable("appdata") == null) {

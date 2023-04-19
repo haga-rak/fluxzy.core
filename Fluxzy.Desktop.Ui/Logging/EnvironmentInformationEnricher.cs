@@ -17,9 +17,6 @@ namespace Fluxzy.Desktop.Ui.Logging
 
             logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(
                 "AppVersion", "v0.1.18"));
-
-            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(
-                "Runtime", RuntimeInformation.RuntimeIdentifier));
         }
     }
 }
