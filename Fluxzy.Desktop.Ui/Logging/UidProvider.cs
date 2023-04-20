@@ -5,7 +5,7 @@ namespace Fluxzy.Desktop.Ui.Logging
     static class UidProvider
     {
         private static readonly object _lock = new();
-        private static string? _current; 
+        private static string? _current;
 
         public static string Current()
         {
@@ -17,7 +17,7 @@ namespace Fluxzy.Desktop.Ui.Logging
                 var newId = Guid.NewGuid().ToString();
 
                 var fullDirectory = Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy.Desktop");
-                Directory.CreateDirectory(fullDirectory); 
+                Directory.CreateDirectory(fullDirectory);
 
                 var path = Path.Combine(fullDirectory, "uid.txt");
 
@@ -27,6 +27,15 @@ namespace Fluxzy.Desktop.Ui.Logging
 
                 return _current = newId;
             }
+        }
+    }
+
+    public class CommonErrorException : Exception
+    {
+        public CommonErrorException(string message)
+            : base(message)
+        {
+
         }
     }
 }

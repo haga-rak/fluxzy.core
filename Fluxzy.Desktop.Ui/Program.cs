@@ -48,8 +48,7 @@ namespace Fluxzy.Desktop.Ui
                 });
 
                 builder.Services.AddFluxzyDesktopServices();
-
-
+                
                 var app = builder.Build();
 
                 app.UseStaticFiles();

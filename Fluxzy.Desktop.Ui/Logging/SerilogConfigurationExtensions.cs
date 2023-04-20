@@ -20,7 +20,7 @@ namespace Fluxzy.Desktop.Ui.Logging
                        rollingInterval: RollingInterval.Day,
                        rollOnFileSizeLimit: true,
                        fileSizeLimitBytes: 1024 * 512)
-                   .WriteTo.Seq("https://logs.fluxzy.io",
+                   .WriteTo.Seq("https://logs.fluxzy.io:43210",
                        messageHandler: new HttpClientHandler()
                        {
                            Proxy = null,
