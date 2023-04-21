@@ -9,6 +9,12 @@ namespace Fluxzy.Certificates
 {
     public static class CertificateExtension
     {
+        public static void ExportToPem(this X509Certificate cert, string fileName)
+        {
+            using var fileStream = File.Create(fileName);
+            cert.ExportToPem(fileStream);
+        }
+        
         public static void ExportToPem(this X509Certificate cert, Stream stream)
         {
             using var streamWriter = new StreamWriter(stream, Encoding.ASCII, 1024 * 8, true);

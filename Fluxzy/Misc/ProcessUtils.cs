@@ -169,7 +169,7 @@ namespace Fluxzy.Misc
             var fullArgs = string.Join(" ", args.Select(s => s.EscapeSegment()));
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                // We use run as 
+                // We use run as it is 
                 var winProcess = Process.Start(new ProcessStartInfo(commandName, fullArgs) {
                     UseShellExecute = false,
                     Verb = "runas",
