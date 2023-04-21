@@ -1,9 +1,9 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import * as _ from 'lodash';
-import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
+import {BsModalRef, ModalOptions} from 'ngx-bootstrap/modal';
 import {filter, map, Observable, switchMap, take, tap} from 'rxjs';
-import {CommentUpdateModel, Tag, TagGlobalApplyModel} from "../../core/models/auto-generated";
-import {ApiService} from "../../services/api.service";
+import {CommentUpdateModel, Tag, TagGlobalApplyModel} from '../../core/models/auto-generated';
+import {ApiService} from '../../services/api.service';
 import { DialogService } from '../../services/dialog.service';
 
 @Component({
@@ -19,43 +19,42 @@ export class TagApplyComponent implements OnInit {
     constructor(
         public bsModalRef: BsModalRef,
         public options: ModalOptions,
-        public apiService : ApiService,
-        private dialogService : DialogService,
+        public apiService: ApiService,
+        private dialogService: DialogService,
         private cd: ChangeDetectorRef) {
         this.model = this.options.initialState.tagApplyModel as TagGlobalApplyModel ;
-        this.callBack = this.options.initialState.callBack as (f : TagGlobalApplyModel | null) => void ;
+        this.callBack = this.options.initialState.callBack as (f: TagGlobalApplyModel | null) => void ;
     }
 
-    private refreshTagList() : Observable<any> {
+    private refreshTagList(): Observable<any> {
         return this.apiService.metaInfoGet()
             .pipe(
                 take(1),
-                //map(t => new Set<string>(Array.from(t.tags))),
                 tap(t => this.tags = t.tags),
                 tap(_ => this.cd.detectChanges())
             );
     }
 
-    public getSelectedTags() : Tag [] {
+    public getSelectedTags(): Tag [] {
         return this.tags.filter(t => this.isSelected(t.identifier));
     }
 
-    public getUnSelectedTags() : Tag [] {
+    public getUnSelectedTags(): Tag [] {
         return this.tags.filter(t => !this.isSelected(t.identifier));
     }
 
 
-    private isSelected(tagIdentifier: string) : boolean {
+    private isSelected(tagIdentifier: string): boolean {
         return this.model.tagIdentifiers.indexOf(tagIdentifier) >= 0 ;
     }
 
-    public select(tagIdentifier: string) : void {
+    public select(tagIdentifier: string): void {
         this.model.tagIdentifiers.push(tagIdentifier) ;
         this.model.tagIdentifiers = _.uniq(this.model.tagIdentifiers) ;
         this.cd.detectChanges() ;
     }
 
-    public unSelect(tagIdentifier: string) : void {
+    public unSelect(tagIdentifier: string): void {
         this.model.tagIdentifiers = _.remove(this.model.tagIdentifiers,t => t === tagIdentifier) ;
         this.cd.detectChanges() ;
     }
@@ -77,7 +76,7 @@ export class TagApplyComponent implements OnInit {
         this.bsModalRef.hide();
     }
 
-    public createNewTag() :void {
+    public createNewTag(): void {
         this.dialogService.openTagCreate()
             .pipe(
                 take(1),

@@ -23,13 +23,13 @@
                     <div class="form-check">
                         <input class="form-check-input" id="SkipBody" type="radio" [(ngModel)]="saveSetting.policy" [value]="'SkipBody'" (ngModelChange)="cd.detectChanges()">
                         <label class="form-check-label" for="SkipBody">
-                            Exclude all
+                            Exclude always
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" id="AlwaysSave" type="radio" [(ngModel)]="saveSetting.policy" [value]="'AlwaysSave'" (ngModelChange)="cd.detectChanges()">
                         <label class="form-check-label" for="AlwaysSave">
-                            Include all
+                            Include always
                         </label>
                     </div>
                     <div class="form-check">
