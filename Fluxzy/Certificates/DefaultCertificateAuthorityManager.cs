@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -36,6 +37,9 @@ namespace Fluxzy.Certificates
                 try
                 {
                     store.Remove(certificate);
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                        ExtendedLinuxCertificateInstaller.Install(certificate);
                 }
                 catch (Exception)
                 {
@@ -55,7 +59,10 @@ namespace Fluxzy.Certificates
                 store.Open(OpenFlags.ReadWrite);
                 store.Add(newCertificate);
 
-                return default;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    ExtendedLinuxCertificateInstaller.Install(certificate);
+
+                return new ValueTask<bool>(true);
             }
             catch {
                 // Probably user as refused to install the certificate or user has not enough right 
@@ -78,5 +85,21 @@ namespace Fluxzy.Certificates
 
             return result;
         }
+    }
+
+    internal class InstallableCertificate
+    {
+        public InstallableCertificate(string directory, string updateCommand, string updateCommandArgs)
+        {
+            Directory = directory;
+            UpdateCommand = updateCommand;
+            UpdateCommandArgs = updateCommandArgs;
+        }
+
+        public string Directory { get; }
+
+        public string UpdateCommand { get; }
+
+        public string UpdateCommandArgs { get; }
     }
 }
