@@ -29,6 +29,7 @@ import {BreakPointDialogComponent} from "../breakpoints/break-point-dialog/break
 import {BreakPointService} from "../breakpoints/break-point.service";
 import {DisplayStringComponent} from "../widgets/display-string/display-string.component";
 import {AboutComponent} from "../home/about/about.component";
+import {MessageDialogComponent, MessageDialogModel} from "../shared/error-dialog/message-dialog.component";
 
 @Injectable({
     providedIn: 'root',
@@ -49,13 +50,6 @@ export class DialogService {
     public openGlobalSettings(): void {
         const config: ModalOptions = {
             initialState: {
-                list: [
-                    'Open a modal with component',
-                    'Pass your data',
-                    'Do something else',
-                    '...',
-                ],
-                title: 'Modal with component',
             },
             ignoreBackdropClick : true
         };
@@ -295,6 +289,40 @@ export class DialogService {
 
         this.bsModalRef.content.closeBtnName = 'Close';
     }
+
+    public showInformationDialog(title : string, content : string) : void {
+        this.showMessageDialog({
+            title,
+            content,
+            type : "info"
+        });
+    }
+
+    public showErrorDialog(title : string, content : string) : void {
+        this.showMessageDialog({
+            title,
+            content,
+            type : "info"
+        });
+    }
+
+    public showMessageDialog(messageDialogModel : MessageDialogModel) : void {
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                class: 'little-down modal-dialog-small',
+                messageDialogModel
+            },
+            ignoreBackdropClick : false
+        };
+
+        this.bsModalRef = this.modalService.show(
+            MessageDialogComponent,
+            config
+        );
+    }
+
+
 
     public openTagCreate() : Observable<Tag | null> {
         const subject = new Subject<Tag | null>() ;

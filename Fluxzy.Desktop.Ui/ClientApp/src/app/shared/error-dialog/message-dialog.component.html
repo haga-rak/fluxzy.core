@@ -1,0 +1,33 @@
+
+<div class="modal-header">
+    <h4 class="modal-title pull-left">
+        <i class="fa fa-commenting" aria-hidden="true"></i>  {{ model.title }}
+    </h4>
+    <button type="button" class="btn-close close pull-right white" aria-label="Close" (click)="close()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body" style="min-height: 50px">
+    <div>
+
+        <table style="width: 100%">
+            <tr>
+                <td style="width : 100px; vertical-align: middle " class="icon-box">
+                    <span *ngIf="model.type === 'error'"><i class="fa fa-exclamation-triangle text-danger" aria-hidden="true"></i>
+</span>
+                    <span *ngIf="model.type === 'info'"><i class="fa fa-info-circle text-primary" aria-hidden="true"></i>
+
+</span>
+                </td>
+                <td>
+                    <p class="text-info">
+                        {{ model.content }}
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" (click)="close()">Close</button>
+</div>
