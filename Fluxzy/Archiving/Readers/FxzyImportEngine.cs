@@ -1,7 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
 using System.IO;
+using System.IO.Compression;
 
 namespace Fluxzy.Readers
 {
@@ -16,10 +16,16 @@ namespace Fluxzy.Readers
 
         public bool IsFormat(string fileName)
         {
-            // TODO : add a better check here 
+            try {
+                using var zipArchive = ZipFile.Open(fileName, ZipArchiveMode.Read);
+                var entry = zipArchive.GetEntry("meta.json");
 
-            return fileName.EndsWith(".fxzy", StringComparison.OrdinalIgnoreCase)
-                   || fileName.EndsWith(".fluxzy", StringComparison.OrdinalIgnoreCase);
+                return entry != null;
+            }
+            catch {
+                // ignore zip reading error 
+                return false;
+            }
         }
 
         public void WriteToDirectory(string fileName, string directory)
