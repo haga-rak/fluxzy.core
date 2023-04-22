@@ -3,27 +3,27 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy", "Fluxzy\Fluxzy.csproj", "{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy", "src\Fluxzy\Fluxzy.csproj", "{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Cli", "Fluxzy.Cli\Fluxzy.Cli.csproj", "{A020742E-DADE-42CE-8235-18C084DFC597}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Cli", "src\Fluxzy.Cli\Fluxzy.Cli.csproj", "{A020742E-DADE-42CE-8235-18C084DFC597}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests", "Fluxzy.Tests\Fluxzy.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests", "test\Fluxzy.Tests\Fluxzy.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Services", "Fluxzy.Desktop.Services\Fluxzy.Desktop.Services.csproj", "{A6E1E399-F217-4D00-8341-228E6F4839AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Services", "src\Fluxzy.Desktop.Services\Fluxzy.Desktop.Services.csproj", "{A6E1E399-F217-4D00-8341-228E6F4839AD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CAD5F2E1-227B-43AD-AFF9-1311097038D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Ui", "Fluxzy.Desktop.Ui\Fluxzy.Desktop.Ui.csproj", "{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Ui", "src\Fluxzy.Desktop.Ui\Fluxzy.Desktop.Ui.csproj", "{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap", "Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj", "{9BA601E9-8E97-43D3-B562-B9B0E46E3036}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap", "src\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj", "{9BA601E9-8E97-43D3-B562-B9B0E46E3036}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap.Cli", "Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj", "{37905BB6-10F2-4752-8AE6-92A95FCDB705}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap.Cli", "src\Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj", "{37905BB6-10F2-4752-8AE6-92A95FCDB705}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pcap", "Pcap", "{AA4E8234-B9D8-4327-8E98-471CE95CEB2C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Extensions", "Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Extensions", "src\Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.NativeOps", "Fluxzy.NativeOps\Fluxzy.NativeOps.csproj", "{8F6BF776-859D-45A4-9CDB-DC9A895E7845}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.NativeOps", "src\Fluxzy.NativeOps\Fluxzy.NativeOps.csproj", "{8F6BF776-859D-45A4-9CDB-DC9A895E7845}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,6 +80,6 @@ Global
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}
 	EndGlobalSection
 	GlobalSection(RiderSharedRunConfigurations) = postSolution
-		File = Fluxzy.Desktop.Ui\ClientApp\.run\Angular CLI Server.run.xml
+		File = src\Fluxzy.Desktop.Ui\ClientApp\.run\Angular CLI Server.run.xml
 	EndGlobalSection
 EndGlobal
