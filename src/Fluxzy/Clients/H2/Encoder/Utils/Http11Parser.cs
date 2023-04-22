@@ -156,14 +156,14 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
                 // Response header 
 
-                offsetBuffer = offsetBuffer.Concat("HTTP/1.1 ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(statusHeader.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(" ", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "HTTP/1.1 ");
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, statusHeader.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, " ");
 
-                offsetBuffer = offsetBuffer.Concat(Http11Constants.GetStatusLine(statusHeader.Value).Span,
-                    ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten,
+                    Http11Constants.GetStatusLine(statusHeader.Value).Span);
 
-                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
             else {
                 // Request Header
@@ -174,39 +174,41 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 if (!mapping.TryGetValue(Http11Constants.AuthorityVerb, out var authority))
                     throw new HPackCodecException("Could not find authority verb");
 
-                offsetBuffer = offsetBuffer.Concat(method.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(' ', ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(path.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(" HTTP/1.1\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, method.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, ' ');
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, path.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, " HTTP/1.1\r\n");
 
-                offsetBuffer = offsetBuffer.Concat("Host: ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(authority.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "Host: ");
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, authority.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
             foreach (var entry in entries) {
                 if (Http11Constants.AvoidAutoParseHttp11Headers.Contains(entry.Name))
                     continue; // PSEUDO headers
 
-                offsetBuffer = offsetBuffer.Concat(entry.Name.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(": ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(entry.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, entry.Name.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, ": ");
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, entry.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
-            var cookieValue = SpanCharsHelper.Join(
+            var cookieLength = SpanCharsHelper.Join(
                 entries.Where(c =>
                     c.Name.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)
                 ).Select(s => s.Value), "; ".AsSpan(), cookieBuffer);
 
+            var cookieValue = cookieBuffer.Slice(0, cookieLength);
+
             if (!cookieValue.IsEmpty) {
-                offsetBuffer = offsetBuffer.Concat(Http11Constants.CookieVerb.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(": ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(cookieValue, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, Http11Constants.CookieVerb.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, ": ");
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, cookieValue);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
-            offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+            SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
 
             return totalWritten;
         }
@@ -229,14 +231,14 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
                 // Response header 
 
-                offsetBuffer = offsetBuffer.Concat("HTTP/1.1 ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(statusHeader.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(" ", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "HTTP/1.1 ");
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, statusHeader.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, " ");
 
-                offsetBuffer = offsetBuffer.Concat(Http11Constants.GetStatusLine(statusHeader.Value).Span,
-                    ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten,
+                    Http11Constants.GetStatusLine(statusHeader.Value).Span);
 
-                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
             else {
                 // Request Header
@@ -247,39 +249,41 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 if (!mapping.TryGetValue(Http11Constants.AuthorityVerb, out var authority))
                     throw new HPackCodecException("Could not find authority verb");
 
-                offsetBuffer = offsetBuffer.Concat(method.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(' ', ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(path.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(" HTTP/1.1\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, method.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, ' ');
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, path.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, " HTTP/1.1\r\n");
 
-                offsetBuffer = offsetBuffer.Concat("Host: ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(authority.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "Host: ");
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, authority.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
             foreach (var entry in entries) {
                 if (Http11Constants.AvoidAutoParseHttp11Headers.Contains(entry.Name))
                     continue; // PSEUDO headers
 
-                offsetBuffer = offsetBuffer.Concat(entry.Name.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(": ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(entry.Value.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, entry.Name.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, ": ");
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, entry.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
-            var cookieValue = SpanCharsHelper.Join(
+            var cookieLength = SpanCharsHelper.Join(
                 entries.Where(c =>
                     c.Name.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)
                 ).Select(s => s.Value), "; ".AsSpan(), cookieBuffer);
 
+            var cookieValue = cookieBuffer.Slice(0, cookieLength);
+
             if (!cookieValue.IsEmpty) {
-                offsetBuffer = offsetBuffer.Concat(Http11Constants.CookieVerb.Span, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(": ", ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat(cookieValue, ref totalWritten);
-                offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, Http11Constants.CookieVerb.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, ": ");
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, cookieValue);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
-            offsetBuffer = offsetBuffer.Concat("\r\n", ref totalWritten);
+            SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
 
             return totalWritten;
         }

@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -110,31 +110,27 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             return input;
         }
 
-        public static Span<char> Concat(this Span<char> input, in ReadOnlySpan<char> addition, ref int offset)
+        public static int Add(this Span<char> input, in ReadOnlySpan<char> addition)
         {
             addition.CopyTo(input);
-            offset += addition.Length;
-
-            return input.Slice(addition.Length);
+            return input.Length;
         }
 
-        public static Span<char> Concat(this Span<char> input, char @char, ref int offset)
+        public static void Concat(ref Span<char> input, ref int offset, in ReadOnlySpan<char> addition)
+        {
+            addition.CopyTo(input);
+            offset += addition.Length; 
+            input = input.Slice(addition.Length);
+        }
+
+        public static void Concat(ref Span<char> input, ref int offset, char @char)
         {
             input[0] = @char;
             offset += 1;
-
-            return input.Slice(1);
+            input = input.Slice(1);
         }
 
-        public static Span<char> Concat(this Span<char> input, string str, ref int offset)
-        {
-            str.AsSpan().CopyTo(input);
-            offset += str.Length;
-
-            return input.Slice(str.Length);
-        }
-
-        public static Span<char> Join(
+        public static int Join(
             in IEnumerable<ReadOnlyMemory<char>> items,
             in ReadOnlySpan<char> separator, Span<char> buffer)
         {
@@ -154,12 +150,12 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
                     continue;
                 }
-
-                offsetBuffer = offsetBuffer.Concat(separator, ref offset);
-                offsetBuffer = offsetBuffer.Concat(item.Span, ref offset);
+                
+                Concat(ref offsetBuffer, ref offset, separator);
+                Concat(ref offsetBuffer, ref offset, item.Span);
             }
 
-            return buffer.Slice(0, offset);
+            return offset; 
         }
     }
 }
