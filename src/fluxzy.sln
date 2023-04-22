@@ -1,0 +1,85 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy", "Fluxzy\Fluxzy.csproj", "{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Cli", "Fluxzy.Cli\Fluxzy.Cli.csproj", "{A020742E-DADE-42CE-8235-18C084DFC597}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests", "Fluxzy.Tests\Fluxzy.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Services", "Fluxzy.Desktop.Services\Fluxzy.Desktop.Services.csproj", "{A6E1E399-F217-4D00-8341-228E6F4839AD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CAD5F2E1-227B-43AD-AFF9-1311097038D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Ui", "Fluxzy.Desktop.Ui\Fluxzy.Desktop.Ui.csproj", "{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap", "Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj", "{9BA601E9-8E97-43D3-B562-B9B0E46E3036}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap.Cli", "Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj", "{37905BB6-10F2-4752-8AE6-92A95FCDB705}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pcap", "Pcap", "{AA4E8234-B9D8-4327-8E98-471CE95CEB2C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Extensions", "Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.NativeOps", "Fluxzy.NativeOps\Fluxzy.NativeOps.csproj", "{8F6BF776-859D-45A4-9CDB-DC9A895E7845}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A020742E-DADE-42CE-8235-18C084DFC597}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A020742E-DADE-42CE-8235-18C084DFC597}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A020742E-DADE-42CE-8235-18C084DFC597}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A020742E-DADE-42CE-8235-18C084DFC597}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6E1E399-F217-4D00-8341-228E6F4839AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6E1E399-F217-4D00-8341-228E6F4839AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6E1E399-F217-4D00-8341-228E6F4839AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6E1E399-F217-4D00-8341-228E6F4839AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37905BB6-10F2-4752-8AE6-92A95FCDB705}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37905BB6-10F2-4752-8AE6-92A95FCDB705}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37905BB6-10F2-4752-8AE6-92A95FCDB705}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37905BB6-10F2-4752-8AE6-92A95FCDB705}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F6BF776-859D-45A4-9CDB-DC9A895E7845}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F6BF776-859D-45A4-9CDB-DC9A895E7845}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F6BF776-859D-45A4-9CDB-DC9A895E7845}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F6BF776-859D-45A4-9CDB-DC9A895E7845}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE} = {CAD5F2E1-227B-43AD-AFF9-1311097038D6}
+		{9BA601E9-8E97-43D3-B562-B9B0E46E3036} = {AA4E8234-B9D8-4327-8E98-471CE95CEB2C}
+		{37905BB6-10F2-4752-8AE6-92A95FCDB705} = {AA4E8234-B9D8-4327-8E98-471CE95CEB2C}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}
+	EndGlobalSection
+	GlobalSection(RiderSharedRunConfigurations) = postSolution
+		File = Fluxzy.Desktop.Ui\ClientApp\.run\Angular CLI Server.run.xml
+	EndGlobalSection
+EndGlobal

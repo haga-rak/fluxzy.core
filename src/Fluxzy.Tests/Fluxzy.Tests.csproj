@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" />
+
+  <ItemGroup>
+    <None Remove="Files\Headers\Req001.txt.bin" />
+    <None Remove="Files\Headers\Resp001.txt.bin" />
+    <None Update="_Files\Certificates\fluxzytest.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Headers\Req001.txt.bin" />
+    <EmbeddedResource Include="Files\Headers\Resp001.txt.bin" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="fluxzy.sandbox.models" Version="1.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="System.Threading.AccessControl" Version="7.0.1" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="3.2.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fluxzy.Cli\Fluxzy.Cli.csproj" />
+    <ProjectReference Include="..\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
+    <ProjectReference Include="..\Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj" />
+    <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="_Files\Certificates\" />
+    <Folder Include="_Files\Outputs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Files\Headers.Designer.cs">
+      <DependentUpon>Headers.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="_Files\StorageContext.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StorageContext.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Files\Headers.resx">
+      <LastGenOutput>Headers.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="_Files\StorageContext.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>StorageContext.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties files_4headers_1resx__JsonSchema="https://docs.gradle.com/build-cache-node/schema/build-cache-node-config-schema-5.json" /></VisualStudio></ProjectExtensions>
+
+</Project>
