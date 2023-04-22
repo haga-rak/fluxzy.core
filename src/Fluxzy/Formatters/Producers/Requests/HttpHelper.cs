@@ -4,18 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Formatters.Producers.Responses;
 
 namespace Fluxzy.Formatters.Producers.Requests
 {
     internal static class HttpHelper
     {
-        public static List<RequestCookie> ReadRequestCookies(IEnumerable<HeaderFieldInfo> targetHeaders)
+        public static List<RequestCookie> ReadRequestCookies(IEnumerable<GenericHeaderField> targetHeaders)
         {
             var requestCookies = new List<RequestCookie>();
 
             foreach (var headerValue in targetHeaders) {
-                var cookieLines = headerValue.Value.ToString()
+                var cookieLines = headerValue.Value
                                              .Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries)
                                              .Select(s => s.Trim());
 

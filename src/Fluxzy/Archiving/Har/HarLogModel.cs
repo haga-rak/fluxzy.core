@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.Requests;
@@ -118,7 +119,7 @@ namespace Fluxzy.Har
             Url = exchangeInfo.FullUrl;
             HttpVersion = exchangeInfo.HttpVersion;
 
-            Cookies = HttpHelper.ReadRequestCookies(exchangeInfo.RequestHeader.Headers)
+            Cookies = HttpHelper.ReadRequestCookies(exchangeInfo.RequestHeader.Headers.Select(h => (GenericHeaderField)h))
                                 .Select(c => new HarCookie(c)).ToList();
 
             if (HttpHelper.TryGetQueryStrings(Url, out var item))
