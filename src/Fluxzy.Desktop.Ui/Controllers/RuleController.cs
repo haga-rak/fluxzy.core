@@ -33,7 +33,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             await _ruleStorage.Update(containers);
 
             activeRuleManager.SetCurrentSelection(
-                containers.Where(c => c.Enabled).Select(c => c.Rule.Identifier));
+                containers.Where(c => c.Enabled).Select(c => c.Rule.Identifier), true);
 
             return true;
         }
@@ -50,7 +50,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             await _ruleStorage.Update(currentRuleContainers);
 
             activeRuleManager.SetCurrentSelection(
-                currentRuleContainers.Where(c => c.Enabled).Select(c => c.Rule.Identifier));
+                currentRuleContainers.Where(c => c.Enabled).Select(c => c.Rule.Identifier), true);
 
             return true;
         }

@@ -52,14 +52,14 @@ namespace Fluxzy.Desktop.Services
             var selectRuleIds = rules.Where(r => r.Enabled)
                                      .Select(s => s.Rule.Identifier);
 
-            SetCurrentSelection(selectRuleIds);
+            SetCurrentSelection(selectRuleIds, false);
         }
 
-        public void SetCurrentSelection(IEnumerable<Guid> guids)
+        public void SetCurrentSelection(IEnumerable<Guid> guids, bool forceUpdate)
         {
             var current = new HashSet<Guid>(guids);
 
-            if (current.SetEquals(Subject.Value))
+            if (!forceUpdate && current.SetEquals(Subject.Value))
                 return;
 
             Subject.OnNext(current);
