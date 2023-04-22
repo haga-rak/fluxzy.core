@@ -2,7 +2,7 @@
 
 namespace Fluxzy.Desktop.Ui.Runtime
 {
-    internal static class ExceptionUtilities
+    internal static class ExceptionHelper
     {
         public static Exception? FindException(this Exception original, Func<Exception, bool> predicate)
         {
