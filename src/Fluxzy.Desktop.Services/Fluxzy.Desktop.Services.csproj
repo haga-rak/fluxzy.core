@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+		<PackageReference Include="Reinforced.Typings" Version="1.6.2" />
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Fluxzy.Cli\Fluxzy.Cli.csproj" />
+		<ProjectReference Include="..\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
+		<ProjectReference Include="..\Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj" />
+		<ProjectReference Include="..\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj" />
+		<ProjectReference Include="..\Fluxzy.NativeOps\Fluxzy.NativeOps.csproj" />
+		<ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
+	</ItemGroup>
+
+</Project>
