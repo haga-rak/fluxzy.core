@@ -26,13 +26,13 @@ jobs:
       with:
         python-version: 3.8
     - name: Restore dependencies of tests
-      run: dotnet restore src/Fluxzy.Tests
+      run: dotnet restore test/Fluxzy.Tests
     - name: Restore dependencies
       run: dotnet restore src/Fluxzy
     - name: Build
       run: dotnet build src/Fluxzy --no-restore
     - name: Test
-      run: dotnet test src/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
+      run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v2
