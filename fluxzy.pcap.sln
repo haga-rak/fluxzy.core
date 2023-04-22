@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap", "fluxzy.interop.pcap\Fluxzy.Interop.Pcap.csproj", "{E7022B60-0156-4BAE-9D28-A80F3647C1F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap", "src\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj", "{E7022B60-0156-4BAE-9D28-A80F3647C1F6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap.Cli", "Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj", "{214FB0D2-FDF6-449D-BACD-1DB5C4CB0547}"
 EndProject
