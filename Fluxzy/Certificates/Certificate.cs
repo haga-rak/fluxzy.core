@@ -70,7 +70,7 @@ namespace Fluxzy.Certificates
             };
         }
 
-        public X509Certificate2 GetCertificate()
+        public X509Certificate2 GetX509Certificate()
         {
             if (_cachedCertificate != null)
                 return _cachedCertificate;
@@ -86,8 +86,8 @@ namespace Fluxzy.Certificates
                     store.Open(OpenFlags.ReadOnly);
 
                     var certificate = store.Certificates.Find(X509FindType.FindBySerialNumber,
-                                               SerialNumber, false)
-                                           .OfType<X509Certificate2>()
+                                               SerialNumber ?? throw new InvalidOperationException("SerialNumber is not set"), false)
+                                           .OfType<X509Certificate2?>()
                                            .FirstOrDefault();
 
                     if (certificate == null)
@@ -110,8 +110,8 @@ namespace Fluxzy.Certificates
                     store.Open(OpenFlags.ReadOnly);
 
                     var certificate = store.Certificates.Find(X509FindType.FindByThumbprint,
-                                               ThumbPrint, false)
-                                           .OfType<X509Certificate2>()
+                                               ThumbPrint ?? throw new InvalidOperationException("ThumbPrint is not set"), false)
+                                           .OfType<X509Certificate2?>()
                                            .FirstOrDefault();
 
                     if (certificate == null)
@@ -127,7 +127,7 @@ namespace Fluxzy.Certificates
                 }
 
                 case CertificateRetrieveMode.FromPkcs12:
-                    return _cachedCertificate = new X509Certificate2(Pkcs12File, Pkcs12Password);
+                    return _cachedCertificate = new X509Certificate2(Pkcs12File ?? throw new InvalidOperationException("Pkcs12File is not set"), Pkcs12Password);
 
                 default:
                     throw new ArgumentOutOfRangeException($"Unknown retrieve mode : {RetrieveMode}");

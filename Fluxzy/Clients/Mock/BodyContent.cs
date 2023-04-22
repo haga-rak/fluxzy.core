@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -62,7 +62,7 @@ namespace Fluxzy.Clients.Mock
                     return Content!.Length;
 
                 case BodyContentLoadingType.FromFile:
-                    return new FileInfo(FileName).Length;
+                    return FileName == null ? 0 : new FileInfo(FileName).Length;
 
                 default:
                     throw new ArgumentOutOfRangeException();

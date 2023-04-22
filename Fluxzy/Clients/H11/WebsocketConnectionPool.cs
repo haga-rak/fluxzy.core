@@ -183,7 +183,7 @@ namespace Fluxzy.Clients.H11
                     },
                     wsMessageId => _archiveWriter!.CreateWebSocketResponseContent(exchange.Id, wsMessageId));
 
-                await using var downReaderStream = new WebSocketStream(localLink.ReadStream, _timingProvider,
+                await using var downReaderStream = new WebSocketStream(localLink.ReadStream!, _timingProvider,
                     cancellationToken,
                     wsMessage => {
                         wsMessage.Direction = WsMessageDirection.Sent;

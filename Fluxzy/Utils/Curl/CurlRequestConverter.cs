@@ -31,8 +31,7 @@ namespace Fluxzy.Utils.Curl
             // Setting up method 
 
             var method = exchange.Method;
-
-           // if (!method.Equals("GET", StringComparison.OrdinalIgnoreCase))
+            
             result.AddOption("-X", method.ToUpper());
 
             // Setting up headers 

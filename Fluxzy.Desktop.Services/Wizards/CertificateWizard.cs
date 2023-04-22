@@ -31,7 +31,7 @@ namespace Fluxzy.Desktop.Services.Wizards
             // Check for installed certificate 
 
             var setting = (await _settingHolder.FirstAsync()).StartupSetting;
-            var certificate = setting.CaCertificate.GetCertificate();
+            var certificate = setting.CaCertificate.GetX509Certificate();
 
             var certificateFriendlyName = certificate.Subject;
 
@@ -46,7 +46,7 @@ namespace Fluxzy.Desktop.Services.Wizards
         public async Task<bool> InstallCertificate()
         {
             var setting = (await _settingHolder.FirstAsync()).StartupSetting;
-            var certificate = setting.CaCertificate.GetCertificate();
+            var certificate = setting.CaCertificate.GetX509Certificate();
 
             return await _certificateAuthorityManager.InstallCertificate(certificate);
         }

@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,6 @@ namespace Fluxzy.Misc.Streams
         private readonly Stream _baseStream;
         private readonly bool _closeOnDone;
         private List<Stream>? _destinations;
-        private bool _started;
 
         /// <summary>
         ///     Constructor
@@ -61,8 +60,6 @@ namespace Fluxzy.Misc.Streams
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            _started = true;
-
             var read = _baseStream.Read(buffer, offset, count);
 
             if (read == 0 && _closeOnDone) {
@@ -89,8 +86,6 @@ namespace Fluxzy.Misc.Streams
             byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
-            _started = true;
-
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
         }
 
@@ -98,8 +93,6 @@ namespace Fluxzy.Misc.Streams
             Memory<byte> buffer,
             CancellationToken cancellationToken = new())
         {
-            _started = true;
-
             var read = await _baseStream.ReadAsync(buffer, cancellationToken);
 
             if (read == 0 && _closeOnDone) {

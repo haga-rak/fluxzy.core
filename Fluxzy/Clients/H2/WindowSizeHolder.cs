@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -58,7 +58,7 @@ namespace Fluxzy.Clients.H2
                 var list = new List<TaskCompletionSource<object?>>();
 
                 while (_windowSizeAWaiters.TryDequeue(out var item)) {
-                    list.Add(item);
+                    list.Add(item!);
                 }
 
                 foreach (var item in list) {

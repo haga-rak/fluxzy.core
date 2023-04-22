@@ -41,18 +41,21 @@ namespace Fluxzy.Core
                 var asyncState = await
                     _pendingClientConnections.Reader.ReadAsync(_token);
 
-                var listener = (TcpListener) asyncState.AsyncState;
+                var listener = (TcpListener?) asyncState.AsyncState;
 
-                var tcpClient = listener.EndAcceptTcpClient(asyncState);
+                if (listener != null) {
+                    var tcpClient = listener.EndAcceptTcpClient(asyncState);
 
-                tcpClient.NoDelay = true;
+                    tcpClient.NoDelay = true;
 
-                return tcpClient;
+                    return tcpClient;
+                }
             }
             catch (Exception) {
                 // Listener Stop was probably called 
-                return null;
             }
+
+            return null;
         }
 
         public IReadOnlyCollection<IPEndPoint> ListenEndpoints { get; private set; } = Array.Empty<IPEndPoint>();
@@ -71,7 +74,7 @@ namespace Fluxzy.Core
 
                     var listenerCopy = listener;
 
-                    new Thread(a => HandleAcceptConnection((TcpListener) a)) {
+                    new Thread(a => HandleAcceptConnection((TcpListener) a!)) {
                         IsBackground = true,
                         Priority = ThreadPriority.Normal
                     }.Start(listenerCopy);
@@ -119,13 +122,11 @@ namespace Fluxzy.Core
         private void Callback(IAsyncResult ar)
         {
             try {
-                var listener = (TcpListener) ar.AsyncState;
-                _pendingClientConnections.Writer.TryWrite(ar);
-                listener.BeginAcceptTcpClient(Callback, listener);
+                var listener = (TcpListener?) ar.AsyncState;
 
-                //var tcpClient = listener.EndAcceptTcpClient(ar); // This may take long time 
-                //
-                //tcpClient.NoDelay = true;
+                _pendingClientConnections.Writer.TryWrite(ar);
+
+                listener?.BeginAcceptTcpClient(Callback, listener);
             }
             catch (Exception) {
                 // ignored

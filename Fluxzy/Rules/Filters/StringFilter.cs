@@ -121,7 +121,7 @@ namespace Fluxzy.Rules.Filters
             if (!type.IsEnum)
                 throw new ArgumentException($"{nameof(enumerationValue)} must be an enum");
 
-            var memberInfos = type.GetMember(enumerationValue.ToString());
+            var memberInfos = type.GetMember(enumerationValue.ToString()!);
 
             if (memberInfos.Any()) {
                 var attr = memberInfos.First()
@@ -132,7 +132,7 @@ namespace Fluxzy.Rules.Filters
                     return attr.Description;
             }
 
-            return enumerationValue.ToString();
+            return enumerationValue.ToString()!;
         }
     }
 }

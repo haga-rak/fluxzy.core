@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading.Tasks;
@@ -30,7 +30,8 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            exchange.Request.Header.Path = NewPath.AsMemory();
+            if (exchange != null)
+                exchange.Request.Header.Path = NewPath.AsMemory();
 
             return default;
         }
