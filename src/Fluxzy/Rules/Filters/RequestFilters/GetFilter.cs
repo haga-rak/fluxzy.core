@@ -2,6 +2,9 @@
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
+    [FilterMetaData(
+        LongDescription = "Select exchanges with GET method"
+    )]
     public class GetFilter : MethodFilter
     {
         public GetFilter()

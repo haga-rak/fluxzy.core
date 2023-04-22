@@ -2,6 +2,9 @@
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
+    [FilterMetaData(
+        LongDescription = "Select exchanges with DELETE method"
+    )]
     public class DeleteFilter : MethodFilter
     {
         public DeleteFilter()
