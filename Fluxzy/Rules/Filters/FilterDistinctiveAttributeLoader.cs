@@ -14,7 +14,7 @@ namespace Fluxzy.Rules.Filters
 
         public static Guid BuildDistinctiveIdentifier(this Filter filter)
         {
-            var filterType = filter.GetType();
+            var filterType = filter.GetType()!;
 
             if (!ExistingProperties.TryGetValue(filterType.FullName, out var properties)) {
                 properties = filter.GetType().GetProperties()

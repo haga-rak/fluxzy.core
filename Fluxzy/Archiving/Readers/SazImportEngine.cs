@@ -69,8 +69,6 @@ namespace Fluxzy.Readers
                 if (!TryGetId(requestEntry.Name, out var id))
                     continue; // No id no party 
 
-                var doubleCrLf = -1;
-
                 var xmlEntry = archive.Entries.FirstOrDefault(e => e.Name == $"{id}_m.xml");
 
                 if (xmlEntry == null)

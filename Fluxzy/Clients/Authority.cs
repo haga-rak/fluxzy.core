@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 
@@ -37,7 +37,7 @@ namespace Fluxzy.Clients
                 && Port == other.Port && Secure == other.Secure;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Authority other && Equals(other);
         }

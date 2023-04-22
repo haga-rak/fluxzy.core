@@ -42,7 +42,7 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             context.ClientCertificates ??= new X509Certificate2Collection();
-            context.ClientCertificates.Add(ClientCertificate.GetCertificate());
+            context.ClientCertificates.Add(ClientCertificate.GetX509Certificate());
 
             return default;
         }

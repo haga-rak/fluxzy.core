@@ -149,7 +149,7 @@ namespace Fluxzy.Clients
 
         public ExchangeContext Context { get; }
 
-        public string? HttpVersion { get; set; }
+        public string HttpVersion { get; set; }
 
         public bool IsWebSocket => Request.Header.IsWebSocketRequest;
 

@@ -28,9 +28,13 @@ namespace Fluxzy.Readers
                 if (sslVersion == "TLS/1")
                     return SslProtocols.Tls;
                 if (sslVersion == "SSL/3")
+#pragma warning disable CS0618
                     return SslProtocols.Ssl3;
+#pragma warning restore CS0618
                 if (sslVersion == "SSL/2")
+#pragma warning disable CS0618
                     return SslProtocols.Ssl2;
+#pragma warning restore CS0618
             }
 
             return null; 

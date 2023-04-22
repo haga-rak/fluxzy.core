@@ -46,7 +46,7 @@ namespace Fluxzy.Certificates
 
         public virtual void CheckAndInstallCertificate(FluxzySetting startupSetting)
         {
-            var certificate = startupSetting.CaCertificate.GetCertificate();
+            var certificate = startupSetting.CaCertificate.GetX509Certificate();
 
             if (!IsCertificateInstalled(certificate.Thumbprint!))
                 InstallCertificate(certificate);

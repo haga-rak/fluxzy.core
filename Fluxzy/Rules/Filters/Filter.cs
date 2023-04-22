@@ -54,7 +54,7 @@ namespace Fluxzy.Rules.Filters
         public string Category {
             get
             {
-                var typeFullName = GetType().FullName;
+                var typeFullName = GetType().FullName!;
 
                 if (typeFullName.Contains("RequestFilters"))
                     return "Request";

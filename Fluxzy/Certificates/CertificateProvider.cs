@@ -28,7 +28,7 @@ namespace Fluxzy.Certificates
             _certCache = certCache;
 
             _rootCertificate =
-                startupSetting.CaCertificate.GetCertificate();
+                startupSetting.CaCertificate.GetX509Certificate();
 
             // Warming : pre uild certicate 
             BuildCertificateForRootDomain("domain.com");

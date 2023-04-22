@@ -132,9 +132,9 @@ namespace Fluxzy.Clients
                         new ExchangeBuildingResult(
                             authority, plainStream, plainStream,
                             Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
-                                authority, plainHeaderChars, null,
+                                authority, plainHeaderChars, StreamUtils.EmptyStream, 
                                 AcceptTunnelResponseString.AsMemory(),
-                                null, false,
+                                StreamUtils.EmptyStream, false,
                                 "HTTP/1.1",
                                 receivedFromProxy), true);
                 }
@@ -146,9 +146,9 @@ namespace Fluxzy.Clients
                     plainStream, authority.HostName, token);
 
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
-                    authority, plainHeaderChars, null,
+                    authority, plainHeaderChars, StreamUtils.EmptyStream,
                     AcceptTunnelResponseString.AsMemory(),
-                    null, false, "HTTP/1.1", receivedFromProxy);
+                    StreamUtils.EmptyStream, false, "HTTP/1.1", receivedFromProxy);
 
                 exchange.Metrics.CreateCertStart = certStart;
                 exchange.Metrics.CreateCertEnd = certEnd;
@@ -233,7 +233,7 @@ namespace Fluxzy.Clients
                 exchangeContext, authority, secureHeader,
                 secureHeader.ContentLength > 0
                     ? new ContentBoundStream(inStream, secureHeader.ContentLength)
-                    : StreamUtils.EmptyStream, null, receivedFromProxy
+                    : StreamUtils.EmptyStream, null!, receivedFromProxy
             );
         }
     }

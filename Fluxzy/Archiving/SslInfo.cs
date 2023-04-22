@@ -35,7 +35,7 @@ namespace Fluxzy
 //#if NET6_0
 //            CipherAlgorithm = ((System.Net.Security.TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite).ToString(); 
 //#endif
-
+            
             NegotiatedApplicationProtocol = clientProtocol.GetApplicationProtocol().ToString();
             SslProtocol = clientProtocol.GetSChannelProtocol();
 
@@ -50,6 +50,8 @@ namespace Fluxzy
                 RemoteCertificateIssuer = remoteIssuer;
                 RemoteCertificateSubject = remoteSubject;
             }
+
+            KeyExchangeAlgorithm = string.Empty;
         }
 
         [JsonConstructor]

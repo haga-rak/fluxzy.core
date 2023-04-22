@@ -31,7 +31,7 @@ namespace Fluxzy.Core.Breakpoints
             try {
                 headers = Http11Parser.Read(rawHttp11.AsMemory()).ToList();
             }
-            catch (Exception _) {
+            catch (Exception) {
                 return new EditableHeaderParsingResult("Some header lines are invalid");
             }
 
@@ -99,7 +99,7 @@ namespace Fluxzy.Core.Breakpoints
             try {
                 headers = Http11Parser.Read(rawHttp11.AsMemory()).ToList();
             }
-            catch (Exception _) {
+            catch (Exception) {
                 return new EditableHeaderParsingResult("Some header lines are invalid");
             }
 

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using Fluxzy.Clients;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Writers
@@ -60,7 +61,10 @@ namespace Fluxzy.Writers
 
         public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
-            if (_saveFilter != null && !_saveFilter.Apply(null, exchangeInfo, null))
+            if (_saveFilter != null && !_saveFilter.Apply(
+                    new Authority(exchangeInfo.KnownAuthority, 
+                        exchangeInfo.KnownPort,
+                        exchangeInfo.Secure), exchangeInfo, null))
                 return false;
 
             var exchangePath = DirectoryArchiveHelper.GetExchangePath(_baseDirectory, exchangeInfo);

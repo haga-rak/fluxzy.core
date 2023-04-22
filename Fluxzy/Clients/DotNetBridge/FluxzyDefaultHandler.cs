@@ -54,7 +54,7 @@ namespace Fluxzy.Clients.DotNetBridge
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var authority = new Authority(request.RequestUri.Host, request.RequestUri.Port,
+            var authority = new Authority(request.RequestUri!.Host, request.RequestUri.Port,
                 true);
 
             var reqHttpString = request.ToHttp11String();
@@ -66,7 +66,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
             var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken);
 
-            await connection.Send(exchange, null, RsBuffer.Allocate(32 * 1024),
+            await connection.Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);
 
             return new FluxzyHttpResponseMessage(exchange);

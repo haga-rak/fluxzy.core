@@ -50,8 +50,6 @@ namespace Fluxzy.Core.Breakpoints
             {
                 // enumerate breakpoint locationIndex 
 
-                int index = 1; 
-
                 foreach (BreakPointLocation location in Enum.GetValues(typeof(BreakPointLocation))) {
                     // TODO : minimize the cost of reflection here by using caching 
 
