@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Text;
 using Fluxzy.Clients.H2.Encoder.Utils;
-using Fluxzy.Tests.Files;
+using Fluxzy.Tests._Files;
 using Xunit;
 
 namespace Fluxzy.Tests.HPack

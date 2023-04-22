@@ -14,16 +14,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" />
 
   <ItemGroup>
-    <None Remove="Files\Headers\Req001.txt.bin" />
-    <None Remove="Files\Headers\Resp001.txt.bin" />
+    <Compile Remove="Files\**" />
+    <EmbeddedResource Remove="Files\**" />
+    <None Remove="Files\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="_Files\Headers\Req001.txt.bin" />
+    <None Remove="_Files\Headers\Resp001.txt.bin" />
     <None Update="_Files\Certificates\fluxzytest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Files\Headers\Req001.txt.bin" />
-    <EmbeddedResource Include="Files\Headers\Resp001.txt.bin" />
+    <EmbeddedResource Include="_Files\Headers\Req001.txt.bin" />
+    <EmbeddedResource Include="_Files\Headers\Resp001.txt.bin" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,7 +60,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Files\Headers.Designer.cs">
+    <Compile Update="_Files\Headers.Designer.cs">
       <DependentUpon>Headers.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -67,7 +73,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Files\Headers.resx">
+    <EmbeddedResource Update="_Files\Headers.resx">
       <LastGenOutput>Headers.Designer.cs</LastGenOutput>
       <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
