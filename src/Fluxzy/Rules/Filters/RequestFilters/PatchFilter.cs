@@ -15,4 +15,18 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override bool PreMadeFilter => true;
     }
+
+    public class GetFilter : MethodFilter
+    {
+        public GetFilter()
+            : base("GET")
+        {
+        }
+
+        public override string GenericName => "GET only";
+
+        public override string ShortName => "patch";
+
+        public override bool PreMadeFilter => true;
+    }
 }
