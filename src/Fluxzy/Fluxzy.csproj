@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+		<Version>0.3.0</Version>
+		<Company>smartizy.com</Company>
+		<Authors>Haga Rakotoharivelo</Authors>
+		<Description>fluxzy is an cross-platform HTTP engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<LangVersion>10</LangVersion>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Rules\Filters\NewFolder\**" />
+		<EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
+		<None Remove="Rules\Filters\NewFolder\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
+		<PackageReference Include="SharpZipLib" Version="1.4.2" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+		<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+		<PackageReference Include="System.Text.Json" Version="7.0.2" />
+		<PackageReference Include="System.Threading.Channels" Version="7.0.0" />
+		<PackageReference Include="YamlDotNet" Version="13.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="FileStore.Designer.cs">
+			<DependentUpon>FileStore.resx</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="FileStore.resx">
+			<LastGenOutput>FileStore.Designer.cs</LastGenOutput>
+			<Generator>PublicResXFileCodeGenerator</Generator>
+		</EmbeddedResource>
+	</ItemGroup>
+
+</Project>
