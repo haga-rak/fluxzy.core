@@ -83,7 +83,7 @@ import { WsMessageFormattingResultComponent } from './widgets/exchange-viewer/de
 
 
 import localeFr from '@angular/common/locales/fr';
-import {registerLocaleData} from "@angular/common";
+import {NgOptimizedImage, registerLocaleData} from "@angular/common";
 import { SizePipe } from './directives/size.pipe';
 import { WaitDialogComponent } from './shared/wait-dialog/wait-dialog.component';
 import { CommentApplyComponent } from './shared/comment-apply/comment-apply.component';
@@ -113,6 +113,7 @@ import { CellRenderingComponent } from './widgets/exchange-table-view/cell-rende
 import { ContextMenuTableHeaderComponent } from './shared/context-menu-table-header/context-menu-table-header.component';
 import { AboutComponent } from './home/about/about.component';
 import { MessageDialogComponent } from './shared/error-dialog/message-dialog.component';
+import { ImageResultComponent } from './widgets/exchange-viewer/details-response/image-result/image-result.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -212,6 +213,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         ContextMenuTableHeaderComponent,
         AboutComponent,
         MessageDialogComponent,
+        ImageResultComponent,
 
 
     ],
@@ -247,6 +249,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         BrowserAnimationsModule,
         AccordionModule,
         TypeaheadModule,
+        NgOptimizedImage,
     ],
     providers: [
         {
