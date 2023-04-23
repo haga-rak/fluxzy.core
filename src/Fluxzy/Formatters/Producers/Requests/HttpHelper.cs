@@ -15,7 +15,7 @@ namespace Fluxzy.Formatters.Producers.Requests
         {
             var requestCookies = new List<RequestCookie>();
 
-            foreach (var headerValue in targetHeaders) {
+            foreach (var headerValue in targetHeaders.Where(h => h.Name.Equals("Cookie", StringComparison.OrdinalIgnoreCase))) {
                 var cookieLines = headerValue.Value
                                              .Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries)
                                              .Select(s => s.Trim());

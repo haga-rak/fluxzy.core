@@ -69,6 +69,8 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             listActions.Add(BuildFromFilter(new IsWebSocketFilter()));
             listActions.Add(BuildFromFilter(new HasCommentFilter()));
             listActions.Add(BuildFromFilter(new HasTagFilter()));
+            listActions.Add(BuildFromFilter(new HasAnyCookieOnRequestFilter()));
+            listActions.Add(BuildFromFilter(new HasCookieOnRequestFilter("cookie_name", "")));
 
             listActions.Add(BuildFromFilter(new FontFilter(), "woff", "ttf"));
 
