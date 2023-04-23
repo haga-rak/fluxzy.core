@@ -141,6 +141,10 @@ export interface WsMessageFormattingResult extends FormattingResult
 {
 	messages: WsMessage[];
 }
+export interface ImageResult extends FormattingResult
+{
+	contentType: string;
+}
 export interface WsMessage
 {
 	id: number;

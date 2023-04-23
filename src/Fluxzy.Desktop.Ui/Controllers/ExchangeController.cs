@@ -2,6 +2,7 @@
 
 using Fluxzy.Clients.H11;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Metrics;
 using Fluxzy.Formatters.Producers.ProducerActions.Actions;
@@ -15,11 +16,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
     [ApiController]
     public class ExchangeController
     {
-        private readonly ProducerFactory _producerFactory;
-
-        public ExchangeController(ProducerFactory producerFactory)
+        public ExchangeController()
         {
-            _producerFactory = producerFactory;
         }
 
         [HttpGet("{exchangeId}")]
@@ -104,6 +102,27 @@ namespace Fluxzy.Desktop.Ui.Controllers
             SaveFileMultipartAction action)
         {
             return await action.Do(exchangeId, body);
+        }
+
+        [HttpGet("{exchangeId}/response")]
+        public async Task<ActionResult> GetResponseBody(int exchangeId,
+            [FromServices] IArchiveReaderProvider archiveReaderProvider)
+        {
+            var archiveReader = (await archiveReaderProvider.Get())!;
+
+            var exchange = archiveReader.ReadExchange(exchangeId);
+
+            if (exchange == null)
+                return new NotFoundResult();
+
+            var responseStream = archiveReader.GetResponseBody(exchangeId);
+
+            if (responseStream == null)
+                return new NotFoundResult();
+
+            var contentType = exchange.GetResponseHeaderValue("content-type") ?? "application/octet-stream";
+            
+            return new FileStreamResult(CompressionHelper.GetDecodedContentStream(exchange, responseStream, out _), contentType);
         }
 
         [HttpPost("{exchangeId}/save-response-body")]

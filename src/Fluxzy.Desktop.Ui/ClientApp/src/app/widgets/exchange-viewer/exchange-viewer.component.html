@@ -188,6 +188,10 @@
                                                  [formatter]="C(propertyContext.responseFormattingResult)" [exchange]="exchange" [context]="context">
                     </app-ws-message-formatting-result>
 
+                    <app-image-result *ngIf="ofTypeResponse('ImageResult')"
+                                                 [formatter]="C(propertyContext.responseFormattingResult)" [exchange]="exchange" [context]="context">
+                    </app-image-result>
+
                 </perfect-scrollbar>
             </div>
 

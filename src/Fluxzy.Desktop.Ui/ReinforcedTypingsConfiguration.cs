@@ -306,6 +306,9 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<WsMessageFormattingResult>()
                    .ApplyGenericProperties();
 
+            builder.ExportAsInterface<ImageResult>()
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<WsMessage>()
                    .ApplyGenericProperties();
 
