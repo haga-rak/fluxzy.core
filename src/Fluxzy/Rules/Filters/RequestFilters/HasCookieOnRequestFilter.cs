@@ -30,7 +30,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string GenericName => "Cookie";
 
-        public override string ShortName => "ckie";
+        public override string ShortName => "cookie";
 
         public override bool PreMadeFilter => false;
 
@@ -49,6 +49,4 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             }
         }
     }
-
-
 }
