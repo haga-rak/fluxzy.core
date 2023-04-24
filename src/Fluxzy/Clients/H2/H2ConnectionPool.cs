@@ -36,11 +36,11 @@ namespace Fluxzy.Clients.H2
 
         private readonly Channel<WriteTask>? _writerChannel;
 
-        private Stream _baseStream;
+        private readonly Stream _baseStream;
 
         private volatile bool _complete;
 
-        private CancellationTokenSource _connectionCancellationTokenSource = new();
+        private readonly CancellationTokenSource _connectionCancellationTokenSource = new();
 
         private bool _goAwayInitByRemote;
 
@@ -52,7 +52,7 @@ namespace Fluxzy.Clients.H2
         private DateTime _lastActivity = ITimingProvider.Default.Instant();
 
         // Window size of the remote 
-        private WindowSizeHolder _overallWindowSizeHolder;
+        private readonly WindowSizeHolder _overallWindowSizeHolder;
 
         private SemaphoreSlim? _writeSemaphore = new(1);
 
@@ -178,7 +178,12 @@ namespace Fluxzy.Clients.H2
 
         public async ValueTask DisposeAsync()
         {
-            IsDisposed = true;
+            lock (this) {
+                if (IsDisposed)
+                    return;
+
+                IsDisposed = true;
+            }
 
             _writerChannel?.Writer.TryComplete();
 
@@ -198,7 +203,6 @@ namespace Fluxzy.Clients.H2
                 await _innerWriteRun.ConfigureAwait(false);
 
             await _baseStream.DisposeAsync();
-            
         }
 
         private void UpStreamChannel(ref WriteTask data)
@@ -306,7 +310,8 @@ namespace Fluxzy.Clients.H2
             if (ex != null)
                 _streamPool.OnGoAway(ex);
 
-            _connectionCancellationTokenSource?.Cancel();
+            if (!_connectionCancellationTokenSource.IsCancellationRequested)
+                _connectionCancellationTokenSource?.Cancel();
 
             if (releaseChannelItems && _writerChannel != null) {
                 _writerChannel.Writer.TryComplete();
