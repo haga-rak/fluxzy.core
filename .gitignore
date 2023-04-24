@@ -393,3 +393,5 @@ FodyWeavers.xsd
 *.sln.iml
 /Samples/boot
 /Fluxzy.Desktop.Ui/%appdata%/fluxzy/pcap/header/header.pcap
+
+auto-generated.ts
