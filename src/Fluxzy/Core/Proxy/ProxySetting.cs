@@ -32,7 +32,7 @@ namespace Fluxzy.Core.Proxy
         /// </summary>
         public Dictionary<string, object> PrivateValues { get; } = new();
 
-        public bool Equals(SystemProxySetting other)
+        public bool Equals(SystemProxySetting? other)
         {
             if (ReferenceEquals(null, other))
                 return false;
@@ -45,7 +45,7 @@ namespace Fluxzy.Core.Proxy
                                                 ByPassHosts.SequenceEqual(other.ByPassHosts);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
                 return false;

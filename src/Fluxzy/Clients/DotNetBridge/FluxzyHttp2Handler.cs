@@ -39,7 +39,7 @@ namespace Fluxzy.Clients.DotNetBridge
             try {
                 await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection)) {
+                if (!_activeConnections.TryGetValue(request.RequestUri!.Authority, out var connection)) {
                     connection = await ConnectionBuilder.CreateH2(
                         request.RequestUri.Host,
                         request.RequestUri.Port, _streamSetting, cancellationToken).ConfigureAwait(false);
@@ -57,7 +57,7 @@ namespace Fluxzy.Clients.DotNetBridge
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 
-            await _activeConnections[request.RequestUri.Authority].Send(exchange, null, RsBuffer.Allocate(32 * 1024),
+            await _activeConnections[request.RequestUri.Authority].Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);
 
             return new FluxzyHttpResponseMessage(exchange);

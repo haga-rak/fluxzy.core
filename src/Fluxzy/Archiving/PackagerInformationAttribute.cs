@@ -39,7 +39,7 @@ namespace Fluxzy
         public static PackagerInformationAttribute GetInfo<T>(this T element)
             where T : DirectoryPackager
         {
-            return element.GetType().GetCustomAttribute<PackagerInformationAttribute>();
+            return element.GetType().GetCustomAttribute<PackagerInformationAttribute>()!;
         }
     }
 

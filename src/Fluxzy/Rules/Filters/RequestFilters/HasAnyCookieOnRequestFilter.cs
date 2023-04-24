@@ -21,7 +21,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override bool PreMadeFilter => true;
 
-        protected override bool InternalApply(IAuthority authority, IExchange exchange, IFilteringContext filteringContext)
+        protected override bool InternalApply(
+            IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
         {
             if (exchange == null)
                 return false; 

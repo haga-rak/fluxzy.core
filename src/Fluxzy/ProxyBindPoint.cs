@@ -32,7 +32,7 @@ namespace Fluxzy
         /// </summary>
         public bool Default { get; set; }
 
-        public bool Equals(ProxyBindPoint other)
+        public bool Equals(ProxyBindPoint? other)
         {
             if (ReferenceEquals(null, other))
                 return false;

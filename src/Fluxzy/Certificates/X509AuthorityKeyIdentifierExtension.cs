@@ -27,7 +27,7 @@ namespace Fluxzy.Certificates
                                            p.Oid?.Value == SubjectKeyIdentifierOid.Value);
 
             if (subjectKeyIdentifier == null)
-                return null;
+                throw new InvalidOperationException("SubjectKeyIdentifier not found");
 
             var rawData = subjectKeyIdentifier.RawData;
             var segment = new ArraySegment<byte>(rawData, 2, rawData.Length - 2);

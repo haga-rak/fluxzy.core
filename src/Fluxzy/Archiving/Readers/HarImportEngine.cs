@@ -28,7 +28,7 @@ namespace Fluxzy.Readers
 
             using var inStream = File.OpenRead(fileName);
 
-            var model = System.Text.Json.JsonSerializer.Deserialize<HarReadModel>(inStream, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+            var model = JsonSerializer.Deserialize<HarReadModel>(inStream, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
 
             Dictionary<string, ConnectionInfo> internalConnections = new();
 
@@ -74,7 +74,7 @@ namespace Fluxzy.Readers
                             connectionId++, new AuthorityInfo(hostName, port, secure),
                             secure
                                 ? new SslInfo(SslProtocols.None, null, null, null, null,
-                                    entry.Request.HttpVersion, null,
+                                    entry.Request.HttpVersion, null!,
                                     HashAlgorithmType.None, CipherAlgorithmType.None)
                                 : null, 1, dnsStart,
                             dnsEnd, connectStart, connectEnd, sslStart, sslEnd, 0, string.Empty,
@@ -168,7 +168,7 @@ namespace Fluxzy.Readers
 
     public class HarReadLog
     {
-        public string Version { get; set; }
+        public string Version { get; set; } = string.Empty;
 
         public List<HarReadEntry> Entries { get; set; } = new();
     }
@@ -192,11 +192,11 @@ namespace Fluxzy.Readers
 
     public class HarReadRequest
     {
-        public string Method { get; set; } 
+        public string Method { get; set; } = string.Empty;
 
-        public string Url { get; set; } 
+        public string Url { get; set; } = string.Empty;
 
-        public string HttpVersion { get; set; }
+        public string HttpVersion { get; set; } = string.Empty;
 
         public List<HarReadHeader> Headers { get; set; } = new(); 
 
@@ -233,9 +233,9 @@ namespace Fluxzy.Readers
 
     public class HarReadPostData
     {
-        public string MimeType { get; set; }
+        public string MimeType { get; set; } = string.Empty;
 
-        public string Text { get; set; }
+        public string Text { get; set; } = string.Empty;
 
         public List<HarReadParam> Params { get; set; } = new();
 
@@ -267,9 +267,9 @@ namespace Fluxzy.Readers
 
     public class HarReadParam
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-        public string Value { get; set; }
+        public string Value { get; set; } = string.Empty;
 
         public string? FileName { get; set; }
 
@@ -345,6 +345,9 @@ namespace Fluxzy.Readers
 
         public void Write(Stream stream)
         {
+            if (string.IsNullOrEmpty(Text))
+                throw new InvalidOperationException("Text is null or empty");
+            
             var isBase64 = Encoding == "base64";
 
             if (isBase64) {

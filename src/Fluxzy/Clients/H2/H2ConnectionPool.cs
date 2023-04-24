@@ -178,20 +178,15 @@ namespace Fluxzy.Clients.H2
 
         public async ValueTask DisposeAsync()
         {
-            if (_connectionCancellationTokenSource == null)
-                return;
-
             IsDisposed = true;
 
             _writerChannel?.Writer.TryComplete();
 
             _overallWindowSizeHolder?.Dispose();
-            _overallWindowSizeHolder = null;
 
             _logger.Trace(0, () => "Disposed");
             _connectionCancellationTokenSource?.Cancel();
             _connectionCancellationTokenSource?.Dispose();
-            _connectionCancellationTokenSource = null;
 
             _writeSemaphore?.Dispose();
             _writeSemaphore = null;
@@ -202,10 +197,8 @@ namespace Fluxzy.Clients.H2
             if (_innerWriteRun != null)
                 await _innerWriteRun.ConfigureAwait(false);
 
-            if (_baseStream != null) {
-                await _baseStream.DisposeAsync();
-                _baseStream = null;
-            }
+            await _baseStream.DisposeAsync();
+            
         }
 
         private void UpStreamChannel(ref WriteTask data)

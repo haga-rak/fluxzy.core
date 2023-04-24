@@ -73,6 +73,9 @@ namespace Fluxzy.Clients
 
         private void WriteLn(int streamIdentifier, string message)
         {
+            if (_directory == null)
+                return; 
+            
             var fullPath = _directory;
             var portString = Authority.Port == 443 ? string.Empty : $"-{Authority.Port:00000}";
 
@@ -91,7 +94,7 @@ namespace Fluxzy.Clients
 
         private void WriteLnHPack(int streamIdentifier, string message)
         {
-            var fullPath = _directory;
+            var fullPath = _directory!;
             var portString = Authority.Port == 443 ? string.Empty : $"-{Authority.Port:00000}";
 
             fullPath = Path.Combine(fullPath,
@@ -274,7 +277,7 @@ namespace Fluxzy.Clients
             WriteLn(streamId, messageString);
         }
 
-        public void Trace(Exchange exchange, string preMessage, Exception ex = null, int streamIdentifier = 0)
+        public void Trace(Exchange exchange, string preMessage, Exception? ex = null, int streamIdentifier = 0)
         {
             if (!_active)
                 return;

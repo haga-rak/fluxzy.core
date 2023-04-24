@@ -6,6 +6,8 @@ using System.Net.Security;
 using System.Security.Authentication;
 using Org.BouncyCastle.Tls;
 
+#pragma warning disable SYSLIB0039
+
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     internal class FluxzyTlsClient : DefaultTlsClient
