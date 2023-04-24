@@ -1,0 +1,12 @@
+<Project>
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+        <LangVersion>11</LangVersion>
+        <Nullable>enable</Nullable>
+        <Company>smartizy.com</Company>
+        <Authors>Haga Rakotoharivelo</Authors>
+        <Copyright>Copyright 2022 Haga Rakotoharivelo</Copyright>
+    </PropertyGroup>
+</Project>
