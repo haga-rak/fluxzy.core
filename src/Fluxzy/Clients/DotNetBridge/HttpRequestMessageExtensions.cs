@@ -12,7 +12,7 @@ namespace Fluxzy.Clients.DotNetBridge
             var builder = new StringBuilder();
 
             builder.Append($"{message.Method} {message.RequestUri} HTTP/1.1\r\n");
-            builder.Append($"Host: {message.RequestUri.Authority}\r\n");
+            builder.Append($"Host: {message.RequestUri!.Authority}\r\n");
 
             foreach (var header in message.Headers) {
                 foreach (var value in header.Value) {

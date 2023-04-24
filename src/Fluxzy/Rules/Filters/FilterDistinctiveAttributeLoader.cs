@@ -16,7 +16,7 @@ namespace Fluxzy.Rules.Filters
         {
             var filterType = filter.GetType()!;
 
-            if (!ExistingProperties.TryGetValue(filterType.FullName, out var properties)) {
+            if (!ExistingProperties.TryGetValue(filterType.FullName!, out var properties)) {
                 properties = filter.GetType().GetProperties()
                                    .Select(p => new {
                                        Attribute = p.GetCustomAttribute<FilterDistinctiveAttribute>(true),
@@ -27,7 +27,10 @@ namespace Fluxzy.Rules.Filters
                                    .OrderBy(p => p.Name)
                                    .ToArray();
 
-                ExistingProperties[filterType.FullName] = properties;
+
+                ExistingProperties[
+                        filterType.FullName ?? throw new InvalidOperationException("filterType cannot be null")] =
+                    properties;
             }
 
             var identifier = filterType.Name + string.Join("",

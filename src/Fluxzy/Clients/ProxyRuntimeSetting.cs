@@ -21,6 +21,8 @@ namespace Fluxzy.Clients
         {
             ArchiveWriter = new EventOnlyArchiveWriter();
             _startupSetting = new FluxzySetting();
+            ExecutionContext = null!;
+            CertificateValidationCallback = null!;
         }
 
         public ProxyRuntimeSetting(
@@ -31,6 +33,8 @@ namespace Fluxzy.Clients
             IIdProvider idProvider,
             IUserAgentInfoProvider? userAgentProvider)
         {
+            ExecutionContext = null!;
+            CertificateValidationCallback = null!;
             _startupSetting = startupSetting;
             ExecutionContext = executionContext;
             TcpConnectionProvider = tcpConnectionProvider;
@@ -53,7 +57,7 @@ namespace Fluxzy.Clients
         /// <summary>
         ///     Process to validate the remote certificate
         /// </summary>
-        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; } = null;
+        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; } 
 
         /// <summary>
         /// </summary>

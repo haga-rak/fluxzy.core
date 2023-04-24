@@ -7,6 +7,8 @@ using System.Security.Authentication;
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
 
+#pragma warning disable SYSLIB0039
+
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     public class FluxzyClientProtocol : TlsClientProtocol

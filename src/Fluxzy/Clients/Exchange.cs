@@ -100,7 +100,7 @@ namespace Fluxzy.Clients
             Id = idProvider.NextExchangeId();
             Context = new ExchangeContext(authority);
             Authority = authority;
-            HttpVersion = httpVersion;
+            HttpVersion = httpVersion ?? "HTTP/1.1";
             Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure));
             Metrics.ReceivedFromProxy = receivedFromProxy;
         }

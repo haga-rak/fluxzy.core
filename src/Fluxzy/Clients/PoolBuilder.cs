@@ -182,7 +182,7 @@ namespace Fluxzy.Clients
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter);
 
-                    exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/1.1";
+                    exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/1.1";
 
                     _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
@@ -196,9 +196,9 @@ namespace Fluxzy.Clients
                         openingResult.Connection
                                      .ReadStream!, // Read and write stream are the same after the sslhandshake
                         new H2StreamSetting(),
-                        exchange.Authority, exchange.Connection, OnConnectionFaulted);
+                        exchange.Authority, exchange.Connection!, OnConnectionFaulted);
 
-                    exchange.HttpVersion = exchange.Connection.HttpVersion = "HTTP/2";
+                    exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
 
                     if (_archiveWriter != null)
                         _archiveWriter.Update(openingResult.Connection, cancellationToken);

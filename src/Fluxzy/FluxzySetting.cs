@@ -56,7 +56,9 @@ namespace Fluxzy
         /// </summary>
         [JsonInclude]
         public SslProtocols ServerProtocols { get; internal set; } =
+#pragma warning disable SYSLIB0039
             SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+#pragma warning restore SYSLIB0039
 
         /// <summary>
         ///     The CA certificate used for decryption

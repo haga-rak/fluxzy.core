@@ -30,7 +30,7 @@ namespace Fluxzy.Clients.DotNetBridge
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var authority = new Authority(request.RequestUri.Host, request.RequestUri.Port,
+            var authority = new Authority(request.RequestUri!.Host, request.RequestUri.Port,
                 true);
 
             try {
@@ -53,7 +53,7 @@ namespace Fluxzy.Clients.DotNetBridge
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 
-            await _activeConnections[request.RequestUri.Authority].Send(exchange, null, RsBuffer.Allocate(32 * 1024),
+            await _activeConnections[request.RequestUri.Authority].Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);
 
             return new FluxzyHttpResponseMessage(exchange);

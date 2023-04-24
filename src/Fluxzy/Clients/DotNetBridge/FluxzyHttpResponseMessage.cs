@@ -13,13 +13,13 @@ namespace Fluxzy.Clients.DotNetBridge
     public class FluxzyHttpResponseMessage : HttpResponseMessage
     {
         public FluxzyHttpResponseMessage(Exchange exchange)
-            : base(ReadStatusCode(exchange.Response.Header.HeaderFields, out _))
+            : base(ReadStatusCode(exchange.Response.Header!.HeaderFields, out _))
         {
             Exchange = exchange;
 
             Version = Version.Parse("2.0");
 
-            Content = new StreamContent(exchange.Response.Body);
+            Content = new StreamContent(exchange.Response.Body!);
 
             foreach (var headerField in exchange.Response.Header.HeaderFields) {
                 if (headerField.Name.Span.StartsWith(":".AsSpan()))

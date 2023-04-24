@@ -65,8 +65,9 @@ namespace Fluxzy.Formatters.Producers.Requests
         {
             var res = HttpUtility.ParseQueryString(uri.Query);
 
-            var items = res.AllKeys.SelectMany(k => res.GetValues(k)?.Select(v => new QueryStringItem(k, v)))
-                           .Where(t => t != null)
+            var items = res.AllKeys.Where(k => k != null)
+                           .SelectMany(k =>
+                               res.GetValues(k)?.Select(v => new QueryStringItem(k!, v)) ?? new List<QueryStringItem>())
                            .ToList();
 
             return items;

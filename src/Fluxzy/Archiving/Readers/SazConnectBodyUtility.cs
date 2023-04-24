@@ -24,9 +24,13 @@ namespace Fluxzy.Readers
                     return SslProtocols.Tls13;
 #endif
                 if (sslVersion == "TLS/1.1")
+#pragma warning disable SYSLIB0039
                     return SslProtocols.Tls11;
+#pragma warning restore SYSLIB0039
                 if (sslVersion == "TLS/1")
+#pragma warning disable SYSLIB0039
                     return SslProtocols.Tls;
+#pragma warning restore SYSLIB0039
                 if (sslVersion == "SSL/3")
 #pragma warning disable CS0618
                     return SslProtocols.Ssl3;
