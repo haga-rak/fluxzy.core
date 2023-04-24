@@ -1,16 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<TargetFramework></TargetFramework>
 		<TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 		<Version>0.3.0</Version>
-		<Company>smartizy.com</Company>
-		<Authors>Haga Rakotoharivelo</Authors>
 		<Description>fluxzy is an cross-platform HTTP engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<LangVersion>11</LangVersion>
-		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

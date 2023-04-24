@@ -43,7 +43,7 @@ namespace Fluxzy
             return Equals(EndPoint, other.EndPoint) && Default == other.Default;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
                 return false;

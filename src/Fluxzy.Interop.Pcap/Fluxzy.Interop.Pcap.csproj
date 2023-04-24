@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
 		<Version>0.3.0</Version>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
 		<Description>fluxzy extensions to allow raw packet capture</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
