@@ -345,8 +345,8 @@ namespace Fluxzy.Readers
 
         public void Write(Stream stream)
         {
-            if (string.IsNullOrEmpty(Text))
-                throw new InvalidOperationException("Text is null or empty");
+            if (Text == null)
+                throw new InvalidOperationException("Text is null");
             
             var isBase64 = Encoding == "base64";
 
