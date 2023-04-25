@@ -1,6 +1,6 @@
 {
     "name": "fluxzy",
-    "version": "0.2.0-alpha",
+    "version": "0.3.0-beta",
     "description": "A desktop app for for analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic",
     "author": "Haga Rakotoharivelo",
     "copyright": "Copyright (c) 2022 Haga Rakotoharivelo",
