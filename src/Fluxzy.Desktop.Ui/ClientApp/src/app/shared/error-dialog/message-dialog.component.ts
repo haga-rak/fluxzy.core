@@ -7,7 +7,7 @@ import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
     styleUrls: ['./message-dialog.component.scss']
 })
 export class MessageDialogComponent implements OnInit {
-    private model: MessageDialogModel;
+    public model: MessageDialogModel;
 
     constructor(
         public bsModalRef: BsModalRef,
