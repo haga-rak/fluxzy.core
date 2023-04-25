@@ -1,6 +1,8 @@
 import {BrowserWindow, dialog, ipcMain, clipboard, app} from "electron";
 
 
+
+
 export const InstallSystemEvents = (win: BrowserWindow): void => {
 
     ipcMain.on('copy-to-cliboard', (event, arg) => {
@@ -11,7 +13,6 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
 
         event.returnValue = true;
     });
-
 
     ipcMain.on('request-file-opening', (event, arg) => {
         //
@@ -105,6 +106,11 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
         const resultIndex = dialog.showMessageBoxSync(win, options);
 
         event.returnValue = resultIndex;
+    });
+
+
+    ipcMain.on('get-version', function (event, arg) {
+        event.returnValue = process.env.npm_package_version
     });
 
     ipcMain.on('dialog-backend-failure', function (event, arg) {

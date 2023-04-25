@@ -1,8 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Fluxzy.Clients;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Ui.Logging;
 using Fluxzy.Desktop.Ui.Runtime;
@@ -114,13 +116,18 @@ namespace Fluxzy.Desktop.Ui
 
         private static void PrepareEnvVar()
         {
-            var version = Assembly.GetExecutingAssembly().GetName().Version!;
-
-            Environment.SetEnvironmentVariable("FluxzyVersion", $"{version.Major}.{version.Minor}.{version.Build}");
+            Environment.SetEnvironmentVariable("FluxzyVersion",
+                $"v{FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion!}");
+            Environment.SetEnvironmentVariable("FluxzyEngineVersion",
+                $"v{FileVersionInfo.GetVersionInfo(typeof(Exchange).Assembly.Location).ProductVersion!}");
+            Environment.SetEnvironmentVariable("FluxzyDesktopVersion",
+                $"v{FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion!}");
 
 #if (DEBUG)
             Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
             Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
+
+
 #endif
 
             if (Environment.GetEnvironmentVariable("appdata") == null) {

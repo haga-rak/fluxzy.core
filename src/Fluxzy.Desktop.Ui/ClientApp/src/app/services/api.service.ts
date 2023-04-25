@@ -16,7 +16,7 @@ import {
 } from 'rxjs';
 import {
     Action,
-    AnyFilter,
+    AnyFilter, AppVersion,
     ArchiveMetaInformation,
     Certificate,
     CertificateOnStore,
@@ -407,6 +407,10 @@ export class ApiService {
         return this.httpClient.get<CertificateOnStore[]>(`api/system/certificates?caOnly=${caOnly}`).pipe(take(1)) ;
     }
 
+    public systemGetVersion() : Observable<AppVersion> {
+        return this.httpClient.get<AppVersion>(`api/system/version`).pipe(take(1)) ;
+    }
+
     public connectionHasRawCapture(connectionId : number) : Observable<boolean> {
         return this.httpClient.get<boolean>(`api/connection/${connectionId}/capture/check`).pipe(take(1)) ;
     }
@@ -541,7 +545,7 @@ export class ApiService {
         const payload : UiSetting = {
             value
         } ;
-        
+
         return this.httpClient
             .put<boolean>(`api/setting/ui/${key}`,payload).pipe(take(1));
     }

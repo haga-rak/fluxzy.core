@@ -57,6 +57,9 @@ namespace Fluxzy.Desktop.Ui
 
             // UI objects
 
+            builder.ExportAsInterface<AppVersion>()
+                .ApplyGenericProperties();
+
             builder.ExportAsInterface<UiState>()
                 .ApplyGenericProperties();
 
