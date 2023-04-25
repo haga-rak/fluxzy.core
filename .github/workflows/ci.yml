@@ -27,6 +27,9 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.8
+    - name: Add nuget package source 
+      continue-on-error: true  #ignore error (package source already present on the runner)
+      run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
     - name: Restore dependencies of tests
       run: dotnet restore test/Fluxzy.Tests
     - name: Restore dependencies
@@ -42,9 +45,8 @@ jobs:
         name: Test Results (${{ matrix.osversion }})
         path: ./TestResults/Fluxzy/fluxzytests.trx
   build-front:
-    name: "Building angular app"
+    name: "Building electron binary"
     runs-on: 'Windows'
-    
     steps:
     - name: Use Node.js 18.x
       uses: actions/setup-node@v3
