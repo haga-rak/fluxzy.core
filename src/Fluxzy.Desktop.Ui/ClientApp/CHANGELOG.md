@@ -1,4 +1,4 @@
-## 0.3.0-beta (2023-04-25)
+## <small>0.3.1-alpha (2023-04-25)</small>
 
 * .gitignore : exclude packaging outputs ([99a14e5](https://github.com/haga-rak/fluxzy/commit/99a14e5))
 * [break-build] : switch environment ([2d02d89](https://github.com/haga-rak/fluxzy/commit/2d02d89))
@@ -60,6 +60,7 @@
 * breakpoint : avoid multiple dialog popup ([c3991a6](https://github.com/haga-rak/fluxzy/commit/c3991a6))
 * breakpoint : before adding sytem.reactive ([3c729af](https://github.com/haga-rak/fluxzy/commit/3c729af))
 * breakpoint : ui various fixes ([e3e9ca6](https://github.com/haga-rak/fluxzy/commit/e3e9ca6))
+* Bring versioning management to main branch ([0e6860d](https://github.com/haga-rak/fluxzy/commit/0e6860d))
 * Bump @sideway/formula in /Fluxzy.Desktop.Ui/ClientApp ([9b31b8f](https://github.com/haga-rak/fluxzy/commit/9b31b8f))
 * Bump async and karma-electron in /Fluxzy.Desktop.Ui/ClientApp ([b8b26dc](https://github.com/haga-rak/fluxzy/commit/b8b26dc))
 * Bump electron from 18.0.1 to 18.3.7 in /Fluxzy.Desktop.Ui/ClientApp ([83e0d32](https://github.com/haga-rak/fluxzy/commit/83e0d32))

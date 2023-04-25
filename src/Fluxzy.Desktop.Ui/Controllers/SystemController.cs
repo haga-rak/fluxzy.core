@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
@@ -21,6 +21,12 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public ActionResult<List<CertificateOnStore>> GetStoreCertificates([FromQuery] bool caOnly = false)
         {
             return _systemService.GetStoreCertificates(caOnly);
+        }
+
+        [HttpGet("version")]
+        public ActionResult<AppVersion> GetVersion([FromServices] AppVersionProvider provider)
+        {
+            return provider.Version; 
         }
     }
 }

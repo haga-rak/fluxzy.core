@@ -90,6 +90,9 @@ var InstallSystemEvents = function (win) {
         var resultIndex = electron_1.dialog.showMessageBoxSync(win, options);
         event.returnValue = resultIndex;
     });
+    electron_1.ipcMain.on('get-version', function (event, arg) {
+        event.returnValue = process.env.npm_package_version;
+    });
     electron_1.ipcMain.on('dialog-backend-failure', function (event, arg) {
         //
         var options = {

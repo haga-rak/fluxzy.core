@@ -38,6 +38,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Fluxzy.Desktop.Services\Fluxzy.Desktop.Services.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Services\" />
+	</ItemGroup>
 	<ProjectExtensions>
 		<VisualStudio>
 			<UserProperties properties_4launchsettings_1json__JsonSchema="" />

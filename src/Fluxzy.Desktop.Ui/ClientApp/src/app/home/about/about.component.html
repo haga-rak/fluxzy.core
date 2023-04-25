@@ -16,8 +16,20 @@
         </div>
         <div class="col-9">
 
-            <div class="">
-                <h4 class="text-info">v0.1.18 (build: 213654)</h4>
+            <div class="" >
+                <h4 *ngIf="version">
+                    <span class="text-info">{{ version.global}}</span>
+                </h4>
+                <div *ngIf="version" style="margin-bottom: 24px">
+                    <span class="">
+                        <span>Desktop : </span> <span class="text-info">{{ version.fluxzyDesktop }}</span>
+                    </span>
+                    <br/>
+                    <span class="">
+                        <span>Engine : </span> <span class="text-info">{{ version.fluxzyCore }}</span>
+                    </span>
+                </div>
+
                 <p>
                     Fluxzy Desktop is a multipurpose desktop application to view, record, analyze and alter your HTTP flows, in one go debugging session or within automated workflow.
                 </p>

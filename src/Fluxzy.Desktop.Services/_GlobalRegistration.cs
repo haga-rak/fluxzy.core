@@ -34,6 +34,7 @@ namespace Fluxzy.Desktop.Services
     {
         public static IServiceCollection AddFluxzyDesktopServices(this IServiceCollection collection)
         {
+            collection.AddSingleton<AppVersionProvider>();
             collection.AddSingleton<GlobalUiSettingStorage>();
 
             collection.AddSingleton<ProxyScope>(_ =>

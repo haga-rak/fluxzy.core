@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 import { ipcRenderer, Menu, webFrame } from 'electron';
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
-import {BackFailureDialog} from "../menu-service.service";
+import {BackFailureDialog, ConfirmResult} from "../menu-service.service";
 
 @Injectable({
     providedIn: 'root'
@@ -55,6 +55,18 @@ export class ElectronService {
         }
 
         return BackFailureDialog.Close;
+    }
+
+    public getAppVersion(): string {
+        if (this.isElectron) {
+            const result: string = this.ipcRenderer.sendSync(
+                'get-version',
+                null);
+
+            return result;
+        }
+
+        return 'web-browser' ;
     }
 
     public exit(): void {

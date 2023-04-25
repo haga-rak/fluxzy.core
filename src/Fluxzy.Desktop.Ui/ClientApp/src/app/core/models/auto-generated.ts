@@ -746,6 +746,12 @@ export interface LastOpenFileItem
 	fileName: string;
 	creationDate: Date;
 }
+export interface AppVersion
+{
+	global: string;
+	fluxzyCore: string;
+	fluxzyDesktop: string;
+}
 export interface UiState
 {
 	id: string;
