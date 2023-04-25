@@ -1,4 +1,4 @@
-## <small>0.3.1-alpha (2023-04-25)</small>
+## <small>0.3.3-alpha (2023-04-25)</small>
 
 * .gitignore : exclude packaging outputs ([99a14e5](https://github.com/haga-rak/fluxzy/commit/99a14e5))
 * [break-build] : switch environment ([2d02d89](https://github.com/haga-rak/fluxzy/commit/2d02d89))
@@ -24,11 +24,17 @@
 * Add better About dialog + Quick action ([d438311](https://github.com/haga-rak/fluxzy/commit/d438311))
 * add control on state identifier change ([0c91f54](https://github.com/haga-rak/fluxzy/commit/0c91f54))
 * Add cookie filters in quick actions ([44915f9](https://github.com/haga-rak/fluxzy/commit/44915f9))
+* Add correct version dialog in about box. Update usage in logging (
+  #73) ([e8e5e30](https://github.com/haga-rak/fluxzy/commit/e8e5e30)),
+  closes [#73](https://github.com/haga-rak/fluxzy/issues/73)
 * Add Directory.Build.props file ([700e4ba](https://github.com/haga-rak/fluxzy/commit/700e4ba))
 * Add expanded fluxzy file deletion in Desktop UI ([1e20751](https://github.com/haga-rak/fluxzy/commit/1e20751))
 * add file controller ([57e8aaf](https://github.com/haga-rak/fluxzy/commit/57e8aaf))
 * add filter : Connection filter (same connection filter) ([0cdff2f](https://github.com/haga-rak/fluxzy/commit/0cdff2f))
-* Add full history while git-cloning for version management ([3985eb6](https://github.com/haga-rak/fluxzy/commit/3985eb6))
+* Add front building in CI and windows packaging (#74) ([774c08c](https://github.com/haga-rak/fluxzy/commit/774c08c)),
+  closes [#74](https://github.com/haga-rak/fluxzy/issues/74)
+* Add full history while git-cloning for version
+  management ([3985eb6](https://github.com/haga-rak/fluxzy/commit/3985eb6))
 * Add generic filter tests ([9b93410](https://github.com/haga-rak/fluxzy/commit/9b93410))
 * Add GetFilter ([a2152b2](https://github.com/haga-rak/fluxzy/commit/a2152b2))
 * Add HasCookieOnRequestFilter on Fluxzy Core and unit tests ([66ea17d](https://github.com/haga-rak/fluxzy/commit/66ea17d))
