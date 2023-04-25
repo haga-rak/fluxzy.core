@@ -4,7 +4,6 @@
 		<TargetFramework></TargetFramework>
 		<TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<Version>0.3.0</Version>
 		<Description>fluxzy is an cross-platform HTTP engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
@@ -16,12 +15,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<Compile Remove="Rules\Filters\NewFolder\**" />
-		<EmbeddedResource Remove="Rules\Filters\NewFolder\**" />
-		<None Remove="Rules\Filters\NewFolder\**" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
