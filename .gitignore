@@ -395,3 +395,4 @@ FodyWeavers.xsd
 /Fluxzy.Desktop.Ui/%appdata%/fluxzy/pcap/header/header.pcap
 
 auto-generated.ts
+/src/Fluxzy.Desktop.Ui/ClientApp/CHANGELOG.md
