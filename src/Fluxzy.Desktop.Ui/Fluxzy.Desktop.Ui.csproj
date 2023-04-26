@@ -2,9 +2,6 @@
 	<PropertyGroup>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
-		<SpaRoot>ClientApp\</SpaRoot>
-		<SpaProxyServerUrl>http://localhost:4200</SpaProxyServerUrl>
-		<SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
 		<RootNamespace>Fluxzy.Desktop.Ui</RootNamespace>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>fluxzyd</AssemblyName>
@@ -15,7 +12,6 @@
 		<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="7.0.5" />
 		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.9.5">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -30,18 +26,15 @@
 
 	<ItemGroup>
 		<!-- Don't publish the SPA source files, but do show them in the project files list -->
-		<Content Remove="$(SpaRoot)**" />
-		<None Remove="$(SpaRoot)**" />
-		<None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+		<Content Remove="ClientApp\**" />
+		<None Remove="ClientApp\**" />
+		<None Include="ClientApp\**" Exclude="ClientApp\node_modules\**" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Fluxzy.Desktop.Services\Fluxzy.Desktop.Services.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Services\" />
-	</ItemGroup>
 	<ProjectExtensions>
 		<VisualStudio>
 			<UserProperties properties_4launchsettings_1json__JsonSchema="" />
