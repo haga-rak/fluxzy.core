@@ -8,7 +8,7 @@ namespace Fluxzy.Rules.Filters
     ///     Select exchange according to comment value
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having a particular comment."
+        LongDescription = "Select exchange by searching a string pattern into the comment property."
     )]
     public class CommentSearchFilter : StringFilter
     {
