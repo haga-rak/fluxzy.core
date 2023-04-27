@@ -10,7 +10,7 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     ///     Add comment to exchange. Comment does not alter the stream.
     /// </summary>
-    [ActionMetadata("Add comment to exchange. Comment does not alter the stream.")]
+    [ActionMetadata("Add comment to exchange. Comment has no effect on the stream behaviour.")]
     public class ApplyCommentAction : Action
     {
         public ApplyCommentAction(string? comment)

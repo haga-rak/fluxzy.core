@@ -6,10 +6,10 @@ using Fluxzy.Misc;
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange that has css content as response body.
+    ///     Select exchanges that has css content as response body.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having response content type mime matching css."
+        LongDescription = "Select exchange having response content type matching a font payload."
     )]
     public class  FontFilter : ResponseHeaderFilter
     {
