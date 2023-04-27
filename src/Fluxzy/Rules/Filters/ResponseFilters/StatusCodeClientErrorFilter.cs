@@ -9,7 +9,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     ///     Select exchange that response status code indicates a client error (4XX)
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange that HTTP status code indicates a client error (4XX)."
+        LongDescription = "Select exchanges that HTTP status code indicates a client error (4XX)."
     )]
     public class StatusCodeClientErrorFilter : Filter
     {
