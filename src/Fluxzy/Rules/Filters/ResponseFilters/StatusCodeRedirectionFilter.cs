@@ -9,7 +9,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     ///     Select exchange that http status code indicates a redirect (3XX)
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange that HTTP status code indicates a redirect (3XX)."
+        LongDescription = "Select exchanges that HTTP status code indicates a redirect (3XX)."
     )]
     public class StatusCodeRedirectionFilter : Filter
     {

@@ -9,7 +9,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     ///     Select exchange that has a JSON response body.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having JSON response body."
+        LongDescription = "Select exchanges having JSON response body. The content-type header is checked to determine if the content body is a JSON."
     )]
     public class ContentTypeJsonFilter : ResponseHeaderFilter
     {

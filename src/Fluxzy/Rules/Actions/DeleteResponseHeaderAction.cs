@@ -12,7 +12,7 @@ namespace Fluxzy.Rules.Actions
     ///     Remove response headers. This actions remove <b>every</b> occurrence of the header from the response.
     /// </summary>
     [ActionMetadata(
-        "Remove response headers. This actions remove <b>every</b> occurrence of the header from the response.")]
+        "Remove response headers. This action removes <b>every</b> occurrence of the header from the response.")]
     public class DeleteResponseHeaderAction : Action
     {
         public DeleteResponseHeaderAction(string headerName)
