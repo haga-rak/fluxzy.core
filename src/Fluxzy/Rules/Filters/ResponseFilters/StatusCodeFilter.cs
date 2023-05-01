@@ -6,7 +6,7 @@ using System.Linq;
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange according to HTTP status code
+    ///     Select exchanges according to HTTP status code
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select exchanges according to HTTP status code."
