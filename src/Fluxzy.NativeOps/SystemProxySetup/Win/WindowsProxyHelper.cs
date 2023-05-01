@@ -2,11 +2,13 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Fluxzy.Core.Proxy;
 using Microsoft.Win32;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.Win
 {
+    [SupportedOSPlatform("windows")]
     internal static class WindowsProxyHelper
     {
         private const int InternetOptionSettingsChanged = 39;
@@ -24,8 +26,6 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Win
 
             if (registry == null)
                 throw new InvalidOperationException("Unable to access system registry");
-
-            ;
 
             var proxyEnabled = (int) registry.GetValue("ProxyEnable", 0)! == 1;
             var proxyOverride = (string) registry.GetValue("ProxyOverride", string.Empty)!;
