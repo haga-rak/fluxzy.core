@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-and-test-backend:
+    name: "Build & core Tests"
     strategy:
       matrix:
         osversion: [Linux, Windows]
