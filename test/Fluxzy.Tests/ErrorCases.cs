@@ -1,8 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Linq;
+using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
+using Fluxzy.Tests.Cli.Scaffolding;
 using Fluxzy.Tests.Common;
 using Xunit;
 
@@ -86,5 +91,28 @@ namespace Fluxzy.Tests
         //    Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
         //    Assert.True(!string.IsNullOrWhiteSpace(responseBody));
         //}
+
+        [Theory]
+        [InlineData("zehjz\r\nsffsfsfq\r\n\r\n")]
+        [InlineData("\r\n\r\n")]
+        [InlineData("GET /index.html HTTP/1.1\r\ndsfsdf\r\n\r\n")]
+        public async Task Run_Cli_Handle_Invalid_Http_Requests_From_Client(string rawCommunication)
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+            
+            await using var fluxzyInstance = await commandLineHost.Run();
+
+            using var tcpClient = new TcpClient();
+
+            await tcpClient.ConnectAsync("127.0.0.1", fluxzyInstance.ListenPort);
+
+            var networkStream = tcpClient.GetStream();
+
+            networkStream.Write(Encoding.UTF8.GetBytes(rawCommunication));
+            networkStream.ReadByte();
+        }
     }
 }
