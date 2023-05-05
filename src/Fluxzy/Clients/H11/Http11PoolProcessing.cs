@@ -49,11 +49,22 @@ namespace Fluxzy.Clients.H11
             // Sending request body 
 
             if (exchange.Request.Body != null) {
+                var writeStream = exchange.Connection.WriteStream;
+                ChunkedTransferWriteStream? chunkedStream = null;
+
+                if (exchange.Request.Header.ChunkedBody) {
+                    writeStream = chunkedStream = new ChunkedTransferWriteStream(writeStream);
+                }
+                
                 var totalBodySize = await
-                    exchange.Request.Body.CopyDetailed(exchange.Connection.WriteStream, 1024 * 16,
+                    exchange.Request.Body.CopyDetailed(writeStream, 1024 * 16,
                         _ => { }, cancellationToken).ConfigureAwait(false);
 
                 exchange.Metrics.TotalSent += totalBodySize;
+
+                if (chunkedStream != null) {
+                    await chunkedStream.WriteEof();
+                }
             }
 
             exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();

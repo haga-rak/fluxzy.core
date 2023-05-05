@@ -13,7 +13,8 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         public ProxiedHttpClient(int port, string remoteHost = "127.0.0.1")
         {
             _clientHandler = new HttpClientHandler {
-                Proxy = new WebProxy($"http://{remoteHost}:{port}")
+                Proxy = new WebProxy($"http://{remoteHost}:{port}"),
+                UseProxy = true
             };
 
             Client = new HttpClient(_clientHandler);
