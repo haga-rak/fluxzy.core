@@ -154,6 +154,10 @@ namespace Fluxzy
                     }
                 }
             }
+            catch {
+                // We ignore any parsing errors that may block the proxy
+                // TODO : escalate from Serilog To Here
+            }
             finally {
                 var value = Interlocked.Decrement(ref _currentConcurrentCount);
             }
