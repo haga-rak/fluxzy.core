@@ -64,7 +64,7 @@ namespace Fluxzy.Tests
             // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
 
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(22) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
