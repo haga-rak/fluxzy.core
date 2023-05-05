@@ -57,6 +57,8 @@ namespace Fluxzy.Cli.Commands
             var command = new Command("start", "Start a capturing session");
 
             command.AddOption(CreateListenInterfaceOption());
+            command.AddOption(CreateListenLocalhost());
+            command.AddOption(CreateListToAllInterfaces());
             command.AddOption(CreateOutputFileOption());
             command.AddOption(CreateDumpToFolderOption());
             command.AddOption(CreateSystemProxyOption());
@@ -82,6 +84,8 @@ namespace Fluxzy.Cli.Commands
             var proxyStartUpSetting = FluxzySetting.CreateDefault();
 
             var listenInterfaces = invocationContext.Value<List<IPEndPoint>>("listen-interface");
+            var listenLocalHost = invocationContext.Value<bool>("llo");
+            var listenAnyInterfaces = invocationContext.Value<bool>("lany");
             var outFileInfo = invocationContext.Value<FileInfo>("output-file");
             var dumpDirectory = invocationContext.Value<DirectoryInfo>("dump-folder");
             var registerAsSystemProxy = invocationContext.Value<bool>("system-proxy");
@@ -110,7 +114,22 @@ namespace Fluxzy.Cli.Commands
 
             proxyStartUpSetting.ClearBoundAddresses();
 
-            foreach (var item in listenInterfaces) {
+
+            var finalListenInterfaces = listenInterfaces.ToList();
+
+            if (listenLocalHost) {
+                finalListenInterfaces.Clear();
+                finalListenInterfaces.Add(new IPEndPoint(IPAddress.Loopback, 44344));
+                finalListenInterfaces.Add(new IPEndPoint(IPAddress.IPv6Loopback, 44344));
+            }
+
+            if (listenAnyInterfaces) {
+                finalListenInterfaces.Clear();
+                finalListenInterfaces.Add(new IPEndPoint(IPAddress.Any, 44344));
+                finalListenInterfaces.Add(new IPEndPoint(IPAddress.IPv6Any, 44344));
+            }
+
+            foreach (var item in finalListenInterfaces) {
                 proxyStartUpSetting.AddBoundAddress(item);
             }
 
@@ -341,6 +360,30 @@ namespace Fluxzy.Cli.Commands
                 "Disable ssl traffic decryption");
 
             option.AddAlias("-ss");
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
+        private static Option CreateListenLocalhost()
+        {
+            var option = new Option<bool>(
+                "--llo",
+                "Listen on localhost address with default port. Same as -l 127.0.0.1/44344");
+            
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
+        private static Option CreateListToAllInterfaces()
+        {
+            var option = new Option<bool>(
+                "--lany",
+                "Listen on all interfaces with default port (44344)");
+            
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
