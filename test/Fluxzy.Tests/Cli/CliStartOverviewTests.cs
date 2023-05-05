@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -284,6 +285,39 @@ namespace Fluxzy.Tests.Cli
 
             if (Directory.Exists(directory))
                 Directory.Delete(directory, true);
+        }
+
+
+        [Theory]
+        [InlineData("http11")]
+        [InlineData("http2")]
+        [InlineData("plainhttp11")]
+        public async Task Run_Cli_Chunked_Request_Body(string protocol)
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            var cookieValue =
+                "THz3tkJCYR8vOQwpxS556BSjlkj/i9SBwNtof+R1Oyjkr4bznOKd0m/7EkYpjl+03rKFCfxdJcqTE8i/oniL6Q3+/XrtFdqMR8dob+SX48E=";
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+            var data = new {
+                fileContent = Convert.ToBase64String(Enumerable.Repeat(55, 3300).Select(s =>  (byte) s).ToArray())
+            }; 
+
+            proxiedHttpClient.Client.DefaultRequestHeaders.Add("Cookie", "import-tool-session=" + cookieValue);
+            proxiedHttpClient.Client.DefaultRequestHeaders.ExpectContinue = false;
+
+            var response = await proxiedHttpClient.Client.PostAsJsonAsync(
+                $"{TestConstants.GetHost(protocol)}/global-health-check", data);
+
+            await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
     }
 

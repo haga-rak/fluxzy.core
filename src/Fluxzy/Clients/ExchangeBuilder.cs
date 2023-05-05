@@ -110,10 +110,11 @@ namespace Fluxzy.Clients
             var plainHeader = new RequestHeader(plainHeaderChars, true);
 
             // Classic TLS Request 
+
             if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase)) {
                 // GET Authority 
                 var authorityArray =
-                    plainHeader.Path.ToString().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                    plainHeader.Path.ToString().Split(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
 
                 var authority = new Authority
                 (authorityArray[0],
@@ -132,7 +133,7 @@ namespace Fluxzy.Clients
                         new ExchangeBuildingResult(
                             authority, plainStream, plainStream,
                             Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
-                                authority, plainHeaderChars, StreamUtils.EmptyStream, 
+                                authority, plainHeaderChars, StreamUtils.EmptyStream,
                                 AcceptTunnelResponseString.AsMemory(),
                                 StreamUtils.EmptyStream, false,
                                 "HTTP/1.1",
@@ -184,6 +185,8 @@ namespace Fluxzy.Clients
 
             await runtimeSetting.EnforceRules(plainExchangeContext, FilterScope.OnAuthorityReceived);
 
+            var bodyStream = SetChunkedBody(plainHeader, plainStream);
+
             return new ExchangeBuildingResult(
                 plainAuthority,
                 plainStream,
@@ -191,9 +194,22 @@ namespace Fluxzy.Clients
                 new Exchange(_idProvider,
                     plainExchangeContext,
                     plainAuthority,
-                    plainHeader, plainHeader.ContentLength > 0
-                        ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                        : StreamUtils.EmptyStream, "HTTP/1.1", receivedFromProxy), false);
+                    plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy), false);
+        }
+
+        private static Stream SetChunkedBody(RequestHeader plainHeader, Stream plainStream)
+        {
+            Stream bodyStream;
+
+            if (plainHeader.ChunkedBody)
+                bodyStream = new ChunkedTransferReadStream(plainStream, false);
+            else {
+                bodyStream = plainHeader.ContentLength > 0
+                    ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
+                    : StreamUtils.EmptyStream;
+            }
+
+            return bodyStream;
         }
 
         public async ValueTask<Exchange?> ReadExchange(
@@ -201,6 +217,8 @@ namespace Fluxzy.Clients
             ProxyRuntimeSetting runTimeSetting,
             CancellationToken token)
         {
+            // Every next request after the first one is read from the stream
+
             var blockReadResult = await
                 Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, false, token);
 
@@ -229,11 +247,11 @@ namespace Fluxzy.Clients
             var exchangeContext = new ExchangeContext(authority);
             await runTimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
+            var bodyStream = SetChunkedBody(secureHeader, inStream);
+
             return new Exchange(_idProvider,
                 exchangeContext, authority, secureHeader,
-                secureHeader.ContentLength > 0
-                    ? new ContentBoundStream(inStream, secureHeader.ContentLength)
-                    : StreamUtils.EmptyStream, null!, receivedFromProxy
+                bodyStream, null!, receivedFromProxy
             );
         }
     }

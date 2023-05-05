@@ -340,7 +340,7 @@ namespace Fluxzy.Core
                             break;
 
                         try {
-                            // Read the nex HTTP message 
+                            // Read the next HTTP message 
                             exchange = await _exchangeBuilder.ReadExchange(
                                 localConnection.ReadStream,
                                 localConnection.Authority,

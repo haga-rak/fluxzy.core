@@ -108,6 +108,11 @@ namespace Fluxzy.Clients
             }
         }
 
+        public void RemoveHeader(string headerName)
+        {
+            _rawHeaderFields.RemoveAll(r => r.Name.Span.Equals(headerName, StringComparison.OrdinalIgnoreCase)); 
+        }
+
         protected abstract int WriteHeaderLine(Span<byte> buffer);
 
         protected abstract int GetHeaderLineLength();
