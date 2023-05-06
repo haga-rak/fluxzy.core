@@ -6,6 +6,10 @@ export interface PolymorphicObject
 {
 	typeKind: string;
 }
+export interface DesktopErrorMessage
+{
+	message: string;
+}
 export interface FileOpeningRequestViewModel
 {
 	fileName: string;

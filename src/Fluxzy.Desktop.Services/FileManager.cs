@@ -104,7 +104,7 @@ namespace Fluxzy.Desktop.Services
             var importEngine = _importEngineProvider.GetImportEngine(fileName);
 
             if (importEngine == null)
-                throw new InvalidOperationException("No import engine found for file");
+                throw new DesktopException("Unknown file format");
 
             importEngine.WriteToDirectory(openFileInfo.FullName, directoryInfo.FullName);
 
