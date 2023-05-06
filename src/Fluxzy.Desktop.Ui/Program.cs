@@ -53,6 +53,7 @@ namespace Fluxzy.Desktop.Ui
                 
                 var app = builder.Build();
 
+                app.ConfigureDesktopExceptionHandler();
                 app.UseStaticFiles();
                 app.UseRouting();
 

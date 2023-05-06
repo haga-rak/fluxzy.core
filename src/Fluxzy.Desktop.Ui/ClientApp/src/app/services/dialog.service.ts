@@ -116,7 +116,7 @@ export class DialogService {
 
         this.bsModalRef.content.closeBtnName = 'Close';
 
-        return subject.asObservable().pipe(take(1));;
+        return subject.asObservable().pipe(take(1));
     }
 
     public openFilterEdit(filter: Filter, isEdit : boolean = true): Observable<Filter | null> {
@@ -288,38 +288,6 @@ export class DialogService {
         );
 
         this.bsModalRef.content.closeBtnName = 'Close';
-    }
-
-    public showInformationDialog(title : string, content : string) : void {
-        this.showMessageDialog({
-            title,
-            content,
-            type : "info"
-        });
-    }
-
-    public showErrorDialog(title : string, content : string) : void {
-        this.showMessageDialog({
-            title,
-            content,
-            type : "info"
-        });
-    }
-
-    public showMessageDialog(messageDialogModel : MessageDialogModel) : void {
-        const config: ModalOptions = {
-            class: 'little-down modal-dialog-small',
-            initialState: {
-                class: 'little-down modal-dialog-small',
-                messageDialogModel
-            },
-            ignoreBackdropClick : false
-        };
-
-        this.bsModalRef = this.modalService.show(
-            MessageDialogComponent,
-            config
-        );
     }
 
 

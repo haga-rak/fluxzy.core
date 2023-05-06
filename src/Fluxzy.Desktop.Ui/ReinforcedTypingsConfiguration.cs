@@ -49,6 +49,9 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<PolymorphicObject>()
                    .ApplyGenericProperties();
 
+            builder.ExportAsInterface<DesktopErrorMessage>()
+                   .ApplyGenericProperties();
+
             ConfigureViewModels(builder);
             ConfigureProducers(builder);
             ConfigureFilters(builder); 
