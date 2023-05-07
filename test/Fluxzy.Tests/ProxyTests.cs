@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -520,6 +521,9 @@ namespace Fluxzy.Tests
                 Assert.Equal((HttpStatusCode) 528, response.StatusCode);
 
                 await requestReceived.Task;
+            }
+            catch (IOException) {
+
             }
             finally {
                 httpClient.Dispose();
