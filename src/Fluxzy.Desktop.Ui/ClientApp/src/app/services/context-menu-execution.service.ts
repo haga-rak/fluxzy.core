@@ -3,7 +3,6 @@ import {ContextMenuAction, ExchangeInfo} from "../core/models/auto-generated";
 import {ApiService} from "./api.service";
 import {filter, Observable, of, switchMap} from "rxjs";
 import {ExchangeManagementService} from "./exchange-management.service";
-import {SystemCallService} from "../core/services/system-call.service";
 import {GlobalActionService} from "./global-action.service";
 
 @Injectable({
@@ -13,8 +12,7 @@ export class ContextMenuExecutionService {
 
     constructor(private apiService : ApiService,
                 private exchangeManagementService : ExchangeManagementService,
-                private globalActionService : GlobalActionService,
-                private systemCallService : SystemCallService) {
+                private globalActionService : GlobalActionService) {
     }
 
     public executeAction(contextMenuAction: ContextMenuAction, exchangeId : number, and : boolean, liveEdit : boolean) : Observable<any> {
