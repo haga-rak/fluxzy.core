@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -68,10 +68,6 @@ namespace Fluxzy.Clients.DotNetBridge
             base.Dispose(disposing);
 
             _semaphore.Dispose();
-
-            foreach (var connection in _activeConnections.Values) {
-                // connection.Dispose();
-            }
         }
     }
 }
