@@ -61,7 +61,7 @@ namespace Fluxzy.Tests
         [InlineData("https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ")]
         public async Task Get_Error_Case(string url)
         {
-            // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
+            //Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
 
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(22) };
@@ -72,6 +72,7 @@ namespace Fluxzy.Tests
             );
 
             var response = await httpClient.SendAsync(requestMessage);
+
             await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);

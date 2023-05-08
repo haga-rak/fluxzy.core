@@ -16,7 +16,7 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
 
     ipcMain.on('request-file-opening', (event, arg) => {
         //
-        var result = dialog.showOpenDialogSync(win, {
+        const result = dialog.showOpenDialogSync(win, {
             filters: [
                 {
                     name: "Fluxzy file",
