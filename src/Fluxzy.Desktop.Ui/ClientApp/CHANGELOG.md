@@ -1,4 +1,4 @@
-## <small>0.3.24-alpha.g3cfa121487 (2023-05-07)</small>
+## <small>0.3.27-alpha.g0cea503d9a (2023-05-08)</small>
 
 * .gitignore : exclude packaging outputs ([99a14e5](https://github.com/haga-rak/fluxzy/commit/99a14e5))
 * [break-build] : switch environment ([2d02d89](https://github.com/haga-rak/fluxzy/commit/2d02d89))
@@ -44,6 +44,7 @@
 * Add more actions on quick search ([5ee5c08](https://github.com/haga-rak/fluxzy/commit/5ee5c08))
 * Add possibility to interrupt search the byte pattern is found ([b836859](https://github.com/haga-rak/fluxzy/commit/b836859))
 * Add preview for image response body (#71) ([a1c3262](https://github.com/haga-rak/fluxzy/commit/a1c3262)), closes [#71](https://github.com/haga-rak/fluxzy/issues/71)
+* Add publish config with ERS ([0cea503](https://github.com/haga-rak/fluxzy/commit/0cea503))
 * Add Rule Add Response Header ([bfdca09](https://github.com/haga-rak/fluxzy/commit/bfdca09))
 * Add select all exchanges (need backend exchange id retrival) ([2a1f75f](https://github.com/haga-rak/fluxzy/commit/2a1f75f))
 * Add seq remote integration ([db0a947](https://github.com/haga-rak/fluxzy/commit/db0a947))
@@ -99,6 +100,7 @@
 * checkpoint : various update and refactor on breakpoint ([d1a147e](https://github.com/haga-rak/fluxzy/commit/d1a147e))
 * checkpoint : various update on HarModels ([b823c16](https://github.com/haga-rak/fluxzy/commit/b823c16))
 * checkpoint : various update on HarModels ([53c5294](https://github.com/haga-rak/fluxzy/commit/53c5294))
+* Checkpoint version ([7b9af2c](https://github.com/haga-rak/fluxzy/commit/7b9af2c))
 * chore : add description to cert command ([242c3cb](https://github.com/haga-rak/fluxzy/commit/242c3cb))
 * chore : add new feature ([dd58b62](https://github.com/haga-rak/fluxzy/commit/dd58b62))
 * chore : bring exchange and connectionInfos at memory ([31efbc3](https://github.com/haga-rak/fluxzy/commit/31efbc3))
@@ -328,6 +330,7 @@
 * develop add state and browsing state ([4b25ad1](https://github.com/haga-rak/fluxzy/commit/4b25ad1))
 * docs : update action info ([5cfa3d1](https://github.com/haga-rak/fluxzy/commit/5cfa3d1))
 * docs : update filter and rule docs ([051997b](https://github.com/haga-rak/fluxzy/commit/051997b))
+* electron-release-server is not okey, need to test nucleus ([91ec0f8](https://github.com/haga-rak/fluxzy/commit/91ec0f8))
 * feat :  add force tls action ([e19001a](https://github.com/haga-rak/fluxzy/commit/e19001a))
 * feat :  serialize and deserialize yaml ruleset ([843db4e](https://github.com/haga-rak/fluxzy/commit/843db4e))
 * feat : add basic scaffold of yaml deserializer ([ac1aac9](https://github.com/haga-rak/fluxzy/commit/ac1aac9))
