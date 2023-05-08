@@ -1,4 +1,4 @@
-import {app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, MenuItemConstructorOptions, dialog, net} from 'electron';
+import {app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, dialog, net} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as url from 'url';
@@ -6,24 +6,29 @@ import {InstallMenuBar, InstallRestoreEvent} from './menu-prepare';
 import {InstallSystemEvents} from './system-events';
 import {spawn} from "child_process";
 import {checkSquirrelStartup} from "./__squirrel-startup";
+import {autoUpdateRoutine} from "./auto-update";
 
 if(checkSquirrelStartup())
     app.quit();
 
+const commandLineArgs = process.argv.slice(1);
+const serve = commandLineArgs.some(val => val === '--serve');
+
+if (serve)
+    process.env.ELECTRON_ENABLE_LOGGING = "1";
+
+console.log('starting-fluxzy');
 
 function runFrontEnd() : void {
 
     let win: BrowserWindow = null;
-
-    const commandLineArgs = process.argv.slice(1),
-        serve = commandLineArgs.some(val => val === '--serve');
 
     let args = process.argv.join(" ");
     let isProduction = args.indexOf("--serve") === -1;
 
     function createWindow(): BrowserWindow {
         const electronScreen = screen;
-        const primaryDisplay = electronScreen.getPrimaryDisplay();
+        electronScreen.getPrimaryDisplay();
 
         // Create the browser window.
         win = new BrowserWindow({
@@ -34,8 +39,8 @@ function runFrontEnd() : void {
             icon: '../assets/icon.png',
             webPreferences: {
                 nodeIntegration: true,
-                allowRunningInsecureContent: (serve) ? true : false,
-                contextIsolation: false,  // false if you want to run e2e test with Spectron
+                allowRunningInsecureContent: serve,
+                contextIsolation: false,
             },
         });
 
@@ -43,6 +48,7 @@ function runFrontEnd() : void {
 
         let fullPath = '';
 
+        autoUpdateRoutine(win);
 
         if (serve) {
             const debug = require('electron-debug');
@@ -52,7 +58,10 @@ function runFrontEnd() : void {
             win.loadURL('http://localhost:4200');
             win.show();
         } else {
+
             // Path when running electron executable
+
+
             let pathIndex = './index.html';
 
             if (fs.existsSync(path.join(__dirname, '../dist/index.html'))) {
