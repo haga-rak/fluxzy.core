@@ -76,4 +76,15 @@ module.exports = {
             },
         }
     ],
+    publishers: [
+        {
+            name: '@electron-forge/publisher-electron-release-server',
+            config: {
+                baseUrl: 'https://releases.fluxzy.io:4433',
+                username: 'lilou',
+                password: process.env.RELEASE_SERVER_PASSWORD,
+                flavor: "default"
+            }
+        }
+    ]
 };
