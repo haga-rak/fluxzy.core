@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Fluxzy.Desktop.Ui": {
+    "fluxzyd": {
       "commandName": "Project",
       "launchBrowser": false,
       "applicationUrl": "http://localhost:5198",
