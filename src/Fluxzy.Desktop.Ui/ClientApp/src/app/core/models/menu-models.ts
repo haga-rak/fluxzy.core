@@ -45,7 +45,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 id : 'open-recent',
-                label : 'Open recent',
+                label : 'Open recent files',
                 enabled : false,
                 submenu : []
             },
