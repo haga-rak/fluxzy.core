@@ -37,6 +37,8 @@ function runFrontEnd() : void {
             height: 840,
             frame: false,
             show : false,
+            minWidth: 820,
+            minHeight: 640,
             icon: 'assets/icons/favicon.ico',
             webPreferences: {
                 nodeIntegration: true,
