@@ -2,17 +2,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InstallRestoreEvent = exports.InstallMenuBar = void 0;
 var electron_1 = require("electron");
-var InstallMenuBar = function () {
+var InstallMenuBar = function (win) {
+    var menu = null;
     electron_1.ipcMain.on('install-menu-bar', function (event, arg) {
         var menuItemConstructorOptions = arg;
         try {
             InstallEvents(menuItemConstructorOptions);
-            var menu = electron_1.Menu.buildFromTemplate(menuItemConstructorOptions);
+            menu = electron_1.Menu.buildFromTemplate(menuItemConstructorOptions);
             electron_1.Menu.setApplicationMenu(menu);
         }
         catch (exc) {
             event.returnValue = exc;
             return;
+        }
+        event.returnValue = '';
+    });
+    electron_1.ipcMain.on("open-menu", function (event, args) {
+        if (menu) {
+            menu.popup({
+                window: win,
+                x: args.x,
+                y: args.y
+            });
         }
         event.returnValue = '';
     });

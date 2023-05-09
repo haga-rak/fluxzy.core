@@ -16,7 +16,7 @@
 }
 
 .btn-toolbar {
-    padding-bottom: 0px;
+    padding-bottom: 0px !important;
 }
 
 .capture {
@@ -34,7 +34,17 @@
 .proxy-command-button button {
     width : 100px;
 }
+.drag-me-toolbar {
+    -webkit-app-region: drag;
+}
 
+.drag-me-toolbar  > * {
+    -webkit-app-region: none;
+}
+.control-menu, .control-menu > * {
+
+    -webkit-app-region: none;
+}
 
 .search-completion {
     width : 500px;

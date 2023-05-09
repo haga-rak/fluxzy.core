@@ -7,6 +7,7 @@ import {InstallSystemEvents} from './system-events';
 import {spawn} from "child_process";
 import {checkSquirrelStartup} from "./__squirrel-startup";
 import {autoUpdateRoutine} from "./auto-update";
+import {InstallWindowManagement} from "./window-management";
 
 if(checkSquirrelStartup())
     app.quit();
@@ -34,14 +35,15 @@ function runFrontEnd() : void {
         win = new BrowserWindow({
             width: 1280,
             height: 840,
-            frame: true,
+            frame: false,
             show : false,
-            icon: '../assets/icon.png',
+            icon: 'assets/icons/favicon.ico',
             webPreferences: {
                 nodeIntegration: true,
                 allowRunningInsecureContent: serve,
                 contextIsolation: false,
             },
+            transparent: false
         });
 
         win.center();
@@ -49,6 +51,11 @@ function runFrontEnd() : void {
         let fullPath = '';
 
         autoUpdateRoutine(win);
+
+        InstallMenuBar(win);
+        InstallSystemEvents(win);
+        InstallRestoreEvent(win);
+        InstallWindowManagement(win);
 
         if (serve) {
             const debug = require('electron-debug');
@@ -74,10 +81,6 @@ function runFrontEnd() : void {
                 protocol: 'file:',
                 slashes: true
             });
-
-            if (!isProduction) {
-
-            }
         }
 
         // Emitted when the window is closed.
@@ -88,9 +91,6 @@ function runFrontEnd() : void {
             win = null;
         });
 
-        InstallMenuBar();
-        InstallSystemEvents(win);
-        InstallRestoreEvent(win);
 
         if (isProduction) {
             launchFluxzyDaemonOrDie(commandLineArgs,(success : boolean, busyPort: boolean) => {
