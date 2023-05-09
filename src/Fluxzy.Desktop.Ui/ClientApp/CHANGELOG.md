@@ -1,4 +1,4 @@
-## <small>0.3.27-alpha.g0cea503d9a (2023-05-08)</small>
+## <small>0.3.32-alpha.g49ccdc4959 (2023-05-09)</small>
 
 * .gitignore : exclude packaging outputs ([99a14e5](https://github.com/haga-rak/fluxzy/commit/99a14e5))
 * [break-build] : switch environment ([2d02d89](https://github.com/haga-rak/fluxzy/commit/2d02d89))
@@ -18,8 +18,10 @@
 * Add .gitattribute, add .bin ext as binary ([3eddf2a](https://github.com/haga-rak/fluxzy/commit/3eddf2a))
 * Add about fluxzy dialog box ([f42785f](https://github.com/haga-rak/fluxzy/commit/f42785f))
 * Add anonymous UniqueId retrieval ([1d9de1c](https://github.com/haga-rak/fluxzy/commit/1d9de1c))
+* Add auto-update routines ([22ff303](https://github.com/haga-rak/fluxzy/commit/22ff303))
 * Add automatic certificate installation not correctly handled by .NET with linux. Supported OS are Fe ([e17da36](https://github.com/haga-rak/fluxzy/commit/e17da36))
 * Add automatic version assignment on front build ([869c7d9](https://github.com/haga-rak/fluxzy/commit/869c7d9))
+* Add basic binding for autoUpdater ([5d6eaac](https://github.com/haga-rak/fluxzy/commit/5d6eaac))
 * Add basic reading of ConnectionInfo from saz file for plain and secure session ([c341df7](https://github.com/haga-rak/fluxzy/commit/c341df7))
 * Add better About dialog + Quick action ([d438311](https://github.com/haga-rak/fluxzy/commit/d438311))
 * Add commandline options for listen directly to local or any interfaces. Fix GH-83 ([09ad9e0](https://github.com/haga-rak/fluxzy/commit/09ad9e0)), closes [#83](https://github.com/haga-rak/fluxzy/issues/83)
@@ -45,6 +47,7 @@
 * Add possibility to interrupt search the byte pattern is found ([b836859](https://github.com/haga-rak/fluxzy/commit/b836859))
 * Add preview for image response body (#71) ([a1c3262](https://github.com/haga-rak/fluxzy/commit/a1c3262)), closes [#71](https://github.com/haga-rak/fluxzy/issues/71)
 * Add publish config with ERS ([0cea503](https://github.com/haga-rak/fluxzy/commit/0cea503))
+* Add release workflow ([698c665](https://github.com/haga-rak/fluxzy/commit/698c665))
 * Add Rule Add Response Header ([bfdca09](https://github.com/haga-rak/fluxzy/commit/bfdca09))
 * Add select all exchanges (need backend exchange id retrival) ([2a1f75f](https://github.com/haga-rak/fluxzy/commit/2a1f75f))
 * Add seq remote integration ([db0a947](https://github.com/haga-rak/fluxzy/commit/db0a947))
@@ -571,6 +574,7 @@
 * Remove noise from Http2Handler ([a6d6ddc](https://github.com/haga-rak/fluxzy/commit/a6d6ddc))
 * Remove rpm targeting ([bd421c5](https://github.com/haga-rak/fluxzy/commit/bd421c5))
 * Remove submodules checkout  ([37c101e](https://github.com/haga-rak/fluxzy/commit/37c101e))
+* Remove system menu bar (#92) ([fa5545c](https://github.com/haga-rak/fluxzy/commit/fa5545c)), closes [#92](https://github.com/haga-rak/fluxzy/issues/92)
 * Remove TargetFramework on test project ([82c9335](https://github.com/haga-rak/fluxzy/commit/82c9335))
 * Remove useless injection ([e1b44c6](https://github.com/haga-rak/fluxzy/commit/e1b44c6))
 * rename : npm package name ([ea0db1a](https://github.com/haga-rak/fluxzy/commit/ea0db1a))
