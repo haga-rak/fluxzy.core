@@ -8,6 +8,7 @@ import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
 import {InputService} from "../../services/input.service";
 import {BreakPointService} from "../../breakpoints/break-point.service";
 import {ExchangeSelectionService} from "../../services/exchange-selection.service";
+import {ElectronService, WindowState} from "../../core/services";
 
 @Component({
     selector: 'app-filter-header-view',
@@ -26,6 +27,7 @@ export class FilterHeaderViewComponent implements OnInit {
     public completionShown = false;
 
     public searchString = '';
+    public windowState: WindowState | null = null;
 
     constructor(private dialogService : DialogService,
                 private uiStateService : UiStateService,
@@ -33,6 +35,7 @@ export class FilterHeaderViewComponent implements OnInit {
                 private inputService : InputService,
                 private breakPointService : BreakPointService,
                 private exchangeSelectionService : ExchangeSelectionService,
+                private electronService : ElectronService,
                 private cd : ChangeDetectorRef) {}
 
     ngOnInit(): void {
@@ -59,6 +62,11 @@ export class FilterHeaderViewComponent implements OnInit {
             .pipe(
                 tap(t =>this.currentExchangeId = t?.lastSelectedExchangeId ?? null)
             ).subscribe() ;
+
+        this.electronService.windowState.pipe(
+            tap(t => this.windowState = t),
+            tap(t => this.cd.detectChanges()),
+        ).subscribe()
     }
 
     public openManagedFilters() : void {
@@ -198,5 +206,25 @@ export class FilterHeaderViewComponent implements OnInit {
 
     selectAll($event: MouseEvent) {
 
+    }
+
+    minimize() {
+        this.electronService.minimize();
+    }
+
+    maximize() {
+        this.electronService.maximize();
+    }
+
+    unmaximize() {
+        this.electronService.unmaximize();
+    }
+
+    exit() {
+        this.electronService.exit();
+    }
+
+    showMenu($event: MouseEvent) {
+        this.electronService.openMenu($event.x, $event.y);
     }
 }

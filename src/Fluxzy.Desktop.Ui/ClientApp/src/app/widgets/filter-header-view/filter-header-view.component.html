@@ -1,19 +1,28 @@
 <!-- <span>Filters</span> : &nbsp; &nbsp; -->
-<div class="btn-toolbar" *ngIf="uiState" >
+<div class="btn-toolbar drag-me-toolbar" *ngIf="uiState">
+    &nbsp;<div class="btn-group" role="group">
+        <button
+            (click)="showMenu($event)"
+            class="btn btn-dark capture" aria-current="page" title="Open menu">
+            <i class="fa fa-bars text-teal" style="" aria-hidden="true"></i>&nbsp;
+        </button>
+    </div>
     &nbsp;
     &nbsp;<div class="btn-group proxy-command-button" role="group">
-            <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
-                    [hidden]="uiState.haltEnabled"
+    <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
+            [hidden]="uiState.haltEnabled"
             class="btn btn-dark capture" aria-current="page" title="capture OS trafic" (click)="enableCapture()">
-                <i class="fa fa-dot-circle-o text-success" style="" aria-hidden="true"></i>&nbsp;
-                capture</button>
-            <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
-                    [hidden]="!uiState.haltEnabled"
+        <i class="fa fa-dot-circle-o text-success" style="" aria-hidden="true"></i>&nbsp;
+        capture
+    </button>
+    <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
+            [hidden]="!uiState.haltEnabled"
             class="btn btn-dark capture" aria-current="page" title="halt traffic capture" (click)="haltCapture()">
-                <i class="fa fa-pause text-danger" style="font-size:16px" aria-hidden="true"></i>&nbsp;
-                capturing</button>
-    </div>
-    &nbsp;    &nbsp;
+        <i class="fa fa-pause text-danger" style="font-size:16px" aria-hidden="true"></i>&nbsp;
+        capturing
+    </button>
+</div>
+    &nbsp; &nbsp;
 
     <div class="input-group">
         <div class="input-group-text bg-dark" id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
@@ -26,8 +35,9 @@
                (mousedown)="selectAll($event)"
                aria-describedby="btnGroupAddon">
 
-        <div class="search-completion"  style="" *ngIf="completionShown">
-                <div app-completion [searchString]="searchString" style="height: 100%" (onClickOutSide)="completionShouldHide()"
+        <div class="search-completion" style="" *ngIf="completionShown">
+            <div app-completion [searchString]="searchString" style="height: 100%"
+                 (onClickOutSide)="completionShouldHide()"
                  (onValidate)="onValidate()"></div>
         </div>
     </div>
@@ -58,7 +68,8 @@
             }"
     >{{ selectedFilter.shortName }} <i class="bi bi-pencil"></i></button>
 
-    <button *ngIf="alwaysSelectedFilter && alwaysSelectedFilter.typeKind !== 'AnyFilter'" type="button" href="javascript:;"
+    <button *ngIf="alwaysSelectedFilter && alwaysSelectedFilter.typeKind !== 'AnyFilter'" type="button"
+            href="javascript:;"
             (click)="selectFilter(alwaysSelectedFilter)"
             [title]="alwaysSelectedFilter.friendlyName"
             class="btn btn-dark d-lg-block d-xl-none" aria-current="page"
@@ -78,7 +89,7 @@
         </button>
         <ul class="dropdown-menu bg-light text-primary" *dropdownMenu aria-labelledby="btnGroupDrop851">
 
-            <li class=" d-lg-block d-xl-none" role="menuitem "  *ngFor="let toolBarFilter of uiState.toolBarFilters" >
+            <li class=" d-lg-block d-xl-none" role="menuitem " *ngFor="let toolBarFilter of uiState.toolBarFilters">
                 <a class="dropdown-item" href="javascript:;"
                    (click)="selectFilter(toolBarFilter.filter)"
                    [title]="toolBarFilter.filter.friendlyName">
@@ -144,7 +155,7 @@
         </div>
     </div>
 </div>
-    &nbsp;
+    &nbsp;&nbsp;
     <div class="btn-group" role="group">
 
         <div class="btn-group" role="group" dropdown>
@@ -165,13 +176,14 @@
                     <a class="dropdown-item" href="javascript:;" (click)="showActiveLiveEditFilters()">
                         Show active live edit filters</a></li>
             </ul>
-         </div>
+        </div>
         <button type="button" href="javascript:;"
                 title="halt live edit and resume all pending exchanges"
                 [disabled]="!(uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)"
                 (click)="deleteAll()"
                 class="btn btn-dark " disabled aria-current="page">
-                        <i class="fa fa-stop" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;
+            <i class="fa fa-stop"
+               [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} "></i>&nbsp;
 
             <span class="d-none d-xxl-inline">halt live edit</span></button>
         <button type="button" href="javascript:;" title="resume all pending exchanges in live edit"
@@ -184,23 +196,43 @@
     </div>
     &nbsp;
     &nbsp;
-    <div class="btn-group" role="group">
+    <!--    <div class="btn-group" role="group">-->
 
-        <button type="button" href="javascript:;"
-                title="replay selected exchanges"
-                [disabled]="currentExchangeId === null"
-                (click)="replay()"
-                class="btn btn-dark " aria-current="page">
-                        <i class="fa fa-refresh" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;
+    <!--        <button type="button" href="javascript:;"-->
+    <!--                title="replay selected exchanges"-->
+    <!--                [disabled]="currentExchangeId === null"-->
+    <!--                (click)="replay()"-->
+    <!--                class="btn btn-dark " aria-current="page">-->
+    <!--                        <i class="fa fa-refresh" [ngClass]="{'text-danger' : (uiState.breakPointState.anyPendingRequest ||  uiState.breakPointState.activeFilters.length > 0)} " ></i>&nbsp;-->
 
-            <span class="d-none d-xxl-inline"></span></button>
-        <button type="button" href="javascript:;" title="replay selected exchanges in live edit"
+    <!--            <span class="d-none d-xxl-inline"></span></button>-->
+    <!--        <button type="button" href="javascript:;" title="replay selected exchanges in live edit"-->
 
-                [disabled]="currentExchangeId === null"
-                (click)="replayInLiveEdit()"
-                class="btn btn-dark " aria-current="page">
-            <i class="fa fa-refresh text-warning" ></i>&nbsp;
+    <!--                [disabled]="currentExchangeId === null"-->
+    <!--                (click)="replayInLiveEdit()"-->
+    <!--                class="btn btn-dark " aria-current="page">-->
+    <!--            <i class="fa fa-refresh text-warning" ></i>&nbsp;-->
 
-            <span class="d-none d-xxl-inline"></span></button>
-    </div>
+    <!--            <span class="d-none d-xxl-inline"></span></button>-->
+    <!--    </div>-->
+
+
+</div>
+<div *ngIf="windowState" class="btn-group control-menu" role="group" style="position:absolute; right:  8px; top : 8px ;">
+    <button (click)="minimize()"
+        class="btn btn-dark btn-outline-secondary" aria-current="page" title="Minimize">
+        <i class="fa fa-window-minimize" style="" aria-hidden="true"></i>&nbsp;
+    </button>
+    <button (click)="unmaximize()" *ngIf="!windowState.maximizable"
+        class="btn btn-dark btn-outline-secondary" aria-current="page" title="Maximize">
+        <i class="fa fa-window-restore" style="" aria-hidden="true"></i>&nbsp;
+    </button>
+    <button (click)="maximize()"  *ngIf="windowState.maximizable"
+        class="btn btn-dark btn-outline-secondary" aria-current="page" title="Maximize">
+        <i class="fa fa-window-maximize" style="" aria-hidden="true"></i>&nbsp;
+    </button>
+    <button (click)="exit()"
+        class="btn btn-dark btn-outline-secondary" aria-current="page" title="Close">
+        <i class="fa fa-times" style="" aria-hidden="true"></i>&nbsp;
+    </button>
 </div>

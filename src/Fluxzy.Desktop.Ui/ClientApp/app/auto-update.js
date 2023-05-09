@@ -12,6 +12,9 @@ var autoUpdateRoutine = function (win) {
     var server = 'https://releases.fluxzy.io:4433';
     var url = "".concat(server, "/update/").concat(process.platform, "/").concat(electron_1.app.getVersion());
     electron_1.autoUpdater.setFeedURL({ url: url });
+    electron_1.autoUpdater.on('error', function (error) {
+        // do nothing
+    });
     setInterval(function () {
         win.webContents.send('checking-update', { 'Payload': 'Nothing' });
         electron_1.autoUpdater.checkForUpdates();

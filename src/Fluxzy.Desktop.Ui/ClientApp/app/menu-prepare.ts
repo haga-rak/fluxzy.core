@@ -9,13 +9,14 @@ export interface IApplicationMenuEvent {
     payload ? : string;
 }
 
-export const InstallMenuBar = () : void => {
+export const InstallMenuBar = (win: BrowserWindow) : void => {
+    let menu : Menu | null = null;
 
     ipcMain.on('install-menu-bar', (event, arg) => {
         const menuItemConstructorOptions : MenuItemConstructorOptions [] = arg ;
         try {
             InstallEvents(menuItemConstructorOptions);
-            const menu = Menu.buildFromTemplate(menuItemConstructorOptions) ;
+            menu = Menu.buildFromTemplate(menuItemConstructorOptions) ;
             Menu.setApplicationMenu(menu);
         }
         catch (exc) {
@@ -24,7 +25,21 @@ export const InstallMenuBar = () : void => {
         }
         event.returnValue = '';
     }) ;
+
+    ipcMain.on(`open-menu`, function(event, args) {
+        if (menu) {
+            menu.popup({
+                window: win,
+                x: args.x,
+                y: args.y
+            });
+
+        }
+
+        event.returnValue = '';
+    });
 }
+
 
 export const InstallRestoreEvent = (win: BrowserWindow) : void => {
     ipcMain.on('win.restore', (event, arg) => {
@@ -36,6 +51,7 @@ export const InstallRestoreEvent = (win: BrowserWindow) : void => {
 
         event.returnValue = '';
     }) ;
+
 }
 
 const menuClickEventHandler = (menuItem : MenuItem, browserWindow : BrowserWindow, event : KeyboardEvent ) : boolean => {

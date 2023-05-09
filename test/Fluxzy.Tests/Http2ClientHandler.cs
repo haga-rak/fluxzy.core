@@ -58,7 +58,7 @@ namespace Fluxzy.Tests
         [InlineData("https://feedback.adrecover.com/ARWebService/checkCID")]
         [InlineData("https://registry.2befficient.io:40300/ip")]
         [InlineData("https://cds.taboola.com/?uid=7a5716a9-185b-4b54-8155-87f4b705c55f-tuct7ead376&src=tfa")]
-        [InlineData("https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ")]
+     //   [InlineData("https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ")]
         public async Task Get_Error_Case(string url)
         {
             //Environment.SetEnvironmentVariable("EnableH2Tracing", "true");

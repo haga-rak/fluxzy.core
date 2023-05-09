@@ -70,6 +70,7 @@ export class DialogService {
                 certificateWizardStatus,
                 callback
             },
+            class : 'modal-dialog-small',
             ignoreBackdropClick : true
         };
 
