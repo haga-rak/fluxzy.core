@@ -33,7 +33,7 @@ jobs:
     - name: Build installer 
       working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
       run: npm run make
-    - name: Build installer 
+    - name: Publish to release server
       env:
         RELEASE_SERVER_PASSWORD:  ${{ secrets.RELEASE_SERVER_PASSWORD }}
       working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
