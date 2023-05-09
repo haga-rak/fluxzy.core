@@ -36,6 +36,7 @@ jobs:
     - name: Publish to release server
       env:
         RELEASE_SERVER_PASSWORD:  ${{ secrets.RELEASE_SERVER_PASSWORD }}
+        NODE_EXTRA_CA_CERTS: tools/dev-cert/wild_fluxzy_io.cer
       working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
       run: npm run publish
 
