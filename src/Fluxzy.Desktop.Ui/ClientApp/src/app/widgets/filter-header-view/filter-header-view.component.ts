@@ -8,7 +8,8 @@ import {SourceAgentIconFunc} from "../../core/models/exchange-extensions";
 import {InputService} from "../../services/input.service";
 import {BreakPointService} from "../../breakpoints/break-point.service";
 import {ExchangeSelectionService} from "../../services/exchange-selection.service";
-import {ElectronService, WindowState} from "../../core/services";
+import {ElectronService} from "../../core/services";
+import {WindowState} from "../../core/models/window-state";
 
 @Component({
     selector: 'app-filter-header-view',
