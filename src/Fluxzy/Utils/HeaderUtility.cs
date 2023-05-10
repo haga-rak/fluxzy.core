@@ -185,7 +185,7 @@ namespace Fluxzy.Utils
                 return "pdf";
 
             if (headerValue.Contains("protobuf", StringComparison.OrdinalIgnoreCase))
-                return "protobuf";
+                return "pbuf";
 
             if (headerValue.Contains("text/plain", StringComparison.OrdinalIgnoreCase))
                 return "text";
@@ -195,6 +195,9 @@ namespace Fluxzy.Utils
 
             if (headerValue.Contains("zip", StringComparison.OrdinalIgnoreCase))
                 return "zip";
+
+            if (headerValue.Contains("octet", StringComparison.OrdinalIgnoreCase))
+                return "bin";
 
             return null;
         }

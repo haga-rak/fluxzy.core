@@ -243,7 +243,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 id : 'about',
-                label : 'About',
+                label : 'About Fluxzy Desktop',
             },
         ]
     },

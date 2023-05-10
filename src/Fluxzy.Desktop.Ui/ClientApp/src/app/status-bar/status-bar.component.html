@@ -1,11 +1,11 @@
 <div class="status-container" *ngIf="fileState && uiState">
 
-    <strong class="font-primary" [title]="uiState.fileState.workingDirectory"
+    <span class="text-primary" [title]="uiState.fileState.workingDirectory"
             (click)="fileClick(uiState.fileState.workingDirectory)">
         <span *ngIf="fileState?.mappedFileName">{{ fileState.mappedFileName}}</span>
         <span *ngIf="!fileState?.mappedFileName">[new file]</span>
-    </strong>
-    <small *ngIf="fileState.unsaved"> (*not saved)</small>
+    </span>
+    <small title="not saved" class="text-secondary" *ngIf="fileState.unsaved"> *not saved</small>
     &nbsp;|&nbsp;
     <span *ngIf="exchangeState">
         {{ exchangeState.totalCount }} items

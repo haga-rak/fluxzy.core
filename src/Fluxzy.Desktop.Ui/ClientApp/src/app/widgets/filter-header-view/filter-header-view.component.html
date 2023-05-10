@@ -224,7 +224,7 @@
         <i class="fa fa-window-minimize" style="" aria-hidden="true"></i>&nbsp;
     </button>
     <button (click)="unmaximize()" *ngIf="!windowState.maximizable"
-        class="btn btn-dark btn-outline-secondary" aria-current="page" title="Maximize">
+        class="btn btn-dark btn-outline-secondary" aria-current="page" title="Umaximize">
         <i class="fa fa-window-restore" style="" aria-hidden="true"></i>&nbsp;
     </button>
     <button (click)="maximize()"  *ngIf="windowState.maximizable"
@@ -232,7 +232,7 @@
         <i class="fa fa-window-maximize" style="" aria-hidden="true"></i>&nbsp;
     </button>
     <button (click)="exit()"
-        class="btn btn-dark btn-outline-secondary" aria-current="page" title="Close">
+        class="btn btn-dark text-secondary btn-outline-danger" aria-current="page" title="Close">
         <i class="fa fa-times" style="" aria-hidden="true"></i>&nbsp;
     </button>
 </div>
