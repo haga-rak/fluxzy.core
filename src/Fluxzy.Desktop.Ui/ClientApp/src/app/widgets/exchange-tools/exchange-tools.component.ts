@@ -104,7 +104,7 @@ export class ExchangeToolsComponent implements OnInit, OnChanges {
     }
 
     public openDisplayStringDialog(title : string, value : string) : void {
-        this.dialogService.openStringDisplay(title, value   );
+        this.dialogService.openStringDisplay(title, value);
     }
 
     public saveCurlPayload(fileName : string) {

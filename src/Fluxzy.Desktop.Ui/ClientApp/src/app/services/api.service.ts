@@ -38,7 +38,7 @@ import {
     MultipartItem,
     NetworkInterfaceInfo, QuickActionResult, RequestSetupStepModel, ResponseSetupStepModel,
     Rule,
-    RuleContainer,
+    RuleContainer, RuleExportSetting, RuleImportSetting,
     SaveFileMultipartActionModel, SazExportRequest,
     StoredFilter,
     Tag,
@@ -424,6 +424,7 @@ export class ApiService {
                 catchError(err => this.handleDesktopError(err))) ;
     }
 
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     public ruleUpdateContainer(containers : RuleContainer[]) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/rule/container`,containers).pipe(take(1),
                 catchError(err => this.handleDesktopError(err))) ;
@@ -432,6 +433,16 @@ export class ApiService {
     public ruleAddToExisting(rule : Rule) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/rule/container/add`,rule).pipe(take(1),
                 catchError(err => this.handleDesktopError(err))) ;
+    }
+
+    public ruleImport(ruleImportSetting : RuleImportSetting) : Observable<Rule[]> {
+        return this.httpClient.post<Rule[]>(`api/rule/import`,ruleImportSetting).pipe(take(1),
+            catchError(err => this.handleDesktopError(err))) ;
+    }
+
+    public ruleExport(ruleExportSetting : RuleExportSetting) : Observable<string> {
+        return this.httpClient.post<string>(`api/rule/export`,ruleExportSetting).pipe(take(1),
+            catchError(err => this.handleDesktopError(err))) ;
     }
 
     public actionValidate(action: Action) : Observable<Action> {

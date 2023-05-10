@@ -368,6 +368,8 @@ namespace Fluxzy.Desktop.Ui
         {
             builder.ExportAsInterface<Rule>().ApplyGenericProperties();
             builder.ExportAsInterface<RuleContainer>().ApplyGenericProperties();
+            builder.ExportAsInterface<RuleImportSetting>().ApplyGenericProperties();
+            builder.ExportAsInterface<RuleExportSetting>().ApplyGenericProperties();
             builder.ExportAsInterface<Certificate>().ApplyGenericProperties();
 
             var foundTypes = typeof(Action).Assembly.GetTypes()
