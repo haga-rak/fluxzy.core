@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import { DialogService } from '../../services/dialog.service';
 import {UiStateService} from "../../services/ui.service";
 import {tap, filter, switchMap, take} from "rxjs";
@@ -29,6 +29,8 @@ export class FilterHeaderViewComponent implements OnInit {
 
     public searchString = '';
     public windowState: WindowState | null = null;
+
+    @ViewChild('searchBlock') public searchTextBox:ElementRef;
 
     constructor(private dialogService : DialogService,
                 private uiStateService : UiStateService,
@@ -68,6 +70,17 @@ export class FilterHeaderViewComponent implements OnInit {
             tap(t => this.windowState = t),
             tap(t => this.cd.detectChanges()),
         ).subscribe()
+
+        this.uiStateService.focusSearchEverywhere.pipe(
+            tap(t =>  {
+                if (this.searchTextBox) {
+                    this.searchTextBox.nativeElement.select();
+                    this.searchTextBox.nativeElement.focus();
+                    this.onTextFocus(null);
+
+                }
+            }),
+        ).subscribe() ;
     }
 
     public openManagedFilters() : void {

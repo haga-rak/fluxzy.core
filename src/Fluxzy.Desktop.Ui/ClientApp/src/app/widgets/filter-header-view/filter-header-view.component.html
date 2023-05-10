@@ -28,6 +28,7 @@
         <div class="input-group-text bg-dark" id="btnGroupAddon"><i class="fa fa-search" aria-hidden="true"></i></div>
         <input type="text" class="form-control text-info better-placeholder"
                style="width:250px"
+               #searchBlock
                [(ngModel)]="searchString"
                placeholder="type filter, action, rules settings here"
                (input)="onTextFocus(null)"
@@ -39,6 +40,10 @@
             <div app-completion [searchString]="searchString" style="height: 100%"
                  (onClickOutSide)="completionShouldHide()"
                  (onValidate)="onValidate()"></div>
+
+            <div *ngIf="!searchString" class="preview-search-block">
+                Type keywords about filter, action, rule, settings, etc...
+            </div>
         </div>
     </div>
     &nbsp;
