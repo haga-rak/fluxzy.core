@@ -6,6 +6,7 @@ import {Rule, RuleContainer} from "../../core/models/auto-generated";
 import * as _ from "lodash";
 import {DialogService} from "../../services/dialog.service";
 import {StatusBarService} from "../../services/status-bar.service";
+import {ConfirmResult, MenuService} from "../../core/services/menu-service.service";
 
 @Component({
     selector: 'app-manage-rules',
@@ -15,8 +16,13 @@ import {StatusBarService} from "../../services/status-bar.service";
 export class ManageRulesComponent implements OnInit {
     public ruleContainers: RuleContainer[];
 
-    constructor(public bsModalRef: BsModalRef, public options: ModalOptions, private apiService : ApiService, private cd : ChangeDetectorRef,
-                private dialogService : DialogService, private statusBarService : StatusBarService) {
+    constructor(public bsModalRef: BsModalRef,
+                public options: ModalOptions,
+                private apiService : ApiService,
+                private cd : ChangeDetectorRef,
+                private dialogService : DialogService,
+                private menuService : MenuService,
+                private statusBarService : StatusBarService) {
     }
 
     ngOnInit(): void {
@@ -131,6 +137,7 @@ export class ManageRulesComponent implements OnInit {
     }
 
     public changeFilter(ruleContainer: RuleContainer) : void {
+
     }
 
     public disableAll() : void {
@@ -139,5 +146,38 @@ export class ManageRulesComponent implements OnInit {
         }
 
         this.cd.detectChanges();
+    }
+
+    public export() : void {
+        const confirmResult = this.menuService.confirm('Do you want to export only enabled rules?');
+
+        if (confirmResult === ConfirmResult.Cancel)
+            return ;
+
+        const onlyActive = confirmResult === ConfirmResult.Yes ;
+
+        const rules = onlyActive ?
+            this.ruleContainers.filter(t => t.enabled).map(t => t.rule) :
+            this.ruleContainers.map(t => t.rule).slice();
+
+        this.apiService.ruleExport({ rules })
+            .pipe(
+                tap(t =>
+                    this.dialogService.openStringDisplay('Rule export', t, 'rules.fluxzy.yaml'))
+            ).subscribe() ;
+    }
+
+    public import() : void {
+        this.dialogService.openStringEdit('Rule import', '')
+            .pipe(
+                filter(t => !!t),
+                switchMap(t => this.apiService.ruleImport({ yamlContent : t, deleteExisting : false})),
+                take(1),
+                tap(t =>  {
+                    const extraContainers = t.map(r => { return { rule : r, enabled : true } }) ;
+                    this.ruleContainers = this.ruleContainers.concat(extraContainers) ;
+                } ),
+                tap(_ => this.cd.detectChanges()),
+            ).subscribe() ;
     }
 }

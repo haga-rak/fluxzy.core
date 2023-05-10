@@ -81,5 +81,19 @@ namespace Fluxzy.Desktop.Ui.Controllers
         {
             return templateManager.GetDefaultActions();
         }
+
+        [HttpPost("import")]
+        public ActionResult<List<Rule>> Import(RuleImportSetting ruleImportSetting,
+            [FromServices] RuleImportationManager ruleImportationManager)
+        {
+            return ruleImportationManager.Import(ruleImportSetting);
+        }
+
+        [HttpPost("export")]
+        public ActionResult<string> Export(RuleExportSetting ruleExportSetting,
+            [FromServices] RuleImportationManager ruleImportationManager)
+        {
+            return new JsonResult(ruleImportationManager.Export(ruleExportSetting));
+        }
     }
 }

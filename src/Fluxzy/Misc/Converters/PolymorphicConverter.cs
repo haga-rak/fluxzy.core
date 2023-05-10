@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace Fluxzy.Misc.Converters
         public PolymorphicConverter(params Type[] args)
         {
             if (args.Any()) {
-                _typeMapping = args.ToDictionary(t => t.Name, t => t);
+                _typeMapping = args.ToDictionary(t => t.Name, t => t, StringComparer.OrdinalIgnoreCase);
 
                 return;
             }
@@ -26,7 +26,7 @@ namespace Fluxzy.Misc.Converters
                                                             && !derivedType.IsAbstract
                                                             && derivedType.IsClass).ToList();
 
-            _typeMapping = foundTypes.ToDictionary(t => t.Name, t => t);
+            _typeMapping = foundTypes.ToDictionary(t => t.Name, t => t, StringComparer.OrdinalIgnoreCase);
         }
 
         public override bool CanConvert(Type typeToConvert)

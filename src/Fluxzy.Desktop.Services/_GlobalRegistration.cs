@@ -24,6 +24,7 @@ using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Readers;
+using Fluxzy.Rules;
 using Fluxzy.Utils;
 using Fluxzy.Utils.Curl;
 using Microsoft.Extensions.DependencyInjection;
@@ -123,6 +124,8 @@ namespace Fluxzy.Desktop.Services
             (s => s.GetRequiredService<IObservable<FileContentOperationManager>>()
                    .Select(t => t.Observable).Switch());
 
+            collection.AddSingleton<RuleConfigParser>();
+            collection.AddScoped<RuleImportationManager>();
             collection.AddScoped<BreakPointHandler>();
             collection.AddScoped<IArchiveReaderProvider, ArchiveReaderProvider>();
             collection.AddScoped<FilterTemplateManager>();

@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reflection;
 using Fluxzy.Rules.Filters;
@@ -10,7 +10,7 @@ namespace Fluxzy.Desktop.Services.Filters
         private static readonly List<TypeFilter> TypeFilters;
         private static readonly List<Filter> DefaultTemplates = new();
         private static readonly Dictionary<Type, Filter> Instances = new();
-        private static readonly Dictionary<string, FilterMetaDataAttribute> DescriptionMapping = new();
+        private static readonly Dictionary<string, FilterMetaDataAttribute> DescriptionMapping = new(StringComparer.OrdinalIgnoreCase);
 
         static FilterTemplateManager()
         {

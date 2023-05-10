@@ -1,4 +1,5 @@
 import {BrowserWindow, dialog, ipcMain, clipboard, app} from "electron";
+import * as fs from "fs";
 
 
 
@@ -58,7 +59,7 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
 
     ipcMain.on('request-custom-file-saving', function (event, arg) {
         //
-        var result = dialog.showSaveDialogSync(win, {
+        const result = dialog.showSaveDialogSync(win, {
             title: "Fluxzy - Save",
             buttonLabel: "Save",
             defaultPath: arg,
@@ -66,6 +67,31 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
         });
 
         event.returnValue = !result ? null : result;
+    });
+
+    ipcMain.on('save-file', function (event, fileName, fileContent) {
+        //
+
+        // save fileContent to fileName
+
+        fs.writeFileSync(fileName, fileContent);
+        event.returnValue = '' ;
+    });
+
+    ipcMain.on('open-file', function (event, fileName) {
+        //
+
+        // save fileContent to fileName
+
+        fs.readFile(fileName, 'utf8', (err, data) => {
+            if (err) {
+                event.returnValue = null ;
+                return;
+            }
+
+            event.returnValue = data ;
+        });
+
     });
 
     ipcMain.on('request-custom-file-opening', function (event, name, extensions) {

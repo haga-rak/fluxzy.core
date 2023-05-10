@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reflection;
 using Fluxzy.Desktop.Services.Filters;
@@ -12,7 +12,7 @@ namespace Fluxzy.Desktop.Services.Rules
         private static readonly List<TypeAction> TypeActions;
         private static readonly List<Action> DefaultTemplates = new();
         private static readonly Dictionary<Type, Action> Instances = new();
-        private static readonly Dictionary<string, ActionMetadataAttribute> DescriptionMapping = new();
+        private static readonly Dictionary<string, ActionMetadataAttribute> DescriptionMapping = new(StringComparer.OrdinalIgnoreCase);
 
         static ActionTemplateManager()
         {
