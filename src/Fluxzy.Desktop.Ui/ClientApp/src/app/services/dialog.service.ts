@@ -49,6 +49,7 @@ export class DialogService {
 
     public openGlobalSettings(): void {
         const config: ModalOptions = {
+            class: 'little-down modal-dialog-gs',
             initialState: {
             },
             ignoreBackdropClick : true

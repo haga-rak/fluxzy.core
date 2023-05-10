@@ -21,6 +21,10 @@ html, body {
   padding: 0;
 }
 
+body {
+    background: transparent !important;
+}
+
 /* CAN (MUST) BE REMOVED ! Sample Global style */
 
 * {
@@ -335,6 +339,13 @@ a {
     margin-top :150px;
 }
 
+
+.modal-dialog-gs {
+
+    min-width: 1000px !important;
+    width: 1000px  !important;
+
+}
 
 .modal-dialog-md {
 
