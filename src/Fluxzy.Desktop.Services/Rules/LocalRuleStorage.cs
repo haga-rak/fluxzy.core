@@ -9,10 +9,12 @@ namespace Fluxzy.Desktop.Services.Rules
 {
     public class LocalRuleStorage : IRuleStorage
     {
+        private readonly RuleConfigParser _ruleConfigParser;
         private readonly DirectoryInfo _filterDirectory;
 
-        public LocalRuleStorage()
+        public LocalRuleStorage(RuleConfigParser ruleConfigParser)
         {
+            _ruleConfigParser = ruleConfigParser;
             var basePath = Environment.ExpandEnvironmentVariables("%appdata%/Fluxzy.Desktop/rules");
             Directory.CreateDirectory(basePath);
             _filterDirectory = new DirectoryInfo(basePath);
@@ -77,5 +79,34 @@ namespace Fluxzy.Desktop.Services.Rules
         {
             return Path.Combine(_filterDirectory.FullName, $"{rule.Identifier}.rule.json");
         }
+
+    }
+
+    public class RuleImportSetting
+    {
+        public bool DeleteExisting { get; set; }
+
+        public string?  YamlContent { get; set; }
+
+        public string ? FileName { get; set; }
+
+        public string GetContent()
+        {
+            if (!string.IsNullOrWhiteSpace(YamlContent))
+                return YamlContent;
+
+            if (!string.IsNullOrWhiteSpace(FileName)) {
+                var fileContent = File.ReadAllText(FileName);
+
+                return fileContent;
+            }
+
+            throw new DesktopException("At least one of yamlContent or fileContent must be defined");
+        }
+    }
+
+    public class RuleExportSetting
+    {
+        public bool OnlyActive { get; set; }
     }
 }

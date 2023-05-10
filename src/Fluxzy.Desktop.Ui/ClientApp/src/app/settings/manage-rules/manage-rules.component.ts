@@ -140,4 +140,12 @@ export class ManageRulesComponent implements OnInit {
 
         this.cd.detectChanges();
     }
+
+    public export() : void {
+        this.apiService.ruleExport({ onlyActive : false })
+            .pipe(
+                tap(t =>
+                    this.dialogService.openStringDisplay('Rule export', t))
+            ).subscribe() ;
+    }
 }

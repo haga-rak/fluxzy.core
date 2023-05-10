@@ -42,7 +42,7 @@ namespace Fluxzy.Rules
             }
         }
 
-        public IEnumerable<Rule> GetRules()
+        public IEnumerable<Rule> GetAllRules()
         {
             if (Action == null && (Actions == null || !Actions.Any())) {
                 yield break;

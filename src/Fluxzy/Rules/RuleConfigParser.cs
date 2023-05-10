@@ -23,7 +23,6 @@ namespace Fluxzy.Rules
         public string GetYamlFromRuleSet(RuleSet ruleSet)
         {
             var serializer = BuildDefaultSerializer();
-
             return serializer.Serialize(ruleSet);
         }
 
@@ -196,7 +195,6 @@ namespace Fluxzy.Rules
             return Message;
         }
     }
-
 
     public class RuleSet
     {

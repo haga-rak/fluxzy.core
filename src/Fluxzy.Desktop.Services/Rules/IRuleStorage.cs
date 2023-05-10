@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Desktop.Services.Rules
 {
@@ -7,5 +7,6 @@ namespace Fluxzy.Desktop.Services.Rules
         Task<List<RuleContainer>> ReadRules();
 
         Task Update(ICollection<RuleContainer> rules);
+        
     }
 }

@@ -597,6 +597,16 @@ export interface RuleContainer
 	rule: Rule;
 	enabled: boolean;
 }
+export interface RuleImportSetting
+{
+	deleteExisting: boolean;
+	yamlContent?: string;
+	fileName?: string;
+}
+export interface RuleExportSetting
+{
+	onlyActive: boolean;
+}
 export interface Certificate
 {
 	retrieveMode: string;
