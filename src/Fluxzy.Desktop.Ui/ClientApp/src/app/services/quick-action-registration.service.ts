@@ -104,6 +104,14 @@ export class QuickActionRegistrationService {
         )
 
         this.quickActionService.registerLocalAction(
+            "disable-all-rules", "Settings", "Disable all rules", false,
+            { callBack : (exchangeIds : number []) => {
+                    this.apiService.ruleDisableAll().subscribe();
+                }},
+            ["fa", "fa-stop"],
+        )
+
+        this.quickActionService.registerLocalAction(
             "about", "General", "About Fluxzy Desktop", false,
             { callBack : (exchangeIds : number []) => {
                     this.dialogService.openAboutDialog();
