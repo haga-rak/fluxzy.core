@@ -45,7 +45,7 @@ function runFrontEnd() : void {
                 allowRunningInsecureContent: serve,
                 contextIsolation: false,
             },
-            transparent: false
+            transparent: true
         });
 
         win.center();
