@@ -1,5 +1,7 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
+import {SystemCallService} from "../../core/services/system-call.service";
+import {filter, switchMap, take, tap} from "rxjs";
 
 @Component({
     selector: 'app-edit-string',
@@ -13,6 +15,8 @@ export class EditStringComponent implements OnInit {
     private callBack: (f: (string | null)) => void;
 
     constructor(  public bsModalRef: BsModalRef,
+                  private systemCallService: SystemCallService,
+                  private cd : ChangeDetectorRef,
                   public options: ModalOptions) {
 
         this.title = this.options.initialState.title as string ;
@@ -34,6 +38,13 @@ export class EditStringComponent implements OnInit {
     }
 
     importFromFile() {
-
+        this.systemCallService.requestFileOpen("Import from file", ["*"])
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(t => this.systemCallService.openFile(t)),
+                tap(t => this.value = this.value + t),
+                tap(t => this.cd.detectChanges() )
+            ).subscribe() ;
     }
 }

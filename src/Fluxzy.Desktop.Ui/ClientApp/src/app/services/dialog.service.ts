@@ -418,13 +418,14 @@ export class DialogService {
         return subject.asObservable().pipe(take(1));
     }
 
-    public openStringDisplay(title : string, value : string) : void {
+    public openStringDisplay(title : string, value : string, suggestedFileName : string | null = null) : void {
         const config: ModalOptions = {
             class: 'little-down modal-dialog-small',
             initialState: {
                 class: 'little-down modal-dialog-small',
                 title,
-                value
+                value,
+                suggestedFileName
             },
             ignoreBackdropClick : false
         };

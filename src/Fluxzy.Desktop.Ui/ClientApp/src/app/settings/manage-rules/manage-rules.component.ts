@@ -163,7 +163,7 @@ export class ManageRulesComponent implements OnInit {
         this.apiService.ruleExport({ rules })
             .pipe(
                 tap(t =>
-                    this.dialogService.openStringDisplay('Rule export', t))
+                    this.dialogService.openStringDisplay('Rule export', t, 'rules.fluxzy.yaml'))
             ).subscribe() ;
     }
 

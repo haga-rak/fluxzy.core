@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Observable, of, Subject} from 'rxjs';
+import {Observable, of, Subject, take} from 'rxjs';
 import {ElectronService} from './electron/electron.service';
 
 @Injectable({
@@ -14,6 +14,21 @@ export class SystemCallService {
         if (this.electronService.isElectron) {
             this.electronService.ipcRenderer.sendSync('copy-to-cliboard', text);
         }
+    }
+
+    public saveFile(fileName: string, content: string): void {
+        if (this.electronService.isElectron) {
+            this.electronService.ipcRenderer.sendSync('save-file', fileName, content);
+        }
+    }
+
+    public openFile(fileName: string): Observable<string | null> {
+        if (this.electronService.isElectron) {
+            const res = this.electronService.ipcRenderer.sendSync('open-file', fileName) as string | null;
+            return of(res);
+        }
+
+        return of(null) ;
     }
 
     public requestFileSave(suggestedFileName: string): Observable<string | null> {
