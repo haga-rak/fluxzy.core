@@ -58,7 +58,7 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
 
     ipcMain.on('request-custom-file-saving', function (event, arg) {
         //
-        var result = dialog.showSaveDialogSync(win, {
+        const result = dialog.showSaveDialogSync(win, {
             title: "Fluxzy - Save",
             buttonLabel: "Save",
             defaultPath: arg,

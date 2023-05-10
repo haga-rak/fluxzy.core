@@ -90,11 +90,10 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("export")]
-        public async Task<ActionResult<string>> Export(RuleExportSetting ruleExportSetting,
+        public ActionResult<string> Export(RuleExportSetting ruleExportSetting,
             [FromServices] RuleImportationManager ruleImportationManager)
         {
-            var existingRules = await _ruleStorage.ReadRules();
-            return new JsonResult(ruleImportationManager.Export(existingRules, ruleExportSetting));
+            return new JsonResult(ruleImportationManager.Export(ruleExportSetting));
         }
     }
 }
