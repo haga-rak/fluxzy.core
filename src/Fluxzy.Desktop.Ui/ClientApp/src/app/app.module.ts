@@ -114,6 +114,7 @@ import { ContextMenuTableHeaderComponent } from './shared/context-menu-table-hea
 import { AboutComponent } from './home/about/about.component';
 import { MessageDialogComponent } from './shared/error-dialog/message-dialog.component';
 import { ImageResultComponent } from './widgets/exchange-viewer/details-response/image-result/image-result.component';
+import { EditStringComponent } from './widgets/edit-string/edit-string.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -214,6 +215,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         AboutComponent,
         MessageDialogComponent,
         ImageResultComponent,
+        EditStringComponent,
 
 
     ],

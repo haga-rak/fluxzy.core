@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,6 +13,22 @@ namespace Fluxzy
         public static JsonSerializerOptions DefaultSerializerOptions { get; } = new() {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
+            Converters = {
+                new ReadonlyMemoryCharConverter(),
+                new BooleanConverter(),
+                new JsonStringEnumConverter(),
+                new IpAddressConverter(),
+                new IpEndPointConverter(),
+                new PolymorphicConverter<Filter>(),
+                new PolymorphicConverter<Action>()
+            },
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
+
+        public static JsonSerializerOptions ConfigSerializerOptions { get; } = new() {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = false,
             Converters = {
                 new ReadonlyMemoryCharConverter(),
                 new BooleanConverter(),

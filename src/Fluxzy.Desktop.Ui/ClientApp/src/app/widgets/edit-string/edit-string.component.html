@@ -12,18 +12,15 @@
         <div style="margin-bottom : 8px">
             &nbsp;
             <span class="float-end">
-                <a href="javascript:;" style="text-decoration: none" (click)="copyToClipboard()" >
-                    <i class="fa fa-clipboard text-primary"></i>
-                    Copy to clipboard</a>
-                &nbsp;
-                <a href="javascript:;" style="text-decoration: none" (click)="saveToFile()" >
-                    <i class="fa fa-save text-primary"></i>
-                    Save to file</a>
+                <a href="javascript:;" style="text-decoration: none" (click)="importFromFile()" >
+                    <i class="fa fa-upload"></i>
+                        Import from file</a>
             </span>
         </div>
-        <textarea readonly [(ngModel)]="value" class="string-display"></textarea>
+        <textarea [(ngModel)]="value" class="string-display"></textarea>
     </div>
 </div>
 <div class="modal-footer">
+    <button class="btn btn-primary" (click)="save()">Save</button>
     <button class="btn btn-dark" (click)="cancel()">Close</button>
 </div>

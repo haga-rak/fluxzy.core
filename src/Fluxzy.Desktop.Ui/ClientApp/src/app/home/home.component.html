@@ -1,10 +1,10 @@
-<div class="wait-message" [hidden]="uiState"  style="background:#1c2027; ">
+<div class="wait-message main-cadre " [hidden]="uiState"  style="background:#1c2027; ">
     <div class="text-center">
         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i><span class="wait-app-name">fluxzy</span> is loading
     </div>
 </div>
 
-<div [hidden]="!uiState"  style="background:#1c2027; border-radius: 8px; overflow: hidden" class="main-cadre">
+<div [hidden]="!uiState"  style="background:#1c2027; " class="main-cadre">
     <app-context-menu></app-context-menu>
     <div class="filter-holder" style="">
         <app-filter-header-view></app-filter-header-view>

@@ -17,8 +17,17 @@
 
         <div style="margin-bottom:18px">
             <button class="btn  btn-primary"  (click)="createRule()">+ Add a new rule</button>&nbsp;
+
             <button class="btn  btn-primary"  (click)="disableAll()">
-                - Disable all rules</button>
+                - Disable all rules</button>&nbsp;
+
+            <button class="btn  btn-primary"  (click)="export()">
+                <i class="fa fa-upload" aria-hidden="true"></i>
+                Export</button>&nbsp;
+
+            <button class="btn  btn-primary"  (click)="import()">
+                <i class="fa fa-upload" aria-hidden="true"></i>
+                Import</button>
         </div>
 
         <div class="shady-box table-box">

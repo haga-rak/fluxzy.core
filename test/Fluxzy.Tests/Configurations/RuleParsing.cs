@@ -1,16 +1,17 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using Fluxzy.Certificates;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using Xunit;
+using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy.Tests.Configurations
 {
@@ -32,14 +33,14 @@ namespace Fluxzy.Tests.Configurations
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
-            var targetAction = (rule.Action as AddRequestHeaderAction)!;
+            var targetAction = (rule.GetSingleAction() as AddRequestHeaderAction)!;
 
 
             Assert.NotNull(rule);
             Assert.NotNull(rule.Filter);
-            Assert.NotNull(rule.Action);
+            Assert.NotNull(rule.GetSingleAction());
             Assert.Equal(AnyFilter.Default.Identifier, rule.Filter.Identifier);
-            Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.GetSingleAction().GetType());
             Assert.Equal("fluxzy", targetAction.HeaderName);
             Assert.Equal("on", targetAction.HeaderValue);
         }
@@ -96,6 +97,27 @@ namespace Fluxzy.Tests.Configurations
                 action : 
                   typeKind: AddRequestHeaderAction
                    headerName: fluxzy 
+                  headerValue: on
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errorMessages)!;
+
+            Assert.Null(rule);
+            Assert.NotEmpty(errorMessages!);
+        }
+
+        [Fact]
+        public void Reading_Should_Fail_Invalid_Type()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+
+            var yamlContent = """
+                filter: 
+                  typeKind: AnyFilter   
+                  inverted: gogo
+                action : 
+                  typeKind: AddRequestHeaderAction
+                  headerName: 52
                   headerValue: on
                 """;
 
@@ -177,8 +199,118 @@ namespace Fluxzy.Tests.Configurations
 
             Assert.NotNull(rule);
             Assert.NotNull(rule.Filter);
-            Assert.NotNull(rule.Action);
-            Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
+            Assert.NotNull(rule.GetSingleAction());
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.GetSingleAction().GetType());
+            Assert.Equal(typeof(StatusCodeFilter), filter.GetType());
+            Assert.Equal(4, filter.StatusCodes.Count);
+            Assert.Contains(filter.StatusCodes, c => c == 200);
+            Assert.Contains(filter.StatusCodes, c => c == 204);
+            Assert.Contains(filter.StatusCodes, c => c == 301);
+            Assert.Contains(filter.StatusCodes, c => c == 302);
+        }
+
+        [Fact]
+        public void Reading_Testing_Camel_Case()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+
+            var yamlContent = """
+                filter: 
+                  typeKind: statusCodeFilter        
+                  statusCodes:
+                    - 200
+                    - 204
+                    - 301
+                    - 302
+                action : 
+                  typeKind: addRequestHeaderAction
+                  headerName: fluxzy
+                  headerValue: on
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
+
+            var filter = (rule.Filter as StatusCodeFilter)!;
+
+            Assert.NotNull(rule);
+            Assert.NotNull(rule.Filter);
+            Assert.NotNull(rule.GetSingleAction());
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.GetSingleAction().GetType());
+            Assert.Equal(typeof(StatusCodeFilter), filter.GetType());
+            Assert.Equal(4, filter.StatusCodes.Count);
+            Assert.Contains(filter.StatusCodes, c => c == 200);
+            Assert.Contains(filter.StatusCodes, c => c == 204);
+            Assert.Contains(filter.StatusCodes, c => c == 301);
+            Assert.Contains(filter.StatusCodes, c => c == 302);
+        }
+
+        [Fact]
+        public void Reading_Should_Parse_List_Of_Int_Mutli_Definition()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+
+            var yamlContent = """
+                filter: 
+                  typeKind: StatusCodeFilter        
+                  statusCodes:
+                    - 200
+                    - 204
+                    - 301
+                    - 302
+                actions : 
+                  - typeKind: AddRequestHeaderAction
+                    headerName: fluxzy
+                    headerValue: on
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
+
+            var filter = (rule.Filter as StatusCodeFilter)!;
+
+            Assert.NotNull(rule);
+            Assert.NotNull(rule.Filter);
+            Assert.NotNull(rule.GetSingleAction());
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.GetSingleAction().GetType());
+            Assert.Equal(typeof(StatusCodeFilter), filter.GetType());
+            Assert.Equal(4, filter.StatusCodes.Count);
+            Assert.Contains(filter.StatusCodes, c => c == 200);
+            Assert.Contains(filter.StatusCodes, c => c == 204);
+            Assert.Contains(filter.StatusCodes, c => c == 301);
+            Assert.Contains(filter.StatusCodes, c => c == 302);
+        }
+
+        [Fact]
+        public void Reading_Should_Parse_Multiple_Actions_Mutli_Definition()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+
+            var yamlContent = """
+                filter: 
+                  typeKind: StatusCodeFilter        
+                  statusCodes:
+                    - 200
+                    - 204
+                    - 301
+                    - 302
+                actions : 
+                  - typeKind: AddRequestHeaderAction
+                    headerName: fluxzy
+                    headerValue: on
+                  - typeKind: DeleteRequestHeaderAction
+                    headerName: x-server
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
+
+            var filter = (rule.Filter as StatusCodeFilter)!;
+
+            var actions = rule.GetAllActions().ToList(); 
+
+            Assert.NotNull(rule);
+            Assert.NotNull(rule.Filter);
+            Assert.Equal(2, actions.Count);
+            Assert.Equal(typeof(AddRequestHeaderAction), actions.First().GetType());
+            Assert.Equal(typeof(DeleteRequestHeaderAction), actions.Last().GetType());
             Assert.Equal(typeof(StatusCodeFilter), filter.GetType());
             Assert.Equal(4, filter.StatusCodes.Count);
             Assert.Contains(filter.StatusCodes, c => c == 200);
@@ -212,8 +344,8 @@ namespace Fluxzy.Tests.Configurations
 
             Assert.NotNull(rule);
             Assert.NotNull(rule.Filter);
-            Assert.NotNull(rule.Action);
-            Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
+            Assert.NotNull(rule.GetSingleAction());
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.GetSingleAction().GetType());
             Assert.Equal(typeof(FilterCollection), filter.GetType());
             Assert.Equal(2, filter.Children.Count);
             Assert.Equal(SelectorCollectionOperation.And, filter.Operation);
@@ -249,8 +381,8 @@ namespace Fluxzy.Tests.Configurations
 
             Assert.NotNull(rule);
             Assert.NotNull(rule.Filter);
-            Assert.NotNull(rule.Action);
-            Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
+            Assert.NotNull(rule.GetSingleAction());
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.GetSingleAction().GetType());
             Assert.Equal(typeof(FilterCollection), filter.GetType());
             Assert.Equal(2, filter.Children.Count);
             Assert.Equal(operation, filter.Operation);
@@ -281,13 +413,13 @@ namespace Fluxzy.Tests.Configurations
 
             var rule = ruleConfigReader.TryGetRuleSetFromYaml(yamlContent, out _)!.Rules.First();
 
-            var targetAction = (rule.Action as AddRequestHeaderAction)!;
+            var targetAction = (rule.GetSingleAction() as AddRequestHeaderAction)!;
 
             Assert.NotNull(rule);
             Assert.NotNull(rule.Filter);
-            Assert.NotNull(rule.Action);
+            Assert.NotNull(rule.GetSingleAction());
             Assert.Equal(AnyFilter.Default.Identifier, rule.Filter.Identifier);
-            Assert.Equal(typeof(AddRequestHeaderAction), rule.Action.GetType());
+            Assert.Equal(typeof(AddRequestHeaderAction), rule.GetSingleAction().GetType());
             Assert.Equal("fluxzy", targetAction.HeaderName);
             Assert.Equal("on", targetAction.HeaderValue);
         }
@@ -355,7 +487,7 @@ namespace Fluxzy.Tests.Configurations
 
             Assert.NotNull(outputRule);
 
-            Assert.Equal(rule.Action, outputRule.Action, new GreedyActionComparer());
+            Assert.Equal(rule.Action, outputRule.GetSingleAction(), new GreedyActionComparer());
             Assert.Equal(rule.Filter, outputRule.Filter, new GreedyFilterComparer());
         }
 
@@ -376,7 +508,7 @@ namespace Fluxzy.Tests.Configurations
                 var originalRule = ruleSet.Rules[index];
                 var resultRule = outputRule.Rules[index];
 
-                Assert.Equal(originalRule.Action, resultRule.Action, new GreedyActionComparer());
+                Assert.Equal(originalRule.GetSingleAction(), resultRule.GetSingleAction(), new GreedyActionComparer());
                 Assert.Equal(originalRule.Filter, resultRule.Filter, new GreedyFilterComparer());
             }
         }
@@ -455,6 +587,16 @@ namespace Fluxzy.Tests.Configurations
                     )
                 )
             };
+        }
+    }
+
+    internal static class RuleConfigurationExtensions
+    {
+        public static Action GetSingleAction(this RuleConfigContainer ruleConfigContainer)
+        {
+            var allActions = ruleConfigContainer.GetAllActions().ToList();
+            Assert.Single(allActions); 
+            return allActions!.First();
         }
     }
 }
