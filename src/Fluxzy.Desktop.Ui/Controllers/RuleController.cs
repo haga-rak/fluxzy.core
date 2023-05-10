@@ -38,6 +38,19 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
+
+        [HttpPost("container/disable-all")]
+        public async Task<ActionResult<bool>> DisableAllRules( [FromServices] ActiveRuleManager activeRuleManager)
+        {
+            var rules = (await _ruleStorage.ReadRules()).Select(s => new RuleContainer(s.Rule, false)).ToList();
+            await _ruleStorage.Update(rules);
+
+            activeRuleManager.SetCurrentSelection(
+                rules.Where(c => c.Enabled).Select(c => c.Rule.Identifier), true);
+
+            return true;
+        }
+
         [HttpPost("container/add")]
         public async Task<ActionResult<bool>> AddToExisting(
             [FromBody] Rule rule,

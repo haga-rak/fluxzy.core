@@ -430,6 +430,12 @@ export class ApiService {
                 catchError(err => this.handleDesktopError(err))) ;
     }
 
+    // eslint-disable-next-line @typescript-eslint/member-ordering
+    public ruleDisableAll() : Observable<boolean> {
+        return this.httpClient.post<boolean>(`api/rule/container/disable-all`, null).pipe(take(1),
+                catchError(err => this.handleDesktopError(err))) ;
+    }
+
     public ruleAddToExisting(rule : Rule) : Observable<boolean> {
         return this.httpClient.post<boolean>(`api/rule/container/add`,rule).pipe(take(1),
                 catchError(err => this.handleDesktopError(err))) ;

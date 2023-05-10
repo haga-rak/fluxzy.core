@@ -95,6 +95,10 @@ export class UiStateService {
             this._focusSearchEverywhere$.next(true) ;
         });
 
+        this.menuService.registerMenuEvent('disable-all-rules', () => {
+            this.apiService.ruleDisableAll().subscribe();
+        });
+
         this.menuService.registerMenuEvent('certificate-wizard', () => {
             this.apiService.wizardRevive()
                 .pipe(

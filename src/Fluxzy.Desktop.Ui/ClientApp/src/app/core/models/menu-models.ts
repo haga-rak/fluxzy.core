@@ -164,6 +164,13 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 accelerator : 'Shift+F5',
                 icon : '',
             },
+            {
+                type :  'separator'
+            },
+            {
+                label : 'Disable all rules',
+                id : 'disable-all-rules'
+            },
         ]
     },
     {
