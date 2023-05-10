@@ -96,7 +96,7 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             {
                 id : 'select-all',
                 label : 'Select all',
-                accelerator: 'Ctrl+A',
+                accelerator: process.platform === 'darwin' ? 'Cmd+A' : 'Ctrl+A',
             },
             {
                 id : 'invert-selection',
@@ -117,6 +117,14 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             {
                 id : 'clear',
                 label : 'Clear all',
+            },
+            {
+                type :  'separator'
+            },
+            {
+                label : 'Search everywhere',
+                id : 'search-everywhere',
+                accelerator: process.platform === 'darwin' ? 'Cmd+T' : 'Ctrl+T',
             },
             {
                 type :  'separator'
@@ -221,7 +229,8 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
             },
             {
                 label : 'Proxy settings',
-                id : 'global-settings'
+                id : 'global-settings',
+                accelerator: process.platform === 'darwin' ? 'Cmd+Alt+S' : 'Ctrl+Alt+S',
             },
         ]
     },

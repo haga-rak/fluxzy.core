@@ -38,6 +38,8 @@ export class UiStateService {
    //  private filteredUpdate$: BehaviorSubject<FilteredExchangeState | null> = new BehaviorSubject<FilteredExchangeState | null>(null);
     private uiState: UiState;
 
+    private _focusSearchEverywhere$: Subject<boolean> = new Subject<boolean>();
+
     constructor(
         private httpClient: HttpClient,
         private menuService: MenuService,
@@ -89,6 +91,10 @@ export class UiStateService {
             this.apiService.fileSave().subscribe();
         });
 
+        this.menuService.registerMenuEvent('search-everywhere', () => {
+            this._focusSearchEverywhere$.next(true) ;
+        });
+
         this.menuService.registerMenuEvent('certificate-wizard', () => {
             this.apiService.wizardRevive()
                 .pipe(
@@ -96,6 +102,10 @@ export class UiStateService {
                    switchMap(t => this.dialogService.openWizardDialog(t)) )
                 .subscribe();
         });
+    }
+
+    get focusSearchEverywhere(): Observable<boolean> {
+        return this._focusSearchEverywhere$.asObservable();
     }
 
     private initializeUiState(): void {
