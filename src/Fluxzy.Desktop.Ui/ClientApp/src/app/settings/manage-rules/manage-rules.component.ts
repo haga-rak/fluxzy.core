@@ -160,10 +160,24 @@ export class ManageRulesComponent implements OnInit {
             this.ruleContainers.filter(t => t.enabled).map(t => t.rule) :
             this.ruleContainers.map(t => t.rule).slice();
 
-        this.apiService.ruleExport({ rules  })
+        this.apiService.ruleExport({ rules })
             .pipe(
                 tap(t =>
                     this.dialogService.openStringDisplay('Rule export', t))
+            ).subscribe() ;
+    }
+
+    public import() : void {
+        this.dialogService.openStringEdit('Rule import', '')
+            .pipe(
+                filter(t => !!t),
+                switchMap(t => this.apiService.ruleImport({ yamlContent : t, deleteExisting : false})),
+                take(1),
+                tap(t =>  {
+                    const extraContainers = t.map(r => { return { rule : r, enabled : true } }) ;
+                    this.ruleContainers = this.ruleContainers.concat(extraContainers) ;
+                } ),
+                tap(_ => this.cd.detectChanges()),
             ).subscribe() ;
     }
 }
