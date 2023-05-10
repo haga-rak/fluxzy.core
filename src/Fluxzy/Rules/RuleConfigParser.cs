@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -8,27 +8,9 @@ using System.Text.Json;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization.TypeInspectors;
 
 namespace Fluxzy.Rules
 {
-    internal class SortedTypeInspector : TypeInspectorSkeleton
-    {
-        private readonly ITypeInspector _innerTypeInspector;
-
-        public SortedTypeInspector(ITypeInspector innerTypeInspector)
-        {
-            _innerTypeInspector = innerTypeInspector;
-        }
-
-        public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
-        {
-            var properties = _innerTypeInspector.GetProperties(type, container);
-
-            return properties.OrderByDescending(x => x.Name == "typeKind");
-        }
-    }
-
     public class RuleConfigParser
     {
         public string GetYamlFromRule(Rule rule)
@@ -49,7 +31,6 @@ namespace Fluxzy.Rules
         {
             var deserializer = BuildDefaultDeserializer();
             using var stringReader = new StringReader(yamlContent);
-            var result = new RuleSet();
 
             Dictionary<string, object> rawObject;
 
@@ -85,6 +66,8 @@ namespace Fluxzy.Rules
 
             var ruleIndex = 1;
 
+            var result = new RuleSet();
+
             if (rawObject.TryGetValue("rules", out var tempList) && tempList is ICollection<object> items) {
                 foreach (var item in items) {
                     var current = InternalTryGetRuleFromYaml(out var partialErrors, item);
@@ -107,7 +90,7 @@ namespace Fluxzy.Rules
             return readErrors.Any() ? null : result;
         }
 
-        public Rule? TryGetRuleFromYaml(
+        public RuleConfigContainer? TryGetRuleFromYaml(
             string yamlContent,
             out List<RuleConfigReaderError>? readErrors)
         {
@@ -137,19 +120,19 @@ namespace Fluxzy.Rules
             }
         }
 
-        private static Rule? InternalTryGetRuleFromYaml(out List<RuleConfigReaderError> readErrors, object? rawObject)
+        private static RuleConfigContainer? InternalTryGetRuleFromYaml(out List<RuleConfigReaderError> readErrors, object? rawObject)
         {
-            var flatJson = JsonSerializer.Serialize(rawObject, GlobalArchiveOption.DefaultSerializerOptions);
+            var flatJson = JsonSerializer.Serialize(rawObject, GlobalArchiveOption.ConfigSerializerOptions);
 
             readErrors = new List<RuleConfigReaderError>();
 
             // TODO skip entirely System.Text.Json bridge 
             // Main downside of current method is the user is unable to determine in which line the error occurs
             // 
-            Rule? rule;
+            RuleConfigContainer? rule;
 
             try {
-                rule = JsonSerializer.Deserialize<Rule?>(flatJson, GlobalArchiveOption.DefaultSerializerOptions);
+                rule = JsonSerializer.Deserialize<RuleConfigContainer?>(flatJson, GlobalArchiveOption.ConfigSerializerOptions);
             }
             catch (Exception e) {
                 readErrors.Add(new RuleConfigReaderError(e.Message));
@@ -169,7 +152,7 @@ namespace Fluxzy.Rules
                 return null;
             }
 
-            if (rule.Action == null!) {
+            if (!rule.GetAllActions().Any()) {
                 readErrors.Add(new RuleConfigReaderError("Unable to detect action matching this rule"));
 
                 return null;
@@ -214,13 +197,14 @@ namespace Fluxzy.Rules
         }
     }
 
+
     public class RuleSet
     {
         public RuleSet(params Rule[] rules)
         {
-            Rules = rules.ToList();
+            Rules = RuleConfigContainer.CreateFrom(rules).ToList(); 
         }
 
-        public List<Rule> Rules { get; set; }
+        public List<RuleConfigContainer> Rules { get; set; }
     }
 }

@@ -170,7 +170,7 @@ namespace Fluxzy.Cli.Commands
                         throw new ArgumentException(string.Join("\r\n", errors.Select(s => s.Message)));
 
                     if (ruleSet != null)
-                        proxyStartUpSetting.AlterationRules.AddRange(ruleSet.Rules);
+                        proxyStartUpSetting.AlterationRules.AddRange(ruleSet.Rules.SelectMany(s => s.GetRules()));
                 }
                 catch (Exception ex) {
                     invocationContext.BindingContext.Console.WriteLine($"Error while reading rule file : {ex.Message}");
@@ -476,7 +476,7 @@ namespace Fluxzy.Cli.Commands
         {
             var option = new Option<FileInfo>(
                 "--rule-file",
-                "Use a fluxzy rule file. See more at : https://docs.fluxzy.io/concept/rule-file");
+                "Use a fluxzy rule file. See more at : https://www.fluxzy.io/docs/concept/rule-configuration-file");
 
             option.AddAlias("-r");
             option.Arity = ArgumentArity.ExactlyOne;
