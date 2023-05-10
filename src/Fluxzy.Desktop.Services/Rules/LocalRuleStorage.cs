@@ -107,6 +107,6 @@ namespace Fluxzy.Desktop.Services.Rules
 
     public class RuleExportSetting
     {
-        public bool OnlyActive { get; set; }
+        public List<Rule> Rules { get; set; }
     }
 }

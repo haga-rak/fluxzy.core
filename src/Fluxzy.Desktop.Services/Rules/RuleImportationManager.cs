@@ -13,13 +13,10 @@ namespace Fluxzy.Desktop.Services.Rules
             _ruleConfigParser = ruleConfigParser;
         }
 
-        public string Export(IEnumerable<RuleContainer> existingRules, 
-            RuleExportSetting ruleExportSetting)
+        public string Export(RuleExportSetting ruleExportSetting)
         {
             return _ruleConfigParser.GetYamlFromRuleSet(
-                new RuleSet(existingRules
-                            .Where(r => !ruleExportSetting.OnlyActive || r.Enabled)
-                            .Select(s => s.Rule).ToArray()));
+                new RuleSet(ruleExportSetting.Rules.ToArray()));
         }
 
         public List<Rule> Import(RuleImportSetting ruleImportSetting)

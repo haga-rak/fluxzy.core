@@ -605,7 +605,7 @@ export interface RuleImportSetting
 }
 export interface RuleExportSetting
 {
-	onlyActive: boolean;
+	rules: Rule[];
 }
 export interface Certificate
 {
