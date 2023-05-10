@@ -28,7 +28,7 @@ namespace Fluxzy.Desktop.Services.Rules
         private IEnumerable<RuleContainer> InternalImport(
             string yamlContent)
         {
-            var ruleConfigContainer = _ruleConfigParser.TryGetRuleFromYaml(yamlContent, out var readErrors);
+            var ruleConfigContainer = _ruleConfigParser.TryGetRuleSetFromYaml(yamlContent, out var readErrors);
 
             if (ruleConfigContainer == null)
             {
@@ -36,8 +36,7 @@ namespace Fluxzy.Desktop.Services.Rules
                     readErrors!.Select(s => s.Message))}");
             }
 
-
-            return ruleConfigContainer.GetAllRules().Select(s => new RuleContainer(s));
+            return ruleConfigContainer.Rules.SelectMany(t => t.GetAllRules().Select(s => new RuleContainer(s)));
         }
     }
 }

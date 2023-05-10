@@ -30,6 +30,7 @@ import {BreakPointService} from "../breakpoints/break-point.service";
 import {DisplayStringComponent} from "../widgets/display-string/display-string.component";
 import {AboutComponent} from "../home/about/about.component";
 import {MessageDialogComponent, MessageDialogModel} from "../shared/error-dialog/message-dialog.component";
+import {EditStringComponent} from "../widgets/edit-string/edit-string.component";
 
 @Injectable({
     providedIn: 'root',
@@ -432,6 +433,28 @@ export class DialogService {
             DisplayStringComponent,
             config
         );
+    }
+    public openStringEdit(title : string, value : string) : Observable<string | null> {
+        const subject = new Subject<string | null>() ;
+        const callBack = (f : string | null) => {  subject.next(f); subject.complete()};
+
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-small',
+            initialState: {
+                class: 'little-down modal-dialog-small',
+                title,
+                value,
+                callBack
+            },
+            ignoreBackdropClick : false
+        };
+
+        this.waitModalRef = this.modalService.show(
+            EditStringComponent,
+            config
+        );
+
+        return subject.asObservable().pipe(take(1));
     }
 
 }
