@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InstallSystemEvents = void 0;
 var electron_1 = require("electron");
+var fs = require("fs");
 var InstallSystemEvents = function (win) {
     electron_1.ipcMain.on('copy-to-cliboard', function (event, arg) {
         //
@@ -57,6 +58,23 @@ var InstallSystemEvents = function (win) {
             properties: ["showOverwriteConfirmation"]
         });
         event.returnValue = !result ? null : result;
+    });
+    electron_1.ipcMain.on('save-file', function (event, fileName, fileContent) {
+        //
+        // save fileContent to fileName
+        fs.writeFileSync(fileName, fileContent);
+        event.returnValue = '';
+    });
+    electron_1.ipcMain.on('open-file', function (event, fileName) {
+        //
+        // save fileContent to fileName
+        fs.readFile(fileName, 'utf8', function (err, data) {
+            if (err) {
+                event.returnValue = null;
+                return;
+            }
+            event.returnValue = data;
+        });
     });
     electron_1.ipcMain.on('request-custom-file-opening', function (event, name, extensions) {
         //

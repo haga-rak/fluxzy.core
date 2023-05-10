@@ -15,6 +15,10 @@
                 <a href="javascript:;" style="text-decoration: none" (click)="copyToClipboard()" >
                     <i class="fa fa-clipboard text-primary"></i>
                     Copy to clipboard</a>
+                &nbsp;
+                <a href="javascript:;" style="text-decoration: none" (click)="saveToFile()" >
+                    <i class="fa fa-save text-primary"></i>
+                    Save to file</a>
             </span>
         </div>
         <textarea readonly [(ngModel)]="value" class="string-display"></textarea>
