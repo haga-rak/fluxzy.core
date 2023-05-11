@@ -73,6 +73,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(CreateRuleFileOption());
             command.AddOption(CreateUaParsingOption());
             command.AddOption(CreateOutOfProcCaptureOption());
+            command.AddOption(CreateProxyBuffer());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -99,6 +100,7 @@ namespace Fluxzy.Cli.Commands
             var parseUserAgent = invocationContext.Value<bool>("parse-ua");
             var outOfProcCapture = invocationContext.Value<bool>("external-capture");
             var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
+            var requestBuffer = invocationContext.Value<int?>("request-buffer");
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
 
@@ -109,8 +111,10 @@ namespace Fluxzy.Cli.Commands
                     : CancellationTokenSource.CreateLinkedTokenSource(
                         processToken, invokeCancellationToken);
 
+            if (requestBuffer.HasValue && requestBuffer >= 16)
+                FluxzySharedSetting.RequestProcessingBuffer = requestBuffer.Value;
+
             var cancellationToken = linkedTokenSource.Token;
-            ;
 
             proxyStartUpSetting.ClearBoundAddresses();
 
@@ -468,6 +472,18 @@ namespace Fluxzy.Cli.Commands
                 "Set the password corresponding to the certfile");
 
             option.Arity = ArgumentArity.ExactlyOne;
+
+            return option;
+        }
+        private static Option CreateProxyBuffer()
+        {
+            var option = new Option<int?>(
+                "--request-buffer",
+                description : "Set the default request buffer"
+               );
+
+            option.Arity = ArgumentArity.ExactlyOne;
+            option.SetDefaultValue(null);
 
             return option;
         }

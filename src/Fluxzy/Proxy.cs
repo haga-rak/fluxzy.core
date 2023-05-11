@@ -139,7 +139,7 @@ namespace Fluxzy
                 await Task.Yield();
 
                 using (client) {
-                    using var buffer = RsBuffer.Allocate(16 * 1024);
+                    using var buffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
 
                     try {
                         // already disposed
