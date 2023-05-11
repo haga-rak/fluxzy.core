@@ -2,7 +2,8 @@ import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {BsModalRef, ModalOptions} from 'ngx-bootstrap/modal';
 import {ApiService} from '../../services/api.service';
 import {CertificateWizardStatus} from "../../core/models/auto-generated";
-import {switchMap, take, tap} from "rxjs";
+import {filter, switchMap, take, tap} from "rxjs";
+import {SystemCallService} from "../../core/services/system-call.service";
 
 @Component({
     selector: 'app-wizard',
@@ -11,12 +12,13 @@ import {switchMap, take, tap} from "rxjs";
 })
 export class WizardComponent implements OnInit, OnDestroy {
     public certificateWizardStatus: CertificateWizardStatus;
-    private callback: (arg : any) => void;
+    private readonly callback: (arg : any) => void;
 
     constructor(
         public bsModalRef: BsModalRef,
         private apiService: ApiService,
         public cd: ChangeDetectorRef,
+        private systemCallService : SystemCallService,
         public options: ModalOptions
     ) {
         this.certificateWizardStatus = options.initialState.certificateWizardStatus as CertificateWizardStatus;
@@ -51,5 +53,14 @@ export class WizardComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.callback(this.certificateWizardStatus?.installed ?? false);
+    }
+
+    saveToFile(friendlyName: string) {
+        this.systemCallService.requestFileSave(`${friendlyName}.cer`)
+            .pipe(
+                take(1),
+                filter(t => !!t),
+              switchMap(t => this.apiService.systemSaveCaCertificate( { fileName : t } )),
+            ).subscribe();
     }
 }

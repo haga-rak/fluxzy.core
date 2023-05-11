@@ -27,15 +27,26 @@
         <div *ngIf="certificateWizardStatus">
 
             <div class="text-center" *ngIf="!certificateWizardStatus.installed">
-                <button class="btn btn-light btn-outline-primary btn-lg" (click)="installCertificate()">Install
+                <button class="btn btn-light btn-outline-primary btn-md" (click)="installCertificate()">
+                    <i class="fa fa-lock"></i>  Install
                     certificate
                 </button>
+                &nbsp;<button class="btn btn-secondary btn-md" (click)="saveToFile(certificateWizardStatus.certificateFriendlyName)">
+                <i class="fa fa-download"></i> Save to file
+                </button>
+                <br/>
+                <br/>
             </div>
             <div class="text-center" *ngIf="certificateWizardStatus.installed">
-                <button class="btn btn-success btn-lg text-white" (click)="bsModalRef.hide()">
+                <button class="btn btn-secondary btn-outline-success btn-md" (click)="bsModalRef.hide()">
                     <i class="fa fa-check"></i>
                     Certificate trusted
                 </button>
+                &nbsp;<button class="btn btn-secondary btn-md" (click)="saveToFile(certificateWizardStatus.certificateFriendlyName)">
+                <i class="fa fa-download"></i> Save to file
+            </button>
+                <br/>
+                <br/>
             </div>
         </div>
         <div *ngIf="!certificateWizardStatus" class="text-center lead">
