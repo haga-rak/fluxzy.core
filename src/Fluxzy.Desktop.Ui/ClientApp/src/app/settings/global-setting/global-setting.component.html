@@ -257,6 +257,13 @@
                                        (click)="requestCertificateValidation()"><i class="fa fa-refresh"
                                                                                    aria-hidden="true"></i>
                                         Re-verify certificate</a>
+
+                                    &nbsp;
+
+                                    <a href="javascript:;" class="btn btn-secondary" *ngIf="certificateValidationResult.subjectName"
+                                       (click)="saveCaToFile(certificateValidationResult.subjectName)"><i class="fa fa-download"
+                                                                                   aria-hidden="true"></i>
+                                        Save to file</a>
                                 </span>
                                     </div>
 

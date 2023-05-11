@@ -203,6 +203,15 @@ export class GlobalSettingComponent implements OnInit, AfterViewInit  {
             ).subscribe() ;
         ;
     }
+
+    saveCaToFile(subjectName : string) {
+        this.systemCallService.requestFileSave(`${subjectName}.cer`)
+            .pipe(
+                take(1),
+                filter(t => !!t),
+                switchMap(t => this.apiService.systemSaveCaCertificate( { fileName : t } )),
+            ).subscribe();
+    }
 }
 
 

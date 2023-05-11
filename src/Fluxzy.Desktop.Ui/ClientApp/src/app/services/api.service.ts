@@ -501,6 +501,11 @@ export class ApiService {
                 catchError(err => this.handleDesktopError(err))) ;
     }
 
+    public systemSaveCaCertificate(fileSaveModel : FileSaveViewModel) : Observable<CertificateOnStore[]> {
+        return this.httpClient.post<CertificateOnStore[]>(`api/system/certificates/save`, fileSaveModel).pipe(take(1),
+                catchError(err => this.handleDesktopError(err))) ;
+    }
+
     public systemGetVersion() : Observable<AppVersion> {
         return this.httpClient.get<AppVersion>(`api/system/version`).pipe(take(1),
                 catchError(err => this.handleDesktopError(err))) ;
