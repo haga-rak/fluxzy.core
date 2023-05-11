@@ -127,7 +127,7 @@ namespace Fluxzy.Clients.H11
 
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
-            using var rsBuffer = RsBuffer.Allocate(1024 * 16);
+            using var rsBuffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
 
             var headerBlock = await
                 Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, rsBuffer,

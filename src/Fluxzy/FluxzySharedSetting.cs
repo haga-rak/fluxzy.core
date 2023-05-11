@@ -7,5 +7,7 @@ namespace Fluxzy
     public static class FluxzySharedSetting
     {
         public static bool IsRunningInDesktop => Environment.GetEnvironmentVariable("Desktop") == "true";
+
+        public static int RequestProcessingBuffer { get; set; } = 1024 * 16; 
     }
 }
