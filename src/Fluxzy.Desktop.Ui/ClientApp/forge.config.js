@@ -38,7 +38,6 @@ module.exports = {
     },
     hooks : {
         prePackage : async (forgeConfig, platform, arch) => {
-        //    await exec('npm run build:prod');
         },
         postPackage: async (forgeConfig, options) => {
             if (process.platform !== 'win32')
@@ -61,6 +60,8 @@ module.exports = {
                 iconUrl: 'https://www.fluxzy.io/resources/icons/icon.ico',
                 // The ICO file to use as the icon for the generated Setup.exe
                 setupIcon: '.assets/icon.ico',
+                certificateFile: '../../../build/certificates/staging.iampfx',
+                certificatePassword: process.env.SIGNING_PFX_SERVER_PASSWORD,
             },
         },
         {
