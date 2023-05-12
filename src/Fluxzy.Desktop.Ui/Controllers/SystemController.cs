@@ -27,22 +27,23 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("certificates/save")]
-        public async Task<ActionResult<bool>> SaveCurrentCaToFile(FileSaveViewModel model, [FromServices] FluxzySettingManager settingManager)
+        public async Task<ActionResult<bool>> SaveCurrentCaToFile(
+            FileSaveViewModel model, [FromServices] FluxzySettingManager settingManager)
         {
-            var setting  = await settingManager.ProvidedObservable.FirstAsync();
+            var setting = await settingManager.ProvidedObservable.FirstAsync();
 
             var certificate = setting.StartupSetting.CaCertificate.GetX509Certificate();
             var pem = certificate.ExportToPem();
 
             await File.WriteAllBytesAsync(model.FileName, pem);
 
-            return true; 
+            return true;
         }
 
         [HttpGet("version")]
         public ActionResult<AppVersion> GetVersion([FromServices] AppVersionProvider provider)
         {
-            return provider.Version; 
+            return provider.Version;
         }
     }
 }

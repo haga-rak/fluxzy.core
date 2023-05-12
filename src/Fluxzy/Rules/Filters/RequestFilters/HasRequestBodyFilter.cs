@@ -1,8 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
-using Fluxzy.Misc;
-
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>

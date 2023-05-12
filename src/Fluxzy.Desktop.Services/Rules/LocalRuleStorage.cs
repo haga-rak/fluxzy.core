@@ -9,8 +9,8 @@ namespace Fluxzy.Desktop.Services.Rules
 {
     public class LocalRuleStorage : IRuleStorage
     {
-        private readonly RuleConfigParser _ruleConfigParser;
         private readonly DirectoryInfo _filterDirectory;
+        private readonly RuleConfigParser _ruleConfigParser;
 
         public LocalRuleStorage(RuleConfigParser ruleConfigParser)
         {
@@ -53,9 +53,8 @@ namespace Fluxzy.Desktop.Services.Rules
                 new FileInfo(GetRulePath(t.Rule)).FullName, t => t);
 
             foreach (var fileInfo in _filterDirectory.EnumerateFiles("*.rule.json").ToList()) {
-                if (!dictionaryRules.ContainsKey(fileInfo.FullName)) {
+                if (!dictionaryRules.ContainsKey(fileInfo.FullName))
                     fileInfo.Delete();
-                }
             }
 
             foreach (var rule in rules) {
@@ -79,16 +78,15 @@ namespace Fluxzy.Desktop.Services.Rules
         {
             return Path.Combine(_filterDirectory.FullName, $"{rule.Identifier}.rule.json");
         }
-
     }
 
     public class RuleImportSetting
     {
         public bool DeleteExisting { get; set; }
 
-        public string?  YamlContent { get; set; }
+        public string? YamlContent { get; set; }
 
-        public string ? FileName { get; set; }
+        public string? FileName { get; set; }
 
         public string GetContent()
         {

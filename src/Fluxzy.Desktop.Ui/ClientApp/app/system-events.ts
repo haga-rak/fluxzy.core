@@ -54,15 +54,18 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
             buttonLabel: "Save",
             properties: ["showOverwriteConfirmation"]
         });
+
         event.returnValue = !result ? null : result;
     });
 
     ipcMain.on('request-custom-file-saving', function (event, arg) {
+         const fileSaveRequest : FileSaveRequest = arg;
         //
         const result = dialog.showSaveDialogSync(win, {
-            title: "Fluxzy - Save",
+            title: fileSaveRequest.title ?? "Fluxzy - Save",
+            filters: fileSaveRequest.filters,
             buttonLabel: "Save",
-            defaultPath: arg,
+            defaultPath: fileSaveRequest.suggestedFileName,
             properties: ["showOverwriteConfirmation"]
         });
 
@@ -155,4 +158,15 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
     });
 
 
+}
+
+interface FileSaveRequest {
+    suggestedFileName?: string;
+    filters? : FileFilter[] ;
+    title? : string ;
+}
+
+interface FileFilter {
+    name: string;
+    extensions: string[];
 }

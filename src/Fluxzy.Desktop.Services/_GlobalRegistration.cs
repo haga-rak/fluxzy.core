@@ -80,7 +80,10 @@ namespace Fluxzy.Desktop.Services
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
 
             collection.AddSingleton
-                (s => s.GetRequiredService<FileManager>().ProvidedObservable);
+                (s => {
+                    
+                    return s.GetRequiredService<FileManager>().ProvidedObservable;
+                });
 
             collection.AddSingleton<IObservable<IArchiveReader>>
             (s => s.GetRequiredService<IObservable<FileState>>()

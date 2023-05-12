@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
@@ -64,10 +64,12 @@ namespace Fluxzy.Desktop.Ui.Controllers
         public async Task<ActionResult<UiState>> SaveAs(
             FileSaveViewModel model, [FromServices] IObservable<TrunkState> trunkStateObservable,
             [FromServices]
-            LastOpenFileManager lastOpenFileManager)
+            LastOpenFileManager lastOpenFileManager,
+            [FromServices] 
+            FilteredExchangeManager filteredExchangeManager)
         {
             var trunkState = await trunkStateObservable.FirstAsync();
-            await _fileManager.SaveAs(trunkState, model.FileName);
+            await _fileManager.SaveAs(trunkState, model.FileName, model.FileSaveOption, filteredExchangeManager);
             lastOpenFileManager.Add(model.FileName);
 
             return await _uiStateManager.GetUiState();

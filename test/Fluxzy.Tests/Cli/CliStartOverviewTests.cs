@@ -24,12 +24,12 @@ namespace Fluxzy.Tests.Cli
         public static IEnumerable<object[]> GetSingleRequestParameters {
             get
             {
-                var protocols = new[] { "http11", "http2" };
-                var decryptionStatus = new[] { false, true };
+                var protocols = new[] {"http11", "http2"};
+                var decryptionStatus = new[] {false, true};
 
                 foreach (var protocol in protocols)
                 foreach (var decryptStat in decryptionStatus) {
-                    yield return new object[] { protocol, decryptStat };
+                    yield return new object[] {protocol, decryptStat};
                 }
             }
         }
@@ -287,7 +287,6 @@ namespace Fluxzy.Tests.Cli
                 Directory.Delete(directory, true);
         }
 
-
         [Theory]
         [InlineData("http11")]
         [InlineData("http2")]
@@ -306,8 +305,8 @@ namespace Fluxzy.Tests.Cli
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
             var data = new {
-                fileContent = Convert.ToBase64String(Enumerable.Repeat(55, 3300).Select(s =>  (byte) s).ToArray())
-            }; 
+                fileContent = Convert.ToBase64String(Enumerable.Repeat(55, 3300).Select(s => (byte) s).ToArray())
+            };
 
             proxiedHttpClient.Client.DefaultRequestHeaders.Add("Cookie", "import-tool-session=" + cookieValue);
             proxiedHttpClient.Client.DefaultRequestHeaders.ExpectContinue = false;

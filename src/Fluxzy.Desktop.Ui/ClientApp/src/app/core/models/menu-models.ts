@@ -63,6 +63,14 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 accelerator: process.platform === 'darwin' ? 'Cmd+Shift+S' : 'Ctrl+Shift+S',
             },
             {
+                label : 'Save filtered exchanges as',
+                id : 'save-filtered',
+            },
+            {
+                label : 'Save selected exchanges as',
+                id : 'save-selected',
+            },
+            {
                 type :  'separator'
             },
             {

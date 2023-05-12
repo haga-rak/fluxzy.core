@@ -145,24 +145,53 @@ namespace Fluxzy.Desktop.Services
             Subject.OnNext(nextState);
         }
 
-        public async Task SaveAs(TrunkState trunkState, string fileName)
+        public async Task SaveAs(TrunkState trunkState, 
+            string fileName, FileSaveOption? saveOption, 
+            FilteredExchangeManager filteredExchangeManager)
         {
             var current = await ProvidedObservable.FirstAsync();
 
             if (current == null)
                 throw new InvalidOperationException("Current working directory/file is not set");
 
-            using var outStream = File.Create(fileName);
+            using (var outStream = File.Create(fileName))
+            {
 
-            var exchangeIds = trunkState.Exchanges.Select(s => s.Id).ToHashSet();
+                var exchangeIds = trunkState.Exchanges.Select(s => s.Id).ToHashSet();
 
-            await _directoryPackager.Pack(current.WorkingDirectory, outStream, exchangeIds);
+                if (saveOption != null)
+                {
+                    if (saveOption.SaveOptionType == FileSaveOptionType.SelectedOnly &&
+                        saveOption.SelectedExchangeIds != null)
+                    {
+                        var selectIds = saveOption.SelectedExchangeIds.ToHashSet();
+                        exchangeIds = exchangeIds.Intersect(selectIds).ToHashSet();
+                    }
 
-            var nextState = current
-                            .SetFileName(fileName)
-                            .SetUnsaved(false);
+                    if (saveOption.SaveOptionType == FileSaveOptionType.FilterViewOnly)
+                    {
+                        var filteredState = await filteredExchangeManager.ProvidedObservable.FirstAsync();
 
-            Subject.OnNext(nextState);
+                        if (filteredState != null)
+                        {
+                            exchangeIds = filteredState.Exchanges;
+                        }
+                    }
+                }
+
+                await _directoryPackager.Pack(current.WorkingDirectory, outStream, exchangeIds);
+            }
+
+            if (saveOption == null || saveOption.SaveOptionType == FileSaveOptionType.None) {
+
+                // We open the next file if regular saveas option
+
+                var nextState = current
+                                .SetFileName(fileName)
+                                .SetUnsaved(false);
+
+                Subject.OnNext(nextState);
+            }
         }
 
         public async Task<bool> ExportHttpArchive(HarExportRequest exportRequest)

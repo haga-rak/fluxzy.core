@@ -7,6 +7,7 @@ using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
+using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy.Desktop.Services.ContextualFilters
 {
@@ -14,10 +15,10 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
     {
         private readonly ToolBarFilterProvider _toolBarFilterProvider;
 
-        protected override BehaviorSubject<QuickActionResult> Subject { get; } = new(new(new())); 
-
-        public QuickActionBuilder(IObservable<TrunkState> trunkStateObservable,
-            IObservable<ContextualFilterResult> contextFilterResult, ToolBarFilterProvider toolBarFilterProvider)
+        public QuickActionBuilder(
+            IObservable<TrunkState> trunkStateObservable,
+            IObservable<ContextualFilterResult> contextFilterResult,
+            ToolBarFilterProvider toolBarFilterProvider)
         {
             _toolBarFilterProvider = toolBarFilterProvider;
 
@@ -27,23 +28,26 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
                                 .Do(t => Subject.OnNext(t))
                                 .Subscribe();
         }
-        
+
+        protected override BehaviorSubject<QuickActionResult> Subject { get; } =
+            new(new QuickActionResult(new List<QuickAction>()));
+
         private QuickActionResult Build(TrunkState _, ContextualFilterResult contextFilterResult)
         {
-
             var quickActions = contextFilterResult.ContextualFilters
                                                   .Select(s =>
                                                       new QuickAction(s.Filter.Identifier.ToString(),
                                                           "Filter",
                                                           s.Filter.FriendlyName,
                                                           false,
-                                                          new QuickActionPayload(s.Filter), QuickActionType.Filter)).ToList();
+                                                          new QuickActionPayload(s.Filter), QuickActionType.Filter))
+                                                  .ToList();
 
             return new QuickActionResult(quickActions);
         }
-        
+
         /// <summary>
-        /// Actions that are unchanged 
+        ///     Actions that are unchanged
         /// </summary>
         /// <returns></returns>
         public QuickActionResult GetStaticQuickActions()
@@ -55,7 +59,7 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             listActions.Add(BuildFromFilter(new ImageFilter(), "png", "jpeg", "jpg", "gif", "bitmap", "svg"));
             listActions.Add(BuildFromFilter(new CssStyleFilter(), "sass", "scss", "cascading", "sheet"));
 
-            var allHttpMethods = new string[] {"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"};
+            var allHttpMethods = new[] {"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"};
 
             foreach (var method in allHttpMethods) {
                 listActions.Add(BuildFromFilter(new MethodFilter(method)));
@@ -64,8 +68,13 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             listActions.Add(BuildFromFilter(new NetworkErrorFilter()));
             listActions.Add(BuildFromFilter(new StatusCodeSuccessFilter(), "200", "201", "204"));
             listActions.Add(BuildFromFilter(new StatusCodeRedirectionFilter(), "301", "302", "307"));
-            listActions.Add(BuildFromFilter(new StatusCodeClientErrorFilter(), Enumerable.Range(400,100).Select(s => s.ToString()).ToArray()));
-            listActions.Add(BuildFromFilter(new StatusCodeServerErrorFilter(), Enumerable.Range(500,100).Select(s => s.ToString()).ToArray()));
+
+            listActions.Add(BuildFromFilter(new StatusCodeClientErrorFilter(),
+                Enumerable.Range(400, 100).Select(s => s.ToString()).ToArray()));
+
+            listActions.Add(BuildFromFilter(new StatusCodeServerErrorFilter(),
+                Enumerable.Range(500, 100).Select(s => s.ToString()).ToArray()));
+
             listActions.Add(BuildFromFilter(new IsWebSocketFilter()));
             listActions.Add(BuildFromFilter(new HasCommentFilter()));
             listActions.Add(BuildFromFilter(new HasTagFilter()));
@@ -88,10 +97,10 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             listActions.Add(BuildFromAction(new SpoofDnsAction()));
             listActions.Add(BuildFromAction(new UpdateRequestHeaderAction(string.Empty, string.Empty)));
             listActions.Add(BuildFromAction(new UpdateResponseHeaderAction(string.Empty, string.Empty)));
-            
+
             // listActions.Add(BuildFromFilter(new ClientEr));
 
-            return new QuickActionResult(listActions); 
+            return new QuickActionResult(listActions);
         }
 
         private static QuickAction BuildFromFilter(Filter filter, params string[] keywords)
@@ -105,13 +114,13 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             };
         }
 
-        public static QuickAction BuildFromAction(Fluxzy.Rules.Action action, params string[] keywords)
+        public static QuickAction BuildFromAction(Action action, params string[] keywords)
         {
             return new QuickAction(action.Identifier.ToString(),
-                               "Action",
-                                              action.FriendlyName,
-                                              false,
-                                              new QuickActionPayload(action)  , QuickActionType.Action) {
+                "Action",
+                action.FriendlyName,
+                false,
+                new QuickActionPayload(action), QuickActionType.Action) {
                 Keywords = keywords
             };
         }

@@ -1,7 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.Linq;
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -102,7 +100,7 @@ namespace Fluxzy.Tests
             var commandLine = "start -l 127.0.0.1/0";
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
-            
+
             await using var fluxzyInstance = await commandLineHost.Run();
 
             using var tcpClient = new TcpClient();

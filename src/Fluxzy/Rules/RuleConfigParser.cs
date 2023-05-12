@@ -23,6 +23,7 @@ namespace Fluxzy.Rules
         public string GetYamlFromRuleSet(RuleSet ruleSet)
         {
             var serializer = BuildDefaultSerializer();
+
             return serializer.Serialize(ruleSet);
         }
 
@@ -119,7 +120,8 @@ namespace Fluxzy.Rules
             }
         }
 
-        private static RuleConfigContainer? InternalTryGetRuleFromYaml(out List<RuleConfigReaderError> readErrors, object? rawObject)
+        private static RuleConfigContainer? InternalTryGetRuleFromYaml(
+            out List<RuleConfigReaderError> readErrors, object? rawObject)
         {
             var flatJson = JsonSerializer.Serialize(rawObject, GlobalArchiveOption.ConfigSerializerOptions);
 
@@ -131,7 +133,8 @@ namespace Fluxzy.Rules
             RuleConfigContainer? rule;
 
             try {
-                rule = JsonSerializer.Deserialize<RuleConfigContainer?>(flatJson, GlobalArchiveOption.ConfigSerializerOptions);
+                rule = JsonSerializer.Deserialize<RuleConfigContainer?>(flatJson,
+                    GlobalArchiveOption.ConfigSerializerOptions);
             }
             catch (Exception e) {
                 readErrors.Add(new RuleConfigReaderError(e.Message));

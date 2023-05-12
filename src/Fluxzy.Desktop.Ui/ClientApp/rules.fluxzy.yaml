@@ -1,0 +1,10 @@
+rules:
+    -   filter:
+            typeKind: AnyFilter
+            description: Any requests
+            locked: true
+        actions:
+            -   typeKind: AddRequestHeaderAction
+                headerName: fluxzy-on
+                headerValue: true
+                description: ''

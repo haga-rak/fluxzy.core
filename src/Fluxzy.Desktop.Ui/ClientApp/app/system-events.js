@@ -50,11 +50,14 @@ var InstallSystemEvents = function (win) {
         event.returnValue = !result ? null : result;
     });
     electron_1.ipcMain.on('request-custom-file-saving', function (event, arg) {
+        var _a;
+        var fileSaveRequest = arg;
         //
         var result = electron_1.dialog.showSaveDialogSync(win, {
-            title: "Fluxzy - Save",
+            title: (_a = fileSaveRequest.title) !== null && _a !== void 0 ? _a : "Fluxzy - Save",
+            filters: fileSaveRequest.filters,
             buttonLabel: "Save",
-            defaultPath: arg,
+            defaultPath: fileSaveRequest.suggestedFileName,
             properties: ["showOverwriteConfirmation"]
         });
         event.returnValue = !result ? null : result;

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Fluxzy.Clients;
 
 namespace Fluxzy.Extensions
 {
@@ -68,12 +67,12 @@ namespace Fluxzy.Extensions
             if (exchangeInfo.ResponseHeader?.Headers == null)
                 return false;
 
-            return exchangeInfo.ResponseHeader.Headers.Any(h => 
-                                    (skipForwarded || !h.Forwarded) && // ----> What is this condition
-                                                   h.Name.Span.Equals("Transfer-Encoding",
-                                                       StringComparison.OrdinalIgnoreCase)
-                                                   && h.Value.Span.Equals("chunked",
-                                                       StringComparison.OrdinalIgnoreCase)
+            return exchangeInfo.ResponseHeader.Headers.Any(h =>
+                (skipForwarded || !h.Forwarded) && // ----> What is this condition
+                h.Name.Span.Equals("Transfer-Encoding",
+                    StringComparison.OrdinalIgnoreCase)
+                && h.Value.Span.Equals("chunked",
+                    StringComparison.OrdinalIgnoreCase)
             );
         }
 

@@ -32,10 +32,23 @@ export class SystemCallService {
     }
 
     public requestFileSave(suggestedFileName: string): Observable<string | null> {
+        const request : FileSaveRequest = {
+            suggestedFileName : suggestedFileName
+        };
+
         if (this.electronService.isElectron) {
-            let res = this.electronService.ipcRenderer.sendSync('request-custom-file-saving', suggestedFileName) as string;
+            let res = this.electronService.ipcRenderer.sendSync('request-custom-file-saving', request) as string;
             return of(res);
         }
+        return of(null);
+    }
+
+    public requestFileSaveWithOption(fileSaveRequest : FileSaveRequest): Observable<string | null> {
+        if (this.electronService.isElectron) {
+            let res = this.electronService.ipcRenderer.sendSync('request-custom-file-saving', fileSaveRequest) as string;
+            return of(res);
+        }
+
         return of(null);
     }
 
@@ -58,4 +71,15 @@ export class SystemCallService {
 
         return of(null);
     }
+}
+
+export interface FileSaveRequest {
+    suggestedFileName?: string;
+    filters? : FileFilter[] ;
+    title? : string ;
+}
+
+export interface FileFilter {
+    name: string;
+    extensions: string[];
 }

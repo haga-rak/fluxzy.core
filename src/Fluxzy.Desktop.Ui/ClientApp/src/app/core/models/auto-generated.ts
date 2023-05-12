@@ -17,6 +17,12 @@ export interface FileOpeningRequestViewModel
 export interface FileSaveViewModel
 {
 	fileName: string;
+	fileSaveOption?: FileSaveOption;
+}
+export interface FileSaveOption
+{
+	saveOptionType: string;
+	selectedExchangeIds?: number[];
 }
 export interface FullUrlSearchViewModel
 {

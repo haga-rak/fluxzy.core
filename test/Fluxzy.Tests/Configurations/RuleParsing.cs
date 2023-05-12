@@ -1,15 +1,15 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using Fluxzy.Certificates;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using Xunit;
 using Action = Fluxzy.Rules.Action;
 
@@ -304,7 +304,7 @@ namespace Fluxzy.Tests.Configurations
 
             var filter = (rule.Filter as StatusCodeFilter)!;
 
-            var actions = rule.GetAllActions().ToList(); 
+            var actions = rule.GetAllActions().ToList();
 
             Assert.NotNull(rule);
             Assert.NotNull(rule.Filter);
@@ -364,7 +364,7 @@ namespace Fluxzy.Tests.Configurations
             var yamlContent = $"""
                 filter: 
                   typeKind: FilterCollection        
-                  operation: {operation.ToString().ToLower()} 
+                  operation: { operation.ToString().ToLower()}  
                   children:
                     - typeKind: ContentTypeJsonFilter
                       inverted: true
@@ -373,7 +373,7 @@ namespace Fluxzy.Tests.Configurations
                   typeKind: AddRequestHeaderAction
                   headerName: fluxzy
                   headerValue: on
-                """;
+                """ ;
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
@@ -595,7 +595,8 @@ namespace Fluxzy.Tests.Configurations
         public static Action GetSingleAction(this RuleConfigContainer ruleConfigContainer)
         {
             var allActions = ruleConfigContainer.GetAllActions().ToList();
-            Assert.Single(allActions); 
+            Assert.Single(allActions);
+
             return allActions!.First();
         }
     }
