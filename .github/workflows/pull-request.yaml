@@ -1,0 +1,53 @@
+name: Pull Request Check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test-backend:
+    name: "Build & core Tests"
+    strategy:
+      matrix:
+        osversion: [Linux, Windows]
+        ostype: ['self-hosted']
+        
+    runs-on: ${{ matrix.osversion }}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 7.0.x
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+    - name: Add nuget package source 
+      continue-on-error: true  #ignore error (package source already present on the runner)
+      run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
+    - name: Restore dependencies of tests
+      run: dotnet restore test/Fluxzy.Tests
+    - name: Restore dependencies
+      run: dotnet restore src/Fluxzy
+    - name: Build
+      run: dotnet build src/Fluxzy --no-restore
+    - name: Test
+      run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
+  build-front:
+    name: "Building electron binary"
+    runs-on: 'Windows'
+    steps:
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+    - name: Install dependencies 
+      working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
+      run: npm install
+    - name: Build NPM package only 
+      working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
+      run: npm run build
