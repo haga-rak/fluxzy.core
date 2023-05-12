@@ -77,7 +77,6 @@ export class ExchangeTableViewComponent implements OnInit {
         this.exchangeContentService.getTrunkState()
             .pipe(
                 tap(t => this.trunkState = t),
-                tap(t => console.log('trunk state changed')),
                 tap(_ => this.cdr.detectChanges()),
                 //tap(_ => this.perfectScroll.directiveRef.scrollToBottom(0,0))
             )
