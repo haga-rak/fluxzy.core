@@ -34,8 +34,6 @@ export class ElectronService {
             });
 
             this.ipcRenderer.on('window-state-changed', (event, arg : WindowState) => {
-                console.log('window-state-changed');
-                console.log(arg);
                 this._windowState$.next(arg) ;
             });
 

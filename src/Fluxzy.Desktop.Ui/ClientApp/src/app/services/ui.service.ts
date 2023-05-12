@@ -28,6 +28,7 @@ import {
 } from './exchange-selection.service';
 import {DialogService} from "./dialog.service";
 import {SystemCallService} from "../core/services/system-call.service";
+import {APP_CONFIG} from "../../environments/environment";
 
 @Injectable({
     providedIn: 'root',
@@ -54,7 +55,9 @@ export class UiStateService {
         this.apiService.registerEvent('UiState', (state: UiState) => {
             this.uiState$.next(state);
             this.lastUiState$.next(state);
-            console.log(state);
+
+            if (!APP_CONFIG.production)
+                console.log(state);
         });
 
         combineLatest([
@@ -76,7 +79,6 @@ export class UiStateService {
             this.getFileState().pipe(map(f => f.workingDirectory), distinctUntilChanged()),
         ]).pipe(
             map(t => t[1]),
-            tap(t => console.log(t)),
             switchMap(f => this.apiService.readTrunkState(f)),
             tap(t => this.exchangeContentService.update(t)),
         )

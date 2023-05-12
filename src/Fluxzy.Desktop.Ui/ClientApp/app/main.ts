@@ -9,7 +9,9 @@ import {checkSquirrelStartup} from "./__squirrel-startup";
 import {autoUpdateRoutine} from "./auto-update";
 import {InstallWindowManagement} from "./window-management";
 
-app.commandLine.appendSwitch('no-proxy-server')
+app.commandLine.appendSwitch('no-proxy-server');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('ignore-connections-limit', 'localhost,127.0.0.1');
 
 if(checkSquirrelStartup())
     app.quit();
