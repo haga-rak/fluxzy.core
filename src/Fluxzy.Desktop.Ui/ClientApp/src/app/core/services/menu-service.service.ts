@@ -43,6 +43,7 @@ export class MenuService {
     }
 
     public saveAs() : void {
+
         const fileName = this.electronService.ipcRenderer.sendSync('request-file-saving', null) as string ;
 
         if (!fileName)
@@ -152,15 +153,17 @@ export class MenuService {
                 )
                 .subscribe();
 
-
             this.apiService.registerEvent('FileOpeningRequestViewModel', (viewModel : FileOpeningRequestViewModel) => {
                 if (viewModel.fileName){
                     this.nextOpenFile$.next(viewModel.fileName);
                     this.electronService.ipcRenderer.send('win.restore', null);
-
                 }
             });
         }
+    }
+
+    public setNextOpenFile(fileName: string): void {
+        this.nextOpenFile$.next(fileName);
     }
 
     public confirm(message: string): ConfirmResult {

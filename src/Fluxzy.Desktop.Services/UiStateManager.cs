@@ -45,7 +45,7 @@ namespace Fluxzy.Desktop.Services
                     return new UiState(f, p,
                         s, sp,
                         v, defaultToolBarFilters,
-                        tt, aro.Where(r => r.Action.GetType() != typeof(BreakPointAction)).ToList() , lop, bs);
+                        tt, aro.Where(r => r.Action.GetType() != typeof(BreakPointAction)).ToList(), lop, bs);
                 });
 
             Observable = _stateObservable
@@ -69,5 +69,3 @@ namespace Fluxzy.Desktop.Services
         }
     }
 }
-
-

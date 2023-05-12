@@ -169,6 +169,78 @@ export class UiStateService {
             )
             .subscribe();
 
+
+        this.menuService.registerMenuEvent('save-filtered', () => {
+            this.systemCallService.requestFileSaveWithOption({
+                title: "Fluxzy - Save only filtered exchanges",
+                filters: [
+                    {name: 'Fluxzy file', extensions: ['fxzy']}
+                ]
+            }).pipe(
+                take(1),
+                filter(t => !!t),
+                delayWhen(t =>
+                    this.dialogService.openWaitDialog("Packing file")
+                ),
+                switchMap(fileName => this.apiService.fileSaveAs({
+                    fileSaveOption: {
+                        saveOptionType: "FilterViewOnly"
+                    },
+                    fileName: fileName
+                }).pipe(
+                    take(1),
+                    finalize(() => this.dialogService.closeWaitDialog()),
+                    map(_ => fileName),
+                    catchError(e => of (null))
+                )),
+                // Asking to reopen the file
+                filter(t => typeof t === 'string'),
+                map(t => this.menuService.confirm("File saved. Do you wish to reopen it?") === ConfirmResult.Yes ? t : null),
+                filter(t => !!t),
+                delay(200),
+                tap(t => this.menuService.setNextOpenFile(t))
+            ).subscribe();
+        });
+
+        this.menuService.registerMenuEvent('save-selected', () => {
+
+            const selection = this.selectionService.lastSelectedIds ;
+
+            if (!selection || selection.length === 0) {
+                return;
+            }
+
+            this.systemCallService.requestFileSaveWithOption({
+                title: "Fluxzy - Save only selected exchanges",
+                filters: [
+                    {name: 'Fluxzy file', extensions: ['fxzy']}
+                ]
+            }).pipe(
+                take(1),
+                filter(t => !!t),
+                delayWhen(t =>
+                    this.dialogService.openWaitDialog("Packing file")
+                ),
+                switchMap(fileName => this.apiService.fileSaveAs({
+                    fileSaveOption: {
+                        saveOptionType: "SelectedOnly",
+                        selectedExchangeIds: selection
+                    },
+                    fileName: fileName
+                }).pipe(
+                    take(1),
+                    finalize(() => this.dialogService.closeWaitDialog()),
+                    map(_ => fileName),
+                    catchError(e => of (null))
+                )),
+                filter(t => typeof t === 'string'),
+                map(t => this.menuService.confirm("File saved. Do you wish to reopen it?") === ConfirmResult.Yes ? t : null),
+                filter(t => !!t),
+                delay(200),
+                tap(t => this.menuService.setNextOpenFile(t))
+            ).subscribe();
+        });
+
         this.menuService.registerMenuEvent('clear', () => {
             this.apiService.trunkClear()
                 .pipe(

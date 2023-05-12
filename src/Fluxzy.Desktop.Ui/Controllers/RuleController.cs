@@ -38,9 +38,8 @@ namespace Fluxzy.Desktop.Ui.Controllers
             return true;
         }
 
-
         [HttpPost("container/disable-all")]
-        public async Task<ActionResult<bool>> DisableAllRules( [FromServices] ActiveRuleManager activeRuleManager)
+        public async Task<ActionResult<bool>> DisableAllRules([FromServices] ActiveRuleManager activeRuleManager)
         {
             var rules = (await _ruleStorage.ReadRules()).Select(s => new RuleContainer(s.Rule, false)).ToList();
             await _ruleStorage.Update(rules);
@@ -96,15 +95,19 @@ namespace Fluxzy.Desktop.Ui.Controllers
         }
 
         [HttpPost("import")]
-        public ActionResult<List<Rule>> Import(RuleImportSetting ruleImportSetting,
-            [FromServices] RuleImportationManager ruleImportationManager)
+        public ActionResult<List<Rule>> Import(
+            RuleImportSetting ruleImportSetting,
+            [FromServices]
+            RuleImportationManager ruleImportationManager)
         {
             return ruleImportationManager.Import(ruleImportSetting);
         }
 
         [HttpPost("export")]
-        public ActionResult<string> Export(RuleExportSetting ruleExportSetting,
-            [FromServices] RuleImportationManager ruleImportationManager)
+        public ActionResult<string> Export(
+            RuleExportSetting ruleExportSetting,
+            [FromServices]
+            RuleImportationManager ruleImportationManager)
         {
             return new JsonResult(ruleImportationManager.Export(ruleExportSetting));
         }

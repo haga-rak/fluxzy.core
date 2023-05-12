@@ -265,7 +265,7 @@ namespace Fluxzy.Cli.Commands
                     var listResult = new List<IPEndPoint>();
 
                     foreach (var token in result.Tokens) {
-                        var tab = token.Value.Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries);
+                        var tab = token.Value.Split(new[] {"/"}, StringSplitOptions.RemoveEmptyEntries);
 
                         if (tab.Length == 1) {
                             if (!IPAddress.TryParse(tab.First(), out var ipAddress)) {
@@ -300,7 +300,7 @@ namespace Fluxzy.Cli.Commands
             );
 
             listenInterfaceOption.AddAlias("-l");
-            listenInterfaceOption.SetDefaultValue(new List<IPEndPoint> { new(IPAddress.Loopback, 44344) });
+            listenInterfaceOption.SetDefaultValue(new List<IPEndPoint> {new(IPAddress.Loopback, 44344)});
             listenInterfaceOption.Arity = ArgumentArity.OneOrMore;
 
             return listenInterfaceOption;
@@ -375,7 +375,7 @@ namespace Fluxzy.Cli.Commands
             var option = new Option<bool>(
                 "--llo",
                 "Listen on localhost address with default port. Same as -l 127.0.0.1/44344");
-            
+
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
@@ -387,7 +387,7 @@ namespace Fluxzy.Cli.Commands
             var option = new Option<bool>(
                 "--lany",
                 "Listen on all interfaces with default port (44344)");
-            
+
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
@@ -475,12 +475,13 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
         private static Option CreateProxyBuffer()
         {
             var option = new Option<int?>(
                 "--request-buffer",
-                description : "Set the default request buffer"
-               );
+                "Set the default request buffer"
+            );
 
             option.Arity = ArgumentArity.ExactlyOne;
             option.SetDefaultValue(null);

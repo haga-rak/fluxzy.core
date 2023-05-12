@@ -24,6 +24,7 @@ export class ExchangeSelectionService {
     private currentSelection$: Observable<ExchangeSelection>;
     private trunkState: TrunkState;
     private selectedIds: number[];
+    public lastSelectedIds: number[] | null = null;
 
     constructor(private exchangeContentService : ExchangeContentService, private menuService : MenuService) {
 
@@ -69,6 +70,10 @@ export class ExchangeSelectionService {
         );
 
         this.currentSelection$.pipe(tap((t) => (this.currentSelection = t))).subscribe();
+
+        this.getCurrentSelectedIds().subscribe(
+            t => this.lastSelectedIds = t
+        );
 
         combineLatest([
 

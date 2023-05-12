@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using Org.BouncyCastle.Bcpg;
 
 namespace Fluxzy.Utils
 {
@@ -15,9 +14,8 @@ namespace Fluxzy.Utils
                                     ?.Where(r => r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
                                     .LastOrDefault();
 
-            if (contentTypeHeader == null) {
-                return "data"; 
-            }
+            if (contentTypeHeader == null)
+                return "data";
 
             if (contentTypeHeader.Value.Span.Contains("json", StringComparison.OrdinalIgnoreCase))
                 return "json";
@@ -42,7 +40,7 @@ namespace Fluxzy.Utils
 
             if (contentTypeHeader.Value.Span.Contains("jpeg", StringComparison.OrdinalIgnoreCase)
                 || contentTypeHeader.Value.Span.Contains("jpg", StringComparison.OrdinalIgnoreCase)
-                )
+               )
                 return "jpeg";
 
             if (contentTypeHeader.Value.Span.Contains("gif", StringComparison.OrdinalIgnoreCase))
@@ -53,7 +51,7 @@ namespace Fluxzy.Utils
 
             if (contentTypeHeader.Value.Span.Contains("pdf", StringComparison.OrdinalIgnoreCase))
                 return "pdf";
-            
+
             if (contentTypeHeader.Value.Span.Contains("text", StringComparison.OrdinalIgnoreCase))
                 return "txt";
 
@@ -67,9 +65,8 @@ namespace Fluxzy.Utils
                                     ?.Where(r => r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
                                     .LastOrDefault();
 
-            if (contentTypeHeader == null) {
-                return "data"; 
-            }
+            if (contentTypeHeader == null)
+                return "data";
 
             if (contentTypeHeader.Value.Span.Contains("json", StringComparison.OrdinalIgnoreCase))
                 return "json";
@@ -94,7 +91,7 @@ namespace Fluxzy.Utils
 
             if (contentTypeHeader.Value.Span.Contains("jpeg", StringComparison.OrdinalIgnoreCase)
                 || contentTypeHeader.Value.Span.Contains("jpg", StringComparison.OrdinalIgnoreCase)
-                )
+               )
                 return "jpeg";
 
             if (contentTypeHeader.Value.Span.Contains("gif", StringComparison.OrdinalIgnoreCase))
@@ -105,13 +102,13 @@ namespace Fluxzy.Utils
 
             if (contentTypeHeader.Value.Span.Contains("pdf", StringComparison.OrdinalIgnoreCase))
                 return "pdf";
-            
+
             if (contentTypeHeader.Value.Span.Contains("text", StringComparison.OrdinalIgnoreCase))
                 return "txt";
 
             return "data";
         }
-        
+
         public static string? GetSimplifiedContentType(IExchange exchange)
         {
             // check into the response Content-Type header first 
@@ -139,7 +136,7 @@ namespace Fluxzy.Utils
                                ?.Where(r => r.Name.Span.Equals("accept", StringComparison.OrdinalIgnoreCase))
                                .LastOrDefault();
 
-            var firstAcceptValue = acceptHeader?.Value.ToString().Split(new[] { ",", ";" },
+            var firstAcceptValue = acceptHeader?.Value.ToString().Split(new[] {",", ";"},
                                                    StringSplitOptions.RemoveEmptyEntries)
                                                .FirstOrDefault();
 

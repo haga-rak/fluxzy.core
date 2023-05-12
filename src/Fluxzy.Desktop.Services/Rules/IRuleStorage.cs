@@ -7,6 +7,5 @@ namespace Fluxzy.Desktop.Services.Rules
         Task<List<RuleContainer>> ReadRules();
 
         Task Update(ICollection<RuleContainer> rules);
-        
     }
 }

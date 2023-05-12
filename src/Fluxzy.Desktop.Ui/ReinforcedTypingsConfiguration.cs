@@ -1,4 +1,4 @@
-// Copyright © 2022 Haga Rakotoharivelo
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net;
 using System.Reflection;
@@ -43,8 +43,8 @@ namespace Fluxzy.Desktop.Ui
         public static void Configure(ConfigurationBuilder builder)
         {
             builder.Global(config => config.CamelCaseForProperties()
-                .AutoOptionalProperties()
-                .UseModules());
+                                           .AutoOptionalProperties()
+                                           .UseModules());
 
             builder.ExportAsInterface<PolymorphicObject>()
                    .ApplyGenericProperties();
@@ -54,56 +54,56 @@ namespace Fluxzy.Desktop.Ui
 
             ConfigureViewModels(builder);
             ConfigureProducers(builder);
-            ConfigureFilters(builder); 
+            ConfigureFilters(builder);
             ConfigureRules(builder);
-            ConfigureExportableType(builder); 
+            ConfigureExportableType(builder);
 
             // UI objects
 
             builder.ExportAsInterface<AppVersion>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<UiState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<UiSetting>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ForwardMessage>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ProxyState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ProxyNetworkState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ProxyEndPoint>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ProxyBindPoint>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ArchivingPolicy>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<FileState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ViewFilter>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ToolBarFilter>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<FilteredExchangeState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<BreakPointState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<BreakPointContextInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<BreakPointContextStepInfo>()
                    .ApplyGenericProperties();
@@ -118,129 +118,131 @@ namespace Fluxzy.Desktop.Ui
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<FluxzySettingsHolder>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<FluxzySetting>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<FluxzySettingViewModel>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<HttpArchiveSavingSetting>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<Certificate>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<CertificateValidationResult>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ExchangeState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ExchangeBrowsingState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ExchangeContainer>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ConnectionContainer>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<TrunkState>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ContextMenuAction>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<FileContentDelete>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             // Core objects 
 
             builder.ExportAsInterface<ArchiveMetaInformation>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<Tag>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ExchangeInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<IExchangeLine>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<RequestHeaderInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ResponseHeaderInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ExchangeMetrics>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ExchangeMetricInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<HeaderFieldInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ConnectionInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<AuthorityInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<SslInfo>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ValidationError>()
-                .ApplyGenericProperties();
-            
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<HarExportRequest>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<SazExportRequest>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<CertificateWizardStatus>()
-                .ApplyGenericProperties();
-            
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<UiUserSetting>()
-                .ApplyGenericProperties();
-            
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<StartupWizardSettings>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<QuickActionResult>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<QuickAction>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<QuickActionPayload>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ContextualFilterResult>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
 
             builder.ExportAsInterface<ContextualFilter>()
-                .ApplyGenericProperties();
+                   .ApplyGenericProperties();
         }
-
 
         private static void ConfigureViewModels(ConfigurationBuilder builder)
         {
             builder.ExportAsInterface<FileOpeningRequestViewModel>()
                    .ApplyGenericProperties();
-            
+
             builder.ExportAsInterface<FileSaveViewModel>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<FileSaveOption>()
                    .ApplyGenericProperties();
 
             builder.ExportAsInterface<FullUrlSearchViewModel>()
                    .ApplyGenericProperties();
         }
-        
+
         private static void ConfigureProducers(ConfigurationBuilder builder)
         {
             builder.ExportAsInterface<ExchangeContextInfo>()
@@ -347,7 +349,6 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<CurlCommandResult>()
                    .ApplyGenericProperties();
-
         }
 
         private static void ConfigureFilters(ConfigurationBuilder builder)
@@ -358,12 +359,12 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<StoredFilter>().ApplyGenericProperties();
 
             var foundTypes = typeof(Filter).Assembly.GetTypes()
-                                      .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)
-                                                            && derivedType.IsClass).ToList();
+                                           .Where(derivedType => typeof(Filter).IsAssignableFrom(derivedType)
+                                                                 && derivedType.IsClass).ToList();
 
             builder.ExportAsInterfaces(foundTypes, a => a.ApplyGenericPropertiesGeneric());
         }
-        
+
         private static void ConfigureRules(ConfigurationBuilder builder)
         {
             builder.ExportAsInterface<Rule>().ApplyGenericProperties();
@@ -373,8 +374,8 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<Certificate>().ApplyGenericProperties();
 
             var foundTypes = typeof(Action).Assembly.GetTypes()
-                           .Where(derivedType => typeof(Action).IsAssignableFrom(derivedType)
-                                                 && derivedType.IsClass).ToList();
+                                           .Where(derivedType => typeof(Action).IsAssignableFrom(derivedType)
+                                                                 && derivedType.IsClass).ToList();
 
             builder.ExportAsInterfaces(foundTypes, a => a.ApplyGenericPropertiesGeneric());
         }
@@ -384,8 +385,9 @@ namespace Fluxzy.Desktop.Ui
             var mainAssembly = typeof(ExportableAttribute).Assembly;
 
             var exportableTypes = mainAssembly.GetTypes()
-                        .Where(t => t.GetCustomAttribute<ExportableAttribute>() != null)
-                        .ToList();
+                                              .Where(t => t.GetCustomAttribute<ExportableAttribute>() != null)
+                                              .ToList();
+
             builder.ExportAsInterfaces(exportableTypes, a => a.ApplyGenericPropertiesGeneric());
         }
     }
@@ -394,67 +396,70 @@ namespace Fluxzy.Desktop.Ui
     {
         public static InterfaceExportBuilder<T> ApplyGenericProperties<T>(this InterfaceExportBuilder<T> builder)
         {
-            var result =  builder
-                .Substitute(typeof(DateTime), new RtSimpleTypeName("Date"))
-                .Substitute(typeof(Guid), new RtSimpleTypeName("string"))
-                .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
-                .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
-                .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
-                .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
-                .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
-                .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
-                .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
-                .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
-                .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
-                .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
-                .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
-                .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
-                .Substitute(typeof(BreakPointStatus), new RtSimpleTypeName("string"))
-                .Substitute(typeof(QuickActionType), new RtSimpleTypeName("string"))
-                .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
-                .DontIncludeToNamespace()
-                .AutoI(false)
-                .WithPublicProperties();
+            var result = builder
+                         .Substitute(typeof(DateTime), new RtSimpleTypeName("Date"))
+                         .Substitute(typeof(Guid), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(BreakPointStatus), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(QuickActionType), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(FileSaveOptionType), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
+                         .DontIncludeToNamespace()
+                         .AutoI(false)
+                         .WithPublicProperties();
 
-            return result; 
+            return result;
         }
 
         public static InterfaceExportBuilder ApplyGenericPropertiesGeneric(this InterfaceExportBuilder builder)
         {
-            var result =  builder
-                .Substitute(typeof(DateTime), new RtSimpleTypeName("Date"))
-                .Substitute(typeof(Guid), new RtSimpleTypeName("string"))
-                .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
-                .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
-                .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
-                .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
-                .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
-                .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
-                .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
-                .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
-                .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
-                .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
-                .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
-                .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
-                .Substitute(typeof(BreakPointStatus), new RtSimpleTypeName("string"))
-                .Substitute(typeof(QuickActionType), new RtSimpleTypeName("string"))
-                .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
-                .DontIncludeToNamespace()
-                .AutoI(false)
-                .WithPublicProperties();
+            var result = builder
+                         .Substitute(typeof(DateTime), new RtSimpleTypeName("Date"))
+                         .Substitute(typeof(Guid), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(ReadOnlyMemory<char>), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(IPAddress), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(StoreLocation), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(StringSelectorOperation), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(WsMessageDirection), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(CertificateRetrieveMode), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(SslProtocols), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(ListenType), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(HttpArchiveSavingBodyPolicy), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(SslConfig), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(RawCaptureMode), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(BreakPointLocation), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(BreakPointStatus), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(QuickActionType), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(FileSaveOptionType), new RtSimpleTypeName("string"))
+                         .Substitute(typeof(HashSet<int>), new RtSimpleTypeName("Set<number>"))
+                         .DontIncludeToNamespace()
+                         .AutoI(false)
+                         .WithPublicProperties();
 
-            return result; 
+            return result;
         }
 
-        public static InterfaceExportBuilder ExportAsInterface(this InterfaceExportBuilder builder, Type type )
+        public static InterfaceExportBuilder ExportAsInterface(this InterfaceExportBuilder builder, Type type)
         {
             var staticClassInfo = typeof(TypeConfigurationBuilderExtensions);
-            var methodInfo = staticClassInfo.GetMethod(nameof(ExportAsInterface), 
+
+            var methodInfo = staticClassInfo.GetMethod(nameof(ExportAsInterface),
                 BindingFlags.Static)!;
 
             var genericMethod = methodInfo.MakeGenericMethod(type);
             genericMethod.Invoke(null, null);
-            
+
             return builder;
         }
     }

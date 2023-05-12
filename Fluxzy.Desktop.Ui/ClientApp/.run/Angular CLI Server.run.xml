@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Angular CLI Server" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/../../src/Fluxzy.Desktop.Ui/ClientApp/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="start:webstorm" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>
