@@ -55,7 +55,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
                     protocol.Connect(client);
                 }
-                catch (TlsFatalAlertReceived ex) {
+                catch (Exception ex) {
                     throw new ClientErrorException(0, $"Handshake with {request.TargetHost} has failed", ex.Message);
                 }
             }, token); // BAD but necessary
