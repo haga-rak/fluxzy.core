@@ -73,7 +73,7 @@ namespace Fluxzy
         public string CertificateCacheDirectory { get; internal set; } = "%appdata%/.fluxzy/cert-caches";
 
         /// <summary>
-        ///     When set to true, echoes will automatically install default certificate when starting.
+        ///     When set to true, fluxzy will automatically install default certificate when starting.
         /// </summary>
         [JsonInclude]
         public bool AutoInstallCertificate { get; internal set; }
@@ -113,7 +113,7 @@ namespace Fluxzy
             }
         }
 
-        public string ByPassHostFlat { get; set; } = "localhost;127.0.0.1";
+        public string ByPassHostFlat { get; set; } = "";
 
         /// <summary>
         ///     Archiving policy
