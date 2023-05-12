@@ -55,6 +55,7 @@ namespace Fluxzy.Desktop.Services.ContextualFilters
             var listActions = new List<QuickAction>();
 
             listActions.Add(BuildFromFilter(new ContentTypeJsonFilter()));
+            listActions.Add(BuildFromFilter(new JsonRequestFilter()));
             listActions.Add(BuildFromFilter(new ContentTypeXmlFilter()));
             listActions.Add(BuildFromFilter(new ImageFilter(), "png", "jpeg", "jpg", "gif", "bitmap", "svg"));
             listActions.Add(BuildFromFilter(new CssStyleFilter(), "sass", "scss", "cascading", "sheet"));
