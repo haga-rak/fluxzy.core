@@ -9,6 +9,8 @@ import {checkSquirrelStartup} from "./__squirrel-startup";
 import {autoUpdateRoutine} from "./auto-update";
 import {InstallWindowManagement} from "./window-management";
 
+app.commandLine.appendSwitch('no-proxy-server')
+
 if(checkSquirrelStartup())
     app.quit();
 
@@ -67,9 +69,7 @@ function runFrontEnd() : void {
             win.loadURL('http://localhost:4200');
             win.show();
         } else {
-
             // Path when running electron executable
-
 
             let pathIndex = './index.html';
 
