@@ -37,11 +37,11 @@ function runFrontEnd() : void {
 
         // Create the browser window.
         win = new BrowserWindow({
-            width: 1280,
-            height: 840,
+            width: 960,
+            height: 680,
             frame: false,
             show : false,
-            minWidth: 820,
+            minWidth: 860,
             minHeight: 640,
             icon: 'assets/icons/favicon.ico',
             webPreferences: {
