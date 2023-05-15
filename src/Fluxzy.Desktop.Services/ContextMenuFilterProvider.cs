@@ -29,6 +29,11 @@ namespace Fluxzy.Desktop.Services
                 };
             }
 
+            yield return new MethodFilter(exchange.Method)
+            {
+                Description = $"{exchange.Method} request"
+            };
+
             if (Uri.TryCreate(exchange.FullUrl, UriKind.Absolute, out var absoluteUri) &&
                 absoluteUri.AbsolutePath.Length > 3)
                 yield return new PathFilter(absoluteUri.AbsolutePath, StringSelectorOperation.Contains);
