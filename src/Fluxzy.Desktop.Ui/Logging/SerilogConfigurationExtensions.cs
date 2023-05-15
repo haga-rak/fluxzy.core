@@ -25,8 +25,10 @@ namespace Fluxzy.Desktop.Ui.Logging
                        {
                            Proxy = null,
                            UseProxy = false,
+                           ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true 
                        },
                        restrictedToMinimumLevel: LogEventLevel.Information,
+                       
                        apiKey: "vMmUtrjFR2Vue5ZcKkuqttTpUDfh5hqNkB4yuveVLH7W3c2UkC");
         }
     }
