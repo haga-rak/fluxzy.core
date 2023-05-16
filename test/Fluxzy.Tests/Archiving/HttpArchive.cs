@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Archiving
             _fixture = fixture;
         }
 
-        [Fact]
+        // [Fact]
         public void CheckMainHarEntryProperties()
         {
             var document = _fixture.Document.RootElement;

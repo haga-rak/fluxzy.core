@@ -2,8 +2,8 @@
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text.Json;
 using Fluxzy.Desktop.Services.Models;
+using MessagePack;
 
 namespace Fluxzy.Desktop.Services
 {
@@ -79,8 +79,8 @@ namespace Fluxzy.Desktop.Services
                 try {
                     using var stream = fileInfo.OpenRead();
 
-                    exchange = JsonSerializer.Deserialize<ExchangeInfo>(stream,
-                        GlobalArchiveOption.DefaultSerializerOptions);
+                    exchange = MessagePackSerializer.Deserialize<ExchangeInfo>(stream,
+                        GlobalArchiveOption.MessagePackSerializerOptions); 
                 }
                 catch (IOException) {
                     // We ignore read errors (engine is probably writing to file )
@@ -103,16 +103,17 @@ namespace Fluxzy.Desktop.Services
                 try {
                     using var stream = fileInfo.OpenRead();
 
-                    connection = JsonSerializer.Deserialize<ConnectionInfo>(stream,
-                        GlobalArchiveOption.DefaultSerializerOptions);
+                    connection =
+                     MessagePackSerializer.Deserialize<ConnectionInfo>(
+                        stream,
+                        GlobalArchiveOption.MessagePackSerializerOptions);
                 }
                 catch {
                     // We ignore read errors (engine is writing to file )
                     continue;
                 }
 
-                if (connection != null)
-                    connections.Add(new ConnectionContainer(connection));
+                connections.Add(new ConnectionContainer(connection));
             }
 
             exchanges.Sort(ExchangeContainerSorter.IdSorter);

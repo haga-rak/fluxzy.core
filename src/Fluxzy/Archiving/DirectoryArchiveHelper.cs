@@ -22,7 +22,7 @@ namespace Fluxzy
             var targetPath = Path.Combine(baseDirectory, "exchanges");
             var directoryInfo = new DirectoryInfo(targetPath);
 
-            return directoryInfo.EnumerateFiles("ex-*.json", SearchOption.AllDirectories);
+            return directoryInfo.EnumerateFiles("ex-*.mpack", SearchOption.AllDirectories);
         }
 
         internal static IEnumerable<FileInfo> EnumerateConnectionFileCandidates(string baseDirectory)
@@ -30,7 +30,7 @@ namespace Fluxzy
             var targetPath = Path.Combine(baseDirectory, "connections");
             var directoryInfo = new DirectoryInfo(targetPath);
 
-            return directoryInfo.EnumerateFiles("con-*.json", SearchOption.AllDirectories);
+            return directoryInfo.EnumerateFiles("con-*.mpack", SearchOption.AllDirectories);
         }
 
         internal static string GetExchangePath(string baseDirectory, int exchangeId)
@@ -40,7 +40,7 @@ namespace Fluxzy
 
             var preDir = Path.Combine(baseDirectory, "exchanges", directoryHint);
 
-            return Path.Combine(preDir, $"ex-{exchangeId}.json");
+            return Path.Combine(preDir, $"ex-{exchangeId}.mpack");
         }
 
         internal static string GetExchangePath(string baseDirectory, ExchangeInfo exchangeInfo)
@@ -100,7 +100,7 @@ namespace Fluxzy
 
             var preDir = Path.Combine(baseDirectory, "connections", directoryHint);
 
-            return Path.Combine(preDir, $"con-{connectionId}.json");
+            return Path.Combine(preDir, $"con-{connectionId}.mpack");
         }
 
         internal static string GetConnectionPath(string baseDirectory, ConnectionInfo connectionInfo)

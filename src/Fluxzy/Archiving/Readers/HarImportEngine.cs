@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -239,8 +240,17 @@ namespace Fluxzy.Readers
 
         public List<HarReadParam> Params { get; set; } = new();
 
+        public string?  Comment { get; set; }
+
         public void Write(Stream stream)
         {
+            if (Comment == "base64")
+            {
+                var bytes = Convert.FromBase64String(Text);
+                stream.Write(bytes);
+                return;
+            }
+
             var streamWriter = new StreamWriter(stream);
 
             if (!string.IsNullOrEmpty(Text)) {
@@ -345,8 +355,8 @@ namespace Fluxzy.Readers
 
         public void Write(Stream stream)
         {
-            if (Text == null)
-                throw new InvalidOperationException("Text is null");
+            if (string.IsNullOrEmpty(Text))
+                return; // Nothing to write 
             
             var isBase64 = Encoding == "base64";
 

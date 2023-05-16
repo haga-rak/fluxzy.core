@@ -6,14 +6,44 @@ using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
+using MessagePack;
 
 namespace Fluxzy
 {
     /// <summary>
     ///     This data structure is used for serialization only
     /// </summary>
+    [MessagePackObject]
     public class RequestHeaderInfo
     {
+        protected bool Equals(RequestHeaderInfo other)
+        {
+            return Method.Span.Equals(other.Method.Span, StringComparison.Ordinal) 
+                   && Scheme.Span.Equals(other.Scheme.Span, StringComparison.Ordinal)
+                   && Path.Span.Equals(other.Path.Span, StringComparison.Ordinal)
+                   && Authority.Span.Equals(other.Authority.Span, StringComparison.Ordinal) 
+                   && Headers.SequenceEqual(other.Headers);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            if (obj.GetType() != this.GetType())
+                return false;
+
+            return Equals((RequestHeaderInfo) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Method, Scheme, Path, Authority, Headers);
+        }
+
         public RequestHeaderInfo(RequestHeader originalHeader, bool doNotForwardConnectionHeader = false)
         {
             Method = originalHeader.Method;
@@ -24,6 +54,7 @@ namespace Fluxzy
         }
 
         [JsonConstructor]
+        [SerializationConstructor]
         public RequestHeaderInfo(
             ReadOnlyMemory<char> method, ReadOnlyMemory<char> scheme, ReadOnlyMemory<char> path,
             ReadOnlyMemory<char> authority, IEnumerable<HeaderFieldInfo> headers)
@@ -68,14 +99,19 @@ namespace Fluxzy
             Headers = listHeaders;
         }
 
+        [Key(0)]
         public ReadOnlyMemory<char> Method { get; }
 
+        [Key(1)]
         public ReadOnlyMemory<char> Scheme { get; }
 
+        [Key(2)]
         public ReadOnlyMemory<char> Path { get; }
 
+        [Key(3)]
         public ReadOnlyMemory<char> Authority { get; }
 
+        [Key(4)]
         public IEnumerable<HeaderFieldInfo> Headers { get; }
 
         public string GetFullUrl()

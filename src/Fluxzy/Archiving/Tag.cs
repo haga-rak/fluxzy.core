@@ -1,9 +1,11 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using MessagePack;
 using System;
 
 namespace Fluxzy
 {
+    [MessagePackObject]
     public class Tag : IEquatable<Tag>
     {
         public Tag(Guid identifier, string value)
@@ -12,8 +14,10 @@ namespace Fluxzy
             Value = value;
         }
 
+        [Key(0)]
         public Guid Identifier { get; }
 
+        [Key(1)]
         public string Value { get; }
 
         public bool Equals(Tag? other)

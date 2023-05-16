@@ -5,23 +5,26 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Fluxzy.Extensions;
+using MessagePack;
 
 namespace Fluxzy.Readers
 {
     public class DirectoryArchiveReader : IArchiveReader
     {
-        private readonly string _baseDirectory;
+
         private readonly string _captureDirectory;
 
         public DirectoryArchiveReader(string baseDirectory)
         {
-            _baseDirectory = baseDirectory;
+            BaseDirectory = baseDirectory;
             _captureDirectory = Path.Combine(baseDirectory, "captures");
         }
 
+        public string BaseDirectory { get; }
+
         public ArchiveMetaInformation ReadMetaInformation()
         {
-            var metaPath = DirectoryArchiveHelper.GetMetaPath(_baseDirectory);
+            var metaPath = DirectoryArchiveHelper.GetMetaPath(BaseDirectory);
 
             if (!File.Exists(metaPath))
                 return new ArchiveMetaInformation();
@@ -34,12 +37,16 @@ namespace Fluxzy.Readers
 
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
         {
-            var exchangeDirectory = new DirectoryInfo(Path.Combine(_baseDirectory, "exchanges"));
+            var exchangeDirectory = new DirectoryInfo(Path.Combine(BaseDirectory, "exchanges"));
 
-            return exchangeDirectory.EnumerateFiles("*.json", SearchOption.AllDirectories)
-                                    .Select(f =>
-                                        JsonSerializer.Deserialize<ExchangeInfo>(
-                                            File.ReadAllText(f.FullName), GlobalArchiveOption.DefaultSerializerOptions))
+            return exchangeDirectory.EnumerateFiles("*.mpack", SearchOption.AllDirectories)
+                                    .Select(f => {
+
+                                        var res = MessagePackSerializer.Deserialize<ExchangeInfo>(File.ReadAllBytes(f.FullName),
+                                            GlobalArchiveOption.MessagePackSerializerOptions);
+
+                                        return res;
+                                    })
                                     .Where(t => t != null)
                                     .OrderBy(t => t!.Id)
                                     .Select(t => t!);
@@ -47,37 +54,39 @@ namespace Fluxzy.Readers
 
         public ExchangeInfo? ReadExchange(int exchangeId)
         {
-            var exchangePath = DirectoryArchiveHelper.GetExchangePath(_baseDirectory, exchangeId);
+            var exchangePath = DirectoryArchiveHelper.GetExchangePath(BaseDirectory, exchangeId);
 
             if (!File.Exists(exchangePath))
                 return null;
-
-            return JsonSerializer.Deserialize<ExchangeInfo>(File.ReadAllText(exchangePath),
-                GlobalArchiveOption.DefaultSerializerOptions);
+            
+            return MessagePackSerializer.Deserialize<ExchangeInfo>(File.ReadAllBytes(exchangePath),
+                GlobalArchiveOption.MessagePackSerializerOptions);
         }
 
         public IEnumerable<ConnectionInfo> ReadAllConnections()
         {
-            var connectionDirectory = new DirectoryInfo(Path.Combine(_baseDirectory, "connections"));
+            var connectionDirectory = new DirectoryInfo(Path.Combine(BaseDirectory, "connections"));
 
-            return connectionDirectory.EnumerateFiles("*.json", SearchOption.AllDirectories)
-                                      .Select(f =>
-                                          JsonSerializer.Deserialize<ConnectionInfo>(
-                                              File.ReadAllText(f.FullName),
-                                              GlobalArchiveOption.DefaultSerializerOptions))
+            return connectionDirectory.EnumerateFiles("*.mpack", SearchOption.AllDirectories)
+                                      .Select(f => {
+                                          return MessagePackSerializer.Deserialize<ConnectionInfo>(
+                                              File.ReadAllBytes(f.FullName),
+                                              GlobalArchiveOption.MessagePackSerializerOptions);
+                                      })
                                       .Where(t => t != null)
                                       .Select(t => t!);
         }
 
         public ConnectionInfo? ReadConnection(int connectionId)
         {
-            var connectionPath = DirectoryArchiveHelper.GetConnectionPath(_baseDirectory, connectionId);
+            var connectionPath = DirectoryArchiveHelper.GetConnectionPath(BaseDirectory, connectionId);
 
             if (!File.Exists(connectionPath))
                 return null;
 
-            return JsonSerializer.Deserialize<ConnectionInfo>(File.ReadAllText(connectionPath),
-                GlobalArchiveOption.DefaultSerializerOptions);
+            return MessagePackSerializer.Deserialize<ConnectionInfo>(
+                File.ReadAllBytes(connectionPath),
+                GlobalArchiveOption.MessagePackSerializerOptions);
         }
 
         public Stream? GetRawCaptureStream(int connectionId)
@@ -102,7 +111,7 @@ namespace Fluxzy.Readers
 
         public Stream? GetRequestBody(int exchangeId)
         {
-            var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(_baseDirectory, exchangeId);
+            var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(BaseDirectory, exchangeId);
 
             if (!File.Exists(requestBodyPath))
                 return null;
@@ -124,7 +133,7 @@ namespace Fluxzy.Readers
 
         public long GetRequestBodyLength(int exchangeId)
         {
-            var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(_baseDirectory, exchangeId);
+            var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(BaseDirectory, exchangeId);
             var fileInfo = new FileInfo(requestBodyPath);
 
             if (!fileInfo.Exists)
@@ -135,7 +144,7 @@ namespace Fluxzy.Readers
 
         public long GetResponseBodyLength(int exchangeId)
         {
-            var responseBodyPath = DirectoryArchiveHelper.GetContentResponsePath(_baseDirectory, exchangeId);
+            var responseBodyPath = DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId);
             var fileInfo = new FileInfo(responseBodyPath);
 
             if (!fileInfo.Exists)
@@ -147,7 +156,7 @@ namespace Fluxzy.Readers
         public Stream? GetRequestWebsocketContent(int exchangeId, int messageId)
         {
             var requestBodyPath =
-                DirectoryArchiveHelper.GetWebsocketContentRequestPath(_baseDirectory, exchangeId, messageId);
+                DirectoryArchiveHelper.GetWebsocketContentRequestPath(BaseDirectory, exchangeId, messageId);
 
             if (!File.Exists(requestBodyPath))
                 return null;
@@ -158,7 +167,7 @@ namespace Fluxzy.Readers
         public Stream? GetResponseWebsocketContent(int exchangeId, int messageId)
         {
             var responseBodyPath =
-                DirectoryArchiveHelper.GetWebsocketContentResponsePath(_baseDirectory, exchangeId, messageId);
+                DirectoryArchiveHelper.GetWebsocketContentResponsePath(BaseDirectory, exchangeId, messageId);
 
             if (!File.Exists(responseBodyPath))
                 return null;
@@ -168,14 +177,14 @@ namespace Fluxzy.Readers
 
         public bool HasRequestBody(int exchangeId)
         {
-            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentRequestPath(_baseDirectory, exchangeId));
+            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentRequestPath(BaseDirectory, exchangeId));
 
             return fileInfo.Exists && fileInfo.Length > 0;
         }
 
         public Stream? GetResponseBody(int exchangeId)
         {
-            var requestContentPath = DirectoryArchiveHelper.GetContentResponsePath(_baseDirectory, exchangeId);
+            var requestContentPath = DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId);
 
             if (!File.Exists(requestContentPath))
                 return null;
@@ -197,14 +206,14 @@ namespace Fluxzy.Readers
 
         public bool HasResponseBody(int exchangeId)
         {
-            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentResponsePath(_baseDirectory, exchangeId));
+            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId));
 
             return fileInfo.Exists && fileInfo.Length > 0;
         }
 
         public bool HasCapture(int connectionId)
         {
-            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetCapturePath(_baseDirectory, connectionId));
+            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetCapturePath(BaseDirectory, connectionId));
 
             return fileInfo.Exists && fileInfo.Length > 0;
         }

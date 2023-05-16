@@ -5,17 +5,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
+using MessagePack;
 
 namespace Fluxzy
 {
+    [MessagePackObject]
     public class ResponseHeaderInfo
     {
+        protected bool Equals(ResponseHeaderInfo other)
+        {
+            return StatusCode == other.StatusCode && Headers.SequenceEqual(other.Headers);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            if (obj.GetType() != this.GetType())
+                return false;
+
+            return Equals((ResponseHeaderInfo) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(StatusCode, Headers);
+        }
+
         [JsonConstructor]
+        [SerializationConstructor]
         public ResponseHeaderInfo(int statusCode, IEnumerable<HeaderFieldInfo> headers)
         {
             StatusCode = statusCode;
             Headers = headers;
         }
+
         public ResponseHeaderInfo(int statusCode, IEnumerable<HeaderFieldInfo> headers, 
             bool computePseudoHeader)
         {
@@ -42,8 +70,10 @@ namespace Fluxzy
             Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s, doNotForwardConnectionHeader));
         }
 
+        [Key(0)]
         public int StatusCode { get; }
 
+        [Key(1)]
         public IEnumerable<HeaderFieldInfo> Headers { get; }
     }
 }

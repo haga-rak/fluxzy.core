@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using MessagePack;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -16,6 +17,7 @@ namespace Fluxzy.Clients.H11
         Receive
     }
 
+    [MessagePackObject]
     public class WsMessage
     {
         public WsMessage(int id)
@@ -23,24 +25,34 @@ namespace Fluxzy.Clients.H11
             Id = id;
         }
 
+        [Key(0)]
         public int Id { get; set; }
 
+        [Key(1)]
         public WsMessageDirection Direction { get; set; }
 
+        [Key(2)]
         public WsOpCode OpCode { get; set; }
 
+        [Key(3)]
         public long Length { get; set; }
 
+        [Key(4)]
         public long WrittenLength { get; set; }
 
+        [Key(5)]
         public byte[]? Data { get; set; }
 
+        [Key(7)]
         public string? DataString { get; set; }
 
+        [Key(8)]
         public DateTime MessageStart { get; set; }
 
+        [Key(9)]
         public DateTime MessageEnd { get; set; }
 
+        [Key(10)]
         public int FrameCount { get; set; }
 
         internal void ApplyXorSlow(Span<byte> data, int mask, int countIndex)
@@ -62,10 +74,7 @@ namespace Fluxzy.Clients.H11
                 return;
 
             mask = RotateLeft(mask, countIndex % 4 * 8);
-
-            if (countIndex % 2 == 1) {
-            }
-
+            
             Span<byte> maskData = stackalloc byte[4];
 
             for (var i = 0; i < data.Length;) {

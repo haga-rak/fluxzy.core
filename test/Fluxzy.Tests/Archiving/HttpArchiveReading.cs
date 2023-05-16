@@ -38,7 +38,6 @@ namespace Fluxzy.Tests.Archiving
 
             var packager = new FxzyDirectoryPackager();
 
-
             Assert.Equal(3, exchanges.Count);
 
             await packager.Pack(outputDirectory, RegisterFile(@"sortie-har.fxzy"));

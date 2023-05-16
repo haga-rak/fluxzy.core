@@ -9,6 +9,8 @@ namespace Fluxzy.Clients
         public static IIdProvider FromZero => new FromIndexIdProvider(0, 0);
 
         int NextExchangeId();
+
+        int NextConnectionId();
     }
 
     public class FromIndexIdProvider : IIdProvider

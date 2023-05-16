@@ -1,9 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using MessagePack;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -12,7 +12,7 @@ namespace Fluxzy
     public abstract class DirectoryPackager
     {
         private static readonly Regex DirectoryNameExtractionRegex =
-            new(@"ex-(?<exchangeId>\d+).json", RegexOptions.Compiled);
+            new(@"ex-(?<exchangeId>\d+).mpack", RegexOptions.Compiled);
 
         public abstract bool ShouldApplyTo(string fileName);
 
@@ -26,10 +26,9 @@ namespace Fluxzy
                                         using var stream = packableFile.File.Open(FileMode.Open, FileAccess.Read,
                                             FileShare.ReadWrite);
 
-                                        var current = JsonSerializer.Deserialize<ConnectionInfo>(stream,
-                                            GlobalArchiveOption.DefaultSerializerOptions);
-
-                                        return current;
+                                        return MessagePackSerializer.Deserialize<ConnectionInfo>(
+                                            stream,
+                                            GlobalArchiveOption.MessagePackSerializerOptions);
                                     }
                                     catch {
                                         // We suppress all reading warning here caused by potential pending reads 
@@ -49,8 +48,8 @@ namespace Fluxzy
                                         using var stream = packableFile.File.Open(FileMode.Open, FileAccess.Read,
                                             FileShare.ReadWrite);
 
-                                        var current = JsonSerializer.Deserialize<ExchangeInfo>(stream,
-                                            GlobalArchiveOption.DefaultSerializerOptions);
+                                        var current = MessagePackSerializer.Deserialize<ExchangeInfo>(stream,
+                                            GlobalArchiveOption.MessagePackSerializerOptions);
 
                                         return current;
                                     }
@@ -71,7 +70,7 @@ namespace Fluxzy
         {
             // TODO replace regex by a faster string parsing
 
-            if (fileName.StartsWith("ex-") && fileName.EndsWith(".json")) {
+            if (fileName.StartsWith("ex-") && fileName.EndsWith(".mpack")) {
                 var match = DirectoryNameExtractionRegex.Match(fileName);
 
                 if (match.Success) {
@@ -113,12 +112,10 @@ namespace Fluxzy
 
                 using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                     // a SAX based option may be a better choice here
-                    var exchangeBaseInfo = JsonSerializer
-                        .Deserialize<ExchangeIdentifiersInfo>(stream, GlobalArchiveOption.DefaultSerializerOptions);
-
-                    if (exchangeBaseInfo == null)
-                        continue;
-
+                    
+                    var exchangeBaseInfo = MessagePackSerializer.Deserialize<ExchangeIdentifiersInfo>(stream,
+                        GlobalArchiveOption.MessagePackSerializerOptions);
+                    
                     if (exchangeBaseInfo.ConnectionId > 0)
                         connectionIds.Add(exchangeBaseInfo.ConnectionId);
                 }
@@ -141,7 +138,7 @@ namespace Fluxzy
             var connectionFiles = DirectoryArchiveHelper.EnumerateConnectionFileCandidates(directoryInfo.FullName);
 
             foreach (var file in connectionFiles) {
-                if (!int.TryParse(file.Name.Replace("con-", string.Empty).Replace(".json", string.Empty),
+                if (!int.TryParse(file.Name.Replace("con-", string.Empty).Replace(".mpack", string.Empty),
                         out var connectionId))
                     continue;
 

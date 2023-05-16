@@ -6,11 +6,23 @@ using System.Text.Json.Serialization;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Utils;
+using MessagePack;
+
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Local (Used by serialization)
 
 namespace Fluxzy
 {
+    [MessagePackObject]
     public class ExchangeInfo : IExchange, IExchangeLine
     {
+        [SerializationConstructor]
+#pragma warning disable CS8618 // Used by messagepack
+        private ExchangeInfo()
+#pragma warning restore CS8618
+        {
+
+        }
+
         public ExchangeInfo(Exchange exchange)
         {
             Id = exchange.Id;
@@ -66,43 +78,59 @@ namespace Fluxzy
         }
 
         [JsonPropertyOrder(-10)]
-        public int ConnectionId { get; }
+        [Key(0)]
+        public int ConnectionId { get; private set;  }
 
         [JsonPropertyOrder(-9)]
-        public int Id { get; }
+        [Key(1)]
+        public int Id { get; private set; }
 
-        public RequestHeaderInfo RequestHeader { get; }
+        [Key(2)]
+        public RequestHeaderInfo RequestHeader { get; private set; }
 
-        public ResponseHeaderInfo? ResponseHeader { get; }
+        [Key(3)]
+        public ResponseHeaderInfo? ResponseHeader { get; private set; }
 
-        public ExchangeMetrics Metrics { get; }
+        [Key(4)]
+        public ExchangeMetrics Metrics { get; private set; }
 
+        [IgnoreMember]
         public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
-        
+
+        [IgnoreMember]
         public long Received => Metrics.TotalReceived;
-        
-        public long Sent => Metrics.TotalSent; 
+
+        [IgnoreMember]
+        public long Sent => Metrics.TotalSent;
 
         /// <summary>
         /// Misleading
         /// </summary>
+        [IgnoreMember]
         public bool Done => ResponseHeader?.StatusCode > 0;
 
-        public bool Pending { get; }
+        [Key(5)]
+        public bool Pending { get; private set; }
 
-        public string HttpVersion { get; }
+        [Key(6)]
+        public string HttpVersion { get; private set; }
 
+        [IgnoreMember]
         public string FullUrl => RequestHeader.GetFullUrl();
 
-        public string KnownAuthority { get; }
+        [Key(7)]
+        public string KnownAuthority { get; private set; }
 
+        [Key(8)]
+        public int KnownPort { get; private set; }
 
-        public int KnownPort { get;  }
+        [Key(9)]
+        public bool Secure { get; private set; }
 
-        public bool Secure { get; }
-
+        [IgnoreMember]
         public string Method => RequestHeader.Method.ToString();
 
+        [IgnoreMember]
         public string Path => RequestHeader.GetPathOnly();
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
@@ -115,21 +143,29 @@ namespace Fluxzy
             return ResponseHeader?.Headers;
         }
 
+        [IgnoreMember]
         public int StatusCode => ResponseHeader?.StatusCode ?? 0;
 
-        public string? EgressIp { get; }
+        [Key(10)]
+        public string? EgressIp { get; private set; }
 
+        [Key(11)]
         public string? Comment { get; set; }
 
-        public HashSet<Tag> Tags { get; }
+        [Key(12)]
+        public HashSet<Tag> Tags { get; private set; }
 
-        public bool IsWebSocket { get; }
+        [Key(13)]
+        public bool IsWebSocket { get; private set; }
 
-        public List<WsMessage>? WebSocketMessages { get; }
+        [Key(14)]
+        public List<WsMessage>? WebSocketMessages { get; private set; }
 
-        public Agent? Agent { get; }
+        [Key(15)]
+        public Agent? Agent { get; private set; }
 
-        public List<ClientError> ClientErrors { get; }
+        [Key(16)]
+        public List<ClientError> ClientErrors { get; private set; }
     }
 
     public class BodyContent

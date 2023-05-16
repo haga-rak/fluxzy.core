@@ -16,6 +16,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
+using Org.BouncyCastle.Asn1.Sec;
 
 namespace Fluxzy.Readers
 {
@@ -25,9 +26,7 @@ namespace Fluxzy.Readers
         {
             try {
                 using var zipArchive = ZipFile.Open(fileName, ZipArchiveMode.Read);
-                var entry = zipArchive.GetEntry("raw/");
-
-                return entry?.Length == 0;
+                return  zipArchive.Entries.Any(r => r.FullName.StartsWith("raw/"));
             }
             catch {
                 // ignore zip reading error 
@@ -53,6 +52,19 @@ namespace Fluxzy.Readers
             // Read all connectionInfo 
         }
 
+        private static int GetId(string name)
+        {
+            var index = name.IndexOf('_');
+
+            if (index == -1)
+                return -1;
+
+            if (!int.TryParse(name.AsSpan().Slice(0, index), out var id))
+                return -1;
+
+            return id;
+        }
+
         private static void InternalParse(
             DirectoryArchiveWriter writer,
             IEnumerable<ZipArchiveEntry> textEntries, ZipArchive archive)
@@ -69,7 +81,8 @@ namespace Fluxzy.Readers
                 if (!TryGetId(requestEntry.Name, out var id))
                     continue; // No id no party 
 
-                var xmlEntry = archive.Entries.FirstOrDefault(e => e.Name == $"{id}_m.xml");
+                var xmlEntry = archive.Entries.FirstOrDefault(e => e.Name.EndsWith("_m.xml") &&
+                                                                   GetId(e.Name) == id);
 
                 if (xmlEntry == null)
                     continue; // We ignore that entry
@@ -105,7 +118,9 @@ namespace Fluxzy.Readers
 
                 var isConnect = methodHeader.Value.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase);
                 
-                var responseEntry = archive.Entries.FirstOrDefault(e => e.Name == $"{id}_s.txt");
+                var responseEntry = archive.Entries.FirstOrDefault(e =>
+                    e.Name.EndsWith("_s.txt") &&
+                    GetId(e.Name) == id);
 
                 using var responseBodyStream = ReadHeaders(responseEntry, out var responseHeaders);
 
