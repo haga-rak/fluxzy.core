@@ -3,11 +3,21 @@
 using System;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients;
+using MessagePack;
 
 namespace Fluxzy
 {
+    [MessagePackObject]
     public class ConnectionInfo
     {
+        [SerializationConstructor]
+#pragma warning disable CS8618
+        private ConnectionInfo()
+#pragma warning restore CS8618
+        {
+
+        }
+
         public ConnectionInfo(Connection original)
         {
             Id = original.Id;
@@ -49,32 +59,46 @@ namespace Fluxzy
             HttpVersion = httpVersion;
         }
 
-        public int Id { get; }
+        [Key(0)]
+        public int Id { get; private set; }
 
-        public string? HttpVersion { get; }
+        [Key(1)]
+        public string? HttpVersion { get; private set; }
 
-        public AuthorityInfo Authority { get; }
+        [Key(2)]
+        public AuthorityInfo Authority { get; private set; }
 
-        public SslInfo? SslInfo { get; }
+        [Key(3)]
+        public SslInfo? SslInfo { get; private set; }
 
+        [Key(4)]
         public int RequestProcessed { get; set; }
 
-        public DateTime DnsSolveStart { get; }
+        [Key(5)]
+        public DateTime DnsSolveStart { get; private set; }
 
-        public DateTime DnsSolveEnd { get; }
+        [Key(6)]
+        public DateTime DnsSolveEnd { get; private set; }
 
-        public DateTime TcpConnectionOpening { get; }
+        [Key(7)]
+        public DateTime TcpConnectionOpening { get; private set; }
 
-        public DateTime TcpConnectionOpened { get; }
+        [Key(8)]
+        public DateTime TcpConnectionOpened { get; private set; }
 
-        public DateTime SslNegotiationStart { get; }
+        [Key(9)]
+        public DateTime SslNegotiationStart { get; private set; }
 
-        public DateTime SslNegotiationEnd { get; }
+        [Key(10)]
+        public DateTime SslNegotiationEnd { get; private set; }
 
-        public int LocalPort { get; }
+        [Key(11)]
+        public int LocalPort { get; private set; }
 
-        public string? LocalAddress { get; }
+        [Key(12)]
+        public string? LocalAddress { get; private set; }
 
-        public string? RemoteAddress { get; }
+        [Key(13)]
+        public string? RemoteAddress { get; private set; }
     }
 }

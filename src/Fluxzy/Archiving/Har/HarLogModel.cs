@@ -131,6 +131,10 @@ namespace Fluxzy.Har
 
             Headers = exchangeInfo.GetRequestHeaders().Select(s => new HarHeader(s)).ToList();
             PostData = new HarPostData(producerContext, savingSetting);
+
+            //if (PostData.IsBase64) {
+            //    Headers.Add(new(new("Content-Transfer-Encoding", "base64")));
+            //}
         }
 
         public List<HarQueryString> QueryString { get; } = new();
@@ -299,6 +303,7 @@ namespace Fluxzy.Har
                         else {
                             Text = Convert.ToBase64String(content);
                             Comment = "base64";
+                            IsBase64 = true;
                         }
                     }
                 }
@@ -334,6 +339,9 @@ namespace Fluxzy.Har
         public string Text { get; } = string.Empty;
 
         public string? Comment { get; set; }
+
+        [JsonIgnore] // For internal use only 
+        public bool IsBase64 { get; set; }
     }
 
     public class HarParams
@@ -379,12 +387,17 @@ namespace Fluxzy.Har
             Compressing = Size;
             MimeType = producerContext.Exchange.GetResponseHeaderValue("content-type") ?? "application/octet-stream";
 
-            if (savingSetting.Comply(Size)) {
+            if (Size > 0 && savingSetting.Comply(Size)) {
                 var textContext = producerContext.IsTextContent;
 
                 if (textContext) {
                     Text = producerContext.ResponseBodyText
                            ?? string.Empty;
+                }
+                else {
+                    Text = producerContext.ArchiveReader.GetResponseBody(exchangeInfo.Id)
+                                          ?.ToBase64String();
+                    Encoding = "base64";
                 }
             }
         }

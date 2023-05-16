@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -17,7 +17,7 @@ namespace Fluxzy.Clients
         public Connection(Authority authority, IIdProvider idProvider)
         {
             Authority = authority;
-            Id = idProvider.NextExchangeId();
+            Id = idProvider.NextConnectionId();
         }
 
         public int Id { get; set; }

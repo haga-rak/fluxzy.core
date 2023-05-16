@@ -113,6 +113,19 @@ namespace Fluxzy.Misc.Streams
             return memoryStream.ToArray();
         }
 
+        public static string ToBase64String(this Stream stream, bool dispose = false)
+        {
+            try {
+                var array = stream.ToArrayGreedy();
+                return Convert.ToBase64String(array);
+            }
+            finally {
+                if (dispose) {
+                    stream.Dispose();
+                }
+            }
+        }
+
         public static long FillArray(this Stream stream, byte[] destinationArray)
         {
             var memoryStream = new MemoryStream(destinationArray);

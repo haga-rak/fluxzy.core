@@ -3,9 +3,11 @@
 using System;
 using System.Net;
 using Fluxzy.Misc;
+using MessagePack;
 
 namespace Fluxzy
 {
+    [MessagePackObject]
     public class Agent
     {
         public Agent(int id, string friendlyName)
@@ -14,8 +16,10 @@ namespace Fluxzy
             FriendlyName = friendlyName;
         }
 
+        [Key(0)]
         public int Id { get; }
 
+        [Key(1)]
         public string FriendlyName { get; }
 
         protected bool Equals(Agent other)

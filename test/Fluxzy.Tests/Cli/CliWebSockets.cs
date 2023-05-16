@@ -92,7 +92,7 @@ namespace Fluxzy.Tests.Cli
             var random = new Random(9);
 
             // Arrange 
-            var directoryName = $"ws_{length}";
+            var directoryName = $"test-artifacts/ws_{length}";
 
             if (Directory.Exists(directoryName))
                 Directory.Delete(directoryName, true);

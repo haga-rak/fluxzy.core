@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using MessagePack;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -39,13 +40,16 @@ namespace Fluxzy.Readers
         {
             return _zipFile.Entries.Where(e =>
                                e.FullName.StartsWith("exchanges")
-                               && e.FullName.EndsWith(".json"))
+                               && e.FullName.EndsWith(".mpack"))
                            .Select(s => {
                                using var stream = s.Open();
 
-                               return JsonSerializer.Deserialize<ExchangeInfo>(
-                                   stream,
-                                   GlobalArchiveOption.DefaultSerializerOptions);
+                               FileStream fs;
+
+                               var result = MessagePackSerializer.Deserialize<ExchangeInfo>(stream,
+                                   GlobalArchiveOption.MessagePackSerializerOptions);
+
+                               return result; 
                            })
                            .Where(t => t != null)
                            .Select(t => t!);
@@ -61,22 +65,21 @@ namespace Fluxzy.Readers
 
             using var stream = entry.Open();
 
-            return JsonSerializer.Deserialize<ExchangeInfo>(
-                stream,
-                GlobalArchiveOption.DefaultSerializerOptions);
+            return MessagePackSerializer.Deserialize<ExchangeInfo>(stream,
+                GlobalArchiveOption.MessagePackSerializerOptions);
         }
 
         public IEnumerable<ConnectionInfo> ReadAllConnections()
         {
             return _zipFile.Entries.Where(e =>
                                e.FullName.StartsWith("connections")
-                               && e.FullName.EndsWith(".json"))
+                               && e.FullName.EndsWith(".mpack"))
                            .Select(s => {
                                using var stream = s.Open();
 
-                               return JsonSerializer.Deserialize<ConnectionInfo>(
+                               return MessagePackSerializer.Deserialize<ConnectionInfo>(
                                    stream,
-                                   GlobalArchiveOption.DefaultSerializerOptions);
+                                   GlobalArchiveOption.MessagePackSerializerOptions);
                            })
                            .Where(t => t != null)
                            .Select(t => t!);
@@ -92,9 +95,9 @@ namespace Fluxzy.Readers
 
             using var stream = entry.Open();
 
-            return JsonSerializer.Deserialize<ConnectionInfo>(
+            return MessagePackSerializer.Deserialize<ConnectionInfo>(
                 stream,
-                GlobalArchiveOption.DefaultSerializerOptions);
+                GlobalArchiveOption.MessagePackSerializerOptions);
         }
 
         public Stream? GetRawCaptureStream(int connectionId)
