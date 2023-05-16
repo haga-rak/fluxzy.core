@@ -71,7 +71,7 @@ namespace Fluxzy.Desktop.Services
 
             var exchangeFileInfos =
                 new DirectoryInfo(exchangeDir)
-                    .EnumerateFiles("*.json", SearchOption.AllDirectories);
+                    .EnumerateFiles("*.mpack", SearchOption.AllDirectories);
 
             foreach (var fileInfo in exchangeFileInfos) {
                 ExchangeInfo? exchange;
@@ -95,7 +95,7 @@ namespace Fluxzy.Desktop.Services
 
             var connectionFileInfos =
                 new DirectoryInfo(connectionDir)
-                    .EnumerateFiles("*.json", SearchOption.AllDirectories);
+                    .EnumerateFiles("*.mpack", SearchOption.AllDirectories);
 
             foreach (var fileInfo in connectionFileInfos) {
                 ConnectionInfo? connection = null;
