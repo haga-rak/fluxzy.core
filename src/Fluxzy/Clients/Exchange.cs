@@ -117,7 +117,7 @@ namespace Fluxzy.Clients
         /// <summary>
         ///     The remote authority
         /// </summary>
-        public Authority Authority { get; }
+        public Authority Authority { get; set;  }
 
         /// <summary>
         ///     Contains the request sent from the proxy to the remote server
