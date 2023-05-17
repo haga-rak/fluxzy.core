@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
-    public class CliStartOverviewTests
+    public class WithProvidedRules
     {
         public static IEnumerable<object[]> GetSingleRequestParameters {
             get
