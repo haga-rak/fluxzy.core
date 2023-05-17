@@ -36,6 +36,7 @@ namespace Fluxzy.Rules.Actions
                 return default;
 
             exchange.Request.Header.Method = NewMethod.AsMemory();
+            
 
             return default;
         }

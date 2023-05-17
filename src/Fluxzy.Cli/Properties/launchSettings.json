@@ -10,7 +10,7 @@
       // "commandLineArgs": "cert check sdf"
       //"commandLineArgs": "start -sp -l 127.0.0.1/0"
       //"commandLineArgs": "start -l 127.0.0.1/44355 -d oui -c "
-      "commandLineArgs": "start --request-buffer=80"
+      "commandLineArgs": "start --llo -r rule.yml"
     }
   }
 }

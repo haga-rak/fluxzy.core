@@ -18,7 +18,7 @@ namespace Fluxzy.Clients
             Authority = authority;
         }
 
-        public IAuthority Authority { get; }
+        public IAuthority Authority { get; set; }
 
         /// <summary>
         ///     Host IP that shall be used instead of a classic DNS resolution
