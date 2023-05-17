@@ -40,7 +40,7 @@ namespace Fluxzy.Misc.Converters
             var typeKind = doc.RootElement.GetProperty("typeKind").GetString()!;
 
             if (!_typeMapping.TryGetValue(typeKind, out var type))
-                throw new JsonException($"Cannot parse {typeKind}");
+                throw new JsonException($"Cannot parse {typeKind} to a valid {typeof(T).Name}");
 
             return type;
         }

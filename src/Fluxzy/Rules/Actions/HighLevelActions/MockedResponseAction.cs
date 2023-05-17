@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -11,17 +11,18 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     /// <summary>
     ///     Mock completely a response.
     /// </summary>
-    public class FullResponseAction : Action
+    [ActionMetadata("Reply with a pre-made response from a raw text or file")]
+    public class MockedResponseAction : Action
     {
-        public FullResponseAction(PreMadeResponse preMadeResponse)
+        public MockedResponseAction(MockedResponseContent response)
         {
-            PreMadeResponse = preMadeResponse;
+            Response = response;
         }
 
         /// <summary>
         ///     The response
         /// </summary>
-        public PreMadeResponse PreMadeResponse { get; set; }
+        public MockedResponseContent Response { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
@@ -31,7 +32,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.PreMadeResponse = PreMadeResponse;
+            context.PreMadeResponse = Response;
 
             return default;
         }
