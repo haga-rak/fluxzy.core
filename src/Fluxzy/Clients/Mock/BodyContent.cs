@@ -10,15 +10,20 @@ namespace Fluxzy.Clients.Mock
     public class BodyContent
     {
         [JsonConstructor]
-        public BodyContent(BodyContentLoadingType loadingType, string mimeType)
+        public BodyContent(BodyContentLoadingType origin, string? mime)
         {
-            LoadingType = loadingType;
-            MimeType = mimeType;
+            Origin = origin;
+            Mime = mime;
         }
 
-        public BodyContentLoadingType LoadingType { get; set; }
+        [JsonInclude]
+        public BodyContentLoadingType Origin { get; set; }
 
-        public string MimeType { get; }
+        [JsonInclude]
+        public string? Mime { get; set;  }
+
+        [JsonInclude]
+        public string ? Text { get; set; }
 
         [JsonInclude]
         public string? FileName { get; private set; }
@@ -57,7 +62,10 @@ namespace Fluxzy.Clients.Mock
 
         public long GetLength()
         {
-            switch (LoadingType) {
+            switch (Origin) {
+                case BodyContentLoadingType.FromString :
+                    return Text == null ? 0 : Encoding.UTF8.GetByteCount(Text);
+
                 case BodyContentLoadingType.FromImmediateArray:
                     return Content!.Length;
 
@@ -65,18 +73,21 @@ namespace Fluxzy.Clients.Mock
                     return FileName == null ? 0 : new FileInfo(FileName).Length;
 
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return -1; 
             }
         }
 
         public Stream GetStream()
         {
-            switch (LoadingType) {
+            switch (Origin) {
                 case BodyContentLoadingType.FromImmediateArray:
                     return new MemoryStream(Content!);
 
                 case BodyContentLoadingType.FromFile:
                     return File.OpenRead(FileName!);
+                
+                case BodyContentLoadingType.FromString:
+                    return new MemoryStream(Encoding.UTF8.GetBytes(Text!));
 
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -86,7 +97,8 @@ namespace Fluxzy.Clients.Mock
 
     public enum BodyContentLoadingType
     {
-        FromImmediateArray = 1,
+        FromString = 1, 
+        FromImmediateArray ,
         FromFile
     }
 }

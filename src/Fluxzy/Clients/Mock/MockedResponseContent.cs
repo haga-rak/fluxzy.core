@@ -1,13 +1,13 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.Net;
 
 namespace Fluxzy.Clients.Mock
 {
-    public class ReplyStreamContent : PreMadeResponse
+    public class MockedResponseContent : PreMadeResponse
     {
-        public ReplyStreamContent(int statusCode, BodyContent bodyContent)
+        public MockedResponseContent(int statusCode, BodyContent bodyContent)
         {
             StatusCode = statusCode;
             BodyContent = bodyContent;
@@ -30,8 +30,8 @@ namespace Fluxzy.Clients.Mock
             if (bodyContentLength > 0)
                 header += $"Content-length: {bodyContentLength}\r\n";
 
-            if (!string.IsNullOrWhiteSpace(BodyContent.MimeType))
-                header += $"Content-type: {BodyContent.MimeType}\r\n";
+            if (!string.IsNullOrWhiteSpace(BodyContent.Mime))
+                header += $"Content-type: {BodyContent.Mime}\r\n";
 
             header += "\r\n";
 

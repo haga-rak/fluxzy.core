@@ -26,7 +26,7 @@ namespace Fluxzy.Tests.Rules
 
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
-                    new FullResponseAction(new ReplyStreamContent(403,
+                    new MockedResponseAction(new MockedResponseContent(403,
                         Clients.Mock.BodyContent.CreateFromString(bodyString))),
                     new HostFilter("sandbox.smartizy.com")
                 ));
