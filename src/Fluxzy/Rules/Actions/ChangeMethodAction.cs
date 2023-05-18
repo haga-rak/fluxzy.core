@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading.Tasks;
@@ -36,6 +36,7 @@ namespace Fluxzy.Rules.Actions
                 return default;
 
             exchange.Request.Header.Method = NewMethod.AsMemory();
+            
 
             return default;
         }

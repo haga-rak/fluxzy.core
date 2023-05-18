@@ -61,7 +61,7 @@ namespace Fluxzy.Clients
 
         public ReadOnlyMemory<char> Method { get; internal set; }
 
-        public ReadOnlyMemory<char> Scheme { get; }
+        public ReadOnlyMemory<char> Scheme { get; internal set; }
 
         public bool IsWebSocketRequest { get; }
 
