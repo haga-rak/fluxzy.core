@@ -36,14 +36,24 @@ namespace Fluxzy.Rules.Actions
             if (!Uri.TryCreate(Url, UriKind.Absolute, out var uri))
                 throw new InvalidOperationException("Provided URL is not a valid one. Must be an absolute URI.");
 
-            var usedPath = exchange.Request.Header.Path.ToString();
+            var originalPath = exchange.Request.Header.Path.ToString();
 
-            if (Uri.TryCreate(usedPath, 
+
+            if (Uri.TryCreate(originalPath, 
                     UriKind.Absolute, out var path)) {
-                usedPath = path.PathAndQuery;
+                originalPath = path.PathAndQuery;
             }
 
-            var finalPath = uri!.PathAndQuery + usedPath;
+            var finalPath = string.Empty; 
+
+            if (uri.PathAndQuery == "/") {
+                finalPath = originalPath;
+            }
+            else
+            {
+                finalPath =
+                    uri!.PathAndQuery + originalPath;
+            }
 
             var hostName = uri.Host;
             var port = uri.Port;
