@@ -8,10 +8,10 @@ using System.Text.Json.Serialization;
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>
-    ///     Select exchange according to request header values.
+    ///     Select exchanges according to request header values.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange according to request header values."
+        LongDescription = "Select exchanges according to request header values."
     )]
     public class RequestHeaderFilter : HeaderFilter
     {
@@ -29,6 +29,15 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override FilterScope FilterScope => FilterScope.RequestHeaderReceivedFromClient;
 
         public override string ShortName => "req head.";
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield return new FilterExample("Select exchanges having request header `dnt: 1`",
+                new RequestHeaderFilter("1", StringSelectorOperation.Exact, "dnt"));
+
+            yield return new FilterExample("Select exchanges issued by Chrome 112 by checking User-Agent",
+                new RequestHeaderFilter("Chrome/112 ", StringSelectorOperation.Contains, "User-Agent")); 
+        }
 
         public override string GenericName => "Filter by request header";
 

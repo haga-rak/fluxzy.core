@@ -1,10 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -22,6 +22,7 @@ namespace Fluxzy.Rules.Actions
         /// <summary>
         ///     Method name
         /// </summary>
+        [ActionDistinctive]
         public string NewMethod { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
@@ -39,6 +40,12 @@ namespace Fluxzy.Rules.Actions
             
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Change request method PATCH",
+                new ChangeRequestMethodAction("PATCH"));
         }
     }
 }

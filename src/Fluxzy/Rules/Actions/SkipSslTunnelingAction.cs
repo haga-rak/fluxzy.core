@@ -3,7 +3,6 @@
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -12,7 +11,7 @@ namespace Fluxzy.Rules.Actions
     ///     in order to make this action effective.
     /// </summary>
     [ActionMetadata(
-        "Instruct fluxzy not to decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope in order to make this action effective. ")]
+        "Instructs fluxzy to not decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope in order to make this action effective. ")]
     public class SkipSslTunnelingAction : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;

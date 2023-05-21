@@ -1,15 +1,16 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange that has a XML response body.
+    ///     Select exchanges that has a XML response body.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having XML response body."
+        LongDescription = "Select exchanges having XML response body."
     )]
     public class ContentTypeXmlFilter : ResponseHeaderFilter
     {
@@ -27,5 +28,12 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override string ShortName => "xml";
 
         public override bool PreMadeFilter => true;
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
+        }
     }
 }

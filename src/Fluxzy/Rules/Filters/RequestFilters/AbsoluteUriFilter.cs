@@ -9,19 +9,20 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     ///     Filter according to full url (includes path and query)
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange to full url (scheme, FQDN, path and query).",
+        LongDescription =
+            "Select exchanges according to URI (scheme, FQDN, path and query). Supports common string search option and regular expression.",
         QuickReachFilter = true,
         QuickReachFilterOrder = 0
     )]
-    public class FullUrlFilter : StringFilter
+    public class AbsoluteUriFilter : StringFilter
     {
-        public FullUrlFilter(string pattern)
+        public AbsoluteUriFilter(string pattern)
             : base(pattern)
         {
         }
 
         [JsonConstructor]
-        public FullUrlFilter(string pattern, StringSelectorOperation operation)
+        public AbsoluteUriFilter(string pattern, StringSelectorOperation operation)
             : base(pattern, operation)
         {
         }
@@ -38,6 +39,17 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         {
             if (exchange != null)
                 yield return exchange.FullUrl;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield return new FilterExample(
+                "Select only exchanges with the URL matching exactly `https://www.fluxzy.io/some-path`",
+                new AbsoluteUriFilter(@"https://www.fluxzy.io/some-path", StringSelectorOperation.Exact));
+
+            yield return new FilterExample(
+                "Match all HTTPS exchanges by checking URL scheme with a regular expression",
+                new AbsoluteUriFilter(@"^https\:\/\/", StringSelectorOperation.Regex));
         }
     }
 }

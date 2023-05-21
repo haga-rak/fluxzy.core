@@ -1,12 +1,13 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     [FilterMetaData(
-        LongDescription = "Select exchange having authorization header."
+        LongDescription = "Select exchanges having authorization header."
     )]
     public class HasAuthorizationFilter : Filter
     {
@@ -27,6 +28,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             var candidates = exchange.GetRequestHeaders().Find("Authorization").ToList();
 
             return candidates.Any();
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

@@ -42,5 +42,6 @@ namespace Fluxzy.Clients.Mock
         {
             return BodyContent.GetStream();
         }
+
     }
 }

@@ -2,7 +2,7 @@
 
 using System.Reflection;
 using Fluxzy.Desktop.Services.Filters;
-using Fluxzy.Rules.Actions;
+using Fluxzy.Rules;
 using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy.Desktop.Services.Rules

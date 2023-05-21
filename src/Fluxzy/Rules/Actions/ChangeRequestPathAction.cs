@@ -1,10 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -12,7 +12,7 @@ namespace Fluxzy.Rules.Actions
     ///     Change request uri path. This action alters only the path of the request.
     ///     Please refer to TODO : need an action that redirects the full path
     /// </summary>
-    [ActionMetadata("Change request uri path. This action alters only the path of the request.")]
+    [ActionMetadata("Change request uri path. This action alters only the path of the request. Request path includes query string.")]
     public class ChangeRequestPathAction : Action
     {
         public ChangeRequestPathAction(string newPath)
@@ -20,6 +20,7 @@ namespace Fluxzy.Rules.Actions
             NewPath = newPath;
         }
 
+        [ActionDistinctive]
         public string NewPath { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
@@ -34,6 +35,12 @@ namespace Fluxzy.Rules.Actions
                 exchange.Request.Header.Path = NewPath.AsMemory();
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Change request path to `/hello`",
+                new ChangeRequestPathAction("/hello"));
         }
     }
 }

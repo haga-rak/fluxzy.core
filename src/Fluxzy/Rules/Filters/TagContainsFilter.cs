@@ -1,12 +1,15 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Collections.Generic;
 
 namespace Fluxzy.Rules.Filters
 {
     /// <summary>
-    ///     Select exchange according to tag values
+    ///     Select exchanges according to tag values
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having tags matching specified condition."
+        LongDescription = "Select exchanges having tags matching specified condition.",
+        NotSelectable = true
     )]
     public class TagContainsFilter : Filter
     {
@@ -29,6 +32,12 @@ namespace Fluxzy.Rules.Filters
                 return false;
 
             return exchange.Tags.Contains(Tag);
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            // Outofscope filter does not include examples
+            yield break;
         }
     }
 }

@@ -1,10 +1,10 @@
 ﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -23,6 +23,7 @@ namespace Fluxzy.Rules.Actions
         /// <summary>
         ///     Header name
         /// </summary>
+        [ActionDistinctive]
         public string HeaderName { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
@@ -36,6 +37,12 @@ namespace Fluxzy.Rules.Actions
             context.RequestHeaderAlterations.Add(new HeaderAlterationDelete(HeaderName));
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Remove every Cookie header from request",
+                new DeleteRequestHeaderAction("Cookie"));
         }
     }
 }

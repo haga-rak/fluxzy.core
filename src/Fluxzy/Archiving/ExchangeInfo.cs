@@ -168,8 +168,8 @@ namespace Fluxzy
         public List<ClientError> ClientErrors { get; private set; }
     }
 
-    public class BodyContent
-    {
-        public int Length { get; set; }
-    }
+    //public class BodyContent
+    //{
+    //    public int Length { get; set; }
+    //}
 }

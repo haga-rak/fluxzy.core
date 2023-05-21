@@ -1,8 +1,8 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 
-namespace Fluxzy.Rules.Filters
+namespace Fluxzy.Rules
 {
     public class FilterMetaDataAttribute : Attribute
     {

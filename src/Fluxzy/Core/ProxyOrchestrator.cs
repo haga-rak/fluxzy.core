@@ -11,7 +11,7 @@ using Fluxzy.Clients.H2;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Rules.Filters;
+using Fluxzy.Rules;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Core

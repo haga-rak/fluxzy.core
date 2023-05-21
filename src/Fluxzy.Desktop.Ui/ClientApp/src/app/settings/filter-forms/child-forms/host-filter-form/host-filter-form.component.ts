@@ -1,7 +1,7 @@
 // noinspection ES6UnusedImports
 
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {MethodFilter, HostFilter, FullUrlFilter} from '../../../../core/models/auto-generated';
+import {MethodFilter, HostFilter} from '../../../../core/models/auto-generated';
 import {
     IValidationSource,
     ValidationTargetComponent,

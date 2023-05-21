@@ -1,12 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     [FilterMetaData(
-        LongDescription = "Select exchange that fails due to network error."
+        LongDescription = "Select exchanges that fails due to network error."
     )]
     public class NetworkErrorFilter : Filter
     {
@@ -20,6 +21,8 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 
         public override string ShortName => "neterr.";
 
+        public override bool PreMadeFilter => true;
+
         protected override bool InternalApply(
             IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
         {
@@ -27,6 +30,14 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
                 return false;
 
             return exchange.StatusCode == 528;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

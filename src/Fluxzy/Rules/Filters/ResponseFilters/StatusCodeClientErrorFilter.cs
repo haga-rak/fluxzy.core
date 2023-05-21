@@ -1,12 +1,13 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange that response status code indicates a client error (4XX)
+    ///     Select exchanges that response status code indicates a client error (4XX)
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select exchanges that HTTP status code indicates a client error (4XX)."
@@ -35,6 +36,14 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             var statusCode = exchange.StatusCode;
 
             return statusCode is >= 400 and < 500;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

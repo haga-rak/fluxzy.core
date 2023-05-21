@@ -1,12 +1,13 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange that http status code indicates a redirect (3XX)
+    ///     Select exchanges that http status code indicates a redirect (3XX)
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select exchanges that HTTP status code indicates a redirect (3XX)."
@@ -33,6 +34,14 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             var statusCode = exchange.StatusCode;
 
             return statusCode is >= 300 and < 400;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

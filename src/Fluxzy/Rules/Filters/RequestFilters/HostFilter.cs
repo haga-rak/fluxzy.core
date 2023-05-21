@@ -6,11 +6,11 @@ using System.Text.Json.Serialization;
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>
-    ///     Select exchange according to host. The host is taken from the Host header (HTTP/1.1) or the :authority header (H2).
+    ///     Select exchanges according to host. The host is taken from the Host header (HTTP/1.1) or the :authority header (H2).
     /// </summary>
     [FilterMetaData(
         LongDescription =
-            "Select exchange according to hostname (excluding port). To select authority (combination of host:port), use <goto>AuthorityFilter</goto>."
+            "Select exchanges according to hostname (excluding port). To select authority (combination of host:port), use <goto>AuthorityFilter</goto>."
     )]
     public class HostFilter : StringFilter
     {
@@ -34,6 +34,16 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override string GenericName => "Filter by host";
 
         public override bool Common { get; set; } = true;
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield return new FilterExample(
+                               "Retains only exchanges with the exact host",
+                                              new HostFilter("www.fluxzy.io", StringSelectorOperation.Exact));
+            yield return new FilterExample(
+                               "Retains only exchanges with a host matching the regex",
+                                              new HostFilter(@"^www\.fluxzy\.io$", StringSelectorOperation.Regex));
+        }
 
         protected override IEnumerable<string> GetMatchInputs(IAuthority? authority, IExchange? exchange)
         {

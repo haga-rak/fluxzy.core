@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -19,6 +18,7 @@ namespace Fluxzy.Rules.Actions
         /// <summary>
         ///     Tag value
         /// </summary>
+        [ActionDistinctive]
         public Tag? Tag { get; set; }
 
         public override string DefaultDescription => $"Apply tag {Tag}".Trim();
@@ -33,6 +33,14 @@ namespace Fluxzy.Rules.Actions
             }
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Add tag `Hello fluxzy`",
+                new ApplyTagAction {
+                    Tag = new Tag("Hello fluxzy")
+                });
         }
     }
 }

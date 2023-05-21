@@ -52,7 +52,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             [FromQuery]
             bool and = false)
         {
-            var urlFilter = new FullUrlFilter(model.Pattern, StringSelectorOperation.Contains) {
+            var urlFilter = new AbsoluteUriFilter(model.Pattern, StringSelectorOperation.Contains) {
                 CaseSensitive = false
             };
 

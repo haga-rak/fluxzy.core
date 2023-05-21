@@ -35,7 +35,6 @@ namespace Fluxzy.Tests.Configurations
 
             var targetAction = (rule.GetSingleAction() as AddRequestHeaderAction)!;
 
-
             Assert.NotNull(rule);
             Assert.NotNull(rule.Filter);
             Assert.NotNull(rule.GetSingleAction());
@@ -518,7 +517,7 @@ namespace Fluxzy.Tests.Configurations
             yield return new object[] {
                 new Rule(
                     new ApplyCommentAction("Another comment"),
-                    new FullUrlFilter(".*", StringSelectorOperation.Regex)
+                    new AbsoluteUriFilter(".*", StringSelectorOperation.Regex)
                 )
             };
 
@@ -558,7 +557,7 @@ namespace Fluxzy.Tests.Configurations
                 new RuleSet(
                     new Rule(
                         new ApplyCommentAction("Another comment"),
-                        new FullUrlFilter(".*", StringSelectorOperation.Regex)
+                        new AbsoluteUriFilter(".*", StringSelectorOperation.Regex)
                     ),
                     new Rule(
                         new ApplyTagAction {

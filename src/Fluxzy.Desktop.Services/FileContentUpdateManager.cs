@@ -1,8 +1,8 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.Reactive.Linq;
 using Fluxzy.Desktop.Services.Models;
 using Fluxzy.Readers;
+using System.Reactive.Linq;
 
 namespace Fluxzy.Desktop.Services
 {

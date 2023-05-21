@@ -1,4 +1,6 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Collections.Generic;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -6,7 +8,7 @@ namespace Fluxzy.Rules.Filters
     ///     Select exchanges that contain comment
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having comment."
+        LongDescription = "Select exchanges having comment."
     )]
     public class HasCommentFilter : Filter
     {
@@ -21,6 +23,14 @@ namespace Fluxzy.Rules.Filters
             IFilteringContext? filteringContext)
         {
             return !string.IsNullOrWhiteSpace(exchange?.Comment);
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

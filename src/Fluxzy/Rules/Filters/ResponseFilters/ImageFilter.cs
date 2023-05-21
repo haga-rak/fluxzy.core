@@ -1,15 +1,16 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange that has image as response body.
+    ///     Select exchanges that has image as response body.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having response content type mime matching image."
+        LongDescription = "Select exchanges having response content type mime matching image."
     )]
     public class ImageFilter : ResponseHeaderFilter
     {
@@ -27,5 +28,13 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override string ShortName => "img";
 
         public override bool PreMadeFilter => true;
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
+        }
     }
 }

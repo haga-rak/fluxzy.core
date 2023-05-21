@@ -1,13 +1,14 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     [FilterMetaData(
-        LongDescription = "Select exchange having bearer token in authorization."
+        LongDescription = "Select exchanges having bearer token in authorization."
     )]
     public class HasAuthorizationBearerFilter : Filter
     {
@@ -28,6 +29,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             var candidates = exchange.GetRequestHeaders().Find("Authorization").ToList();
 
             return candidates.Any(c => c.Value.Span.StartsWith("bearer", StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

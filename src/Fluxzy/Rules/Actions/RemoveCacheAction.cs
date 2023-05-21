@@ -1,17 +1,17 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
     ///     This action removes all cache directive from request header and response.
     /// </summary>
-    [ActionMetadata("Remove all cache directive from request and response header.")]
+    [ActionMetadata("Remove all cache directive from request and response headers. This will force the client" +
+                    "to ask the latest version of the requested resource.")]
     public class RemoveCacheAction : Action
     {
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
