@@ -12,13 +12,13 @@ namespace Fluxzy.Desktop.Services
         public GlobalUiSettingStorage()
         {
             var applicationPath =
-                Path.Combine(Environment.ExpandEnvironmentVariables("%appdata%"), "fluxzyd");
+                Path.Combine(Environment.ExpandEnvironmentVariables("%appdata%"), "Fluxzy.Desktop");
 
             Directory.CreateDirectory(applicationPath);
 
             ApplicationPath = applicationPath;
 
-            _uiSettingPath = Path.Combine(ApplicationPath, "ui-settings.json");
+            _uiSettingPath = Path.Combine(ApplicationPath, "settings-env.json");
 
             UiUserSetting = LoadUiSetting();
         }

@@ -76,8 +76,8 @@ namespace Fluxzy.Tests.Rules
                 new(new HasAnyCookieOnRequestFilter(), r =>  {}, false),
                 new(new GetFilter(), r => r.Method = HttpMethod.Get, true),
                 new(new GetFilter(), r => r.Method = HttpMethod.Delete, false),
-                new(new FullUrlFilter("smartizy.com"), r => {}, true),
-                new(new FullUrlFilter("smartzzizy.com"), r => {}, false),
+                new(new AbsoluteUriFilter("smartizy.com"), r => {}, true),
+                new(new AbsoluteUriFilter("smartzzizy.com"), r => {}, false),
             };
 
             foreach (var host in testedHosts) {

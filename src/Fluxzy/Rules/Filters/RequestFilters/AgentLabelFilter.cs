@@ -6,7 +6,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 {
     [FilterMetaData(
         LongDescription =
-            "Select exchange according to configured source agent (user agent or process) with a regular string search."
+            "Select exchanges according to configured source agent (user agent or process) with a regular string search."
     )]
     public class AgentLabelFilter : StringFilter
     {
@@ -29,6 +29,13 @@ namespace Fluxzy.Rules.Filters.RequestFilters
                 yield break;
 
             yield return exchange.Agent.FriendlyName;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield return new FilterExample(
+                               "Retains only exchanges with the exact agent label",
+                                              new AgentLabelFilter("Chrome"));
         }
     }
 }

@@ -33,6 +33,7 @@ bld/
 [Ll]ogs/
 out/
 .publish/
+dist/
 
 .angular/
 .publish/

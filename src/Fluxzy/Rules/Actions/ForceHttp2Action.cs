@@ -5,7 +5,6 @@ using System.Net.Security;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -15,9 +14,9 @@ namespace Fluxzy.Rules.Actions
     ///     This action will be ignored when the communication is clear (H2c not supported)
     /// </summary>
     [ActionMetadata(
-        "Force the connection between fluxzy and remote to be HTTP/2.0. This value is enforced by ALPN settings on TLS. <br/>" +
+        "Force the connection between fluxzy and remote to be HTTP/2.0. This value is enforced when setting up ALPN settings during SSL/TLS negotiation. <br/>" +
         "The exchange will break if the remote does not support HTTP/2.0. <br/>" +
-        "This action will be ignored when the communication is clear (H2c not supported).")]
+        "This action will be ignored when the communication is clear (h2c not supported).")]
     public class ForceHttp2Action : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;

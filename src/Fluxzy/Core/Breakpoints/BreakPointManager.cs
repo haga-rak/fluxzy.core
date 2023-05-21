@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Clients;
+using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core.Breakpoints

@@ -30,7 +30,7 @@ namespace Fluxzy.Desktop.Services.Filters.Implementations
                     Children = new List<Filter> {
                         new HostFilter("msdn.com"),
                         new MethodFilter("PATCH"),
-                        new FullUrlFilter("https://github.com/haga-rak/fluxzy/actions")
+                        new AbsoluteUriFilter("https://github.com/haga-rak/fluxzy/actions")
                     }
                 });
             }

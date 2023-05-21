@@ -1,11 +1,11 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -15,7 +15,8 @@ namespace Fluxzy.Rules.Actions
     ///     The actual certificate is not stored in any static fluxzy settings and, therefore, must be available at runtime.
     /// </summary>
     [ActionMetadata(
-        "Add a client certificate to the exchange. The client certificate can be retrieved from the default store (my) or from a PKCS#12 file (.p12, pfx). <br/>" +
+        "Add a client certificate to the exchange. The client certificate will be used for establishing the mTLS authentication if the remote request it. " +
+        "The client certificate can be retrieved from the default store (my) or from a PKCS#12 file (.p12, pfx). <br/>" +
         "The certificate will not be stored in fluxzy settings and, therefore, must be available at runtime. ")]
     public class SetClientCertificateAction : Action
     {
@@ -31,6 +32,7 @@ namespace Fluxzy.Rules.Actions
         /// <summary>
         ///     The certificate information
         /// </summary>
+        [ActionDistinctive]
         public Certificate ClientCertificate { get; set; }
 
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
@@ -45,6 +47,17 @@ namespace Fluxzy.Rules.Actions
             context.ClientCertificates.Add(ClientCertificate.GetX509Certificate());
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample(
+                "Use a certificate with serial number `xxxxxx` retrieved from for local user " +
+                "store to establish mTLS authentication",
+                new SetClientCertificateAction(new Certificate {
+                    RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
+                    SerialNumber = "xxxxxx"
+                }));
         }
     }
 }

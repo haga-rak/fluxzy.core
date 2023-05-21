@@ -3,14 +3,14 @@
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
     ///     Skip validating remote certificate.
     /// </summary>
-    [ActionMetadata(" Skip validating remote certificate.")]
+    [ActionMetadata(
+        "Skip validating remote certificate. Fluxzy will ignore any validation errors on the server certificate.")]
     public class SkipRemoteCertificateValidationAction : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;

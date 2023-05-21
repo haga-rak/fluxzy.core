@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {StringFilterFormComponent} from "../string-filter-form/string-filter-form.component";
-import {FullUrlFilter, PathFilter} from "../../../../core/models/auto-generated";
+import {PathFilter} from "../../../../core/models/auto-generated";
 
 @Component({
   selector: 'app-path-filter-form',

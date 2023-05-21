@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {ValidationTargetComponent} from "../../filter-edit/filter-edit.component";
-import {FullUrlFilter, StringFilter} from "../../../../core/models/auto-generated";
+import {StringFilter} from "../../../../core/models/auto-generated";
 import {CheckRegexValidity, StringOperationTypes} from "../../../../core/models/filter-constants";
 
 @Component({

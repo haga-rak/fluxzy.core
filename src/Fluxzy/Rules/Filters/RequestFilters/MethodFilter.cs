@@ -1,16 +1,14 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
 using System.Collections.Generic;
-using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>
-    ///     Select exchange according to request method.
+    ///     Select exchanges according to request method.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange according to request method."
+        LongDescription = "Select exchanges according to request method."
     )]
     public class MethodFilter : StringFilter
     {
@@ -40,6 +38,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             CaseSensitive = false;
 
             return base.InternalApply(authority, exchange, filteringContext);
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield return new FilterExample(
+                                              "Select exchanges having TRACE request method.", 
+                                              new MethodFilter("TRACE")
+                                          );
         }
     }
 }

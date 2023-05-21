@@ -46,5 +46,15 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
             return base.InternalApply(authority, exchange, filteringContext);
         }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield return new FilterExample("Select only request from host `fluxzy.io` at port 8080",
+                new AuthorityFilter(8080, "fluxzy.io", StringSelectorOperation.Exact));
+
+            yield return new FilterExample(
+                "Select any exchanges going to a subdomain of `google.com` at port 443",
+                new AuthorityFilter(443, "google.com", StringSelectorOperation.EndsWith)); 
+        }
     }
 }

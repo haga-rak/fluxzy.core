@@ -1,11 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters
 {
     [FilterMetaData(
-        LongDescription = "Select exchange having a specific connection id.",
+        LongDescription = "Select exchanges having a specific connection id.",
         NotSelectable = true
     )]
     public class ConnectionFilter : Filter
@@ -36,6 +37,11 @@ namespace Fluxzy.Rules.Filters
                 return exchangeInfo.ConnectionId == ConnectionId;
 
             return false;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield break;
         }
     }
 }

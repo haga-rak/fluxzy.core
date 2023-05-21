@@ -1,9 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
+using System.Collections.Generic;
+using Fluxzy.Misc;
+
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>
-    ///     Select exchange that has request body.
+    ///     Select exchanges that has request body.
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select request having body."
@@ -23,6 +27,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             IFilteringContext? filteringContext)
         {
             return filteringContext?.HasRequestBody ?? false;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

@@ -1,12 +1,15 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
+
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>
     ///     Filter by agent
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange according to configured source agent (user agent or process)."
+        LongDescription = "Select exchanges according to configured source agent (user agent or process).",
+        NotSelectable = true
     )]
     public class AgentFilter : Filter
     {
@@ -35,6 +38,12 @@ namespace Fluxzy.Rules.Filters.RequestFilters
                 return false;
 
             return exchange.Agent.Id == Agent.Id;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            // View filter does not include examples
+            yield break;
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,7 +20,8 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
     /// </summary>
     [FilterMetaData(
         LongDescription = "Find exchanges having a text pattern. <u>Note:</u> " +
-                          "This performs byte block search for large/unknow length body disabling case sensitivity feature."
+                          "This performs byte block search for large/unknow length body disabling case sensitivity feature.",
+        NotSelectable = true
     )]
     public class SearchTextFilter : Filter
     {
@@ -160,6 +162,11 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
             }
 
             return false;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield break;
         }
 
         private bool SearchOnStream(long bodyLength, Stream stream, bool caseSensitive)

@@ -57,7 +57,6 @@ import { FilterCollectionFormComponent } from './settings/filter-forms/child-for
 import { FilterPreCreateComponent } from './settings/filter-forms/filter-pre-create/filter-pre-create.component';
 import {AccordionModule} from "ngx-bootstrap/accordion";
 import { FilterRenderComponent } from './settings/filter-forms/filter-edit/filter-render/filter-render.component';
-import { FullUrlFilterFormComponent } from './settings/filter-forms/child-forms/full-url-filter-form/full-url-filter-form.component';
 import { StringFilterFormComponent } from './settings/filter-forms/child-forms/string-filter-form/string-filter-form.component';
 import { PathFilterFormComponent } from './settings/filter-forms/child-forms/path-filter-form/path-filter-form.component';
 import { IpEgressFilterFormComponent } from './settings/filter-forms/child-forms/ip-egress-filter-form/ip-egress-filter-form.component';
@@ -114,6 +113,9 @@ import { ContextMenuTableHeaderComponent } from './shared/context-menu-table-hea
 import { AboutComponent } from './home/about/about.component';
 import { MessageDialogComponent } from './shared/error-dialog/message-dialog.component';
 import { ImageResultComponent } from './widgets/exchange-viewer/details-response/image-result/image-result.component';
+import {
+    AbsoluteUriFilterComponent
+} from "./settings/filter-forms/child-forms/absolute-uri-filter-form/absolute-uri-filter.component";
 import { EditStringComponent } from './widgets/edit-string/edit-string.component';
 registerLocaleData(localeFr);
 
@@ -165,7 +167,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         FilterCollectionFormComponent,
         FilterPreCreateComponent,
         FilterRenderComponent,
-        FullUrlFilterFormComponent,
+        AbsoluteUriFilterComponent,
         PathFilterFormComponent,
         IpEgressFilterFormComponent,
         FuncFilterPipe,

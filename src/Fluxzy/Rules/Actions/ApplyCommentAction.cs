@@ -1,9 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -23,6 +23,7 @@ namespace Fluxzy.Rules.Actions
         /// <summary>
         ///     Comment
         /// </summary>
+        [ActionDistinctive]
         public string? Comment { get; set; }
 
         public override string DefaultDescription => $"Apply comment {Comment}".Trim();
@@ -35,6 +36,12 @@ namespace Fluxzy.Rules.Actions
                 exchange.Comment = Comment;
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Add comment `Hello fluxzy`",
+                new ApplyCommentAction("Hello fluxzy"));
         }
     }
 }

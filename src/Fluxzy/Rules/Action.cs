@@ -1,11 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.Converters;
-using Fluxzy.Rules.Filters;
 using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules
@@ -24,7 +25,7 @@ namespace Fluxzy.Rules
         [YamlIgnore]
         public abstract string DefaultDescription { get; }
 
-        public virtual string Description { get; set; } = "";
+        public virtual string?  Description { get; set; }
 
         [YamlIgnore]
         public virtual string FriendlyName =>
@@ -33,5 +34,36 @@ namespace Fluxzy.Rules
         public abstract ValueTask Alter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager);
+
+        public bool IsPremade()
+        {
+            // Check for default constructor 
+
+            var type = GetType(); 
+            var defaultConstructor = type.GetConstructor(Type.EmptyTypes);
+
+            if (defaultConstructor == null)
+                return false;
+
+            return true; 
+        }
+
+        public virtual IEnumerable<ActionExample> GetExamples()
+        {
+            var type = GetType();
+
+            var actionMetaDataAttribute = type.GetCustomAttribute<ActionMetadataAttribute>();
+
+            if (actionMetaDataAttribute == null)
+                yield break;
+
+            if (!IsPremade()) {
+                yield break;
+            }
+
+            var description = actionMetaDataAttribute.LongDescription;
+            
+            yield return new ActionExample(description, this);
+        }
     }
 }

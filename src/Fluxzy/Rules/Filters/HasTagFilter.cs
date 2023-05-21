@@ -1,5 +1,6 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Fluxzy.Rules.Filters
@@ -8,7 +9,7 @@ namespace Fluxzy.Rules.Filters
     ///     Select exchanges that contain tag
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having tag."
+        LongDescription = "Select exchanges having tag."
     )]
     public class HasTagFilter : Filter
     {
@@ -22,6 +23,14 @@ namespace Fluxzy.Rules.Filters
             IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
         {
             return exchange?.Tags?.Any() ?? false;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

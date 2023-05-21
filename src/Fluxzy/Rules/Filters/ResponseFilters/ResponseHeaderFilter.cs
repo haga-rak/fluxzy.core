@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -8,10 +8,10 @@ using System.Text.Json.Serialization;
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange according to response header values.
+    ///     Select exchanges according to response header values.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange according to response header values."
+        LongDescription = "Select exchanges according to response header values."
     )]
     public class ResponseHeaderFilter : HeaderFilter
     {
@@ -29,6 +29,16 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
         public override string ShortName => "resp head.";
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            // strict-transport-security
+
+            yield return new FilterExample(
+                               "Retains only exchanges with a strict-transport-security response header",
+                                              new ResponseHeaderFilter(@".*",
+                                                  StringSelectorOperation.Regex, "strict-transport-security"));
+        }
 
         public override string GenericName => "Filter by response header";
 

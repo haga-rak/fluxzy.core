@@ -1,26 +1,25 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
-    [ActionMetadata("Forward request to a specific URL. This make fluxzy act as a reverse proxy.")]
+    [ActionMetadata(
+        "Forward request to a specific URL. This action makes fluxzy act as a reverse proxy. " +
+        "Host header is automatically set. The URL must be an absolute path.")]
     public class ForwardAction : Action
     {
         public ForwardAction(string url)
         {
             Url = url;
-
-            if (!Uri.TryCreate(url, UriKind.Absolute, out _))
-                throw new InvalidOperationException("Provided URL is not a valid one"); 
         }
 
+        [ActionDistinctive]
         public string Url { get;  }
-
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
@@ -44,7 +43,7 @@ namespace Fluxzy.Rules.Actions
                 originalPath = path.PathAndQuery;
             }
 
-            var finalPath = string.Empty; 
+            string finalPath; 
 
             if (uri.PathAndQuery == "/") {
                 finalPath = originalPath;
@@ -72,6 +71,13 @@ namespace Fluxzy.Rules.Actions
             context.Authority = exchange.Authority;
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample(
+                "Forward any request to https://www.example.com. ",
+                new ForwardAction("htts://www.example.com"));
         }
     }
 }

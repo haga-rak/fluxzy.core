@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override string ShortName => new(string.Join(",", StatusCodes.Select(s => s.ToString()))
                                                       .Take(6).ToArray());
 
-        public override bool PreMadeFilter => true;
+        public override bool PreMadeFilter => false;
 
         protected override bool InternalApply(
             IAuthority authority, IExchange? exchange,
@@ -35,6 +35,12 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
                 return false;
 
             return StatusCodes.Contains(exchange.StatusCode);
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            // This filter should be removed
+            yield break;
         }
     }
 }

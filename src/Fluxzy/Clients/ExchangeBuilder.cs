@@ -9,7 +9,7 @@ using Fluxzy.Clients.H11;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Rules.Filters;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Clients
 {

@@ -8,6 +8,12 @@ namespace Fluxzy
     [MessagePackObject]
     public class Tag : IEquatable<Tag>
     {
+        internal Tag(string value)
+        {
+            Identifier = Guid.NewGuid();
+            Value = value;
+        }
+
         public Tag(Guid identifier, string value)
         {
             Identifier = identifier;

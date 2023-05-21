@@ -1,8 +1,8 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 
-namespace Fluxzy.Rules.Actions
+namespace Fluxzy.Rules
 {
     public class ActionMetadataAttribute : Attribute
     {

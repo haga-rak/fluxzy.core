@@ -55,5 +55,7 @@ namespace Fluxzy.Clients
         public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new();
 
         public BreakPointContext? BreakPointContext { get; set; }
+
+        public ExchangeContextVariableHolder Variables { get; } = new();
     }
 }

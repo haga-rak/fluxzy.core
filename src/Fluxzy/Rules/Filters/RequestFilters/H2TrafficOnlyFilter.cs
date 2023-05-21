@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
@@ -28,6 +29,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             IFilteringContext? filteringContext)
         {
             return exchange?.HttpVersion == "HTTP/2";
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

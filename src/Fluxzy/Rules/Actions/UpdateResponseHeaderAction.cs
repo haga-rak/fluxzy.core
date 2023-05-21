@@ -1,10 +1,10 @@
 ﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -29,11 +29,13 @@ namespace Fluxzy.Rules.Actions
         /// <summary>
         ///     Header name
         /// </summary>
+        [ActionDistinctive]
         public string HeaderName { get; set; }
 
         /// <summary>
         ///     Header value
         /// </summary>
+        [ActionDistinctive]
         public string HeaderValue { get; set; }
 
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
@@ -47,6 +49,12 @@ namespace Fluxzy.Rules.Actions
             context.ResponseHeaderAlterations.Add(new HeaderAlterationReplace(HeaderName, HeaderValue));
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Update the Server header",
+                new UpdateResponseHeaderAction("Server", "Fluxzy"));
         }
     }
 }

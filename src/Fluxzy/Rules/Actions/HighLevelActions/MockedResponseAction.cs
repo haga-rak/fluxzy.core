@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
@@ -22,6 +21,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         /// <summary>
         ///     The response
         /// </summary>
+        [ActionDistinctive]
         public MockedResponseContent Response { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
@@ -35,6 +35,12 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             context.PreMadeResponse = Response;
 
             return default;
+        }
+
+
+        public static MockedResponseAction BuildDefaultInstance()
+        {
+            return new MockedResponseAction(new(200, BodyContent.CreateFromString("Sample content.")));
         }
     }
 }

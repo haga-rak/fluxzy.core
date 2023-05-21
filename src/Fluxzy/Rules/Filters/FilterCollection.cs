@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Fluxzy.Misc;
+using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -14,7 +15,7 @@ namespace Fluxzy.Rules.Filters
     ///     always fail if operator is OR
     /// </summary>
     [FilterMetaData(
-        LongDescription = "FilterCollection is combination of multiple filter with a merging operator (OR / AND)."
+        LongDescription = "FilterCollection is a combination of multiple filters with a merging operator (OR / AND)."
     )]
     public class FilterCollection : Filter
     {
@@ -70,6 +71,13 @@ namespace Fluxzy.Rules.Filters
             }
 
             return Operation == SelectorCollectionOperation.And;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            yield return new FilterExample(
+                "Retains exchanges having POST as method OR request to the host example.com",
+                new FilterCollection(new PostFilter(), new HostFilter("example.com", StringSelectorOperation.Exact)));
         }
     }
 }

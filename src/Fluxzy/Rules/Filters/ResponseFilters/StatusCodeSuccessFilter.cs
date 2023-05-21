@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
@@ -9,7 +10,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     ///     Select exchanges that HTTP status code indicates a successful request (2XX)
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange that HTTP status code indicates a successful request (2XX)."
+        LongDescription = "Select exchanges that HTTP status code indicates a successful request (2XX)."
     )]
     public class StatusCodeSuccessFilter : Filter
     {
@@ -35,6 +36,14 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             var statusCode = exchange.StatusCode;
 
             return statusCode is >= 200 and < 300;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

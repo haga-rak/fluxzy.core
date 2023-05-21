@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Formatters.Producers.Requests;
@@ -7,7 +8,7 @@ using Fluxzy.Formatters.Producers.Requests;
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     [FilterMetaData(
-        LongDescription = "Exchange having any request cookie"
+        LongDescription = "Select exchanges having any request cookie"
     )]
     public class HasAnyCookieOnRequestFilter : Filter
     {
@@ -31,6 +32,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
                 HttpHelper.ReadRequestCookies(exchange.GetRequestHeaders().Select(h => (GenericHeaderField)h));
 
             return requestCookies.Any();
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
         }
     }
 }

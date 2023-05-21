@@ -1,6 +1,7 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters
@@ -37,6 +38,12 @@ namespace Fluxzy.Rules.Filters
             IFilteringContext? filteringContext)
         {
             return true;
+        }
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            // AnyFilter does not include examples
+            yield break;
         }
     }
 }

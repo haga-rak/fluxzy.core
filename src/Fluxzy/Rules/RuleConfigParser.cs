@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text.Json;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
@@ -178,6 +179,7 @@ namespace Fluxzy.Rules
                              .WithNamingConvention(CamelCaseNamingConvention.Instance)
                              .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
                              .WithTypeInspector(x => new SortedTypeInspector(x))
+                             .WithTypeInspector(x => new IgnorePremadePropertiesFilter(x))
                              .Build();
 
             return serializer;

@@ -1,15 +1,16 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange that has css content as response body.
+    ///     Select exchanges that has css content as response body.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchange having response content type mime matching css."
+        LongDescription = "Select exchanges having response content type mime matching css."
     )]
     public class  CssStyleFilter : ResponseHeaderFilter
     {
@@ -28,5 +29,13 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override string ShortName => "css";
 
         public override bool PreMadeFilter => true;
+
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
+        }
     }
 }

@@ -1,12 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
     /// <summary>
-    ///     Select exchange that has a JSON response body.
+    ///     Select exchanges that has a JSON response body.
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select exchanges having JSON response body. The content-type header is checked to determine if the content body is a JSON."
@@ -27,5 +28,12 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override bool PreMadeFilter => true;
 
         public override bool Common { get; set; } = true;
+        public override IEnumerable<FilterExample> GetExamples()
+        {
+            var defaultSample = GetDefaultSample();
+
+            if (defaultSample != null)
+                yield return defaultSample;
+        }
     }
 }

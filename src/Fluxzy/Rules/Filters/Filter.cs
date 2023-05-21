@@ -1,7 +1,8 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Xml.Schema;
+using System.Collections.Generic;
+using System.Reflection;
 using Fluxzy.Misc.Converters;
 using YamlDotNet.Serialization;
 
@@ -12,7 +13,7 @@ namespace Fluxzy.Rules.Filters
         [YamlIgnore]
         public virtual Guid Identifier => this.BuildDistinctiveIdentifier();
 
-        [FilterDistinctive]
+        [FilterDistinctive(Description = "Negate the filter result")]
         public bool Inverted { get; set; }
 
         [YamlIgnore]
@@ -79,5 +80,40 @@ namespace Fluxzy.Rules.Filters
 
             return !Inverted ? internalApplyResult : !internalApplyResult;
         }
+
+        public abstract IEnumerable<FilterExample> GetExamples();
+
+
+        protected virtual FilterExample? GetDefaultSample()
+        {
+            var type = this.GetType();
+            var filterMetaData = type.GetCustomAttribute<FilterMetaDataAttribute>();
+
+            if (filterMetaData == null)
+                return null;
+
+            var description = filterMetaData.LongDescription;
+
+            if (string.IsNullOrWhiteSpace(description))
+                return null;
+
+            return new FilterExample(description, this);
+        }
+    }
+
+
+    public class FilterExample
+    {
+        public FilterExample(string description, Filter filter)
+        {
+            Description = description;
+            Filter = filter;
+        }
+
+        public string Description { get; } 
+
+        public Filter Filter { get;  }
+
+        public string ? ExtraNote { get; set; }
     }
 }
