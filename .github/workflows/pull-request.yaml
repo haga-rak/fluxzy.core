@@ -48,6 +48,6 @@ jobs:
     - name: Install dependencies 
       working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
       run: npm install
-    - name: Build NPM package only 
+    - name: Build node project
       working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
       run: npm run build
