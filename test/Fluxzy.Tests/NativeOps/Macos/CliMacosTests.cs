@@ -86,8 +86,8 @@ namespace Fluxzy.Tests.NativeOps.Macos
 
             Assert.NotNull(setting);
             Assert.True(setting.Enabled);
-            Assert.Equal(setting.Server, "127.0.0.1");
-            Assert.Equal(setting.Port, 44344);
+            Assert.Equal("127.0.0.1", setting.Server);
+            Assert.Equal(44344, setting.Port);
         }
 
         [Fact]
@@ -97,8 +97,8 @@ namespace Fluxzy.Tests.NativeOps.Macos
 
             Assert.NotNull(setting);
             Assert.True(setting.Enabled);
-            Assert.Equal(setting.Server, "127.0.0.1");
-            Assert.Equal(setting.Port, 44344);
+            Assert.Equal("127.0.0.1", setting.Server);
+            Assert.Equal(44344, setting.Port);
         }
 
         [Fact]

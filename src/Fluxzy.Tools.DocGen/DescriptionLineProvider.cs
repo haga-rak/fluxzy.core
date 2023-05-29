@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Tools.DocGen
 {
