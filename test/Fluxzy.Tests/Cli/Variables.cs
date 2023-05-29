@@ -135,9 +135,9 @@ rules:
             var rule = """
 rules:
 - filter:
-    typeKind: AnyFilter
+    typeKind: Any
   actions: 
-  - typeKind: applyCommentAction
+  - typeKind: applyComment
     comment: "${variable_name}" 
 """;
 

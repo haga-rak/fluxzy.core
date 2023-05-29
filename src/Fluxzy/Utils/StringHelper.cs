@@ -1,6 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-namespace Fluxzy.Tools.DocGen
+namespace Fluxzy.Utils
 {
     public static class StringHelper
     {

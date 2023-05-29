@@ -31,6 +31,8 @@ namespace Fluxzy.Rules
         public virtual string FriendlyName =>
             !string.IsNullOrWhiteSpace(Description) ? Description : DefaultDescription;
 
+        protected override string Suffix { get; } = nameof(Action);
+
         public ValueTask Alter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Fluxzy.Utils;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Misc.Converters
 {
@@ -39,7 +41,10 @@ namespace Fluxzy.Misc.Converters
             using var doc = JsonDocument.ParseValue(ref reader);
             var typeKind = doc.RootElement.GetProperty("typeKind").GetString()!;
 
-            if (!_typeMapping.TryGetValue(typeKind, out var type))
+            // var autoSuffix 
+
+            if (!_typeMapping.TryGetValue(typeKind, out var type)
+                 && !_typeMapping.TryGetValue(typeKind + typeof(T).Name, out type))
                 throw new JsonException($"Cannot parse {typeKind} to a valid {typeof(T).Name}");
 
             return type;
@@ -64,6 +69,15 @@ namespace Fluxzy.Misc.Converters
 
     public abstract class PolymorphicObject
     {
-        public string TypeKind => GetType().Name;
+        [JsonIgnore]
+        [YamlIgnore]
+        protected abstract string Suffix { get;  }
+
+        public string TypeKind {
+            get
+            {
+                return GetType().Name;
+            }
+        }
     }
 }

@@ -71,6 +71,8 @@ namespace Fluxzy.Rules.Filters
         [YamlIgnore]
         public virtual bool Common { get; set; } = false;
 
+        protected override string Suffix { get; } = nameof(Filter);
+
         protected abstract bool InternalApply(
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext);
