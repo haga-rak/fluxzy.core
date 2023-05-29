@@ -33,7 +33,13 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             if (!_tokenSource.IsCancellationRequested) {
                 _tokenSource.Cancel();
 
-                await _proxyTask;
+                try {
+
+                    await _proxyTask;
+                }
+                catch (TaskCanceledException) {
+                    // Ignore cancelling
+                }
 
                 _tokenSource.Dispose();
             }
@@ -41,12 +47,12 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
         public Task<string> WaitForRegexOnStandardOutput(string regex, int timeoutSeconds)
         {
-            return _standardOutput.WaitForValue(regex, timeoutSeconds);
+            return _standardOutput.WaitForValue(regex, CancellationToken.None, timeoutSeconds);
         }
 
         public Task<string> WaitForRegexOnStandardError(string regex, int timeoutSeconds)
         {
-            return _standardError.WaitForValue(regex, timeoutSeconds);
+            return _standardError.WaitForValue(regex, CancellationToken.None, timeoutSeconds);
         }
     }
 }

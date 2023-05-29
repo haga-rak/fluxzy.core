@@ -10,12 +10,14 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     {
         private readonly CancellationTokenSource _tokenSource;
 
-        public TimeoutTaskCompletionSource(int timeout, string message)
+        public TimeoutTaskCompletionSource(int timeout, string message, CancellationToken parent)
         {
-            _tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
+            _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(parent);
+            _tokenSource.CancelAfter(TimeSpan.FromSeconds(timeout));
 
             _tokenSource.Token.Register(
                 () => CompletionSource.TrySetException(
+                    parent.IsCancellationRequested? new InvalidOperationException("CLI exited with invalid state") : 
                     new TimeoutException($"Timeout was reached for this source : {message}")));
         }
 

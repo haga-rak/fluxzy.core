@@ -125,7 +125,7 @@ rules:
         [InlineData("authority.port", "KnownPort")]
         [InlineData("authority.secure", "Secure")]
         [InlineData("exchange.url", "FullUrl")]
-        [InlineData("exchange.method", "Method")]
+        [InlineData("exchange.method", "Method")] 
         [InlineData("exchange.status", "StatusCode")]
         public async Task Self_Generated_Context_Variables(string variableName, string propertyName)
         {

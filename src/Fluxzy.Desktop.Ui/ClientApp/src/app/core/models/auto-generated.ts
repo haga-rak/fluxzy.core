@@ -651,6 +651,7 @@ export interface Action extends PolymorphicObject
 export interface MultipleScopeAction extends Action
 {
 	runScope?: number;
+	actionScope: number;
 }
 export interface AddRequestHeaderAction extends Action
 {
@@ -710,7 +711,6 @@ export interface DeleteResponseHeaderAction extends Action
 }
 export interface FileAppendAction extends MultipleScopeAction
 {
-	actionScope: number;
 	filename: string;
 	text?: string;
 	encoding?: string;
@@ -764,6 +764,11 @@ export interface SpoofDnsAction extends Action
 	remoteHostIp?: string;
 	remoteHostPort?: number;
 	actionScope: number;
+	defaultDescription: string;
+}
+export interface StdErrAction extends MultipleScopeAction
+{
+	text?: string;
 	defaultDescription: string;
 }
 export interface StdOutAction extends MultipleScopeAction

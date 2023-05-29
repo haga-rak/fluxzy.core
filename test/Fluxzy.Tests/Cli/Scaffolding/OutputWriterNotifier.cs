@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fluxzy.Tests.Cli.Scaffolding
@@ -41,12 +42,12 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             base.Write(value);
         }
 
-        public Task<string> WaitForValue(string regexPattern, int timeoutSeconds = 5)
+        public Task<string> WaitForValue(string regexPattern, CancellationToken token,  int timeoutSeconds = 5)
         {
             lock (_runningWait) {
                 if (!_runningWait.TryGetValue(regexPattern, out var completionSource)) {
                     _runningWait[regexPattern] = completionSource =
-                        new TimeoutTaskCompletionSource<string>(timeoutSeconds, regexPattern);
+                        new TimeoutTaskCompletionSource<string>(timeoutSeconds, regexPattern, token);
                 }
 
                 return completionSource.CompletionSource.Task;

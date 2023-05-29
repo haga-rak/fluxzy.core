@@ -41,8 +41,22 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
         public async Task<ProxyInstance> Run(int timeoutSeconds = 5)
         {
-            var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$", timeoutSeconds);
-            ExitCode = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken);
+            var blockingListingTokenSource = new CancellationTokenSource();
+
+            var blockingListenToken = blockingListingTokenSource.Token;
+
+            var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$", blockingListenToken, timeoutSeconds);
+
+            ExitCode = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken); 
+                                    
+
+            ExitCode.ContinueWith(runResult => {
+
+                if (!blockingListingTokenSource.IsCancellationRequested)
+                    blockingListingTokenSource.Cancel();
+
+                return runResult.Result;
+            });
 
             var port = int.Parse(await waitForPortTask);
 
