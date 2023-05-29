@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 using Header2 = fluxzy.sandbox.models.Header;
 

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests
@@ -159,7 +159,6 @@ namespace Fluxzy.Tests
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
         }
@@ -184,7 +183,6 @@ namespace Fluxzy.Tests
 
             var response = await httpClient.SendAsync(requestMessage);
             var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
 
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);

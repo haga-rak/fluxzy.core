@@ -3,9 +3,8 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
-using Fluxzy.Tests.Common;
-using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
@@ -50,7 +49,6 @@ namespace Fluxzy.Tests.Cli
             bodyLength = response.Content.Headers.ContentLength ?? -1;
 
             var res = await response.Content.ReadAsStringAsync();
-
 
             //   await Task.Delay(2000);
 

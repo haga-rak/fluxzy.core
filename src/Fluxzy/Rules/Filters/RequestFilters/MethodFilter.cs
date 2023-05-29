@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -25,27 +26,28 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string GenericName => "Filter by HTTP method";
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
+        protected override IEnumerable<string> GetMatchInputs(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
             if (exchange != null)
                 yield return exchange.Method;
         }
 
         protected override bool InternalApply(
-            IAuthority authority, IExchange? exchange,
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             CaseSensitive = false;
 
-            return base.InternalApply(authority, exchange, filteringContext);
+            return base.InternalApply(exchangeContext, authority, exchange, filteringContext);
         }
 
         public override IEnumerable<FilterExample> GetExamples()
         {
             yield return new FilterExample(
-                                              "Select exchanges having TRACE request method.", 
-                                              new MethodFilter("TRACE")
-                                          );
+                "Select exchanges having TRACE request method.",
+                new MethodFilter("TRACE")
+            );
         }
     }
 }

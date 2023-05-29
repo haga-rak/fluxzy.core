@@ -8,14 +8,16 @@ using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Clients
 {
     public class ExchangeContext
     {
-        public ExchangeContext(IAuthority authority)
+        public ExchangeContext(IAuthority authority, VariableContext variableContext)
         {
             Authority = authority;
+            VariableContext = variableContext;
         }
 
         public IAuthority Authority { get; set; }
@@ -56,6 +58,8 @@ namespace Fluxzy.Clients
 
         public BreakPointContext? BreakPointContext { get; set; }
 
-        public ExchangeContextVariableHolder Variables { get; } = new();
+        public VariableContext VariableContext { get; }
+
+        public VariableBuildingContext? VariableBuildingContext { get; set; } = null;
     }
 }

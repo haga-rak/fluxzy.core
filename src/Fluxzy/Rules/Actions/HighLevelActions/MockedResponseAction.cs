@@ -28,7 +28,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         public override string DefaultDescription => "Full response substitution";
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
@@ -37,10 +37,10 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             return default;
         }
 
-
         public static MockedResponseAction BuildDefaultInstance()
         {
-            return new MockedResponseAction(new(200, BodyContent.CreateFromString("Sample content.")));
+            return new MockedResponseAction(new MockedResponseContent(200,
+                BodyContent.CreateFromString("Sample content.")));
         }
     }
 }

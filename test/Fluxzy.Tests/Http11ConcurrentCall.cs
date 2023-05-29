@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests

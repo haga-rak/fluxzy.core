@@ -63,6 +63,7 @@ namespace Fluxzy.Writers
         public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
             if (_saveFilter != null && !_saveFilter.Apply(
+                    null,
                     new Authority(exchangeInfo.KnownAuthority, 
                         exchangeInfo.KnownPort,
                         exchangeInfo.Secure), exchangeInfo, null))

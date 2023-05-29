@@ -25,13 +25,20 @@ namespace Fluxzy.Rules
         [YamlIgnore]
         public abstract string DefaultDescription { get; }
 
-        public virtual string?  Description { get; set; }
+        public virtual string? Description { get; set; }
 
         [YamlIgnore]
         public virtual string FriendlyName =>
             !string.IsNullOrWhiteSpace(Description) ? Description : DefaultDescription;
 
-        public abstract ValueTask Alter(
+        public ValueTask Alter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
+        {
+            return InternalAlter(context, exchange, connection, scope, breakPointManager);
+        }
+
+        public abstract ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager);
 
@@ -39,13 +46,13 @@ namespace Fluxzy.Rules
         {
             // Check for default constructor 
 
-            var type = GetType(); 
+            var type = GetType();
             var defaultConstructor = type.GetConstructor(Type.EmptyTypes);
 
             if (defaultConstructor == null)
                 return false;
 
-            return true; 
+            return true;
         }
 
         public virtual IEnumerable<ActionExample> GetExamples()
@@ -57,12 +64,11 @@ namespace Fluxzy.Rules
             if (actionMetaDataAttribute == null)
                 yield break;
 
-            if (!IsPremade()) {
+            if (!IsPremade())
                 yield break;
-            }
 
             var description = actionMetaDataAttribute.LongDescription;
-            
+
             yield return new ActionExample(description, this);
         }
     }

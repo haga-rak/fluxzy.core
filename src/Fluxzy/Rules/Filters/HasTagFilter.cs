@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -20,7 +21,8 @@ namespace Fluxzy.Rules.Filters
         public override bool PreMadeFilter { get; } = true;
 
         protected override bool InternalApply(
-            IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
         {
             return exchange?.Tags?.Any() ?? false;
         }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Tests._Files;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Archiving
@@ -16,7 +16,7 @@ namespace Fluxzy.Tests.Archiving
     {
         public HttpArchiveReading()
         {
-            DisablePurge = false; 
+            DisablePurge = false;
         }
 
         [Fact]
@@ -73,7 +73,9 @@ namespace Fluxzy.Tests.Archiving
                 exchanges[0].GetRequestHeaders()
                             .Where(s => s.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
                             .Select(s => s.Value.ToString()));
-            Assert.Equal("custname=ab&custtel=cd&custemail=abc%40abc.com&size=medium&topping=cheese&topping=onion&delivery=11%3A45&comments=bloblo",
+
+            Assert.Equal(
+                "custname=ab&custtel=cd&custemail=abc%40abc.com&size=medium&topping=cheese&topping=onion&delivery=11%3A45&comments=bloblo",
                 requestBody);
 
             await packager.Pack(outputDirectory, RegisterFile($@"{nameof(TestWithRequestPayload)}.fxzy"));

@@ -17,7 +17,7 @@ using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Writers;
 using Xunit;
 using Header2 = fluxzy.sandbox.models.Header;
@@ -380,7 +380,6 @@ namespace Fluxzy.Tests
 
             var endPoint = proxy.Run().First();
 
-
             var messageHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{bindHost}:{endPoint.Port}")
             };
@@ -408,7 +407,6 @@ namespace Fluxzy.Tests
                                  .CreateDefault()
                                  .SetSkipGlobalSslDecryption(true)
                                  .SetBoundAddress(bindHost, 0);
-
 
             var requestReceived = new TaskCompletionSource<Exchange>();
             var cancellationTokenSource = new CancellationTokenSource(timeoutSeconds * 1000);
@@ -523,7 +521,6 @@ namespace Fluxzy.Tests
                 await requestReceived.Task;
             }
             catch (IOException) {
-
             }
             finally {
                 httpClient.Dispose();

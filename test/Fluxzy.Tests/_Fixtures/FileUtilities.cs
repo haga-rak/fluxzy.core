@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace Fluxzy.Tests.Utils
+namespace Fluxzy.Tests._Fixtures
 {
     internal static class FileUtilities
     {

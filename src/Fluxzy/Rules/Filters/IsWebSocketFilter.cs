@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Fluxzy.Clients;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters
@@ -27,7 +28,7 @@ namespace Fluxzy.Rules.Filters
         public override bool PreMadeFilter => true;
 
         protected override bool InternalApply(
-            IAuthority authority, IExchange? exchange,
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return exchange?.IsWebSocket ?? false;

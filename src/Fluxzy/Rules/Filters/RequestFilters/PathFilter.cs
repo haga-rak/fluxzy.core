@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -33,11 +34,12 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override IEnumerable<FilterExample> GetExamples()
         {
             yield return new FilterExample(
-                               "Retains only exchanges having uri starting with API",
-                                              new PathFilter("/api", StringSelectorOperation.StartsWith));
+                "Retains only exchanges having uri starting with API",
+                new PathFilter("/api", StringSelectorOperation.StartsWith));
         }
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
+        protected override IEnumerable<string> GetMatchInputs(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
             if (exchange != null)
                 yield return exchange.Path;

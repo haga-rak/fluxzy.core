@@ -39,7 +39,7 @@ namespace Fluxzy.Desktop.Services.Models
         {
             var filteringContext = new ExchangeInfoFilteringContext(archiveReader, exchange.Id);
 
-            return _effectiveFilter.Apply(authority, exchange, filteringContext);
+            return _effectiveFilter.Apply(null, authority, exchange, filteringContext);
         }
     }
 }

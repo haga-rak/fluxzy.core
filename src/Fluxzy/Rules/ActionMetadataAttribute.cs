@@ -12,5 +12,7 @@ namespace Fluxzy.Rules
         }
 
         public string LongDescription { get; }
+
+        public bool NonDesktopAction { get; set; }
     }
 }

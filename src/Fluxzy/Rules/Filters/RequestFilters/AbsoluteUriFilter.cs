@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -35,7 +36,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override bool Common { get; set; } = true;
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
+        protected override IEnumerable<string> GetMatchInputs(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
             if (exchange != null)
                 yield return exchange.FullUrl;

@@ -1,16 +1,18 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Fluxzy.Clients;
+
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     [FilterMetaData(
-        LongDescription = "Select request sending JSON body. Filtering is made by inspecting value of `Content-Type` header"
+        LongDescription =
+            "Select request sending JSON body. Filtering is made by inspecting value of `Content-Type` header"
     )]
     public class JsonRequestFilter : RequestHeaderFilter
     {
         public JsonRequestFilter()
             : base("json", StringSelectorOperation.Contains, "content-type")
         {
-
         }
 
         public override FilterScope FilterScope => FilterScope.RequestBodyReceivedFromClient;
@@ -24,7 +26,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override bool PreMadeFilter => true;
 
         protected override bool InternalApply(
-            IAuthority authority, IExchange? exchange,
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return filteringContext?.HasRequestBody ?? false;

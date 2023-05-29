@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -23,7 +24,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override string ShortName => "agent label";
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
+        protected override IEnumerable<string> GetMatchInputs(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
             if (exchange?.Agent?.FriendlyName == null)
                 yield break;
@@ -34,8 +36,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override IEnumerable<FilterExample> GetExamples()
         {
             yield return new FilterExample(
-                               "Retains only exchanges with the exact agent label",
-                                              new AgentLabelFilter("Chrome"));
+                "Retains only exchanges with the exact agent label",
+                new AgentLabelFilter("Chrome"));
         }
     }
 }

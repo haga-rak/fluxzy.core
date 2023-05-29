@@ -20,7 +20,7 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => "Force using HTTP/1.1";
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {

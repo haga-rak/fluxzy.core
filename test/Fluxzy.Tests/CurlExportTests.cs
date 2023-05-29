@@ -8,9 +8,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Readers;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
-using Fluxzy.Tests.Common;
-using Fluxzy.Tests.Utils;
 using Fluxzy.Utils.Curl;
 using Xunit;
 

@@ -124,7 +124,7 @@ namespace Fluxzy.Clients
                 await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse),
                     token);
 
-                var exchangeContext = new ExchangeContext(authority);
+                var exchangeContext = new ExchangeContext(authority, runtimeSetting.VariableContext);
 
                 await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
@@ -181,7 +181,7 @@ namespace Fluxzy.Clients
 
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
 
-            var plainExchangeContext = new ExchangeContext(plainAuthority);
+            var plainExchangeContext = new ExchangeContext(plainAuthority, runtimeSetting.VariableContext);
 
             await runtimeSetting.EnforceRules(plainExchangeContext, FilterScope.OnAuthorityReceived);
 
@@ -214,7 +214,7 @@ namespace Fluxzy.Clients
 
         public async ValueTask<Exchange?> ReadExchange(
             Stream inStream, Authority authority, RsBuffer buffer,
-            ProxyRuntimeSetting runTimeSetting,
+            ProxyRuntimeSetting runtimeSetting,
             CancellationToken token)
         {
             // Every next request after the first one is read from the stream
@@ -244,8 +244,8 @@ namespace Fluxzy.Clients
                     inStream);
             }
 
-            var exchangeContext = new ExchangeContext(authority);
-            await runTimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
+            var exchangeContext = new ExchangeContext(authority, runtimeSetting.VariableContext);
+            await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
             var bodyStream = SetChunkedBody(secureHeader, inStream);
 

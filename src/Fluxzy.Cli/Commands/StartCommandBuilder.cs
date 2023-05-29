@@ -71,6 +71,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(CreateCertificateFileOption());
             command.AddOption(CreateCertificatePasswordOption());
             command.AddOption(CreateRuleFileOption());
+            command.AddOption(CreateRuleStdinOption());
             command.AddOption(CreateUaParsingOption());
             command.AddOption(CreateOutOfProcCaptureOption());
             command.AddOption(CreateProxyBuffer());
@@ -96,7 +97,8 @@ namespace Fluxzy.Cli.Commands
             var noCertCache = invocationContext.Value<bool>("no-cert-cache");
             var certFile = invocationContext.Value<FileInfo>("cert-file");
             var certPassword = invocationContext.Value<string>("cert-password");
-            var ruleFile = invocationContext.Value<FileInfo>("rule-file");
+            var ruleFile = invocationContext.Value<FileInfo?>("rule-file");
+            var ruleStdin = invocationContext.Value<bool>("rule-stdin");
             var parseUserAgent = invocationContext.Value<bool>("parse-ua");
             var outOfProcCapture = invocationContext.Value<bool>("external-capture");
             var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
@@ -117,7 +119,6 @@ namespace Fluxzy.Cli.Commands
             var cancellationToken = linkedTokenSource.Token;
 
             proxyStartUpSetting.ClearBoundAddresses();
-
 
             var finalListenInterfaces = listenInterfaces.ToList();
 
@@ -160,14 +161,24 @@ namespace Fluxzy.Cli.Commands
                 }
             }
 
-            if (ruleFile != null) {
+            var ruleContent = ruleStdin
+                ? invocationContext.BindingContext.Console is OutputConsole oc
+                    ? oc.StandardInputContent
+                    : Console.In.ReadToEnd()
+                : null;
+
+            if (ruleContent == null && ruleFile != null) {
+                if (!ruleFile.Exists)
+                    throw new FileNotFoundException($"File not found : {ruleFile.FullName}");
+
+                ruleContent = File.ReadAllText(ruleFile.FullName);
+            }
+
+            if (ruleContent != null) {
                 try {
                     var ruleConfigParser = new RuleConfigParser();
 
-                    if (!ruleFile.Exists)
-                        throw new FileNotFoundException($"File not found : {ruleFile.FullName}");
-
-                    var ruleSet = ruleConfigParser.TryGetRuleSetFromYaml(File.ReadAllText(ruleFile.FullName),
+                    var ruleSet = ruleConfigParser.TryGetRuleSetFromYaml(ruleContent,
                         out var errors);
 
                     if (ruleSet == null && errors!.Any())
@@ -265,7 +276,7 @@ namespace Fluxzy.Cli.Commands
                     var listResult = new List<IPEndPoint>();
 
                     foreach (var token in result.Tokens) {
-                        var tab = token.Value.Split(new[] {"/"}, StringSplitOptions.RemoveEmptyEntries);
+                        var tab = token.Value.Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries);
 
                         if (tab.Length == 1) {
                             if (!IPAddress.TryParse(tab.First(), out var ipAddress)) {
@@ -300,7 +311,7 @@ namespace Fluxzy.Cli.Commands
             );
 
             listenInterfaceOption.AddAlias("-l");
-            listenInterfaceOption.SetDefaultValue(new List<IPEndPoint> {new(IPAddress.Loopback, 44344)});
+            listenInterfaceOption.SetDefaultValue(new List<IPEndPoint> { new(IPAddress.Loopback, 44344) });
             listenInterfaceOption.Arity = ArgumentArity.OneOrMore;
 
             return listenInterfaceOption;
@@ -497,6 +508,18 @@ namespace Fluxzy.Cli.Commands
 
             option.AddAlias("-r");
             option.Arity = ArgumentArity.ExactlyOne;
+
+            return option;
+        }
+
+        private static Option CreateRuleStdinOption()
+        {
+            var option = new Option<bool>(
+                "--rule-stdin",
+                "Read rule from stdin");
+
+            option.AddAlias("-R");
+            option.Arity = ArgumentArity.Zero;
 
             return option;
         }

@@ -33,23 +33,23 @@ namespace Fluxzy.Rules.Actions
         public override string DefaultDescription =>
             RemoteHostIp == null ? "Spoof dns".Trim() : $"Spoof dns {RemoteHostIp}:{RemoteHostPort}".Trim();
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            if (!string.IsNullOrEmpty(RemoteHostIp)) {
+            var remoteHostIp = RemoteHostIp.EvaluateVariable(context);
 
-                if (!IPAddress.TryParse(RemoteHostIp, out var ip)) {
-                    throw new RuleDefinitionMismatchException($"{RemoteHostIp} is not a valid IP address");
-                }
+            if (!string.IsNullOrEmpty(remoteHostIp)) {
+                if (!IPAddress.TryParse(remoteHostIp, out var ip))
+                    throw new RuleDefinitionMismatchException($"{remoteHostIp} is not a valid IP address");
 
                 context.RemoteHostIp = ip;
             }
 
             if (RemoteHostPort != null) {
-                if (RemoteHostPort < 0 || RemoteHostPort > 65535) {
-                    throw new RuleDefinitionMismatchException($"{RemoteHostPort} is not a valid port. Port must be between 0 and 65536 exclusive.");
-                }
+                if (RemoteHostPort < 0 || RemoteHostPort > 65535)
+                    throw new RuleDefinitionMismatchException(
+                        $"{RemoteHostPort} is not a valid port. Port must be between 0 and 65536 exclusive.");
 
                 context.RemoteHostPort = RemoteHostPort;
             }
@@ -69,13 +69,13 @@ namespace Fluxzy.Rules.Actions
                 "Force the remote IP to be 127.0.0.1 (port remains the same as request by the client)", new
                     SpoofDnsAction {
                         RemoteHostIp = "127.0.0.1"
-});
+                    });
 
             yield return new ActionExample(
                 "Force the remote port to be 8080 (IP remains the same as request by the client)", new
                     SpoofDnsAction {
                         RemoteHostIp = "127.0.0.1"
-            });
+                    });
         }
     }
 }

@@ -28,12 +28,12 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => $"Apply comment {Comment}".Trim();
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
             if (exchange != null)
-                exchange.Comment = Comment;
+                exchange.Comment = Comment.EvaluateVariable(context);
 
             return default;
         }

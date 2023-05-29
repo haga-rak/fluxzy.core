@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Fluxzy.Clients;
 using Fluxzy.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
@@ -20,7 +21,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override bool PreMadeFilter => true;
 
         protected override bool InternalApply(
-            IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
         {
             if (exchange == null)
                 return false;

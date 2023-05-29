@@ -7,11 +7,14 @@ namespace Fluxzy.Cli.Commands
 {
     public class OutputConsole : IConsole
     {
-        public OutputConsole(IStandardStreamWriter @out, IStandardStreamWriter error)
+        public OutputConsole(IStandardStreamWriter @out, IStandardStreamWriter error, string? standardInputContent)
         {
             Out = @out;
             Error = error;
+            StandardInputContent = standardInputContent;
         }
+
+        public string? StandardInputContent { get; }
 
         public IStandardStreamWriter Out { get; }
 

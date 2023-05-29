@@ -11,13 +11,43 @@ using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters.RequestFilters;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Rules
 {
     public class BreakPointRules
     {
+        public static IEnumerable<object[]> GetResponseBreakAndChangeParams {
+            get
+            {
+                var hosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11 };
+
+                var breakpointPayloadTypes =
+                    (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
+
+                foreach (var host in hosts)
+                foreach (var withPcap in breakpointPayloadTypes) {
+                    yield return new object[] { host, withPcap };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> GetRequestBreakAndChangeParams {
+            get
+            {
+                var hosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11 };
+
+                var breakpointPayloadTypes =
+                    (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
+
+                foreach (var host in hosts)
+                foreach (var withPcap in breakpointPayloadTypes) {
+                    yield return new object[] { host, withPcap };
+                }
+            }
+        }
+
         [Theory]
         [InlineData(TestConstants.Http11Host)]
         [InlineData(TestConstants.Http2Host)]
@@ -393,36 +423,6 @@ namespace Fluxzy.Tests.Rules
             Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added"));
 
             await proxy.WaitUntilDone();
-        }
-
-        public static IEnumerable<object[]> GetResponseBreakAndChangeParams {
-            get
-            {
-                var hosts = new[] {TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11};
-
-                var breakpointPayloadTypes =
-                    (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
-
-                foreach (var host in hosts)
-                foreach (var withPcap in breakpointPayloadTypes) {
-                    yield return new object[] {host, withPcap};
-                }
-            }
-        }
-
-        public static IEnumerable<object[]> GetRequestBreakAndChangeParams {
-            get
-            {
-                var hosts = new[] {TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11};
-
-                var breakpointPayloadTypes =
-                    (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
-
-                foreach (var host in hosts)
-                foreach (var withPcap in breakpointPayloadTypes) {
-                    yield return new object[] {host, withPcap};
-                }
-            }
         }
     }
 

@@ -40,14 +40,16 @@ namespace Fluxzy.Rules.Actions
                 ? "Add response header"
                 : $"Add response header ({HeaderName}, {HeaderValue})";
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName, HeaderValue));
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName.EvaluateVariable(context),
+                HeaderValue.EvaluateVariable(context)));
 
             return default;
         }
+
         public override IEnumerable<ActionExample> GetExamples()
         {
             yield return new ActionExample("Add a `content-security-policy` header on response",

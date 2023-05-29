@@ -5,9 +5,9 @@ using System;
 namespace Fluxzy.Rules
 {
     /// <summary>
-    /// Put this attribute on a filter property to include the value to the unique hash id generation. 
+    ///     Put this attribute on a filter property to include the value to the unique hash id generation.
     /// </summary>
-    public class FilterDistinctiveAttribute : Attribute
+    public class FilterDistinctiveAttribute : Attribute, IVariableHolder
     {
         public bool IgnoreInDoc { get; set; } = false;
 
