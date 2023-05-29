@@ -19,7 +19,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         public override string DefaultDescription => "Full request substitution";
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {

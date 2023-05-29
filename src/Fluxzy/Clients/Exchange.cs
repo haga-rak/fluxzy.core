@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Clients
 {
@@ -48,7 +49,7 @@ namespace Fluxzy.Clients
         }
 
         /// <summary>
-        /// runtime constructor 
+        ///     runtime constructor
         /// </summary>
         /// <param name="idProvider"></param>
         /// <param name="context"></param>
@@ -80,8 +81,6 @@ namespace Fluxzy.Clients
             RunInLiveEdit = requestHeader.HeaderFields
                                          .Any(h => h.Name.Span.Equals("x-fluxzy-live-edit",
                                              StringComparison.OrdinalIgnoreCase));
-
-            
         }
 
         /// <summary>
@@ -98,14 +97,12 @@ namespace Fluxzy.Clients
             ReadOnlyMemory<char> requestHeaderPlain, string? httpVersion, DateTime receivedFromProxy)
         {
             Id = idProvider.NextExchangeId();
-            Context = new ExchangeContext(authority);
+            Context = new ExchangeContext(authority, new VariableContext());
             Authority = authority;
             HttpVersion = httpVersion ?? "HTTP/1.1";
             Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure));
             Metrics.ReceivedFromProxy = receivedFromProxy;
         }
-
-        public int Id { get; }
 
         public ExchangeStep Step { get; set; } = ExchangeStep.Received;
 
@@ -117,7 +114,7 @@ namespace Fluxzy.Clients
         /// <summary>
         ///     The remote authority
         /// </summary>
-        public Authority Authority { get; set;  }
+        public Authority Authority { get; set; }
 
         /// <summary>
         ///     Contains the request sent from the proxy to the remote server
@@ -149,6 +146,10 @@ namespace Fluxzy.Clients
 
         public ExchangeContext Context { get; }
 
+        public bool RunInLiveEdit { get; set; }
+
+        public int Id { get; }
+
         public string HttpVersion { get; set; }
 
         public bool IsWebSocket => Request.Header.IsWebSocketRequest;
@@ -172,8 +173,6 @@ namespace Fluxzy.Clients
         public string? Comment { get; set; } = null;
 
         public HashSet<Tag>? Tags { get; set; } = null;
-
-        public bool RunInLiveEdit { get; set; } = false; 
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {

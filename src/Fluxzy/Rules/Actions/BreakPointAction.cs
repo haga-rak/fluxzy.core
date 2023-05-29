@@ -17,7 +17,7 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription { get; } = "Breakpoint";
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context,
             Exchange? exchange,
             Connection? connection,

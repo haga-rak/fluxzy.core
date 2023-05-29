@@ -18,7 +18,7 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => "Do not decrypt".Trim();
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {

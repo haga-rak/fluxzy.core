@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
-using Fluxzy.Tests.Common;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli

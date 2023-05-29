@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -30,7 +31,8 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override bool Common { get; set; } = true;
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority? authority, IExchange? exchange)
+        protected override IEnumerable<string> GetMatchInputs(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
             var hostName = authority?.HostName ?? exchange?.KnownAuthority;
 
@@ -38,13 +40,14 @@ namespace Fluxzy.Rules.Filters.RequestFilters
                 yield return hostName;
         }
 
-        protected override bool InternalApply(IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
+        protected override bool InternalApply(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
         {
-            if ((authority?.Port != Port)) {
-                return false; 
-            }
+            if (authority?.Port != Port)
+                return false;
 
-            return base.InternalApply(authority, exchange, filteringContext);
+            return base.InternalApply(exchangeContext, authority, exchange, filteringContext);
         }
 
         public override IEnumerable<FilterExample> GetExamples()
@@ -54,7 +57,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
             yield return new FilterExample(
                 "Select any exchanges going to a subdomain of `google.com` at port 443",
-                new AuthorityFilter(443, "google.com", StringSelectorOperation.EndsWith)); 
+                new AuthorityFilter(443, "google.com", StringSelectorOperation.EndsWith));
         }
     }
 }

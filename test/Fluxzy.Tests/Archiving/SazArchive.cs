@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Tests._Files;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Archiving
@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Archiving
     {
         public SazArchive()
         {
-            DisablePurge = false; 
+            DisablePurge = false;
         }
 
         [Fact]
@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.Archiving
             var inputFile = RegisterFile("archive-saz-test.saz");
 
             File.WriteAllBytes(inputFile, StorageContext.testarchive);
-            
+
             var sazArchiveReader = new SazImportEngine();
 
             Assert.True(sazArchiveReader.IsFormat(inputFile));
@@ -60,36 +60,35 @@ namespace Fluxzy.Tests.Archiving
             Assert.DoesNotContain(exchanges[0].GetRequestHeaders(),
                 h => h.Name.ToString().Equals("Transfer-Encoding")
                      && h.Value.ToString().Equals("chunked"));
-            
+
             Assert.Contains(exchanges[0].GetRequestHeaders(),
-                h => h.Name.ToString().Equals("User-Agent") 
+                h => h.Name.ToString().Equals("User-Agent")
                      && h.Value.ToString().Equals("PostmanRuntime/7.31.3"));
-            
+
             Assert.Contains(exchanges[2].GetRequestHeaders(),
-                h => h.Name.ToString().Equals("coco") 
+                h => h.Name.ToString().Equals("coco")
                      && h.Value.ToString().Equals("belou"));
 
             Assert.Contains(exchanges[2].GetResponseHeaders()!,
-                h => h.Name.ToString().Equals("Server") 
+                h => h.Name.ToString().Equals("Server")
                      && h.Value.ToString().Equals("Kestrel"));
 
             var exchange1RequestBody = directoryArchiveReader.GetRequestBody(exchanges[0].Id)
-                                                             ?.ReadToEndGreedy(); 
+                                                             ?.ReadToEndGreedy();
 
             var exchange2RequestBody = directoryArchiveReader.GetRequestBody(exchanges[1].Id)
-                                                             ?.ReadToEndGreedy(); 
+                                                             ?.ReadToEndGreedy();
 
             var exchange3RequestBody = directoryArchiveReader.GetRequestBody(exchanges[2].Id)
-                                                             ?.ReadToEndGreedy(); 
+                                                             ?.ReadToEndGreedy();
 
             var exchange2ResponseBody = directoryArchiveReader.GetDecodedResponseBody(exchanges[1])
-                                                             ?.ReadToEndGreedy(); 
+                                                              ?.ReadToEndGreedy();
 
             Assert.Equal(string.Empty, exchange1RequestBody);
             Assert.Equal("dsds=dsd&dq=sss&zeezez=sdfsdf", exchange2RequestBody);
             Assert.Equal(string.Empty, exchange3RequestBody);
             Assert.Equal("::ffff:127.0.0.1", exchange2ResponseBody);
-
 
             var packager = new FxzyDirectoryPackager();
 

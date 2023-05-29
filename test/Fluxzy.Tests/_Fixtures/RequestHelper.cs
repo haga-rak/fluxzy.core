@@ -9,17 +9,20 @@ using Fluxzy.Readers;
 using Fluxzy.Tests.Cli.Scaffolding;
 using Xunit;
 
-namespace Fluxzy.Tests.Archiving.Fixtures
+namespace Fluxzy.Tests._Fixtures
 {
     public static class RequestHelper
     {
-        public static async Task<(ExchangeInfo, ConnectionInfo, DirectoryArchiveReader)> DirectRequest(HttpRequestMessage requestMessage)
+        public static async Task<(ExchangeInfo, ConnectionInfo, DirectoryArchiveReader)>
+            DirectRequest(HttpRequestMessage requestMessage, string? ruleContent = null)
         {
             var directory = "test-artifacts/" + nameof(DirectRequest) + "/" + Guid.NewGuid();
             var commandLine = $"start -l 127.0.0.1/0 -d {directory}";
 
-            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine))
-            {
+            if (ruleContent != null)
+                commandLine += " -R";
+
+            await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine, ruleContent)) {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
                 var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
                 await response.Content.ReadAsStringAsync();

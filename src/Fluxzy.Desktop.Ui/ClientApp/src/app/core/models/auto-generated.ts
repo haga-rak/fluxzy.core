@@ -648,6 +648,10 @@ export interface Action extends PolymorphicObject
 	description?: string;
 	friendlyName: string;
 }
+export interface MultipleScopeAction extends Action
+{
+	runScope?: number;
+}
 export interface AddRequestHeaderAction extends Action
 {
 	headerName: string;
@@ -704,6 +708,14 @@ export interface DeleteResponseHeaderAction extends Action
 	actionScope: number;
 	defaultDescription: string;
 }
+export interface FileAppendAction extends MultipleScopeAction
+{
+	actionScope: number;
+	filename: string;
+	text?: string;
+	encoding?: string;
+	defaultDescription: string;
+}
 export interface ForceHttp11Action extends Action
 {
 	actionScope: number;
@@ -751,6 +763,12 @@ export interface SpoofDnsAction extends Action
 {
 	remoteHostIp?: string;
 	remoteHostPort?: number;
+	actionScope: number;
+	defaultDescription: string;
+}
+export interface StdOutAction extends MultipleScopeAction
+{
+	text?: string;
 	actionScope: number;
 	defaultDescription: string;
 }

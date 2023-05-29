@@ -12,7 +12,8 @@ namespace Fluxzy.Rules.Actions
     ///     Change request uri path. This action alters only the path of the request.
     ///     Please refer to TODO : need an action that redirects the full path
     /// </summary>
-    [ActionMetadata("Change request uri path. This action alters only the path of the request. Request path includes query string.")]
+    [ActionMetadata(
+        "Change request uri path. This action alters only the path of the request. Request path includes query string.")]
     public class ChangeRequestPathAction : Action
     {
         public ChangeRequestPathAction(string newPath)
@@ -27,12 +28,12 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => $"Change url path {NewPath}".Trim();
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
             if (exchange != null)
-                exchange.Request.Header.Path = NewPath.AsMemory();
+                exchange.Request.Header.Path = NewPath.EvaluateVariable(context).AsMemory();
 
             return default;
         }

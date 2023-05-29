@@ -8,7 +8,7 @@ using Fluxzy.Clients.Mock;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters.RequestFilters;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Rules
@@ -27,7 +27,7 @@ namespace Fluxzy.Tests.Rules
             proxy.StartupSetting.AlterationRules.Add(
                 new Rule(
                     new MockedResponseAction(new MockedResponseContent(403,
-                        Clients.Mock.BodyContent.CreateFromString(bodyString))),
+                        BodyContent.CreateFromString(bodyString))),
                     new HostFilter("sandbox.smartizy.com")
                 ));
 

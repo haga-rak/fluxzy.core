@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -19,7 +20,7 @@ namespace Fluxzy.Rules.Filters
         public override bool PreMadeFilter => true;
 
         protected override bool InternalApply(
-            IAuthority authority, IExchange? exchange,
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             return !string.IsNullOrWhiteSpace(exchange?.Comment);

@@ -9,12 +9,12 @@ using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 
 namespace Fluxzy.Tests.Rules
 {
     /// <summary>
-    /// A generic class for testing filters
+    ///     A generic class for testing filters
     /// </summary>
     public abstract class FilterTestTemplate
     {
@@ -31,8 +31,7 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler
-            {
+            using var clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 

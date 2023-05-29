@@ -1,8 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
 using System.Collections.Generic;
-using Fluxzy.Misc;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
@@ -25,7 +24,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override bool PreMadeFilter => true;
 
         protected override bool InternalApply(
-            IAuthority authority, IExchange? exchange,
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             if (exchange == null)

@@ -13,8 +13,8 @@ using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Tests._Files;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
-using Fluxzy.Tests.Common;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -24,12 +24,12 @@ namespace Fluxzy.Tests.Cli
         public static IEnumerable<object[]> GetSingleRequestParameters {
             get
             {
-                var protocols = new[] {"http11", "http2"};
-                var decryptionStatus = new[] {false, true};
+                var protocols = new[] { "http11", "http2" };
+                var decryptionStatus = new[] { false, true };
 
                 foreach (var protocol in protocols)
                 foreach (var decryptStat in decryptionStatus) {
-                    yield return new object[] {protocol, decryptStat};
+                    yield return new object[] { protocol, decryptStat };
                 }
             }
         }

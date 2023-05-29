@@ -1,11 +1,11 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using MessagePack;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MessagePack;
 
 namespace Fluxzy
 {
@@ -112,10 +112,10 @@ namespace Fluxzy
 
                 using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                     // a SAX based option may be a better choice here
-                    
+
                     var exchangeBaseInfo = MessagePackSerializer.Deserialize<ExchangeIdentifiersInfo>(stream,
                         GlobalArchiveOption.MessagePackSerializerOptions);
-                    
+
                     if (exchangeBaseInfo.ConnectionId > 0)
                         connectionIds.Add(exchangeBaseInfo.ConnectionId);
                 }

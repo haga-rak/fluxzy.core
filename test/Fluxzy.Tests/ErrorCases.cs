@@ -5,8 +5,8 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
-using Fluxzy.Tests.Common;
 using Xunit;
 
 namespace Fluxzy.Tests

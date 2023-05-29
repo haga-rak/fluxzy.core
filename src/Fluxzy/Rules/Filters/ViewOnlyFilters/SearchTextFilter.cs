@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients;
 using Fluxzy.Extensions;
 using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
@@ -73,13 +74,13 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
         }
 
         protected override bool InternalApply(
-            IAuthority authority,
+            ExchangeContext? exchangeContext, IAuthority authority,
             IExchange? exchange, IFilteringContext? filteringContext)
         {
             if (exchange is not ExchangeInfo exchangeInfo)
                 return false;
 
-            var searchString = Pattern.AsSpan();
+            var searchString = Pattern.EvaluateVariable(exchangeContext).AsSpan();
 
             if (SearchInRequestHeader) {
                 // TODO add check full Url 

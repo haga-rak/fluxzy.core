@@ -19,37 +19,35 @@ namespace Fluxzy.Rules.Actions
         }
 
         [ActionDistinctive]
-        public string Url { get;  }
+        public string Url { get; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
         public override string DefaultDescription => $"Forward request to {Url}".Trim();
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
             if (exchange == null)
                 return default;
 
-            if (!Uri.TryCreate(Url, UriKind.Absolute, out var uri))
+            var url = Url.EvaluateVariable(context);
+
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
                 throw new InvalidOperationException("Provided URL is not a valid one. Must be an absolute URI.");
 
             var originalPath = exchange.Request.Header.Path.ToString();
 
-
-            if (Uri.TryCreate(originalPath, 
-                    UriKind.Absolute, out var path)) {
+            if (Uri.TryCreate(originalPath,
+                    UriKind.Absolute, out var path))
                 originalPath = path.PathAndQuery;
-            }
 
-            string finalPath; 
+            string finalPath;
 
-            if (uri.PathAndQuery == "/") {
+            if (uri.PathAndQuery == "/")
                 finalPath = originalPath;
-            }
-            else
-            {
+            else {
                 finalPath =
                     uri!.PathAndQuery + originalPath;
             }
@@ -59,7 +57,7 @@ namespace Fluxzy.Rules.Actions
             var scheme = uri.Scheme;
 
             exchange.Request.Header.Path = finalPath.AsMemory();
-            exchange.Request.Header.Authority = $"{hostName}:{port}".AsMemory(); 
+            exchange.Request.Header.Authority = $"{hostName}:{port}".AsMemory();
             exchange.Request.Header.Scheme = scheme.AsMemory();
 
             exchange.Authority = new Authority(hostName, port, string.Equals(scheme, "https",

@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -26,7 +27,8 @@ namespace Fluxzy.Rules.Filters
             yield break;
         }
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
+        protected override IEnumerable<string> GetMatchInputs(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
             if (exchange != null)
                 yield return exchange.Comment ?? string.Empty;

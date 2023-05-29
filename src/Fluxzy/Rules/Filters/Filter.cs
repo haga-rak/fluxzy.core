@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Fluxzy.Clients;
 using Fluxzy.Misc.Converters;
 using YamlDotNet.Serialization;
 
@@ -71,12 +72,13 @@ namespace Fluxzy.Rules.Filters
         public virtual bool Common { get; set; } = false;
 
         protected abstract bool InternalApply(
-            IAuthority authority, IExchange? exchange,
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext);
 
-        public virtual bool Apply(IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
+        public virtual bool Apply(ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
         {
-            var internalApplyResult = InternalApply(authority, exchange, filteringContext);
+            var internalApplyResult = InternalApply(exchangeContext, authority, exchange, filteringContext);
 
             return !Inverted ? internalApplyResult : !internalApplyResult;
         }

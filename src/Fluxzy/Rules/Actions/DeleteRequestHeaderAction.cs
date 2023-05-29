@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -30,11 +30,11 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => $"Remove header {HeaderName}".Trim();
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.RequestHeaderAlterations.Add(new HeaderAlterationDelete(HeaderName));
+            context.RequestHeaderAlterations.Add(new HeaderAlterationDelete(HeaderName.EvaluateVariable(context)));
 
             return default;
         }

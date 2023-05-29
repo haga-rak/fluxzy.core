@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients;
 using Fluxzy.Misc;
 using Fluxzy.Rules.Filters.RequestFilters;
 
@@ -33,11 +34,11 @@ namespace Fluxzy.Rules.Filters
             get
             {
                 if (!Children.Any())
-                    return base.Identifier; 
+                    return base.Identifier;
 
                 // Slow but let check
                 return string.Join(",", Children.OrderBy(t => t.GetType().Name)
-                               .Select(s => s.Identifier.ToString())).GetMd5Guid();
+                                                .Select(s => s.Identifier.ToString())).GetMd5Guid();
             }
         }
 
@@ -57,11 +58,11 @@ namespace Fluxzy.Rules.Filters
         public override string GenericName => "Filter collection";
 
         protected override bool InternalApply(
-            IAuthority authority, IExchange? exchange,
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
             foreach (var child in Children) {
-                var res = child.Apply(authority, exchange, filteringContext);
+                var res = child.Apply(null, authority, exchange, filteringContext);
 
                 if (Operation == SelectorCollectionOperation.And && !res)
                     return false;

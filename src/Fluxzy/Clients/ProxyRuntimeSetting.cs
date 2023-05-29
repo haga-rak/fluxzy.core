@@ -57,7 +57,7 @@ namespace Fluxzy.Clients
         /// <summary>
         ///     Process to validate the remote certificate
         /// </summary>
-        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; } 
+        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
 
         /// <summary>
         /// </summary>
@@ -69,6 +69,8 @@ namespace Fluxzy.Clients
 
         public IUserAgentInfoProvider? UserAgentProvider { get; }
 
+        public VariableContext VariableContext { get; } = new();
+
         public async ValueTask EnforceRules(
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
@@ -76,7 +78,7 @@ namespace Fluxzy.Clients
             _effectiveRules ??= _startupSetting.FixedRules()
                                                .Concat(_startupSetting.AlterationRules)
                                                .ToList();
-            
+
             foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope
                                                             || a.Action.ActionScope == FilterScope.OutOfScope)) {
                 await rule.Enforce(
@@ -86,12 +88,11 @@ namespace Fluxzy.Clients
 
             if (exchange?.RunInLiveEdit ?? false) {
                 var breakPointAction = new BreakPointAction();
-                var rule = new Rule(breakPointAction, AnyFilter.Default); 
+                var rule = new Rule(breakPointAction, AnyFilter.Default);
 
-                await rule.Enforce(context, exchange, connection, filterScope, 
+                await rule.Enforce(context, exchange, connection, filterScope,
                     ExecutionContext.BreakPointManager);
             }
-
         }
     }
 }

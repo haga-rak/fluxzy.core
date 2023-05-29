@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 using Fluxzy.Har;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
-using Fluxzy.Tests.Archiving.Fixtures;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Archiving
@@ -35,10 +34,10 @@ namespace Fluxzy.Tests.Archiving
                 new HttpRequestMessage(HttpMethod.Post,
                     $"{TestConstants.GetHost("http2")}/global-health-check");
 
-            var payload = new byte[1024 * 200 + 253]; 
+            var payload = new byte[1024 * 200 + 253];
             new Random(9).NextBytes(payload);
 
-            var length = Convert.ToBase64String(payload).Length; 
+            var length = Convert.ToBase64String(payload).Length;
 
             requestMessage.Content = new ByteArrayContent(payload);
 
@@ -51,7 +50,7 @@ namespace Fluxzy.Tests.Archiving
             var requestMessage =
                 new HttpRequestMessage(HttpMethod.Get,
                     $"{TestConstants.GetHost("http2")}/global-health-check");
-            
+
             await Capture_Export_And_Import(requestMessage);
         }
     }
@@ -60,28 +59,26 @@ namespace Fluxzy.Tests.Archiving
     {
         protected async Task Capture_Export_And_Import(HttpRequestMessage requestMessage)
         {
-
             var sessionIdentifier = Guid.NewGuid().ToString();
 
             var outFileName = "test-artifacts/" + sessionIdentifier + ".har";
             var outHarDirectory = "test-artifacts/" + sessionIdentifier;
 
-
             var (exchangeInfo, connectionInfo, originalDirectoryArchiveReader) =
                 await RequestHelper.DirectRequest(requestMessage);
-            
-            var packager = new HttpArchivePackager(new HttpArchiveSavingSetting() {
+
+            var packager = new HttpArchivePackager(new HttpArchiveSavingSetting {
                 Policy = HttpArchiveSavingBodyPolicy.AlwaysSave
             });
 
             await using (var fileStream = File.Create(outFileName)) {
-                await packager.Pack(originalDirectoryArchiveReader.BaseDirectory, fileStream, null); 
+                await packager.Pack(originalDirectoryArchiveReader.BaseDirectory, fileStream, null);
             }
-            
+
             new HarImportEngine().WriteToDirectory(outFileName, outHarDirectory);
 
             var fullHar = File.ReadAllText(outFileName);
-            
+
             var directoryArchiveReader = new DirectoryArchiveReader(outHarDirectory);
 
             var actualExchangeInfos = directoryArchiveReader.ReadAllExchanges().ToList();
@@ -124,7 +121,8 @@ namespace Fluxzy.Tests.Archiving
             Assert.Equal(exchangeInfo.ResponseHeader!.StatusCode, actualExchangeInfo.ResponseHeader!.StatusCode);
 
             Assert.Equal(exchangeInfo.ResponseHeader.Headers
-                                     .Where(t => !t.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)),
+                                     .Where(t => !t.Name.Span.Equals("Transfer-Encoding",
+                                         StringComparison.OrdinalIgnoreCase)),
                 actualExchangeInfo.ResponseHeader.Headers);
 
             Assert.Equal(expectedRequestBody.Length, requestBody.Length);

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -43,7 +44,8 @@ namespace Fluxzy.Rules.Filters
                 new IpEgressFilter("2a01:cb00:7e2:5000:10d5:70df:665:c654", StringSelectorOperation.Exact));
         }
 
-        protected override IEnumerable<string> GetMatchInputs(IAuthority authority, IExchange? exchange)
+        protected override IEnumerable<string> GetMatchInputs(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
             yield return exchange?.EgressIp ?? string.Empty;
         }

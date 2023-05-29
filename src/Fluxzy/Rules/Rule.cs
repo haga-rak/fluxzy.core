@@ -34,10 +34,14 @@ namespace Fluxzy.Rules
         public ValueTask Enforce(
             ExchangeContext context,
             Exchange? exchange,
-            Connection? connection, FilterScope filterScope, BreakPointManager breakPointManager)
+            Connection? connection,
+            FilterScope filterScope,
+            BreakPointManager breakPointManager)
         {
-            // TODO put a decent filtering context here 
-            if (Filter.Apply(context.Authority, exchange, null))
+            // should be a property of ExchangeContext 
+            context.VariableBuildingContext = new VariableBuildingContext(context, exchange, connection, filterScope);
+
+            if (Filter.Apply(context, context.Authority, exchange, null))
                 return Action.Alter(context, exchange, connection, filterScope, breakPointManager);
 
             return default;

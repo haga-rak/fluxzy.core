@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Misc

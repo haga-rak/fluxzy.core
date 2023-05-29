@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
-using Fluxzy.Tests.Common;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Rules
@@ -49,7 +49,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         /// <summary>
-        /// Test multiple filter
+        ///     Test multiple filter
         /// </summary>
         /// <param name="host"></param>
         /// <param name="genericFilterInfo"></param>
@@ -69,26 +69,24 @@ namespace Fluxzy.Tests.Rules
 
         public static IEnumerable<object[]> CheckPass_Generic_ArgBuilder()
         {
-            var testedHosts = new string[] { TestConstants.Http11Host, TestConstants.Http2Host };
-            
-            var checkPassGenericFilterInfos = new List<CheckPassGenericFilterInfo>() {
+            var testedHosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host };
+
+            var checkPassGenericFilterInfos = new List<CheckPassGenericFilterInfo> {
                 new(new HasAnyCookieOnRequestFilter(), r => r.Headers.Add("Cookie", "test=1"), true),
-                new(new HasAnyCookieOnRequestFilter(), r =>  {}, false),
+                new(new HasAnyCookieOnRequestFilter(), r => { }, false),
                 new(new GetFilter(), r => r.Method = HttpMethod.Get, true),
                 new(new GetFilter(), r => r.Method = HttpMethod.Delete, false),
-                new(new AbsoluteUriFilter("smartizy.com"), r => {}, true),
-                new(new AbsoluteUriFilter("smartzzizy.com"), r => {}, false),
+                new(new AbsoluteUriFilter("smartizy.com"), r => { }, true),
+                new(new AbsoluteUriFilter("smartzzizy.com"), r => { }, false)
             };
 
             foreach (var host in testedHosts) {
                 foreach (var checkPassGenericFilterInfo in checkPassGenericFilterInfos) {
-
                     yield return new object[] { host, checkPassGenericFilterInfo };
                 }
             }
         }
     }
-
 
     public class CheckPassGenericFilterInfo
     {

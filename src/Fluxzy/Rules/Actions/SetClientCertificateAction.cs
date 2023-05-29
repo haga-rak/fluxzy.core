@@ -39,7 +39,7 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => "Set client certificate".Trim();
 
-        public override ValueTask Alter(
+        public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
