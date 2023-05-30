@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -27,7 +27,7 @@ namespace Fluxzy.Clients.H2
 
         public ReadOnlyMemory<byte> Encode(HeaderEncodingJob encodingJob, RsBuffer destinationBuffer, bool endStream)
         {
-            // heavy assumption that encoded length is at much twice larger than inital chars
+            // heavy assumption that encoded length is at much twice larger than initial chars
             var encodedMaxLength = encodingJob.Data.Length * 2;
             byte[]? heapBuffer = null;
 

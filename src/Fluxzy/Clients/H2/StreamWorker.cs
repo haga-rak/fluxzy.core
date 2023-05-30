@@ -176,7 +176,6 @@ namespace Fluxzy.Clients.H2
             return writeHeaderTask.DoneTask
                                   .ContinueWith(t => {
                                       exchange.Metrics.RequestHeaderLength = readyToBeSent.Length;
-
                                       return _exchange.Metrics.TotalSent += readyToBeSent.Length;
                                   }, token);
         }

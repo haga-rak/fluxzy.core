@@ -34,7 +34,6 @@ namespace Fluxzy.Rules.Filters
 
             return exchange.Tags.Contains(Tag);
         }
-
         public override IEnumerable<FilterExample> GetExamples()
         {
             // Outofscope filter does not include examples
