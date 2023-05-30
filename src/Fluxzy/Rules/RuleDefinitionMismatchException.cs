@@ -4,16 +4,17 @@ using System;
 
 namespace Fluxzy.Rules
 {
-    public class RuleDefinitionMismatchException : Exception
+    public class RuleExecutionFailureException : Exception
     {
-        public RuleDefinitionMismatchException(string message)
+        public RuleExecutionFailureException(string message)
             : base(message)
         {
         }
 
-        public RuleDefinitionMismatchException(string message, Exception innerException)
+        public RuleExecutionFailureException(string message, Exception innerException)
             : base(message, innerException)
         {
+
         }
     }
 }

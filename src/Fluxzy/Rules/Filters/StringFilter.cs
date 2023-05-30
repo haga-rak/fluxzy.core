@@ -17,7 +17,6 @@ namespace Fluxzy.Rules.Filters
         {
             // 
         }
-
         protected StringFilter(string pattern, StringSelectorOperation operation)
         {
             Pattern = pattern;

@@ -41,14 +41,14 @@ namespace Fluxzy.Rules.Actions
 
             if (!string.IsNullOrEmpty(remoteHostIp)) {
                 if (!IPAddress.TryParse(remoteHostIp, out var ip))
-                    throw new RuleDefinitionMismatchException($"{remoteHostIp} is not a valid IP address");
+                    throw new RuleExecutionFailureException($"{remoteHostIp} is not a valid IP address");
 
                 context.RemoteHostIp = ip;
             }
 
             if (RemoteHostPort != null) {
                 if (RemoteHostPort < 0 || RemoteHostPort > 65535)
-                    throw new RuleDefinitionMismatchException(
+                    throw new RuleExecutionFailureException(
                         $"{RemoteHostPort} is not a valid port. Port must be between 0 and 65536 exclusive.");
 
                 context.RemoteHostPort = RemoteHostPort;
