@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -30,6 +31,8 @@ namespace Fluxzy.Clients.Mock
 
         [JsonInclude]
         public byte[]? Content { get; private set; }
+
+        public Dictionary<string, string> Headers { get; set; } = new(); 
 
         public static BodyContent CreateFromFile(string fileName, string? mimeType = null)
         {

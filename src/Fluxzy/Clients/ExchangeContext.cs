@@ -14,10 +14,11 @@ namespace Fluxzy.Clients
 {
     public class ExchangeContext
     {
-        public ExchangeContext(IAuthority authority, VariableContext variableContext)
+        public ExchangeContext(IAuthority authority, VariableContext variableContext, FluxzySetting? fluxzySetting)
         {
             Authority = authority;
             VariableContext = variableContext;
+            FluxzySetting = fluxzySetting;
         }
 
         public IAuthority Authority { get; set; }
@@ -61,5 +62,7 @@ namespace Fluxzy.Clients
         public VariableContext VariableContext { get; }
 
         public VariableBuildingContext? VariableBuildingContext { get; set; } = null;
+
+        public FluxzySetting? FluxzySetting { get;  }
     }
 }

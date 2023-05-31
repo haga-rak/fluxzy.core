@@ -94,10 +94,11 @@ namespace Fluxzy.Clients
         public Exchange(
             IIdProvider idProvider,
             Authority authority,
-            ReadOnlyMemory<char> requestHeaderPlain, string? httpVersion, DateTime receivedFromProxy)
+            ReadOnlyMemory<char> requestHeaderPlain, 
+            string? httpVersion, DateTime receivedFromProxy)
         {
             Id = idProvider.NextExchangeId();
-            Context = new ExchangeContext(authority, new VariableContext());
+            Context = new ExchangeContext(authority, new VariableContext(), null);
             Authority = authority;
             HttpVersion = httpVersion ?? "HTTP/1.1";
             Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure));

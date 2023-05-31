@@ -25,6 +25,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public HostFilter(string pattern, StringSelectorOperation operation)
             : base(pattern, operation)
         {
+
         }
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;

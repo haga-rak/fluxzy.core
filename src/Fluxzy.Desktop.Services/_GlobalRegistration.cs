@@ -165,7 +165,7 @@ namespace Fluxzy.Desktop.Services
 
             return collection;
         }
-
+        
         public static IServiceCollection AddFluxzyProducers(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddScoped<ProducerFactory>();

@@ -124,7 +124,8 @@ namespace Fluxzy.Clients
                 await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse),
                     token);
 
-                var exchangeContext = new ExchangeContext(authority, runtimeSetting.VariableContext);
+                var exchangeContext = new ExchangeContext(authority,
+                    runtimeSetting.VariableContext, runtimeSetting.ExecutionContext.StartupSetting);
 
                 await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
@@ -181,7 +182,8 @@ namespace Fluxzy.Clients
 
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
 
-            var plainExchangeContext = new ExchangeContext(plainAuthority, runtimeSetting.VariableContext);
+            var plainExchangeContext = new ExchangeContext(plainAuthority, runtimeSetting.VariableContext
+                , runtimeSetting.ExecutionContext.StartupSetting);
 
             await runtimeSetting.EnforceRules(plainExchangeContext, FilterScope.OnAuthorityReceived);
 
@@ -244,7 +246,9 @@ namespace Fluxzy.Clients
                     inStream);
             }
 
-            var exchangeContext = new ExchangeContext(authority, runtimeSetting.VariableContext);
+            var exchangeContext = new ExchangeContext(authority, runtimeSetting.VariableContext,
+                runtimeSetting.ExecutionContext.StartupSetting);
+
             await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
             var bodyStream = SetChunkedBody(secureHeader, inStream);
