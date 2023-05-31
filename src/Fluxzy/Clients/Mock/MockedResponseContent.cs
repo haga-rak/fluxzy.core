@@ -33,6 +33,9 @@ namespace Fluxzy.Clients.Mock
             if (!string.IsNullOrWhiteSpace(BodyContent.Mime))
                 header += $"Content-type: {BodyContent.Mime}\r\n";
 
+            foreach (var extraHeader in BodyContent.Headers)
+                header += $"{extraHeader.Key}: {extraHeader.Value}\r\n";
+
             header += "\r\n";
 
             return header;

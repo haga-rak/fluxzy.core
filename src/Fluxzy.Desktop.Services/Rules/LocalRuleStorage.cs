@@ -4,6 +4,7 @@ using System.Text.Json;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy.Desktop.Services.Rules
 {
@@ -21,7 +22,8 @@ namespace Fluxzy.Desktop.Services.Rules
 
             if (!_filterDirectory.EnumerateFiles("*.rule.json").Any()) {
                 Update(new List<RuleContainer> {
-                        new(new Rule(new AddRequestHeaderAction("fluxzy-on", "true"), AnyFilter.Default))
+                        new(new Rule(new MountCertificateAuthorityAction(), 
+                            new AbsoluteUriFilter("https://www.fluxzy.io/runtime/ca", StringSelectorOperation.StartsWith)), true)
                     }
                 );
             }
