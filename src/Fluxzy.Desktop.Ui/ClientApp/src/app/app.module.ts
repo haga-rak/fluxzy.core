@@ -117,6 +117,7 @@ import {
     AbsoluteUriFilterComponent
 } from "./settings/filter-forms/child-forms/absolute-uri-filter-form/absolute-uri-filter.component";
 import { EditStringComponent } from './widgets/edit-string/edit-string.component';
+import { AddBasicAuthenticationActionFormComponent } from './settings/rule-forms/child-forms/add-basic-authentication-action-form/add-basic-authentication-action-form.component';
 registerLocaleData(localeFr);
 
 // AoT requires an exported function for factories
@@ -218,6 +219,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
         MessageDialogComponent,
         ImageResultComponent,
         EditStringComponent,
+        AddBasicAuthenticationActionFormComponent,
 
 
     ],

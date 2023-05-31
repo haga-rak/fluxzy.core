@@ -660,6 +660,13 @@ export interface MultipleScopeAction extends Action
 	runScope?: number;
 	actionScope: number;
 }
+export interface AddBasicAuthenticationAction extends Action
+{
+	username: string;
+	password: string;
+	actionScope: number;
+	defaultDescription: string;
+}
 export interface AddRequestHeaderAction extends Action
 {
 	headerName: string;
