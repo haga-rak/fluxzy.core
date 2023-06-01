@@ -22,7 +22,7 @@ const serve = commandLineArgs.some(val => val === '--serve');
 if (serve)
     process.env.ELECTRON_ENABLE_LOGGING = "1";
 
-console.log('starting-fluxzy');
+console.log("fluxzy view loading");
 
 function runFrontEnd() : void {
 
@@ -33,10 +33,14 @@ function runFrontEnd() : void {
 
     function createWindow(): BrowserWindow {
 
+        let mainScreen = screen.getPrimaryDisplay();
+
+        console.log(mainScreen);
+
         // Create the browser window.
         win = new BrowserWindow({
-            width: 960,
-            height: 680,
+            width: mainScreen.workArea.width > 1600 ? 1200 : 960,
+            height: mainScreen.workArea.height > 900 ? 840 :  680,
             frame: false,
             show : false,
             minWidth: 960,
