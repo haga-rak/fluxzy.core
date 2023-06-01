@@ -18,6 +18,7 @@ namespace Fluxzy.Clients.H11
     {
         private readonly RemoteConnectionBuilder _connectionBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
+        private readonly DnsResolutionResult _dnsResolutionResult;
         private readonly SemaphoreSlim _semaphoreSlim;
         private readonly ITimingProvider _timingProvider;
 
@@ -25,11 +26,12 @@ namespace Fluxzy.Clients.H11
             Authority authority,
             ITimingProvider timingProvider,
             RemoteConnectionBuilder connectionBuilder,
-            ProxyRuntimeSetting proxyRuntimeSetting)
+            ProxyRuntimeSetting proxyRuntimeSetting, DnsResolutionResult dnsResolutionResult)
         {
             _timingProvider = timingProvider;
             _connectionBuilder = connectionBuilder;
             _proxyRuntimeSetting = proxyRuntimeSetting;
+            _dnsResolutionResult = dnsResolutionResult;
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection + 100);
         }
@@ -57,7 +59,7 @@ namespace Fluxzy.Clients.H11
                 await using var ex = new WebSocketProcessing(
                     Authority, _timingProvider,
                     _connectionBuilder,
-                    _proxyRuntimeSetting, _proxyRuntimeSetting.ArchiveWriter);
+                    _proxyRuntimeSetting, _proxyRuntimeSetting.ArchiveWriter, _dnsResolutionResult);
 
                 await ex.Process(exchange, localLink, buffer.Buffer, cancellationToken);
             }
@@ -78,6 +80,7 @@ namespace Fluxzy.Clients.H11
     internal class WebSocketProcessing : IAsyncDisposable
     {
         private readonly RealtimeArchiveWriter? _archiveWriter;
+        private readonly DnsResolutionResult _dnsResolutionResult;
         private readonly Authority _authority;
         private readonly ProxyRuntimeSetting _creationSetting;
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
@@ -88,13 +91,14 @@ namespace Fluxzy.Clients.H11
             ITimingProvider timingProvider,
             RemoteConnectionBuilder remoteConnectionBuilder,
             ProxyRuntimeSetting creationSetting,
-            RealtimeArchiveWriter? archiveWriter)
+            RealtimeArchiveWriter? archiveWriter, DnsResolutionResult dnsResolutionResult)
         {
             _authority = authority;
             _timingProvider = timingProvider;
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _creationSetting = creationSetting;
             _archiveWriter = archiveWriter;
+            _dnsResolutionResult = dnsResolutionResult;
         }
 
         public ValueTask DisposeAsync()
@@ -110,7 +114,7 @@ namespace Fluxzy.Clients.H11
                 throw new ArgumentNullException(nameof(localLink));
 
             var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(
-                exchange,
+                exchange, _dnsResolutionResult,
                 new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
                 _creationSetting,
                 cancellationToken).ConfigureAwait(false);

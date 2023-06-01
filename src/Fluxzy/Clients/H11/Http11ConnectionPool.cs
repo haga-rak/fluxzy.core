@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace Fluxzy.Clients.H11
     {
         private static readonly List<SslApplicationProtocol> Http11Protocols = new() { SslApplicationProtocol.Http11 };
         private readonly RealtimeArchiveWriter _archiveWriter;
+        private readonly DnsResolutionResult _resolutionResult;
 
         private readonly H1Logger _logger;
 
@@ -30,12 +32,14 @@ namespace Fluxzy.Clients.H11
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
             ProxyRuntimeSetting proxyRuntimeSetting,
-            RealtimeArchiveWriter archiveWriter)
+            RealtimeArchiveWriter archiveWriter,
+            DnsResolutionResult resolutionResult)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
             _proxyRuntimeSetting = proxyRuntimeSetting;
             _archiveWriter = archiveWriter;
+            _resolutionResult = resolutionResult;
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
             _logger = new H1Logger(authority);
@@ -94,8 +98,12 @@ namespace Fluxzy.Clients.H11
 
                     var openingResult =
                         await _remoteConnectionBuilder.OpenConnectionToRemote(
-                            exchange, Http11Protocols,
+                            exchange, _resolutionResult , Http11Protocols,
                             _proxyRuntimeSetting, cancellationToken);
+
+                    if (exchange.Context.PreMadeResponse != null) {
+                        return; 
+                    }
 
                     exchange.Connection = openingResult.Connection;
 

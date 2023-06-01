@@ -245,11 +245,11 @@ namespace Fluxzy.Saz
 
                 WriteSessionFlag(
                     "x-clientport",
-                    exchange.Metrics.LocalPort.ToString());
+                    exchange.Metrics.DownStreamClientPort.ToString());
 
                 WriteSessionFlag(
                     "x-clientip",
-                    exchange.Metrics.LocalAddress ?? "");
+                    exchange.Metrics.DownStreamClientAddress ?? "");
 
                 WriteSessionFlag(
                     "x-hostip",
