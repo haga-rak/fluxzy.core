@@ -78,17 +78,19 @@
                 </span>
             </span>
             &nbsp;|&nbsp;
-            <span class="text-secondary">
-                <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'NoSsl'" title="decrypting SSL/TLS trafic is disabled">
-                    no decryption
+            <a href="javascript:;" class="no-underline" (click)="openSettings()">
+                <span class="text-secondary">
+                    <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'NoSsl'" title="decrypting SSL/TLS trafic is disabled">
+                        no decryption
+                    </span>
+                    <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'OsDefault'" title="ssl decryption">
+                        ssl decryption
+                    </span>
+                    <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'BouncyCastle'" title="ssl decryption with TLS keys">
+                        ssl decryption
+                    </span>
                 </span>
-                <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'OsDefault'" title="ssl decryption">
-                    ssl decryption
-                </span>
-                <span *ngIf="uiState.proxyState.runSettings.sslConfig === 'BouncyCastle'" title="ssl decryption with TLS keys">
-                    ssl decryption
-                </span>
-            </span>
+            </a>
             &nbsp;|&nbsp;
         </span>
         <span>
@@ -100,13 +102,16 @@
                <i class="fa fa-stop-circle-o" aria-hidden="true"></i>
             </a>
         </span>
-        <strong *ngIf="uiState.proxyState.boundConnections.length > 0">
-            {{uiState.proxyState.boundConnections[0].address}}:{{uiState.proxyState.boundConnections[0].port}}
-        </strong>
-        <span *ngIf="uiState.proxyState.onError" class="text-danger"
-                [title]="uiState.proxyState.message">
-            &nbsp;
-            <i class="fa fa-times" aria-hidden="true"></i>
-        </span>
+        <a href="javascript:;" class="no-underline" (click)="openSettings()">
+
+            <strong *ngIf="uiState.proxyState.boundConnections.length > 0">
+                {{uiState.proxyState.boundConnections[0].address}}:{{uiState.proxyState.boundConnections[0].port}}
+            </strong>
+            <span *ngIf="uiState.proxyState.onError" class="text-danger"
+                  [title]="uiState.proxyState.message">
+                &nbsp;
+                <i class="fa fa-times" aria-hidden="true"></i>
+            </span>
+        </a>
     </span>
 </div>
