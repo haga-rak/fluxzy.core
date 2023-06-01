@@ -178,7 +178,7 @@ namespace Fluxzy.Clients
             var http11Length = GetHttp11LengthOnly(skipNonForwardableHeader);
 
             while (buffer.Buffer.Length < http11Length) {
-                buffer.Extend(2);
+                buffer.Extend(2048);
             }
 
             Span<byte> data = buffer.Buffer;

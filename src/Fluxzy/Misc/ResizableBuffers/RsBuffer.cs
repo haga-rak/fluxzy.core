@@ -5,7 +5,7 @@ using System.Buffers;
 
 namespace Fluxzy.Misc.ResizableBuffers
 {
-    public class RsBuffer : IDisposable
+    public struct RsBuffer : IDisposable
     {
         private RsBuffer(byte[] buffer)
         {
