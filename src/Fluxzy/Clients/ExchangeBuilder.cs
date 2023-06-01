@@ -177,8 +177,22 @@ namespace Fluxzy.Clients
 
             // Plain request 
 
-            if (!Uri.TryCreate(plainHeader.Path.ToString(), UriKind.Absolute, out var uri))
-                return null; // UNABLE TO READ URI FROM CLIENT
+            var path = plainHeader.Path.ToString();
+
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri)) {
+
+                StringBuilder builder = new StringBuilder("http://");
+
+                builder.Append(plainHeader.Authority.ToString());
+
+                if (!path.StartsWith("/"))
+                    builder.Append("/"); 
+
+                builder.Append(path);
+
+                if (!Uri.TryCreate(builder.ToString(), UriKind.Absolute, out uri))
+                    return null; // UNABLE TO READ URI FROM CLIENT
+            }
 
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
 

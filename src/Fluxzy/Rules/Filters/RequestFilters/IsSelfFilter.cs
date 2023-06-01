@@ -16,8 +16,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         protected override bool InternalApply(
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange, IFilteringContext? filteringContext)
         {
-            if (exchangeContext == null || !(exchange is Exchange internalExchange) || 
-                internalExchange.Connection == null)
+            if (exchangeContext == null || !(exchange is Exchange internalExchange))
                 return false;
 
             if (internalExchange.Metrics.DownStreamLocalPort == exchangeContext.RemoteHostPort
