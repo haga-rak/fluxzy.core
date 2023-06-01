@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -11,12 +12,17 @@ namespace Fluxzy.Clients.Dns
 {
     internal class DefaultDnsSolver : IDnsSolver
     {
+        private readonly ConcurrentDictionary<string, IPAddress> _cache = new();
+
         public async Task<IPAddress> SolveDns(string hostName)
         {
+            if (_cache.TryGetValue(hostName, out var cached))
+                return cached;
+
             try {
                 var entry = await System.Net.Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
 
-                return entry.OrderByDescending(a => a.AddressFamily == AddressFamily.InterNetworkV6).First();
+                return _cache[hostName] = entry.OrderByDescending(a => a.AddressFamily == AddressFamily.InterNetworkV6).First();
             }
             catch (Exception ex) {
                 var errorCode = -1;
