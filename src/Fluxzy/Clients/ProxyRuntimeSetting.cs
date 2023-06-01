@@ -62,7 +62,7 @@ namespace Fluxzy.Clients
 
         /// <summary>
         /// </summary>
-        public int ConcurrentConnection { get; set; } = 8;
+        public int ConcurrentConnection { get; set; } = 16;
 
         public int TimeOutSecondsUnusedConnection { get; set; } = 4;
 
