@@ -108,7 +108,7 @@ namespace Fluxzy
         public List<string> ByPassHost {
             get
             {
-                return ByPassHostFlat.Split(new[] { ";", ",", "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries)
+                return ByPassHostFlat.Split(new[] {";", ",", "\r", "\n", "\t"}, StringSplitOptions.RemoveEmptyEntries)
                                      .Distinct().ToList();
             }
         }
@@ -151,10 +151,22 @@ namespace Fluxzy
             if (GlobalSkipSslDecryption)
                 yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
 
-            yield return new Rule(new MountCertificateAuthorityAction() {
-                InternalScope = FilterScope.DnsSolveDone
-            }, new FilterCollection(
-                new IsSelfFilter(), new PathFilter("ca", StringSelectorOperation.StartsWith)));
+            yield return new Rule(
+
+                new MountCertificateAuthorityAction {
+                    InternalScope = FilterScope.DnsSolveDone
+
+                }, new FilterCollection(new IsSelfFilter(), 
+                    new PathFilter("/ca", StringSelectorOperation.StartsWith)) {
+                    Operation = SelectorCollectionOperation.And
+                });
+
+            yield return new Rule(
+                new MountWelcomePageAction()
+                {
+                    InternalScope = FilterScope.DnsSolveDone
+
+                }, new IsSelfFilter());
         }
 
         /// <summary>

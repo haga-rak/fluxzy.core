@@ -179,7 +179,8 @@ namespace Fluxzy.Clients
 
             var path = plainHeader.Path.ToString();
 
-            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri)) {
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri) 
+                || !uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase)) {
 
                 StringBuilder builder = new StringBuilder("http://");
 

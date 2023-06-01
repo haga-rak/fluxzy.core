@@ -31,7 +31,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override IEnumerable<FilterExample> GetExamples()
         {
-            yield return GetDefaultSample();
+            yield return GetDefaultSample()!;
 
         }
     }
