@@ -42,8 +42,13 @@ namespace Fluxzy.Clients
 
         public int ResponseHeaderLength { get; set; }
 
-        public int LocalPort { get; set; }
+        public int DownStreamClientPort { get; set; }
 
-        public string? LocalAddress { get; set; }
+        public string DownStreamClientAddress { get; set; } = string.Empty;
+
+        public int DownStreamLocalPort { get; set; }
+
+        public string DownStreamLocalAddress { get; set; } = string.Empty;
+        
     }
 }

@@ -242,11 +242,11 @@ namespace Fluxzy.Readers
                 var responseHeaderLength = responseHeaders.Sum(s => s.Name.Length + s.Value.Length);
 
                 var metrics = new ExchangeMetrics() {
-                    LocalPort = element.GetSessionFlagsAttributeAsInteger("x-egressport"), 
+                    DownStreamClientPort = element.GetSessionFlagsAttributeAsInteger("x-egressport"), 
                     CreateCertEnd = received,
                     CreateCertStart = received,
                     ErrorInstant = default, 
-                    LocalAddress = "not set",
+                    DownStreamClientAddress = "not set",
                     ReceivedFromProxy = received,
                     RemoteClosed = default, 
                     RequestHeaderLength = requestHeaderLength,

@@ -1,17 +1,23 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Text.Json.Serialization;
 using Fluxzy.Clients.Mock;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Core.Breakpoints;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules.Actions
 {
     [ActionMetadata("Reply with the default root certificate used by fluxzy")]
     public class MountCertificateAuthorityAction : Action
     {
-        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+        public override FilterScope ActionScope =>  InternalScope;
+
+        [JsonIgnore]
+        [YamlIgnore]
+        internal FilterScope InternalScope { get; set; } = FilterScope.RequestHeaderReceivedFromClient;
 
         public override string DefaultDescription => "Reply with CA";
 

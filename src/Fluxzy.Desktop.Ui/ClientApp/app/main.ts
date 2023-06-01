@@ -1,4 +1,4 @@
-import {app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, dialog, net} from 'electron';
+import {app, BrowserWindow, dialog, screen} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as url from 'url';
@@ -32,8 +32,6 @@ function runFrontEnd() : void {
     let isProduction = args.indexOf("--serve") === -1;
 
     function createWindow(): BrowserWindow {
-        const electronScreen = screen;
-        electronScreen.getPrimaryDisplay();
 
         // Create the browser window.
         win = new BrowserWindow({
@@ -41,8 +39,8 @@ function runFrontEnd() : void {
             height: 680,
             frame: false,
             show : false,
-            minWidth: 860,
-            minHeight: 640,
+            minWidth: 960,
+            minHeight: 740,
             webPreferences: {
                 nodeIntegration: true,
                 allowRunningInsecureContent: serve,
@@ -189,7 +187,6 @@ function launchFluxzyDaemonOrDie(commandLineArgs : string [] , backedLaunchCallb
                 // Warn of a dual instance
                 backedLaunchCallback(false, true);
             }
-
         }
     });
 

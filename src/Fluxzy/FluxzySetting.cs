@@ -150,6 +150,11 @@ namespace Fluxzy
         {
             if (GlobalSkipSslDecryption)
                 yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
+
+            yield return new Rule(new MountCertificateAuthorityAction() {
+                InternalScope = FilterScope.DnsSolveDone
+            }, new FilterCollection(
+                new IsSelfFilter(), new PathFilter("ca", StringSelectorOperation.StartsWith)));
         }
 
         /// <summary>

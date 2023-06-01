@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Security;
 using System.Threading.Tasks;
 using Fluxzy.Core;
@@ -48,7 +49,7 @@ namespace Fluxzy.Clients
             ArchiveWriter = new EventOnlyArchiveWriter()
         };
 
-        public ProxyExecutionContext ExecutionContext { get; }
+        public ProxyExecutionContext? ExecutionContext { get; }
 
         public ITcpConnectionProvider TcpConnectionProvider { get; set; } = ITcpConnectionProvider.Default;
 
@@ -71,6 +72,10 @@ namespace Fluxzy.Clients
 
         public VariableContext VariableContext { get; } = new();
 
+        public HashSet<IPEndPoint> EndPoints { get; set; } = new();
+
+        public int ProxyListenPort { get; set; }
+
         public async ValueTask EnforceRules(
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
@@ -83,7 +88,7 @@ namespace Fluxzy.Clients
                                                             || a.Action.ActionScope == FilterScope.OutOfScope)) {
                 await rule.Enforce(
                     context, exchange, connection, filterScope,
-                    ExecutionContext.BreakPointManager);
+                    ExecutionContext?.BreakPointManager!);
             }
 
             if (exchange?.RunInLiveEdit ?? false) {
@@ -91,7 +96,7 @@ namespace Fluxzy.Clients
                 var rule = new Rule(breakPointAction, AnyFilter.Default);
 
                 await rule.Enforce(context, exchange, connection, filterScope,
-                    ExecutionContext.BreakPointManager);
+                    ExecutionContext?.BreakPointManager!);
             }
         }
     }
