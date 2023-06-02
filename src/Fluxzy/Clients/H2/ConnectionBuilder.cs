@@ -54,22 +54,26 @@ namespace Fluxzy.Clients.H2
             return connectionPool;
         }
 
-        public static Task<Http11ConnectionPool> CreateH11(
+        public static async Task<Http11ConnectionPool> CreateH11(
             Authority authority, SslProvider provider,
             CancellationToken token = default)
         {
             var sslProvider = provider == SslProvider.BouncyCastle
-                ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
+                ? (ISslConnectionBuilder)new BouncyCastleConnectionBuilder()
                 : new SChannelConnectionBuilder();
 
+            var dnsSolver = new DefaultDnsSolver();
+            var timingProvider = new ITimingProvider.DefaultTimingProvider();
+            var result = await DnsUtility.ComputeDns(authority, timingProvider, dnsSolver);
+
             var connectionPool = new Http11ConnectionPool(authority,
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(),
+                new RemoteConnectionBuilder(ITimingProvider.Default,
                     sslProvider),
-                ITimingProvider.Default, ProxyRuntimeSetting.Default, null!);
+                ITimingProvider.Default, ProxyRuntimeSetting.Default, null!, result);
 
             connectionPool.Init();
 
-            return Task.FromResult(connectionPool);
+            return connectionPool;
         }
     }
 }

@@ -102,4 +102,8 @@ export class StatusBarComponent implements OnInit {
     showBreakPointWindow() {
         this.breakPointService.openBreakPointDialog();
     }
+
+    openSettings() {
+        this.dialogService.openGlobalSettings();
+    }
 }

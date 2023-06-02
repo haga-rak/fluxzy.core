@@ -99,11 +99,11 @@ namespace Fluxzy.Readers
                     new ExchangeMetrics() {
                         ResponseHeaderLength = entry.Response.EffectiveHeaderSize, 
                         RequestHeaderLength = entry.Request.EffectiveHeaderSize,
-                        LocalPort = default, 
+                        DownStreamClientPort = default, 
                         CreateCertEnd = startDateTime, 
                         CreateCertStart = startDateTime,
                         ErrorInstant = default, 
-                        LocalAddress = "", 
+                        DownStreamClientAddress = "", 
                         ReceivedFromProxy = received,
                         RemoteClosed = default, 
                         RequestBodySent = sendEnd, 

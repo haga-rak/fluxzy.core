@@ -25,15 +25,17 @@ namespace Fluxzy
 {
     public class Proxy : IAsyncDisposable
     {
+        private readonly CancellationTokenSource _externalCancellationSource;
         private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
         private readonly CancellationTokenSource _proxyHaltTokenSource = new();
-
+       
         private readonly ProxyOrchestrator _proxyOrchestrator;
         private volatile int _currentConcurrentCount;
         private bool _disposed;
         private bool _halted;
         private Task? _loopTask;
         private bool _started;
+        private readonly ProxyRuntimeSetting _runTimeSetting;
 
         public Proxy(
             FluxzySetting startupSetting,
@@ -41,16 +43,17 @@ namespace Fluxzy
             CertificateAuthorityManager certificateAuthorityManager,
             ITcpConnectionProvider? tcpConnectionProvider = null,
             IUserAgentInfoProvider? userAgentProvider = null,
-            FromIndexIdProvider? idProvider = null)
-
+            FromIndexIdProvider? idProvider = null, 
+            CancellationTokenSource externalCancellationSource = null)
         {
+            _externalCancellationSource = externalCancellationSource;
             var tcpConnectionProvider1 = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
             IdProvider = idProvider ?? new FromIndexIdProvider(0, 0);
 
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
-
+            
             var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory
@@ -69,16 +72,16 @@ namespace Fluxzy
                 : new SChannelConnectionBuilder();
 
             var poolBuilder = new PoolBuilder(
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), sslConnectionBuilder),
+                new RemoteConnectionBuilder(ITimingProvider.Default, sslConnectionBuilder),
                 ITimingProvider.Default,
-                Writer);
+                Writer, new DefaultDnsSolver());
 
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
 
-            var runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
+            _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
                 Writer, IdProvider, userAgentProvider);
 
-            _proxyOrchestrator = new ProxyOrchestrator(runTimeSetting,
+            _proxyOrchestrator = new ProxyOrchestrator(_runTimeSetting,
                 new ExchangeBuilder(secureConnectionManager, IdProvider), poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
@@ -96,7 +99,7 @@ namespace Fluxzy
         public FluxzySetting StartupSetting { get; }
 
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-
+        
         public async ValueTask DisposeAsync()
         {
             InternalDispose();
@@ -119,6 +122,14 @@ namespace Fluxzy
         private async ValueTask MainLoop()
         {
             Writer.Init();
+
+            if (StartupSetting.MaxExchangeCount > 0) {
+                Writer.RegisterExchangeLimit(StartupSetting.MaxExchangeCount, 
+                    () => {
+                        if (!_externalCancellationSource.IsCancellationRequested)
+                            _externalCancellationSource.Cancel();
+                    });
+            }
 
             while (true) {
                 var client =
@@ -177,6 +188,9 @@ namespace Fluxzy
             _started = true;
 
             var endPoints = _downStreamConnectionProvider.Init(_proxyHaltTokenSource!.Token);
+
+            _runTimeSetting.EndPoints = endPoints.ToHashSet();
+            _runTimeSetting.ProxyListenPort = endPoints.FirstOrDefault()?.Port ?? 0;
 
             _loopTask = Task.Run(MainLoop);
 

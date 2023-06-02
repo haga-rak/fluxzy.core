@@ -14,7 +14,8 @@ namespace Fluxzy.Clients
 {
     public class ExchangeContext
     {
-        public ExchangeContext(IAuthority authority, VariableContext variableContext, FluxzySetting? fluxzySetting)
+        public ExchangeContext(IAuthority authority, 
+            VariableContext variableContext, FluxzySetting? fluxzySetting)
         {
             Authority = authority;
             VariableContext = variableContext;
@@ -64,5 +65,9 @@ namespace Fluxzy.Clients
         public VariableBuildingContext? VariableBuildingContext { get; set; } = null;
 
         public FluxzySetting? FluxzySetting { get;  }
+
+        public IPAddress DownStreamLocalAddressStruct { get; set; }
+
+        public int ProxyListenPort { get; set; }
     }
 }

@@ -67,9 +67,14 @@ namespace Fluxzy.Core
                         localConnection.ProvisionalExchange;
 
                     var endPoint = (IPEndPoint) client.Client.RemoteEndPoint!;
+                    var localEndPoint = (IPEndPoint) client.Client.LocalEndPoint!;
 
-                    exchange.Metrics.LocalPort = endPoint.Port;
-                    exchange.Metrics.LocalAddress = endPoint.Address.ToString();
+                    exchange.Metrics.DownStreamClientPort = endPoint.Port;
+                    exchange.Metrics.DownStreamClientAddress = endPoint.Address.ToString();
+                    exchange.Metrics.DownStreamLocalPort = localEndPoint.Port;
+                    exchange.Metrics.DownStreamLocalAddress = localEndPoint.Address.ToString();
+                    exchange.Context.DownStreamLocalAddressStruct = localEndPoint.Address;
+                    exchange.Context.ProxyListenPort = _proxyRuntimeSetting.ProxyListenPort;
 
                     var shouldClose = false;
 
@@ -136,7 +141,7 @@ namespace Fluxzy.Core
 
                                 while (true) {
                                     // get a connection pool for the current exchange 
-
+                                    
                                     connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
 
                                     // Actual request send 
@@ -350,8 +355,8 @@ namespace Fluxzy.Core
                             if (exchange != null) {
                                 var ep2 = (IPEndPoint) client.Client.RemoteEndPoint!;
 
-                                exchange.Metrics.LocalPort = ep2.Port;
-                                exchange.Metrics.LocalAddress = ep2.Address.ToString();
+                                exchange.Metrics.DownStreamClientPort = ep2.Port;
+                                exchange.Metrics.DownStreamClientAddress = ep2.Address.ToString();
                             }
                         }
                         catch (IOException) {

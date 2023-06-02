@@ -8,19 +8,20 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 {
     public class ProxyInstance : IAsyncDisposable
     {
-        private readonly Task _proxyTask;
+        public Task ExitTask { get; }
+
         private readonly OutputWriterNotifier _standardError;
         private readonly OutputWriterNotifier _standardOutput;
         private readonly CancellationTokenSource _tokenSource;
 
         public ProxyInstance(
-            Task proxyTask,
+            Task exitTask,
             OutputWriterNotifier standardOutput,
             OutputWriterNotifier standardError,
             int listenPort, CancellationTokenSource tokenSource)
         {
             ListenPort = listenPort;
-            _proxyTask = proxyTask;
+            ExitTask = exitTask;
             _standardOutput = standardOutput;
             _standardError = standardError;
             _tokenSource = tokenSource;
@@ -35,7 +36,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
                 try {
 
-                    await _proxyTask;
+                    await ExitTask;
                 }
                 catch (TaskCanceledException) {
                     // Ignore cancelling
