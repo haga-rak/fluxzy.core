@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -11,7 +11,8 @@ namespace Fluxzy.Rules.Actions
     ///     in order to make this action effective.
     /// </summary>
     [ActionMetadata(
-        "Instructs fluxzy to not decrypt the current traffic. The associated filter  must be on OnAuthorityReceived scope in order to make this action effective. ")]
+        "Instructs fluxzy to not decrypt the current traffic. " +
+        "The associated filter  must be on OnAuthorityReceived scope in order to make this action effective. ")]
     public class SkipSslTunnelingAction : Action
     {
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
@@ -23,7 +24,6 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             context.BlindMode = true;
-
             return default;
         }
     }

@@ -1014,6 +1014,7 @@ export interface FluxzySetting
 	globalSkipSslDecryption: boolean;
 	outOfProcCapture: boolean;
 	useBouncyCastle: boolean;
+	maxExchangeCount?: number;
 }
 export interface FluxzySettingViewModel
 {

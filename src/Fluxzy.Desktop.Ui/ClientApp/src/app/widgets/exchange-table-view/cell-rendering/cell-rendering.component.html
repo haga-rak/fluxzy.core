@@ -21,7 +21,6 @@
 <ng-container  *ngIf="columnModel.name === 'Path'" >
     <span [title]="exchangeContainer.exchangeInfo.path">{{ exchangeContainer.exchangeInfo.path }}</span>
 </ng-container>
-<!-- <td>{{ exchangeContainer.exchangeInfo.statusCode }}</td> -->
 <ng-container class="text-center"  *ngIf="columnModel.name === 'Comment'">
     <a href="javascript:;" class="text-primary" (click)="showComment()" *ngIf="exchangeContainer.exchangeInfo.comment"
        [title]="exchangeContainer.exchangeInfo.comment"><i class="fa fa-comment"></i></a>
