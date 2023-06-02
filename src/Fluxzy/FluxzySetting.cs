@@ -146,6 +146,12 @@ namespace Fluxzy
         /// </summary>
         public bool UseBouncyCastle { get; set; } = false;
 
+        /// <summary>
+        ///  Fluxzy will exit when the number of exchanges reaches this value.
+        /// Default value is null (no limit)
+        /// </summary>
+        public int? MaxExchangeCount { get; set; }
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption)

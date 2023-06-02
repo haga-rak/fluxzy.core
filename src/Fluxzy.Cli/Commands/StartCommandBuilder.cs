@@ -75,6 +75,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(CreateUaParsingOption());
             command.AddOption(CreateOutOfProcCaptureOption());
             command.AddOption(CreateProxyBuffer());
+            command.AddOption(CreateCounterOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -103,6 +104,7 @@ namespace Fluxzy.Cli.Commands
             var outOfProcCapture = invocationContext.Value<bool>("external-capture");
             var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
             var requestBuffer = invocationContext.Value<int?>("request-buffer");
+            var count = invocationContext.Value<int?>("max-capture-count");
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
 
@@ -118,6 +120,7 @@ namespace Fluxzy.Cli.Commands
 
             var cancellationToken = linkedTokenSource.Token;
 
+            proxyStartUpSetting.MaxExchangeCount = count; 
             proxyStartUpSetting.ClearBoundAddresses();
 
             var finalListenInterfaces = listenInterfaces.ToList();
@@ -218,7 +221,9 @@ namespace Fluxzy.Cli.Commands
                              ? await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting.OutOfProcCapture)
                              : ITcpConnectionProvider.Default) {
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider,
-                                 new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider)) {
+                                 new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider,
+                                 externalCancellationSource: linkedTokenSource)) {
+                    
                     var endPoints = proxy.Run();
 
                     invocationContext.BindingContext.Console
@@ -507,6 +512,18 @@ namespace Fluxzy.Cli.Commands
                 "Use a fluxzy rule file. See more at : https://www.fluxzy.io/docs/concept/rule-configuration-file");
 
             option.AddAlias("-r");
+            option.Arity = ArgumentArity.ExactlyOne;
+
+            return option;
+        }
+        private static Option CreateCounterOption()
+        {
+            var option = new Option<int?>(
+                "--max-capture-count",
+                "Exit after count exchange");
+
+            option.AddAlias("-n");
+            option.SetDefaultValue(null);
             option.Arity = ArgumentArity.ExactlyOne;
 
             return option;
