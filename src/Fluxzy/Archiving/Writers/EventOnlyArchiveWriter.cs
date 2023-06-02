@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.IO;
@@ -24,22 +24,22 @@ namespace Fluxzy.Writers
 
         public override Stream CreateRequestBodyStream(int exchangeId)
         {
-            return new EmptyWriteStream();
+            return EmptyWriteStream.Instance;
         }
 
         public override Stream CreateResponseBodyStream(int exchangeId)
         {
-            return new EmptyWriteStream();
+            return EmptyWriteStream.Instance;
         }
 
         public override Stream CreateWebSocketRequestContent(int exchangeId, int messageId)
         {
-            return new EmptyWriteStream();
+            return EmptyWriteStream.Instance;
         }
 
         public override Stream CreateWebSocketResponseContent(int exchangeId, int messageId)
         {
-            return new EmptyWriteStream();
+            return EmptyWriteStream.Instance; 
         }
     }
 }
