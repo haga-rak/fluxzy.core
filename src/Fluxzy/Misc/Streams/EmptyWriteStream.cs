@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -10,6 +10,9 @@ namespace Fluxzy.Misc.Streams
     /// </summary>
     public class EmptyWriteStream : Stream
     {
+        public static EmptyWriteStream Instance { get; } = new();
+
+
         public override bool CanRead => throw new NotImplementedException();
 
         public override bool CanSeek => throw new NotImplementedException();

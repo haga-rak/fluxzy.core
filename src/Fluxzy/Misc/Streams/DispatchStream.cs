@@ -104,7 +104,10 @@ namespace Fluxzy.Misc.Streams
                 _destinations = null;
 
                 if (OnDisposeDoneTask != null)
+                {
                     await OnDisposeDoneTask();
+                    OnDisposeDoneTask = null; 
+                }
             }
             else {
                 if (_destinations != null) {

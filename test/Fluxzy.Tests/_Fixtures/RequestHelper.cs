@@ -21,7 +21,7 @@ namespace Fluxzy.Tests._Fixtures
 
             if (ruleContent != null)
                 commandLine += " -R";
-
+            
             await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine, ruleContent)) {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
                 var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
@@ -35,6 +35,18 @@ namespace Fluxzy.Tests._Fixtures
             var connections = archiveReader.ReadAllConnections().ToList();
 
             return (exchanges.FirstOrDefault()!, connections.FirstOrDefault()!, archiveReader);
+        }
+
+        public static async Task<ProxyInstance>
+            WaitForSingleRequest(string? ruleContent = null)
+        {
+            var directory = "test-artifacts/" + nameof(DirectRequest) + "/" + Guid.NewGuid();
+            var commandLine = $"start -l 127.0.0.1/0 -d {directory} -n 1";
+
+            if (ruleContent != null)
+                commandLine += " -R";
+
+            return await FluxzyCommandLineHost.CreateAndRun(commandLine, ruleContent);
         }
     }
 }
