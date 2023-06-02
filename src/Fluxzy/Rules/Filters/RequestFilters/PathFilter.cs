@@ -10,7 +10,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     ///     Select exchanges according to url path. Path includes query string if any.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchanges according to url path. Path includes query string if any."
+        LongDescription = "Select exchanges according to url path. Path includes query string if any. Path must with `/`"
     )]
     public class PathFilter : StringFilter
     {

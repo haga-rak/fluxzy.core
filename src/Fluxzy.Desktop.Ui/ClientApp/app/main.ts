@@ -1,4 +1,4 @@
-import {app, BrowserWindow, screen, ipcMain, ipcRenderer, Menu, dialog, net} from 'electron';
+import {app, BrowserWindow, dialog, screen} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as url from 'url';
@@ -22,7 +22,7 @@ const serve = commandLineArgs.some(val => val === '--serve');
 if (serve)
     process.env.ELECTRON_ENABLE_LOGGING = "1";
 
-console.log('starting-fluxzy');
+console.log("fluxzy view loading");
 
 function runFrontEnd() : void {
 
@@ -32,17 +32,19 @@ function runFrontEnd() : void {
     let isProduction = args.indexOf("--serve") === -1;
 
     function createWindow(): BrowserWindow {
-        const electronScreen = screen;
-        electronScreen.getPrimaryDisplay();
+
+        let mainScreen = screen.getPrimaryDisplay();
+
+        console.log(mainScreen);
 
         // Create the browser window.
         win = new BrowserWindow({
-            width: 960,
-            height: 680,
+            width: mainScreen.workArea.width > 1600 ? 1200 : 960,
+            height: mainScreen.workArea.height > 900 ? 840 :  680,
             frame: false,
             show : false,
-            minWidth: 860,
-            minHeight: 640,
+            minWidth: 960,
+            minHeight: 740,
             webPreferences: {
                 nodeIntegration: true,
                 allowRunningInsecureContent: serve,
@@ -189,7 +191,6 @@ function launchFluxzyDaemonOrDie(commandLineArgs : string [] , backedLaunchCallb
                 // Warn of a dual instance
                 backedLaunchCallback(false, true);
             }
-
         }
     });
 

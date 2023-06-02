@@ -77,11 +77,11 @@
                     </tr>
                     <tr>
                         <td>Proxy client address</td>
-                        <td>{{ context.exchange.metrics.localAddress ?? '-' }}</td>
+                        <td>{{ context.exchange.metrics.downStreamClientAddress ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>Proxy client port</td>
-                        <td>{{ context.exchange.metrics.localPort ?? '-' }}</td>
+                        <td>{{ context.exchange.metrics.downStreamClientPort ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>Destination IP Address</td>

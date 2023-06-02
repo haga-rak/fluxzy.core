@@ -69,5 +69,37 @@ namespace Fluxzy {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à &lt;!DOCTYPE html&gt;
+        ///
+        ///&lt;html lang=&quot;en&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+        ///&lt;head&gt;
+        ///    &lt;meta charset=&quot;utf-8&quot; /&gt;
+        ///    &lt;title&gt;Fluxzy instance&lt;/title&gt;
+        ///    &lt;style type=&quot;text/css&quot;&gt;
+        ///        *, b {
+        ///            font-family: Verdana;
+        ///            color: #666666;
+        ///        }
+        ///        body {
+        ///            background-color: #f5f5f5;
+        ///        
+        ///        }
+        ///
+        ///        .main-color {
+        ///            color: #48b4ea;
+        ///        }
+        ///
+        ///        a {
+        ///            color: #2e2e2f;
+        ///            font-weight: bold;
+        ///            text-decoratio [le reste de la chaîne a été tronqué]&quot;;.
+        /// </summary>
+        public static string welcome {
+            get {
+                return ResourceManager.GetString("welcome", resourceCulture);
+            }
+        }
     }
 }

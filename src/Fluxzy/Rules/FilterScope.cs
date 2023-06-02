@@ -29,6 +29,9 @@ namespace Fluxzy.Rules
         [Description("This scope occurs the moment fluxzy parsed the request header receiveid from client")]
         RequestHeaderReceivedFromClient,
 
+        [Description("This scope occurs the moment fluxzy ends solving the DNS")]
+        DnsSolveDone,
+
         [Description("This scope occurs the moment fluxzy received fully the request body from the client. In a full" +
                      "streaming mode which is the default mode, this event occurs when the full body is already fully sent to the remote server. ")]
         RequestBodyReceivedFromClient,

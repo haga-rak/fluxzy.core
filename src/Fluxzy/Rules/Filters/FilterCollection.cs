@@ -62,7 +62,7 @@ namespace Fluxzy.Rules.Filters
             IFilteringContext? filteringContext)
         {
             foreach (var child in Children) {
-                var res = child.Apply(null, authority, exchange, filteringContext);
+                var res = child.Apply(exchangeContext, authority, exchange, filteringContext);
 
                 if (Operation == SelectorCollectionOperation.And && !res)
                     return false;

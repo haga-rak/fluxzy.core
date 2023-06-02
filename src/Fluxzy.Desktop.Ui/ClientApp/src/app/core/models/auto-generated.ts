@@ -567,6 +567,10 @@ export interface HostFilter extends StringFilter
 	genericName: string;
 	common: boolean;
 }
+export interface IsSelfFilter extends Filter
+{
+	filterScope: number;
+}
 export interface JsonRequestFilter extends RequestHeaderFilter
 {
 	filterScope: number;
@@ -660,13 +664,6 @@ export interface MultipleScopeAction extends Action
 	runScope?: number;
 	actionScope: number;
 }
-export interface AddBasicAuthenticationAction extends Action
-{
-	username: string;
-	password: string;
-	actionScope: number;
-	defaultDescription: string;
-}
 export interface AddRequestHeaderAction extends Action
 {
 	headerName: string;
@@ -757,6 +754,11 @@ export interface MountCertificateAuthorityAction extends Action
 	actionScope: number;
 	defaultDescription: string;
 }
+export interface MountWelcomePageAction extends Action
+{
+	actionScope: number;
+	defaultDescription: string;
+}
 export interface RemoveCacheAction extends Action
 {
 	actionScope: number;
@@ -807,6 +809,13 @@ export interface UpdateResponseHeaderAction extends Action
 {
 	headerName: string;
 	headerValue: string;
+	actionScope: number;
+	defaultDescription: string;
+}
+export interface AddBasicAuthenticationAction extends Action
+{
+	username: string;
+	password: string;
 	actionScope: number;
 	defaultDescription: string;
 }
@@ -1156,8 +1165,10 @@ export interface ExchangeMetrics
 	totalReceived: number;
 	requestHeaderLength: number;
 	responseHeaderLength: number;
-	localPort: number;
-	localAddress?: string;
+	downStreamClientPort: number;
+	downStreamClientAddress: string;
+	downStreamLocalPort: number;
+	downStreamLocalAddress: string;
 }
 export interface ExchangeMetricInfo
 {

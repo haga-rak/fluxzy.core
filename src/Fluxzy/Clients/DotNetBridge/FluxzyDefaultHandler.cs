@@ -33,10 +33,10 @@ namespace Fluxzy.Clients.DotNetBridge
             var provider = sslProvider == SslProvider.BouncyCastle
                 ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
                 : new SChannelConnectionBuilder();
-
+            
             _poolBuilder = new PoolBuilder(
-                new RemoteConnectionBuilder(ITimingProvider.Default, new DefaultDnsSolver(), provider),
-                ITimingProvider.Default, new EventOnlyArchiveWriter());
+                new RemoteConnectionBuilder(ITimingProvider.Default, provider),
+                ITimingProvider.Default, new EventOnlyArchiveWriter(), new DefaultDnsSolver());
 
             _idProvider = IIdProvider.FromZero;
 

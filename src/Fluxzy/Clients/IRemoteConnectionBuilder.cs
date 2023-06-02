@@ -1,11 +1,15 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Ssl;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Clients
 {
@@ -31,20 +35,18 @@ namespace Fluxzy.Clients
 
     internal class RemoteConnectionBuilder
     {
-        private readonly IDnsSolver _dnsSolver;
         private readonly ISslConnectionBuilder _sslConnectionBuilder;
         private readonly ITimingProvider _timeProvider;
 
         public RemoteConnectionBuilder(
-            ITimingProvider timeProvider, IDnsSolver dnsSolver, ISslConnectionBuilder sslConnectionBuilder)
+            ITimingProvider timeProvider, ISslConnectionBuilder sslConnectionBuilder)
         {
             _timeProvider = timeProvider;
-            _dnsSolver = dnsSolver;
             _sslConnectionBuilder = sslConnectionBuilder;
         }
 
         public async ValueTask<RemoteConnectionResult> OpenConnectionToRemote(
-            Exchange exchange,
+            Exchange exchange, DnsResolutionResult resolutionResult,
             List<SslApplicationProtocol> httpProtocols,
             ProxyRuntimeSetting setting,
             CancellationToken token)
@@ -53,25 +55,19 @@ namespace Fluxzy.Clients
                 TcpConnectionOpening = _timeProvider.Instant(),
 
                 // tcpClient.LingerState.
-                DnsSolveStart = _timeProvider.Instant()
+                DnsSolveStart = resolutionResult.DnsSolveStart,
+                DnsSolveEnd = resolutionResult.DnsSolveEnd
             };
 
-            var ipAddress = exchange.Context.RemoteHostIp ??
-                            await _dnsSolver.SolveDns(exchange.Authority.HostName);
-
-            var remotePort = exchange.Context.RemoteHostPort ??
-                             exchange.Authority.Port;
-            
-
-            exchange.Connection.RemoteAddress = ipAddress;
-            exchange.Connection.DnsSolveEnd = _timeProvider.Instant();
+            exchange.Connection.RemoteAddress = resolutionResult.EndPoint.Address;
 
             var tcpConnection = setting.TcpConnectionProvider
                                        .Create(setting.ArchiveWriter != null
                                            ? setting.ArchiveWriter?.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
 
-            var localEndpoint = await tcpConnection.ConnectAsync(ipAddress, remotePort)
+            var localEndpoint = await tcpConnection.ConnectAsync(resolutionResult.EndPoint.Address,
+                                                       resolutionResult.EndPoint.Port)
                                                    .ConfigureAwait(false);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
