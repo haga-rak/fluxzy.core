@@ -25,9 +25,10 @@ namespace Fluxzy
 {
     public class Proxy : IAsyncDisposable
     {
+        private readonly CancellationTokenSource _externalCancellationSource;
         private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
         private readonly CancellationTokenSource _proxyHaltTokenSource = new();
-
+       
         private readonly ProxyOrchestrator _proxyOrchestrator;
         private volatile int _currentConcurrentCount;
         private bool _disposed;
@@ -42,15 +43,17 @@ namespace Fluxzy
             CertificateAuthorityManager certificateAuthorityManager,
             ITcpConnectionProvider? tcpConnectionProvider = null,
             IUserAgentInfoProvider? userAgentProvider = null,
-            FromIndexIdProvider? idProvider = null)
+            FromIndexIdProvider? idProvider = null, 
+            CancellationTokenSource externalCancellationSource = null)
         {
+            _externalCancellationSource = externalCancellationSource;
             var tcpConnectionProvider1 = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
             IdProvider = idProvider ?? new FromIndexIdProvider(0, 0);
 
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
-
+            
             var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory
@@ -96,7 +99,7 @@ namespace Fluxzy
         public FluxzySetting StartupSetting { get; }
 
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-
+        
         public async ValueTask DisposeAsync()
         {
             InternalDispose();
@@ -119,6 +122,14 @@ namespace Fluxzy
         private async ValueTask MainLoop()
         {
             Writer.Init();
+
+            if (StartupSetting.MaxExchangeCount > 0) {
+                Writer.RegisterExchangeLimit(StartupSetting.MaxExchangeCount, 
+                    () => {
+                        if (!_externalCancellationSource.IsCancellationRequested)
+                            _externalCancellationSource.Cancel();
+                    });
+            }
 
             while (true) {
                 var client =

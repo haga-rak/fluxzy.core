@@ -10,8 +10,21 @@ namespace Fluxzy.Writers
 {
     public abstract class RealtimeArchiveWriter
     {
+        protected long InternalTotalProcessedExchanges;
+        private int? _maxExchangeCount;
+        private Action? _onMaxExchangeCountReached;
+
+        public long TotalProcessedExchanges => InternalTotalProcessedExchanges;
+
         public virtual void Init()
         {
+
+        }
+
+        public virtual void RegisterExchangeLimit(int ? maxExchangeCount, Action onMaxExchangeCountReached)
+        {
+            _maxExchangeCount = maxExchangeCount; 
+            _onMaxExchangeCountReached = onMaxExchangeCountReached;
         }
 
         public abstract void UpdateTags(IEnumerable<Tag> tags);
@@ -62,6 +75,15 @@ namespace Fluxzy.Writers
             CancellationToken cancellationToken)
         {
             var exchangeInfo = new ExchangeInfo(exchange);
+
+            if (updateType == ArchiveUpdateType.AfterResponse)
+            {
+                var total = Interlocked.Increment(ref InternalTotalProcessedExchanges);
+
+                if (total == _maxExchangeCount) {
+                    _onMaxExchangeCountReached?.Invoke();
+                }
+            }
 
             if (!Update(exchangeInfo, cancellationToken))
                 return; // DO NOT  fire update event when save filter is on
