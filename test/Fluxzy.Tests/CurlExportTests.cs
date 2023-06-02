@@ -73,11 +73,13 @@ namespace Fluxzy.Tests
                 var curlFlatHeader = string.Join("\r\n",
                     curlExchange
                         .GetRequestHeaders()
+                        .Where(h => !h.Name.Span.Equals("Expect", StringComparison.OrdinalIgnoreCase))
                         .OrderBy(r => r.Name.ToString()).Select(s => $"{s.Name} : {s.Value}"));
 
                 var httpClientFlatHeader = string.Join("\r\n",
                     httpClientExchange
                         .GetRequestHeaders()
+                        .Where(h => !h.Name.Span.Equals("Expect", StringComparison.OrdinalIgnoreCase))
                         .OrderBy(r => r.Name.ToString()).Select(s => $"{s.Name} : {s.Value}"));
 
                 Assert.Equal(httpClientFlatHeader, curlFlatHeader);

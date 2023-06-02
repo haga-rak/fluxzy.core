@@ -181,6 +181,32 @@ namespace Fluxzy.Misc
                 return winProcess;
             }
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                
+                if (Environment.GetEnvironmentVariable("FluxzyDesktopVersion") != null) {
+                    // We are running in a FluxzyDesktop environment, we can use osascript 
+                    
+                    var osxDesktopProcess = Process.Start(new ProcessStartInfo("osascript", 
+                        $"osascript -e 'do shell script \"{commandName} {fullArgs}\" with administrator privileges'") {
+                        UseShellExecute = false,
+                        Verb = "runas",
+                        RedirectStandardOutput = redirectStdOut,
+                        RedirectStandardInput = redirectStdOut
+                    });
+
+                    return osxDesktopProcess;
+                }
+                
+                var osXProcess = Process.Start(new ProcessStartInfo("sudo", $"{commandName} {fullArgs}") {
+                    UseShellExecute = false,
+                    Verb = "runas",
+                    RedirectStandardOutput = redirectStdOut,
+                    RedirectStandardInput = redirectStdOut
+                });
+
+                return osXProcess;
+            }
+
             var process = Process.Start(new ProcessStartInfo("pkexec", $"{commandName} {fullArgs}") {
                 UseShellExecute = false,
                 Verb = "runas",
