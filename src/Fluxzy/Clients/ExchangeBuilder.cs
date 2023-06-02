@@ -69,11 +69,22 @@ namespace Fluxzy.Clients
 
     internal class ExchangeBuilder
     {
-        private static readonly string AcceptTunnelResponseString =
-            "HTTP/1.1 200 OK\r\nContent-length: 0\r\nConnection: keep-alive\r\n\r\n";
+        private static  string AcceptTunnelResponseString { get; }
+           
+        private static byte[] AcceptTunnelResponse { get; }
 
-        private static readonly byte[] AcceptTunnelResponse =
-            Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
+        static ExchangeBuilder()
+        {
+            AcceptTunnelResponseString =
+                $"HTTP/1.1 200 OK\r\n" +
+                $"x-fluxzy-message: enjoy your privacy!\r\n" +
+                $"Content-length: 0\r\n" +
+                $"Connection: keep-alive\r\n" +
+                $"\r\n";
+
+            AcceptTunnelResponse = Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
+        }
+
 
         private readonly IIdProvider _idProvider;
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
