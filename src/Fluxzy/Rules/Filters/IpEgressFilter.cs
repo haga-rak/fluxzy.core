@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 
 namespace Fluxzy.Rules.Filters
 {

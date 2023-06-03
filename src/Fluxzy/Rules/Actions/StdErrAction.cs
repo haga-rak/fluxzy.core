@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 
 namespace Fluxzy.Rules.Actions

@@ -14,7 +14,6 @@ namespace Fluxzy.Rules
         public RuleExecutionFailureException(string message, Exception innerException)
             : base(message, innerException)
         {
-
         }
     }
 }

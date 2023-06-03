@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
+using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.DotNetBridge

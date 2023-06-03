@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -17,6 +17,7 @@ namespace Fluxzy.Rules.Filters
         {
             // 
         }
+
         protected StringFilter(string pattern, StringSelectorOperation operation)
         {
             Pattern = pattern;

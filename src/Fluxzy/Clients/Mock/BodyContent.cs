@@ -21,10 +21,10 @@ namespace Fluxzy.Clients.Mock
         public BodyContentLoadingType Origin { get; set; }
 
         [JsonInclude]
-        public string? Mime { get; set;  }
+        public string? Mime { get; set; }
 
         [JsonInclude]
-        public string ? Text { get; set; }
+        public string? Text { get; set; }
 
         [JsonInclude]
         public string? FileName { get; private set; }
@@ -32,7 +32,7 @@ namespace Fluxzy.Clients.Mock
         [JsonInclude]
         public byte[]? Content { get; private set; }
 
-        public Dictionary<string, string> Headers { get; set; } = new(); 
+        public Dictionary<string, string> Headers { get; set; } = new();
 
         public static BodyContent CreateFromFile(string fileName, string? mimeType = null)
         {
@@ -66,7 +66,7 @@ namespace Fluxzy.Clients.Mock
         public long GetLength()
         {
             switch (Origin) {
-                case BodyContentLoadingType.FromString :
+                case BodyContentLoadingType.FromString:
                     return Text == null ? 0 : Encoding.UTF8.GetByteCount(Text);
 
                 case BodyContentLoadingType.FromImmediateArray:
@@ -76,7 +76,7 @@ namespace Fluxzy.Clients.Mock
                     return FileName == null ? 0 : new FileInfo(FileName).Length;
 
                 default:
-                    return -1; 
+                    return -1;
             }
         }
 
@@ -88,7 +88,7 @@ namespace Fluxzy.Clients.Mock
 
                 case BodyContentLoadingType.FromFile:
                     return File.OpenRead(FileName!);
-                
+
                 case BodyContentLoadingType.FromString:
                     return new MemoryStream(Encoding.UTF8.GetBytes(Text!));
 
@@ -100,8 +100,8 @@ namespace Fluxzy.Clients.Mock
 
     public enum BodyContentLoadingType
     {
-        FromString = 1, 
-        FromImmediateArray ,
+        FromString = 1,
+        FromImmediateArray,
         FromFile
     }
 }

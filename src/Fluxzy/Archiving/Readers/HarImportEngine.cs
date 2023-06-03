@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
 

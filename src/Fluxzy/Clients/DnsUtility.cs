@@ -4,6 +4,7 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Core;
 using Fluxzy.Rules;
 
 namespace Fluxzy.Clients

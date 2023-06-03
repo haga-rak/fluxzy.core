@@ -10,11 +10,11 @@ using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Core
 {
     public class ExchangeContext
     {
-        public ExchangeContext(IAuthority authority, 
+        public ExchangeContext(IAuthority authority,
             VariableContext variableContext, FluxzySetting? fluxzySetting)
         {
             Authority = authority;
@@ -64,7 +64,7 @@ namespace Fluxzy.Clients
 
         public VariableBuildingContext? VariableBuildingContext { get; set; } = null;
 
-        public FluxzySetting? FluxzySetting { get;  }
+        public FluxzySetting? FluxzySetting { get; }
 
         public IPAddress DownStreamLocalAddressStruct { get; set; }
 

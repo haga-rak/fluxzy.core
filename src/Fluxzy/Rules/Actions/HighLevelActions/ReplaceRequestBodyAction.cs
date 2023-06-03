@@ -2,8 +2,8 @@
 
 using System;
 using System.Threading.Tasks;
-using Fluxzy.Clients;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions

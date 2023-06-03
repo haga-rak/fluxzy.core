@@ -5,13 +5,13 @@ using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Threading.Tasks;
-using Fluxzy.Core;
+using Fluxzy.Clients;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Core
 {
     internal class ProxyRuntimeSetting
     {
@@ -45,7 +45,8 @@ namespace Fluxzy.Clients
             ConcurrentConnection = startupSetting.ConnectionPerHost;
         }
 
-        public static ProxyRuntimeSetting Default { get; } = new() {
+        public static ProxyRuntimeSetting Default { get; } = new()
+        {
             ArchiveWriter = new EventOnlyArchiveWriter()
         };
 
@@ -85,13 +86,15 @@ namespace Fluxzy.Clients
                                                .ToList();
 
             foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope
-                                                            || a.Action.ActionScope == FilterScope.OutOfScope)) {
+                                                            || a.Action.ActionScope == FilterScope.OutOfScope))
+            {
                 await rule.Enforce(
                     context, exchange, connection, filterScope,
                     ExecutionContext?.BreakPointManager!);
             }
 
-            if (exchange?.RunInLiveEdit ?? false) {
+            if (exchange?.RunInLiveEdit ?? false)
+            {
                 var breakPointAction = new BreakPointAction();
                 var rule = new Rule(breakPointAction, AnyFilter.Default);
 

@@ -2,6 +2,7 @@
 
 using System.IO;
 using System.Net;
+using Fluxzy.Core;
 
 namespace Fluxzy.Clients.Mock
 {
@@ -33,8 +34,9 @@ namespace Fluxzy.Clients.Mock
             if (!string.IsNullOrWhiteSpace(BodyContent.Mime))
                 header += $"Content-type: {BodyContent.Mime}\r\n";
 
-            foreach (var extraHeader in BodyContent.Headers)
+            foreach (var extraHeader in BodyContent.Headers) {
                 header += $"{extraHeader.Key}: {extraHeader.Value}\r\n";
+            }
 
             header += "\r\n";
 
@@ -45,6 +47,5 @@ namespace Fluxzy.Clients.Mock
         {
             return BodyContent.GetStream();
         }
-
     }
 }

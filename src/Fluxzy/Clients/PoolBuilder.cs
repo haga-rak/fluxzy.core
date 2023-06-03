@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Core;
 using Fluxzy.Misc;
 using Fluxzy.Rules;
 using Fluxzy.Writers;

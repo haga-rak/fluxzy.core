@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters

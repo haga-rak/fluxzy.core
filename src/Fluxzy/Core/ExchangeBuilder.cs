@@ -5,13 +5,13 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
-using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Core
 {
     public interface ILink
     {
@@ -45,7 +45,8 @@ namespace Fluxzy.Clients
             ProvisionalExchange = provisionalExchange;
             TunnelOnly = tunnelOnly;
 
-            if (DebugContext.EnableNetworkFileDump) {
+            if (DebugContext.EnableNetworkFileDump)
+            {
                 ReadStream = new DebugFileStream($"raw/{Id:0000}_browser_",
                     ReadStream, true);
 
@@ -69,8 +70,8 @@ namespace Fluxzy.Clients
 
     internal class ExchangeBuilder
     {
-        private static  string AcceptTunnelResponseString { get; }
-           
+        private static string AcceptTunnelResponseString { get; }
+
         private static byte[] AcceptTunnelResponse { get; }
 
         static ExchangeBuilder()
@@ -122,10 +123,11 @@ namespace Fluxzy.Clients
 
             // Classic TLS Request 
 
-            if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase)) {
+            if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase))
+            {
                 // GET Authority 
                 var authorityArray =
-                    plainHeader.Path.ToString().Split(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+                    plainHeader.Path.ToString().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
                 var authority = new Authority
                 (authorityArray[0],
@@ -140,7 +142,8 @@ namespace Fluxzy.Clients
 
                 await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
-                if (exchangeContext.BlindMode) {
+                if (exchangeContext.BlindMode)
+                {
                     return
                         new ExchangeBuildingResult(
                             authority, plainStream, plainStream,
@@ -175,7 +178,8 @@ namespace Fluxzy.Clients
 
             var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
 
-            if (remainder > 0) {
+            if (remainder > 0)
+            {
                 var extraBlock = new byte[remainder];
 
                 buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder)
@@ -190,15 +194,16 @@ namespace Fluxzy.Clients
 
             var path = plainHeader.Path.ToString();
 
-            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri) 
-                || !uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase)) {
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri)
+                || !uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
 
                 StringBuilder builder = new StringBuilder("http://");
 
                 builder.Append(plainHeader.Authority.ToString());
 
                 if (!path.StartsWith("/"))
-                    builder.Append("/"); 
+                    builder.Append("/");
 
                 builder.Append(path);
 
@@ -231,7 +236,8 @@ namespace Fluxzy.Clients
 
             if (plainHeader.ChunkedBody)
                 bodyStream = new ChunkedTransferReadStream(plainStream, false);
-            else {
+            else
+            {
                 bodyStream = plainHeader.ContentLength > 0
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
                     : StreamUtils.EmptyStream;
@@ -262,7 +268,8 @@ namespace Fluxzy.Clients
 
             var secureHeader = new RequestHeader(secureHeaderChars, true);
 
-            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength) {
+            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
+            {
                 var copyBuffer = new byte[blockReadResult.TotalReadLength - blockReadResult.HeaderLength];
 
                 Buffer.BlockCopy(buffer.Buffer, blockReadResult.HeaderLength, copyBuffer, 0, copyBuffer.Length);

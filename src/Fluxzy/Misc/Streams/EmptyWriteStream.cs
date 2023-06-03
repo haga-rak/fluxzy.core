@@ -12,7 +12,6 @@ namespace Fluxzy.Misc.Streams
     {
         public static EmptyWriteStream Instance { get; } = new();
 
-
         public override bool CanRead => throw new NotImplementedException();
 
         public override bool CanSeek => throw new NotImplementedException();

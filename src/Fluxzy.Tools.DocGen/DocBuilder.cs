@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,11 +18,10 @@ namespace Fluxzy.Tools.DocGen
     /// </summary>
     public class DocBuilder
     {
+        private static readonly string[] HeaderNames = { "Property", "Type", "Description", "DefaultValue" };
+        private static readonly string[] HeaderAlignments = { ":-------", ":-------", ":-------", "--------" };
         private readonly DescriptionLineProvider _descriptionLineProvider;
         private readonly RuleConfigParser _ruleConfigParser;
-
-        private static readonly string [] HeaderNames = new[] { "Property", "Type", "Description", "DefaultValue" };
-        private static readonly string [] HeaderAlignments = new[] { ":-------", ":-------", ":-------", "--------" };
 
         public DocBuilder(DescriptionLineProvider descriptionLineProvider, RuleConfigParser ruleConfigParser)
         {
@@ -30,9 +31,8 @@ namespace Fluxzy.Tools.DocGen
 
         public IEnumerable<Filter> RetrieveFilters()
         {
-            yield break; 
+            yield break;
         }
-
 
         public void BuildFilter<T>(string directory) where T : Filter
         {
@@ -51,7 +51,7 @@ namespace Fluxzy.Tools.DocGen
             using var writer = new StreamWriter(fileName);
 
             writer.NewLine = "\r\n";
-            
+
             var filterMetaDataAttribute = type.GetCustomAttribute<FilterMetaDataAttribute>(true);
 
             if (filterMetaDataAttribute == null)
@@ -60,11 +60,11 @@ namespace Fluxzy.Tools.DocGen
             writer.NewLine = "\r\n";
             writer.WriteLine($"## {type.Name.ToCamelCase()}");
             writer.WriteLine();
-            writer.WriteLine($"### Description");
+            writer.WriteLine("### Description");
             writer.WriteLine();
             writer.WriteLine(filterMetaDataAttribute.LongDescription);
             writer.WriteLine();
-            writer.WriteLine($"### Evaluation scope");
+            writer.WriteLine("### Evaluation scope");
             writer.WriteLine();
             writer.WriteLine("Evaluation scope defines the timing where this filter will be applied. ");
             writer.WriteLine();
@@ -74,11 +74,11 @@ namespace Fluxzy.Tools.DocGen
             writer.WriteLine(forcedInstance.FilterScope.GetDescription());
 
             writer.WriteLine();
-            writer.WriteLine($"### YAML configuration name");
+            writer.WriteLine("### YAML configuration name");
             writer.WriteLine();
             writer.WriteLine($"    {type.Name.ToCamelCase()}");
             writer.WriteLine();
-            writer.WriteLine($"### Settings");
+            writer.WriteLine("### Settings");
             writer.WriteLine();
 
             if (forcedInstance.PreMadeFilter) {
@@ -114,8 +114,7 @@ namespace Fluxzy.Tools.DocGen
                 writer.WriteLine("This filter has no specific usage example");
                 writer.WriteLine();
             }
-            else
-            {
+            else {
                 writer.WriteLine("The following examples apply a comment to the filtered exchange");
                 writer.WriteLine();
 
@@ -147,7 +146,6 @@ namespace Fluxzy.Tools.DocGen
             writer.WriteLine();
         }
 
-
         public void BuildAction(string directory, Type type)
         {
             Directory.CreateDirectory(directory);
@@ -167,11 +165,11 @@ namespace Fluxzy.Tools.DocGen
             writer.NewLine = "\r\n";
             writer.WriteLine($"## {type.Name.ToCamelCase()}");
             writer.WriteLine();
-            writer.WriteLine($"### Description");
+            writer.WriteLine("### Description");
             writer.WriteLine();
             writer.WriteLine(actionMetadataAttribute.LongDescription);
             writer.WriteLine();
-            writer.WriteLine($"### Evaluation scope");
+            writer.WriteLine("### Evaluation scope");
             writer.WriteLine();
             writer.WriteLine("Evaluation scope defines the timing where this filter will be applied. ");
             writer.WriteLine();
@@ -181,15 +179,14 @@ namespace Fluxzy.Tools.DocGen
             writer.WriteLine(forcedInstance.ActionScope.GetDescription());
 
             writer.WriteLine();
-            writer.WriteLine($"### YAML configuration name");
+            writer.WriteLine("### YAML configuration name");
             writer.WriteLine();
             writer.WriteLine($"    {type.Name.ToCamelCase()}");
             writer.WriteLine();
-            writer.WriteLine($"### Settings");
+            writer.WriteLine("### Settings");
             writer.WriteLine();
 
-            if (forcedInstance.IsPremade())
-            {
+            if (forcedInstance.IsPremade()) {
                 writer.WriteLine("This action has no specific characteristic");
                 writer.WriteLine();
             }
@@ -224,18 +221,15 @@ namespace Fluxzy.Tools.DocGen
 
             var examples = forcedInstance.GetExamples().ToList();
 
-            if (!examples.Any())
-            {
+            if (!examples.Any()) {
                 writer.WriteLine("This filter has no specific usage example");
                 writer.WriteLine();
             }
-            else
-            {
+            else {
                 writer.WriteLine("The following examples apply this action to any exchanges");
                 writer.WriteLine();
 
-                foreach (var example in examples)
-                {
+                foreach (var example in examples) {
                     writer.WriteLine($"{example.Description.AddTrailingDotAndUpperCaseFirstChar()}");
                     writer.WriteLine();
                     writer.WriteLine("```yaml");
@@ -264,7 +258,7 @@ namespace Fluxzy.Tools.DocGen
 
         private static string ProduceMarkdownTableLine(IEnumerable<string> columns)
         {
-            return $"| {string.Join(" | ", columns)} |"; 
+            return $"| {string.Join(" | ", columns)} |";
         }
     }
 }

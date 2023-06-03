@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
-using Fluxzy.Clients;
 using Fluxzy.Clients.Dns;
 
 namespace Fluxzy.Core.Breakpoints

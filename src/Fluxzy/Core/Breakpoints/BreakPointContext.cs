@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using Fluxzy.Clients;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 

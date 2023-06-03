@@ -2,7 +2,7 @@
 
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Desktop.Services.Models;
 
 namespace Fluxzy.Desktop.Services

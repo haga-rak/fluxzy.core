@@ -4,8 +4,9 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading;
+using Fluxzy.Clients;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Core
 {
     /// <summary>
     ///     Contains information about transport layer

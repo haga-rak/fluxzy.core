@@ -8,8 +8,6 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 {
     public class ProxyInstance : IAsyncDisposable
     {
-        public Task ExitTask { get; }
-
         private readonly OutputWriterNotifier _standardError;
         private readonly OutputWriterNotifier _standardOutput;
         private readonly CancellationTokenSource _tokenSource;
@@ -27,6 +25,8 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _tokenSource = tokenSource;
         }
 
+        public Task ExitTask { get; }
+
         public int ListenPort { get; }
 
         public async ValueTask DisposeAsync()
@@ -35,7 +35,6 @@ namespace Fluxzy.Tests.Cli.Scaffolding
                 _tokenSource.Cancel();
 
                 try {
-
                     await ExitTask;
                 }
                 catch (TaskCanceledException) {

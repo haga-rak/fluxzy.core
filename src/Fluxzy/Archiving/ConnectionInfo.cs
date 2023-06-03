@@ -2,7 +2,7 @@
 
 using System;
 using System.Text.Json.Serialization;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using MessagePack;
 
 namespace Fluxzy

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Fluxzy.Clients.H2;
+using Fluxzy.Core;
 
 namespace Fluxzy.Clients
 {

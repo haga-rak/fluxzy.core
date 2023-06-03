@@ -72,7 +72,7 @@ namespace Fluxzy.Desktop.Services
 
             collection.AddSingleton
                 (s => s.GetRequiredService<ContextualFilterBuilder>().ProvidedObservable);
-            
+
             collection.AddSingleton
                 (s => s.GetRequiredService<QuickActionBuilder>().ProvidedObservable);
 
@@ -80,10 +80,7 @@ namespace Fluxzy.Desktop.Services
                 (s => s.GetRequiredService<SystemProxyStateControl>().ProvidedObservable);
 
             collection.AddSingleton
-                (s => {
-                    
-                    return s.GetRequiredService<FileManager>().ProvidedObservable;
-                });
+                (s => { return s.GetRequiredService<FileManager>().ProvidedObservable; });
 
             collection.AddSingleton<IObservable<IArchiveReader>>
             (s => s.GetRequiredService<IObservable<FileState>>()
@@ -165,7 +162,7 @@ namespace Fluxzy.Desktop.Services
 
             return collection;
         }
-        
+
         public static IServiceCollection AddFluxzyProducers(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddScoped<ProducerFactory>();

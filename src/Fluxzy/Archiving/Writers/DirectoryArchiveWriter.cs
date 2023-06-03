@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Rules.Filters;
 using MessagePack;
 
@@ -64,7 +64,7 @@ namespace Fluxzy.Writers
         {
             if (_saveFilter != null && !_saveFilter.Apply(
                     null,
-                    new Authority(exchangeInfo.KnownAuthority, 
+                    new Authority(exchangeInfo.KnownAuthority,
                         exchangeInfo.KnownPort,
                         exchangeInfo.Secure), exchangeInfo, null))
                 return false;
@@ -74,11 +74,10 @@ namespace Fluxzy.Writers
             DirectoryArchiveHelper.CreateDirectory(exchangePath);
 
             using (var fileStream = File.Create(exchangePath)) {
-
                 MessagePackSerializer.Serialize(fileStream, exchangeInfo,
                     GlobalArchiveOption.MessagePackSerializerOptions);
 
-               // JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.DefaultSerializerOptions);
+                // JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.DefaultSerializerOptions);
             }
 
             if (exchangeInfo.Tags?.Any() ?? false) {
@@ -102,10 +101,9 @@ namespace Fluxzy.Writers
             DirectoryArchiveHelper.CreateDirectory(connectionPath);
 
             using var fileStream = File.Create(connectionPath);
-            
-            MessagePackSerializer.Serialize(fileStream, connectionInfo,
-                               GlobalArchiveOption.MessagePackSerializerOptions, cancellationToken);
 
+            MessagePackSerializer.Serialize(fileStream, connectionInfo,
+                GlobalArchiveOption.MessagePackSerializerOptions, cancellationToken);
         }
 
         public override Stream CreateRequestBodyStream(int exchangeId)

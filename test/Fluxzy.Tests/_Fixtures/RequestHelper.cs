@@ -21,7 +21,7 @@ namespace Fluxzy.Tests._Fixtures
 
             if (ruleContent != null)
                 commandLine += " -R";
-            
+
             await using (var fluxzyInstance = await FluxzyCommandLineHost.CreateAndRun(commandLine, ruleContent)) {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
                 var response = await proxiedHttpClient.Client.SendAsync(requestMessage);

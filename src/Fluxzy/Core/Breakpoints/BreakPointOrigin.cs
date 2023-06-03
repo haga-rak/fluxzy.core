@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Fluxzy.Clients;
 
 namespace Fluxzy.Core.Breakpoints
 {

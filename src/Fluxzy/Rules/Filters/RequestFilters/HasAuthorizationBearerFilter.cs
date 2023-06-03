@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters

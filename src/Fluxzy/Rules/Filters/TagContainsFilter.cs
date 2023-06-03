@@ -1,7 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -34,6 +34,7 @@ namespace Fluxzy.Rules.Filters
 
             return exchange.Tags.Contains(Tag);
         }
+
         public override IEnumerable<FilterExample> GetExamples()
         {
             // Outofscope filter does not include examples

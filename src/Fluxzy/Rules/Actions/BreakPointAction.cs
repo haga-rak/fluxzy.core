@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Rules.Filters;
 

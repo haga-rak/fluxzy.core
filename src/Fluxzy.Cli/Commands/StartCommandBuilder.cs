@@ -120,7 +120,7 @@ namespace Fluxzy.Cli.Commands
 
             var cancellationToken = linkedTokenSource.Token;
 
-            proxyStartUpSetting.MaxExchangeCount = count; 
+            proxyStartUpSetting.MaxExchangeCount = count;
             proxyStartUpSetting.ClearBoundAddresses();
 
             var finalListenInterfaces = listenInterfaces.ToList();
@@ -223,7 +223,6 @@ namespace Fluxzy.Cli.Commands
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider,
                                  new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider,
                                  externalCancellationSource: linkedTokenSource)) {
-                    
                     var endPoints = proxy.Run();
 
                     invocationContext.BindingContext.Console
@@ -516,6 +515,7 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
         private static Option CreateCounterOption()
         {
             var option = new Option<int?>(

@@ -7,7 +7,7 @@ using System.Text;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Core
 {
     public class RequestHeader : Header
     {
@@ -51,7 +51,7 @@ namespace Fluxzy.Clients
                                  this[Http11Constants.Upgrade]
                                      .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
 
-           // TODO: Request replay change method 
+            // TODO: Request replay change method 
 
         }
 

@@ -7,6 +7,7 @@ using System.Reflection;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Utils;
+using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy.Tools.DocGen
 {
@@ -14,13 +15,12 @@ namespace Fluxzy.Tools.DocGen
     {
         private static string GetPropertyFriendlyType(Type type)
         {
-            if (!type.IsEnum) {
-                return type.Name.ToCamelCase(); 
-            }
+            if (!type.IsEnum)
+                return type.Name.ToCamelCase();
 
             var enumNames = Enum.GetNames(type)
                                 .Select(s => s.ToCamelCase())
-                            .ToList();
+                                .ToList();
 
             return $"{string.Join(" \\| ", enumNames)}";
         }
@@ -44,13 +44,12 @@ namespace Fluxzy.Tools.DocGen
                                  defaultInstance?.GetType().GetProperty(n.PropertyInfo.Name)
                                                 ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? "*null*"
                              ));
-
         }
 
         public IEnumerable<ActionDescriptionLine> EnumerateActionDescriptions(Type filterType)
         {
-            var defaultInstance = ReflectionHelper.GetForcedInstance<Rules.Action>(filterType);
-            var isPremade = defaultInstance.IsPremade(); 
+            var defaultInstance = ReflectionHelper.GetForcedInstance<Action>(filterType);
+            var isPremade = defaultInstance.IsPremade();
 
             return filterType.GetProperties()
                              .Select(n => new {
@@ -66,7 +65,6 @@ namespace Fluxzy.Tools.DocGen
                                  defaultInstance?.GetType().GetProperty(n.PropertyInfo.Name)
                                                 ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? "*null*"
                              ));
-
         }
     }
 }

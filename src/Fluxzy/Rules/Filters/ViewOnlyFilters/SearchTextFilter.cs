@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Extensions;
 using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
