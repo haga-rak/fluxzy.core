@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Ui.Logging;
 using Fluxzy.Desktop.Ui.Runtime;

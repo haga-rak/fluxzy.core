@@ -3,8 +3,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
+using Fluxzy.Core;
 using Fluxzy.Utils;
 using MessagePack;
 

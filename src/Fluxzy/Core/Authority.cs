@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Core
 {
     /// <summary>
     ///     Hold information about a hostname and a port number

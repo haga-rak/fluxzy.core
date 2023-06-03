@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Writers;
@@ -17,8 +18,8 @@ namespace Fluxzy.Clients.H11
     internal class WebsocketConnectionPool : IHttpConnectionPool
     {
         private readonly RemoteConnectionBuilder _connectionBuilder;
-        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly DnsResolutionResult _dnsResolutionResult;
+        private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly SemaphoreSlim _semaphoreSlim;
         private readonly ITimingProvider _timingProvider;
 
@@ -80,9 +81,9 @@ namespace Fluxzy.Clients.H11
     internal class WebSocketProcessing : IAsyncDisposable
     {
         private readonly RealtimeArchiveWriter? _archiveWriter;
-        private readonly DnsResolutionResult _dnsResolutionResult;
         private readonly Authority _authority;
         private readonly ProxyRuntimeSetting _creationSetting;
+        private readonly DnsResolutionResult _dnsResolutionResult;
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
 

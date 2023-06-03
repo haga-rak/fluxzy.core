@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 
 namespace Fluxzy.Rules
 {

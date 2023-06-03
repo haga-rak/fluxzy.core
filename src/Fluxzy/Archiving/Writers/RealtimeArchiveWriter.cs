@@ -4,26 +4,25 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 
 namespace Fluxzy.Writers
 {
     public abstract class RealtimeArchiveWriter
     {
-        protected long InternalTotalProcessedExchanges;
         private int? _maxExchangeCount;
         private Action? _onMaxExchangeCountReached;
+        protected long InternalTotalProcessedExchanges;
 
         public long TotalProcessedExchanges => InternalTotalProcessedExchanges;
 
         public virtual void Init()
         {
-
         }
 
-        public virtual void RegisterExchangeLimit(int ? maxExchangeCount, Action onMaxExchangeCountReached)
+        public virtual void RegisterExchangeLimit(int? maxExchangeCount, Action onMaxExchangeCountReached)
         {
-            _maxExchangeCount = maxExchangeCount; 
+            _maxExchangeCount = maxExchangeCount;
             _onMaxExchangeCountReached = onMaxExchangeCountReached;
         }
 
@@ -76,13 +75,11 @@ namespace Fluxzy.Writers
         {
             var exchangeInfo = new ExchangeInfo(exchange);
 
-            if (updateType == ArchiveUpdateType.AfterResponse)
-            {
+            if (updateType == ArchiveUpdateType.AfterResponse) {
                 var total = Interlocked.Increment(ref InternalTotalProcessedExchanges);
 
-                if (total == _maxExchangeCount) {
+                if (total == _maxExchangeCount)
                     _onMaxExchangeCountReached?.Invoke();
-                }
             }
 
             if (!Update(exchangeInfo, cancellationToken))

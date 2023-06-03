@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.Converters;
 using YamlDotNet.Serialization;

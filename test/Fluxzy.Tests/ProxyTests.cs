@@ -13,7 +13,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
-using Fluxzy.Clients;
 using Fluxzy.Core;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;

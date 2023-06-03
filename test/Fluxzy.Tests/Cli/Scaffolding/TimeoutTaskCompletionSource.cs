@@ -17,8 +17,9 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
             _tokenSource.Token.Register(
                 () => CompletionSource.TrySetException(
-                    parent.IsCancellationRequested? new InvalidOperationException("CLI exited with invalid state") : 
-                    new TimeoutException($"Timeout was reached for this source : {message}")));
+                    parent.IsCancellationRequested
+                        ? new InvalidOperationException("CLI exited with invalid state")
+                        : new TimeoutException($"Timeout was reached for this source : {message}")));
         }
 
         public TaskCompletionSource<T> CompletionSource { get; } = new();

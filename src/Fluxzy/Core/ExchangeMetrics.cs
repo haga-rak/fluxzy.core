@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Core
 {
     public class ExchangeMetrics
     {
@@ -49,6 +49,6 @@ namespace Fluxzy.Clients
         public int DownStreamLocalPort { get; set; }
 
         public string DownStreamLocalAddress { get; set; } = string.Empty;
-        
+
     }
 }

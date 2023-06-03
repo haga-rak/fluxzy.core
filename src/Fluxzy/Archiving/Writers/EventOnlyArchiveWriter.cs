@@ -39,7 +39,7 @@ namespace Fluxzy.Writers
 
         public override Stream CreateWebSocketResponseContent(int exchangeId, int messageId)
         {
-            return EmptyWriteStream.Instance; 
+            return EmptyWriteStream.Instance;
         }
     }
 }

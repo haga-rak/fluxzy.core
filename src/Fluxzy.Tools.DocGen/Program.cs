@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
+using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy.Tools.DocGen
 {
@@ -20,21 +21,16 @@ namespace Fluxzy.Tools.DocGen
             while (rootDirectory.EnumerateFiles().All(d => d.Name != "fluxzy.sln")) {
                 rootDirectory = rootDirectory.Parent;
 
-                if (rootDirectory == null) {
-                    throw new Exception("Unable to locate fluxzy.sln"); 
-                }
+                if (rootDirectory == null)
+                    throw new Exception("Unable to locate fluxzy.sln");
             }
 
-            var docsBaseDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "docs")); 
-
+            var docsBaseDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "docs"));
 
             BuildFilterDocs(docsBaseDirectory, docBuilder);
             BuildActionDocs(docsBaseDirectory, docBuilder);
 
-
-            Console.WriteLine("Done"); 
-            
-            
+            Console.WriteLine("Done");
         }
 
         private static void BuildFilterDocs(DirectoryInfo docsBaseDirectory, DocBuilder docBuilder)
@@ -70,17 +66,15 @@ namespace Fluxzy.Tools.DocGen
 
             var outDirectory = actionDirectory.FullName;
 
-            var targets = typeof(Rules.Action).Assembly.GetTypes()
+            var targets = typeof(Action).Assembly.GetTypes()
                                         .Where(t =>
-                                            t.IsSubclassOf(typeof(Rules.Action)) &&
+                                            t.IsSubclassOf(typeof(Action)) &&
                                             t.GetCustomAttribute<ActionMetadataAttribute>() != null)
                                         .ToList();
 
-            foreach (var target in targets)
-            {
+            foreach (var target in targets) {
                 docBuilder.BuildAction(outDirectory, target);
             }
-
         }
     }
 }

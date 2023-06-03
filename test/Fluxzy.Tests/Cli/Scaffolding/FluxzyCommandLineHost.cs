@@ -18,14 +18,15 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         private readonly OutputWriterNotifier _standardError;
         private readonly OutputWriterNotifier _standardOutput;
 
-        public FluxzyCommandLineHost(string commandLine, ITestOutputHelper? outputHelper = null, string? standardInput = null)
+        public FluxzyCommandLineHost(
+            string commandLine, ITestOutputHelper? outputHelper = null, string? standardInput = null)
             : this(commandLine.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries), standardInput)
 
         {
             _outputHelper = outputHelper;
         }
 
-        public FluxzyCommandLineHost(string[] commandLineArgs, string ? standardInput)
+        public FluxzyCommandLineHost(string[] commandLineArgs, string? standardInput)
         {
             _commandLineArgs = commandLineArgs;
             _cancellationTokenSource = new CancellationTokenSource();
@@ -47,11 +48,9 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
             var waitForPortTask = _standardOutput.WaitForValue(@"Listen.*:(\d+)$", blockingListenToken, timeoutSeconds);
 
-            ExitCode = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken); 
-                                    
+            ExitCode = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken);
 
             ExitCode.ContinueWith(runResult => {
-
                 if (!blockingListingTokenSource.IsCancellationRequested)
                     blockingListingTokenSource.Cancel();
 
@@ -65,7 +64,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
         public static Task<ProxyInstance> CreateAndRun(string commandLine, string? standardInput = null)
         {
-            return new FluxzyCommandLineHost(commandLine, standardInput : standardInput).Run();
+            return new FluxzyCommandLineHost(commandLine, standardInput: standardInput).Run();
         }
     }
 }

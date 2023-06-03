@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Ssl;
+using Fluxzy.Core;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 

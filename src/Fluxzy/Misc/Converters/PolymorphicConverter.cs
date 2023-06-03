@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Fluxzy.Utils;
 using YamlDotNet.Serialization;
 
 namespace Fluxzy.Misc.Converters
@@ -44,7 +43,7 @@ namespace Fluxzy.Misc.Converters
             // var autoSuffix 
 
             if (!_typeMapping.TryGetValue(typeKind, out var type)
-                 && !_typeMapping.TryGetValue(typeKind + typeof(T).Name, out type))
+                && !_typeMapping.TryGetValue(typeKind + typeof(T).Name, out type))
                 throw new JsonException($"Cannot parse {typeKind} to a valid {typeof(T).Name}");
 
             return type;
@@ -71,13 +70,8 @@ namespace Fluxzy.Misc.Converters
     {
         [JsonIgnore]
         [YamlIgnore]
-        protected abstract string Suffix { get;  }
+        protected abstract string Suffix { get; }
 
-        public string TypeKind {
-            get
-            {
-                return GetType().Name;
-            }
-        }
+        public string TypeKind => GetType().Name;
     }
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using MessagePack;
 
 namespace Fluxzy

@@ -42,7 +42,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             base.Write(value);
         }
 
-        public Task<string> WaitForValue(string regexPattern, CancellationToken token,  int timeoutSeconds = 5)
+        public Task<string> WaitForValue(string regexPattern, CancellationToken token, int timeoutSeconds = 5)
         {
             lock (_runningWait) {
                 if (!_runningWait.TryGetValue(regexPattern, out var completionSource)) {

@@ -6,12 +6,13 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 
-namespace Fluxzy.Clients
+namespace Fluxzy.Core
 {
     public class Exchange : IExchange
     {
@@ -32,11 +33,13 @@ namespace Fluxzy.Clients
             Authority = authority;
             HttpVersion = httpVersion;
 
-            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure)) {
+            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure))
+            {
                 Body = requestBody ?? StreamUtils.EmptyStream
             };
 
-            Response = new Response {
+            Response = new Response
+            {
                 Header = new ResponseHeader(responseHeader, isSecure),
                 Body = responseBody ?? StreamUtils.EmptyStream
             };
@@ -72,7 +75,8 @@ namespace Fluxzy.Clients
             Authority = authority;
             HttpVersion = httpVersion;
 
-            Request = new Request(requestHeader) {
+            Request = new Request(requestHeader)
+            {
                 Body = bodyStream
             };
 
@@ -94,7 +98,7 @@ namespace Fluxzy.Clients
         public Exchange(
             IIdProvider idProvider,
             Authority authority,
-            ReadOnlyMemory<char> requestHeaderPlain, 
+            ReadOnlyMemory<char> requestHeaderPlain,
             string? httpVersion, DateTime receivedFromProxy)
         {
             Id = idProvider.NextExchangeId();
@@ -177,12 +181,12 @@ namespace Fluxzy.Clients
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
-            return Request.Header.Headers.Select(t => (HeaderFieldInfo) t);
+            return Request.Header.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
         public IEnumerable<HeaderFieldInfo>? GetResponseHeaders()
         {
-            return Response.Header?.Headers.Select(t => (HeaderFieldInfo) t);
+            return Response.Header?.Headers.Select(t => (HeaderFieldInfo)t);
         }
 
         public Agent? Agent { get; set; }
@@ -207,35 +211,40 @@ namespace Fluxzy.Clients
         {
             var collection = new NameValueCollection();
 
-            if (Metrics.CreateCertEnd != default) {
+            if (Metrics.CreateCertEnd != default)
+            {
                 collection.Add("create-cert",
                     ((int)
                         (Metrics.CreateCertEnd - Metrics.CreateCertStart).TotalMilliseconds)
                     .ToString());
             }
 
-            if (Connection != null && Connection.SslNegotiationEnd != default) {
+            if (Connection != null && Connection.SslNegotiationEnd != default)
+            {
                 collection.Add("SSL",
                     ((int)
                         (Connection.SslNegotiationEnd - Connection.SslNegotiationStart).TotalMilliseconds)
                     .ToString());
             }
 
-            if (Metrics.RetrievingPool != default) {
+            if (Metrics.RetrievingPool != default)
+            {
                 collection.Add("time-to-get-a-pool",
                     ((int)
                         (Metrics.RetrievingPool - Metrics.ReceivedFromProxy).TotalMilliseconds)
                     .ToString());
             }
 
-            if (Metrics.RequestHeaderSent != default) {
+            if (Metrics.RequestHeaderSent != default)
+            {
                 collection.Add("Time-to-send",
                     ((int)
                         (Metrics.RequestHeaderSent - Metrics.ReceivedFromProxy).TotalMilliseconds)
                     .ToString());
             }
 
-            if (Metrics.ResponseHeaderEnd != default) {
+            if (Metrics.ResponseHeaderEnd != default)
+            {
                 collection.Add("TTFB",
                     ((int)
                         (Metrics.ResponseHeaderEnd - Metrics.RequestHeaderSent).TotalMilliseconds)

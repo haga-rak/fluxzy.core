@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.H2.Frames;
+using Fluxzy.Core;
 using Fluxzy.Misc;
 using Fluxzy.Misc.ResizableBuffers;
 

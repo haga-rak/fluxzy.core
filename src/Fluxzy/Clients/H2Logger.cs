@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.H2.Frames;
+using Fluxzy.Core;
 
 namespace Fluxzy.Clients
 {

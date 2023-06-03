@@ -1,7 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.RequestFilters

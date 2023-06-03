@@ -80,9 +80,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
 #if NET6_0_OR_GREATER
             if (_sslProtocols.HasFlag(SslProtocols.Tls13))
-            {
                 listProtocolVersion.Add(ProtocolVersion.TLSv13);
-            }
 #endif
 
             return listProtocolVersion.ToArray();

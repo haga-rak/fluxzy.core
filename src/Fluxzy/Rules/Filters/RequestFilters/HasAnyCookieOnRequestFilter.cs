@@ -2,8 +2,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Fluxzy.Clients;
 using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Core;
 using Fluxzy.Formatters.Producers.Requests;
 
 namespace Fluxzy.Rules.Filters.RequestFilters

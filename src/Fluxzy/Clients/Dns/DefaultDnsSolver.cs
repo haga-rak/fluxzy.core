@@ -22,7 +22,8 @@ namespace Fluxzy.Clients.Dns
             try {
                 var entry = await System.Net.Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
 
-                return _cache[hostName] = entry.OrderByDescending(a => a.AddressFamily == AddressFamily.InterNetworkV6).First();
+                return _cache[hostName] = entry.OrderByDescending(a => a.AddressFamily == AddressFamily.InterNetworkV6)
+                                               .First();
             }
             catch (Exception ex) {
                 var errorCode = -1;
@@ -36,14 +37,15 @@ namespace Fluxzy.Clients.Dns
                 throw clientErrorException;
             }
         }
+
         public async Task<IPAddress?> SolveDnsQuietly(string hostName)
         {
             try {
-                return await SolveDns(hostName).ConfigureAwait(false); 
+                return await SolveDns(hostName).ConfigureAwait(false);
             }
             catch {
                 // it's quiet solving 
-                return null; 
+                return null;
             }
         }
     }

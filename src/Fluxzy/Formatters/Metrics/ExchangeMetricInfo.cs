@@ -1,7 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 
 namespace Fluxzy.Formatters.Metrics
 {

@@ -3,6 +3,7 @@
 using System;
 using Fluxzy.Clients.H2.Encoder.HPack;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Core;
 
 namespace Fluxzy.Clients.H2.Encoder
 {

@@ -108,7 +108,7 @@ namespace Fluxzy
         public List<string> ByPassHost {
             get
             {
-                return ByPassHostFlat.Split(new[] {";", ",", "\r", "\n", "\t"}, StringSplitOptions.RemoveEmptyEntries)
+                return ByPassHostFlat.Split(new[] { ";", ",", "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries)
                                      .Distinct().ToList();
             }
         }
@@ -147,8 +147,8 @@ namespace Fluxzy
         public bool UseBouncyCastle { get; set; } = false;
 
         /// <summary>
-        ///  Fluxzy will exit when the number of exchanges reaches this value.
-        /// Default value is null (no limit)
+        ///     Fluxzy will exit when the number of exchanges reaches this value.
+        ///     Default value is null (no limit)
         /// </summary>
         public int? MaxExchangeCount { get; set; }
 
@@ -158,20 +158,16 @@ namespace Fluxzy
                 yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
 
             yield return new Rule(
-
                 new MountCertificateAuthorityAction {
                     InternalScope = FilterScope.DnsSolveDone
-
-                }, new FilterCollection(new IsSelfFilter(), 
+                }, new FilterCollection(new IsSelfFilter(),
                     new PathFilter("/ca", StringSelectorOperation.StartsWith)) {
                     Operation = SelectorCollectionOperation.And
                 });
 
             yield return new Rule(
-                new MountWelcomePageAction()
-                {
+                new MountWelcomePageAction {
                     InternalScope = FilterScope.DnsSolveDone
-
                 }, new IsSelfFilter());
         }
 

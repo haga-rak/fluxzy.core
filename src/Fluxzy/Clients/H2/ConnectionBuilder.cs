@@ -12,6 +12,7 @@ using Fluxzy.Clients.H11;
 using Fluxzy.Clients.Ssl;
 using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Clients.Ssl.SChannel;
+using Fluxzy.Core;
 
 namespace Fluxzy.Clients.H2
 {

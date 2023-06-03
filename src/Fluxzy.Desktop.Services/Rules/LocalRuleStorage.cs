@@ -22,8 +22,9 @@ namespace Fluxzy.Desktop.Services.Rules
 
             if (!_filterDirectory.EnumerateFiles("*.rule.json").Any()) {
                 Update(new List<RuleContainer> {
-                        new(new Rule(new MountCertificateAuthorityAction(), 
-                            new AbsoluteUriFilter("http://www.fluxzy.io/runtime/ca", StringSelectorOperation.StartsWith)), true)
+                        new(new Rule(new MountCertificateAuthorityAction(),
+                            new AbsoluteUriFilter("http://www.fluxzy.io/runtime/ca",
+                                StringSelectorOperation.StartsWith)), true)
                     }
                 );
             }

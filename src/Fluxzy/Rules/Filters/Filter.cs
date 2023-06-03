@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Fluxzy.Clients;
+using Fluxzy.Core;
 using Fluxzy.Misc.Converters;
 using YamlDotNet.Serialization;
 

@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Core;
 
 namespace Fluxzy.Clients.DotNetBridge
 {

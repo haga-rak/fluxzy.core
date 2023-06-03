@@ -103,7 +103,6 @@ namespace Fluxzy.Core
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);
 
-
                             if (exchange.Context.BreakPointContext != null) {
                                 await exchange.Context.BreakPointContext.ConnectionSetupCompletion
                                               .WaitForEdit();
@@ -114,7 +113,6 @@ namespace Fluxzy.Core
                             foreach (var requestHeaderAlteration in exchange.Context.RequestHeaderAlterations) {
                                 requestHeaderAlteration.Apply(exchange.Request.Header);
                             }
-
 
                             IHttpConnectionPool connectionPool;
 
@@ -141,7 +139,7 @@ namespace Fluxzy.Core
 
                                 while (true) {
                                     // get a connection pool for the current exchange 
-                                    
+
                                     connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
 
                                     // Actual request send 

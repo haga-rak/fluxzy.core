@@ -13,6 +13,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Core;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
