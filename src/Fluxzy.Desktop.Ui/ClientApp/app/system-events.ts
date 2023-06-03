@@ -1,6 +1,5 @@
-import {BrowserWindow, dialog, ipcMain, clipboard, app} from "electron";
+import {BrowserWindow, dialog, ipcMain, clipboard, app,shell} from "electron";
 import * as fs from "fs";
-
 
 
 
@@ -10,6 +9,15 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
         //
         if (arg) {
             clipboard.writeText(arg);
+        }
+
+        event.returnValue = true;
+    });
+
+    ipcMain.on('open-url', (event, arg) => {
+
+        if (arg) {
+            shell.openExternal(arg);
         }
 
         event.returnValue = true;
@@ -154,10 +162,10 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
     });
 
     ipcMain.on('exit', function (event, arg) {
+        win.hide();
         app.quit();
+        event.returnValue = 0;
     });
-
-
 }
 
 interface FileSaveRequest {

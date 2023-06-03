@@ -16,6 +16,12 @@ export class SystemCallService {
         }
     }
 
+    public openUrl(url: string): void {
+        if (this.electronService.isElectron) {
+            this.electronService.ipcRenderer.sendSync('open-url', url);
+        }
+    }
+
     public saveFile(fileName: string, content: string): void {
         if (this.electronService.isElectron) {
             this.electronService.ipcRenderer.sendSync('save-file', fileName, content);

@@ -1,9 +1,9 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
-import {ElectronService} from "../../core/services";
 import {ApiService} from "../../services/api.service";
 import {tap} from "rxjs";
 import {AppVersion} from "../../core/models/auto-generated";
+import {SystemCallService} from "../../core/services/system-call.service";
 
 @Component({
     selector: 'app-about',
@@ -17,6 +17,7 @@ export class AboutComponent implements OnInit {
         public bsModalRef: BsModalRef,
         public options: ModalOptions,
         private apiService: ApiService,
+        private systemCallService: SystemCallService,
         private cd : ChangeDetectorRef) {
     }
 
@@ -30,5 +31,9 @@ export class AboutComponent implements OnInit {
 
     close() {
         this.bsModalRef.hide();
+    }
+
+    openDefaultUrl() {
+        this.systemCallService.openUrl('https://www.fluxzy.io/');
     }
 }

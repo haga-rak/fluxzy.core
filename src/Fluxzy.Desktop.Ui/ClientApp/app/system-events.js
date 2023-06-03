@@ -11,6 +11,12 @@ var InstallSystemEvents = function (win) {
         }
         event.returnValue = true;
     });
+    electron_1.ipcMain.on('open-url', function (event, arg) {
+        if (arg) {
+            electron_1.shell.openExternal(arg);
+        }
+        event.returnValue = true;
+    });
     electron_1.ipcMain.on('request-file-opening', function (event, arg) {
         //
         var result = electron_1.dialog.showOpenDialogSync(win, {
@@ -124,7 +130,9 @@ var InstallSystemEvents = function (win) {
         event.returnValue = resultIndex;
     });
     electron_1.ipcMain.on('exit', function (event, arg) {
+        win.hide();
         electron_1.app.quit();
+        event.returnValue = 0;
     });
 };
 exports.InstallSystemEvents = InstallSystemEvents;
