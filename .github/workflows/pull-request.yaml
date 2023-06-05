@@ -9,7 +9,7 @@ jobs:
     name: "Build & core Tests"
     strategy:
       matrix:
-        osversion: [Linux, Windows]
+        osversion: [Linux, Windows, macOS]
         ostype: ['self-hosted']
         
     runs-on: ${{ matrix.osversion }}
@@ -19,16 +19,12 @@ jobs:
       with:
         fetch-depth: 0
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 7.0.x
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.8
+        dotnet-version: 7.0.203
     - name: Add nuget package source 
       continue-on-error: true  #ignore error (package source already present on the runner)
-      run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
+      run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json --store-password-in-clear-text -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
     - name: Restore dependencies of tests
       run: dotnet restore test/Fluxzy.Tests
     - name: Restore dependencies

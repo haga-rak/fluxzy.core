@@ -22,7 +22,7 @@ namespace Fluxzy.Clients.Dns
             try {
                 var entry = await System.Net.Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
 
-                return _cache[hostName] = entry.OrderByDescending(a => a.AddressFamily == AddressFamily.InterNetworkV6)
+                return _cache[hostName] = entry.OrderBy(a => a.AddressFamily == AddressFamily.InterNetworkV6)
                                                .First();
             }
             catch (Exception ex) {
