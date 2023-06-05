@@ -25,7 +25,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: 3.11
     - name: Add nuget package source 
       continue-on-error: true  #ignore error (package source already present on the runner)
       run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
