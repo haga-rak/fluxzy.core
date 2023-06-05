@@ -9,7 +9,7 @@ jobs:
     name: "Build & core Tests"
     strategy:
       matrix:
-        osversion: [Linux, Windows]
+        osversion: [Linux, Windows, macOS]
         ostype: ['self-hosted']
         
     runs-on: ${{ matrix.osversion }}
