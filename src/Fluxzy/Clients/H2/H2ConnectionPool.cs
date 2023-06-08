@@ -203,7 +203,14 @@ namespace Fluxzy.Clients.H2
             if (_innerWriteRun != null)
                 await _innerWriteRun.ConfigureAwait(false);
 
-            await _baseStream.DisposeAsync();
+            try {
+
+                await _baseStream.DisposeAsync();
+            }
+            catch (Exception ex) {
+                // Ignore dispose errors
+
+            }
         }
 
         private void UpStreamChannel(ref WriteTask data)
@@ -366,15 +373,7 @@ namespace Fluxzy.Clients.H2
                                 ArrayPool<byte>.Shared.Return(heapBuffer);
                             }
 
-                            if (_baseStream is SslStream)
-                                await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
-                            else {
-                                // Bouncy castle handles badly async write (deadlock) 
-                                // this trick distinguish between SChannel / OpenSSL and BC 
-
-                                await Task.Run(() => _baseStream.Write(heapBuffer.AsSpan().Slice(0, bufferLength)),
-                                    token);
-                            }
+                            await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
                         }
 
                         var count = 0;
@@ -391,17 +390,10 @@ namespace Fluxzy.Clients.H2
                                                   .ThenBy(r => r.Priority)
                                 ) {
                             try {
-                                if (_baseStream is SslStream) {
-                                    await _baseStream
-                                          .WriteAsync(writeTask.BufferBytes, token)
-                                          .ConfigureAwait(false);
-                                }
-                                else {
-                                    // Bouncy castle handles badly async write (deadlock) 
-                                    // this trick distinguish between SChannel / OpenSSL and BC 
 
-                                    await Task.Run(() => _baseStream.Write(writeTask.BufferBytes.Span), token);
-                                }
+                                await _baseStream
+                                      .WriteAsync(writeTask.BufferBytes, token)
+                                      .ConfigureAwait(false);
 
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 

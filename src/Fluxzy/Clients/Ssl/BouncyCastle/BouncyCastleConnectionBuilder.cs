@@ -50,15 +50,14 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             var protocol = new FluxzyClientProtocol(innerStream, nssWriter);
 
-            await Task.Run(() => {
-                try {
-
-                    protocol.Connect(client);
-                }
-                catch (Exception ex) {
-                    throw new ClientErrorException(0, $"Handshake with {request.TargetHost} has failed", ex.Message);
-                }
-            }, token); // BAD but necessary
+            try
+            {
+                await protocol.ConnectAsync(client);
+            }
+            catch (Exception ex)
+            {
+                throw new ClientErrorException(0, $"Handshake with {request.TargetHost} has failed", ex.Message);
+            }
 
             var keyInfos =
                 Encoding.UTF8.GetString(memoryStream.ToArray());

@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Threading.Tasks;
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
 
@@ -88,6 +89,28 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         protected override void Handle13HandshakeMessage(short type, HandshakeMessageInput buf)
         {
             base.Handle13HandshakeMessage(type, buf);
+
+            // Here we shall extract the application keys    
+
+            var alreadyUsed = PlainSecurityParameters.TrafficSecretClient == _localSecret;
+
+            if (!alreadyUsed) {
+                _logWriter.Write(NssLogWriter.CLIENT_TRAFFIC_SECRET_0, PlainSecurityParameters.ClientRandom,
+                    PlainSecurityParameters.TrafficSecretClient.ExtractKeySilently());
+
+                _logWriter.Write(NssLogWriter.SERVER_TRAFFIC_SECRET_0, PlainSecurityParameters.ClientRandom,
+                    PlainSecurityParameters.TrafficSecretServer.ExtractKeySilently());
+
+                if (PlainSecurityParameters.ExporterMasterSecret != null) {
+                    _logWriter.Write(NssLogWriter.EXPORTER_SECRET, PlainSecurityParameters.ClientRandom,
+                        PlainSecurityParameters.ExporterMasterSecret.ExtractKeySilently());
+                }
+            }
+        }
+
+        protected override async Task Handle13HandshakeMessageAsync(short type, HandshakeMessageInput buf)
+        {
+            await base.Handle13HandshakeMessageAsync(type, buf);
 
             // Here we shall extract the application keys    
 

@@ -159,6 +159,7 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
 
         const resultIndex = dialog.showMessageBoxSync(win, options);
         event.returnValue = resultIndex;
+        
     });
 
     ipcMain.on('exit', function (event, arg) {
