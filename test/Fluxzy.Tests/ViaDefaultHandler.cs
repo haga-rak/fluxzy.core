@@ -118,11 +118,15 @@ namespace Fluxzy.Tests
         {
             var urls = new[] {
                 "https://sandbox.smartizy.com:5001/content-produce/40000/40000", // H1.1 H2 url
-                "https://sandbox.smartizy.com/content-produce/40000/40000" // H1 only url
+                "https://sandbox.smartizy.com:5001/content-produce/40000/40000", // H1.1 H2 url
+                "https://sandbox.smartizy.com/content-produce/40000/40000", // H1 only url
+                "https://sandbox.smartizy.com/content-produce/40000/40000", // H1 only url
             };
 
             using var handler = new FluxzyDefaultHandler(sslProvider);
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+
+            var result = new List<Task<bool>>(); 
 
             for (var i = 0; i < 15; i++) {
                 var requestMessage = new HttpRequestMessage(
@@ -130,9 +134,14 @@ namespace Fluxzy.Tests
                     urls[i % urls.Length]
                 );
 
-                using var response = await httpClient.SendAsync(requestMessage);
+                var response = httpClient.SendAsync(requestMessage);
+                result.Add(response.ContinueWith(t => t.Result.IsSuccessStatusCode));
+            }
 
-                Assert.True(response.IsSuccessStatusCode);
+            await Task.WhenAll(result);
+
+            foreach (var task in result) {
+                Assert.True(task.Result);
             }
         }
     }
