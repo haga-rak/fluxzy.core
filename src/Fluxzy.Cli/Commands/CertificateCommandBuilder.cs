@@ -6,6 +6,7 @@ using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Fluxzy.Certificates;
 
 namespace Fluxzy.Cli.Commands
@@ -152,12 +153,14 @@ namespace Fluxzy.Cli.Commands
         {
             var exportCommand = new Command("list", "List all root certificates");
 
-            exportCommand.SetHandler(async console => {
+            exportCommand.SetHandler(console => {
                 var certificateManager = new DefaultCertificateAuthorityManager();
 
                 foreach (var certificate in certificateManager.EnumerateRootCertificates()) {
                     console.Out.WriteLine($"{certificate.ThumbPrint}\t{certificate.Subject}");
                 }
+
+                return Task.CompletedTask;
             }, new ConsoleBinder());
 
             return exportCommand;

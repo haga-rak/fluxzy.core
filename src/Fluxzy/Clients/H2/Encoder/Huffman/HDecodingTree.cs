@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
@@ -23,7 +23,7 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                 var bytes = symbol.GetByteVariation(0, buffer);
 
                 if (bytes.Length == 1) {
-                    if (RootNodes[bytes[0]] == null)
+                    if (RootNodes[bytes[0]] == null!)
                         RootNodes[bytes[0]] = new Node(bytes[0], 1);
 
                     RootNodes[bytes[0]].AppendSymbol(symbol);
@@ -32,7 +32,7 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
                     Node? currentNode = null;
 
                     foreach (var value in bytes) {
-                        if (RootNodes[value] == null)
+                        if (RootNodes[value] == null!)
                             RootNodes[value] = currentNode ?? new Node(symbol); // final node 
 
                         currentNode = RootNodes[value];
@@ -43,7 +43,7 @@ namespace Fluxzy.Clients.H2.Encoder.Huffman
             for (var index = 0; index < RootNodes.Length; index++) {
                 var node = RootNodes[index];
 
-                if (node == null)
+                if (node == null!)
                     continue;
 
                 node.Seal();
