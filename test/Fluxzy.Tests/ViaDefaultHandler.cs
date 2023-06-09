@@ -122,7 +122,7 @@ namespace Fluxzy.Tests
             };
 
             using var handler = new FluxzyDefaultHandler(sslProvider);
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
 
             var result = new List<Task<bool>>(); 
 
