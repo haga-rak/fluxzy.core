@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace Fluxzy.Clients
 
         private static readonly string loggerPath = Environment.ExpandEnvironmentVariables(
             Environment.GetEnvironmentVariable("TracingDirectory")
-            ?? "%appdata%/echoes-debug");
+            ?? "%appdata%/.fluxzy-debug");
 
         private readonly bool _active;
 
