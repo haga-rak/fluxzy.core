@@ -14,28 +14,10 @@ using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
-    public class CliOutputs
+
+    public class CliTestBase
     {
-        public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt {
-            get
-            {
-                var protocols = new[] { "http11", "http2", "http11-bc", "http2-bc", "plainhttp11" };
-                var withPcapStatus = new[] { CaptureType.None, CaptureType.Pcap, CaptureType.PcapOutOfProc };
-                var directoryParams = new[] { false, true };
-                var withSimpleRules = new[] { false, true };
-
-                foreach (var protocol in protocols)
-                foreach (var withPcap in withPcapStatus)
-                foreach (var directoryParam in directoryParams)
-                foreach (var withSimpleRule in withSimpleRules) {
-                    yield return new object[] { protocol, withPcap, directoryParam, withSimpleRule };
-                }
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
-        public async Task Run_Cli_Output(string proto, CaptureType rawCap, bool @out, bool rule)
+        protected async Task Run_Cli_Output(string proto, CaptureType rawCap, bool @out, bool rule)
         {
             // Arrange 
 
@@ -57,7 +39,8 @@ namespace Fluxzy.Tests.Cli
             if (proto.EndsWith("-bc"))
                 commandLine += " --bouncy-castle";
 
-            if (rule) {
+            if (rule)
+            {
                 Directory.CreateDirectory(rootDir);
 
                 var ruleFile = $"{rootDir}/rules.yml";
@@ -80,7 +63,8 @@ namespace Fluxzy.Tests.Cli
             var requestBodyLength = 23632;
             var bodyLength = 0L;
 
-            await using (var fluxzyInstance = await commandLineHost.Run(30)) {
+            await using (var fluxzyInstance = await commandLineHost.Run(30))
+            {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post,
@@ -105,7 +89,8 @@ namespace Fluxzy.Tests.Cli
 
             using (IArchiveReader archiveReader = @out
                        ? new DirectoryArchiveReader(directoryName)
-                       : new FluxzyArchiveReader(fileName)) {
+                       : new FluxzyArchiveReader(fileName))
+            {
                 var exchanges = archiveReader.ReadAllExchanges().ToList();
                 var connections = archiveReader.ReadAllConnections().ToList();
 
@@ -130,12 +115,14 @@ namespace Fluxzy.Tests.Cli
                 Assert.Contains(exchange.RequestHeader.Headers,
                     t => t.Name.Span.Equals("X-Test-Header-256".AsSpan(), StringComparison.Ordinal));
 
-                if (rawCap != CaptureType.None) {
+                if (rawCap != CaptureType.None)
+                {
                     var rawCapStream = archiveReader.GetRawCaptureStream(connection.Id);
                     Assert.True(await rawCapStream!.DrainAsync(disposeStream: true) > 0);
                 }
 
-                if (rule) {
+                if (rule)
+                {
                     var alterHeader =
                         exchange.GetRequestHeaders().FirstOrDefault(t => t.Name.ToString() == "x-fluxzy");
 
@@ -153,6 +140,88 @@ namespace Fluxzy.Tests.Cli
 
             if (File.Exists(fileName))
                 File.Delete(fileName);
+        }
+
+    }
+
+    public class CliNoCap : CliTestBase
+    {
+        public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt {
+            get
+            {
+                var protocols = new[] { "http11",  "http11-bc", "plainhttp11", "http2", "http2-bc" };
+                var withPcapStatus = new[] { CaptureType.None };
+                var directoryParams = new[] { false, true };
+                var withSimpleRules = new[] { false, true };
+
+                foreach (var protocol in protocols)
+                foreach (var withPcap in withPcapStatus)
+                foreach (var directoryParam in directoryParams)
+                foreach (var withSimpleRule in withSimpleRules) {
+                    yield return new object[] { protocol, withPcap, directoryParam, withSimpleRule };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
+        public async Task Run(string proto, CaptureType rawCap, bool @out, bool rule)
+        {
+            await base.Run_Cli_Output(proto, rawCap, @out, rule);
+        }
+    }
+
+    public class CliWithCap : CliTestBase
+    {
+        public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt {
+            get
+            {
+                var protocols = new[] { "http11", "http11-bc", "plainhttp11", "http2", "http2-bc" };
+                var withPcapStatus = new[] { CaptureType.Pcap };
+                var directoryParams = new[] { false, true };
+                var withSimpleRules = new[] { false, true };
+
+                foreach (var protocol in protocols)
+                foreach (var withPcap in withPcapStatus)
+                foreach (var directoryParam in directoryParams)
+                foreach (var withSimpleRule in withSimpleRules) {
+                    yield return new object[] { protocol, withPcap, directoryParam, withSimpleRule };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
+        public async Task Run(string proto, CaptureType rawCap, bool @out, bool rule)
+        {
+            await base.Run_Cli_Output(proto, rawCap, @out, rule);
+        }
+    }
+
+    public class CliWithCapOutOfProc : CliTestBase
+    {
+        public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt {
+            get
+            {
+                var protocols = new[] { "http11", "http11-bc", "plainhttp11", "http2", "http2-bc" };
+                var withPcapStatus = new[] { CaptureType.PcapOutOfProc };
+                var directoryParams = new[] { false, true };
+                var withSimpleRules = new[] { false, true };
+
+                foreach (var protocol in protocols)
+                foreach (var withPcap in withPcapStatus)
+                foreach (var directoryParam in directoryParams)
+                foreach (var withSimpleRule in withSimpleRules) {
+                    yield return new object[] { protocol, withPcap, directoryParam, withSimpleRule };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetSingleRequestParametersNoDecrypt))]
+        public async Task Run(string proto, CaptureType rawCap, bool @out, bool rule)
+        {
+            await base.Run_Cli_Output(proto, rawCap, @out, rule);
         }
     }
 
