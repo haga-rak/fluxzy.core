@@ -74,9 +74,6 @@ export const GlobalMenuItems : MenuItemConstructorOptions []=  [
                 type :  'separator'
             },
             {
-                label : 'Import',
-            },
-            {
                 label : 'Export',
                 submenu : [
                     {
