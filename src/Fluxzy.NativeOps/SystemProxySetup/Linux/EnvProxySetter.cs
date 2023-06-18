@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.Linux
@@ -12,7 +13,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
     /// </summary>
     internal class EnvProxySetter : ISystemProxySetter
     {
-        public void ApplySetting(SystemProxySetting value)
+        public Task ApplySetting(SystemProxySetting value)
         {
             if (value.ListenPort < 0 || string.IsNullOrEmpty(value.BoundHost)) {
                 // Clear env variable 
@@ -30,9 +31,11 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
             Environment.SetEnvironmentVariable("https_proxy", word, EnvironmentVariableTarget.User);
             Environment.SetEnvironmentVariable("http_proxy", word, EnvironmentVariableTarget.User);
             Environment.SetEnvironmentVariable("no_proxy", word, EnvironmentVariableTarget.User);
+
+            return Task.CompletedTask;
         }
 
-        public SystemProxySetting ReadSetting()
+        public Task<SystemProxySetting> ReadSetting()
         {
             var httpProxySetting = Environment.GetEnvironmentVariable("http_proxy", EnvironmentVariableTarget.User)
                                               ?.Trim();
@@ -53,9 +56,9 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
                 var splitTab = httpsProxySetting.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (splitTab.Length > 1 && int.TryParse(splitTab.Last(), out var port) && port > 0 && port < 65535) {
-                    return new SystemProxySetting(string.Join(":", splitTab.SkipLast(1)), port, byPassHosts) {
+                    return Task.FromResult(new SystemProxySetting(string.Join(":", splitTab.SkipLast(1)), port, byPassHosts) {
                         Enabled = true
-                    };
+                    });
                 }
             }
 
@@ -63,15 +66,15 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
                 var splitTab = httpProxySetting.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (splitTab.Length > 1 && int.TryParse(splitTab.Last(), out var port) && port > 0 && port < 65535) {
-                    return new SystemProxySetting(string.Join(":", splitTab.SkipLast(1)), port, byPassHosts) {
+                    return Task.FromResult(new SystemProxySetting(string.Join(":", splitTab.SkipLast(1)), port, byPassHosts) {
                         Enabled = true
-                    };
+                    });
                 }
             }
 
-            return new SystemProxySetting("", -1) {
+            return Task.FromResult(new SystemProxySetting("", -1) {
                 Enabled = false
-            };
+            });
         }
     }
 }

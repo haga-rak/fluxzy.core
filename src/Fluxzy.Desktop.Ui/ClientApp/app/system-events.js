@@ -4,6 +4,14 @@ exports.InstallSystemEvents = void 0;
 var electron_1 = require("electron");
 var fs = require("fs");
 var InstallSystemEvents = function (win) {
+    electron_1.ipcMain.on('welcome', function (event, arg) {
+        event.returnValue = {
+            'version': electron_1.app.getVersion(),
+            'platform': process.platform,
+            'arch': process.arch,
+            'name': electron_1.app.getName(),
+        };
+    });
     electron_1.ipcMain.on('copy-to-cliboard', function (event, arg) {
         //
         if (arg) {

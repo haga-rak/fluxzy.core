@@ -3,109 +3,97 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 using Fluxzy.Misc;
+using Fluxzy.NativeOps.SystemProxySetup.Win;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 {
     internal class MacOsProxySetter : ISystemProxySetter
     {
-        public void ApplySetting(SystemProxySetting value)
-        {
-            throw new NotImplementedException();
-        }
+        private static readonly HashSet<string> PriorityDevices = new(
+            new[] { "Wi-Fi", "Ethernet"}, StringComparer.OrdinalIgnoreCase); 
 
-        public SystemProxySetting ReadSetting()
+        public async Task<SystemProxySetting> ReadSetting()
         {
-            // Try to read exactly every interface proxy settings 
-            // Declare active if any is active 
-            // save into the SystemProxySetting dictionary 
-            
-
             // list all interfaces 
+            var interfaces = (await MacOsHelper.GetEnabledInterfaces()).ToList();
 
-            var interfaces = MacOsHelper.GetEnabledInterfaces().ToList();
+            // get proxy settings
+            var proxySettings = await MacOsHelper.ReadProxySettings(interfaces.Select(s => s.Name));
 
-            MacOsHelper.TrySetProxySettings(interfaces);
+            foreach (var proxySetting in proxySettings) {
+                var iface = interfaces.FirstOrDefault(s => s.Name == proxySetting.Key);
 
-            interfaces = interfaces.Where(s => s.ProxySetting != null).ToList();
-
-            var proxyEnabled = interfaces.Any(s => s.ProxySetting!.Enabled);
-
-            var enabledProxy = interfaces.Where(s => s.ProxySetting!.Enabled)
-                                         .Select(s => s.ProxySetting!.Server).FirstOrDefault();
-
-            var proxyName = enabledProxy ?? "127.0.0.1";
-
-
-           // return new SystemProxySetting(proxyName,  )
-           return null;
-
-
-
-
-
-
-
-
-
-            var testedIfaces = new[] { "Ethernet", "Wi-fi" };
-            SystemProxySetting? pendingResult = null;
-
-            var byPassDomains = new List<string>();
-
-            var bypass =
-                ProcessUtils.RunAndExpectZero("networksetup",
-                    $"-getproxybypassdomains {testedIfaces.First()}");
-
-            if (bypass != null) {
-                byPassDomains.AddRange(bypass
-                    .Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries));
-            }
-
-            foreach (var iFace in testedIfaces) {
-                var input =
-                    ProcessUtils.RunAndExpectZero("networksetup", $"-getwebproxy \"{iFace}\"");
-
-                if (input == null || !TryReadProxySetting(input, out var address, out var port, out var enabled))
+                if (iface == null)
                     continue;
 
-                if (pendingResult == null) {
-                    //  pendingResult  = new SystemProxySetting()
-                }
+                iface.ProxySetting = proxySetting.Value;
             }
+            
+            var activeInterfaces = interfaces.Where(s => s.ProxySetting != null).ToList();
 
-            throw new NotImplementedException();
+            var enabledProxySetting = activeInterfaces
+                                      .OrderByDescending(t => PriorityDevices.Contains(t.HardwarePort))
+                                      .FirstOrDefault(s => s.ProxySetting!.Enabled)?.ProxySetting;
+
+            var proxyEnabled = enabledProxySetting != null;
+            var proxyHost = enabledProxySetting?.Server ?? ProxyConstants.NoProxyWord; 
+            var proxyPort = enabledProxySetting?.Port ?? -1;
+            var byPassDomains = enabledProxySetting?.ByPassDomains ?? Array.Empty<string>();
+
+            return new SystemProxySetting(proxyHost, proxyPort, byPassDomains) {
+                Enabled = proxyEnabled,
+                PrivateValues = { ["nativeSetting"] = activeInterfaces } 
+            };
         }
 
-        private static bool TryReadProxySetting(
-            string input,
-            out string address, out int port, out bool enabled)
+        public async Task ApplySetting(SystemProxySetting value)
         {
-            address = string.Empty;
-            port = default;
-            enabled = default;
+            // networksetup -setwebproxy Ethernet 127.0.0.1 44344
+            // networksetup -setproxybypassdomains domain1 domain2 
 
-            var lineTab = input.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
-                               .Select(s =>
-                                   s.Split(new[] { ":" }, 2, StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(v => v.Trim()).ToArray())
-                               .Where(s => s.Length > 1)
-                               .ToDictionary(s => s[0], s => s[1]);
+            var activeInterfaceNames = (await MacOsHelper.GetEnabledInterfaces())
+                                                  .Select(s => s.Name).ToList();
 
-            if (!lineTab.TryGetValue("Server", out address))
-                return false;
 
-            if (!lineTab.TryGetValue("Port", out var portString)
-                || !int.TryParse(portString, out port))
-                return false;
+            var throwOnFail = false;
 
-            if (!lineTab.TryGetValue("Enabled", out var enabledString))
-                return false;
+#if DEBUG
+            throwOnFail = false; 
+#endif
+            await Task.WhenAll(activeInterfaceNames.Select(s => PrepareInterface(value, s, throwOnFail))); 
+        }
 
-            enabled = enabledString.Equals("Yes", StringComparison.OrdinalIgnoreCase);
+        private static async Task PrepareInterface(SystemProxySetting value, string interfaceName, bool throwOnFail)
+        {
+            var appliedHost = value.BoundHost == ProxyConstants.NoProxyWord ? "''" : value.BoundHost;
+            var appliedPort = value.ListenPort <= 0 ? "''" : value.ListenPort.ToString();
 
-            return true;
+            await ProcessUtils.QuickRunAsync("networksetup",
+                $"-setwebproxy \"{interfaceName}\" \"{appliedHost}\" {appliedPort}", throwOnFail: throwOnFail);
+
+            await ProcessUtils.QuickRunAsync("networksetup",
+                $"-setsecurewebproxy \"{interfaceName}\" \"{appliedHost}\" {appliedPort}", throwOnFail: throwOnFail);
+
+            if (value.ByPassHosts.Any()) {
+                await ProcessUtils.QuickRunAsync("networksetup",
+                    $"-setproxybypassdomains \"{interfaceName}\" {string.Join(" ", value.ByPassHosts.Select(s => $"\"{s}\""))}",
+                    throwOnFail: throwOnFail);
+            }
+            else {
+                await ProcessUtils.QuickRunAsync("networksetup", $"-setproxybypassdomains \"{interfaceName}\" ''",
+                    throwOnFail: throwOnFail);
+            }
+
+            var onOff = value.Enabled ? "on" : "off";
+
+            await ProcessUtils.QuickRunAsync("networksetup", $"-setwebproxystate \"{interfaceName}\" {onOff}",
+                throwOnFail: throwOnFail);
+
+            await ProcessUtils.QuickRunAsync("networksetup", $"-setsecurewebproxystate \"{interfaceName}\" {onOff}",
+                throwOnFail: throwOnFail);
         }
     }
 }

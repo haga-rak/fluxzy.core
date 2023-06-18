@@ -27,7 +27,7 @@ namespace Fluxzy.Tests.Certificates
             var outOfProcCertManager = new OutOfProcAuthorityManager(_manager);
 
             await outOfProcCertManager.InstallCertificate(_certificate);
-            Assert.True(_manager.IsCertificateInstalled(_certificate.Thumbprint!));
+            Assert.True(_manager.IsCertificateInstalled(_certificate));
         }
     }
 }

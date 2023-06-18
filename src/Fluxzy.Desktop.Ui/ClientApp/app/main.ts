@@ -10,8 +10,9 @@ import {autoUpdateRoutine} from "./auto-update";
 import {InstallWindowManagement} from "./window-management";
 
 app.commandLine.appendSwitch('no-proxy-server');
+app.commandLine.appendSwitch('ignore-connections-limit', 'localhost,127.0.0.1');
+
 // app.commandLine.appendSwitch('disable-renderer-backgrounding');
-// app.commandLine.appendSwitch('ignore-connections-limit', 'localhost,127.0.0.1');
 
 if(checkSquirrelStartup())
     app.quit();
@@ -34,8 +35,6 @@ function runFrontEnd() : void {
     function createWindow(): BrowserWindow {
 
         let mainScreen = screen.getPrimaryDisplay();
-
-        console.log(mainScreen);
 
         // Create the browser window.
         win = new BrowserWindow({
@@ -152,7 +151,10 @@ function launchFluxzyDaemonOrDie(commandLineArgs : string [] , backedLaunchCallb
     // Launch and wait for backend to be ready
     const exeName = process.platform === "win32"? "fluxzyd.exe" : "fluxzyd";
     const processPath = path.dirname(process.argv[0]) ;
-    const backendPath:string = path.join(processPath, `resources/app/.publish/${exeName}`);
+    let prePath  =path.dirname(__filename) ;
+
+    const backendPath:string = path.join(prePath, `../zpublish/${exeName}`)
+    // path.resolve();
 
     const pid : string = `${process.pid}`;
 

@@ -34,7 +34,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Win
             var proxyOverrideList = proxyOverride.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
             var proxyServerTab = proxyServer.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 
-            var proxyServerName = proxyServerTab.Length != 2 ? "no_proxy_server" : proxyServerTab[0];
+            var proxyServerName = proxyServerTab.Length != 2 ? ProxyConstants.NoProxyWord : proxyServerTab[0];
             var proxyPort = proxyServerTab.Length != 2 ? -1 : int.Parse(proxyServerTab[1]);
 
             return new SystemProxySetting(proxyServerName, proxyPort, proxyOverrideList) {

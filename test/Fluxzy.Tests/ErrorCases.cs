@@ -79,7 +79,7 @@ namespace Fluxzy.Tests
 
         //    using var httpClient = new HttpClient(clientHandler);
 
-        //    var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+        //    var requestMessage = new HttpRequestMessage(HttpMethod.ParseFromCommandLineResult,
         //        $"https://sandbox.smartizy.com:4988/");
 
         //    using var response = await httpClient.SendAsync(requestMessage);

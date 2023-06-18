@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
@@ -108,17 +109,17 @@ namespace Fluxzy.Tests
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://sandbox.smartizy.com:5001/content-produce-unpredictable/130000/130000"
+                "https://sandbox.smartizy.com/content-produce-unpredictable/130000/130000"
             );
 
             var response = await httpClient.SendAsync(requestMessage);
-            var array = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+            var contentLength = await (await response.Content.ReadAsStreamAsync()).DrainAsync();
 
             var actualLength =
                 int.Parse(response.Headers.GetValues("actual-content-length").First());
 
             Assert.True(response.IsSuccessStatusCode);
-            Assert.Equal(actualLength, array.Length);
+            Assert.Equal(actualLength, contentLength);
         }
 
         [Fact]

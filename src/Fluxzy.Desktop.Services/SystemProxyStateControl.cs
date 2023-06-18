@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net;
 using System.Reactive.Linq;
@@ -20,7 +20,7 @@ namespace Fluxzy.Desktop.Services
             SystemProxyRegistrationManager systemProxyRegistrationManager)
         {
             _systemProxyRegistrationManager = systemProxyRegistrationManager;
-            var current = _systemProxyRegistrationManager.GetSystemProxySetting();
+            var current = _systemProxyRegistrationManager.GetSystemProxySetting().GetAwaiter().GetResult(); // TODO: fix this
 
             Subject = new BehaviorSubject<SystemProxyState>(new SystemProxyState(current.BoundHost, current.ListenPort,
                 current.Enabled));
@@ -31,7 +31,7 @@ namespace Fluxzy.Desktop.Services
 
         protected override BehaviorSubject<SystemProxyState> Subject { get; }
 
-        public void On()
+        public async Task On()
         {
             if (_fluxzySetting == null)
                 return;
@@ -41,18 +41,18 @@ namespace Fluxzy.Desktop.Services
                 || !_proxyState.BoundConnections.Any())
                 return;
 
-            var newSetting = _systemProxyRegistrationManager.Register(_proxyState.BoundConnections.Select(
+            var newSetting = await _systemProxyRegistrationManager.Register(_proxyState.BoundConnections.Select(
                 p => new IPEndPoint(IPAddress.Parse(p.Address), p.Port)), _fluxzySetting);
 
             if (newSetting != null)
                 Subject.OnNext(new SystemProxyState(newSetting.BoundHost, newSetting.ListenPort, true));
         }
 
-        public void Off()
+        public async Task Off()
         {
-            _systemProxyRegistrationManager.UnRegister();
+            await _systemProxyRegistrationManager.UnRegister();
 
-            var current = _systemProxyRegistrationManager.GetSystemProxySetting();
+            var current = await _systemProxyRegistrationManager.GetSystemProxySetting();
             Subject.OnNext(new SystemProxyState(current.BoundHost, current.ListenPort, current.Enabled));
         }
     }

@@ -73,7 +73,7 @@ namespace Fluxzy.Tests.NativeOps.Macos
         public void TestParseProxySettings()
         {
             var setting =
-                InterfaceProxySetting.Get("Enabled: No\r\nServer:\r\nPort: 0\r\nAuthenticated Proxy Enabled: 0");
+                NetworkInterfaceProxySetting.ParseFromCommandLineResult("Enabled: No\r\nServer:\r\nPort: 0\r\nAuthenticated Proxy Enabled: 0");
 
             Assert.NotNull(setting);
             Assert.False(setting.Enabled);
@@ -84,7 +84,7 @@ namespace Fluxzy.Tests.NativeOps.Macos
         [Fact]
         public void TestParseProxySettingsRegularValue()
         {
-            var setting = InterfaceProxySetting.Get(_basicCommandLIneResult);
+            var setting = NetworkInterfaceProxySetting.ParseFromCommandLineResult(_basicCommandLIneResult);
 
             Assert.NotNull(setting);
             Assert.True(setting.Enabled);
@@ -95,7 +95,7 @@ namespace Fluxzy.Tests.NativeOps.Macos
         [Fact]
         public void TestParseProxySettingsRegularValueMacosStyle()
         {
-            var setting = InterfaceProxySetting.Get(_basicCommandLIneResult.Replace("\r\n", "\r"));
+            var setting = NetworkInterfaceProxySetting.ParseFromCommandLineResult(_basicCommandLIneResult.Replace("\r\n", "\r"));
 
             Assert.NotNull(setting);
             Assert.True(setting.Enabled);
@@ -106,7 +106,7 @@ namespace Fluxzy.Tests.NativeOps.Macos
         [Fact]
         public void TestParseProxySettingsLimitCase()
         {
-            var setting = InterfaceProxySetting.Get(
+            var setting = NetworkInterfaceProxySetting.ParseFromCommandLineResult(
                 "\r\nEnabled: yes\r\nEnabled: yes\r\nServer: 127.0.0.1\r\nPort: 44344\r\nAuthenticated Proxy Enabled: 0");
 
             Assert.Null(setting);

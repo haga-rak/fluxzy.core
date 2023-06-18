@@ -3,9 +3,11 @@ import {filter, map, Observable, Subject, tap, switchMap, of} from 'rxjs';
 import {IApplicationMenuEvent} from '../../../../app/menu-prepare';
 import {ApiService} from '../../services/api.service';
 import {FileOpeningRequestViewModel, UiState} from '../models/auto-generated';
-import {FindMenu, FindMenuByName, GlobalMenuItems} from '../models/menu-models';
+import {FindMenu, FindMenuByName, GetMainMenuItems} from '../models/menu-models';
 import {ElectronService} from './electron/electron.service';
 import {DialogService} from "../../services/dialog.service";
+import {MenuItemConstructorOptions} from "electron";
+import {SystemCallService} from "./system-call.service";
 
 @Injectable({
     providedIn: 'root'
@@ -18,12 +20,15 @@ export class MenuService {
 
     private nextOpenFile$ = new Subject<string>();
     private nextSaveFile$ = new Subject<string>();
-    private _currentMenu = GlobalMenuItems;
+    private _currentMenu  : MenuItemConstructorOptions [];
+
     private _initied = false;
 
     private callBacks: { [menuId: string]: () => void } = {}
 
-    constructor(private electronService: ElectronService, private apiService: ApiService, private dialogService : DialogService) {
+    constructor(private electronService: ElectronService, private apiService: ApiService, private dialogService : DialogService, private systemCallService : SystemCallService) {
+        const environmentInfo = this.systemCallService.getEnvironmentInfo();
+        this._currentMenu = GetMainMenuItems(environmentInfo);
     }
 
     public getApplicationMenuEvents(): Observable<IApplicationMenuEvent> {

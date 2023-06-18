@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 using Fluxzy.Misc;
 
@@ -25,7 +26,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
 
         private readonly EnvProxySetter _internalSetter = new EnvProxySetter();
 
-        public void ApplySetting(SystemProxySetting proxySetting)
+        public async Task ApplySetting(SystemProxySetting proxySetting)
         {
             if (ProcessUtils.IsCommandAvailable("gsettings")) {
                 // Gnome based process we set proxy settings via gsettings
@@ -44,7 +45,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
 
                     // Just disable proxy 
 
-                    ProcessUtils.QuickRun("gsettings set org.gnome.system.proxy mode 'none'");
+                    await ProcessUtils.QuickRunAsync("gsettings set org.gnome.system.proxy mode 'none'");
 
                     return;
                 }
@@ -56,7 +57,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
             }
         }
 
-        public SystemProxySetting ReadSetting()
+        public Task<SystemProxySetting> ReadSetting()
         {
             if (ProcessUtils.IsCommandAvailable("gsettings")) {
                 // Gnome based process we set proxy settings via gsettings
@@ -86,7 +87,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.Linux
                     }
                 };
 
-                return finalSettings;
+                return Task.FromResult(finalSettings);
             }
 
             // Ignore if not working 

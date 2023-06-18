@@ -1,9 +1,10 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 
 namespace Fluxzy.Core
@@ -23,16 +24,16 @@ namespace Fluxzy.Core
             _systemProxySetter = systemProxySetter;
         }
 
-        public SystemProxySetting? Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
+        public Task<SystemProxySetting> Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
         {
             return Register(endPoints.OrderByDescending(t => Equals(t.Address, IPAddress.Loopback)
                                                              || t.Address.Equals(IPAddress.IPv6Loopback)).First(),
                 fluxzySetting.ByPassHost.ToArray());
         }
 
-        public SystemProxySetting Register(IPEndPoint endPoint, params string[] byPassHosts)
+        public async Task<SystemProxySetting> Register(IPEndPoint endPoint, params string[] byPassHosts)
         {
-            var existingSetting = GetSystemProxySetting();
+            var existingSetting = await GetSystemProxySetting();
 
             if (_oldSetting != null && !existingSetting.Equals(_oldSetting))
                 _oldSetting = existingSetting;
@@ -47,25 +48,24 @@ namespace Fluxzy.Core
             _currentSetting = new SystemProxySetting(
                 connectableHostName.ToString(),
                 endPoint.Port,
-                byPassHosts.Concat(new[] { "127.0.0.1" })
-                           .ToArray());
+                byPassHosts);
 
-            _systemProxySetter.ApplySetting(_currentSetting);
+            await _systemProxySetter.ApplySetting(_currentSetting);
 
             return _currentSetting;
         }
 
-        public SystemProxySetting GetSystemProxySetting()
+        public async Task<SystemProxySetting> GetSystemProxySetting()
         {
             var existingSetting = _systemProxySetter.ReadSetting();
 
-            return existingSetting;
+            return await existingSetting;
         }
 
-        public void UnRegister()
+        public async Task UnRegister()
         {
             if (_oldSetting != null) {
-                _systemProxySetter.ApplySetting(_oldSetting);
+                await _systemProxySetter.ApplySetting(_oldSetting);
                 _oldSetting = null;
 
                 return;
@@ -73,17 +73,17 @@ namespace Fluxzy.Core
 
             if (_currentSetting != null) {
                 _currentSetting.Enabled = false;
-                _systemProxySetter.ApplySetting(_currentSetting);
+                await _systemProxySetter.ApplySetting(_currentSetting);
                 _currentSetting = null;
 
                 return;
             }
 
-            var existingSetting = GetSystemProxySetting();
+            var existingSetting = await GetSystemProxySetting();
 
             if (existingSetting.Enabled) {
                 existingSetting.Enabled = false;
-                _systemProxySetter.ApplySetting(existingSetting);
+                await _systemProxySetter.ApplySetting(existingSetting);
             }
         }
 

@@ -9,13 +9,13 @@
     </div>
     &nbsp;
     &nbsp;<div class="btn-group proxy-command-button" role="group">
-    <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
+    <button [disabled]="(!uiState.captureEnabled && !uiState.haltEnabled) || captureOp"
             [hidden]="uiState.haltEnabled"
             class="btn btn-dark capture" aria-current="page" title="capture OS trafic" (click)="enableCapture()">
         <i class="fa fa-dot-circle-o text-success" style="" aria-hidden="true"></i>&nbsp;
         capture
     </button>
-    <button [disabled]="!uiState.captureEnabled && !uiState.haltEnabled"
+    <button [disabled]="(!uiState.captureEnabled && !uiState.haltEnabled) || captureOp"
             [hidden]="!uiState.haltEnabled"
             class="btn btn-dark capture" aria-current="page" title="halt traffic capture" (click)="haltCapture()">
         <i class="fa fa-pause text-danger" style="font-size:16px" aria-hidden="true"></i>&nbsp;

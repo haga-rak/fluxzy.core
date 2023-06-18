@@ -25,7 +25,8 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
                     commandName += ".exe"; // TODO : find a more elegant trick than this 
             }
 
-            _process = ProcessUtils.RunElevated(commandName, new[] { $"{currentPid}" }, true);
+            _process = await ProcessUtils.RunElevated(commandName, new[] { $"{currentPid}" }, true,
+                "Fluxzy need to acquire privilege for capturing raw packet");
 
 
             if (_process == null) {
@@ -42,7 +43,7 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
                 var nextLine = await _process.StandardOutput.ReadLineAsync()
 
                                              // We wait 5s for the the process to be ready
-                                             .WaitAsync(TimeSpan.FromSeconds(60));
+                                             .WaitAsync(TimeSpan.FromSeconds(300));
 
                 if (nextLine == null || !int.TryParse(nextLine, out var port))
                     return false; // Did not receive port number
@@ -74,7 +75,7 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
         {
             if (_process != null) {
                 try {
-                    _process.StandardInput.WriteLine("exit");
+                    await _process.StandardInput.WriteLineAsync("exit");
                     _process.StandardInput.Close();
                     await _process.WaitForExitAsync();
                 }

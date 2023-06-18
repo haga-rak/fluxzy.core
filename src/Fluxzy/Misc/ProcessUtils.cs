@@ -1,10 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Fluxzy.Utils;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,7 +43,7 @@ namespace Fluxzy.Misc
         }
 
         public static async Task<ProcessRunResult> QuickRunAsync(
-            string commandName, string args, Stream? stdinStream = null)
+            string commandName, string args, Stream? stdinStream = null, bool throwOnFail = false)
         {
             // Run process and return process run result 
 
@@ -79,10 +81,16 @@ namespace Fluxzy.Misc
 
             await process.WaitForExitAsync();
 
+            if (process.ExitCode != 0 && throwOnFail)
+                throw new InvalidOperationException(
+                    $"Process {commandName} {args} exited" +
+                    $" with code {process.ExitCode} {standardOutput} {standardError}");
+
             return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
         }
 
-        public static ProcessRunResult QuickRun(string commandName, string args, Stream? stdInStream = null)
+        public static ProcessRunResult QuickRun(
+            string commandName, string args, Stream? stdInStream = null, bool throwOnFail = false)
         {
             // Run process and return process run result 
 
@@ -109,6 +117,11 @@ namespace Fluxzy.Misc
             var standardError = process.StandardError.ReadToEnd();
 
             process.WaitForExit();
+
+            if (process.ExitCode != 0 && throwOnFail)
+                throw new InvalidOperationException(
+                    $"Process {commandName} {args} exited" +
+                    $" with code {process.ExitCode} {standardOutput} {standardError}"); 
 
             return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
         }
@@ -164,7 +177,8 @@ namespace Fluxzy.Misc
             return true;
         }
 
-        public static Process? RunElevated(string commandName, string[] args, bool redirectStdOut)
+        public static async Task<Process?> RunElevated(string commandName, string[] args, bool redirectStdOut,
+            string askPasswordPrompt)
         {
             var fullArgs = string.Join(" ", args.Select(s => s.EscapeSegment()));
 
@@ -183,21 +197,17 @@ namespace Fluxzy.Misc
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 
-                if (Environment.GetEnvironmentVariable("FluxzyDesktopVersion") != null) {
-                    // We are running in a FluxzyDesktop environment, we can use osascript 
+                if (Environment.GetEnvironmentVariable("FluxzyDesktopVersion") != null 
+                    || string.Equals(Environment.GetEnvironmentVariable("FluxzyGraphicalPrivilegePrompt"), "TRUE",
+                        StringComparison.OrdinalIgnoreCase)) {
                     
-                    var osxDesktopProcess = Process.Start(new ProcessStartInfo("osascript", 
-                        $"osascript -e 'do shell script \"{commandName} {fullArgs}\" with administrator privileges'") {
-                        UseShellExecute = false,
-                        Verb = "runas",
-                        RedirectStandardOutput = redirectStdOut,
-                        RedirectStandardInput = redirectStdOut
-                    });
+                    var acquired = await ProcessUtilsOsx.OsxTryAcquireElevation(askPasswordPrompt);
 
-                    return osxDesktopProcess;
+                    if (!acquired)
+                        return null; 
                 }
                 
-                var osXProcess = Process.Start(new ProcessStartInfo("sudo", $"{commandName} {fullArgs}") {
+                var osXProcess = Process.Start(new ProcessStartInfo("sudo", $"-n {commandName} {fullArgs}") {
                     UseShellExecute = false,
                     Verb = "runas",
                     RedirectStandardOutput = redirectStdOut,
@@ -216,6 +226,7 @@ namespace Fluxzy.Misc
 
             return process;
         }
+
     }
 
     internal static class ProcessExtensions
@@ -257,6 +268,8 @@ namespace Fluxzy.Misc
             return str.Replace("'", "'\\''");
         }
     }
+
+
 
     public class ProcessRunResult
     {

@@ -29,6 +29,7 @@ export class FilterHeaderViewComponent implements OnInit {
 
     public searchString = '';
     public windowState: WindowState | null = null;
+    public captureOp = false; 
 
     @ViewChild('searchBlock') public searchTextBox:ElementRef;
 
@@ -158,11 +159,13 @@ export class FilterHeaderViewComponent implements OnInit {
     }
 
     public enableCapture() : void {
-        this.apiService.proxyOn().subscribe();
+        this.captureOp = true;
+        this.apiService.proxyOn().subscribe(t => this.captureOp = false);
     }
 
     public haltCapture() : void {
-        this.apiService.proxyOff().subscribe();
+        this.captureOp = true;
+        this.apiService.proxyOff().subscribe(t => this.captureOp = false);
     }
 
     catchAll() {

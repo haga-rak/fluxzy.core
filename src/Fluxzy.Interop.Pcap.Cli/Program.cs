@@ -12,9 +12,11 @@ namespace Fluxzy.Interop.Pcap.Cli
                    && !str.Equals("exit", StringComparison.OrdinalIgnoreCase)) {
             }
 
+            // await Task.Delay(-1);
+
             // STDIN has closed this means that parent request halted or request an explicit close 
 
-            if (source.IsCancellationRequested)
+            if (!source.IsCancellationRequested)
                 source.Cancel();
         }
 
@@ -24,7 +26,7 @@ namespace Fluxzy.Interop.Pcap.Cli
 
             await process.WaitForExitAsync(source.Token);
 
-            if (source.IsCancellationRequested)
+            if (!source.IsCancellationRequested)
                 source.Cancel();
         }
 
@@ -59,7 +61,12 @@ namespace Fluxzy.Interop.Pcap.Cli
                 new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
 
             receiverContext.Start();
+
+            // This is important to inform reader that the TCP server is ready 
             Console.WriteLine(receiverContext.Receiver!.ListeningPort);
+
+            // Flush to ensure the client is not waiting forever 
+            await Console.Out.FlushAsync();
 
             var loopingTask = receiverContext.WaitForExit();
 

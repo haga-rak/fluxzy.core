@@ -112,6 +112,12 @@ namespace Fluxzy.Misc.Streams
 
             return memoryStream.ToArray();
         }
+        public static async Task<byte[]> ToArrayGreedyAsync(this Stream stream)
+        {
+            var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            return memoryStream.ToArray();
+        }
 
         public static string ToBase64String(this Stream stream, bool dispose = false)
         {

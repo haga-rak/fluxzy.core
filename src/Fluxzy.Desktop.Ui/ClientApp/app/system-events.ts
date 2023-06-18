@@ -5,6 +5,16 @@ import * as fs from "fs";
 
 export const InstallSystemEvents = (win: BrowserWindow): void => {
 
+    ipcMain.on('welcome', (event, arg) => {
+
+        event.returnValue =  {
+            'version': app.getVersion(),
+            'platform': process.platform,
+            'arch': process.arch,
+            'name': app.getName(),
+        };
+    }) ;
+
     ipcMain.on('copy-to-cliboard', (event, arg) => {
         //
         if (arg) {
@@ -159,7 +169,7 @@ export const InstallSystemEvents = (win: BrowserWindow): void => {
 
         const resultIndex = dialog.showMessageBoxSync(win, options);
         event.returnValue = resultIndex;
-        
+
     });
 
     ipcMain.on('exit', function (event, arg) {
