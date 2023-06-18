@@ -7,54 +7,59 @@ using System.Text.RegularExpressions;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.macOs
 {
-    internal class Interface
+    internal class NetworkInterface
     {
-        public Interface(int index, string name, string deviceName)
+        public NetworkInterface(int index, string name, string deviceName, string hardwarePort)
         {
             Index = index;
             Name = name;
             DeviceName = deviceName;
+            HardwarePort = hardwarePort;
         }
 
         public string Name { get;  } 
 
-        public string DeviceName { get;  } 
+        public string DeviceName { get;  }
+
+        public string HardwarePort { get; }
 
         public int Index { get;  }
         
         public bool Up { get; set; }
-        public InterfaceProxySetting? ProxySetting { get; set; }
 
-        public static Interface?  BuildFrom(string[] lines)
+        public NetworkInterfaceProxySetting? ProxySetting { get; set; }
+
+        public static NetworkInterface?  BuildFrom(string[] lines)
         {
             if (lines.Length != 2)
-                return null;
+                return null; // Must be two consecutive lines
 
-            var regexInterfaceName = @"^\((\d+)\) (.*)$"; 
-            var regexDeviceName = @"Device: ([a-zA-Z0-9_]+)\)$";
+            var regexInterfaceName = @"^\((?<deviceIndex>\d+)\) (?<interfaceName>.*)$"; 
+            var regexDeviceName = @"Hardware Port: (?<hardwarePort>.*), Device: (?<deviceName>[a-zA-Z0-9_]+)\)$";
 
             var matchInterfaceName = Regex.Match(lines[0], regexInterfaceName);
 
             if (!matchInterfaceName.Success)
                 return null;
 
-            var interfaceName = matchInterfaceName.Groups[2].Value; 
-            var deviceIndex = int.Parse(matchInterfaceName.Groups[1].Value);
+            var interfaceName = matchInterfaceName.Groups["interfaceName"].Value; 
+            var deviceIndex = int.Parse(matchInterfaceName.Groups["deviceIndex"].Value);
 
             var matchDeviceName = Regex.Match(lines[1], regexDeviceName);
 
             if (!matchDeviceName.Success) 
                 return null;
 
-            var deviceName = matchDeviceName.Groups[1].Value;
+            var deviceName = matchDeviceName.Groups["deviceName"].Value;
+            var hardwarePort = matchDeviceName.Groups["hardwarePort"].Value;
 
-            return new Interface(deviceIndex, interfaceName, deviceName);
+            return new NetworkInterface(deviceIndex, interfaceName, deviceName, hardwarePort);
         }
     }
 
-    internal class InterfaceProxySetting
+    internal class NetworkInterfaceProxySetting
     {
-        public InterfaceProxySetting(bool enabled, string server, int port)
+        private NetworkInterfaceProxySetting(bool enabled, string server, int port)
         {
             Enabled = enabled;
             Server = server;
@@ -66,9 +71,15 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
         public string Server { get; }
 
         public int Port { get;  }
+        
+        public string[] ByPassDomains { get; set; } = new string[0];
 
-
-        public static InterfaceProxySetting? Get(string commandLineResult)
+        /// <summary>
+        /// Parses result of command line "networksetup -getwebproxy {interfaceName}"
+        /// </summary>
+        /// <param name="commandLineResult"></param>
+        /// <returns></returns>
+        public static NetworkInterfaceProxySetting? ParseFromCommandLineResult(string commandLineResult)
         {
             var lines = commandLineResult.Split(new[] { "\r", "\n"}, StringSplitOptions.RemoveEmptyEntries)
                                          .ToList();
@@ -98,7 +109,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
             if (!int.TryParse(portValue.Trim(), out var port))
                 return null;
 
-            return new InterfaceProxySetting(enabled, server, port);
+            return new NetworkInterfaceProxySetting(enabled, server, port);
 
         }
     }

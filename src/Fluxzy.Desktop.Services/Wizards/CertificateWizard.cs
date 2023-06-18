@@ -38,7 +38,7 @@ namespace Fluxzy.Desktop.Services.Wizards
             var runningCertificateThumbPrint = certificate.Thumbprint;
 
             return new CertificateWizardStatus(
-                _certificateAuthorityManager.IsCertificateInstalled(runningCertificateThumbPrint),
+                _certificateAuthorityManager.IsCertificateInstalled(certificate),
                 _globalUiSettingStorage.UiUserSetting.StartupWizardSettings.NoCertificateInstallExplicit,
                 certificateFriendlyName);
         }

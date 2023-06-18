@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Fluxzy.Misc;
 
 namespace Fluxzy.NativeOps.SystemProxySetup.macOs
@@ -9,21 +11,21 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
     internal class MacOsHelper
     {
         // Adding root certificate on macos s
-        // sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain r.cer 
 
-        public static IEnumerable<Interface> GetEnabledInterfaces()
+        public static async Task<IEnumerable<NetworkInterface>> GetEnabledInterfaces()
         {
-            var runResult = ProcessUtils.QuickRun("networksetup", "-listnetworkserviceorder");
+            var runResult = await ProcessUtils.QuickRunAsync("networksetup", "-listnetworkserviceorder");
 
             if (runResult.ExitCode != 0 || runResult.StandardOutputMessage == null)
                 throw new InvalidOperationException("Failed to get interfaces");
 
             var commandResponse = runResult.StandardOutputMessage;
 
-            return ParseInterfaces(commandResponse);
+            return ParseInterfaces(commandResponse).Where(r => r.HardwarePort.Equals("Ethernet", StringComparison.OrdinalIgnoreCase)
+            || r.HardwarePort.Equals("Wi-Fi", StringComparison.OrdinalIgnoreCase));
         }
 
-        public static IEnumerable<Interface> ParseInterfaces(string commandResponse)
+        public static IEnumerable<NetworkInterface> ParseInterfaces(string commandResponse)
         {
             var lines = commandResponse
                 .Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -32,7 +34,7 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
                 var line = lines[index];
                 var nextLine = lines[index + 1];
 
-                var iface = Interface.BuildFrom(new[] { line, nextLine });
+                var iface = NetworkInterface.BuildFrom(new[] { line, nextLine });
 
                 if (iface == null)
                     continue;
@@ -45,25 +47,39 @@ namespace Fluxzy.NativeOps.SystemProxySetup.macOs
             }
         }
 
-        public static void TrySetProxySettings(IEnumerable<Interface> interfaces)
+        public static async Task<Dictionary<string, NetworkInterfaceProxySetting?>> ReadProxySettings(IEnumerable<string> interfaceNames)
         {
-            foreach (var iFace in interfaces) {
-                var interfaceName = iFace.Name;
+            var result = new Dictionary<string, NetworkInterfaceProxySetting?>();
 
-                var commandLineResult = ProcessUtils.QuickRun("networksetup", $"-getwebproxy \"{interfaceName}\"");
+            foreach (var interfaceName in interfaceNames) {
 
-                if (commandLineResult.ExitCode != 0 || commandLineResult.StandardOutputMessage == null)
+                var getwebProxyResult = await ProcessUtils.QuickRunAsync("networksetup", $"-getsecurewebproxy \"{interfaceName}\"");
+
+                if (getwebProxyResult.ExitCode != 0 || getwebProxyResult.StandardOutputMessage == null)
                     continue;
 
-                var commandResponse = commandLineResult.StandardOutputMessage;
+                var commandResponse = getwebProxyResult.StandardOutputMessage;
 
-                var proxySetting = InterfaceProxySetting.Get(commandResponse);
+                var proxySetting = NetworkInterfaceProxySetting.ParseFromCommandLineResult(commandResponse);
 
-                if (proxySetting == null)
-                    continue;
+                result[interfaceName] = proxySetting;
 
-                iFace.ProxySetting = proxySetting;
+                if (proxySetting != null) {
+                    // Proxy settigns is available we try to set bypass domains
+
+                    var byPassDomainsRunResult = await ProcessUtils.QuickRunAsync("networksetup", $"-getproxybypassdomains \"{interfaceName}\"");
+
+                    if (byPassDomainsRunResult.ExitCode != 0 || byPassDomainsRunResult.StandardOutputMessage == null)
+                        continue;
+
+                    var byPassDomains = byPassDomainsRunResult.StandardOutputMessage.Split(new[] { "\r", "\n" },
+                        StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
+
+                    proxySetting.ByPassDomains = byPassDomains;
+                }
             }
+
+            return result;
         }
     }
 }

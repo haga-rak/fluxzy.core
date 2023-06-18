@@ -26,7 +26,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             settingsHolder.StartupSetting.SaveFilter = null;
             settingManager.Update(settingsHolder);
 
-            _systemProxyStateControl.On();
+            await _systemProxyStateControl.On();
 
             return true;
         }
@@ -41,15 +41,15 @@ namespace Fluxzy.Desktop.Ui.Controllers
             settingsHolder.StartupSetting.SaveFilter = saveFilter;
             settingManager.Update(settingsHolder);
 
-            _systemProxyStateControl.On();
+            await _systemProxyStateControl.On();
 
             return true;
         }
 
         [HttpPost("off")]
-        public ActionResult<bool> Off()
+        public async Task<ActionResult<bool>> Off()
         {
-            _systemProxyStateControl.Off();
+            await _systemProxyStateControl.Off();
 
             return true;
         }

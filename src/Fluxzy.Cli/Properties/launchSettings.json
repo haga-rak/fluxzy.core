@@ -3,14 +3,12 @@
     "fxzy": {
       "commandName": "Project",
       "environmentVariables": {
-        //"EnableDumpStackTraceOn502": "true"
       },
-      "commandLineArgs": "start --llo -r rule.yml -sp"
+      "commandLineArgs": "start --llo -sp"
     },
     "fxzy (normal)": {
       "commandName": "Project",
       "environmentVariables": {
-        //"EnableDumpStackTraceOn502": "true"
       },
       "commandLineArgs": "start --llo -n 2"
     }

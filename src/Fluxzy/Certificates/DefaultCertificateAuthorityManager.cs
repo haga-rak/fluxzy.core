@@ -13,16 +13,19 @@ namespace Fluxzy.Certificates
         /// <summary>
         ///     Check whether a certificate is installed as root certificate
         /// </summary>
-        /// <param name="certificateThumbPrint"></param>
+        /// <param name="certificate"></param>
         /// <returns></returns>
-        public override bool IsCertificateInstalled(string certificateThumbPrint)
+        public override bool IsCertificateInstalled(X509Certificate2 certificate)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                return ExtendedMacOsCertificateInstaller.IsCertificateInstalled(certificate);
+            }
+
+            // TODO implementation for Linux should be here 
+            
             using var store = new X509Store(StoreName.Root);
-
             store.Open(OpenFlags.ReadOnly);
-
-            var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, certificateThumbPrint, false);
-
+            var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, certificate.Thumbprint, false);
             return certificates.Count > 0;
         }
 
@@ -38,8 +41,8 @@ namespace Fluxzy.Certificates
                 {
                     store.Remove(certificate);
 
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                        ExtendedLinuxCertificateInstaller.Install(certificate);
+                    //if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    //    ExtendedLinuxCertificateInstaller.Install(certificate);
                 }
                 catch (Exception)
                 {
@@ -62,6 +65,9 @@ namespace Fluxzy.Certificates
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     ExtendedLinuxCertificateInstaller.Install(certificate);
 
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    ExtendedMacOsCertificateInstaller.Install(certificate);
+                
                 return new ValueTask<bool>(true);
             }
             catch {

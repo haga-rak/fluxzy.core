@@ -28,6 +28,13 @@ export class SystemCallService {
         }
     }
 
+    public getEnvironmentInfo() : EnvironmentInfo | null {
+        if (this.electronService.isElectron) {
+            return this.electronService.ipcRenderer.sendSync('welcome', null);
+        }
+        return null;
+    }
+
     public openFile(fileName: string): Observable<string | null> {
         if (this.electronService.isElectron) {
             const res = this.electronService.ipcRenderer.sendSync('open-file', fileName) as string | null;
@@ -88,4 +95,9 @@ export interface FileSaveRequest {
 export interface FileFilter {
     name: string;
     extensions: string[];
+}
+
+export interface EnvironmentInfo {
+    platform : string ;
+    version : string ;
 }

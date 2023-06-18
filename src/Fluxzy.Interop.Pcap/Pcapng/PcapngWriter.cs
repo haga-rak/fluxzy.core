@@ -2,6 +2,7 @@
 // 
 
 using System.Buffers;
+using System.Runtime.InteropServices;
 using Fluxzy.Interop.Pcap.Writing;
 using SharpPcap;
 
@@ -62,7 +63,13 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             }
 
             var fileStream = File.Open(outFileName, FileMode.Create, FileAccess.Write, FileShare.Read);
-            
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                File.SetUnixFileMode(outFileName,
+                    UnixFileMode.GroupRead | UnixFileMode.GroupWrite
+                   | UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.OtherRead);
+            }
+
             lock (_pcapngStreamWriter)
             {
                 fileStream.Write(_waitBuffer, 0, (int) _workStream.Position); // We copy content to buffer 
@@ -105,6 +112,13 @@ namespace Fluxzy.Interop.Pcap.Pcapng
                         AutoFlush = true,
                         NewLine = "\r\n"
                     };
+
+                     if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                     {
+                         File.SetUnixFileMode(_nssKeyLogPath,
+                             UnixFileMode.GroupRead | UnixFileMode.GroupWrite
+                                                    | UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.OtherRead);
+                     }
                 }
                 _nssKeyLogStreamWriter?.WriteLine($"{nssKey}");
             }

@@ -26,5 +26,10 @@ namespace Fluxzy.Utils
 
             return $"{partialRes}.";
         }
+
+        public static string EscapeDoubleQuote(this string str)
+        {
+            return str.Replace("\"", "\\\"");
+        }
     }
 }

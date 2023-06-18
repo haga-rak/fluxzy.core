@@ -17,6 +17,7 @@ using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.ResizableBuffers;
+using Fluxzy.Misc.Traces;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
@@ -165,12 +166,18 @@ namespace Fluxzy
                     }
                 }
             }
-            catch {
+            catch (Exception ex) {
                 // We ignore any parsing errors that may block the proxy
                 // TODO : escalate from Serilog To Here
+
+                if (D.EnableTracing)
+                {
+                    var message = $"Processing error {client.Client.RemoteEndPoint}";
+                    D.TraceException(ex, message);
+                }
             }
             finally {
-                var value = Interlocked.Decrement(ref _currentConcurrentCount);
+                Interlocked.Decrement(ref _currentConcurrentCount);
             }
         }
 

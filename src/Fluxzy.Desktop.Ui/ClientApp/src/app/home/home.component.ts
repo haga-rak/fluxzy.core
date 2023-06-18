@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { MenuItemConstructorOptions } from 'electron';
 import {filter, switchMap, tap} from 'rxjs';
 import {ExchangeInfo, IExchangeLine, UiState} from '../core/models/auto-generated';
-import { GlobalMenuItems } from '../core/models/menu-models';
 import { ElectronService } from '../core/services';
 import { MenuService } from '../core/services/menu-service.service';
 import { ApiService } from '../services/api.service';

@@ -117,7 +117,7 @@ namespace Fluxzy.Cli.Commands
                 if (fileInfo != null)
                     certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
 
-                if (certificateManager.IsCertificateInstalled(certificate.Thumbprint))
+                if (certificateManager.IsCertificateInstalled(certificate))
 
                     // ReSharper disable once LocalizableElement
                     console.WriteLine($"Trusted {certificate.SubjectName.Name}");

@@ -22,18 +22,18 @@ namespace Fluxzy.Certificates
         /// <summary>
         ///     Check whether a certificate is installed as root certificate
         /// </summary>
-        /// <param name="certificateThumbPrint"></param>
+        /// <param name="certificate"></param>
         /// <returns></returns>
-        public abstract bool IsCertificateInstalled(string certificateThumbPrint);
+        public abstract bool IsCertificateInstalled(X509Certificate2 certificate);
 
-        /// <summary>
-        ///     Check if the default certificate is installed
-        /// </summary>
-        /// <returns></returns>
-        public virtual bool IsDefaultCertificateInstalled()
-        {
-            return IsCertificateInstalled(FluxzySecurity.DefaultThumbPrint);
-        }
+        ///// <summary>
+        /////     Check if the default certificate is installed
+        ///// </summary>
+        ///// <returns></returns>
+        //public virtual bool IsDefaultCertificateInstalled()
+        //{
+        //    return IsCertificateInstalled(FluxzySecurity.DefaultThumbPrint);
+        //}
 
         public abstract ValueTask<bool> RemoveCertificate(string thumbPrint);
 
@@ -48,7 +48,7 @@ namespace Fluxzy.Certificates
         {
             var certificate = startupSetting.CaCertificate.GetX509Certificate();
 
-            if (!IsCertificateInstalled(certificate.Thumbprint!))
+            if (!IsCertificateInstalled(certificate))
                 InstallCertificate(certificate);
         }
 

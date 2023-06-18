@@ -16,6 +16,7 @@ using Fluxzy.Extensions;
 using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
+using Fluxzy.Misc.Traces;
 using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
@@ -34,6 +35,10 @@ namespace Fluxzy.Cli.Commands
 
         private DirectoryInfo _tempDumpDirectory;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instanceIdentifier"></param>
         public StartCommandBuilder(string instanceIdentifier)
         {
             _instanceIdentifier = instanceIdentifier;
@@ -76,6 +81,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(CreateOutOfProcCaptureOption());
             command.AddOption(CreateProxyBuffer());
             command.AddOption(CreateCounterOption());
+            command.AddOption(CreateEnableTracingOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -105,6 +111,11 @@ namespace Fluxzy.Cli.Commands
             var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
             var requestBuffer = invocationContext.Value<int?>("request-buffer");
             var count = invocationContext.Value<int?>("max-capture-count");
+            var trace = invocationContext.Value<bool>("trace");
+
+            if (trace) {
+                D.EnableTracing = true; 
+            }
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
 
@@ -229,7 +240,7 @@ namespace Fluxzy.Cli.Commands
                                      .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
 
                     if (registerAsSystemProxy) {
-                        var setting = systemProxyManager.Register(endPoints, proxyStartUpSetting);
+                        var setting = await systemProxyManager.Register(endPoints, proxyStartUpSetting);
 
                         invocationContext.Console.Out.WriteLine(
                             $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
@@ -445,6 +456,7 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
+
         private static Option CreateUaParsingOption()
         {
             var option = new Option<bool>(
@@ -536,6 +548,18 @@ namespace Fluxzy.Cli.Commands
                 "Read rule from stdin");
 
             option.AddAlias("-R");
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
+        private static Option CreateEnableTracingOption()
+        {
+            var option = new Option<bool>(
+                "--trace",
+                "Output trace on stdout");
+
+            option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
             return option;

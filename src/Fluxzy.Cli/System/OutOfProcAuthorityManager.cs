@@ -69,12 +69,11 @@ namespace Fluxzy.Cli.System
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                 // installing certificate for current user
 
-                // Working code for fedora 
+                // Working script for fedora
                 // cp yo.pem /etc/pki/ca-trust/source/anchors/yo.pem
                 // update-ca-trust 
                 // /usr/local/share/ca-certificates --> ubuntu (must be crt extension) 
                 // update-ca-certificates
-
 
                 // Install for current user 
 
@@ -101,22 +100,10 @@ namespace Fluxzy.Cli.System
             // sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain r.cer 
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                var tempFile = Path.GetTempFileName();
+                
+                ExtendedMacOsCertificateInstaller.Install(certificate);
 
-                await File.WriteAllBytesAsync(tempFile, buffer);
-
-                try {
-                    var result = await ProcessUtils.QuickRunAsync("security",
-                        $"add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain {tempFile}");
-
-                    if (result.ExitCode != 0)
-                        return false;
-                }
-                finally {
-                    File.Delete(tempFile);
-                }
-
-                return false; 
+                return true; 
             }
 
             throw new PlatformNotSupportedException();
