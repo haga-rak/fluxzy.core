@@ -337,6 +337,9 @@
                                         <label class="form-check-label" for="flexSwitchCheckChecked"> Enable raw
                                             capture</label>
                                     </div>
+                                    <small class="text-info">
+                                        Capture network packets in PCAPNG along with HTTP exchanges.
+                                    </small>
                                 </div>
                             </div>
 
@@ -349,6 +352,7 @@
                                 <div class="col-sm-9">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="flexSwitchRunMode"
+                                               [disabled]="!settingsHolder.startupSetting.captureRawPacket"
                                                [(ngModel)]="settingsHolder.startupSetting.outOfProcCapture">
                                         <label class="form-check-label" for="flexSwitchRunMode">
                                             Run external process to capture raw packet</label>
@@ -379,7 +383,7 @@
                                         <div style="margin-top: 8px">
                                         <span class="text-info"
                                               *ngIf="settingsHolder.startupSetting.globalSkipSslDecryption">
-                                            SSL decryption is disabled. Any rules affecting decryption is ignored.
+                                            SSL decryption is disabled. Any filters and actions that depend on decryption will be ignored.
                                         </span>
                                             <span class="text-info"
                                                   *ngIf="!settingsHolder.startupSetting.globalSkipSslDecryption">
@@ -397,6 +401,7 @@
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="useBouncyCastle"
                                                [(ngModel)]="settingsHolder.startupSetting.useBouncyCastle"
+                                               [disabled]="settingsHolder.startupSetting.globalSkipSslDecryption"
                                                 (ngModelChange)="cd.detectChanges()"/>
                                         <label class="form-check-label" for="useBouncyCastle">
                                             Use Bouncy Castle as SSL provider
