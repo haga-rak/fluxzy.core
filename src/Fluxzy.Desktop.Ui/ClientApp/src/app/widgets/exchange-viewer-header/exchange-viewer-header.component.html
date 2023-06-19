@@ -23,8 +23,12 @@
 </div>
 <div class="exchange-viewer-main-status" *ngIf="exchange">
 
-    <div >
-        <span class="lead" >Exchange <strong class="text-white">#{{ exchange.id }}</strong></span>
+    <div>
+        <span class="small float-start" style="line-height: 14px !important;">
+            <span>Exchange <span class="text-teal">#{{ exchange.id }}</span></span>
+            <br/>
+            <span title="Instant received from proxy" class="text-gray-300">{{ exchange.metrics.receivedFromProxy | date : 'long' }}</span>
+        </span>
 
         <span class="float-end" >
         <a href="javascript:;" class="btn btn-secondary" (click)="tag()">Tag <span
