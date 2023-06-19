@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {PerfectScrollbarComponent} from 'ngx-perfect-scrollbar';
 import {filter, tap} from 'rxjs';
 import {
@@ -124,6 +124,20 @@ export class ExchangeTableViewComponent implements OnInit {
             if (startIndexInitial !==  0) {
                 this.perfectScroll.directiveRef.scrollToY(2);
                 this.perfectScroll.directiveRef.update();
+            }
+        }
+    }
+
+
+    @HostListener('document:keydown', ['$event'])
+    handleKeyBoardDown(event: KeyboardEvent) {
+        if (event.ctrlKey && event.which === 65) {
+
+            const selectableInputs = ['input', 'textarea'];
+
+            if (selectableInputs.indexOf(document.activeElement.tagName.toLowerCase()) === -1) {
+                event.preventDefault();
+                this.selectionService.setSelectAll();
             }
         }
     }

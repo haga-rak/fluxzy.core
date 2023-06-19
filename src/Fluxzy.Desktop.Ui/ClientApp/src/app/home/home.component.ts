@@ -73,6 +73,7 @@ export class HomeComponent implements OnInit {
         if (event.key === 'Shift') {
             this.inputService.setKeyboardShiftOn(true);
         }
+
     }
 
     @HostListener('document:keyup', ['$event'])
