@@ -19,7 +19,10 @@
         <span [ngClass]="{'text-teal' :uiState.viewFilter.filter.typeKind !== 'AnyFilter' }">
             <span *ngIf="uiState.viewFilter.filter.typeKind === 'AnyFilter'">no filter</span>
             <span
-                *ngIf="uiState.viewFilter.filter.typeKind !== 'AnyFilter'"> {{ uiState.viewFilter.filter.friendlyName }}</span>
+                *ngIf="uiState.viewFilter.filter.typeKind !== 'AnyFilter'"
+            [title]="uiState.viewFilter.filter.friendlyName">
+                {{ uiState.viewFilter.filter.shortName }}
+            </span>
         </span>
     </a>
     &nbsp;|&nbsp;
