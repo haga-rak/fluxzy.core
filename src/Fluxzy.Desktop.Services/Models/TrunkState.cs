@@ -6,10 +6,11 @@ namespace Fluxzy.Desktop.Services.Models
     {
         public TrunkState(
             List<ExchangeContainer> internalExchanges,
-            List<ConnectionContainer> internalConnections)
+            List<ConnectionContainer> internalConnections, int errorCount)
         {
             Exchanges = internalExchanges;
             Connections = internalConnections;
+            ErrorCount = errorCount;
             var agents = new HashSet<Agent>();
 
             for (var index = 0; index < Exchanges.Count; index++) {
@@ -36,14 +37,16 @@ namespace Fluxzy.Desktop.Services.Models
 
         public TrunkState(
             IEnumerable<ExchangeContainer> internalExchanges,
-            IEnumerable<ConnectionContainer> internalConnections)
-            : this(internalExchanges.OrderBy(r => r.Id).ToList(), internalConnections.OrderBy(r => r.Id).ToList())
+            IEnumerable<ConnectionContainer> internalConnections, int errorCount)
+            : this(internalExchanges.OrderBy(r => r.Id).ToList(), internalConnections.OrderBy(r => r.Id).ToList(), errorCount)
         {
         }
 
         public List<ExchangeContainer> Exchanges { get; }
 
         public List<ConnectionContainer> Connections { get; }
+
+        public int ErrorCount { get; }
 
         public List<Agent> Agents { get; set; }
 
@@ -63,12 +66,12 @@ namespace Fluxzy.Desktop.Services.Models
 
         public static TrunkState Empty()
         {
-            return new TrunkState(Array.Empty<ExchangeContainer>(), Array.Empty<ConnectionContainer>());
+            return new TrunkState(Array.Empty<ExchangeContainer>(), Array.Empty<ConnectionContainer>(), 0);
         }
 
-        public TrunkState ApplyFilter(FilteredExchangeState state)
+        public TrunkState ApplyFilter(FilteredExchangeState state, int errorCount)
         {
-            return new TrunkState(Exchanges.Where(e => state.Exchanges.Contains(e.Id)), Connections);
+            return new TrunkState(Exchanges.Where(e => state.Exchanges.Contains(e.Id)), Connections, errorCount);
         }
     }
 }

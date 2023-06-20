@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -37,8 +37,7 @@ namespace Fluxzy.Core
             await stream.ReadExactAsync(buffer, token);
 
             if (StartWithKeyWord(buffer)) {
-                // Probably Web socket request 
-                // This is websocket demand 
+                // This is websocket request 
 
                 return new SecureConnectionUpdateResult(false, true,
                     new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
@@ -57,7 +56,7 @@ namespace Fluxzy.Core
                       .ConfigureAwait(false);
             }
             catch (Exception ex) {
-                throw new FluxzyException("Client closed connection while trying to negotiate SSL/TLS settings", ex);
+                throw new FluxzyException(ex.Message, ex);
             }
 
             return new SecureConnectionUpdateResult(false, true,

@@ -30,6 +30,15 @@ namespace Fluxzy.Desktop.Services
                 .Subscribe();
         }
 
+        public void UpdateErrorCount(int errorCount)
+        {
+            if (_currentContentOperationManager == null)
+                return;
+
+            _currentContentOperationManager.UpdateErrorCount(errorCount);
+            _forwardMessageManager.Send(new DownstreamCountUpdate(errorCount));
+        }
+
         public void AddOrUpdate(ConnectionInfo connectionInfo)
         {
             if (_currentContentOperationManager == null)

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Fluxzy.Extensions;
+using Fluxzy.Misc;
 using MessagePack;
 
 namespace Fluxzy.Readers
@@ -75,6 +76,14 @@ namespace Fluxzy.Readers
                                       })
                                       .Where(t => t != null)
                                       .Select(t => t!);
+        }
+
+        public IReadOnlyCollection<DownstreamErrorInfo> ReaderAllDownstreamErrors()
+        {
+            var path = DirectoryArchiveHelper.GetErrorPath(BaseDirectory);
+
+            return MessagePackQueueExtensions.DeserializeMultiple<DownstreamErrorInfo>(path,
+                GlobalArchiveOption.MessagePackSerializerOptions);
         }
 
         public ConnectionInfo? ReadConnection(int connectionId)

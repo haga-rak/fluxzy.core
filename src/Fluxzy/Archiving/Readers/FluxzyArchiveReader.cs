@@ -1,11 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using MessagePack;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
+using Fluxzy.Misc;
 
 namespace Fluxzy.Readers
 {
@@ -98,6 +100,20 @@ namespace Fluxzy.Readers
             return MessagePackSerializer.Deserialize<ConnectionInfo>(
                 stream,
                 GlobalArchiveOption.MessagePackSerializerOptions);
+        }
+
+        public IReadOnlyCollection<DownstreamErrorInfo> ReaderAllDownstreamErrors()
+        {
+            var path = DirectoryArchiveHelper.GetErrorPath(string.Empty); 
+            var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
+
+            if (entry == null)
+                return Array.Empty<DownstreamErrorInfo>();
+
+            using var stream = entry.Open();
+
+            return MessagePackQueueExtensions.DeserializeMultiple<DownstreamErrorInfo>(stream,
+                GlobalArchiveOption.MessagePackSerializerOptions).ToList();
         }
 
         public Stream? GetRawCaptureStream(int connectionId)

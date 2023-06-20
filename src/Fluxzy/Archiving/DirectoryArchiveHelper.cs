@@ -88,6 +88,11 @@ namespace Fluxzy
             return Path.Combine(baseDirectory, "captures", $"{connectionId}.pcapng");
         }
 
+        internal static string GetErrorPath(string baseDirectory)
+        {
+            return Path.Combine(baseDirectory, "errors", $"errors.mpack");
+        }
+
         internal static string GetCapturePathNssKey(string baseDirectory, int connectionId)
         {
             return Path.Combine(baseDirectory, "captures", $"{connectionId}.nsskeylog");

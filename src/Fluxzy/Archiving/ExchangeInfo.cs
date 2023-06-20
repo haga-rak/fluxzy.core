@@ -167,9 +167,4 @@ namespace Fluxzy
         [Key(16)]
         public List<ClientError> ClientErrors { get; private set; }
     }
-
-    //public class BodyContent
-    //{
-    //    public int Length { get; set; }
-    //}
 }

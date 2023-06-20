@@ -3,6 +3,8 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Readers;
+using Fluxzy.Writers;
 using MessagePack;
 
 namespace Fluxzy.Desktop.Services
@@ -37,7 +39,7 @@ namespace Fluxzy.Desktop.Services
                 else
                     exchangeListFinal[exchangeIndex] = newContainer;
 
-                current = new TrunkState(exchangeListFinal, current.Connections);
+                current = new TrunkState(exchangeListFinal, current.Connections, current.ErrorCount);
 
                 _subject.OnNext(current);
                 State.Owner.SetUnsaved(true);
@@ -52,11 +54,20 @@ namespace Fluxzy.Desktop.Services
 
                 exchangeListFinal.RemoveAll(e => deleteOp.Identifiers.Contains(e.Id));
 
-                current = new TrunkState(exchangeListFinal, current.Connections);
+                current = new TrunkState(exchangeListFinal, current.Connections, current.ErrorCount);
 
                 _subject.OnNext(current);
                 State.Owner.SetUnsaved(true);
             }
+        }
+
+        public void ClearErrors(ForwardMessageManager forwardMessageManager, RealtimeArchiveWriter realtimeArchiveWriter)
+        {
+            realtimeArchiveWriter.ClearErrors();
+
+            UpdateErrorCount(0);
+
+            forwardMessageManager.Send(new DownstreamCountUpdate(0));
         }
 
         private static TrunkState ReadDirectory(FileState current)
@@ -118,7 +129,10 @@ namespace Fluxzy.Desktop.Services
 
             exchanges.Sort(ExchangeContainerSorter.IdSorter);
 
-            return new TrunkState(exchanges, connections);
+            var directoryReader = new DirectoryArchiveReader(current.WorkingDirectory);
+
+            var errorCount = directoryReader.ReaderAllDownstreamErrors().Count; 
+            return new TrunkState(exchanges, connections, errorCount);
         }
 
         public void AddOrUpdate(ConnectionInfo connectionInfo)
@@ -136,7 +150,7 @@ namespace Fluxzy.Desktop.Services
                 else
                     connectionListFinal[connectionIndex] = newContainer;
 
-                current = new TrunkState(current.Exchanges, connectionListFinal);
+                current = new TrunkState(current.Exchanges, connectionListFinal, current.ErrorCount);
 
                 _subject.OnNext(current);
                 State.Owner.SetUnsaved(true);
@@ -154,7 +168,20 @@ namespace Fluxzy.Desktop.Services
                 exchangeListFinal.Clear();
                 connectionListFinal.Clear();
 
-                current = new TrunkState(exchangeListFinal, connectionListFinal);
+                current = new TrunkState(exchangeListFinal, connectionListFinal, current.ErrorCount);
+
+                _subject.OnNext(current);
+                State.Owner.SetUnsaved(true);
+            }
+        }
+
+        public void UpdateErrorCount(int errorCount)
+        {
+            lock (_subject) // TODO: think of do we really need a lock 
+            {
+                var current = _subject.Value;
+                
+                current = new TrunkState(current.Exchanges, current.Connections, errorCount);
 
                 _subject.OnNext(current);
                 State.Owner.SetUnsaved(true);
