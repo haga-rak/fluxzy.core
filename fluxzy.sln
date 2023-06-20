@@ -31,6 +31,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tools.DocGen", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests.ConcreteSamples", "test\Fluxzy.Tests.ConcreteSamples\Fluxzy.Tests.ConcreteSamples.csproj", "{748A4A87-5D59-48FE-82B8-79593ED46428}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "__global", "__global", "{00BE23C9-5D1A-44DE-A620-6C73418D8AB3}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+		version.json = version.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
