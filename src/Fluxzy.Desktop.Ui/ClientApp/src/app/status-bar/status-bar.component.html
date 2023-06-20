@@ -13,6 +13,15 @@
             ({{selectedCount}} selected)
         </span>
     </span>
+
+    <span *ngIf="exchangeState && exchangeState.errorCount > 0" class="" >
+            &nbsp;|&nbsp;
+            <a href="javascript:;" class="text-danger no-underline" title="Number of downstream clients that fail to connect to fluxzy"
+                (click)="openDownstreamErrorDialog()">
+                <i class="fa fa-times-circle" aria-hidden="true"></i>
+                {{ exchangeState.errorCount }} err.</a>
+        </span>
+
     &nbsp;|&nbsp;
     <a href="javascript:;" (click)="selectFilter()" class="auto-color" title="Current view filter">
         <i class="bi bi-filter-circle-fill"></i>&nbsp;

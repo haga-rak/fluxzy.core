@@ -35,6 +35,13 @@ namespace Fluxzy.Tests._Fixtures
             }
         }
 
+        protected string GetRegisteredRandomFile()
+        {
+            var tempFileName = $"{nameof(ProduceDeletableItem)}/{Guid.NewGuid()}";
+
+            return RegisterFile(tempFileName);
+        }
+
         protected string RegisterFile(string fileName, bool createParentDirectory = true)
         {
             var fileInfo = new FileInfo(fileName);

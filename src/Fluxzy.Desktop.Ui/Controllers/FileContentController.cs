@@ -3,6 +3,8 @@
 using System.Reactive.Linq;
 using Fluxzy.Desktop.Services;
 using Fluxzy.Desktop.Services.Models;
+using Fluxzy.Formatters;
+using Fluxzy.Writers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxzy.Desktop.Ui.Controllers
@@ -32,7 +34,29 @@ namespace Fluxzy.Desktop.Ui.Controllers
             if (filteredExchangeState == null)
                 return trunkState;
 
-            return trunkState.ApplyFilter(filteredExchangeState);
+            return trunkState.ApplyFilter(filteredExchangeState, trunkState.ErrorCount);
+        }
+
+        [HttpGet("errors")]
+        public async Task<ActionResult<IReadOnlyCollection<DownstreamErrorInfo>>> ReadErrors(
+                [FromServices] IArchiveReaderProvider archiveReaderProvider)
+        {
+            var reader = (await archiveReaderProvider.Get())!;
+            return new ActionResult<IReadOnlyCollection<DownstreamErrorInfo>>(reader.ReaderAllDownstreamErrors()
+                .OrderBy(d => d.InstantDateUtc).ToList());
+        }
+
+        [HttpDelete("errors")]
+        public async Task<ActionResult<bool>> DeleteErrors(
+            [FromServices] ForwardMessageManager forwardMessageManager,
+            [FromServices] IObservable<RealtimeArchiveWriter> writerObservable)
+        {
+            var operationManager = await _fileContentOperationManager.FirstAsync();
+            var writer = await writerObservable.FirstAsync(); 
+
+            operationManager.ClearErrors(forwardMessageManager, writer);
+
+            return true; 
         }
 
         [HttpPost("delete")]
@@ -49,7 +73,7 @@ namespace Fluxzy.Desktop.Ui.Controllers
             if (filteredExchangeState == null)
                 return trunkState;
 
-            return trunkState.ApplyFilter(filteredExchangeState);
+            return trunkState.ApplyFilter(filteredExchangeState, trunkState.ErrorCount);
         }
 
         [HttpDelete("")]

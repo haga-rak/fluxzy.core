@@ -25,12 +25,10 @@ import {CommentApplyComponent} from "../shared/comment-apply/comment-apply.compo
 import {TagApplyComponent} from "../shared/tag-apply/tag-apply.component";
 import {HarExportSettingComponent} from "../shared/har-export-setting/har-export-setting.component";
 import {WizardComponent} from "../settings/wizard/wizard.component";
-import {BreakPointDialogComponent} from "../breakpoints/break-point-dialog/break-point-dialog.component";
-import {BreakPointService} from "../breakpoints/break-point.service";
 import {DisplayStringComponent} from "../widgets/display-string/display-string.component";
 import {AboutComponent} from "../home/about/about.component";
-import {MessageDialogComponent, MessageDialogModel} from "../shared/error-dialog/message-dialog.component";
 import {EditStringComponent} from "../widgets/edit-string/edit-string.component";
+import {DownstreamErrorDialogComponent} from "../shared/downstream-error-dialog/downstream-error-dialog.component";
 
 @Injectable({
     providedIn: 'root',
@@ -96,6 +94,22 @@ export class DialogService {
             ManageRulesComponent,
             config
         );
+        this.bsModalRef.content.closeBtnName = 'Close';
+    }
+
+    public openConnectionDownStreamError() : void {
+        const config: ModalOptions = {
+            class: 'little-down modal-dialog-md',
+            initialState: {
+            },
+            ignoreBackdropClick : true
+        };
+
+        this.bsModalRef = this.modalService.show(
+            DownstreamErrorDialogComponent,
+            config
+        );
+
         this.bsModalRef.content.closeBtnName = 'Close';
     }
 
@@ -435,6 +449,7 @@ export class DialogService {
             config
         );
     }
+
     public openStringEdit(title : string, value : string) : Observable<string | null> {
         const subject = new Subject<string | null>() ;
         const callBack = (f : string | null) => {  subject.next(f); subject.complete()};

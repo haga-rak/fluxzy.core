@@ -23,7 +23,7 @@ import {
     CertificateValidationResult, CertificateWizardStatus,
     CommentUpdateModel,
     ConnectionInfo, ConnectionSetupStepModel,
-    ContextMenuAction, CurlCommandResult, DescriptionInfo, DesktopErrorMessage,
+    ContextMenuAction, CurlCommandResult, DescriptionInfo, DesktopErrorMessage, DownstreamErrorInfo,
     ExchangeBrowsingState, ExchangeInfo, ExchangeMetricInfo,
     ExchangeState,
     FileContentDelete,
@@ -152,6 +152,22 @@ export class ApiService {
 
     public readTrunkState(workingDirectory: string) : Observable<TrunkState> {
          return this.httpClient.post<TrunkState>(`api/file-content/read`, null)
+        .pipe(
+            take(1),
+                catchError(err => this.handleDesktopError(err))
+            );
+    }
+
+    public readErrors() : Observable<DownstreamErrorInfo[]> {
+         return this.httpClient.get<DownstreamErrorInfo[]>(`api/file-content/errors`)
+        .pipe(
+            take(1),
+                catchError(err => this.handleDesktopError(err))
+            );
+    }
+
+    public clearErrors() : Observable<DownstreamErrorInfo[]> {
+         return this.httpClient.delete<DownstreamErrorInfo[]>(`api/file-content/errors`)
         .pipe(
             take(1),
                 catchError(err => this.handleDesktopError(err))

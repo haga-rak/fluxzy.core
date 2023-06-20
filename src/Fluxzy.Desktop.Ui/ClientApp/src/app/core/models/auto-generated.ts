@@ -1039,6 +1039,7 @@ export interface ExchangeState
 	startIndex: number;
 	endIndex: number;
 	totalCount: number;
+	errorCount: number;
 }
 export interface ExchangeBrowsingState
 {
@@ -1056,10 +1057,24 @@ export interface ConnectionContainer
 	id: number;
 	connectionInfo: ConnectionInfo;
 }
+export interface DownstreamCountUpdate
+{
+	count: number;
+}
+export interface DownstreamErrorInfo
+{
+	errorId: number;
+	instantDateUtc: Date;
+	sourceIp: string;
+	sourcePort: number;
+	message: string;
+	longDescription: string;
+}
 export interface TrunkState
 {
 	exchanges: ExchangeContainer[];
 	connections: ConnectionContainer[];
+	errorCount: number;
 	agents: Agent[];
 	maxExchangeId: number;
 	maxConnectionId: number;

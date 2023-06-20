@@ -106,4 +106,8 @@ export class StatusBarComponent implements OnInit {
     openSettings() {
         this.dialogService.openGlobalSettings();
     }
+
+    openDownstreamErrorDialog() {
+        this.dialogService.openConnectionDownStreamError() ;
+    }
 }

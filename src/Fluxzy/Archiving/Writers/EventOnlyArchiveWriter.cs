@@ -22,6 +22,11 @@ namespace Fluxzy.Writers
         {
         }
 
+        protected override void InternalUpdate(DownstreamErrorInfo connectionInfo, CancellationToken cancellationToken)
+        {
+
+        }
+
         public override Stream CreateRequestBodyStream(int exchangeId)
         {
             return EmptyWriteStream.Instance;
@@ -40,6 +45,11 @@ namespace Fluxzy.Writers
         public override Stream CreateWebSocketResponseContent(int exchangeId, int messageId)
         {
             return EmptyWriteStream.Instance;
+        }
+
+        public override void ClearErrors()
+        {
+
         }
     }
 }

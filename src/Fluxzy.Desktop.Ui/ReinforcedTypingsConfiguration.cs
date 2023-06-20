@@ -147,6 +147,12 @@ namespace Fluxzy.Desktop.Ui
             builder.ExportAsInterface<ConnectionContainer>()
                    .ApplyGenericProperties();
 
+            builder.ExportAsInterface<DownstreamCountUpdate>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<DownstreamErrorInfo>()
+                   .ApplyGenericProperties();
+
             builder.ExportAsInterface<TrunkState>()
                    .ApplyGenericProperties();
 

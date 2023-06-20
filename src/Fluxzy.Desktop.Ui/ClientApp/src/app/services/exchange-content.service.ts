@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import {debounceTime, Observable, of, Subject, switchMap} from 'rxjs';
-import {ExchangeInfo, IExchangeLine, TrunkState} from '../core/models/auto-generated';
+import {Injectable} from '@angular/core';
+import {debounceTime, Observable, Subject} from 'rxjs';
+import {IExchangeLine, TrunkState} from '../core/models/auto-generated';
 
 @Injectable({
     providedIn: 'root',
@@ -24,7 +24,6 @@ export class ExchangeContentService {
     }
 
     public getExchangeInfo(exchangeId: number): IExchangeLine | null {
-        const exchangeLine =  this.trunkState.exchanges[this.trunkState.exchangesIndexer[exchangeId]]?.exchangeInfo ?? null;
-        return exchangeLine;
+        return this.trunkState.exchanges[this.trunkState.exchangesIndexer[exchangeId]]?.exchangeInfo ?? null;
     }
 }

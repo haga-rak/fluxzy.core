@@ -1,16 +1,17 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Fluxzy.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using Fluxzy.Core;
 
 namespace Fluxzy.Writers
 {
     public abstract class RealtimeArchiveWriter
     {
         private int? _maxExchangeCount;
+        protected int ErrorCount;
         private Action? _onMaxExchangeCountReached;
         protected long InternalTotalProcessedExchanges;
 
@@ -32,6 +33,8 @@ namespace Fluxzy.Writers
 
         public abstract void Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
 
+        protected abstract void InternalUpdate(DownstreamErrorInfo connectionInfo, CancellationToken cancellationToken);
+
         public abstract Stream CreateRequestBodyStream(int exchangeId);
 
         public abstract Stream CreateResponseBodyStream(int exchangeId);
@@ -52,11 +55,27 @@ namespace Fluxzy.Writers
 
             ExchangeUpdated = null;
             ConnectionUpdated = null;
+            ErrorUpdated = null;
         }
 
         public event EventHandler<ExchangeUpdateEventArgs>? ExchangeUpdated;
 
         public event EventHandler<ConnectionUpdateEventArgs>? ConnectionUpdated;
+
+        public event EventHandler<DownstreamErrorEventArgs>? ErrorUpdated;
+
+        public abstract void ClearErrors();
+
+        public virtual void Update(DownstreamErrorInfo errorInfo, CancellationToken cancellationToken)
+        {
+            InternalUpdate(errorInfo, cancellationToken);
+
+            var currentCount = Interlocked.Increment(ref ErrorCount);
+
+            // fire event 
+            if (ErrorUpdated != null)
+                ErrorUpdated(this, new DownstreamErrorEventArgs(currentCount));
+        }
 
         public virtual void Update(Connection connection, CancellationToken cancellationToken)
         {

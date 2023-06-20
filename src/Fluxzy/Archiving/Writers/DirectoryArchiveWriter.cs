@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using Fluxzy.Core;
+using Fluxzy.Misc;
 using Fluxzy.Rules.Filters;
 using MessagePack;
 
@@ -20,6 +21,7 @@ namespace Fluxzy.Writers
         private readonly string _captureDirectory;
         private readonly string _contentDirectory;
         private readonly Filter? _saveFilter;
+        private readonly string _errorDirectory;
 
         public DirectoryArchiveWriter(string baseDirectory, Filter? saveFilter)
         {
@@ -27,6 +29,8 @@ namespace Fluxzy.Writers
             _saveFilter = saveFilter;
             _contentDirectory = Path.Combine(baseDirectory, "contents");
             _captureDirectory = Path.Combine(baseDirectory, "captures");
+            _errorDirectory = Path.Combine(baseDirectory, "errors");
+
             _archiveMetaInformationPath = DirectoryArchiveHelper.GetMetaPath(baseDirectory);
         }
 
@@ -38,6 +42,7 @@ namespace Fluxzy.Writers
 
             Directory.CreateDirectory(_contentDirectory);
             Directory.CreateDirectory(_captureDirectory);
+            Directory.CreateDirectory(_errorDirectory);
 
             UpdateMeta(false);
         }
@@ -106,6 +111,14 @@ namespace Fluxzy.Writers
                 GlobalArchiveOption.MessagePackSerializerOptions, cancellationToken);
         }
 
+        protected override void InternalUpdate(DownstreamErrorInfo errorInfo, CancellationToken cancellationToken)
+        {
+            var errorPath = DirectoryArchiveHelper.GetErrorPath(_baseDirectory);
+            
+            MessagePackQueueExtensions.AppendMultiple(errorPath, errorInfo,
+                GlobalArchiveOption.MessagePackSerializerOptions);
+        }
+
         public override Stream CreateRequestBodyStream(int exchangeId)
         {
             var path = Path.Combine(_contentDirectory, $"req-{exchangeId}.data");
@@ -137,6 +150,16 @@ namespace Fluxzy.Writers
         public override string GetDumpfilePath(int connectionId)
         {
             return Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
+        }
+
+        public override void ClearErrors()
+        {
+            var errorPath = DirectoryArchiveHelper.GetErrorPath(_baseDirectory);
+
+            ErrorCount = 0;
+
+            if (File.Exists(errorPath))
+                File.Delete(errorPath);
         }
     }
 }

@@ -18,6 +18,8 @@ namespace Fluxzy.Readers
 
         ConnectionInfo? ReadConnection(int connectionId);
 
+        IReadOnlyCollection<DownstreamErrorInfo> ReaderAllDownstreamErrors();
+
         Stream? GetRawCaptureStream(int connectionId);
 
         Stream? GetRawCaptureKeyStream(int connectionId);

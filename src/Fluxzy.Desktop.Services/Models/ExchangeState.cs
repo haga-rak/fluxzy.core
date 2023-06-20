@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 namespace Fluxzy.Desktop.Services.Models
 {
@@ -14,5 +14,7 @@ namespace Fluxzy.Desktop.Services.Models
         public int EndIndex { get; set; }
 
         public int TotalCount { get; set; }
+
+        public int ErrorCount { get; set; }
     }
 }

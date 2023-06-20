@@ -71,6 +71,12 @@ namespace Fluxzy.Core
                             D.TraceException(ex, message);
                         }
 
+                        var errorInfo = DownstreamErrorInfo.CreateFrom(client, ex);
+
+                        _archiveWriter.Update(errorInfo, token);
+
+                        // Logs into the secure logger
+
                         if (ex is SocketException || ex is IOException)
                             return;
                     }

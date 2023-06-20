@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject, tap, map, Observable, switchMap, distinctUntilChanged, combineLatest, interval, merge, of, debounceTime, pipe, filter } from 'rxjs';
 import {
+    DownstreamCountUpdate,
     ExchangeBrowsingState,
     ExchangeInfo,
     ExchangeState,
@@ -54,6 +55,7 @@ export class ExchangeManagementService {
             ).subscribe();
 
         this.registerExchangeUpdate();
+        this.registerDownstreamErrorUpdate();
 
         this.registerExchangeStateChange();
 
@@ -65,7 +67,8 @@ export class ExchangeManagementService {
             totalCount:0,
             endIndex: 0,
             startIndex: 0,
-            exchanges: []
+            exchanges: [],
+            errorCount: 0,
         };
 
         this.exchangeState$ = combineLatest(
@@ -91,6 +94,7 @@ export class ExchangeManagementService {
                     //
 
                     result.totalCount = truncateState.exchanges.length;
+                    result.errorCount = truncateState.errorCount;
                     result.endIndex = endIndex;
                     result.startIndex = startIndex;
                     result.exchanges.length = 0 ;
@@ -99,6 +103,17 @@ export class ExchangeManagementService {
                     return result;
                 }
                 ),);
+    }
+
+    private registerDownstreamErrorUpdate() : void {
+        this.apiService.registerEvent('DownstreamCountUpdate', (errorCountUpdate: DownstreamCountUpdate) => {
+            if (!this.trunkState) {
+                return;
+            }
+
+            this.trunkState.errorCount = errorCountUpdate.count;
+            this.exchangeContentService.update(this.trunkState);
+        });
     }
 
 

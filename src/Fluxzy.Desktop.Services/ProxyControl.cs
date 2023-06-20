@@ -135,6 +135,10 @@ namespace Fluxzy.Desktop.Services
                     _fileContentUpdateManager.AddOrUpdate(args.Connection);
                 };
 
+                _proxy.Writer.ErrorUpdated += delegate(object? _, DownstreamErrorEventArgs args) {
+                    _fileContentUpdateManager.UpdateErrorCount(args.Count);
+                };
+
                 endPoints = _proxy.Run();
             }
             catch (Exception ex) {
