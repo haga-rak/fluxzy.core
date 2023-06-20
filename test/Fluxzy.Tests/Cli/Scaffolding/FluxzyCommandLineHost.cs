@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Cli.Commands;
@@ -42,6 +43,10 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
         public async Task<ProxyInstance> Run(int timeoutSeconds = 5)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                timeoutSeconds = timeoutSeconds * 5;
+            }
+
             var blockingListingTokenSource = new CancellationTokenSource();
 
             var blockingListenToken = blockingListingTokenSource.Token;

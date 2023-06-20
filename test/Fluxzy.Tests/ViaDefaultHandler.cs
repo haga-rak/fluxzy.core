@@ -56,7 +56,9 @@ namespace Fluxzy.Tests
                 Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 }
             };
 
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
+            using var httpClient = new HttpClient(handler) {
+                Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular)
+            };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -81,7 +83,7 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
                 new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
 
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -99,7 +101,7 @@ namespace Fluxzy.Tests
         public async Task Get_H11(SslProvider sslProvider)
         {
             using var handler = new FluxzyDefaultHandler(sslProvider);
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -122,7 +124,7 @@ namespace Fluxzy.Tests
             };
 
             using var handler = new FluxzyDefaultHandler(sslProvider);
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Extended) };
 
             var result = new List<Task<bool>>(); 
 
