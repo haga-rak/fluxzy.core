@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
@@ -25,6 +26,9 @@ namespace Fluxzy.Tests._Fixtures
 
         public AddHocProxy(int expectedRequestCount = 1, int timeoutSeconds = 5)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                timeoutSeconds = timeoutSeconds * 5; 
+
             _expectedRequestCount = expectedRequestCount;
 
             BindHost = "127.0.0.1";

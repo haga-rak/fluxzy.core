@@ -34,7 +34,7 @@ namespace Fluxzy.Tests
         public async Task Check_Global_Health(HttpMethod method, int length)
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(method,
                 $"{TestConstants.Http2Host}/global-health-check?dsf=sdfs&dsf=3");
@@ -65,7 +65,7 @@ namespace Fluxzy.Tests
             //Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
 
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(22) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Extended) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -83,7 +83,7 @@ namespace Fluxzy.Tests
         public async Task Get_Control_Single_Headers()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -101,7 +101,7 @@ namespace Fluxzy.Tests
         public async Task Get_With_204_No_Body()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -119,7 +119,7 @@ namespace Fluxzy.Tests
         public async Task Get_Control_Duplicate_Headers()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -140,7 +140,7 @@ namespace Fluxzy.Tests
         public async Task Post_Data_Lt_Max_Frame()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
@@ -165,7 +165,7 @@ namespace Fluxzy.Tests
         public async Task Post_Data_Gt_Max_Frame()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
@@ -192,7 +192,7 @@ namespace Fluxzy.Tests
         public async Task Post_Data_Unknown_Size()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
@@ -218,7 +218,7 @@ namespace Fluxzy.Tests
         public async Task Get_With_InvalidHeaders()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -237,7 +237,7 @@ namespace Fluxzy.Tests
         public async Task Get_With_Extra_Column_Header()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -258,7 +258,7 @@ namespace Fluxzy.Tests
         public async Task Get_And_Cancel()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
@@ -278,7 +278,7 @@ namespace Fluxzy.Tests
         public async Task Get_304()
         {
             using var handler = new FluxzyHttp2Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
