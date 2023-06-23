@@ -1,11 +1,12 @@
 {
     "name": "fluxzy",
-    "version": "0.3.83-alpha.g9c37fa504e",
+    "version": "0.4.1-alpha",
     "description": "Fluxzy Desktop",
     "author": "Haga Rakotoharivelo",
     "copyright": "Copyright (c) 2022 Haga Rakotoharivelo",
     "keywords": [],
     "main": "app/main.js",
+    "license": "Copyright 2023 Haga Rakotoharivelo - All right reserved",
     "private": true,
     "scripts": {
         "ng": "ng",
@@ -33,7 +34,8 @@
         "package-macos": "npm run fluxzyd:build-macos && npm run build:prod && electron-forge package",
         "make": "electron-forge make",
         "publish": "cross-env NODE_EXTRA_CA_CERTS=../../../tools/dev-cert/wild_fluxzy_io.cer electron-forge publish",
-        "everything:win": "npm run package-win && npm run make && npm run publish"
+        "everything:win": "npm run package-win && npm run make && npm run publish",
+        "everything:linux": "npm run package-linux && npm run make && npm run publish"
     },
     "dependencies": {
         "@angular-devkit/core": "14.2.7",
