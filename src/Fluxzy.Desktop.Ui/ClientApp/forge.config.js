@@ -75,6 +75,15 @@ module.exports = {
                     icon: '.assets/icon.png'
                 }
             },
+        },
+        {
+            // sudo dnf install rpm-build  #on fedora
+            name: '@electron-forge/maker-rpm',
+            config: {
+                options: {
+                    icon: '.assets/icon.png'
+                }
+            },
         }
     ],
     publishers: [
