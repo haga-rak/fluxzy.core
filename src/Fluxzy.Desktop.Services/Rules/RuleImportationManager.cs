@@ -15,8 +15,7 @@ namespace Fluxzy.Desktop.Services.Rules
 
         public string Export(RuleExportSetting ruleExportSetting)
         {
-            return _ruleConfigParser.GetYamlFromRuleSet(
-                new RuleSet(ruleExportSetting.Rules.ToArray()));
+            return _ruleConfigParser.GetYamlFromRuleSet(new RuleSet(ruleExportSetting.Rules.ToArray()));
         }
 
         public List<Rule> Import(RuleImportSetting ruleImportSetting)

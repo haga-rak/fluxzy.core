@@ -1,9 +1,9 @@
 import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {Action, Filter, Rule} from "../../../core/models/auto-generated";
+import {Action, Filter, Rule, RuleEditorDeserializeResult} from "../../../core/models/auto-generated";
 import {BsModalRef, ModalOptions} from "ngx-bootstrap/modal";
 import {ApiService} from "../../../services/api.service";
 import {IValidationSource, ValidationTargetComponent} from "../../filter-forms/filter-edit/filter-edit.component";
-import {filter, take, tap} from "rxjs";
+import {BehaviorSubject, debounceTime, filter, Observable, of, pipe, switchMap, take, tap} from "rxjs";
 import { DialogService } from '../../../services/dialog.service';
 
 @Component({
@@ -25,6 +25,12 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
     public isEdit : boolean;
     public longDescription: string;
 
+    private yamlEditMode$ = new BehaviorSubject<boolean>(false);
+
+    public yamlEditMode = false;
+
+    public yamlContent$ = new BehaviorSubject<string | null>(null);
+    public deserializeResult : RuleEditorDeserializeResult | null = null ;
 
     constructor(
         public bsModalRef: BsModalRef,
@@ -41,11 +47,40 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
     }
 
     ngOnInit(): void {
-        this.apiService.actionLongDescription(this.action.typeKind)
+        this.refreshDescription().subscribe();
+
+        this.yamlEditMode$.pipe(
+            tap(t => this.yamlEditMode = t),
+            filter(t => t),
+            switchMap(_ => this.apiService.editorSerialize(this.rule)),
+            tap(t => this.yamlContent$.next(t.content)),
+            tap(_ => this.cd.detectChanges())
+        ).subscribe();
+
+        this.yamlEditMode$.pipe(
+            filter(t => !t),
+            switchMap(t => this.refreshDescription()),
+        ).subscribe();
+
+        this.yamlContent$.pipe(
+                tap(t => this.deserializeResult = null),
+                debounceTime(150),
+                switchMap(t => t ? this.apiService.editorDeserialize(t) : of(null)),
+                tap(t => this.deserializeResult = t),
+                filter(t => t && t.success),
+                tap(t => this.rule = t.rule),
+                tap(t => this.action = t.rule.action),
+                //
+                tap(_ => this.cd.detectChanges())
+        ).subscribe();
+    }
+
+    private refreshDescription() : Observable<any> {
+        return this.apiService.actionLongDescription(this.action.typeKind)
             .pipe(
                 tap(t => this.longDescription = t.description),
                 tap(_ => this.cd.detectChanges())
-            ).subscribe();
+            );
     }
 
     public register(target: ActionValidationTargetComponent<Action>): void {
@@ -53,39 +88,44 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
         this.cd.detectChanges();
     }
 
-
     public cancel() : void {
         this.callBack(null);
         this.bsModalRef.hide();
     }
 
     public save(): void {
-        this.validationState = null;
-        this.validationMessages.length = 0;
+        if (!this.yamlEditMode) {
+            this.validationState = null;
+            this.validationMessages.length = 0;
 
-        for (const target of this.targets) {
-            const message = target.validate();
+            for (const target of this.targets) {
+                const message = target.validate();
 
-            if (message) {
-                this.validationState = false;
-                this.validationMessages.push(message);
+                if (message) {
+                    this.validationState = false;
+                    this.validationMessages.push(message);
+                }
+            }
+
+            if (this.validationState === null) {
+                this.validationState = true;
+
+                this.rule.action = this.action ;
+
+                this.apiService.ruleValidate(this.rule)
+                    .pipe(
+                        tap(f => this.callBack(f))
+                    ).subscribe();
+                this.bsModalRef.hide();
+            }
+            else {
+                this.cd.detectChanges();
             }
         }
+        else{
 
-        if (this.validationState === null) {
-            this.validationState = true;
-
-            this.rule.action = this.action ;
-
-            this.apiService.ruleValidate(this.rule)
-                .pipe(
-                    tap(f => this.callBack(f))
-                ).subscribe();
-            this.bsModalRef.hide();
         }
-        else {
-            this.cd.detectChanges();
-        }
+
     }
 
     public changeFilter() : void {
@@ -124,6 +164,19 @@ export class RuleEditComponent implements OnInit, IActionValidationSource {
                 tap(f => this.rule.filter = f),
                 tap(_ => this.cd.detectChanges())
             ).subscribe();
+    }
+
+    switchToYaml(b: boolean) {
+        this.yamlEditMode$.next(b);
+    }
+
+    saveEditor() {
+
+        this.apiService.ruleValidate(this.rule)
+            .pipe(
+                tap(f => this.callBack(f))
+            ).subscribe();
+        this.bsModalRef.hide();
     }
 }
 

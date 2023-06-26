@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Fluxzy.Core;
@@ -32,6 +33,17 @@ namespace Fluxzy.Rules
             !string.IsNullOrWhiteSpace(Description) ? Description : DefaultDescription;
 
         protected override string Suffix { get; } = nameof(Action);
+
+        public bool NoEditableSetting {
+            get
+            {
+                // Only ActionDistinctiveAttribute can be editable setting
+                return 
+                    GetType().GetProperties()
+                             .Count(p => p.GetCustomAttribute<ActionDistinctiveAttribute>() != null) == 0;
+
+            }
+        }
 
         public ValueTask Alter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,

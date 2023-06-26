@@ -1,6 +1,6 @@
 {
     "name": "fluxzy",
-    "version": "0.4.1-alpha",
+    "version": "0.4.2-alpha",
     "description": "Fluxzy Desktop",
     "author": "Haga Rakotoharivelo",
     "copyright": "Copyright (c) 2022 Haga Rakotoharivelo",
@@ -34,7 +34,7 @@
         "package-macos": "npm run fluxzyd:build-macos && npm run build:prod && electron-forge package",
         "make": "electron-forge make",
         "publish": "cross-env NODE_EXTRA_CA_CERTS=../../../tools/dev-cert/wild_fluxzy_io.cer electron-forge publish",
-        "everything:win": "npm run package-win && npm run make && npm run publish",
+        "everything:win": "npm run package-win && npm run publish",
         "everything:linux": "npm run package-linux && npm run make && npm run publish"
     },
     "dependencies": {
