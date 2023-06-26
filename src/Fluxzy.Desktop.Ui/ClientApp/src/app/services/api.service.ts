@@ -16,15 +16,24 @@ import {
 } from 'rxjs';
 import {
     Action,
-    AnyFilter, AppVersion,
+    AnyFilter,
+    AppVersion,
     ArchiveMetaInformation,
     Certificate,
     CertificateOnStore,
-    CertificateValidationResult, CertificateWizardStatus,
+    CertificateValidationResult,
+    CertificateWizardStatus,
     CommentUpdateModel,
-    ConnectionInfo, ConnectionSetupStepModel,
-    ContextMenuAction, CurlCommandResult, DescriptionInfo, DesktopErrorMessage, DownstreamErrorInfo,
-    ExchangeBrowsingState, ExchangeInfo, ExchangeMetricInfo,
+    ConnectionInfo,
+    ConnectionSetupStepModel,
+    ContextMenuAction,
+    CurlCommandResult,
+    DescriptionInfo,
+    DesktopErrorMessage,
+    DownstreamErrorInfo,
+    ExchangeBrowsingState,
+    ExchangeInfo,
+    ExchangeMetricInfo,
     ExchangeState,
     FileContentDelete,
     FileSaveViewModel,
@@ -34,18 +43,32 @@ import {
     FluxzySettingsHolder,
     FormatterContainerViewModel,
     FormattingResult,
-    ForwardMessage, FullUrlSearchViewModel, HarExportRequest, IPEndPoint,
+    ForwardMessage,
+    FullUrlSearchViewModel,
+    HarExportRequest,
+    IPEndPoint,
     MultipartItem,
-    NetworkInterfaceInfo, QuickActionResult, RequestSetupStepModel, ResponseSetupStepModel,
+    NetworkInterfaceInfo,
+    QuickActionResult,
+    RequestSetupStepModel,
+    ResponseSetupStepModel,
     Rule,
-    RuleContainer, RuleExportSetting, RuleImportSetting,
-    SaveFileMultipartActionModel, SazExportRequest,
+    RuleContainer,
+    RuleEditorDeserializeRequest,
+    RuleEditorDeserializeResult,
+    RuleEditorSerializeResult,
+    RuleExportSetting,
+    RuleImportSetting,
+    SaveFileMultipartActionModel,
+    SazExportRequest,
     StoredFilter,
     Tag,
     TagGlobalApplyModel,
     TagUpdateModel,
-    TrunkState, UiSetting,
-    UiState, ValidationError
+    TrunkState,
+    UiSetting,
+    UiState,
+    ValidationError
 } from '../core/models/auto-generated';
 import {FilterHolder} from "../settings/manage-filters/manage-filters.component";
 import {BackFailureDialog} from "../core/services/menu-service.service";
@@ -696,6 +719,16 @@ export class ApiService {
 
         return this.httpClient
             .put<boolean>(`api/setting/ui/${key}`,payload).pipe(take(1),
+                catchError(err => this.handleDesktopError(err)));
+    }
+
+    public editorSerialize(rule : Rule) : Observable<RuleEditorSerializeResult> {
+        return this.httpClient.post<RuleEditorSerializeResult>(`api/editor/serialize`, rule).pipe(take(1),
+                catchError(err => this.handleDesktopError(err)));
+    }
+
+    public editorDeserialize(content : string) : Observable<RuleEditorDeserializeResult> {
+        return this.httpClient.post<RuleEditorDeserializeResult>(`api/editor/deserialize`, { content }).pipe(take(1),
                 catchError(err => this.handleDesktopError(err)));
     }
 }

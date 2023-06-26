@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
 using System.Text.Json;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
@@ -17,7 +16,6 @@ namespace Fluxzy.Rules
         public string GetYamlFromRule(Rule rule)
         {
             var serializer = BuildDefaultSerializer();
-
             return serializer.Serialize(rule);
         }
 

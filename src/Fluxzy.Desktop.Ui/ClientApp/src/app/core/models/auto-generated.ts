@@ -658,6 +658,7 @@ export interface Action extends PolymorphicObject
 	defaultDescription: string;
 	description?: string;
 	friendlyName: string;
+	noEditableSetting: boolean;
 }
 export interface MultipleScopeAction extends Action
 {
@@ -1304,4 +1305,22 @@ export interface ContextualFilter
 {
 	filter: Filter;
 	weight: number;
+}
+export interface RuleEditorSerializeResult
+{
+	content: string;
+}
+export interface RuleEditorDeserializeResult
+{
+	rule?: Rule;
+	success: boolean;
+	errors: RuleConfigReaderError[];
+}
+export interface RuleEditorDeserializeRequest
+{
+	content: string;
+}
+export interface RuleConfigReaderError
+{
+	message: string;
 }

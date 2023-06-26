@@ -9,7 +9,31 @@
     </button>
 </div>
 <div class="modal-body" style="min-height: 50px">
-    <div>
+
+    <div *ngIf="yamlEditMode">
+        <p class="text-info">You are currently editing this rule in <strong>yaml mode</strong>.
+        Check <a href="javascript:;">https://fluxzy.io/docs/rule-syntax</a> to learn more.</p>
+        <p *ngIf="yamlContent$.value === null">Loading rule as text</p>
+        <textarea spellcheck="false" class="string-display" *ngIf="yamlContent$.value !== null" [ngModel]="yamlContent$.value"
+                  (ngModelChange)="yamlContent$.next($event)"></textarea>
+        <div>
+            &nbsp;
+            <span class="float-end">
+                <a href="javascript:;" (click)="switchToYaml(false)">Switch back to form mode</a>
+            </span>
+        </div>
+        <div>
+            <div class="validation-result-panel" style="">
+                <div *ngIf="deserializeResult && deserializeResult.errors">
+                    <div *ngFor="let error of  deserializeResult.errors">
+                        <p>{{ error.message }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="!yamlEditMode">
 
         <p *ngIf="validationState !== null">
             <span *ngIf="validationState" class="text-success">
@@ -49,8 +73,21 @@
                                     </td>
                                 </tr>
                             </table>
-                            <app-rule-render [action]="action"  [validationSource]="validationSource"></app-rule-render>
-                            <p class="text-center " *ngIf="targets.length === 0">This action has no editable setting.</p>
+                            <app-rule-render [action]="action" [validationSource]="validationSource"></app-rule-render>
+                            <div *ngIf="targets.length === 0">
+
+                                <div *ngIf="action.noEditableSetting">
+                                    <p class="text-center">This action has no editable setting.</p>
+                                </div>
+                                <div *ngIf="!action.noEditableSetting" class="text-center">
+                                    <p>No editor configured for this action.</p>
+                                    <a href="javascript:;" (click)="switchToYaml(true)">Switch to yaml editor</a>
+                                </div>
+                            </div>
+                            <div *ngIf="targets.length > 0">
+
+                                <a href="javascript:;" (click)="switchToYaml(true)">Switch to yaml editor</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -104,6 +141,14 @@
         This rule is out of scope. This means that the action is triggered before the filtering operation.
       </span>
 
-    <button class="btn btn-primary" (click)="save()">Save</button>
-    <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+    <span *ngIf="!yamlEditMode">
+        <button class="btn btn-primary" (click)="save()">Save</button>&nbsp;
+        <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+    </span>
+
+    <span *ngIf="yamlEditMode">
+        <button [disabled]="!deserializeResult || !deserializeResult.success " class="btn btn-primary" (click)="saveEditor()">Validate and save</button>&nbsp;
+        <button class="btn btn-dark" (click)="cancel()">Cancel</button>
+    </span>
+
 </div>

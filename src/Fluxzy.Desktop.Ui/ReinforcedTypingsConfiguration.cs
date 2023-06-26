@@ -232,6 +232,18 @@ namespace Fluxzy.Desktop.Ui
 
             builder.ExportAsInterface<ContextualFilter>()
                    .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RuleEditorSerializeResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RuleEditorDeserializeResult>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RuleEditorDeserializeRequest>()
+                   .ApplyGenericProperties();
+
+            builder.ExportAsInterface<RuleConfigReaderError>()
+                   .ApplyGenericProperties();
         }
 
         private static void ConfigureViewModels(ConfigurationBuilder builder)
