@@ -7,7 +7,7 @@ var path = require("path");
 var autoUpdateRoutine = function (win) {
     var packageRun = fs.existsSync(path.resolve(path.dirname(process.execPath), '..', 'Update.exe'));
     if (!packageRun) {
-        return;
+        //return;
     }
     var server = 'https://releases.fluxzy.io:4433';
     var url = "".concat(server, "/update/").concat(process.platform, "/").concat(electron_1.app.getVersion());
