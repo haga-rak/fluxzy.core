@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.Cli
         public async Task Run_Cli_For_Web_Socket_Tests()
         {
             // Arrange 
-            var directoryName = "ws";
+            var directoryName = $"ws/{Guid.NewGuid()}";
 
             var commandLine = $"start -l 127.0.0.1/0 -d {directoryName}";
 
@@ -144,7 +144,7 @@ namespace Fluxzy.Tests.Cli
 
                 if (testData == null) {
                     using var fileStream = archiveReader.GetRequestWebsocketContent(exchange.Id, fistSentMessage.Id);
-                    testData = fileStream.ToArrayGreedy();
+                    testData = await fileStream.ToArrayGreedyAsync();
                 }
 
                 var resultMessage = Encoding.UTF8.GetString(testData);
