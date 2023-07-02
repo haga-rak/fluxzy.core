@@ -23,6 +23,7 @@ const serve = commandLineArgs.some(val => val === '--serve');
 if (serve)
     process.env.ELECTRON_ENABLE_LOGGING = "1";
 
+console.log(app.getVersion());
 console.log("fluxzy view loading");
 
 function runFrontEnd() : void {
@@ -144,7 +145,7 @@ function runFrontEnd() : void {
         // Catch Error
         // throw e;
     }
-    ;
+
 }
 
 function launchFluxzyDaemonOrDie(commandLineArgs : string [] , backedLaunchCallback : (success : boolean, busyPort : boolean) => void) : void {
