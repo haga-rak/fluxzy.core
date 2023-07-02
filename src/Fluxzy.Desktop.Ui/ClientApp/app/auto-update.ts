@@ -14,12 +14,16 @@ export const autoUpdateRoutine = (win : BrowserWindow) => {
     const server = 'https://releases.fluxzy.io:4433';
     const channelSuffix = getChannelSuffix(app.getVersion());
 
-    const url = `${server}/update/${platform}/${app.getVersion()}`;
-    autoUpdater.setFeedURL({ url });
+    try {
+        
+        const url = `${server}/update/${platform}/${app.getVersion()}`;
+        autoUpdater.setFeedURL({ url });
 
-    autoUpdater.on('error', error => {
+        autoUpdater.on('error', error => {
         // do nothing
     });
+    }
+    catch {}
 
     setInterval(() => {
         win.webContents.send('checking-update', {'Payload': 'Nothing'});
