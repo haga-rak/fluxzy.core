@@ -2,13 +2,21 @@ name: win32 binaries
 
 on:  
   push:
+    branches:    
+      - 'release/**'
     tags:
       - 'v*'
       
 jobs:
-  go-release-win-32:
-    name: "Publish win32 Binaries"
-    runs-on: ['Windows', 'self-hosted']
+  publish-release:
+    name: "Publish release"
+    strategy:
+      matrix:
+        osversion: [Linux, Windows, macOS]
+        ostype: ['self-hosted']
+    
+        
+    runs-on: ${{ matrix.osversion }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -28,17 +36,11 @@ jobs:
       working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
       run: npm install
     - name: Build executable 
-      working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
-      run: npm run package-win
-    - name: Build installer 
-      working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
-      run: npm run make
-    - name: Publish to release server
       env:
-        RELEASE_SERVER_PASSWORD:  ${{ secrets.RELEASE_SERVER_PASSWORD }}
-        NODE_EXTRA_CA_CERTS: tools/dev-cert/wild_fluxzy_io.cer
+        RELEASE_SERVER_PASSWORD: ${{ secrets.RELEASE_SERVER_PASSWORD }}
       working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
-      run: npm run publish
+      run: npm run everything
+
 
 
           
