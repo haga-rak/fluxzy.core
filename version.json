@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/main/src/NerdBank.GitVersioning/version.schema.json",
-  "version": "0.7-alpha",
+  "version": "0.7-beta",
   "publicReleaseRefSpec": [
     "^refs/heads/main$",
     "^refs/heads/v\\d+(?:\\.\\d+)?$"
@@ -9,5 +9,11 @@
     "buildNumber": {
       "enabled": true
     }
+  },
+  "release": {
+    "tagName": "v{version}",
+    "branchName": "release/v{version}",
+    "versionIncrement": "minor",
+    "firstUnstableTag": "beta"
   }
 }
