@@ -1,6 +1,6 @@
 {
     "name": "fluxzy",
-    "version": "0.4.2-alpha",
+    "version": "0.4.6-alpha",
     "description": "Fluxzy Desktop",
     "author": "Haga Rakotoharivelo",
     "copyright": "Copyright (c) 2022 Haga Rakotoharivelo",
@@ -29,13 +29,16 @@
         "fluxzyd:build-win": "dotnet publish --self-contained true --runtime win-x64 -c Release -o zpublish  ../Fluxzy.Desktop.Ui.csproj",
         "fluxzyd:build-linux": "dotnet publish --self-contained true --use-current-runtime -c Release -o zpublish  ../Fluxzy.Desktop.Ui.csproj",
         "fluxzyd:build-macos": "dotnet publish --self-contained true --use-current-runtime -c Release -o zpublish  ../Fluxzy.Desktop.Ui.csproj",
+        "fluxzyd:build": "dotnet publish --self-contained true --use-current-runtime -c Release -o zpublish  ../Fluxzy.Desktop.Ui.csproj",
         "package-win": "npm run fluxzyd:build-win && npm run build:prod && electron-forge package",
         "package-linux": "npm run fluxzyd:build-linux && npm run build:prod && electron-forge package",
         "package-macos": "npm run fluxzyd:build-macos && npm run build:prod && electron-forge package",
+        "package": "npm run fluxzyd:build && npm run build:prod && electron-forge package",
         "make": "electron-forge make",
         "publish": "cross-env NODE_EXTRA_CA_CERTS=../../../tools/dev-cert/wild_fluxzy_io.cer electron-forge publish",
         "everything:win": "npm run package-win && npm run publish",
-        "everything:linux": "npm run package-linux && npm run make && npm run publish"
+        "everything:linux": "npm run package-linux && npm run make && npm run publish",
+        "everything": "npm run package && npm run publish"
     },
     "dependencies": {
         "@angular-devkit/core": "14.2.7",
