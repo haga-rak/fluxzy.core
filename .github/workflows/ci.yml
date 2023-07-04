@@ -3,6 +3,9 @@ name: CI
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - 'design/**'
 
 jobs:
   build-and-test-backend:
