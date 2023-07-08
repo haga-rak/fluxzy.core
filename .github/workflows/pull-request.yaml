@@ -3,6 +3,9 @@ name: Pull Request Check
 on:
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - 'design/**'
 
 jobs:
   build-and-test-backend:
