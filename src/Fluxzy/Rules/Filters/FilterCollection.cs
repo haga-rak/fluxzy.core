@@ -25,6 +25,10 @@ namespace Fluxzy.Rules.Filters
         {
         }
 
+        /// <summary>
+        /// Create a combination of multiple filters. The default operation is OR.
+        /// </summary>
+        /// <param name="filters"></param>
         public FilterCollection(params Filter[] filters)
         {
             Children = filters?.ToList() ?? new List<Filter>();
