@@ -1,7 +1,0 @@
-{
-  "name": "angular-electron",
-  "version": "10.5.2",
-  "main": "main.js",
-  "private": true,
-  "dependencies": {}
-}

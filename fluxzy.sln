@@ -9,11 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Cli", "src\Fluxzy.Cl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests", "test\Fluxzy.Tests\Fluxzy.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Services", "src\Fluxzy.Desktop.Services\Fluxzy.Desktop.Services.csproj", "{A6E1E399-F217-4D00-8341-228E6F4839AD}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CAD5F2E1-227B-43AD-AFF9-1311097038D6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Desktop.Ui", "src\Fluxzy.Desktop.Ui\Fluxzy.Desktop.Ui.csproj", "{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Interop.Pcap", "src\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj", "{9BA601E9-8E97-43D3-B562-B9B0E46E3036}"
 EndProject
@@ -55,14 +51,6 @@ Global
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A6E1E399-F217-4D00-8341-228E6F4839AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6E1E399-F217-4D00-8341-228E6F4839AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6E1E399-F217-4D00-8341-228E6F4839AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6E1E399-F217-4D00-8341-228E6F4839AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1EAE2EEA-DE3E-405A-BEAD-E9C897CD95BE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BA601E9-8E97-43D3-B562-B9B0E46E3036}.Release|Any CPU.ActiveCfg = Release|Any CPU
