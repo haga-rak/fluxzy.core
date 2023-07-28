@@ -11,6 +11,7 @@ using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 
 namespace Fluxzy
 {
@@ -179,7 +180,6 @@ namespace Fluxzy
         public FluxzySetting SetByPassedHosts(params string[] hosts)
         {
             ByPassHostFlat = string.Join(";", hosts.Distinct());
-
             return this;
         }
 
@@ -195,6 +195,12 @@ namespace Fluxzy
 
             return this;
         }
+
+        public FluxzySetting SetOutDirectory(string directoryName)
+        {
+			ArchivingPolicy = Fluxzy.ArchivingPolicy.CreateFromDirectory(directoryName);
+			return this;
+		}
 
         /// <summary>
         ///     Add hosts that fluxzy should not decrypt
@@ -238,6 +244,14 @@ namespace Fluxzy
             return AddBoundAddress(new IPEndPoint(address, port), @default);
         }
 
+        public FluxzySetting AddBoundAddress(IPAddress boundAddress, int port, bool? @default = null)
+        {
+	        if (port < 0 || port >= ushort.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
+
+            return AddBoundAddress(new IPEndPoint(boundAddress, port), @default);
+        }
+
         public FluxzySetting SetBoundAddress(string boundAddress, int port)
         {
             if (!IPAddress.TryParse(boundAddress, out var address))
@@ -248,6 +262,17 @@ namespace Fluxzy
 
             BoundPoints.Clear();
             BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(address, port), true));
+
+            return this;
+        }
+
+        public FluxzySetting SetBoundAddress(IPAddress boundAddress, int port)
+        {
+            if (port < 0 || port >= ushort.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
+
+            BoundPoints.Clear();
+            BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(boundAddress, port), true));
 
             return this;
         }
@@ -296,6 +321,12 @@ namespace Fluxzy
             return this;
         }
 
+        /// <summary>
+        /// If true, fluxzy will automatically install the certificate in the user store.
+        /// This call needs administrator/root privileges. 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public FluxzySetting SetAutoInstallCertificate(bool value)
         {
             AutoInstallCertificate = value;
@@ -330,7 +361,8 @@ namespace Fluxzy
         }
 
         /// <summary>
-        ///     Get the default setting
+        ///     Create a default setting for a fluxzy capture session.
+        ///     Fluxzy will listen on 127.0.0.1 on port 44344
         /// </summary>
         /// <returns></returns>
         public static FluxzySetting CreateDefault()
@@ -338,6 +370,19 @@ namespace Fluxzy
             return new FluxzySetting {
                 ConnectionPerHost = 8
             }.SetBoundAddress("127.0.0.1", 44344);
+        }
+
+        /// <summary>
+        ///    Create a default setting for a fluxzy capture session with provided address and port
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        public static FluxzySetting CreateDefault(IPAddress address, int port)
+        {
+            return new FluxzySetting {
+                ConnectionPerHost = 8
+            }.SetBoundAddress(address, port);
         }
     }
 }

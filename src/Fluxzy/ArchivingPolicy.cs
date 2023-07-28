@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.Text.Json.Serialization;
@@ -10,6 +10,7 @@ namespace Fluxzy
         [JsonConstructor]
         internal ArchivingPolicy()
         {
+
         }
 
         public ArchivingPolicyType Type { get; internal set; }
