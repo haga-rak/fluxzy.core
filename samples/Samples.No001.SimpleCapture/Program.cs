@@ -19,17 +19,27 @@ namespace Samples.No001.SimpleCapture
 			                           .AddBoundAddress(IPAddress.IPv6Loopback, 44344) // add extra binding address
 			                           .SetOutDirectory(tempDirectory)
 			                           .SetAutoInstallCertificate(true) // Fluxzy will install the certificate to the default machine store
-			                           ;
-			
+				;
+
 			// Create a proxy instance
 			await using (var proxy = new Proxy(fluxzyStartupSetting))
 			{
 				var endpoints = proxy.Run();
 
 				using var httpClient = new HttpClient(new HttpClientHandler()
-		{
+				{
+					// We instruct the HttpClient to use the proxy
+					Proxy = new WebProxy($"http://127.0.0.1:{endpoints.First().Port}"),
+					UseProxy = true
+				});
 
-				await (await response.Content.ReadAsStreamAsync()).CopyToAsync(Stream.Null); 
+				// Make a request to a remote website
+				using var response = await httpClient.GetAsync("https://www.fluxzy.io/hello");
+
+				// Fluxzy is in full streaming mode, this means that the actual body content 
+				// is only captured when the client reads it. 
+
+				await (await response.Content.ReadAsStreamAsync()).CopyToAsync(Stream.Null);
 			}
 
 			// Packing the output files must be after the proxy dispose because some files may 
@@ -37,6 +47,9 @@ namespace Samples.No001.SimpleCapture
 
 			// Pack the files into fxzy file. This is the recommended file format as it can holds raw capture datas. 
 			Packager.Export(tempDirectory, "mycapture.fxzy");
+
+			// Pack the files into a HAR file
+			Packager.ExportAsHttpArchive(tempDirectory, "mycapture.har");
 
 		}
 	}
