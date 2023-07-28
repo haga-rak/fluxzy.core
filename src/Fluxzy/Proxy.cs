@@ -38,6 +38,18 @@ namespace Fluxzy
         private Task? _loopTask;
         private bool _started;
 
+		/// <summary>
+		/// Create a new instance of Proxy with the provided setting.
+		/// An InMemoryCertificateCache will be used as the certificate cache.
+		/// </summary>
+		/// <param name="startupSetting"></param>
+		public Proxy(FluxzySetting startupSetting)
+			: this (startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache()), 
+				new DefaultCertificateAuthorityManager())
+        {
+
+        }
+
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider,
@@ -91,9 +103,9 @@ namespace Fluxzy
                 certificateAuthorityManager.CheckAndInstallCertificate(startupSetting);
         }
 
-        public ProxyExecutionContext ExecutionContext { get; }
+        internal ProxyExecutionContext ExecutionContext { get; }
 
-        public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
+        internal RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
 
         internal FromIndexIdProvider IdProvider { get; }
 
@@ -182,7 +194,7 @@ namespace Fluxzy
         }
 
         /// <summary>
-        ///     Start proxy
+        ///     Start the proxy and return the end points that the proxy is listening to.
         /// </summary>
         public IReadOnlyCollection<IPEndPoint> Run()
         {
