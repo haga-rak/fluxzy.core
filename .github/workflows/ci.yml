@@ -46,20 +46,6 @@ jobs:
       with:
         name: Test Results (${{ matrix.osversion }})
         path: ./TestResults/Fluxzy/fluxzytests.trx
-  build-front:
-    name: "Building electron binary"
-    runs-on: 'Windows'
-    steps:
-    - name: Use Node.js 18.x
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.x
-    - name: Install dependencies 
-      working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
-      run: npm install
-    - name: Build binary 
-      working-directory: ./src/Fluxzy.Desktop.Ui/ClientApp
-      run: npm run package-win
   publish-test-results:
     name: "Publish Tests Results"
     needs: build-and-test-backend
