@@ -69,5 +69,7 @@ namespace Fluxzy.Core
         public IPAddress DownStreamLocalAddressStruct { get; set; }
 
         public int ProxyListenPort { get; set; }
+
+        public bool Secure { get; set; }
     }
 }

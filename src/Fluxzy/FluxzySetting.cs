@@ -128,7 +128,7 @@ namespace Fluxzy
 
         /// <summary>
         ///     Specify a filter which trigger save to directory when passed.
-        ///     When this filter is null, any exchanges will be saved.
+        ///     When this filter is null, all exchanges will be saved.
         /// </summary>
         public Filter? SaveFilter { get; set; }
 

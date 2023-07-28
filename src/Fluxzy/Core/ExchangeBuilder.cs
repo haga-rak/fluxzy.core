@@ -100,6 +100,8 @@ namespace Fluxzy.Core
                 var exchangeContext = new ExchangeContext(authority,
                     runtimeSetting.VariableContext, runtimeSetting.ExecutionContext.StartupSetting);
 
+                exchangeContext.Secure = true; 
+
                 await runtimeSetting.EnforceRules(exchangeContext, FilterScope.OnAuthorityReceived);
 
                 if (exchangeContext.BlindMode)
