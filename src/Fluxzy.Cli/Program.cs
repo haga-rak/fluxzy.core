@@ -19,8 +19,7 @@ namespace Fluxzy.Cli
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
             }
 
-            Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
-
+            // Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
             // Environment.SetEnvironmentVariable("InsertFluxzyMetricsOnResponseHeader", "true");
             // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
             // Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts", "casalemedia.com");

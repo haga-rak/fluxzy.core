@@ -95,14 +95,14 @@ namespace Fluxzy.Cli.Commands
             var listenInterfaces = invocationContext.Value<List<IPEndPoint>>("listen-interface");
             var listenLocalHost = invocationContext.Value<bool>("llo");
             var listenAnyInterfaces = invocationContext.Value<bool>("lany");
-            var outFileInfo = invocationContext.Value<FileInfo>("output-file");
-            var dumpDirectory = invocationContext.Value<DirectoryInfo>("dump-folder");
+            var outFileInfo = invocationContext.Value<FileInfo?>("output-file");
+            var dumpDirectory = invocationContext.Value<DirectoryInfo?>("dump-folder");
             var registerAsSystemProxy = invocationContext.Value<bool>("system-proxy");
             var includeTcpDump = invocationContext.Value<bool>("include-dump");
             var skipDecryption = invocationContext.Value<bool>("skip-ssl-decryption");
             var installCert = invocationContext.Value<bool>("install-cert");
             var noCertCache = invocationContext.Value<bool>("no-cert-cache");
-            var certFile = invocationContext.Value<FileInfo>("cert-file");
+            var certFile = invocationContext.Value<FileInfo?>("cert-file");
             var certPassword = invocationContext.Value<string>("cert-password");
             var ruleFile = invocationContext.Value<FileInfo?>("rule-file");
             var ruleStdin = invocationContext.Value<bool>("rule-stdin");
