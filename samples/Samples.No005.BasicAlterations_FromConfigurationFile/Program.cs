@@ -38,6 +38,7 @@ namespace Samples.No005.BasicAlterations_FromConfigurationFile
                       comment: This is a redirection
                 """;
 
+            // Creating ruleset from raw yaml content   
             fluxzyStartupSetting.AddAlterationRules(yamlContent);
 
             // Create a proxy instance
