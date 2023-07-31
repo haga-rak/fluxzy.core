@@ -12,7 +12,7 @@ jobs:
     name: "Publish release"
     strategy:
       matrix:
-        osversion: [Linux, Windows, macOS]
+        osversion: [Linux]
         ostype: ['self-hosted']
 
     runs-on: ${{ matrix.osversion }}
