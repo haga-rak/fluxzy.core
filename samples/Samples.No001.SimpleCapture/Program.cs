@@ -6,8 +6,7 @@ namespace Samples.No001.SimpleCapture
     internal class Program
     {
         /// <summary>
-        /// In this sample, we will create a simple proxy that will capture all the traffic from
-        /// an HttpClient and save it to an fxzy file or HAR file 
+        /// In this sample, we will make a simple capture session and save it to an fxzy file or HAR file
         /// </summary>
         static async Task Main()
         {
