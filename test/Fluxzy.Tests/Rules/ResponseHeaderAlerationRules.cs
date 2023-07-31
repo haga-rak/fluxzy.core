@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new AddResponseHeaderAction(
                         headerName, headerValue),
@@ -66,7 +66,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new UpdateResponseHeaderAction(
                         headerName, headerValue),
@@ -106,7 +106,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new UpdateResponseHeaderAction(
                         headerName, headerValue),
@@ -145,7 +145,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new DeleteResponseHeaderAction(
                         headerName),

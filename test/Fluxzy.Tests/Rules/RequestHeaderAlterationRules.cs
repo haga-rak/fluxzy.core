@@ -25,7 +25,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new AddRequestHeaderAction(
                         headerName, headerValue),
@@ -69,7 +69,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new UpdateRequestHeaderAction(
                         headerName, headerNewValue),
@@ -115,7 +115,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new UpdateRequestHeaderAction(
                         headerName, headerNewValue),
@@ -158,7 +158,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new DeleteRequestHeaderAction(headerName),
                     new HostFilter("sandbox.smartizy.com")));
@@ -197,7 +197,7 @@ namespace Fluxzy.Tests.Rules
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new ChangeRequestMethodAction("PATCH"),
                     new HostFilter("sandbox.smartizy.com")));
