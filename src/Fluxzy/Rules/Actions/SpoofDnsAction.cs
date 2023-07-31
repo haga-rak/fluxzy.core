@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
@@ -16,6 +17,18 @@ namespace Fluxzy.Rules.Actions
         "Use this action to force the resolution of a hostname to a fixed IP address. ")]
     public class SpoofDnsAction : Action
     {
+        [JsonConstructor]
+        public SpoofDnsAction()
+        {
+
+        }
+
+        public SpoofDnsAction(string remoteHostIp, int remoteHostPort)
+        {
+            RemoteHostIp = remoteHostIp;
+            RemoteHostPort = remoteHostPort;
+        }
+
         /// <summary>
         ///     The IP address, leave blank to reuse the DNS solved IP
         /// </summary>
