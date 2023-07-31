@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.Rules
 
             var witnessComment = Guid.NewGuid().ToString();
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new ApplyCommentAction(witnessComment),
                     filter));

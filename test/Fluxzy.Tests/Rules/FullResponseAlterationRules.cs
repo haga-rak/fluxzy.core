@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.Rules
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new MockedResponseAction(new MockedResponseContent(403,
                         BodyContent.CreateFromString(bodyString))),
