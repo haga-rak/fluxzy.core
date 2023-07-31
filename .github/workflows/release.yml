@@ -31,6 +31,8 @@ jobs:
       run: dotnet build -c Release src/Fluxzy/
     - name: Build Fluxzy.Interop.Pcap
       run: dotnet build -c Release src/Fluxzy.Interop.Pcap/
+    - name: Build Fluxzy.Interop.Pcap
+      run: dotnet build -c Release src/Fluxzy.Cli/
     - name: Test
       run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
     - name: Push
