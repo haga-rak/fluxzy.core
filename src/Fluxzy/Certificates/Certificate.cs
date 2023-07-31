@@ -11,9 +11,11 @@ namespace Fluxzy.Certificates
     {
         private X509Certificate2? _cachedCertificate;
 
-        internal Certificate()
+        [JsonConstructor]
+        [Obsolete("This constructor is for serialization only (System.Text.Json limitation). Use static methods instead to avoid misconfiguration.")]
+        public Certificate()
         {
-
+            
         }
 
 
