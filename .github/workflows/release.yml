@@ -27,6 +27,12 @@ jobs:
     - name: Add nuget package source 
       continue-on-error: true  #ignore error (package source already present on the runner)
       run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
+    - name: Build Fluxzy
+      run: dotnet build -c Release src/Fluxzy/
+    - name: Build Fluxzy.Interop.Pcap
+      run: dotnet build -c Release src/Fluxzy.Interop.Pcap/
+    - name: Test
+      run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
     - name: Push
       run: dotnet nuget push **/*.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
 
