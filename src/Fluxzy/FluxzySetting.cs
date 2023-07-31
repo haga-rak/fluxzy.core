@@ -98,7 +98,8 @@ namespace Fluxzy
         ///     True if fluxzy should capture raw packet matching exchanges
         /// </summary>
         [JsonInclude]
-        internal bool CaptureRawPacket { get; set; }
+        [Obsolete("This option is ignored when set directly. Use CapturedTcpConnectionProvider to enable raw capture.")]
+        public bool CaptureRawPacket { get; set; }
 
         /// <summary>
         /// </summary>
