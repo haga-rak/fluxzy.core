@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
@@ -18,7 +19,9 @@ namespace Fluxzy
     public class FluxzySetting
     {
         [JsonInclude()]
-        internal List<Rule> InternalAlterationRules = new(); 
+        [Obsolete("Used only for serialization")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public List<Rule> InternalAlterationRules = new(); 
 
         [JsonConstructor]
         public FluxzySetting()
