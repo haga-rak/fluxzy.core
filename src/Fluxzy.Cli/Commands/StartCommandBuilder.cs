@@ -199,7 +199,7 @@ namespace Fluxzy.Cli.Commands
                         throw new ArgumentException(string.Join("\r\n", errors.Select(s => s.Message)));
 
                     if (ruleSet != null)
-                        proxyStartUpSetting.AlterationRules.AddRange(ruleSet.Rules.SelectMany(s => s.GetAllRules()));
+                        proxyStartUpSetting.AddAlterationRules(ruleSet.Rules.SelectMany(s => s.GetAllRules()));
                 }
                 catch (Exception ex) {
                     invocationContext.BindingContext.Console.WriteLine($"Error while reading rule file : {ex.Message}");

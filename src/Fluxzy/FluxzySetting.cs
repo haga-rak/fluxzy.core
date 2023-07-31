@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
@@ -11,12 +12,14 @@ using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
-using Org.BouncyCastle.Bcpg.OpenPgp;
 
 namespace Fluxzy
 {
     public class FluxzySetting
     {
+        [JsonInclude()]
+        internal List<Rule> InternalAlterationRules = new(); 
+
         [JsonConstructor]
         public FluxzySetting()
         {
@@ -124,7 +127,7 @@ namespace Fluxzy
         /// <summary>
         ///     Global alteration rules
         /// </summary>
-        public List<Rule> AlterationRules { get; set; } = new();
+        public ReadOnlyCollection<Rule> AlterationRules => new ReadOnlyCollection<Rule>(InternalAlterationRules);
 
         /// <summary>
         ///     Specify a filter which trigger save to directory when passed.
@@ -210,7 +213,7 @@ namespace Fluxzy
         public FluxzySetting AddTunneledHosts(params string[] hosts)
         {
             foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h))) {
-                AlterationRules.Add(new Rule(
+                InternalAlterationRules.Add(new Rule(
                     new SkipSslTunnelingAction(),
                     new HostFilter(host, StringSelectorOperation.Exact)));
             }
@@ -289,7 +292,7 @@ namespace Fluxzy
 
         public FluxzySetting SetClientCertificateOnHost(string host, Certificate certificate)
         {
-            AlterationRules.Add(new Rule(new SetClientCertificateAction(certificate), new HostFilter(host)));
+            InternalAlterationRules.Add(new Rule(new SetClientCertificateAction(certificate), new HostFilter(host)));
 
             return this;
         }
@@ -301,7 +304,7 @@ namespace Fluxzy
         /// <returns></returns>
         public FluxzySetting SetClientCertificateOnSubdomain(string subDomain, Certificate certificate)
         {
-            AlterationRules.Add(new Rule(new SetClientCertificateAction(certificate),
+            InternalAlterationRules.Add(new Rule(new SetClientCertificateAction(certificate),
                 new HostFilter(subDomain, StringSelectorOperation.EndsWith)));
 
             return this;
@@ -337,7 +340,7 @@ namespace Fluxzy
         public FluxzySetting SetSkipGlobalSslDecryption(bool value)
         {
             if (value)
-                AlterationRules.Add(new Rule(new SkipSslTunnelingAction(), new AnyFilter()));
+                InternalAlterationRules.Add(new Rule(new SkipSslTunnelingAction(), new AnyFilter()));
 
             return this;
         }
@@ -357,6 +360,38 @@ namespace Fluxzy
         {
             DisableCertificateCache = value;
 
+            return this;
+        }
+
+        /// <summary>
+        /// Remove existing alteration rules
+        /// </summary>
+        /// <returns></returns>
+        public FluxzySetting ClearAlterationRules()
+        {
+            InternalAlterationRules.Clear();
+            return this;
+        }
+
+        /// <summary>
+        /// Add alteration rules
+        /// </summary>
+        /// <param name="rules"></param>
+        /// <returns></returns>
+        public FluxzySetting AddAlterationRules(params Rule[] rules)
+        {
+            InternalAlterationRules.AddRange(rules);
+            return this;
+        }
+
+        /// <summary>
+        /// Add alteration rules
+        /// </summary>
+        /// <param name="rules"></param>
+        /// <returns></returns>
+        public FluxzySetting AddAlterationRules(IEnumerable<Rule> rules)
+        {
+            InternalAlterationRules.AddRange(rules);
             return this;
         }
 
