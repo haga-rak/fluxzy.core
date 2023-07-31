@@ -95,7 +95,7 @@ namespace Fluxzy
         ///     True if fluxzy should capture raw packet matching exchanges
         /// </summary>
         [JsonInclude]
-        public bool CaptureRawPacket { get; internal set; }
+        internal bool CaptureRawPacket { get; set; }
 
         /// <summary>
         /// </summary>
