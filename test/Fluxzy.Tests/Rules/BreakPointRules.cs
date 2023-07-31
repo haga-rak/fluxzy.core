@@ -56,7 +56,7 @@ namespace Fluxzy.Tests.Rules
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
                     new HostFilter("sandbox.smartizy.com")
@@ -104,7 +104,7 @@ namespace Fluxzy.Tests.Rules
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
                     new HostFilter("sandbox.smartizyerror.com")
@@ -138,7 +138,7 @@ namespace Fluxzy.Tests.Rules
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
                     new HostFilter("sandbox.smartizy.com")
@@ -199,7 +199,7 @@ namespace Fluxzy.Tests.Rules
 
             stepModel.FlatHeader = newRequestHeader;
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
                     new HostFilter("sandbox.smartizy.com")
@@ -262,7 +262,7 @@ namespace Fluxzy.Tests.Rules
 
             stepModel.FlatHeader = newRequestHeader;
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
                     new HostFilter("sandbox.smartizy.com")
@@ -319,7 +319,7 @@ namespace Fluxzy.Tests.Rules
 
             stepModel.FlatHeader = fullResponseHeader;
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
                     new HostFilter("sandbox.smartizy.com")
@@ -383,7 +383,7 @@ namespace Fluxzy.Tests.Rules
 
             stepModel.FlatHeader = fullResponseHeader;
 
-            proxy.StartupSetting.AlterationRules.Add(
+            proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
                     new HostFilter("sandbox.smartizy.com")

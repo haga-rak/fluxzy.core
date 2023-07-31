@@ -11,6 +11,12 @@ namespace Fluxzy.Certificates
     {
         private X509Certificate2? _cachedCertificate;
 
+        internal Certificate()
+        {
+
+        }
+
+
         [JsonInclude]
         public CertificateRetrieveMode RetrieveMode { get; set; } = CertificateRetrieveMode.FluxzyDefault;
 
