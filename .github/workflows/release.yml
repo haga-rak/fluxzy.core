@@ -12,7 +12,7 @@ jobs:
     name: "Publish release"
     strategy:
       matrix:
-        osversion: [Linux, Windows, macOS]
+        osversion: [Linux]
         ostype: ['self-hosted']
 
     runs-on: ${{ matrix.osversion }}
@@ -24,13 +24,15 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 7.0.x
-    - name: Use Node.js 18.x
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.x
     - name: Add nuget package source 
       continue-on-error: true  #ignore error (package source already present on the runner)
       run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
+    - name: Build Fluxzy
+      run: dotnet build -c Release src/Fluxzy/
+    - name: Build Fluxzy.Interop.Pcap
+      run: dotnet build -c Release src/Fluxzy.Interop.Pcap/
+    - name: Test
+      run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
     - name: Push
       run: dotnet nuget push **/*.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
 
