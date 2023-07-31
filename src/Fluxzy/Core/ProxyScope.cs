@@ -11,8 +11,15 @@ namespace Fluxzy.Core
     public class ProxyScope : IAsyncDisposable
     {
         private readonly Func<IOutOfProcessHost, ICaptureContext> _captureContextBuilder;
-        private readonly Func<IOutOfProcessHost> _captureHostBuilder;
+        private readonly Func<IOutOfProcessHost>? _captureHostBuilder;
         private IOutOfProcessHost? _currentCaptureHost;
+
+        public ProxyScope(
+            Func<IOutOfProcessHost, ICaptureContext> captureContextBuilder)
+        {
+            _captureHostBuilder = null;
+            _captureContextBuilder = captureContextBuilder;
+        }
 
         public ProxyScope(
             Func<IOutOfProcessHost> captureHostBuilder,
