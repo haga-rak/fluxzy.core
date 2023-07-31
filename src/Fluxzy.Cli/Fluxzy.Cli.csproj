@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>fxzy</AssemblyName>
     <SignAssembly>False</SignAssembly>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
