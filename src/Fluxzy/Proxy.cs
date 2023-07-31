@@ -37,14 +37,15 @@ namespace Fluxzy
         private Task? _loopTask;
         private bool _started;
 
-		/// <summary>
-		/// Create a new instance of Proxy with the provided setting.
-		/// An InMemoryCertificateCache will be used as the certificate cache.
-		/// </summary>
-		/// <param name="startupSetting"></param>
-		public Proxy(FluxzySetting startupSetting)
+        /// <summary>
+        /// Create a new instance of Proxy with the provided setting.
+        /// An InMemoryCertificateCache will be used as the certificate cache.
+        /// </summary>
+        /// <param name="startupSetting"></param>
+        /// <param name="tcpConnectionProvider"></param>
+        public Proxy(FluxzySetting startupSetting, ITcpConnectionProvider?  tcpConnectionProvider = null)
 			: this (startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache()), 
-				new DefaultCertificateAuthorityManager())
+				new DefaultCertificateAuthorityManager(), tcpConnectionProvider: tcpConnectionProvider)
         {
 
         }

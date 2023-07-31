@@ -4,7 +4,7 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Interop.Pcap.Pcapng
 {
-    public static class PcapngNssUtils
+    public static class PcapngUtils
     {
         /// <summary>
         ///     Get the pcapng stream if the nsskey included. Stream  must be seekable
@@ -12,7 +12,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng
         /// <param name="originalStream"></param>
         /// <param name="nssKey"></param>
         /// <returns></returns>
-        public static Stream GetNssIncludedStream(Stream originalStream, string nssKey)
+        public static Stream GetPcapngFileWithKeyStream(Stream originalStream, string nssKey)
         {
             // Retrieve the section header block 
 
@@ -50,6 +50,33 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             nssKeyBlockBuffer.CopyTo(finalBuffer.AsSpan().Slice((int) blockTotalLength));
 
             return new CombinedReadonlyStream(true, new MemoryStream(finalBuffer), originalStream);
+        }
+
+        /// <summary>
+        /// Create a PCAPNG file from an existing file with included NSS key
+        /// </summary>
+        /// <param name="nssKey"></param>
+        /// <param name="inRawCaptureStream"></param>
+        /// <param name="outFileStream"></param>
+        /// <returns></returns>
+        public static async Task CreatePcapngFileWithKeysAsync(string nssKey, Stream inRawCaptureStream, Stream outFileStream)
+        {
+            var pcapStream = inRawCaptureStream;
+            await using var tempStream = PcapngUtils.GetPcapngFileWithKeyStream(pcapStream, nssKey);
+            await tempStream.CopyToAsync(outFileStream);
+        }
+
+        /// <summary>
+        /// Create a PCAPNG file from an existing file with included NSS key
+        /// </summary>
+        /// <param name="nssKey"></param>
+        /// <param name="inRawCaptureStream"></param>
+        /// <param name="outFileStream"></param>
+        public static void CreatePcapngFileWithKeys(string nssKey, Stream inRawCaptureStream, Stream outFileStream)
+        {
+            var pcapStream = inRawCaptureStream;
+            using var tempStream = PcapngUtils.GetPcapngFileWithKeyStream(pcapStream, nssKey);
+            tempStream.CopyTo(outFileStream);
         }
     }
 }
