@@ -396,6 +396,24 @@ namespace Fluxzy
         }
 
         /// <summary>
+        /// Add alteration rules from a config file
+        /// </summary>
+        /// <param name="plainConfiguration"></param>
+        /// <returns></returns>
+        public FluxzySetting AddAlterationRules(string plainConfiguration)
+        {
+            RuleConfigParser parser = new RuleConfigParser();
+
+            var ruleSet = parser.TryGetRuleSetFromYaml(plainConfiguration, out var readErrors); 
+
+            if (readErrors != null && readErrors.Any())
+                throw new ArgumentException($"Invalid configuration:\r\n {string.Join("\r\n", readErrors)}");
+            
+            AddAlterationRules(ruleSet!.Rules.SelectMany(s => s.GetAllRules()));
+            return this;
+        }
+
+        /// <summary>
         ///     Create a default setting for a fluxzy capture session.
         ///     Fluxzy will listen on 127.0.0.1 on port 44344
         /// </summary>
