@@ -128,6 +128,67 @@ namespace Fluxzy.Tests.Cli
             Assert.Equal(expectedThumbPrint, thumbPrint, StringComparer.OrdinalIgnoreCase);
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task Run_Cli_With_ClientCertificate_2(bool forceH11)
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0";
+            var ruleFile = "rules-cert-2.yml";
+
+            File.WriteAllBytes("cc.pfx", StorageContext.client_cert);
+
+            var yamlContent = """
+                rules:
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: SetClientCertificateAction
+                      clientCertificate: 
+                        pkcs12File: cc.pfx
+                        pkcs12Password: Multipass85/
+                        retrieveMode: FromPkcs12
+                """;
+
+            var yamlContentForceHttp11 = """
+                rules:
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: SetClientCertificateAction
+                      clientCertificate: 
+                        pkcs12File: cc.pfx
+                        pkcs12Password: Multipass85/
+                        retrieveMode: FromPkcs12 
+                  - filter: 
+                      typeKind: AnyFilter        
+                    action : 
+                      typeKind: ForceHttp11Action
+                """;
+
+            File.WriteAllText(ruleFile, forceH11 ? yamlContentForceHttp11 : yamlContent);
+
+            commandLine += $" -r {ruleFile}";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+            var requestMessage =
+                new HttpRequestMessage(HttpMethod.Get, $"https://certauth.cryptomix.com/json/");
+
+            requestMessage.Headers.Add("X-Test-Header-256", "That value");
+
+            // Act 
+            using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+
+            var fullResponseString = await response.Content.ReadAsStringAsync();
+            
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
         [Fact]
         public async Task Run_Cli_Wait_For_Complete_When_304()
         {
