@@ -4,6 +4,7 @@ using Org.BouncyCastle.Tls;
 using System;
 using System.IO;
 using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             var client = new FluxzyTlsClient(
                 request.TargetHost!,
                 request.EnabledSslProtocols,
-                request.ApplicationProtocols!.ToArray());
+                request.ApplicationProtocols!.ToArray(),
+                (X509Certificate2?) (request.ClientCertificates.Count > 0 ? request.ClientCertificates[0] : null));
 
             var memoryStream = new MemoryStream();
 
