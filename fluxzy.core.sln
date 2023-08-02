@@ -19,8 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pcap", "Pcap", "{AA4E8234-B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Extensions", "src\Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.NativeOps", "src\Fluxzy.NativeOps\Fluxzy.NativeOps.csproj", "{8F6BF776-859D-45A4-9CDB-DC9A895E7845}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{0680A987-3FA8-4A85-9ECD-49E185120ABB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tools.DocGen", "src\Fluxzy.Tools.DocGen\Fluxzy.Tools.DocGen.csproj", "{8D3369D8-3580-4197-893C-BCBA88DE71DD}"
@@ -46,9 +44,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No002.Filtering", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No003.RawCapture", "samples\Samples.No003.RawCapture\Samples.No003.RawCapture.csproj", "{30EF65E5-BF26-4695-B2A5-287F1A2CEE54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No004.BasicAlterations", "samples\Samples.No004.BasicAlterations\Samples.No004.BasicAlterations.csproj", "{816F0C04-438E-4025-A7D8-6F812081F5A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No004.BasicAlterations", "samples\Samples.No004.BasicAlterations\Samples.No004.BasicAlterations.csproj", "{816F0C04-438E-4025-A7D8-6F812081F5A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No005.BasicAlterations_FromConfigurationFile", "Samples\Samples.No005.BasicAlterations_FromConfigurationFile\Samples.No005.BasicAlterations_FromConfigurationFile.csproj", "{08C4DBAB-4EAD-413D-9A00-5CDC22F56985}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No005.BasicAlterations_FromConfigurationFile", "Samples\Samples.No005.BasicAlterations_FromConfigurationFile\Samples.No005.BasicAlterations_FromConfigurationFile.csproj", "{08C4DBAB-4EAD-413D-9A00-5CDC22F56985}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,10 +78,6 @@ Global
 		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F6BF776-859D-45A4-9CDB-DC9A895E7845}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F6BF776-859D-45A4-9CDB-DC9A895E7845}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F6BF776-859D-45A4-9CDB-DC9A895E7845}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F6BF776-859D-45A4-9CDB-DC9A895E7845}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8D3369D8-3580-4197-893C-BCBA88DE71DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8D3369D8-3580-4197-893C-BCBA88DE71DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D3369D8-3580-4197-893C-BCBA88DE71DD}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,7 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Linq;
-using Fluxzy.NativeOps.SystemProxySetup.macOs;
+using Fluxzy.Utils.NativeOps.SystemProxySetup.macOs;
 using Xunit;
 
 namespace Fluxzy.Tests.NativeOps.Macos

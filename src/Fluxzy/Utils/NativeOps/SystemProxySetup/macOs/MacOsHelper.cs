@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Misc;
 
-namespace Fluxzy.NativeOps.SystemProxySetup.macOs
+namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 {
     internal class MacOsHelper
     {

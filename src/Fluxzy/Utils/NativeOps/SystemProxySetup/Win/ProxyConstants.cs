@@ -1,6 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-namespace Fluxzy.NativeOps.SystemProxySetup.Win
+namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
 {
     internal static class ProxyConstants
     {
