@@ -15,7 +15,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             BlockTotalLength += (int) (SecretsLength + (((4 - SecretsLength % 4) % 4)));
         }
 
-        public uint BlockType { get; init; } = 0x0000000A;
+        public uint BlockType => 0x0000000A;
 
         public int BlockTotalLength { get; }
 

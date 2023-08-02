@@ -12,17 +12,17 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
             BlockTotalLength = 24 + optionLength + 4;
         }
 
-        public uint BlockType { get; init; } = 0x0A0D0D0A;
+        public uint BlockType =>  0x0A0D0D0A;
 
         public int BlockTotalLength { get; }
 
-        public uint ByteOrderMagic { get; init; } = 0x1A2B3C4D;
+        public uint ByteOrderMagic => 0x1A2B3C4D;
 
-        public ushort MajorVersion { get; init; } = 1;
+        public ushort MajorVersion => 1;
 
-        public ushort MinorVersion { get; init; } = 0;
+        public ushort MinorVersion => 0;
 
-        public ulong SectionLength { get; init; } = 0xFFFFFFFFFFFFFFFF;
+        public ulong SectionLength => 0xFFFFFFFFFFFFFFFF;
 
         public int OnWireLength => BlockTotalLength;
 

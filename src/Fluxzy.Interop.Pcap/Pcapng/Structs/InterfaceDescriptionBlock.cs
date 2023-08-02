@@ -39,7 +39,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 
         }
 
-        public uint BlockType { get; init; } = 0x00000001;
+        public uint BlockType => 0x00000001;
 
         public int BlockTotalLength { get; }
 

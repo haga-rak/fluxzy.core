@@ -65,9 +65,13 @@ namespace Fluxzy.Interop.Pcap.Pcapng
             var fileStream = File.Open(outFileName, FileMode.Create, FileAccess.Write, FileShare.Read);
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+
+#if NET7_0_OR_GREATER
+
                 File.SetUnixFileMode(outFileName,
                     UnixFileMode.GroupRead | UnixFileMode.GroupWrite
                    | UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.OtherRead);
+#endif
             }
 
             lock (_pcapngStreamWriter)
@@ -112,13 +116,14 @@ namespace Fluxzy.Interop.Pcap.Pcapng
                         AutoFlush = true,
                         NewLine = "\r\n"
                     };
-
-                     if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#if NET7_0_OR_GREATER
+                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                      {
                          File.SetUnixFileMode(_nssKeyLogPath,
                              UnixFileMode.GroupRead | UnixFileMode.GroupWrite
                                                     | UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.OtherRead);
                      }
+#endif
                 }
                 _nssKeyLogStreamWriter?.WriteLine($"{nssKey}");
             }

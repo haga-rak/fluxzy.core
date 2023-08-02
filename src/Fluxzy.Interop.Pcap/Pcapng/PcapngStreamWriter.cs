@@ -20,7 +20,12 @@ namespace Fluxzy.Interop.Pcap.Pcapng
         public PcapngStreamWriter(PcapngGlobalInfo pcapngGlobalInfo)
         {
             _userApplicationName = pcapngGlobalInfo.UserApplicationName;
+            _hardwareDescription = "Unavailable on this runtime";
+            
+#if NET7_0_OR_GREATER
             _hardwareDescription = pcapngGlobalInfo.HardwareDescription ?? RuntimeInformation.RuntimeIdentifier;
+#endif
+
             _osDescription = pcapngGlobalInfo.OsDescription ?? RuntimeInformation.OSDescription;
         }
 
