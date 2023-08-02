@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
@@ -18,7 +19,9 @@ namespace Fluxzy
     public class FluxzySetting
     {
         [JsonInclude()]
-        internal List<Rule> InternalAlterationRules = new(); 
+        [Obsolete("Used only for serialization")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public List<Rule> InternalAlterationRules = new();
 
         [JsonConstructor]
         public FluxzySetting()
@@ -34,7 +37,8 @@ namespace Fluxzy
         /// <summary>
         ///     Returns a friendly description of the bound points
         /// </summary>
-        public string BoundPointsDescription {
+        public string BoundPointsDescription
+        {
             get
             {
                 return string.Join(", ", BoundPoints
@@ -98,7 +102,8 @@ namespace Fluxzy
         ///     True if fluxzy should capture raw packet matching exchanges
         /// </summary>
         [JsonInclude]
-        internal bool CaptureRawPacket { get; set; }
+        [Obsolete("This option is ignored when set directly. Use CapturedTcpConnectionProvider to enable raw capture.")]
+        public bool CaptureRawPacket { get; set; }
 
         /// <summary>
         /// </summary>
@@ -109,7 +114,8 @@ namespace Fluxzy
         ///     Hosts that by pass proxy
         /// </summary>
         [JsonInclude]
-        public List<string> ByPassHost {
+        public List<string> ByPassHost
+        {
             get
             {
                 return ByPassHostFlat.Split(new[] { ";", ",", "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries)
@@ -162,15 +168,18 @@ namespace Fluxzy
                 yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
 
             yield return new Rule(
-                new MountCertificateAuthorityAction {
+                new MountCertificateAuthorityAction
+                {
                     InternalScope = FilterScope.DnsSolveDone
                 }, new FilterCollection(new IsSelfFilter(),
-                    new PathFilter("/ca", StringSelectorOperation.StartsWith)) {
+                    new PathFilter("/ca", StringSelectorOperation.StartsWith))
+                {
                     Operation = SelectorCollectionOperation.And
                 });
 
             yield return new Rule(
-                new MountWelcomePageAction {
+                new MountWelcomePageAction
+                {
                     InternalScope = FilterScope.DnsSolveDone
                 }, new IsSelfFilter());
         }
@@ -201,9 +210,9 @@ namespace Fluxzy
 
         public FluxzySetting SetOutDirectory(string directoryName)
         {
-			ArchivingPolicy = Fluxzy.ArchivingPolicy.CreateFromDirectory(directoryName);
-			return this;
-		}
+            ArchivingPolicy = Fluxzy.ArchivingPolicy.CreateFromDirectory(directoryName);
+            return this;
+        }
 
         /// <summary>
         ///     Add hosts that fluxzy should not decrypt
@@ -212,7 +221,8 @@ namespace Fluxzy
         /// <returns></returns>
         public FluxzySetting AddTunneledHosts(params string[] hosts)
         {
-            foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h))) {
+            foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h)))
+            {
                 InternalAlterationRules.Add(new Rule(
                     new SkipSslTunnelingAction(),
                     new HostFilter(host, StringSelectorOperation.Exact)));
@@ -249,7 +259,7 @@ namespace Fluxzy
 
         public FluxzySetting AddBoundAddress(IPAddress boundAddress, int port, bool? @default = null)
         {
-	        if (port < 0 || port >= ushort.MaxValue)
+            if (port < 0 || port >= ushort.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
 
             return AddBoundAddress(new IPEndPoint(boundAddress, port), @default);
@@ -404,11 +414,11 @@ namespace Fluxzy
         {
             RuleConfigParser parser = new RuleConfigParser();
 
-            var ruleSet = parser.TryGetRuleSetFromYaml(plainConfiguration, out var readErrors); 
+            var ruleSet = parser.TryGetRuleSetFromYaml(plainConfiguration, out var readErrors);
 
             if (readErrors != null && readErrors.Any())
                 throw new ArgumentException($"Invalid configuration:\r\n {string.Join("\r\n", readErrors)}");
-            
+
             AddAlterationRules(ruleSet!.Rules.SelectMany(s => s.GetAllRules()));
             return this;
         }
@@ -420,7 +430,8 @@ namespace Fluxzy
         /// <returns></returns>
         public static FluxzySetting CreateDefault()
         {
-            return new FluxzySetting {
+            return new FluxzySetting
+            {
                 ConnectionPerHost = 8
             }.SetBoundAddress("127.0.0.1", 44344);
         }
@@ -433,7 +444,8 @@ namespace Fluxzy
         /// <returns></returns>
         public static FluxzySetting CreateDefault(IPAddress address, int port)
         {
-            return new FluxzySetting {
+            return new FluxzySetting
+            {
                 ConnectionPerHost = 8
             }.SetBoundAddress(address, port);
         }
