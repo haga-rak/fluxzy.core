@@ -12,7 +12,7 @@ jobs:
     name: "Publish release"
     strategy:
       matrix:
-        osversion: [Linux]
+        osversion: [Windows]
         ostype: ['self-hosted']
 
     runs-on: ${{ matrix.osversion }}
@@ -31,12 +31,9 @@ jobs:
       run: dotnet build -c Release src/Fluxzy/
     - name: Build Fluxzy.Interop.Pcap
       run: dotnet build -c Release src/Fluxzy.Interop.Pcap/
+    - name: Build Fluxzy.Interop.Pcap
+      run: dotnet build -c Release src/Fluxzy.Cli/
     - name: Test
       run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
     - name: Push
       run: dotnet nuget push **/*.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
-
-
-
-
-          
