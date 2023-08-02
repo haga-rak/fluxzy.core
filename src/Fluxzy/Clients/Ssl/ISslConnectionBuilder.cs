@@ -3,8 +3,10 @@
 using System;
 using System.IO;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.Ssl
 {
@@ -19,11 +21,14 @@ namespace Fluxzy.Clients.Ssl
 
     public class SslConnection : IDisposable
     {
-        public SslConnection(Stream stream, SslInfo sslInfo, SslApplicationProtocol applicationProtocol)
+        public SslConnection(Stream stream, SslInfo sslInfo, SslApplicationProtocol applicationProtocol,
+            NetworkStream? underlyingBcStream = null, DisposeEventNotifierStream ? eventNotifierStream = null)
         {
             Stream = stream;
             SslInfo = sslInfo;
             ApplicationProtocol = applicationProtocol;
+            UnderlyingBcStream = underlyingBcStream;
+            EventNotifierStream = eventNotifierStream;
         }
 
         public Stream Stream { get; }
@@ -31,6 +36,10 @@ namespace Fluxzy.Clients.Ssl
         public SslInfo SslInfo { get; }
 
         public SslApplicationProtocol ApplicationProtocol { get; }
+
+        public NetworkStream? UnderlyingBcStream { get; }
+
+        public DisposeEventNotifierStream? EventNotifierStream { get; }
 
         public string? NssKey { get; set; }
 

@@ -165,6 +165,15 @@ namespace Fluxzy.Clients.H11
                                       }, cancellationToken);
                 }
                 catch (Exception ex) {
+
+                    if (ex is ConnectionCloseException)
+                    {
+                        if (exchange.Connection.ReadStream != null)
+                            await exchange.Connection.ReadStream.DisposeAsync();
+
+                        exchange.Connection = null; 
+                    }
+
                     _logger.Trace(exchange.Id, () => $"Processing error {ex}");
 
                     throw;
