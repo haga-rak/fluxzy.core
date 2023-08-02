@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -28,7 +28,6 @@
     <ProjectReference Include="..\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
     <ProjectReference Include="..\Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj" />
     <ProjectReference Include="..\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj" />
-    <ProjectReference Include="..\Fluxzy.NativeOps\Fluxzy.NativeOps.csproj" />
     <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
   </ItemGroup>
 

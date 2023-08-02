@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 using Fluxzy.Misc;
 
-namespace Fluxzy.NativeOps.SystemProxySetup.Linux
+namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
 {
     internal class LinuxProxySetter : ISystemProxySetter
     {

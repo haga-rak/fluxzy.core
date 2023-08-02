@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Fluxzy.NativeOps.SystemProxySetup.macOs
+namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 {
     internal class NetworkInterface
     {

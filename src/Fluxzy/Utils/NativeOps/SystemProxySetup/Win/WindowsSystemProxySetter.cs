@@ -1,12 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 
-namespace Fluxzy.NativeOps.SystemProxySetup.Win
+namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
 {
-    [SupportedOSPlatform("windows")]
     internal class WindowsSystemProxySetter : ISystemProxySetter
     {
         public Task ApplySetting(SystemProxySetting value)
