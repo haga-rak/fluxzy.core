@@ -108,6 +108,9 @@ namespace Fluxzy.Clients
             exchange.Connection.SslNegotiationEnd = _timeProvider.Instant();
             exchange.Connection.SslInfo.RemoteCertificate = remoteCertificate;
 
+            exchange.Context.UnderlyingBcStream = sslConnectionInfo.UnderlyingBcStream;
+            exchange.Context.EventNotifierStream = sslConnectionInfo.EventNotifierStream;
+
             var resultStream = sslConnectionInfo.Stream;
 
             if (DebugContext.EnableNetworkFileDump) {
@@ -120,6 +123,7 @@ namespace Fluxzy.Clients
                 : RemoteConnectionResultType.Http11;
 
             exchange.Connection.ReadStream = exchange.Connection.WriteStream = resultStream;
+            
 
             return new RemoteConnectionResult(protoType, exchange.Connection);
         }

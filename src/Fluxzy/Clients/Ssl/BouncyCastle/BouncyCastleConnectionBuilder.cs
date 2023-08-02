@@ -4,10 +4,12 @@ using Org.BouncyCastle.Tls;
 using System;
 using System.IO;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
@@ -64,8 +66,15 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             // TODO : Keyinfos may be get updated during runtime, must be updated in SslConnection
 
+            var networkStream = innerStream as NetworkStream;
+
+            if (networkStream == null && innerStream is DisposeEventNotifierStream disposeEventNotifierStream) {
+                networkStream = (NetworkStream) disposeEventNotifierStream.InnerStream;
+            }
+
             var connection =
-                new SslConnection(protocol.Stream, new SslInfo(protocol), protocol.GetApplicationProtocol()) {
+                new SslConnection(protocol.Stream, new SslInfo(protocol), protocol.GetApplicationProtocol(),
+                    networkStream, innerStream as DisposeEventNotifierStream) {
                     NssKey = keyInfos
                 };
 
