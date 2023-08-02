@@ -135,7 +135,7 @@ namespace Fluxzy.Interop.Pcap
         {
             lock (this) {
                 if (_disposed)
-                    return ValueTask.CompletedTask;
+                    return default;
 
                 _disposed = true;
 
@@ -145,7 +145,7 @@ namespace Fluxzy.Interop.Pcap
                 _packetQueue?.Dispose();
             }
 
-            return ValueTask.CompletedTask;
+            return default;
         }
 
         private void Stop()
