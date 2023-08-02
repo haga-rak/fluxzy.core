@@ -30,10 +30,13 @@ jobs:
     - name: Test
       run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
     - name: Packaging Fluxzy
+      shell: cmd
       run: dotnet build -c Release src/Fluxzy && dotnet pack --include-symbols -c Release src/Fluxzy -o _npkgout
     - name: Packaging Fluxzy.Interop.Pcap
+      shell: cmd
       run: dotnet build -c Release src/Fluxzy.Interop.Pcap && dotnet pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout
     - name: Packaging Fluxzy.Cli
+      shell: cmd
       run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
     - name: Push
       run: dotnet nuget push _npkgout/*.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
