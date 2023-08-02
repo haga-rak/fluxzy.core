@@ -36,4 +36,3 @@ jobs:
       run: dotnet build src/Fluxzy --no-restore
     - name: Test
       run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
-
