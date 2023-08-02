@@ -17,9 +17,9 @@ using Fluxzy.Har;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.Misc.Traces;
-using Fluxzy.NativeOps.SystemProxySetup;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
+using Fluxzy.Utils.NativeOps.SystemProxySetup;
 
 namespace Fluxzy.Cli.Commands
 {

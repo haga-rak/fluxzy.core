@@ -6,9 +6,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
 using Fluxzy.Misc;
-using Fluxzy.NativeOps.SystemProxySetup.Win;
+using Fluxzy.Utils.NativeOps.SystemProxySetup.Win;
 
-namespace Fluxzy.NativeOps.SystemProxySetup.macOs
+namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 {
     internal class MacOsProxySetter : ISystemProxySetter
     {
