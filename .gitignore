@@ -399,3 +399,5 @@ FodyWeavers.xsd
 
 auto-generated.ts
 
+#Exclude package output
+_npkgout/
