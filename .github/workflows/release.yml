@@ -1,4 +1,4 @@
-name: win32 binaries
+name: Publish NuGet packages
 
 on:  
   push:
@@ -27,13 +27,16 @@ jobs:
     - name: Add nuget package source 
       continue-on-error: true  #ignore error (package source already present on the runner)
       run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
-    - name: Build Fluxzy
-      run: dotnet build -c Release src/Fluxzy/
-    - name: Build Fluxzy.Interop.Pcap
-      run: dotnet build -c Release src/Fluxzy.Interop.Pcap/
-    - name: Build Fluxzy.Interop.Pcap
-      run: dotnet build -c Release src/Fluxzy.Cli/
     - name: Test
       run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
+    - name: Packaging Fluxzy
+      shell: cmd
+      run: dotnet build -c Release src/Fluxzy && dotnet pack --include-symbols -c Release src/Fluxzy -o _npkgout
+    - name: Packaging Fluxzy.Interop.Pcap
+      shell: cmd
+      run: dotnet build -c Release src/Fluxzy.Interop.Pcap && dotnet pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout
+    - name: Packaging Fluxzy.Cli
+      shell: cmd
+      run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
     - name: Push
-      run: dotnet nuget push **/*.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
+      run: dotnet nuget push _npkgout/*.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
