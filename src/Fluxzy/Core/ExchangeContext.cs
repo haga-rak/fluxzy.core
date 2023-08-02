@@ -3,11 +3,13 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 
 namespace Fluxzy.Core
@@ -71,5 +73,9 @@ namespace Fluxzy.Core
         public int ProxyListenPort { get; set; }
 
         public bool Secure { get; set; }
+
+        public NetworkStream? UnderlyingBcStream { get; set; }
+
+        public DisposeEventNotifierStream? EventNotifierStream { get; set; }
     }
 }
