@@ -2,12 +2,14 @@
 
 using System;
 using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
+using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Clients.H11
 {
@@ -29,6 +31,14 @@ namespace Fluxzy.Clients.H11
         /// <returns>True if remote server close connection</returns>
         public async ValueTask<bool> Process(Exchange exchange, RsBuffer buffer, CancellationToken cancellationToken)
         {
+            if (exchange.Context.EventNotifierStream != null) {
+
+                if (exchange.Context.EventNotifierStream.Faulted)
+                {
+                    throw new ConnectionCloseException("Abandoned stream");
+                }
+            }
+
             exchange.Connection!.AddNewRequestProcessed();
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
@@ -83,7 +93,13 @@ namespace Fluxzy.Clients.H11
                     cancellationToken);
             }
             catch (Exception ex) {
-                throw new ClientErrorException(0, "The connection was close while trying to read the response header",
+
+                if (ex is TlsFatalAlert || (exchange.Context.EventNotifierStream?.Faulted ?? false))
+                {
+                    throw new ConnectionCloseException("Relaunch");
+                }
+
+                throw new ClientErrorException(0, $"The connection was close while trying to read the response header",
                     ex.Message);
             }
 

@@ -81,7 +81,7 @@ namespace Fluxzy.Core
                 exchange.ClientErrors.Add(clientErrorException.ClientError);
 
             if (!exchange.ClientErrors.Any()) {
-                exchange.ClientErrors.Add(new ClientError(0, "A generic error has occured") {
+                exchange.ClientErrors.Add(new ClientError(0, $"A generic error has occured") {
                     ExceptionMessage = ex.Message
                 });
             }
