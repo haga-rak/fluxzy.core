@@ -14,6 +14,7 @@ using Fluxzy.Misc.Streams;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
 using Fluxzy.Writers;
+using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Core
 {
@@ -189,15 +190,20 @@ namespace Fluxzy.Core
                                             D.TraceInfo(message);
                                         }
                                     }
-                                    catch (ConnectionCloseException) {
-                                        // This connection was "goawayed" while current exchange 
-                                        // tries to use it. 
+                                    catch (Exception ex) {
 
-                                        // let a chance for the _poolbuilder to release it
+                                        if (ex is ConnectionCloseException || ex is TlsFatalAlert) {
+                                            // This connection was "goawayed" while current exchange 
+                                            // tries to use it. 
 
-                                        await Task.Yield();
+                                            // let a chance for the _poolbuilder to release it
 
-                                        continue;
+                                            await Task.Yield();
+
+                                            continue;
+                                        }
+
+                                        throw;
                                     }
                                     finally {
                                         // We close the request body dispatchstream
