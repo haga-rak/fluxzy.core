@@ -38,6 +38,12 @@ namespace Fluxzy.Rules.Actions
         [ActionDistinctive]
         public string HeaderValue { get; set; }
 
+        /// <summary>
+        ///    Add the header if it does not exists in the original response
+        /// </summary>
+        [ActionDistinctive]
+        public bool AddIfMissing { get; set; }
+
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
         public override string DefaultDescription => $"Update response header {HeaderName}".Trim();
@@ -47,7 +53,7 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             context.ResponseHeaderAlterations.Add(new HeaderAlterationReplace(HeaderName.EvaluateVariable(context)!,
-                HeaderValue.EvaluateVariable(context)!));
+                HeaderValue.EvaluateVariable(context)!, AddIfMissing));
 
             return default;
         }
