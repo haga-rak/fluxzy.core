@@ -38,6 +38,12 @@ namespace Fluxzy.Rules.Actions
         [ActionDistinctive]
         public string HeaderValue { get; set; }
 
+        /// <summary>
+        /// If true, the header will be added if it does not exists in the original request
+        /// </summary>
+        [ActionDistinctive]
+        public bool AddIfMissing { get; set; }
+
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
         public override string DefaultDescription => $"Update request header {HeaderName}".Trim();
@@ -47,7 +53,7 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             context.RequestHeaderAlterations.Add(new HeaderAlterationReplace(HeaderName.EvaluateVariable(context)!,
-                HeaderValue.EvaluateVariable(context)!));
+                HeaderValue.EvaluateVariable(context)!, AddIfMissing));
 
             return default;
         }
