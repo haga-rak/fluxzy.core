@@ -92,8 +92,8 @@ namespace Fluxzy.Core
             var replaceHeaders = _rawHeaderFields.Where(r => r.Name.Span.Equals(name,
                 StringComparison.OrdinalIgnoreCase)).ToList();
 
-            _rawHeaderFields.RemoveAll(r => r.Name.Span.Equals(name,
-                StringComparison.OrdinalIgnoreCase));
+            var exist = _rawHeaderFields.RemoveAll(r => r.Name.Span.Equals(name,
+                StringComparison.OrdinalIgnoreCase)) > 0;
 
             foreach (var replaceHeader in replaceHeaders) {
                 var previousValue = replaceHeader.Value;
@@ -107,17 +107,14 @@ namespace Fluxzy.Core
                 _rawHeaderFields.Add(replacement);
             }
 
-            if (addIfAbsent) {
-                foreach (var addedHeader in _rawHeaderFields.Where(r => !r.Name.Span.Equals(name,
-                             StringComparison.OrdinalIgnoreCase)))
-                {
-                    var appendedHeader = new HeaderField(
-                        addedHeader.Name,
-                        addedHeader.Value
-                    );
+            if (addIfAbsent && !exist) {
+               
+                var appendedHeader = new HeaderField(
+                    name,
+                    value
+                );
 
-                    _rawHeaderFields.Add(appendedHeader);
-                }
+                _rawHeaderFields.Add(appendedHeader);
             }
         }
 
