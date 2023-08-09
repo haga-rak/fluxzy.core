@@ -100,7 +100,7 @@ namespace Fluxzy
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
                                                          t.Filter is AnyFilter)
                 && StartupSetting.AutoInstallCertificate)
-                certificateAuthorityManager.CheckAndInstallCertificate(startupSetting);
+                certificateAuthorityManager.CheckAndInstallCertificate(startupSetting.CaCertificate.GetX509Certificate());
         }
 
         internal ProxyExecutionContext ExecutionContext { get; }

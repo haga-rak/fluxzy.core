@@ -2,7 +2,7 @@ using System.Net;
 
 namespace Fluxzy.Interop.Pcap.Reading
 {
-    public ref struct IpPacketInfo
+    internal ref struct IpPacketInfo
     {
         public int Version { get; set; }
 

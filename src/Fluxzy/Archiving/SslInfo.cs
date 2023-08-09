@@ -30,7 +30,7 @@ namespace Fluxzy
         ///     Building from BouncyCastle
         /// </summary>
         /// <param name="clientProtocol"></param>
-        public SslInfo(FluxzyClientProtocol clientProtocol)
+        internal SslInfo(FluxzyClientProtocol clientProtocol)
         {
 //#if NET6_0
 //            CipherAlgorithm = ((System.Net.Security.TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite).ToString(); 

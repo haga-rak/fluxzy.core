@@ -1,6 +1,6 @@
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public interface IOptionBlock
+    internal interface IOptionBlock
     {
         int OnWireLength { get;  }
 
