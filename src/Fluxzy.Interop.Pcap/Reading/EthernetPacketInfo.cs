@@ -1,6 +1,6 @@
 namespace Fluxzy.Interop.Pcap.Reading
 {
-    public ref struct EthernetPacketInfo
+    internal ref struct EthernetPacketInfo
     {
         public long DestinationMac { get; set; }
 

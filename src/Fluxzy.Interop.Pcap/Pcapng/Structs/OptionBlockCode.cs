@@ -5,7 +5,7 @@
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public enum OptionBlockCode
+    internal enum OptionBlockCode
     {
         Shb_Hardware = 2,
         Shb_Os = 3,

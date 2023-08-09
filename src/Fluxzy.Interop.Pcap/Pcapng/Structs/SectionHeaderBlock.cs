@@ -5,7 +5,7 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public readonly ref struct SectionHeaderBlock
+    internal readonly ref struct SectionHeaderBlock
     {
         public SectionHeaderBlock(int optionLength)
         {

@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace Fluxzy.Interop.Pcap
 {
-    public static class IpUtility
+    internal static class IpUtility
     {
         private static IPAddress? _result;
 

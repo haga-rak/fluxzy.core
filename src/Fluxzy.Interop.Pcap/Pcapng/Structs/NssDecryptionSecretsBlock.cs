@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public readonly ref struct NssDecryptionSecretsBlock
+    internal readonly ref struct NssDecryptionSecretsBlock
     {
         public NssDecryptionSecretsBlock(string nssKey)
         {

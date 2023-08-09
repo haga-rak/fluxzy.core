@@ -4,7 +4,7 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public readonly ref struct EnhancedPacketBlock
+    internal readonly ref struct EnhancedPacketBlock
     {
         private readonly string? _comment;
 

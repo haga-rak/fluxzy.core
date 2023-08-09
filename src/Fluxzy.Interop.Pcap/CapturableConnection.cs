@@ -7,7 +7,7 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Interop.Pcap
 {
-    public class CapturableTcpConnection : ITcpConnection
+    internal class CapturableTcpConnection : ITcpConnection
     {
         private readonly TcpClient _innerTcpClient;
         private readonly string _outTraceFileName;
