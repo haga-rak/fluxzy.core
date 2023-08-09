@@ -2,7 +2,7 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public readonly struct EndOfOption : IOptionBlock
+    internal readonly struct EndOfOption : IOptionBlock
     {
         public int OnWireLength => 4;
 
