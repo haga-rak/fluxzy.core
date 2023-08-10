@@ -61,7 +61,8 @@ namespace Fluxzy.Tools.DocGen
                 Title = type.Name.ToCamelCase(),
                 Description = filterMetaDataAttribute.LongDescription ?? string.Empty, 
                 Category = nameof(Filter),
-                FullTypeName = type.FullName!
+                FullTypeName = type.FullName!,
+                Scope = forcedInstance.FilterScope.ToString().ToCamelCase()
             });
 
             writer.NewLine = "\r\n";
@@ -174,7 +175,8 @@ namespace Fluxzy.Tools.DocGen
                 Title = type.Name.ToCamelCase(),
                 Description = actionMetadataAttribute.LongDescription ?? string.Empty,
                 Category = nameof(Action),
-                FullTypeName = type.FullName!
+                FullTypeName = type.FullName!,
+                Scope = forcedInstance.ActionScope.ToString().ToCamelCase()
             });
 
             writer.NewLine = "\r\n";
