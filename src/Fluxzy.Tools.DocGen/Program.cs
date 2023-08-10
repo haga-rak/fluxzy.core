@@ -18,11 +18,11 @@ namespace Fluxzy.Tools.DocGen
 
             var rootDirectory = new DirectoryInfo(".");
 
-            while (rootDirectory.EnumerateFiles().All(d => d.Name != "fluxzy.sln")) {
+            while (rootDirectory.EnumerateFiles().All(d => d.Name != "fluxzy.core.sln")) {
                 rootDirectory = rootDirectory.Parent;
 
                 if (rootDirectory == null)
-                    throw new Exception("Unable to locate fluxzy.sln");
+                    throw new Exception("Unable to locate fluxzy.core.sln");
             }
 
             var docsBaseDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "docs"));
