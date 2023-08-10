@@ -2,7 +2,7 @@
 
 ### Description
 
-Select exchanges according to url path. Path includes query string if any.
+Select exchanges according to url path. Path includes query string if any. Path must with `/`
 
 ### Evaluation scope
 
