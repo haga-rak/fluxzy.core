@@ -4,7 +4,7 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public readonly struct TsResolOption : IOptionBlock
+    internal readonly struct TsResolOption : IOptionBlock
     {
         public TsResolOption(byte resolution)
         {

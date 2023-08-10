@@ -5,7 +5,7 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public readonly struct IfMacAddressOption : IOptionBlock
+    internal readonly struct IfMacAddressOption : IOptionBlock
     {
         public IfMacAddressOption(byte[] macAddress)
         {

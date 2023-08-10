@@ -2,7 +2,7 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public readonly struct InterfaceDescriptionBlock
+    internal readonly struct InterfaceDescriptionBlock
     {
         private readonly InterfaceDescription _interfaceDescription;
         private readonly List<IOptionBlock> _options = new(); 

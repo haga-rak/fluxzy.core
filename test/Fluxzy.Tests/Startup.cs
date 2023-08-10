@@ -1,18 +1,23 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Net;
+using Fluxzy.Certificates;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-[assembly: TestFramework("Fluxzy.H2.Tests.TestAssemblyInitialization", "Fluxzy.Tests")]
+[assembly: TestFramework("Fluxzy.Tests.Startup", "Fluxzy.Tests")]
 
 namespace Fluxzy.Tests
 {
-    public class TestAssemblyInitialization : XunitTestFramework
+    public class Startup : XunitTestFramework
     {
-        public TestAssemblyInitialization(IMessageSink messageSink)
+        public Startup(IMessageSink messageSink)
             : base(messageSink)
         {
+            InstallCertificate(); 
+
+
             //Environment.SetEnvironmentVariable("Fluxzy_EnableNetworkFileDump", "true");
             //Environment.SetEnvironmentVariable("Fluxzy_EnableWindowSizeTrace", "true");
 
@@ -21,6 +26,12 @@ namespace Fluxzy.Tests
 
             //Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts",
             //    "2befficient.fr;smartizy.com; discord.com; facebook.com; google.com");
+        }
+
+        private void InstallCertificate()
+        {
+            DefaultCertificateAuthorityManager authorityManager = new();
+            authorityManager.CheckAndInstallCertificate(FluxzySetting.CreateDefault(IPAddress.Loopback, 4444).CaCertificate.GetX509Certificate());
         }
 
         public new void Dispose()

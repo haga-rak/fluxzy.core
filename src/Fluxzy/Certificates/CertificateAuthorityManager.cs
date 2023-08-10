@@ -44,10 +44,8 @@ namespace Fluxzy.Certificates
             return InstallCertificate(FluxzySecurity.BuiltinCertificate);
         }
 
-        public virtual void CheckAndInstallCertificate(FluxzySetting startupSetting)
+        public virtual void CheckAndInstallCertificate(X509Certificate2 certificate)
         {
-            var certificate = startupSetting.CaCertificate.GetX509Certificate();
-
             if (!IsCertificateInstalled(certificate))
                 InstallCertificate(certificate);
         }
