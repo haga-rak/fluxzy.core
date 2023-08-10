@@ -9,7 +9,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    public class NssLogWriter : IDisposable
+    internal class NssLogWriter : IDisposable
     {
         public static readonly string CLIENT_TRAFFIC_SECRET_0 = "CLIENT_TRAFFIC_SECRET_0";
         public static readonly string SERVER_TRAFFIC_SECRET_0 = "SERVER_TRAFFIC_SECRET_0";

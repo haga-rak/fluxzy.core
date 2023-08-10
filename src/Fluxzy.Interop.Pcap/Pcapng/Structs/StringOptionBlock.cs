@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Fluxzy.Interop.Pcap.Pcapng.Structs
 {
-    public readonly struct StringOptionBlock : IOptionBlock
+    internal readonly struct StringOptionBlock : IOptionBlock
     {
         public StringOptionBlock(OptionBlockCode optionCode, string optionValue)
             : this((ushort)optionCode, optionValue)

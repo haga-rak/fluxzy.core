@@ -13,7 +13,7 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    public class BouncyCastleConnectionBuilder : ISslConnectionBuilder
+    internal class BouncyCastleConnectionBuilder : ISslConnectionBuilder
     {
         private static readonly object SslFileLocker = new();
 

@@ -5,7 +5,7 @@ using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    public static class BcCertificateHelper
+    internal static class BcCertificateHelper
     {
         public static bool ReadInfo(TlsCertificate certificate, out string? subject, out string? issuer)
         {

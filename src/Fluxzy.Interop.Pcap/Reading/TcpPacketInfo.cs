@@ -1,6 +1,6 @@
 namespace Fluxzy.Interop.Pcap.Reading
 {
-    public ref struct TcpPacketInfo
+    internal ref struct TcpPacketInfo
     {
         public int SourcePort { get; set; }
 

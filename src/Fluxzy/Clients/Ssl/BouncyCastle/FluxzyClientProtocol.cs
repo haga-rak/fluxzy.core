@@ -12,7 +12,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    public class FluxzyClientProtocol : TlsClientProtocol
+    internal class FluxzyClientProtocol : TlsClientProtocol
     {
         private readonly NssLogWriter _logWriter;
         private TlsSecret? _localSecret;
