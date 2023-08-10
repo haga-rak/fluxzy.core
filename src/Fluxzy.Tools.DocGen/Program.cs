@@ -35,9 +35,7 @@ namespace Fluxzy.Tools.DocGen
             BuildActionDocs(docsBaseDirectory, docBuilder, items);
 
             File.WriteAllText(Path.Combine(docsBaseDirectory.FullName, "searchable-items.json"), 
-                JsonSerializer.Serialize(items, new JsonSerializerOptions(JsonSerializerDefaults.Web) {
-                    WriteIndented = true
-                }));
+                JsonSerializer.Serialize(items, new JsonSerializerOptions(JsonSerializerDefaults.Web) {}));
 
             Console.WriteLine("Done");
         }
@@ -96,5 +94,7 @@ namespace Fluxzy.Tools.DocGen
         public string FullTypeName { get; set; }
 
         public string Category { get; set; }
+
+        public string Scope { get; set; }
     }
 }
