@@ -22,6 +22,7 @@ The following table describes the customizable properties available for this fil
 | :------- | :------- | :------- | -------- |
 | headerName | string |  |  |
 | headerValue | string |  |  |
+| addIfMissing | boolean |  | false |
 
 ### Example of usage
 

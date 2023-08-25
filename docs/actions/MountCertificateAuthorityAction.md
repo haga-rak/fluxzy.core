@@ -1,8 +1,8 @@
-## removeCacheAction
+## mountCertificateAuthorityAction
 
 ### Description
 
-Remove all cache directive from request and response headers. This will force the clientto ask the latest version of the requested resource.
+Reply with the default root certificate used by fluxzy
 
 ### Evaluation scope
 
@@ -12,7 +12,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 ### YAML configuration name
 
-    removeCacheAction
+    mountCertificateAuthorityAction
 
 ### Settings
 
@@ -22,14 +22,14 @@ This action has no specific characteristic
 
 The following examples apply this action to any exchanges
 
-Remove all cache directive from request and response headers. This will force the clientto ask the latest version of the requested resource.
+Reply with the default root certificate used by fluxzy.
 
 ```yaml
 rules:
 - filter:
     typeKind: AnyFilter
   actions:
-  - typeKind: RemoveCacheAction
+  - typeKind: MountCertificateAuthorityAction
     noEditableSetting: true
 ```
 
