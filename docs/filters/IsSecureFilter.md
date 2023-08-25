@@ -1,42 +1,39 @@
-## pathFilter
+## isSecureFilter
 
 ### Description
 
-Select exchanges according to url path. Path includes query string if any. Path must with `/`
+Select secure exchange only (non plain HTTP).
 
 ### Evaluation scope
 
 Evaluation scope defines the timing where this filter will be applied. 
 
-**requestHeaderReceivedFromClient** This scope occurs the moment fluxzy parsed the request header receiveid from client
+**onAuthorityReceived** This scope denotes the moment fluxzy is aware the destination authority. In a regular proxy connection, it will occur the moment where fluxzy parsed the CONNECT request.
 
 ### YAML configuration name
 
-    pathFilter
+    isSecureFilter
 
 ### Settings
+
+This filter has no specific characteristic
 
 The following table describes the customizable properties available for this filter: 
 
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
-| pattern | string | The string pattern to search |  |
-| operation | exact \| contains \| startsWith \| endsWith \| regex | The search operation performed | contains |
-| caseSensitive | boolean | true if the Search should be case sensitive | false |
 | inverted | boolean | Negate the filter result | false |
 
 ### Example of usage
 
 The following examples apply a comment to the filtered exchange
 
-Retains only exchanges having uri starting with API.
+Select secure exchange only (non plain HTTP).
 
 ```yaml
 rules:
 - filter:
-    typeKind: PathFilter
-    pattern: /api
-    operation: StartsWith
+    typeKind: IsSecureFilter
   actions:
   - typeKind: ApplyCommentAction
     comment: filter was applied

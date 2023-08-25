@@ -30,6 +30,7 @@ rules:
     typeKind: AnyFilter
   actions:
   - typeKind: SkipSslTunnelingAction
+    noEditableSetting: true
 ```
 
 

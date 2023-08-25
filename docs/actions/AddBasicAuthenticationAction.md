@@ -1,8 +1,8 @@
-## updateRequestHeaderAction
+## addBasicAuthenticationAction
 
 ### Description
 
-Update and existing request header. If the header does not exists in the original request, the header will be added. <br/>Use {{previous}} keyword to refer to the original value of the header. <br/><strong>Note</strong> Headers that alter the connection behaviour will be ignored.
+Add a basic authentication (RFC 7617) to incoming exchanges with an username and a password
 
 ### Evaluation scope
 
@@ -12,7 +12,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 ### YAML configuration name
 
-    updateRequestHeaderAction
+    addBasicAuthenticationAction
 
 ### Settings
 
@@ -20,24 +20,23 @@ The following table describes the customizable properties available for this fil
 
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
-| headerName | string |  |  |
-| headerValue | string |  |  |
-| addIfMissing | boolean |  | false |
+| username | string |  |  |
+| password | string |  |  |
 
 ### Example of usage
 
 The following examples apply this action to any exchanges
 
-Update the User-Agent header.
+Add a basic authentication with username `lilou` and password `multipass`.
 
 ```yaml
 rules:
 - filter:
     typeKind: AnyFilter
   actions:
-  - typeKind: UpdateRequestHeaderAction
-    headerName: User-Agent
-    headerValue: Fluxzy
+  - typeKind: AddBasicAuthenticationAction
+    username: lilou
+    password: multipass
 ```
 
 

@@ -1,18 +1,18 @@
-## pathFilter
+## isSelfFilter
 
 ### Description
 
-Select exchanges according to url path. Path includes query string if any. Path must with `/`
+Check if incoming request considers fluxzy as a web server
 
 ### Evaluation scope
 
 Evaluation scope defines the timing where this filter will be applied. 
 
-**requestHeaderReceivedFromClient** This scope occurs the moment fluxzy parsed the request header receiveid from client
+**dnsSolveDone** This scope occurs the moment fluxzy ends solving the DNS
 
 ### YAML configuration name
 
-    pathFilter
+    isSelfFilter
 
 ### Settings
 
@@ -20,23 +20,18 @@ The following table describes the customizable properties available for this fil
 
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
-| pattern | string | The string pattern to search |  |
-| operation | exact \| contains \| startsWith \| endsWith \| regex | The search operation performed | contains |
-| caseSensitive | boolean | true if the Search should be case sensitive | false |
 | inverted | boolean | Negate the filter result | false |
 
 ### Example of usage
 
 The following examples apply a comment to the filtered exchange
 
-Retains only exchanges having uri starting with API.
+Check if incoming request considers fluxzy as a web server.
 
 ```yaml
 rules:
 - filter:
-    typeKind: PathFilter
-    pattern: /api
-    operation: StartsWith
+    typeKind: IsSelfFilter
   actions:
   - typeKind: ApplyCommentAction
     comment: filter was applied

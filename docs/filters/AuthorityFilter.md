@@ -20,6 +20,7 @@ The following table describes the customizable properties available for this fil
 
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
+| port | int32 | The remote port | 0 |
 | pattern | string | The string pattern to search |  |
 | operation | exact \| contains \| startsWith \| endsWith \| regex | The search operation performed | 0 |
 | caseSensitive | boolean | true if the Search should be case sensitive | false |
