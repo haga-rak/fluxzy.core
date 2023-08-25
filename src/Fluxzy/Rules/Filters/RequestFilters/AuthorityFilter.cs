@@ -19,6 +19,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             Port = port;
         }
 
+        [FilterDistinctive(Description = "The remote port")]
         public int Port { get; }
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
