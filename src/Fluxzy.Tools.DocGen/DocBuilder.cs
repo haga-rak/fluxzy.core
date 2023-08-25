@@ -34,14 +34,14 @@ namespace Fluxzy.Tools.DocGen
             yield break;
         }
 
-        public void BuildFilter<T>(string directory) where T : Filter
+        public void BuildFilter<T>(string directory, List<SearchableItem> items) where T : Filter
         {
             var type = typeof(T);
 
-            BuildFilter(directory, type);
+            BuildFilter(directory, type, items);
         }
 
-        public void BuildFilter(string directory, Type type)
+        public void BuildFilter(string directory, Type type, List<SearchableItem> items)
         {
             Directory.CreateDirectory(directory);
 
@@ -56,6 +56,14 @@ namespace Fluxzy.Tools.DocGen
 
             if (filterMetaDataAttribute == null)
                 throw new InvalidOperationException($"Filter {type.Name} is missing FilterMetaDataAttribute");
+
+            items.Add(new SearchableItem() {
+                Title = type.Name.ToCamelCase(),
+                Description = filterMetaDataAttribute.LongDescription ?? string.Empty, 
+                Category = nameof(Filter),
+                FullTypeName = type.FullName!,
+                Scope = forcedInstance.FilterScope.ToString().ToCamelCase()
+            });
 
             writer.NewLine = "\r\n";
             writer.WriteLine($"## {type.Name.ToCamelCase()}");
@@ -146,7 +154,7 @@ namespace Fluxzy.Tools.DocGen
             writer.WriteLine();
         }
 
-        public void BuildAction(string directory, Type type)
+        public void BuildAction(string directory, Type type, List<SearchableItem> items)
         {
             Directory.CreateDirectory(directory);
 
@@ -161,6 +169,15 @@ namespace Fluxzy.Tools.DocGen
 
             if (actionMetadataAttribute == null)
                 throw new InvalidOperationException($"Action `{type.Name}` is missing FilterMetaDataAttribute");
+
+            items.Add(new SearchableItem()
+            {
+                Title = type.Name.ToCamelCase(),
+                Description = actionMetadataAttribute.LongDescription ?? string.Empty,
+                Category = nameof(Action),
+                FullTypeName = type.FullName!,
+                Scope = forcedInstance.ActionScope.ToString().ToCamelCase()
+            });
 
             writer.NewLine = "\r\n";
             writer.WriteLine($"## {type.Name.ToCamelCase()}");
