@@ -328,7 +328,7 @@ namespace Fluxzy.Tests.Configurations
                   typeKind: FilterCollection        
                   operation: and
                   children:
-                    - typeKind: ContentTypeJsonFilter
+                    - typeKind: JsonResponseFilter
                       inverted: true
                     - typeKind: ImageFilter  
                 action : 
@@ -365,7 +365,7 @@ namespace Fluxzy.Tests.Configurations
                   typeKind: FilterCollection        
                   operation: { operation.ToString().ToLower()}  
                   children:
-                    - typeKind: ContentTypeJsonFilter
+                    - typeKind: JsonResponseFilter
                       inverted: true
                     - typeKind: ImageFilter  
                 action : 
