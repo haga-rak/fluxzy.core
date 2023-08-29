@@ -10,8 +10,8 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     ///     This action removes all cache directive from request header and response.
     /// </summary>
-    [ActionMetadata("Remove all cache directive from request and response headers. This will force the client" +
-                    "to ask the latest version of the requested resource.")]
+    [ActionMetadata("Remove all cache directives from request and response headers. This will force the client " +
+                    "to ask for the latest version of the resource.")]
     public class RemoveCacheAction : Action
     {
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
