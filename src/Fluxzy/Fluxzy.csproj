@@ -6,6 +6,7 @@
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<Description>fluxzy is an cross-platform HTTP engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <PackageLicenseUrl>https://www.fluxzy.io/license/fluxzy-core</PackageLicenseUrl>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

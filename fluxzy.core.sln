@@ -32,8 +32,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "__global", "__global", "{00
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		global.json = global.json
 		.github\workflows\pull-request.yaml = .github\workflows\pull-request.yaml
-		.github\workflows\release.yml = .github\workflows\release.yml
+		.github\workflows\release-cli.yml = .github\workflows\release-cli.yml
 		version.json = version.json
+		.github\workflows\release.-nuget.yml = .github\workflows\release.-nuget.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{30657256-C907-42C2-B7B2-DA4FD8D0E412}"
@@ -47,6 +48,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No004.BasicAlterations", "samples\Samples.No004.BasicAlterations\Samples.No004.BasicAlterations.csproj", "{816F0C04-438E-4025-A7D8-6F812081F5A5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No005.BasicAlterations_FromConfigurationFile", "Samples\Samples.No005.BasicAlterations_FromConfigurationFile\Samples.No005.BasicAlterations_FromConfigurationFile.csproj", "{08C4DBAB-4EAD-413D-9A00-5CDC22F56985}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{F5C5DD67-8A16-4561-8545-2EF0441A2015}"
+	ProjectSection(SolutionItems) = preProject
+		tools\scripts\ArtefactNameBuilder.csx = tools\scripts\ArtefactNameBuilder.csx
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

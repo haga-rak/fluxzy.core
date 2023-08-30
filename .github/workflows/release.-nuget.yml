@@ -24,20 +24,38 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 7.0.x
+
     - name: Add nuget package source 
-      continue-on-error: true  #ignore error (package source already present on the runner)
+      continue-on-error: true  # ignore error (package source already present on the runner)
       run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
+
+    - name: Install dotnet script
+      continue-on-error: true  # ignore error (dotnet script already present on the runner)
+      run: dotnet tool install --global dotnet-script
+
+    - name: Install nbgv
+      continue-on-error: true  # ignore error (dotnet script already present on the runner)
+      run: dotnet tool install --global nbgv
+
     - name: Test
       run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
+
     - name: Packaging Fluxzy
       shell: cmd
       run: dotnet build -c Release src/Fluxzy && dotnet pack --include-symbols -c Release src/Fluxzy -o _npkgout
+
     - name: Packaging Fluxzy.Interop.Pcap
       shell: cmd
       run: dotnet build -c Release src/Fluxzy.Interop.Pcap && dotnet pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout
+
     - name: Packaging Fluxzy.Cli
       shell: cmd
       run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
+
+    - name: Building standalone zip
+      shell: cmd
+      run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
+
     - name: Push
       working-directory: _npkgout
       run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
