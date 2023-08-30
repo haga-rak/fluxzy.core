@@ -401,3 +401,4 @@ auto-generated.ts
 
 #Exclude package output
 _npkgout/
+_binaryOut/
