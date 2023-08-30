@@ -34,23 +34,29 @@ jobs:
 
     # - name: Test
     #   run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
-
-    - name: Packaging Fluxzy
-      shell: cmd
-      run: dotnet build -c Release src/Fluxzy -o _npkgout
-
-    - name: Packaging Fluxzy.Interop.Pcap
-      shell: cmd
-      run: dotnet build -c Release src/Fluxzy.Interop.Pcap && dotnet pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout
+    
+    - name: Install nbgv
+      run: dotnet tool install --global nbgv
 
     - name: Packaging Fluxzy.Cli
-      shell: cmd
-      run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
+      run: dotnet publish -c Release /p:DebugType=None /p:DebugSymbols=false src/Fluxzy.Cli -o .artefacts/raw
+
+    - name: Create file folder
+      run: mkdir ".artefacts/output"
 
     - name: Building standalone zip
-      shell: cmd
-      run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
+      run: nbgv get-version -v Version  | (dotnet script tools/scripts/NameAndCompress.csx -- .artefacts/output .artefacts/raw) > ".artefacts/filename.txt"
 
-    - name: Push
-      working-directory: _npkgout
-      run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
+    - name: Setting FILENAME as environment variable
+      shell: bash 
+      run: FILENAME=$(cat ".artefacts/filename.txt")
+    
+    - name: Upload to fluxzy.io
+      shell: bash 
+      run: | 
+         curl -k --location 'https://www.fluxzy.io/release/upload' \
+            --header "Authorization: Bearer $UPLOAD_RELEASE_KEY" \
+            --form "platform=Windows64" \
+            -f "$FILENAME=@.artefacts/output/$FILENAME" \
+            --form 'category="Fluxzy CLI"' \
+            --form "version=1.4.2"
