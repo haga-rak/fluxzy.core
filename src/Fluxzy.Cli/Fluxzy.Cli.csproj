@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>fxzy</AssemblyName>
     <SignAssembly>False</SignAssembly>
-    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages> 
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
