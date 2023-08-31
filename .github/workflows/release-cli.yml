@@ -32,12 +32,6 @@ jobs:
       continue-on-error: true  # ignore error (dotnet script already present on the runner)
       run: dotnet tool install --global nbgv
 
-    # - name: Test
-    #   run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
-    
-    - name: Install nbgv
-      run: dotnet tool install --global nbgv
-
     - name: Packaging Fluxzy.Cli
       run: dotnet publish -c Release /p:DebugType=None /p:DebugSymbols=false src/Fluxzy.Cli -o .artefacts/raw
 
@@ -54,9 +48,9 @@ jobs:
     - name: Upload to fluxzy.io
       shell: bash 
       run: | 
-         curl -k --location 'https://www.fluxzy.io/release/upload' \
+         curl -k --location 'https://upload.fluxzy.io:4300/release/upload' \
             --header "Authorization: Bearer $UPLOAD_RELEASE_KEY" \
             --form "platform=Windows64" \
-            -f "$FILENAME=@.artefacts/output/$FILENAME" \
+            --form "$FILENAME=@.artefacts/output/$FILENAME" \
             --form 'category="Fluxzy CLI"' \
             --form "version=1.4.2"
