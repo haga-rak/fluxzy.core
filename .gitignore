@@ -401,3 +401,5 @@ auto-generated.ts
 
 #Exclude package output
 _npkgout/
+.artefacts/
+thirdParty/
