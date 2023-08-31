@@ -50,7 +50,6 @@ jobs:
       run: | 
          curl -k --location 'https://upload.fluxzy.io:4300/release/upload' \
             --header "Authorization: Bearer $UPLOAD_RELEASE_KEY" \
-            --form "platform=Windows64" \
+            --form "FileName=$FILENAME" \
             --form "$FILENAME=@.artefacts/output/$FILENAME" \
-            --form 'category="Fluxzy CLI"' \
-            --form "version=1.4.2"
+            --form 'category="Fluxzy CLI"'
