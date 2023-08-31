@@ -7,10 +7,10 @@
       "commandLineArgs": "start --llo -sp"
     },
     "fxzy (normal)": {
-      "commandName": "Project",
-      "environmentVariables": {
-      },
-      "commandLineArgs": "start --llo -n 2"
+        "commandName": "Project",
+        "environmentVariables": {
+        },
+        "commandLineArgs": "start -sp -r d:\\Filte\\addheader.yaml"
     }
   }
 

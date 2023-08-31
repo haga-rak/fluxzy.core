@@ -1,0 +1,71 @@
+name: Publish Fluxzy CLI packages
+
+on: workflow_dispatch
+      
+jobs:
+  publish-release:
+    name: "Publish release"
+    strategy:
+      matrix:
+        osversion: [Linux, Windows, macOS]
+        ostype: ['self-hosted']
+
+    runs-on: ${{ matrix.osversion }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 7.0.x
+
+    - name: Add nuget package source 
+      continue-on-error: true  # ignore error (package source already present on the runner)
+      run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
+
+    - name: Install dotnet script
+      continue-on-error: true  # ignore error (dotnet script already present on the runner)
+      run: dotnet tool install --global dotnet-script
+
+    - name: Install nbgv
+      continue-on-error: true  # ignore error (dotnet script already present on the runner)
+      run: dotnet tool install --global nbgv
+
+    - name: Install dotnet-project-licenses
+      continue-on-error: true  # ignore error
+      run: dotnet tool install --global dotnet-project-licenses
+
+    - name: Packaging Fluxzy.Cli
+      shell: bash 
+      run: dotnet publish --sc true -c Release "//p:DebugType=None" "//p:DebugSymbols=false"  -o ".artefacts/raw" "./src/Fluxzy.Cli"
+
+    - name: Create file folder
+      continue-on-error: true 
+      run: mkdir ".artefacts/output"
+
+    - name: Extract license files
+      run: dotnet-project-licenses -i . -f ".artefacts/raw/thirdParty" -o ".artefacts/raw/license.txt" -e
+
+    - name: Building standalone zip
+      run: nbgv get-version -v Version | (dotnet script tools/scripts/NameAndCompress.csx -- ".artefacts/output" ".artefacts/raw") > ".artefacts/filename.txt"
+
+    - name: Setting FILENAME as environment variable
+      shell: bash 
+      run: FILENAME=$(cat ".artefacts/filename.txt")
+
+    - name: Calculate SHA512 hash
+      shell: bash 
+      run: HASH=$(sha512sum.exe ".artefacts/output/$FILENAME" | cut -d " " -f 1)
+    
+    - name: Upload artefacts
+      shell: bash 
+      run: | 
+         curl -k --location 'https://upload.fluxzy.io:4300/release/upload' \
+            --header "Authorization: Bearer $UPLOAD_RELEASE_KEY" \
+            --form "FileName=$FILENAME" \
+            --form "FileSha512Hash=$HASH" \
+            --form "$FILENAME=@.artefacts/output/$FILENAME" \
+            --form 'category="Fluxzy CLI"'
+
+# TODO : sign, add licenses
