@@ -62,7 +62,7 @@ jobs:
 
     - name: Calculate SHA512 hash
       shell: bash 
-      run: HASH=$(sha512sum.exe ".artefacts/output/$FILENAME" | cut -d " " -f 1)
+      run: HASH=$(sha512sum ".artefacts/output/$FILENAME" | cut -d " " -f 1)
     
     - name: Upload artefacts
       shell: bash 
