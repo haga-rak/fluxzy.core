@@ -6,8 +6,8 @@ on:
     paths-ignore:
       - 'docs/**'
       - 'design/**'
-      - '.github/workflow/release*'
-      - '.github/workflow/pull-request*'
+      - '.github/workflows/release*'
+      - '.github/workflows/pull-request*'
 
 jobs:
   build-and-test-backend:
