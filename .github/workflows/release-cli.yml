@@ -61,7 +61,7 @@ jobs:
       shell: bash 
       run: | 
          FILENAME=$(cat ".artefacts/filename.txt")
-         HASH=$(sha512sum ".artefacts/output/$FILENAME" | cut -d " " -f 1)
+         HASH=$(shasum -a 512 ".artefacts/output/$FILENAME" | cut -d " " -f 1)
          curl --fail -k --location 'https://upload.fluxzy.io:4300/release/upload' \
             --header "Authorization: Bearer ${{ secrets.UPLOAD_RELEASE_TOKEN }}" \
             --form "FileName=$FILENAME" \
