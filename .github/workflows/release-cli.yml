@@ -55,18 +55,12 @@ jobs:
 
     - name: Building standalone zip
       run: nbgv get-version -v Version | (dotnet script tools/scripts/NameAndCompress.csx -- ".artefacts/output" ".artefacts/raw") > ".artefacts/filename.txt"
-
-    - name: Setting FILENAME as environment variable
-      shell: bash 
-      run: FILENAME=$(cat ".artefacts/filename.txt")
-
-    - name: Calculate SHA512 hash
-      shell: bash 
-      run: HASH=$(sha512sum ".artefacts/output/$FILENAME" | cut -d " " -f 1)
-    
+          
     - name: Upload artefacts
       shell: bash 
       run: | 
+         FILENAME=$(cat ".artefacts/filename.txt")
+         HASH=$(sha512sum ".artefacts/output/$FILENAME" | cut -d " " -f 1)
          curl -k --location 'https://upload.fluxzy.io:4300/release/upload' \
             --header "Authorization: Bearer $UPLOAD_RELEASE_KEY" \
             --form "FileName=$FILENAME" \
