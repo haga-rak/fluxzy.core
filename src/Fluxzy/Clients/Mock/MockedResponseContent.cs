@@ -30,12 +30,16 @@ namespace Fluxzy.Clients.Mock
         [PropertyDistinctive(Description = "Body content", Expand = true)]
         public BodyContent? Body { get; }
 
-        public override string GetFlatH11Header(Authority authority)
+        public override string GetFlatH11Header(Authority authority, ExchangeContext? exchangeContext)
         {
             var builder = new StringBuilder();
 
             builder.Append($"HTTP/1.1 {StatusCode} {((HttpStatusCode) StatusCode).ToString()}\r\n");
             builder.Append($"Host: {authority.HostName}:{authority.Port}\r\n");
+
+            if (exchangeContext != null && Body != null && Body.Text != null) {
+                Body.Text = Body.Text.EvaluateVariable(exchangeContext);
+            }
             
             var bodyContentLength = Body?.GetLength() ?? 0;
 
