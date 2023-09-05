@@ -8,11 +8,14 @@ Affect a tag to exchange. Tags are meta-information and do not alter the connect
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **onAuthorityReceived** This scope denotes the moment fluxzy is aware the destination authority. In a regular proxy connection, it will occur the moment where fluxzy parsed the CONNECT request.
+:::
 
 ### YAML configuration name
 
-    applyTagAction
+applyTagAction
 
 ### Settings
 
@@ -31,7 +34,7 @@ rules:
   actions:
   - typeKind: ApplyTagAction
     tag:
-      identifier: 7b7833d2-9b5b-461c-b8e7-fe0baadcfa70
+      identifier: 47c0d751-769c-4107-8c30-3a52e198890b
       value: Hello fluxzy
 ```
 

@@ -8,11 +8,14 @@ Remove all cache directive from request and response headers. This will force th
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **requestHeaderReceivedFromClient** This scope occurs the moment fluxzy parsed the request header receiveid from client
+:::
 
 ### YAML configuration name
 
-    removeCacheAction
+removeCacheAction
 
 ### Settings
 

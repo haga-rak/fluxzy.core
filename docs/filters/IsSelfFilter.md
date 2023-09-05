@@ -8,7 +8,10 @@ Check if incoming request considers fluxzy as a web server
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **dnsSolveDone** This scope occurs the moment fluxzy ends solving the DNS
+:::
 
 ### YAML configuration name
 
@@ -18,9 +21,12 @@ Evaluation scope defines the timing where this filter will be applied.
 
 The following table describes the customizable properties available for this filter: 
 
+{.property-table .property-table-filter}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | inverted | boolean | Negate the filter result | false |
+:::
 
 ### Example of usage
 

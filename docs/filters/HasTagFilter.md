@@ -8,7 +8,10 @@ Select exchanges having tag.
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **outOfScope** Means that the filter or action associated to this scope won't be trigger in the regular HTTP flow. This scope is applied only on view filter and internat actions.
+:::
 
 ### YAML configuration name
 
@@ -20,9 +23,12 @@ This filter has no specific characteristic
 
 The following table describes the customizable properties available for this filter: 
 
+{.property-table .property-table-filter}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | inverted | boolean | Negate the filter result | false |
+:::
 
 ### Example of usage
 

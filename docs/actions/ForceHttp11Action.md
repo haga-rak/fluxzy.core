@@ -8,11 +8,14 @@ Force the connection between fluxzy and remote to be HTTP/1.1. This value is enf
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **onAuthorityReceived** This scope denotes the moment fluxzy is aware the destination authority. In a regular proxy connection, it will occur the moment where fluxzy parsed the CONNECT request.
+:::
 
 ### YAML configuration name
 
-    forceHttp11Action
+forceHttp11Action
 
 ### Settings
 
