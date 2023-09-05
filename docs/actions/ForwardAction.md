@@ -8,20 +8,26 @@ Forward request to a specific URL. This action makes fluxzy act as a reverse pro
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **requestHeaderReceivedFromClient** This scope occurs the moment fluxzy parsed the request header receiveid from client
+:::
 
 ### YAML configuration name
 
-    forwardAction
+forwardAction
 
 ### Settings
 
-The following table describes the customizable properties available for this filter: 
+The following table describes the customizable properties available for this action: 
 
+{.property-table .property-table-action}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | url | string |  |  |
 
+:::
 ### Example of usage
 
 The following examples apply this action to any exchanges

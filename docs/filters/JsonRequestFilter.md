@@ -8,7 +8,10 @@ Select request sending JSON body. Filtering is made by inspecting value of `Cont
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **requestBodyReceivedFromClient** This scope occurs the moment fluxzy received fully the request body from the client. In a fullstreaming mode which is the default mode, this event occurs when the full body is already fully sent to the remote server. 
+:::
 
 ### YAML configuration name
 
@@ -20,9 +23,12 @@ This filter has no specific characteristic
 
 The following table describes the customizable properties available for this filter: 
 
+{.property-table .property-table-filter}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | inverted | boolean | Negate the filter result | false |
+:::
 
 ### Example of usage
 

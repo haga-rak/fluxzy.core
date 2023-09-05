@@ -8,7 +8,10 @@ Search for a cookie value present in a `set-cookie` header response.If cookie na
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **responseHeaderReceivedFromRemote** This scope occurs the moment fluxzy has done parsing the response header.
+:::
 
 ### YAML configuration name
 
@@ -18,6 +21,8 @@ Evaluation scope defines the timing where this filter will be applied.
 
 The following table describes the customizable properties available for this filter: 
 
+{.property-table .property-table-filter}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | name | string | Cookie name. Leave empty to match any cookies. This field is case sensitive |  |
@@ -25,6 +30,7 @@ The following table describes the customizable properties available for this fil
 | operation | exact \| contains \| startsWith \| endsWith \| regex | The search operation performed | contains |
 | caseSensitive | boolean | true if the Search should be case sensitive | false |
 | inverted | boolean | Negate the filter result | false |
+:::
 
 ### Example of usage
 

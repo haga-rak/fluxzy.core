@@ -8,21 +8,27 @@ Append a response header. H2 pseudo header will be ignored.
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **responseHeaderReceivedFromRemote** This scope occurs the moment fluxzy has done parsing the response header.
+:::
 
 ### YAML configuration name
 
-    addResponseHeaderAction
+addResponseHeaderAction
 
 ### Settings
 
-The following table describes the customizable properties available for this filter: 
+The following table describes the customizable properties available for this action: 
 
+{.property-table .property-table-action}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | headerName | string |  |  |
 | headerValue | string |  |  |
 
+:::
 ### Example of usage
 
 The following examples apply this action to any exchanges

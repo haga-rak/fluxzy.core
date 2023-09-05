@@ -77,9 +77,12 @@ namespace Fluxzy.Tools.DocGen
             writer.WriteLine("Evaluation scope defines the timing where this filter will be applied. ");
             writer.WriteLine();
 
+            writer.WriteLine("{.alert .alert-info}");
+            writer.WriteLine(":::");
             writer.Write($"**{forcedInstance.FilterScope.ToString().ToCamelCase()}**");
             writer.Write(" ");
             writer.WriteLine(forcedInstance.FilterScope.GetDescription());
+            writer.WriteLine(":::");
 
             writer.WriteLine();
             writer.WriteLine("### YAML configuration name");
@@ -97,6 +100,8 @@ namespace Fluxzy.Tools.DocGen
             writer.WriteLine("The following table describes the customizable properties available for this filter: ");
             writer.WriteLine();
 
+            writer.WriteLine("{.property-table .property-table-filter}");
+            writer.WriteLine(":::");
             writer.WriteLine(ProduceMarkdownTableLine(HeaderNames));
             writer.WriteLine(ProduceMarkdownTableLine(HeaderAlignments));
 
@@ -110,6 +115,7 @@ namespace Fluxzy.Tools.DocGen
 
                 writer.WriteLine(ProduceMarkdownTableLine(array));
             }
+            writer.WriteLine(":::");
 
             writer.WriteLine();
 
@@ -191,14 +197,17 @@ namespace Fluxzy.Tools.DocGen
             writer.WriteLine("Evaluation scope defines the timing where this filter will be applied. ");
             writer.WriteLine();
 
+            writer.WriteLine("{.alert .alert-info}");
+            writer.WriteLine(":::");
             writer.Write($"**{forcedInstance.ActionScope.ToString().ToCamelCase()}**");
             writer.Write(" ");
             writer.WriteLine(forcedInstance.ActionScope.GetDescription());
+            writer.WriteLine(":::");
 
             writer.WriteLine();
             writer.WriteLine("### YAML configuration name");
             writer.WriteLine();
-            writer.WriteLine($"    {type.Name.ToCamelCase()}");
+            writer.WriteLine($"{type.Name.ToCamelCase()}");
             writer.WriteLine();
             writer.WriteLine("### Settings");
             writer.WriteLine();
@@ -212,10 +221,12 @@ namespace Fluxzy.Tools.DocGen
 
             if (descriptionLines.Any()) {
                 writer.WriteLine(
-                    "The following table describes the customizable properties available for this filter: ");
+                    "The following table describes the customizable properties available for this action: ");
 
                 writer.WriteLine();
 
+                writer.WriteLine("{.property-table .property-table-action}");
+                writer.WriteLine(":::");
                 writer.WriteLine(ProduceMarkdownTableLine(HeaderNames));
                 writer.WriteLine(ProduceMarkdownTableLine(HeaderAlignments));
 
@@ -231,6 +242,7 @@ namespace Fluxzy.Tools.DocGen
                 }
 
                 writer.WriteLine();
+                writer.WriteLine(":::");
             }
 
             writer.WriteLine("### Example of usage");

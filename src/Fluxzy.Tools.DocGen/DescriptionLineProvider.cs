@@ -68,7 +68,7 @@ namespace Fluxzy.Tools.DocGen
                                  GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
                                  n.DistinctiveAttribute!.Description,
                                  defaultInstance?.GetType().GetProperty(n.PropertyInfo.Name)
-                                                ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? "*null*"
+                                                ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? ""
                              ));
         }
 

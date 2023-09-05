@@ -20,7 +20,7 @@ namespace Fluxzy.Certificates
         }
 
         [JsonInclude]
-        [PropertyDistinctive(Description = "Retrieve mode")]
+        [PropertyDistinctive(Description = "Retrieve mode" , DefaultValue = "fluxzyDefault")]
         public CertificateRetrieveMode RetrieveMode { get; set; } = CertificateRetrieveMode.FluxzyDefault;
 
         /// <summary>
