@@ -31,7 +31,7 @@ rules:
   actions:
   - typeKind: ApplyTagAction
     tag:
-      identifier: 70515ed8-e270-4854-8a0c-0560daca7a75
+      identifier: 7b7833d2-9b5b-461c-b8e7-fe0baadcfa70
       value: Hello fluxzy
 ```
 

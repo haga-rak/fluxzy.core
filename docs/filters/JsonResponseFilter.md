@@ -1,4 +1,4 @@
-## contentTypeJsonFilter
+## jsonResponseFilter
 
 ### Description
 
@@ -12,7 +12,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 ### YAML configuration name
 
-    contentTypeJsonFilter
+    jsonResponseFilter
 
 ### Settings
 
@@ -33,7 +33,7 @@ Select exchanges having JSON response body. The content-type header is checked t
 ```yaml
 rules:
 - filter:
-    typeKind: ContentTypeJsonFilter
+    typeKind: JsonResponseFilter
   actions:
   - typeKind: ApplyCommentAction
     comment: filter was applied
