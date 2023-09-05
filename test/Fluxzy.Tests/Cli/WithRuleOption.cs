@@ -28,7 +28,7 @@ namespace Fluxzy.Tests.Cli
 
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
 
-            File.WriteAllBytes($"{nameof(Validate_ClientCertificate)}.pfx", StorageContext.client_cert);
+            File.WriteAllBytes($"cc.pfx", StorageContext.client_cert);
 
             var yamlContent = """
                 rules:
@@ -77,7 +77,7 @@ namespace Fluxzy.Tests.Cli
 
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
             
-            File.WriteAllBytes("cc.pfx", StorageContext.client_cert);
+            File.WriteAllBytes("cc2.pfx", StorageContext.client_cert);
 
             var yamlContent = """
                 rules:
@@ -86,7 +86,7 @@ namespace Fluxzy.Tests.Cli
                     action : 
                       typeKind: SetClientCertificateAction
                       clientCertificate: 
-                        pkcs12File: cc.pfx
+                        pkcs12File: cc2.pfx
                         pkcs12Password: Multipass85/
                         retrieveMode: FromPkcs12
                 """;
