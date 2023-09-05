@@ -60,7 +60,7 @@ namespace Fluxzy.Rules.Actions
 
                 foreach (var cookieHeader in cookieHeaders)
                 {
-                    if (cookieHeader.Value.Span.Contains(Name, StringComparison.OrdinalIgnoreCase))
+                    if (!cookieHeader.Value.Span.Contains(Name, StringComparison.OrdinalIgnoreCase))
                         continue; // micro optimization to avoid any split allocation
 
                     // Remove all candidates cookie 
