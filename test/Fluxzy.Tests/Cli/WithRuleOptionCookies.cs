@@ -83,6 +83,96 @@ namespace Fluxzy.Tests.Cli
             Assert.Equal("lolo", cookies["coco"]);
             Assert.Equal(2, cookies.Count); 
         }
+        
+        [Theory]
+        [InlineData("coco", "lolo")]
+        [InlineData("validcookiename", "/*-/8è?=;78")]
+        public async Task Validate_SetResponseCookie(string name, string value)
+        {
+            // Arrange
+            var yamlContent = $"""
+                rules:
+                - filter: 
+                    typeKind: HostFilter  
+                    pattern: {TestConstants.HttpBinHostDomainOnly}
+                    operation: endsWith
+                  action : 
+                    typeKind: setResponseCookieAction
+                    name: "{name}"
+                    value: "{value}"
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies");
+
+            // Act
+            using var response = await Exec(yamlContent, requestMessage);
+
+            await response.Content.ReadAsStringAsync();
+
+            var cookieCollection = CookieContainer.GetAllCookies();
+
+            var cookie = cookieCollection[name];
+
+            // Assert
+            Assert.NotNull(cookie);
+            Assert.Equal(1, cookieCollection.Count);
+            Assert.Equal(value, HttpUtility.UrlDecode(cookie.Value));
+            Assert.Single(cookieCollection);
+        }
+
+        [Theory]
+        [InlineData("coco", "lolo", "/myPath", TestConstants.HttpBinHostDomainOnly, 3600, 3600, true, false, "None")]
+        [InlineData("cocods", "lolo", "/", TestConstants.HttpBinHostDomainOnly, 3600, 3600, true, true, "None")]
+        [InlineData("cocos", "lolo", "/sdfsf/", TestConstants.HttpBinHostDomainOnly, 3600, 3600, false, false, "None")]
+        public async Task Validate_SetResponseCookie_With_Properties(
+            string name, string value,
+            string path, string domain, int expiresSeconds, int maxAgeSeconds, bool secure, bool httpOnly,
+            string sameSite)
+        {
+            // Arrange
+            var yamlContent = $"""
+                rules:
+                - filter: 
+                    typeKind: HostFilter  
+                    pattern: {TestConstants.HttpBinHostDomainOnly}
+                    operation: endsWith
+                  action : 
+                    typeKind: setResponseCookieAction
+                    name: "{name}"
+                    value: "{value}"
+                    path: "{path}"
+                    domain: "{domain}"
+                    expiresInSeconds: {expiresSeconds}
+                    maxAge: {maxAgeSeconds}
+                    secure: {secure}
+                    httpOnly: {httpOnly}
+                    sameSite: {sameSite}
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies");
+
+            // Act
+            using var response = await Exec(yamlContent, requestMessage);
+
+            await response.Content.ReadAsStringAsync();
+
+            var cookieCollection = CookieContainer.GetAllCookies();
+
+            var cookie = cookieCollection[name];
+
+            // Assert
+            Assert.NotNull(cookie);
+            Assert.Equal(1, cookieCollection.Count);
+            Assert.Equal(value, HttpUtility.UrlDecode(cookie.Value));
+            Assert.Equal(path, cookie.Path);
+            Assert.Equal(domain, cookie.Domain);
+            Assert.Equal(secure, cookie.Secure);
+            Assert.Equal(httpOnly, cookie.HttpOnly);
+
+        }
+
 
         public class HttpBinCookieResult
         {
