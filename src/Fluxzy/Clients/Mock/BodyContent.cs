@@ -43,9 +43,9 @@ namespace Fluxzy.Clients.Mock
         [PropertyDistinctive(Description = "When Origin = fromImmediateArray, base64 encoded content of the response")]
         public byte[]? Content { get; private set; }
 
-        [JsonInclude]
-        [PropertyDistinctive(Description = "Key values containing extra headers")]
-        public Dictionary<string, string> Headers { get; set; } = new();
+        //[JsonInclude]
+        //[PropertyDistinctive(Description = "Key values containing extra headers")]
+        //public Dictionary<string, string> Headers { get; set; } = new();
 
         public static BodyContent CreateFromFile(string fileName, string? mimeType = null)
         {

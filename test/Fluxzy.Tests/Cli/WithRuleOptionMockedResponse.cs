@@ -1,9 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Fluxzy.Tests._Files;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -28,7 +29,7 @@ namespace Fluxzy.Tests.Cli
                 """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://{TestConstants.HttpBinHost}/cookies");
+                $"https://veryinvalidhost79795-sfsdfdsf.com/cookies");
 
             // Act 
             using var response = await Exec(yamlContent, requestMessage);
@@ -37,6 +38,46 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal("cocoyes", responseBody);
+        }
+
+        [Fact]
+        public async Task Validate_MockedResponse_With_Header()
+        {
+            // Arrange
+            var yamlContent = """
+                rules:
+                - filter: 
+                    typeKind: anyFilter  
+                    operation: endsWith
+                  action : 
+                    typeKind: mockedResponseAction
+                    response:
+                      statusCode: 200
+                      headers:
+                        coco: lolo 
+                        zozo: zaza 
+                      body:
+                        text: cocoyes
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://veryinvalidhost79795-sfsdfdsf.com/cookies");
+
+            // Act 
+            using var response = await Exec(yamlContent, requestMessage);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            var headers = response.Headers;
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(headers.TryGetValues("coco", out var cocoValues));
+            Assert.Equal("lolo", cocoValues.First());
+            Assert.True(headers.TryGetValues("zozo", out var zozoValues));
+            Assert.Equal("zaza", zozoValues.First());
+
             Assert.Equal("cocoyes", responseBody);
         }
     }
