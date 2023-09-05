@@ -15,9 +15,10 @@ namespace Fluxzy.Rules.Actions
     [ActionMetadata("Add a response cookie. This action is performed by adding/replacing `Set-Cookie` header in response.")]
     public class SetResponseCookieAction : Action
     {
-        public SetResponseCookieAction()
+        public SetResponseCookieAction(string name, string value)
         {
-
+            Name = name;
+            Value = value;
         }
 
         [ActionDistinctive(Description = "Cookie name")]
@@ -52,6 +53,8 @@ namespace Fluxzy.Rules.Actions
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
         public override string DefaultDescription => $"Set response cookie ({Name}, {Value})";
+
+        
 
         public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,

@@ -16,16 +16,17 @@ namespace Fluxzy.Rules.Actions
     [ActionMetadata("Add a cookie to request. This action is performed by adding/replacing `Cookie` header in request.")]
     public class SetRequestCookieAction : Action
     {
-        public SetRequestCookieAction()
+        public SetRequestCookieAction(string name, string value)
         {
-
+            Name = name;
+            Value = value;
         }
 
         [ActionDistinctive(Description = "Cookie name")]
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; }
 
         [ActionDistinctive(Description = "Cookie value")]
-        public string Value { get; set; } = string.Empty;
+        public string Value { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
