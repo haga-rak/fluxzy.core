@@ -17,7 +17,7 @@ namespace Fluxzy.Tests.Cli
         protected async Task<HttpResponseMessage> Exec(string yamlContent, HttpRequestMessage requestMessage)
         {
             // Arrange 
-            var commandLine = "start -l 127.0.0.1/0";
+            var commandLine = "start -l 127.0.0.1:0";
             var uniqueIdentifier = Guid.NewGuid().ToString();
 
             _ruleFile = $"{uniqueIdentifier}.yml";
