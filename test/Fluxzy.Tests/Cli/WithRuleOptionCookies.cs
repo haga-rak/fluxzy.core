@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Web;
+using Fluxzy.Rules.Filters;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
@@ -170,7 +171,117 @@ namespace Fluxzy.Tests.Cli
             Assert.Equal(domain, cookie.Domain);
             Assert.Equal(secure, cookie.Secure);
             Assert.Equal(httpOnly, cookie.HttpOnly);
+        }
 
+        [Fact]
+        public async Task Validate_HasSetCookieOnResponseFilter_Empty_Query()
+        {
+            // Arrange
+            var yamlContent = $"""
+                rules:
+                - filter: 
+                    typeKind: hasSetCookieOnResponseFilter
+                  action : 
+                    typeKind: addResponseHeaderAction
+                    headerName: Passed
+                    headerValue: true
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies/set/coco/lolo");
+
+            // Act
+            using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect:false);
+            await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.True(response.Headers.TryGetValues("Passed", out var values));
+        }
+
+        [Fact]
+        public async Task Validate_HasSetCookieOnResponseFilter_Name_Only()
+        {
+            // Arrange
+            var yamlContent = $"""
+                rules:
+                - filter: 
+                    typeKind: hasSetCookieOnResponseFilter
+                    name: coco
+                  action : 
+                    typeKind: addResponseHeaderAction
+                    headerName: Passed
+                    headerValue: true
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies/set/coco/lolo");
+
+            // Act
+            using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect:false);
+            await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.True(response.Headers.TryGetValues("Passed", out var values));
+        }
+
+        [Fact]
+        public async Task Validate_HasSetCookieOnResponseFilter_Name_Only_Not_Pass()
+        {
+            // Arrange
+            var yamlContent = $"""
+                rules:
+                - filter: 
+                    typeKind: hasSetCookieOnResponseFilter
+                    name: roro
+                  action : 
+                    typeKind: addResponseHeaderAction
+                    headerName: Passed
+                    headerValue: true
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies/set/coco/lolo");
+
+            // Act
+            using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect:false);
+            await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.False(response.Headers.TryGetValues("Passed", out var values));
+        }
+
+        [Theory]
+        [InlineData("coco", "lolo", StringSelectorOperation.Exact, "coco", "lolo", true)]
+        [InlineData("codco", "lolo", StringSelectorOperation.Exact, "coco", "lolo", false)]
+        [InlineData(null, "lolo", StringSelectorOperation.Exact, "coco", "lolo", true)]
+        [InlineData("coco", null, StringSelectorOperation.Exact, "coco", "lolo", true)]
+        public async Task Validate_HasSetCookieOnResponseFilter_Generic(
+            string name, string value, StringSelectorOperation operation,
+            string expectedName, string expectedValue, bool result)
+        {
+            // Arrange
+            var yamlContent = $"""
+                rules:
+                - filter: 
+                    typeKind: hasSetCookieOnResponseFilter
+                    name: {name} 
+                    value: {value}
+                    operation: {operation}
+                  action : 
+                    typeKind: addResponseHeaderAction
+                    headerName: Passed
+                    headerValue: true
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies/set/{expectedName}/{expectedValue}");
+
+            // Act
+            using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect: false);
+            await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(result, response.Headers.TryGetValues("Passed", out var values));
         }
 
 

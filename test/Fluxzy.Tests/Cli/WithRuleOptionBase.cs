@@ -17,7 +17,7 @@ namespace Fluxzy.Tests.Cli
 
         public CookieContainer CookieContainer { get; } = new();
 
-        protected async Task<HttpResponseMessage> Exec(string yamlContent, HttpRequestMessage requestMessage)
+        protected async Task<HttpResponseMessage> Exec(string yamlContent, HttpRequestMessage requestMessage, bool allowAutoRedirect = true)
         {
             // Arrange 
             var commandLine = "start -l 127.0.0.1:0";
@@ -33,7 +33,7 @@ namespace Fluxzy.Tests.Cli
 
             _fluxzyInstance = await commandLineHost.Run();
 
-            _proxiedHttpClient = new ProxiedHttpClient(_fluxzyInstance.ListenPort, cookieContainer: CookieContainer);
+            _proxiedHttpClient = new ProxiedHttpClient(_fluxzyInstance.ListenPort, cookieContainer: CookieContainer, allowAutoRedirect: allowAutoRedirect);
 
             return  await _proxiedHttpClient.Client.SendAsync(requestMessage);
         }
