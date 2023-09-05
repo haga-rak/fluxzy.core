@@ -21,7 +21,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         /// <summary>
         ///     The response
         /// </summary>
-        [ActionDistinctive]
+        [ActionDistinctive(Expand = true)]
         public MockedResponseContent Response { get; set; }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;

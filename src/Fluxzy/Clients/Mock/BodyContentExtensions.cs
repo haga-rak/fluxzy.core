@@ -4,10 +4,10 @@ namespace Fluxzy.Clients.Mock
 {
     public static class BodyContentExtensions
     {
-        public static BodyContent AddHeader(this BodyContent bodyContent, string key, string value)
+        public static BodyContent AddHeader(this BodyContent body, string key, string value)
         {
-            bodyContent.Headers.Add(key, value);
-            return bodyContent;
+            body.Headers.Add(key, value);
+            return body;
         }
     }
 }

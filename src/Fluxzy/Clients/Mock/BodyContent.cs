@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json.Serialization;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Clients.Mock
 {
@@ -13,25 +14,37 @@ namespace Fluxzy.Clients.Mock
         [JsonConstructor]
         public BodyContent(BodyContentLoadingType origin, string? mime)
         {
+            if (origin == 0) {
+                origin = BodyContentLoadingType.FromString; 
+            }
+
             Origin = origin;
             Mime = mime;
         }
 
         [JsonInclude]
-        public BodyContentLoadingType Origin { get; set; }
+        [PropertyDistinctive(Description = "Defines how the content body should be loaded",
+            DefaultValue = "fromString")]
+        public BodyContentLoadingType Origin { get; set; } = BodyContentLoadingType.FromString;
 
         [JsonInclude]
+        [PropertyDistinctive(Description = "Mime. Example = 'application/json'")]
         public string? Mime { get; set; }
 
         [JsonInclude]
+        [PropertyDistinctive(Description = "When Origin = fromString, the content text to be used as response body")]
         public string? Text { get; set; }
 
         [JsonInclude]
+        [PropertyDistinctive(Description = "When Origin = fromFile, the path to the file to be used as response body")]
         public string? FileName { get; private set; }
 
         [JsonInclude]
+        [PropertyDistinctive(Description = "When Origin = fromImmediateArray, base64 encoded content of the response")]
         public byte[]? Content { get; private set; }
 
+        [JsonInclude]
+        [PropertyDistinctive(Description = "Key values containing extra headers")]
         public Dictionary<string, string> Headers { get; set; } = new();
 
         public static BodyContent CreateFromFile(string fileName, string? mimeType = null)

@@ -3,20 +3,23 @@
 using System.IO;
 using System.Net;
 using Fluxzy.Core;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Clients.Mock
 {
     public class MockedResponseContent : PreMadeResponse
     {
-        public MockedResponseContent(int statusCode, BodyContent bodyContent)
+        public MockedResponseContent(int statusCode, BodyContent body)
         {
             StatusCode = statusCode;
-            BodyContent = bodyContent;
+            Body = body;
         }
 
+        [PropertyDistinctive(Description = "The status code of the response")]
         public int StatusCode { get; }
 
-        public BodyContent BodyContent { get; }
+        [PropertyDistinctive(Description = "Body content", Expand = true)]
+        public BodyContent Body { get; }
 
         public override string GetFlatH11Header(Authority authority)
         {
@@ -26,15 +29,15 @@ namespace Fluxzy.Clients.Mock
                 $"HTTP/1.1 {StatusCode} {((HttpStatusCode) StatusCode).ToString()}\r\n"
                 + $"Host: {authority.HostName}:{authority.Port}\r\n";
 
-            var bodyContentLength = BodyContent.GetLength();
+            var bodyContentLength = Body.GetLength();
 
             if (bodyContentLength > 0)
                 header += $"Content-length: {bodyContentLength}\r\n";
 
-            if (!string.IsNullOrWhiteSpace(BodyContent.Mime))
-                header += $"Content-type: {BodyContent.Mime}\r\n";
+            if (!string.IsNullOrWhiteSpace(Body.Mime))
+                header += $"Content-type: {Body.Mime}\r\n";
 
-            foreach (var extraHeader in BodyContent.Headers) {
+            foreach (var extraHeader in Body.Headers) {
                 header += $"{extraHeader.Key}: {extraHeader.Value}\r\n";
             }
 
@@ -45,7 +48,7 @@ namespace Fluxzy.Clients.Mock
 
         public override Stream ReadBody(Authority authority)
         {
-            return BodyContent.GetStream();
+            return Body.GetStream();
         }
     }
 }
