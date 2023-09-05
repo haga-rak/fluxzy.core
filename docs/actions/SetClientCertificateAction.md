@@ -20,7 +20,11 @@ The following table describes the customizable properties available for this fil
 
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
-| clientCertificate | certificate |  | fluxzy.Certificates.Certificate |
+| clientCertificate.retrieveMode | fluxzyDefault \| fromUserStoreSerialNumber \| fromUserStoreThumbPrint \| fromPkcs12 | Retrieve mode | *null* |
+| clientCertificate.serialNumber | string | Serial number of a certificate available on user store | *null* |
+| clientCertificate.thumbPrint | string | Thumbprint of a certificate available on user store (hex format) | *null* |
+| clientCertificate.pkcs12File | string | Path to a PKCS#12 certificate | *null* |
+| clientCertificate.pkcs12Password | string | Certificate passphrase when Pkcs12File is defined | *null* |
 
 ### Example of usage
 
