@@ -5,24 +5,38 @@ namespace Fluxzy.Utils
 {
     public static class AuthorityUtility
     {
-        public static bool TryParse(string rawValue, out string?  host, out int port)
+        /// <summary>
+        /// Parse an authority, accepted separator are ':' and '/'.
+        /// </summary>
+        /// <param name="rawValue"></param>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        public static bool TryParse(string rawValue, out string? host, out int port)
         {
             host = null; 
             port = 0;
 
-            var splitted = rawValue.Split(new[] { ":" }, StringSplitOptions.None);
-            
+            var separators = new[] { ":", "/"};
 
-            if (splitted.Length < 2)
-                return false;
+            foreach (var separator in separators) {
+                var lastColumn = rawValue.LastIndexOf(separator, StringComparison.Ordinal);
 
-            if (!int.TryParse(splitted[1], out port))
-                return false;
+                if (lastColumn == -1)
+                    continue;
 
+                var hostName = rawValue.Substring(0, lastColumn).TrimStart();
+                var rawPort = rawValue.Substring(lastColumn + 1).TrimEnd();
 
-            host = string.Join(":", splitted.Take(splitted.Length - 1));
+                if (!int.TryParse(rawPort, out port))
+                    continue;
 
-            return true;
+                host = hostName;
+
+                return true;
+            }
+
+            return false;
         }
     }
 }
