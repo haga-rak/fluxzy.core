@@ -8,7 +8,10 @@ Select HTTP/1.1 exchanges only.
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **requestHeaderReceivedFromClient** This scope occurs the moment fluxzy parsed the request header receiveid from client
+:::
 
 ### YAML configuration name
 
@@ -20,9 +23,12 @@ This filter has no specific characteristic
 
 The following table describes the customizable properties available for this filter: 
 
+{.property-table .property-table-filter}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | inverted | boolean | Negate the filter result | false |
+:::
 
 ### Example of usage
 

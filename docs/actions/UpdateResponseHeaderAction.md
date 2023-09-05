@@ -8,22 +8,28 @@ Update and existing response header. If the header does not exists in the origin
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **responseHeaderReceivedFromRemote** This scope occurs the moment fluxzy has done parsing the response header.
+:::
 
 ### YAML configuration name
 
-    updateResponseHeaderAction
+updateResponseHeaderAction
 
 ### Settings
 
-The following table describes the customizable properties available for this filter: 
+The following table describes the customizable properties available for this action: 
 
+{.property-table .property-table-action}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | headerName | string |  |  |
 | headerValue | string |  |  |
 | addIfMissing | boolean |  | false |
 
+:::
 ### Example of usage
 
 The following examples apply this action to any exchanges

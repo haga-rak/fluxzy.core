@@ -8,28 +8,34 @@ Add a response cookie. This action is performed by adding `Set-Cookie` header in
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **responseHeaderReceivedFromRemote** This scope occurs the moment fluxzy has done parsing the response header.
+:::
 
 ### YAML configuration name
 
-    setResponseCookieAction
+setResponseCookieAction
 
 ### Settings
 
-The following table describes the customizable properties available for this filter: 
+The following table describes the customizable properties available for this action: 
 
+{.property-table .property-table-action}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | name | string | Cookie name |  |
 | value | string | Cookie value |  |
-| path | string | Cookie path | *null* |
-| domain | string | Cookie domain | *null* |
-| expireInSeconds | nullable`1 | Cookie expiration date in seconds from now` | *null* |
-| maxAge | nullable`1 | Cookie max age in seconds | *null* |
+| path | string | Cookie path |  |
+| domain | string | Cookie domain |  |
+| expireInSeconds | nullable`1 | Cookie expiration date in seconds from now` |  |
+| maxAge | nullable`1 | Cookie max age in seconds |  |
 | httpOnly | boolean | HttpOnly property | false |
 | secure | boolean | Secure property | false |
-| sameSite | string | Set `SameSite` property. Usual values are Strict, Lax and None. [Check](https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie)  | *null* |
+| sameSite | string | Set `SameSite` property. Usual values are Strict, Lax and None. [Check](https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie)  |  |
 
+:::
 ### Example of usage
 
 The following examples apply this action to any exchanges

@@ -8,7 +8,10 @@ Select exchange according to hostname and a port
 
 Evaluation scope defines the timing where this filter will be applied. 
 
+{.alert .alert-info}
+:::
 **onAuthorityReceived** This scope denotes the moment fluxzy is aware the destination authority. In a regular proxy connection, it will occur the moment where fluxzy parsed the CONNECT request.
+:::
 
 ### YAML configuration name
 
@@ -18,6 +21,8 @@ Evaluation scope defines the timing where this filter will be applied.
 
 The following table describes the customizable properties available for this filter: 
 
+{.property-table .property-table-filter}
+:::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | port | int32 | The remote port | 0 |
@@ -25,6 +30,7 @@ The following table describes the customizable properties available for this fil
 | operation | exact \| contains \| startsWith \| endsWith \| regex | The search operation performed | 0 |
 | caseSensitive | boolean | true if the Search should be case sensitive | false |
 | inverted | boolean | Negate the filter result | false |
+:::
 
 ### Example of usage
 
