@@ -11,6 +11,8 @@ namespace Fluxzy.Tests._Fixtures
         public const string PlainHttp11 = "http://sandbox.smartizy.com:8899";
         public const string Http2Host2 = "https://sandbox.smartizy.com:4430";
         public const string WssHost = "wss://sandbox.smartizy.com:5001";
+        public const string HttpBinHost = "registry.2befficient.io:40300";
+        public static string HttpBinHostDomainOnly  => HttpBinHost.Split(':')[0];
 
         public static string GetHost(string protocol)
         {

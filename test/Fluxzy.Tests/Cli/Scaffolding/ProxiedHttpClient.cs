@@ -9,13 +9,16 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     public class ProxiedHttpClient : IDisposable
     {
         private readonly HttpClientHandler _clientHandler;
-
-        public ProxiedHttpClient(int port, string remoteHost = "127.0.0.1")
+        
+        public ProxiedHttpClient(int port, string remoteHost = "127.0.0.1", CookieContainer? cookieContainer = null)
         {
             _clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{remoteHost}:{port}"),
-                UseProxy = true
+                UseProxy = true,
             };
+
+            if (cookieContainer != null)
+                _clientHandler.CookieContainer = cookieContainer;
 
             Client = new HttpClient(_clientHandler);
         }

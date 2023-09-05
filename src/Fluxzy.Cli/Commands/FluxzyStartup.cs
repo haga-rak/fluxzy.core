@@ -16,7 +16,7 @@ namespace Fluxzy.Cli.Commands
         {
             var rootCommand =
                 new RootCommand(
-                    "CLI tool for recording, analyzing and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.");
+                    "CLI tool for recording, analyzing and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels. Visit https://fluxzy.io for more info.");
 
             var instanceIdentifier = Guid.NewGuid().ToString();
 
