@@ -283,7 +283,7 @@ namespace Fluxzy.Cli.Commands
                 "--listen-interface",
                 description:
                 "Set up the binding addresses. " +
-                "Default value is \"127.0.0.1/44344\" which will listen to localhost on port 44344. " +
+                "Default value is \"127.0.0.1:44344\" which will listen to localhost on port 44344. " +
                 "0.0.0.0 to listen on all interface with default port." +
                 " Accept multiple values.",
                 isDefault: true,
@@ -291,6 +291,10 @@ namespace Fluxzy.Cli.Commands
                     var listResult = new List<IPEndPoint>();
 
                     foreach (var token in result.Tokens) {
+
+
+
+
                         var tab = token.Value.Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries);
 
                         if (tab.Length == 1) {
