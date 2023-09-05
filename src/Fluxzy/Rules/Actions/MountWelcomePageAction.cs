@@ -25,11 +25,14 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             if (context.PreMadeResponse == null) {
-                var bodyContent = BodyContent.CreateFromString(
-                    FileStore.welcome, "text/html");
+                var bodyContent = BodyContent.CreateFromString(FileStore.welcome);
 
                 context.PreMadeResponse = new MockedResponseContent(200,
-                    bodyContent);
+                    bodyContent) {
+                    Headers = {
+                        ["Content-Type"] = "text/html"
+                    }
+                };
             }
 
             return default;

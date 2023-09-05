@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Core;
@@ -39,7 +40,7 @@ namespace Fluxzy.Rules.Actions
         {
             yield return new ActionExample("Add tag `Hello fluxzy`",
                 new ApplyTagAction {
-                    Tag = new Tag("Hello fluxzy")
+                    Tag = new Tag(Guid.Parse("852D1563-5664-4F17-A4F2-BFE5F7C4993A"), "Hello fluxzy")
                 });
         }
     }
