@@ -64,8 +64,8 @@ namespace Fluxzy.Clients.Mock
 
         public static BodyContent CreateFromString(string contentString)
         {
-            var result = new BodyContent(BodyContentLoadingType.FromImmediateArray) {
-                Content = Encoding.UTF8.GetBytes(contentString)
+            var result = new BodyContent(BodyContentLoadingType.FromString) {
+                Text = contentString
             };
 
             return result;
