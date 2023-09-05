@@ -28,9 +28,13 @@ namespace Fluxzy.Rules.Actions
             if (context.FluxzySetting?.CaCertificate != null) {
                 var certificate = context.FluxzySetting.CaCertificate.GetX509Certificate();
 
-                var bodyContent = BodyContent.CreateFromArray(certificate.ExportToPem(), "application/x-x509-ca-cert");
+                var bodyContent = BodyContent.CreateFromArray(certificate.ExportToPem());
                 var mockedResponse = new MockedResponseContent(200,
-                    bodyContent);
+                    bodyContent) {
+                    Headers = {
+                        ["Content-Type"] = "application/x-x509-ca-cert"
+                    }
+                };
 
                 mockedResponse.Headers.Add("Content-Disposition", "attachment; filename=\"ca.crt\"");
 

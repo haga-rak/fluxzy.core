@@ -11,14 +11,13 @@ namespace Fluxzy.Clients.Mock
     public class BodyContent
     {
         [JsonConstructor]
-        public BodyContent(BodyContentLoadingType origin, string? mime)
+        public BodyContent(BodyContentLoadingType origin)
         {
             if (origin == 0) {
                 origin = BodyContentLoadingType.FromString; 
             }
 
             Origin = origin;
-            Mime = mime;
         }
 
         [JsonInclude]
@@ -31,10 +30,7 @@ namespace Fluxzy.Clients.Mock
                                            "Use this property to avoid defining manually `content-type` header." +
                                            "This property is ignored if `Content-Type` is defined explicitly.")]
         public BodyType Type { get; set; }
-
-        [JsonInclude]
-        [PropertyDistinctive(Description = "Mime. Example = 'application/json'")]
-        public string? Mime { get; set; }
+        
 
         [JsonInclude]
         [PropertyDistinctive(Description = "When Origin = fromString, the content text to be used as response body")]
@@ -47,34 +43,28 @@ namespace Fluxzy.Clients.Mock
         [JsonInclude]
         [PropertyDistinctive(Description = "When Origin = fromImmediateArray, base64 encoded content of the response")]
         public byte[]? Content { get; private set; }
-
-        //[JsonInclude]
-        //[PropertyDistinctive(Description = "Key values containing extra headers")]
-        //public Dictionary<string, string> Headers { get; set; } = new();
-
-        public static BodyContent CreateFromFile(string fileName, string? mimeType = null)
+        
+        public static BodyContent CreateFromFile(string fileName)
         {
-            var result = new BodyContent(BodyContentLoadingType.FromFile, mimeType ?? "application/octet-stream") {
+            var result = new BodyContent(BodyContentLoadingType.FromFile) {
                 FileName = fileName
             };
 
             return result;
         }
 
-        public static BodyContent CreateFromArray(byte[] data, string? mimeType = null)
+        public static BodyContent CreateFromArray(byte[] data)
         {
-            var result = new BodyContent(BodyContentLoadingType.FromImmediateArray,
-                mimeType ?? "application/octet-stream") {
+            var result = new BodyContent(BodyContentLoadingType.FromImmediateArray) {
                 Content = data
             };
 
             return result;
         }
 
-        public static BodyContent CreateFromString(string contentString, string? mimeType = null)
+        public static BodyContent CreateFromString(string contentString)
         {
-            var result = new BodyContent(BodyContentLoadingType.FromImmediateArray,
-                mimeType ?? "text/plain; charset=utf-8") {
+            var result = new BodyContent(BodyContentLoadingType.FromImmediateArray) {
                 Content = Encoding.UTF8.GetBytes(contentString)
             };
 
