@@ -11,13 +11,14 @@ namespace Fluxzy.Clients.Mock
     public class BodyContent
     {
         [JsonConstructor]
-        public BodyContent(BodyContentLoadingType origin)
+        public BodyContent(BodyContentLoadingType origin, BodyType type = default)
         {
             if (origin == 0) {
                 origin = BodyContentLoadingType.FromString; 
             }
 
             Origin = origin;
+            Type = type;
         }
 
         [JsonInclude]
@@ -33,16 +34,16 @@ namespace Fluxzy.Clients.Mock
         
 
         [JsonInclude]
-        [PropertyDistinctive(Description = "When Origin = fromString, the content text to be used as response body")]
+        [PropertyDistinctive(Description = "When Origin = fromString, the content text to be used as response body. Supports variable.")]
         public string? Text { get; set; }
 
         [JsonInclude]
-        [PropertyDistinctive(Description = "When Origin = fromFile, the path to the file to be used as response body")]
-        public string? FileName { get; private set; }
+        [PropertyDistinctive(Description = "When Origin = fromFile, the path to the file to be used as response body.")]
+        public string? FileName { get; set; }
 
         [JsonInclude]
         [PropertyDistinctive(Description = "When Origin = fromImmediateArray, base64 encoded content of the response")]
-        public byte[]? Content { get; private set; }
+        public byte[]? Content { get; set; }
         
         public static BodyContent CreateFromFile(string fileName)
         {

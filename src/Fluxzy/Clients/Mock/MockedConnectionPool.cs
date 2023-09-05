@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Threading;
@@ -51,7 +51,7 @@ namespace Fluxzy.Clients.Mock
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
             exchange.Response.Header = new ResponseHeader(
-                _preMadeResponse.GetFlatH11Header(Authority).AsMemory(),
+                _preMadeResponse.GetFlatH11Header(Authority, exchange.Context).AsMemory(),
                 exchange.Authority.Secure);
 
             exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();

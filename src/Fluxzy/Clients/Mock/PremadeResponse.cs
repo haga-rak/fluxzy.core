@@ -7,7 +7,7 @@ namespace Fluxzy.Clients.Mock
 {
     public abstract class PreMadeResponse
     {
-        public abstract string GetFlatH11Header(Authority authority);
+        public abstract string GetFlatH11Header(Authority authority, ExchangeContext? exchangeContext);
 
         public abstract Stream ReadBody(Authority authority);
     }
