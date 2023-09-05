@@ -10,11 +10,13 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     {
         private readonly HttpClientHandler _clientHandler;
         
-        public ProxiedHttpClient(int port, string remoteHost = "127.0.0.1", CookieContainer? cookieContainer = null)
+        public ProxiedHttpClient(
+            int port, string remoteHost = "127.0.0.1", bool allowAutoRedirect = true , CookieContainer? cookieContainer = null)
         {
             _clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{remoteHost}:{port}"),
                 UseProxy = true,
+                AllowAutoRedirect = allowAutoRedirect
             };
 
             if (cookieContainer != null)
