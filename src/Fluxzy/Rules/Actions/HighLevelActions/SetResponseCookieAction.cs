@@ -8,7 +8,7 @@ using Fluxzy.Clients.Headers;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 
-namespace Fluxzy.Rules.Actions
+namespace Fluxzy.Rules.Actions.HighLevelActions
 {
     /// <summary>
     /// Add a response cookie. This action is performed by adding `Set-Cookie` header in response.
@@ -29,10 +29,10 @@ namespace Fluxzy.Rules.Actions
         public string Value { get; set; }
 
         [ActionDistinctive(Description = "Cookie path")]
-        public string?  Path { get; set; }
+        public string? Path { get; set; }
 
         [ActionDistinctive(Description = "Cookie domain")]
-        public string?  Domain { get; set; } = null;
+        public string? Domain { get; set; } = null;
 
         [ActionDistinctive(Description = "Cookie expiration date in seconds from now`")]
         public int? ExpireInSeconds { get; set; } = null;
@@ -49,7 +49,7 @@ namespace Fluxzy.Rules.Actions
         [ActionDistinctive(Description = "Set `SameSite` property. " +
                                          "Usual values are Strict, Lax and None. " +
                                          "[Check](https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie) ")]
-        public string ? SameSite { get; set; }
+        public string? SameSite { get; set; }
 
         public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
 
@@ -85,7 +85,8 @@ namespace Fluxzy.Rules.Actions
                 cookieBuilder.Append($"; Path={actualPath}");
 
 
-            if (ExpireInSeconds != null) {
+            if (ExpireInSeconds != null)
+            {
                 var realExpires = DateTime.Now.AddSeconds(ExpireInSeconds.Value);
                 cookieBuilder.Append($"; Expires={realExpires:R}");
             }
@@ -116,7 +117,8 @@ namespace Fluxzy.Rules.Actions
                            );
 
             yield return new ActionExample(
-                "Add cookie with all properties ", new SetResponseCookieAction("my-cookie", "my-value") {
+                "Add cookie with all properties ", new SetResponseCookieAction("my-cookie", "my-value")
+                {
                     Domain = "example.com",
                     ExpireInSeconds = 3600,
                     HttpOnly = true,

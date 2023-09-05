@@ -10,7 +10,7 @@ using Fluxzy.Clients.Headers;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 
-namespace Fluxzy.Rules.Actions
+namespace Fluxzy.Rules.Actions.HighLevelActions
 {
     /// <summary>
     /// Add a cookie to request. If a cookie with the same name already exists, it will be removed.
@@ -43,7 +43,7 @@ namespace Fluxzy.Rules.Actions
 
             if (Name == null!)
                 throw new RuleExecutionFailureException(
-                    $"{nameof(Name)} is mandatory for {nameof(SetRequestCookieAction)}"); 
+                    $"{nameof(Name)} is mandatory for {nameof(SetRequestCookieAction)}");
 
             var cookieHeaders = exchange.GetRequestHeaders().Where(
                 c => c.Name.Span.Equals("cookie", StringComparison.OrdinalIgnoreCase))
@@ -55,9 +55,10 @@ namespace Fluxzy.Rules.Actions
             var actualName = HttpUtility.UrlEncode(Name.EvaluateVariable(context));
             var actualValue = HttpUtility.UrlEncode(Value.EvaluateVariable(context));
 
-            var added = false; 
+            var added = false;
 
-            if (cookieHeaders.Any()) {
+            if (cookieHeaders.Any())
+            {
 
                 // Normally we should only have one cookie header, but we never know
 
@@ -74,16 +75,17 @@ namespace Fluxzy.Rules.Actions
 
                     existingCookies.Add($"{actualName}={actualValue}");
 
-                    var finalFlatValue = string.Join("; ", existingCookies); 
+                    var finalFlatValue = string.Join("; ", existingCookies);
 
                     context.RequestHeaderAlterations.Add(new HeaderAlterationReplace("cookie", finalFlatValue, true));
-                    added = true; 
+                    added = true;
                 }
             }
 
-            if (!added) {
+            if (!added)
+            {
                 // Add if any cookie header was found
-                context.RequestHeaderAlterations.Add(new HeaderAlterationAdd("cookie", $"{actualName}={actualValue}")); 
+                context.RequestHeaderAlterations.Add(new HeaderAlterationAdd("cookie", $"{actualName}={actualValue}"));
             }
 
             return default;
@@ -92,7 +94,7 @@ namespace Fluxzy.Rules.Actions
         public override IEnumerable<ActionExample> GetExamples()
         {
             yield return new ActionExample("Add request cookie with name `session` and value `123456`",
-                new SetRequestCookieAction("session", "123456")); 
+                new SetRequestCookieAction("session", "123456"));
         }
     }
 }
