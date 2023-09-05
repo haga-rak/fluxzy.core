@@ -44,6 +44,9 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
+            if (string.IsNullOrWhiteSpace(HeaderName))
+                throw new RuleExecutionFailureException("Header name cannot be empty");
+
             context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName.EvaluateVariable(context),
                 HeaderValue.EvaluateVariable(context)));
 
