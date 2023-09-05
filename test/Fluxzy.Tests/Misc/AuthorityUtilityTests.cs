@@ -32,6 +32,8 @@ namespace Fluxzy.Tests.Misc
         [Theory]
         [InlineData("www.example.com:4456", false, null, 0)]
         [InlineData("127.0.0.1:4456", true, "127.0.0.1", 4456)]
+        [InlineData("0.0.0.0:4456", true, "0.0.0.0", 4456)]
+        [InlineData(":::4456", true, "::", 4456)]
         [InlineData("2001:db8:::4456", true, "2001:db8::", 4456)]
         [InlineData("::1234:5678:4456", true, "::1234:5678", 4456)]
         [InlineData("2001:db8:3333:4444:5555:6666:7777:8888:4456", true, "2001:db8:3333:4444:5555:6666:7777:8888", 4456)]
