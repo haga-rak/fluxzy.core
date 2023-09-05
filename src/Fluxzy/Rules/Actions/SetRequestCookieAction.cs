@@ -13,7 +13,7 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     /// Add a cookie to request. If a cookie with the same name already exists, it will be removed.
     /// </summary>
-    [ActionMetadata("Add a cookie to request.")]
+    [ActionMetadata("Add a cookie to request. This action is performed by adding/replacing `Cookie` header in request.")]
     public class SetRequestCookieAction : Action
     {
         public SetRequestCookieAction()
