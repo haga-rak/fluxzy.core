@@ -1,10 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fluxzy.Tests._Files;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
