@@ -76,7 +76,7 @@ namespace Fluxzy.Tests.Cli
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Post,
-                "https://registry.2befficient.io:40300/status/304");
+                $"https://{TestConstants.HttpBinHost}/status/304");
 
             var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
             var content = await response.Content.ReadAsStringAsync();
@@ -99,7 +99,7 @@ namespace Fluxzy.Tests.Cli
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post,
-                    "https://registry.2befficient.io:40300/status/200");
+                    $"https://{TestConstants.HttpBinHost}/status/200");
 
                 requestMessage.Headers.Add("User-Agent", userAgent);
 
@@ -135,7 +135,7 @@ namespace Fluxzy.Tests.Cli
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post,
-                    "https://registry.2befficient.io:40300/status/200");
+                    $"https://{TestConstants.HttpBinHost}/status/200");
 
                 requestMessage.Headers.Add("User-Agent",
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36");
