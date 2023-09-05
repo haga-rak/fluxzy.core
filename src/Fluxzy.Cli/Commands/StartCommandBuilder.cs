@@ -19,6 +19,7 @@ using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
+using Fluxzy.Utils;
 using Fluxzy.Utils.NativeOps.SystemProxySetup;
 
 namespace Fluxzy.Cli.Commands
@@ -284,7 +285,7 @@ namespace Fluxzy.Cli.Commands
                 description:
                 "Set up the binding addresses. " +
                 "Default value is \"127.0.0.1:44344\" which will listen to localhost on port 44344. " +
-                "0.0.0.0 to listen on all interface with default port." +
+                "0.0.0.0 to listen on all interface with default port. Use port 0 to let OS affect a random available port." +
                 " Accept multiple values.",
                 isDefault: true,
                 parseArgument: result => {
@@ -292,37 +293,12 @@ namespace Fluxzy.Cli.Commands
 
                     foreach (var token in result.Tokens) {
 
-
-
-
-                        var tab = token.Value.Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries);
-
-                        if (tab.Length == 1) {
-                            if (!IPAddress.TryParse(tab.First(), out var ipAddress)) {
-                                result.ErrorMessage = $"Invalid ip address {tab.First()}";
-
-                                return null;
-                            }
-
-                            listResult.Add(new IPEndPoint(ipAddress, 44344));
+                        if (!AuthorityUtility.TryParseIp(token.Value, out var ipAddress, out var port)) {
+                            result.ErrorMessage = $"Invalid listen value address {token.Value}";
+                            return null!;
                         }
-                        else {
-                            if (!IPAddress.TryParse(tab.First(), out var ipAddress)) {
-                                result.ErrorMessage = $"Invalid ip address {tab.First()}";
 
-                                return null;
-                            }
-
-                            var portString = string.Join("", tab.Skip(1));
-
-                            if (!int.TryParse(portString, out var port)) {
-                                result.ErrorMessage = $"Invalid port {portString}";
-
-                                return null;
-                            }
-
-                            listResult.Add(new IPEndPoint(ipAddress, port));
-                        }
+                        listResult.Add(new IPEndPoint(ipAddress!, port));
                     }
 
                     return listResult;
