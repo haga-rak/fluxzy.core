@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -26,6 +25,12 @@ namespace Fluxzy.Clients.Mock
         [PropertyDistinctive(Description = "Defines how the content body should be loaded",
             DefaultValue = "fromString")]
         public BodyContentLoadingType Origin { get; set; } = BodyContentLoadingType.FromString;
+
+        [JsonInclude]
+        [PropertyDistinctive(Description = "The body type. " +
+                                           "Use this property to avoid defining manually `content-type` header." +
+                                           "This property is ignored if `Content-Type` is defined explicitly.")]
+        public BodyType Type { get; set; }
 
         [JsonInclude]
         [PropertyDistinctive(Description = "Mime. Example = 'application/json'")]
@@ -74,6 +79,11 @@ namespace Fluxzy.Clients.Mock
             };
 
             return result;
+        }
+
+        public string? GetContentTypeHeaderValue()
+        {
+            return Type.GetContentTypeHeaderValue();
         }
 
         public long GetLength()

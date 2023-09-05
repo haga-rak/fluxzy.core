@@ -1,8 +1,11 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
 using Fluxzy.Rules;
@@ -21,7 +24,7 @@ namespace Fluxzy.Clients.Mock
         public int StatusCode { get; }
 
         [PropertyDistinctive(Description = "Body content", Expand = true)]
-        public BodyContent Body { get; }
+        public BodyContent? Body { get; }
 
         [JsonInclude]
         [PropertyDistinctive(Description = "Key values containing extra headers")]
@@ -29,32 +32,36 @@ namespace Fluxzy.Clients.Mock
 
         public override string GetFlatH11Header(Authority authority)
         {
-            // TODO : introduce length and content encoding 
+            var builder = new StringBuilder();
 
-            var header =
-                $"HTTP/1.1 {StatusCode} {((HttpStatusCode) StatusCode).ToString()}\r\n"
-                + $"Host: {authority.HostName}:{authority.Port}\r\n";
+            builder.Append($"HTTP/1.1 {StatusCode} {((HttpStatusCode) StatusCode).ToString()}\r\n");
+            builder.Append($"Host: {authority.HostName}:{authority.Port}\r\n");
+            
+            var bodyContentLength = Body?.GetLength() ?? 0;
 
-            var bodyContentLength = Body.GetLength();
+            if (bodyContentLength > 0) {
 
-            if (bodyContentLength > 0)
-                header += $"Content-length: {bodyContentLength}\r\n";
+                builder.Append($"Content-length: {bodyContentLength}\r\n"); }
 
-            if (!string.IsNullOrWhiteSpace(Body.Mime))
-                header += $"Content-type: {Body.Mime}\r\n";
+            if (Body != null && !Headers.Keys.Any(k => k.Equals("content-type", StringComparison.OrdinalIgnoreCase))) {
+                var shortCutContentType = Body.GetContentTypeHeaderValue();
 
-            foreach (var extraHeader in Headers) {
-                header += $"{extraHeader.Key}: {extraHeader.Value}\r\n";
+                if (shortCutContentType != null)
+                    builder.Append($"Content-Type: {shortCutContentType}\r\n");
+            }
+            
+            foreach (var header in Headers) {
+                builder.Append($"{header.Key}: {header.Value}\r\n");
             }
 
-            header += "\r\n";
+            builder.Append("\r\n");
 
-            return header;
+            return builder.ToString();
         }
 
         public override Stream ReadBody(Authority authority)
         {
-            return Body.GetStream();
+            return Body == null ? Stream.Null : Body.GetStream();
         }
     }
 }
