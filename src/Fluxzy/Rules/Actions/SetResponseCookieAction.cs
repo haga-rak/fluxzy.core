@@ -10,9 +10,9 @@ using Fluxzy.Core.Breakpoints;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// Add a response cookie. This action is performed by adding/replacing `Set-Cookie` header in response.
+    /// Add a response cookie. This action is performed by adding `Set-Cookie` header in response.
     /// </summary>
-    [ActionMetadata("Add a response cookie. This action is performed by adding/replacing `Set-Cookie` header in response.")]
+    [ActionMetadata("Add a response cookie. This action is performed by adding `Set-Cookie` header in response.")]
     public class SetResponseCookieAction : Action
     {
         public SetResponseCookieAction(string name, string value)
@@ -22,16 +22,16 @@ namespace Fluxzy.Rules.Actions
         }
 
         [ActionDistinctive(Description = "Cookie name")]
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; }
 
         [ActionDistinctive(Description = "Cookie value")]
-        public string Value { get; set; } = string.Empty;
+        public string Value { get; set; }
 
         [ActionDistinctive(Description = "Cookie path")]
         public string?  Path { get; set; }
 
         [ActionDistinctive(Description = "Cookie domain")]
-        public string?  Domain { get; set; } = string.Empty;
+        public string?  Domain { get; set; } = null;
 
         [ActionDistinctive(Description = "Cookie expiration date in seconds from now`")]
         public int? ExpireInSeconds { get; set; } = null;
@@ -54,8 +54,6 @@ namespace Fluxzy.Rules.Actions
 
         public override string DefaultDescription => $"Set response cookie ({Name}, {Value})";
 
-        
-
         public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
@@ -68,18 +66,11 @@ namespace Fluxzy.Rules.Actions
                 throw new RuleExecutionFailureException(
                     $"{nameof(Value)} is mandatory for {nameof(SetResponseCookieAction)}");
 
-            if (Path == null!)
-                throw new RuleExecutionFailureException(
-                    $"{nameof(Path)} is mandatory for {nameof(SetResponseCookieAction)}");
-
-
             if (exchange == null)
                 return default;
 
-
             var actualName = HttpUtility.UrlEncode(Name.EvaluateVariable(context));
             var actualValue = HttpUtility.UrlEncode(Value.EvaluateVariable(context));
-            var actualDomain = HttpUtility.UrlEncode(Value.EvaluateVariable(context));
             var actualPath = Path.EvaluateVariable(context);
 
             var cookieBuilder = new System.Text.StringBuilder();
@@ -87,7 +78,7 @@ namespace Fluxzy.Rules.Actions
             cookieBuilder.Append($"{actualName}={actualValue}");
 
             if (Domain != null)
-                cookieBuilder.Append($"; Domain={actualDomain}");
+                cookieBuilder.Append($"; Domain={Domain.EvaluateVariable(context)}");
 
             if (Path != null)
                 cookieBuilder.Append($"; Path={actualPath}");
