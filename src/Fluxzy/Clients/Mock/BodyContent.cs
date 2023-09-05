@@ -11,14 +11,14 @@ namespace Fluxzy.Clients.Mock
     public class BodyContent
     {
         [JsonConstructor]
-        public BodyContent(BodyContentLoadingType origin, BodyType bodyType = default)
+        public BodyContent(BodyContentLoadingType origin, BodyType type = default)
         {
             if (origin == 0) {
                 origin = BodyContentLoadingType.FromString; 
             }
 
             Origin = origin;
-            Type = bodyType;
+            Type = type;
         }
 
         [JsonInclude]
