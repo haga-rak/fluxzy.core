@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -141,6 +142,42 @@ namespace Fluxzy.Tests.Cli
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.True(headers.TryGetValues("content-type", out var contentTypeValues));
             Assert.StartsWith("application/json", contentTypeValues.First());
+        }
+
+        [Fact]
+        public async Task Validate_MockedResponse_With_Variable()
+        {
+            Environment.SetEnvironmentVariable("MyVar", "coco");
+
+            // Arrange
+            var yamlContent = """
+                rules:
+                - filter: 
+                    typeKind: anyFilter  
+                    operation: endsWith
+                  action : 
+                    typeKind: mockedResponseAction
+                    response:
+                      statusCode: 200
+                      body:
+                        type: text
+                        text: >
+                          ${env.MyVar}
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://veryinvalidhost79795-sfsdfdsf.com/cookies");
+
+            // Act 
+            using var response = await Exec(yamlContent, requestMessage);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            var headers = response.Content.Headers;
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("coco", responseBody);
         }
     }
 }
