@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Certificates
 {
@@ -18,32 +19,36 @@ namespace Fluxzy.Certificates
             
         }
 
-
         [JsonInclude]
+        [PropertyDistinctive(Description = "Retrieve mode")]
         public CertificateRetrieveMode RetrieveMode { get; set; } = CertificateRetrieveMode.FluxzyDefault;
 
         /// <summary>
         ///     The certificate serial number when location type is FromUserStoreSerialNumber
         /// </summary>
         [JsonInclude]
+        [PropertyDistinctive(Description = "Serial number of a certificate available on user store")]
         public string? SerialNumber { get; set; }
 
         /// <summary>
         ///     The certificate thumb print when location type is FromUserStoreSerialNumber
         /// </summary>
         [JsonInclude]
+        [PropertyDistinctive(Description = "Thumbprint of a certificate available on user store (hex format)")]
         public string? ThumbPrint { get; set; }
 
         /// <summary>
         ///     The certificate file when location type is FromPkcs12
         /// </summary>
         [JsonInclude]
+        [PropertyDistinctive(Description = "Path to a PKCS#12 certificate")]
         public string? Pkcs12File { get; set; }
 
         /// <summary>
         ///     The certificate password when location typ is FromPkcs12. Null with no password was set.
         /// </summary>
         [JsonInclude]
+        [PropertyDistinctive(Description = "Certificate passphrase when Pkcs12File is defined")]
         public string? Pkcs12Password { get; set; }
 
         public static Certificate LoadFromUserStoreByThumbprint(string thumbPrint)

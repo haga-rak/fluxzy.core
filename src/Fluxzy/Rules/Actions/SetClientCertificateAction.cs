@@ -32,7 +32,7 @@ namespace Fluxzy.Rules.Actions
         /// <summary>
         ///     The certificate information
         /// </summary>
-        [ActionDistinctive]
+        [ActionDistinctive(Expand = true)]
         public Certificate ClientCertificate { get; set; }
 
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;

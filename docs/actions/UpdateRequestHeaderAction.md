@@ -23,6 +23,7 @@ The following table describes the customizable properties available for this fil
 | headerName | string |  |  |
 | headerValue | string |  |  |
 | addIfMissing | boolean |  | false |
+| appendSeparator | string | Only active when `AddIfMissing=true` When updating an existing header, this value will be used to separate the original value and the new value. | *null* |
 
 ### Example of usage
 
