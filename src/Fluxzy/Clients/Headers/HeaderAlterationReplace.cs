@@ -19,9 +19,11 @@ namespace Fluxzy.Clients.Headers
 
         public bool AddIfMissing { get; }
 
+        public string ? AppendSeparator { get; set; }
+
         public override void Apply(Header header)
         {
-            header.AltReplaceHeaders(HeaderName, HeaderValue, AddIfMissing);
+            header.AltReplaceHeaders(HeaderName, HeaderValue, AddIfMissing, AppendSeparator);
         }
     }
 }
