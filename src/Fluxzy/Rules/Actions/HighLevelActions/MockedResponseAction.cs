@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
@@ -37,10 +38,51 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             return default;
         }
 
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            {
+                var bodyContent = BodyContent.CreateFromString("{ \"result\": true }");
+                bodyContent.Type = BodyType.Json;
+
+                yield return new ActionExample("Mock a response with a raw text",
+                    new MockedResponseAction(new MockedResponseContent(200, bodyContent)
+                    {
+                        Headers = {
+                            ["DNT"] = "1",
+                            ["X-Custom-Header"] = "Custom-HeaderValue"
+                        },
+                    }));
+            }
+
+            {
+                var bodyContent = BodyContent.CreateFromFile("/path/to/my/response.data"); 
+                bodyContent.Type = BodyType.Binary;
+
+                yield return new ActionExample("Mock a response with a file.",
+                    new MockedResponseAction(new MockedResponseContent(404, bodyContent)
+                    {
+                        Headers = {
+                            ["Server"] = "Fluxzy",
+                            ["X-Custom-Header-2"] = "Custom-HeaderValue-2"
+                        },
+                    }));
+
+            }
+        }
+
         public static MockedResponseAction BuildDefaultInstance()
         {
-            return new MockedResponseAction(new MockedResponseContent(200,
-                BodyContent.CreateFromString("Sample content.")));
+            var bodyContent = BodyContent.CreateFromString("{ \"result\": true }");
+
+            bodyContent.Type = BodyType.Json;
+
+            return new MockedResponseAction(new MockedResponseContent(200, bodyContent)
+            {
+                Headers = {
+                    ["DN"] = "1",
+                    ["X-Custom-Header"] = "Custom-HeaderValue"
+                },
+            });
         }
     }
 }
