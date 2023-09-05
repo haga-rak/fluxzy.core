@@ -1,7 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using Fluxzy.Clients.Headers;
@@ -85,6 +87,12 @@ namespace Fluxzy.Rules.Actions
             }
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Add request cookie with name `session` and value `123456`",
+                new SetRequestCookieAction("session", "123456")); 
         }
     }
 }
