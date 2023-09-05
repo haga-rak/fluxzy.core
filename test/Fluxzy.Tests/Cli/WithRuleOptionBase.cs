@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Tests.Cli.Scaffolding;
@@ -13,6 +14,8 @@ namespace Fluxzy.Tests.Cli
         private ProxyInstance? _fluxzyInstance;
         private ProxiedHttpClient? _proxiedHttpClient;
         private string? _ruleFile;
+
+        public CookieContainer CookieContainer { get; } = new();
 
         protected async Task<HttpResponseMessage> Exec(string yamlContent, HttpRequestMessage requestMessage)
         {
@@ -30,11 +33,11 @@ namespace Fluxzy.Tests.Cli
 
             _fluxzyInstance = await commandLineHost.Run();
 
-            _proxiedHttpClient = new ProxiedHttpClient(_fluxzyInstance.ListenPort);
+            _proxiedHttpClient = new ProxiedHttpClient(_fluxzyInstance.ListenPort, cookieContainer: CookieContainer);
 
             return  await _proxiedHttpClient.Client.SendAsync(requestMessage);
         }
-
+        
         public async ValueTask DisposeAsync()
         { 
             if (_ruleFile != null && File.Exists(_ruleFile))

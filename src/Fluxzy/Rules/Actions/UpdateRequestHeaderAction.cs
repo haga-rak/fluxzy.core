@@ -44,6 +44,12 @@ namespace Fluxzy.Rules.Actions
         [ActionDistinctive]
         public bool AddIfMissing { get; set; }
 
+        /// <summary>
+        /// Only active when AddIfMissing=true When updating an existing header, this value will be used to separate the original value and the new value.
+        /// </summary>
+        [ActionDistinctive(Description = "Only active when `AddIfMissing=true` When updating an existing header, this value will be used to separate the original value and the new value.")]
+        public string ? AppendSeparator { get; set; }
+
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
         public override string DefaultDescription => $"Update request header {HeaderName}".Trim();
@@ -53,7 +59,9 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             context.RequestHeaderAlterations.Add(new HeaderAlterationReplace(HeaderName.EvaluateVariable(context)!,
-                HeaderValue.EvaluateVariable(context)!, AddIfMissing));
+                HeaderValue.EvaluateVariable(context)!, AddIfMissing) {
+                AppendSeparator = AppendSeparator
+            });
 
             return default;
         }
