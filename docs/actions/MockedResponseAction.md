@@ -26,16 +26,56 @@ The following table describes the customizable properties available for this act
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
 | response.statusCode | int32 | The status code of the response |  |
-| response.bodyContent.origin | fromString \| fromImmediateArray \| fromFile | Defines how to load content body |  |
-| response.bodyContent.mime | string | Mime. Example = 'application/json' |  |
-| response.bodyContent.text | string | When Origin = fromString, the content text to be used as response body |  |
-| response.bodyContent.fileName | string | When Origin = fromFile, the path to the file to be used as response body |  |
-| response.bodyContent.content | byte[] | When Origin = fromImmediateArray, base64 encoded content of the response |  |
-| response.bodyContent.headers | dictionary`2 | Key values containing extra headers |  |
+| response.headers | dictionary`2 | Key values containing extra headers |  |
+| response.body.origin | fromString \| fromImmediateArray \| fromFile | Defines how the content body should be loaded |  |
+| response.body.type | text \| json \| xml \| html \| binary \| css \| javaScript \| js \| font \| proto | The body type. Use this property to avoid defining manually `content-type` header.This property is ignored if `Content-Type` is defined explicitly. |  |
+| response.body.text | string | When Origin = fromString, the content text to be used as response body |  |
+| response.body.fileName | string | When Origin = fromFile, the path to the file to be used as response body |  |
+| response.body.content | byte[] | When Origin = fromImmediateArray, base64 encoded content of the response |  |
 
 :::
 ### Example of usage
 
-This filter has no specific usage example
+The following examples apply this action to any exchanges
+
+Mock a response with a raw text.
+
+```yaml
+rules:
+- filter:
+    typeKind: AnyFilter
+  actions:
+  - typeKind: MockedResponseAction
+    response:
+      statusCode: 200
+      headers:
+        DNT: 1
+        X-Custom-Header: Custom-HeaderValue
+      body:
+        origin: FromString
+        type: Json
+        text: '{ "result": true }'
+```
+
+
+Mock a response with a file.
+
+```yaml
+rules:
+- filter:
+    typeKind: AnyFilter
+  actions:
+  - typeKind: MockedResponseAction
+    response:
+      statusCode: 404
+      headers:
+        Server: Fluxzy
+        X-Custom-Header-2: Custom-HeaderValue-2
+      body:
+        origin: FromFile
+        type: Binary
+        fileName: /path/to/my/response.data
+```
+
 
 
