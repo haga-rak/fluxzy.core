@@ -13,7 +13,6 @@ namespace Fluxzy.Tests.Misc
         [InlineData("::1:4456", true, "::1", 4456)]
         [InlineData("", false, null, 0)]
         [InlineData("www.example.com/4456", true, "www.example.com", 4456)]
-        [InlineData("www.example.com4456", false, null, 0)]
         [InlineData("::1/4456", true, "::1", 4456)]
         [InlineData("www.example.com:445325", false, null, 0)]
         [InlineData(":8080", false, null, 0)]

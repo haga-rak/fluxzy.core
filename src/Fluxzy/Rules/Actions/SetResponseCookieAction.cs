@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
 using Fluxzy.Clients.Headers;
@@ -105,6 +106,26 @@ namespace Fluxzy.Rules.Actions
                 cookieBuilder.ToString()));
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample(
+                "Set a cookie with name `my-cookie` and value `my-value`",
+                               new SetResponseCookieAction("my-cookie", "my-value")
+                           );
+
+            yield return new ActionExample(
+                "Add cookie with all properties ", new SetResponseCookieAction("my-cookie", "my-value") {
+                    Domain = "example.com",
+                    ExpireInSeconds = 3600,
+                    HttpOnly = true,
+                    MaxAge = 3600,
+                    Path = "/",
+                    SameSite = "Strict",
+                    Secure = true
+                });
+
         }
     }
 }
