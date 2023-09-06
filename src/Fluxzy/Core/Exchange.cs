@@ -252,7 +252,7 @@ namespace Fluxzy.Core
             }
 
             return new HeaderField(
-                "echoes-metrics",
+                "fluxzy-metrics",
                 $" {string.Join(", ", collection.AllKeys.Select(s => $"({s})={collection[s]}"))}");
         }
 
