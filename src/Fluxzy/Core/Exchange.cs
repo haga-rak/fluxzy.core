@@ -247,7 +247,7 @@ namespace Fluxzy.Core
             {
                 collection.Add("TTFB",
                     ((int)
-                        (Metrics.ResponseHeaderEnd - Metrics.RequestHeaderSent).TotalMilliseconds)
+                        (Metrics.ResponseHeaderEnd - Metrics.RequestBodySent).TotalMilliseconds)
                     .ToString());
             }
 
