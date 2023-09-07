@@ -31,8 +31,11 @@ namespace Fluxzy.Core
     internal class ExchangeBuilder
     {
         private static string AcceptTunnelResponseString { get; }
+        private static string AcceptTunnelResponseStringImmediateClose { get; }
 
         private static byte[] AcceptTunnelResponse { get; }
+
+        private static byte[] AcceptTunnelResponseImmediateClose { get; }
 
         static ExchangeBuilder()
         {
@@ -41,9 +44,18 @@ namespace Fluxzy.Core
                 $"x-fluxzy-message: enjoy your privacy!\r\n" +
                 $"Content-length: 0\r\n" +
                 $"Connection: keep-alive\r\n" +
+                $"Keep-alive: timeout=5\r\n" +
+                $"\r\n";
+
+            AcceptTunnelResponseStringImmediateClose =
+                $"HTTP/1.1 200 OK\r\n" +
+                $"x-fluxzy-message: enjoy your privacy!\r\n" +
+                $"Content-length: 0\r\n" +
+                $"Connection: close\r\n" +
                 $"\r\n";
 
             AcceptTunnelResponse = Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
+            AcceptTunnelResponseImmediateClose = Encoding.ASCII.GetBytes(AcceptTunnelResponseStringImmediateClose);
         }
 
 
@@ -61,7 +73,8 @@ namespace Fluxzy.Core
         public async ValueTask<ExchangeBuildingResult?> InitClientConnection(
             Stream stream,
             RsBuffer buffer,
-            ProxyRuntimeSetting runtimeSetting,
+            ProxyRuntimeSetting runtimeSetting, 
+            bool closeImmediately,
             CancellationToken token)
         {
             var plainStream = stream;
@@ -94,8 +107,12 @@ namespace Fluxzy.Core
                     int.Parse(authorityArray[1]),
                     true);
 
-                await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse),
-                    token);
+                if (closeImmediately) {
+                    await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
+                }
+                else {
+                    await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
+                }
 
                 var exchangeContext = new ExchangeContext(authority,
                     runtimeSetting.VariableContext, runtimeSetting.ExecutionContext.StartupSetting);

@@ -47,6 +47,7 @@ namespace Fluxzy.Core
                     var tcpClient = listener.EndAcceptTcpClient(asyncState);
 
                     tcpClient.NoDelay = true;
+                    tcpClient.ReceiveTimeout = 5000; 
 
                     return tcpClient;
                 }
@@ -68,7 +69,7 @@ namespace Fluxzy.Core
 
             foreach (var listener in _listeners) {
                 try {
-                    listener.Start(1000);
+                    listener.Start();
 
                     boundEndPoints.Add((IPEndPoint) listener.LocalEndpoint);
 
