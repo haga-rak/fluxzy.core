@@ -36,7 +36,7 @@ namespace Fluxzy
         private bool _halted;
         private Task? _loopTask;
         private bool _started;
-
+        
         /// <summary>
         /// Create a new instance of Proxy with the provided setting.
         /// An InMemoryCertificateCache will be used as the certificate cache.
@@ -157,7 +157,7 @@ namespace Fluxzy
 
         private async void ProcessingConnection(TcpClient client)
         {
-            Interlocked.Increment(ref _currentConcurrentCount);
+            var currentCount = Interlocked.Increment(ref _currentConcurrentCount);
 
             try {
                 await Task.Yield();
@@ -170,7 +170,10 @@ namespace Fluxzy
                         if (_proxyHaltTokenSource.IsCancellationRequested)
                             return;
 
-                        await _proxyOrchestrator!.Operate(client, buffer, _proxyHaltTokenSource.Token)
+                        var closeImmediately = FluxzySharedSetting.OverallMaxConcurrentConnections <
+                                              currentCount;
+
+                        await _proxyOrchestrator!.Operate(client, buffer, closeImmediately, _proxyHaltTokenSource.Token)
                                                  .ConfigureAwait(false);
                     }
                     finally {
