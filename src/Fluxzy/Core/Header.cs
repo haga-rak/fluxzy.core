@@ -13,6 +13,8 @@ namespace Fluxzy.Core
 {
     public abstract class Header
     {
+        protected static readonly byte[] CloseFlatHeader = "Connection: close\r\n"u8.ToArray(); 
+
         private readonly ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields;
         private readonly List<HeaderField> _rawHeaderFields;
 
@@ -136,7 +138,7 @@ namespace Fluxzy.Core
 
         public ReadOnlyMemory<char> GetHttp11Header()
         {
-            var estimatedHeaderLength = GetHttp11LengthOnly(true);
+            var estimatedHeaderLength = GetHttp11LengthOnly(true, false);
 
             byte[]? heapBuffer = null;
 
@@ -162,7 +164,7 @@ namespace Fluxzy.Core
             return GetHttp11Header().ToString();
         }
 
-        public int GetHttp11LengthOnly(bool skipNonForwardableHeader)
+        public int GetHttp11LengthOnly(bool skipNonForwardableHeader, bool shouldClose)
         {
             var totalLength = 0;
 
@@ -184,15 +186,18 @@ namespace Fluxzy.Core
 
             totalLength += Encoding.ASCII.GetByteCount("\r\n");
 
+            if (shouldClose)
+                totalLength += CloseFlatHeader.Length;  // Adding connection close header
+
             return totalLength;
         }
 
         public int WriteHttp11(
             RsBuffer buffer,
-            bool skipNonForwardableHeader, bool writeExtraHeaderField = false)
+            bool skipNonForwardableHeader, bool writeExtraHeaderField = false, bool requestClose =  true)
         {
             var totalLength = 0;
-            var http11Length = GetHttp11LengthOnly(skipNonForwardableHeader);
+            var http11Length = GetHttp11LengthOnly(skipNonForwardableHeader, requestClose);
 
             while (buffer.Buffer.Length < http11Length) {
                 buffer.Extend(http11Length - buffer.Buffer.Length);
@@ -214,6 +219,11 @@ namespace Fluxzy.Core
                 totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
                 totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
                 totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+            }
+
+            if (requestClose) {
+                 CloseFlatHeader.AsSpan().CopyTo(data.Slice(totalLength));
+                 totalLength += CloseFlatHeader.Length;
             }
 
             totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
