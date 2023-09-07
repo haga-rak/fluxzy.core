@@ -43,10 +43,16 @@ namespace Fluxzy.Readers
             return exchangeDirectory.EnumerateFiles("*.mpack", SearchOption.AllDirectories)
                                     .Select(f => {
 
-                                        var res = MessagePackSerializer.Deserialize<ExchangeInfo>(File.ReadAllBytes(f.FullName),
-                                            GlobalArchiveOption.MessagePackSerializerOptions);
-
-                                        return res;
+                                        try {
+                                            return MessagePackSerializer.Deserialize<ExchangeInfo>(File.ReadAllBytes(f.FullName),
+                                                GlobalArchiveOption.MessagePackSerializerOptions);
+                                        }
+                                        catch {
+                                            // some files may be halfwritten in the proxy was not halted correctly
+                                            // ignore
+                                            return null; 
+                                        }
+                                        
                                     })
                                     .Where(t => t != null)
                                     .OrderBy(t => t!.Id)
@@ -70,9 +76,19 @@ namespace Fluxzy.Readers
 
             return connectionDirectory.EnumerateFiles("*.mpack", SearchOption.AllDirectories)
                                       .Select(f => {
-                                          return MessagePackSerializer.Deserialize<ConnectionInfo>(
-                                              File.ReadAllBytes(f.FullName),
-                                              GlobalArchiveOption.MessagePackSerializerOptions);
+
+                                          try
+                                          {
+                                              return MessagePackSerializer.Deserialize<ConnectionInfo>(
+                                                  File.ReadAllBytes(f.FullName),
+                                                  GlobalArchiveOption.MessagePackSerializerOptions);
+                                          }
+                                          catch
+                                          {
+                                              // some files may be halfwritten in the proxy was not halted correctly
+                                              // ignore
+                                              return null;
+                                          }
                                       })
                                       .Where(t => t != null)
                                       .Select(t => t!);
