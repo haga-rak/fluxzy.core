@@ -16,7 +16,7 @@ namespace Fluxzy
 
         public static bool IsRunningInDesktop => Environment.GetEnvironmentVariable("Desktop") == "true";
 
-        public static int RequestProcessingBuffer { get; set; } = 1024 * 16; 
+        public static int RequestProcessingBuffer { get; set; } = 1024 * 4; 
 
         public static int OverallMaxConcurrentConnections { get;  } = 102400;
     }

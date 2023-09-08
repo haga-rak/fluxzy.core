@@ -43,7 +43,7 @@ namespace Fluxzy.Clients.DotNetBridge
                 if (!_activeConnections.TryGetValue(request.RequestUri!.Authority, out var connection)) {
                     connection = await ConnectionBuilder.CreateH2(
                         request.RequestUri.Host,
-                        request.RequestUri.Port, _streamSetting, cancellationToken).ConfigureAwait(false);
+                        request.RequestUri.Port, _streamSetting, cancellationToken);
 
                     _activeConnections[request.RequestUri.Authority] = connection;
                 }

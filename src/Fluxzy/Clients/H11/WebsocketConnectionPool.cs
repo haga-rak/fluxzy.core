@@ -210,7 +210,7 @@ namespace Fluxzy.Clients.H11
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken).AsTask());
 
-                await copyTask.ConfigureAwait(false);
+                await copyTask;
             }
             catch (Exception ex) {
                 if (ex is IOException || ex is SocketException) {

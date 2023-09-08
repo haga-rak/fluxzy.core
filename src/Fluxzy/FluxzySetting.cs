@@ -58,7 +58,7 @@ namespace Fluxzy
         ///     value is 8.
         /// </summary>
         [JsonInclude]
-        public int ConnectionPerHost { get; internal set; } = 8;
+        public int ConnectionPerHost { get; internal set; } = 16;
 
         /// <summary>
         ///     Ssl protocols for remote host connection
@@ -433,7 +433,7 @@ namespace Fluxzy
         {
             return new FluxzySetting
             {
-                ConnectionPerHost = 8
+                ConnectionPerHost = 16
             }.SetBoundAddress("127.0.0.1", 44344);
         }
 
@@ -447,7 +447,7 @@ namespace Fluxzy
         {
             return new FluxzySetting
             {
-                ConnectionPerHost = 8
+                ConnectionPerHost = 16
             }.SetBoundAddress(address, port);
         }
     }
