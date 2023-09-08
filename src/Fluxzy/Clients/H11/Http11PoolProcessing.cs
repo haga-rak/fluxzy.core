@@ -44,11 +44,13 @@ namespace Fluxzy.Clients.H11
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
             _logger.Trace(exchange.Id, () => "Begin writing header");
-            var headerLength = exchange.Request.Header.WriteHttp11(buffer.Buffer, true, true);
+            var headerLength = exchange.Request.Header.WriteHttp11(buffer.Buffer, true, true, writeKeepAlive:true);
 
             // Sending request header 
 
+#if DEBUG
             var requestHeader = Encoding.ASCII.GetString(buffer.Buffer, 0, headerLength);
+#endif
 
             await exchange.Connection.WriteStream!.WriteAsync(buffer.Memory.Slice(0, headerLength), cancellationToken);
 
@@ -109,7 +111,7 @@ namespace Fluxzy.Clients.H11
                     .GetChars(buffer.Memory.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
 
             exchange.Response.Header = new ResponseHeader(
-                headerContent, exchange.Authority.Secure);
+                headerContent, exchange.Authority.Secure, true);
 
             _logger.TraceResponse(exchange);
 
@@ -172,6 +174,7 @@ namespace Fluxzy.Clients.H11
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
                         exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
+
                         _logger.Trace(exchange.Id, () => $"Last body bytes end : {length} total bytes");
                     },
                     exception => {
