@@ -40,7 +40,7 @@ namespace Fluxzy.Core
 
             Response = new Response
             {
-                Header = new ResponseHeader(responseHeader, isSecure),
+                Header = new ResponseHeader(responseHeader, isSecure, false),
                 Body = responseBody ?? StreamUtils.EmptyStream
             };
 

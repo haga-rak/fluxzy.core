@@ -279,7 +279,7 @@ namespace Fluxzy.Clients.H2
 
                 var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
 
-                _exchange.Response.Header = new ResponseHeader(charHeader, true);
+                _exchange.Response.Header = new ResponseHeader(charHeader, true, false);
 
                 _logger.TraceResponse(this, _exchange);
 

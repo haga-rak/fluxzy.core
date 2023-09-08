@@ -1,7 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers;
 using System.Linq;
+using Fluxzy.Clients.H2.Encoder.Utils;
 
 namespace Fluxzy.Utils
 {
@@ -197,6 +199,38 @@ namespace Fluxzy.Utils
                 return "bin";
 
             return null;
+        }
+
+        public static bool TryParseKeepAlive(ReadOnlySpan<char> keepAliveValue, out int max, out int timeout)
+        {
+            max = -1;
+            timeout = -1;
+
+            var enumerator = keepAliveValue.Split(",");
+
+            while (enumerator.MoveNext()) {
+                var value = enumerator.Current.Trim();
+
+                if (max < 0 && value.StartsWith("max=", StringComparison.OrdinalIgnoreCase)) {
+                    if (int.TryParse(value[4..], out var maxResult)) {
+                        max = maxResult;
+                        continue;
+                    }
+                }
+
+                if (timeout < 0 && value.StartsWith("timeout=", StringComparison.OrdinalIgnoreCase)) {
+                    if (int.TryParse(value[8..], out var timeoutResult)) {
+                        timeout = timeoutResult;
+                        continue;
+                    }
+                }
+
+                if (max > 0 && timeout > 0)
+                    break;
+            }
+
+            return max > 0 || timeout > 0;
+        
         }
     }
 }
