@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
+using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
@@ -40,7 +41,7 @@ namespace Fluxzy.Core
         {
         }
 
-        public async ValueTask Operate(TcpClient client, RsBuffer buffer, CancellationToken token)
+        public async ValueTask Operate(TcpClient client, RsBuffer buffer, bool closeImmediately, CancellationToken token)
         {
             try {
 
@@ -49,7 +50,6 @@ namespace Fluxzy.Core
                     var message = $"Receive from {client.Client.RemoteEndPoint}";
                     D.TraceInfo(message);
                 }
-
 
                 using var callerTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
 
@@ -61,7 +61,7 @@ namespace Fluxzy.Core
 
                     try {
                         localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), buffer,
-                            _proxyRuntimeSetting, token);
+                            _proxyRuntimeSetting, closeImmediately, token);
                     }
                     catch (Exception ex) {
                         // Failure from the local connection
@@ -108,12 +108,11 @@ namespace Fluxzy.Core
                             // Check whether the local browser ask for a connection close 
 
                             if (D.EnableTracing) {
-
                                 var message = $"[#{exchange.Id}] Processing {exchange.Request.Header.Authority}";
                                 D.TraceInfo(message);
                             }
 
-                            shouldClose = exchange.ShouldClose();
+                            shouldClose = exchange.ShouldClose() || closeImmediately;
 
                             if (_proxyRuntimeSetting.UserAgentProvider != null) {
                                 var userAgentValue = exchange.GetRequestHeaderValue("User-Agent");
@@ -246,7 +245,6 @@ namespace Fluxzy.Core
                                     await exchange.Context.BreakPointContext.ResponseHeaderCompletion
                                                   .WaitForEdit();
                                 }
-
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     exchange.Response.Body != null &&
                                     exchange.HttpVersion == "HTTP/2")
@@ -268,8 +266,8 @@ namespace Fluxzy.Core
                                     exchange.Response.Header?.AddExtraHeaderFieldToLocalConnection(
                                         exchange.GetMetricsSummaryAsHeader());
                                 }
-
-                                var responseHeaderLength = exchange.Response.Header!.WriteHttp11(buffer, true, true);
+                                
+                                var responseHeaderLength = exchange.Response.Header!.WriteHttp11(buffer, true, true, shouldClose);
 
                                 if (_archiveWriter != null) {
                                     // Update the state of the exchange

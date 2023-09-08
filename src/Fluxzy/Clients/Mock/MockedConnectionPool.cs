@@ -52,7 +52,7 @@ namespace Fluxzy.Clients.Mock
 
             exchange.Response.Header = new ResponseHeader(
                 _preMadeResponse.GetFlatH11Header(Authority, exchange.Context).AsMemory(),
-                exchange.Authority.Secure);
+                exchange.Authority.Secure, true);
 
             exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
             exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
