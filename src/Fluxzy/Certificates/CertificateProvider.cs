@@ -38,8 +38,11 @@ namespace Fluxzy.Certificates
         {
             hostName = GetRootDomain(hostName);
 
+            if (_solveCertificateRepository.TryGetValue(hostName, out var value))
+                return value;
+
             lock (string.Intern(hostName)) {
-                if (_solveCertificateRepository.TryGetValue(hostName, out var value))
+                if (_solveCertificateRepository.TryGetValue(hostName, out value))
                     return value;
 
                 var lazyCertificate =
@@ -74,6 +77,8 @@ namespace Fluxzy.Certificates
 
         private byte[] BuildCertificateForRootDomain(string rootDomain)
         {
+            Console.WriteLine("Building");
+
             var randomGenerator = new Random();
 
             var certificateRequest = new CertificateRequest(
