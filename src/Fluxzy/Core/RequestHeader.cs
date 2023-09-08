@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Fluxzy.Clients;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Core
 {
@@ -114,16 +116,22 @@ namespace Fluxzy.Core
         /// </summary>
         /// <param name="headerContent"></param>
         /// <param name="isSecure"></param>
+        /// <param name="parseConnectionInfo"></param>
         public ResponseHeader(
             ReadOnlyMemory<char> headerContent,
-            bool isSecure)
+            bool isSecure, bool parseConnectionInfo)
             : base(headerContent, isSecure)
         {
             StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
 
-            ConnectionCloseRequest = HeaderFields.Any(
-                r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
-                     && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+            if (parseConnectionInfo) {
+                ConnectionCloseRequest = HeaderFields.Any(
+                    r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
+                         && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+
+                if (!ConnectionCloseRequest)
+                    ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
+            }
         }
 
         /// <summary>
@@ -138,7 +146,49 @@ namespace Fluxzy.Core
             ConnectionCloseRequest = HeaderFields.Any(
                 r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
                      && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+
+            if (!ConnectionCloseRequest)
+                ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
         }
+
+        private bool ReadKeepAliveSettings()
+        {
+            var immediateClose = false;
+
+            if (HeaderFields.Any(
+                    r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
+                         && r.Value.Span.Equals("keep-alive", StringComparison.OrdinalIgnoreCase)))
+            {
+                var keepHeaderValue = HeaderFields.LastOrDefault(
+                    h => h.Name.Span.Equals(Http11Constants.KeepAliveVerb.Span, StringComparison.OrdinalIgnoreCase)
+                );
+
+                if (!keepHeaderValue.Value.IsEmpty)
+                {
+                    if (HeaderUtility.TryParseKeepAlive(keepHeaderValue.Value.Span, out var max, out var timeout))
+                    {
+                        if (max >= 0)
+                        {
+                            MaxConnection = max;
+
+                            if (max == 1) {
+                                immediateClose = true; 
+                            }
+                        }
+
+                        if (timeout >= 0) {
+                            TimeoutIdleSeconds = timeout;
+                        }
+                    }
+                }
+            }
+
+            return immediateClose;
+        }
+
+        public int TimeoutIdleSeconds { get; set; }
+
+        public int MaxConnection { get; set; } = -1;
 
         public int StatusCode { get; }
 

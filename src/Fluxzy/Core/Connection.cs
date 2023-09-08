@@ -44,7 +44,7 @@ namespace Fluxzy.Core
         public DateTime SslNegotiationStart { get; set; }
 
         public DateTime SslNegotiationEnd { get; set; }
-
+        
         public int LocalPort { get; set; }
 
         public string? LocalAddress { get; set; }
@@ -52,6 +52,8 @@ namespace Fluxzy.Core
         public Stream? WriteStream { get; set; }
 
         public Stream? ReadStream { get; set; }
+
+        public int TimeoutIdleSeconds { get; set; } = -1; 
 
         public void AddNewRequestProcessed()
         {
