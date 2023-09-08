@@ -81,10 +81,12 @@ namespace Fluxzy.Core
                     }.Start(listenerCopy);
                 }
                 catch (SocketException sex) {
-                    throw new Exception("Impossible port : " +
-                                        $"{((IPEndPoint) listener.LocalEndpoint).Address} - " +
-                                        $"{((IPEndPoint) listener.LocalEndpoint).Port}  - \r\n"
-                                        + sex, sex);
+                    throw new Exception(
+                        $"Cannot bind to this socket: " +
+                        $"{((IPEndPoint) listener.LocalEndpoint).Address}:" +
+                        $"{((IPEndPoint) listener.LocalEndpoint).Port}  \r\n" +
+                        $"Another instance running ?\r\n" +
+                        $"- \r\n{sex.Message}");
                 }
             }
 

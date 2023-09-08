@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -15,13 +16,19 @@ namespace Fluxzy.Core
         public DefaultTcpConnection()
         {
             _client = new TcpClient();
+            _client.NoDelay = true; 
         }
-
-        public async Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
+        
+        public Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
         {
-            await _client.ConnectAsync(address, port);
+            return _client.ConnectAsync(address, port)
+                          .ContinueWith(t =>
+                          {
+                              if (t.Exception != null && t.Exception.InnerExceptions.Any())
+                                  throw t.Exception.InnerExceptions.First();
 
-            return (IPEndPoint) _client.Client.LocalEndPoint!;
+                              return (IPEndPoint)_client.Client.LocalEndPoint;
+                          });
         }
 
         public Stream GetStream()

@@ -119,9 +119,7 @@ namespace Fluxzy.Clients.H11
                 // We close the connection because
                 // many web server still sends a content-body with a 304 response 
                 // https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html 10.3.5
-
-                shouldCloseConnection = true;
-
+                
                 exchange.Metrics.ResponseBodyStart =
                     exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 

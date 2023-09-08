@@ -68,8 +68,7 @@ namespace Fluxzy.Clients
                                            : string.Empty);
 
             var localEndpoint = await tcpConnection.ConnectAsync(resolutionResult.EndPoint.Address,
-                                                       resolutionResult.EndPoint.Port)
-                                                   .ConfigureAwait(false);
+                                                       resolutionResult.EndPoint.Port);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
             exchange.Connection.LocalPort = localEndpoint.Port;

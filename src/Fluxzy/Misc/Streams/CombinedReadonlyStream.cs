@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -148,7 +148,7 @@ namespace Fluxzy.Misc.Streams
                 var currentReadCount =
                     stream is MemoryStream
                         ? stream.Read(buffer, offset, count)
-                        : await stream.ReadAsync(buffer, offset, count, token).ConfigureAwait(false);
+                        : await stream.ReadAsync(buffer, offset, count, token);
 
                 result += currentReadCount;
                 count -= currentReadCount;

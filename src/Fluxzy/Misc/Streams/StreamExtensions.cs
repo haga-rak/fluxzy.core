@@ -154,8 +154,7 @@ namespace Fluxzy.Misc.Streams
             long totalCopied = 0;
             int read;
 
-            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
-                                       .ConfigureAwait(false)) > 0) {
+            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0) {
                 await destination.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
                 onContentCopied(read);
 
