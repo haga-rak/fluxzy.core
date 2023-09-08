@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
@@ -23,7 +24,9 @@ namespace Fluxzy.Clients.H11
 
         private readonly H1Logger _logger;
 
-        private readonly Queue<Http11ProcessingState> _processingStates = new();
+        private readonly Channel<Http11ProcessingState> _pendingConnections;
+
+        //private readonly Queue<Http11ProcessingState> _processingStates = new();
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
@@ -45,6 +48,13 @@ namespace Fluxzy.Clients.H11
             _resolutionResult = resolutionResult;
             Authority = authority;
             _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
+
+            _pendingConnections = Channel.CreateBounded<Http11ProcessingState>(
+                    new BoundedChannelOptions(proxyRuntimeSetting.ConcurrentConnection) {
+                    SingleReader = false,
+                    SingleWriter = false
+            });
+
             _logger = new H1Logger(authority);
 
             ITimingProvider.Default.Instant();
@@ -79,22 +89,42 @@ namespace Fluxzy.Clients.H11
 
                 _logger.Trace(exchange.Id, "Acquiring slot");
 
-                lock (_processingStates) {
-                    var requestDate = _timingProvider.Instant();
+                var requestDate = _timingProvider.Instant();
 
-                    while (_processingStates.TryDequeue(out var state)) {
-                        if (HasConnectionExpired(requestDate, state)) {
-                            // The connection pool exceeds timing connection ..
-                            // May be there is need to free the connection
-                            continue;
-                        }
+                while (_pendingConnections.Reader.TryRead(out var state)) {
 
-                        exchange.Connection = state.Connection;
-                        _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
+                    if (HasConnectionExpired(requestDate, state))
+                    {
+                        // The connection pool exceeds timing connection ..
+                        //  TODO: Gracefully relese connection
 
-                        break;
+                        continue;
                     }
+
+                    exchange.Connection = state.Connection;
+                    _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
+
+                    break;
+
                 }
+                
+
+                //lock (_processingStates) {
+                //    var requestDate = _timingProvider.Instant();
+
+                //    while (_processingStates.TryDequeue(out var state)) {
+                //        if (HasConnectionExpired(requestDate, state)) {
+                //            // The connection pool exceeds timing connection ..
+                //            // May be there is need to free the connection
+                //            continue;
+                //        }
+
+                //        exchange.Connection = state.Connection;
+                //        _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
+
+                //        break;
+                //    }
+                //}
 
                 if (exchange.Connection == null) {
                     _logger.Trace(exchange.Id, () => "New connection request");
@@ -151,12 +181,21 @@ namespace Fluxzy.Clients.H11
                             }
                         }
                         else if (completeTask.IsCompletedSuccessfully && !closeConnectionRequest) { // 
-                            lock (_processingStates) {
-                                _processingStates.Enqueue(new Http11ProcessingState(exchange.Connection, lastUsed));
+
+                            if (_pendingConnections.Writer.TryWrite(new Http11ProcessingState(exchange.Connection, lastUsed)))
+                            {
+                                _logger.Trace(exchange.Id, () => "Complete on success, recycling connection ...");
+                                return;
                             }
 
-                            _logger.Trace(exchange.Id, () => "Complete on success, recycling connection ...");
-                            return;
+                            //  If we arrive here, the connection pool is already full 
+
+                            //lock (_processingStates) {
+                            //    _processingStates.Enqueue();
+                            //}
+
+                            //_logger.Trace(exchange.Id, () => "Complete on success, recycling connection ...");
+                            //return;
                         }
                         else {
                             _logger.Trace(exchange.Id, () => "Complete on success, closing connection ...");
