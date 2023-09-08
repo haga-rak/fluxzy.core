@@ -30,7 +30,7 @@ namespace Fluxzy.Clients.H11
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
-        private readonly SemaphoreSlim _semaphoreSlim;
+        //private readonly SemaphoreSlim _semaphoreSlim;
         private readonly ITimingProvider _timingProvider;
 
         internal Http11ConnectionPool(
@@ -47,7 +47,7 @@ namespace Fluxzy.Clients.H11
             _archiveWriter = archiveWriter;
             _resolutionResult = resolutionResult;
             Authority = authority;
-            _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
+            //_semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
 
             _pendingConnections = Channel.CreateBounded<Http11ProcessingState>(
                     new BoundedChannelOptions(proxyRuntimeSetting.ConcurrentConnection) {
@@ -84,8 +84,8 @@ namespace Fluxzy.Clients.H11
             try {
                 _logger.Trace(exchange, "Begin wait for authority slot");
 
-                if (!_semaphoreSlim.Wait(0))
-                    await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+                //if (!_semaphoreSlim.Wait(0))
+                //    await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.Trace(exchange.Id, "Acquiring slot");
 
@@ -107,24 +107,6 @@ namespace Fluxzy.Clients.H11
                     break;
 
                 }
-                
-
-                //lock (_processingStates) {
-                //    var requestDate = _timingProvider.Instant();
-
-                //    while (_processingStates.TryDequeue(out var state)) {
-                //        if (HasConnectionExpired(requestDate, state)) {
-                //            // The connection pool exceeds timing connection ..
-                //            // May be there is need to free the connection
-                //            continue;
-                //        }
-
-                //        exchange.Connection = state.Connection;
-                //        _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
-
-                //        break;
-                //    }
-                //}
 
                 if (exchange.Connection == null) {
                     _logger.Trace(exchange.Id, () => "New connection request");
@@ -187,26 +169,14 @@ namespace Fluxzy.Clients.H11
                                 _logger.Trace(exchange.Id, () => "Complete on success, recycling connection ...");
                                 return;
                             }
-
-                            //  If we arrive here, the connection pool is already full 
-
-                            //lock (_processingStates) {
-                            //    _processingStates.Enqueue();
-                            //}
-
-                            //_logger.Trace(exchange.Id, () => "Complete on success, recycling connection ...");
-                            //return;
                         }
                         else {
                             _logger.Trace(exchange.Id, () => "Complete on success, closing connection ...");
 
                             // should close connection 
                         }
-
-                        exchange.Connection.ReadStream!.Dispose();
-
-                        if (exchange.Connection.ReadStream != exchange.Connection.WriteStream)
-                           exchange.Connection.WriteStream!.Dispose();
+                        
+                        FreeConnectionStreams(exchange.Connection);
                     }
 
                     var res = exchange.Complete.ContinueWith(OnExchangeCompleteFunction, cancellationToken);
@@ -227,9 +197,17 @@ namespace Fluxzy.Clients.H11
                 }
             }
             finally {
-                _semaphoreSlim.Release();
+                //_semaphoreSlim.Release();
                 ITimingProvider.Default.Instant();
             }
+        }
+
+        private static void FreeConnectionStreams(Connection connection)
+        {
+            connection.ReadStream!.Dispose();
+
+            if (connection.ReadStream != connection.WriteStream)
+                connection.WriteStream!.Dispose();
         }
 
         private bool HasConnectionExpired(DateTime instantNow, Http11ProcessingState state)

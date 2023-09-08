@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
-using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
