@@ -47,11 +47,7 @@ namespace Fluxzy.Clients.H11
             var headerLength = exchange.Request.Header.WriteHttp11(buffer.Buffer, true, true, writeKeepAlive:true);
 
             // Sending request header 
-
-#if DEBUG
-            var requestHeader = Encoding.ASCII.GetString(buffer.Buffer, 0, headerLength);
-#endif
-
+            
             await exchange.Connection.WriteStream!.WriteAsync(buffer.Memory.Slice(0, headerLength), cancellationToken);
 
             _logger.Trace(exchange.Id, () => "Header sent");
