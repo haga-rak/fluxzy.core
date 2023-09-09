@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading;
@@ -34,7 +35,12 @@ namespace Fluxzy.Core
             var buffer = new byte[4];
             var originalStream = stream;
 
-            await stream.ReadExactAsync(buffer, token);
+            if (stream is NetworkStream networkStream && networkStream.DataAvailable) {
+                networkStream.ReadExact(buffer);
+            }
+            else {
+                await stream.ReadExactAsync(buffer, token);
+            }
 
             if (StartWithKeyWord(buffer)) {
                 // This is websocket request 
@@ -52,8 +58,7 @@ namespace Fluxzy.Core
 
             try {
                 await secureStream
-                      .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false)
-                      .ConfigureAwait(false);
+                    .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false);
             }
             catch (Exception ex) {
                 throw new FluxzyException(ex.Message, ex);
