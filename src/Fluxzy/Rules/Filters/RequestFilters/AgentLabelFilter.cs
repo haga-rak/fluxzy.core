@@ -12,7 +12,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     public class AgentLabelFilter : StringFilter
     {
         public AgentLabelFilter(string pattern)
-            : base(pattern, StringSelectorOperation.Exact)
+            : base(pattern, StringSelectorOperation.Contains)
         {
         }
 
