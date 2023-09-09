@@ -77,8 +77,6 @@ namespace Fluxzy.Certificates
 
         private byte[] BuildCertificateForRootDomain(string rootDomain)
         {
-            Console.WriteLine("Building");
-
             var randomGenerator = new Random();
 
             var certificateRequest = new CertificateRequest(
