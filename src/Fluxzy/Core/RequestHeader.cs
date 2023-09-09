@@ -186,7 +186,7 @@ namespace Fluxzy.Core
             return immediateClose;
         }
 
-        public int TimeoutIdleSeconds { get; set; }
+        public int TimeoutIdleSeconds { get; set; } = 1;
 
         public int MaxConnection { get; set; } = -1;
 

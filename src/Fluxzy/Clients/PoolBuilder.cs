@@ -27,6 +27,13 @@ namespace Fluxzy.Clients
             SslApplicationProtocol.Http2
         };
 
+        static PoolBuilder()
+        {
+            if (string.Equals(Environment.GetEnvironmentVariable("FLUXZY_DISABLE_H2")?.Trim(), "1")) {
+                AllProtocols.Remove(SslApplicationProtocol.Http2); 
+            }
+        }
+
         private readonly RealtimeArchiveWriter _archiveWriter;
         private readonly IDnsSolver _dnsSolver;
 
