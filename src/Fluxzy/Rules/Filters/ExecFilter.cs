@@ -10,7 +10,8 @@ namespace Fluxzy.Rules.Filters
     [FilterMetaData(
         LongDescription = "Select exchange according to the exit code of a launched process." +
                           " Evaluation is considered `true` when" +
-                          "the process exits with 0 error code."
+                          "the process exits with 0 error code.",
+        NotSelectable = true
     )]
     public class ExecFilter : Filter
     {
@@ -29,6 +30,8 @@ namespace Fluxzy.Rules.Filters
         [FilterDistinctive(Description = "When this value is set to true, " +
                                          "the request header will written under env var `Exec.RequestHeader` with HTTP/1.1 syntax")]
         public bool WriteHeaderToEnv { get; set; }
+
+        public override string? Description { get; set; } = "ExecFilter: process execution filter";
 
         public override FilterScope FilterScope => FilterScope.OnAuthorityReceived;
 
