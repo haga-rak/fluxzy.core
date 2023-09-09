@@ -52,10 +52,6 @@ jobs:
       shell: cmd
       run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
 
-    - name: Building standalone zip
-      shell: cmd
-      run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
-
     - name: Push
       working-directory: _npkgout
       run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
