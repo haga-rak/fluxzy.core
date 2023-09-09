@@ -254,6 +254,8 @@ namespace Fluxzy.Tests.Cli
         [InlineData("coco", "lolo", StringSelectorOperation.Exact, "coco", "lolo", true)]
         [InlineData("codco", "lolo", StringSelectorOperation.Exact, "coco", "lolo", false)]
         [InlineData(null, "lolo", StringSelectorOperation.Exact, "coco", "lolo", true)]
+        [InlineData(null, "lo", StringSelectorOperation.Contains, "coco", "lolo", true)]
+        [InlineData("CAMPAIGNS", "{", StringSelectorOperation.Contains, "CAMPAIGNS", "aaa{", true)]
         [InlineData("coco", null, StringSelectorOperation.Exact, "coco", "lolo", true)]
         public async Task Validate_HasSetCookieOnResponseFilter_Generic(
             string name, string value, StringSelectorOperation operation,
@@ -264,8 +266,8 @@ namespace Fluxzy.Tests.Cli
                 rules:
                 - filter: 
                     typeKind: hasSetCookieOnResponseFilter
-                    name: {name} 
-                    value: {value}
+                    name: "{name}" 
+                    value: "{value}"
                     operation: {operation}
                   action : 
                     typeKind: addResponseHeaderAction

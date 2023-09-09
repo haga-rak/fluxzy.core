@@ -59,7 +59,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             if (!setCookieHeaders.Any())
                 yield break;
 
-
             var name = exchangeContext == null ? Name : Name.EvaluateVariable(exchangeContext);
             
             // Let's parse that cookie 
