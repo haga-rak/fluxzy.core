@@ -20,12 +20,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             Name = cookieName;
         }
 
-        public HasCookieOnRequestFilter(string cookieName, string pattern, StringSelectorOperation operation)
-            : base(pattern, operation)
-        {
-            Name = cookieName;
-        }
-
         [FilterDistinctive(Description = "Cookie name", DefaultValue = "")]
         public string Name { get; set; }
 
@@ -43,7 +37,9 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         {
             yield return new FilterExample(
                 "Select only filter having a request cookie with name `JSESSIONID`",
-                new HasCookieOnRequestFilter("JSESSIONID", "", StringSelectorOperation.Regex));
+                new HasCookieOnRequestFilter("JSESSIONID", "") {
+                    Operation = StringSelectorOperation.Regex
+                });
         }
 
         protected override IEnumerable<string> GetMatchInputs(
