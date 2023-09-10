@@ -18,7 +18,9 @@ namespace Fluxzy.Tests.Rules
         [InlineData(TestConstants.Http2Host)]
         public async Task CheckPass_HasCookieOnRequestFilter(string host)
         {
-            var filter = new HasCookieOnRequestFilter("test", "1", StringSelectorOperation.Exact);
+            var filter = new HasCookieOnRequestFilter("test", "1") {
+                Operation = StringSelectorOperation.Contains
+            };
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/global-health-check");
@@ -36,7 +38,10 @@ namespace Fluxzy.Tests.Rules
         [InlineData(TestConstants.Http2Host)]
         public async Task CheckSkipped_HasCookieOnRequestFilter(string host)
         {
-            var filter = new HasCookieOnRequestFilter("test", "2", StringSelectorOperation.Exact);
+            var filter = new HasCookieOnRequestFilter("test", "2")
+            {
+                Operation = StringSelectorOperation.Contains
+            };
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/global-health-check");
