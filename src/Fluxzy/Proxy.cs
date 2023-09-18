@@ -151,11 +151,11 @@ namespace Fluxzy
                 if (client == null)
                     break;
 
-                ProcessingConnection(client);
+                _ = Task.Run(async () => await ProcessingConnection(client));
             }
         }
 
-        private async void ProcessingConnection(TcpClient client)
+        private async ValueTask ProcessingConnection(TcpClient client)
         {
             var currentCount = Interlocked.Increment(ref _currentConcurrentCount);
 
