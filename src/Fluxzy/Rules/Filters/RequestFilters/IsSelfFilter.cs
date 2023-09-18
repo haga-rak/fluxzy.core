@@ -7,7 +7,8 @@ using Fluxzy.Misc;
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     [FilterMetaData(
-        LongDescription = "Check if incoming request considers fluxzy as a web server"
+        LongDescription = "Check if incoming request considers fluxzy as a web server",
+        NotSelectable = true
     )]
     public class IsSelfFilter : Filter
     {
