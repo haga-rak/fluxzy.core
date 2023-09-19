@@ -29,8 +29,8 @@ The following table describes the customizable properties available for this act
 | response.headers | dictionary`2 | Key values containing extra headers |  |
 | response.body.origin | fromString \| fromImmediateArray \| fromFile | Defines how the content body should be loaded |  |
 | response.body.type | text \| json \| xml \| html \| binary \| css \| javaScript \| js \| font \| proto | The body type. Use this property to avoid defining manually `content-type` header.This property is ignored if `Content-Type` is defined explicitly. |  |
-| response.body.text | string | When Origin = fromString, the content text to be used as response body |  |
-| response.body.fileName | string | When Origin = fromFile, the path to the file to be used as response body |  |
+| response.body.text | string | When Origin = fromString, the content text to be used as response body. Supports variable. |  |
+| response.body.fileName | string | When Origin = fromFile, the path to the file to be used as response body. |  |
 | response.body.content | byte[] | When Origin = fromImmediateArray, base64 encoded content of the response |  |
 
 :::
