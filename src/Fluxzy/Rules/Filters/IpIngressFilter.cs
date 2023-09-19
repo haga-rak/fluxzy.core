@@ -12,7 +12,7 @@ namespace Fluxzy.Rules.Filters
     [FilterMetaData(
         LongDescription = "Select exchanges according to client ip address. Full IP notation is used from IPv6."
     )]
-    public class IpIngressFilter :  StringFilter
+    public class IpIngressFilter : StringFilter
     {
         public IpIngressFilter(string pattern)
             : base(pattern)
