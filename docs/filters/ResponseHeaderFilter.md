@@ -25,6 +25,7 @@ The following table describes the customizable properties available for this fil
 :::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
+| headerName | string | Header name |  |
 | pattern | string | The string pattern to search |  |
 | operation | exact \| contains \| startsWith \| endsWith \| regex | The search operation performed | contains |
 | caseSensitive | boolean | true if the Search should be case sensitive | false |

@@ -1,8 +1,8 @@
-## forwardAction
+## serveDirectoryAction
 
 ### Description
 
-Forward request to a specific URL. This action makes fluxzy act as a reverse proxy. Host header is automatically set. The URL must be an absolute path.
+Serve a folder as a static web site. This action is made for mocking purpose and not production ready for a web site.
 
 ### Evaluation scope
 
@@ -15,7 +15,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 ### YAML configuration name
 
-forwardAction
+serveDirectoryAction
 
 ### Settings
 
@@ -25,22 +25,22 @@ The following table describes the customizable properties available for this act
 :::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
-| url | string |  |  |
+| directory | string | Directory to serve |  |
 
 :::
 ### Example of usage
 
 The following examples apply this action to any exchanges
 
-Forward any request to https://www.example.com.
+Serve a directory.
 
 ```yaml
 rules:
 - filter:
     typeKind: AnyFilter
   actions:
-  - typeKind: ForwardAction
-    url: https://www.example.com
+  - typeKind: ServeDirectoryAction
+    directory: /path/to/my/static/website
 ```
 
 

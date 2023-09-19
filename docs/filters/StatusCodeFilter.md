@@ -25,6 +25,7 @@ The following table describes the customizable properties available for this fil
 :::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
+| statusCodes | list`1 | List of status code | system.Collections.Generic.List`1[System.Int32] |
 | inverted | boolean | Negate the filter result | false |
 :::
 
