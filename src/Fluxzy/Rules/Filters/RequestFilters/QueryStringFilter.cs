@@ -47,8 +47,10 @@ namespace Fluxzy.Rules.Filters.RequestFilters
                 yield break;
             }
 
-            var matchingValues = string.IsNullOrEmpty(Name) ? queryStringItems.Select(s => s.Value)
-                : queryStringItems.Where(s => s.Name.Equals(Name, StringComparison.InvariantCultureIgnoreCase))
+            var usedName = Name.EvaluateVariable(exchangeContext);
+
+            var matchingValues = string.IsNullOrEmpty(usedName) ? queryStringItems.Select(s => s.Value)
+                : queryStringItems.Where(s => s.Name.Equals(usedName, StringComparison.InvariantCultureIgnoreCase))
                     .Select(s => s.Value);
 
             foreach (var value in matchingValues) {
