@@ -43,6 +43,13 @@ namespace Fluxzy.Rules
             }
         }
 
+        public void Unset(string key)
+        {
+            lock (_userSetVariables) {
+                _userSetVariables.Remove(key);
+            }
+        }
+
         /// <summary>
         /// </summary>
         /// <param name="str"></param>
