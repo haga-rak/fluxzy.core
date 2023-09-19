@@ -25,6 +25,8 @@ The following table describes the customizable properties available for this fil
 :::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
+| children | list`1 | Children filters | system.Collections.Generic.List`1[Fluxzy.Rules.Filters.Filter] |
+| operation | or \| and | Condition evaluation | or |
 | inverted | boolean | Negate the filter result | false |
 :::
 

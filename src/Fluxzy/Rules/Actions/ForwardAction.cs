@@ -75,7 +75,7 @@ namespace Fluxzy.Rules.Actions
         {
             yield return new ActionExample(
                 "Forward any request to https://www.example.com. ",
-                new ForwardAction("htts://www.example.com"));
+                new ForwardAction("https://www.example.com"));
         }
     }
 }

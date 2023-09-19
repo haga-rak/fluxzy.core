@@ -23,6 +23,7 @@ namespace Fluxzy.Rules.Filters
         [JsonConstructor]
         public FilterCollection()
         {
+
         }
 
         /// <summary>
@@ -46,8 +47,12 @@ namespace Fluxzy.Rules.Filters
             }
         }
 
+
+        [FilterDistinctive(Description = "Children filters")]
         public List<Filter> Children { get; set; } = new();
 
+
+        [FilterDistinctive(Description = "Condition evaluation")]
         public SelectorCollectionOperation Operation { get; set; }
 
         public override FilterScope FilterScope => Children.Select(c => c.FilterScope)
