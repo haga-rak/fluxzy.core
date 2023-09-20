@@ -176,10 +176,7 @@ namespace Fluxzy
                 });
 
             yield return new Rule(
-                new MountWelcomePageAction
-                {
-                    InternalScope = FilterScope.DnsSolveDone
-                }, new IsSelfFilter());
+                new MountWelcomePageAction(), new IsSelfFilter());
         }
 
         /// <summary>
