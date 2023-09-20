@@ -45,6 +45,19 @@ namespace Fluxzy.Rules
                 return Action.Alter(context, exchange, connection, filterScope, breakPointManager);
 
             return default;
+
+            //context.VariableBuildingContext = new VariableBuildingContext(context, exchange, connection, filterScope);
+
+            //if (!context.FilterEvaluationResult.TryGetValue(Filter, out var result))
+            //{
+            //    result = Filter.Apply(context, context.Authority, exchange, null);
+            //    context.FilterEvaluationResult[Filter] = result;
+            //}
+
+            //if (result)
+            //    return Action.Alter(context, exchange, connection, filterScope, breakPointManager);
+
+            //return default;
         }
 
         public override string ToString()

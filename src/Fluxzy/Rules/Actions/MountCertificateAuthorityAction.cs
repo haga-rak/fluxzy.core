@@ -13,11 +13,7 @@ namespace Fluxzy.Rules.Actions
     [ActionMetadata("Reply with the default root certificate used by fluxzy")]
     public class MountCertificateAuthorityAction : Action
     {
-        public override FilterScope ActionScope =>  InternalScope;
-
-        [JsonIgnore]
-        [YamlIgnore]
-        internal FilterScope InternalScope { get; set; } = FilterScope.RequestHeaderReceivedFromClient;
+        public override FilterScope ActionScope => FilterScope.OutOfScope;
 
         public override string DefaultDescription => "Reply with CA";
 

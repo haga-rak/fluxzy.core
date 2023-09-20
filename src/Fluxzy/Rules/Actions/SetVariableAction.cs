@@ -22,7 +22,12 @@ namespace Fluxzy.Rules.Actions
         [ActionDistinctive(Description = "Variable value")]
         public string Value { get; set; }
 
-        public override FilterScope ActionScope => FilterScope.OutOfScope;
+        [ActionDistinctive(Description = "The scope where the variable is evaluated", 
+            DefaultValue = nameof(FilterScope.RequestHeaderReceivedFromClient))]
+
+        public FilterScope Scope { get; set; } = FilterScope.RequestHeaderReceivedFromClient;
+
+        public override FilterScope ActionScope => Scope;
 
         public override string DefaultDescription => "Set variable"; 
 
@@ -42,7 +47,7 @@ namespace Fluxzy.Rules.Actions
                 return default;
             }
             
-            context.VariableContext.Set(Name, actualValue);
+            context.VariableContext.Set($"captured.{Name}", actualValue);
             return default;
         }
     }
