@@ -169,20 +169,14 @@ namespace Fluxzy
                 yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
 
             yield return new Rule(
-                new MountCertificateAuthorityAction
-                {
-                    InternalScope = FilterScope.DnsSolveDone
-                }, new FilterCollection(new IsSelfFilter(),
+                new MountCertificateAuthorityAction(), new FilterCollection(new IsSelfFilter(),
                     new PathFilter("/ca", StringSelectorOperation.StartsWith))
                 {
                     Operation = SelectorCollectionOperation.And
                 });
 
             yield return new Rule(
-                new MountWelcomePageAction
-                {
-                    InternalScope = FilterScope.DnsSolveDone
-                }, new IsSelfFilter());
+                new MountWelcomePageAction(), new IsSelfFilter());
         }
 
         /// <summary>

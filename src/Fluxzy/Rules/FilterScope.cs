@@ -29,7 +29,7 @@ namespace Fluxzy.Rules
         [Description("This scope occurs the moment fluxzy parsed the request header receiveid from client")]
         RequestHeaderReceivedFromClient,
 
-        [Description("This scope occurs the moment fluxzy ends solving the DNS")]
+        [Description("This scope occurs the moment fluxzy ends solving the DNS of the remote host")]
         DnsSolveDone,
 
         [Description("This scope occurs the moment fluxzy received fully the request body from the client. In a full" +
@@ -43,8 +43,11 @@ namespace Fluxzy.Rules
                      "In a full streaming mode (which is the default mode), this event occurs the the full body is already sent to the client.")]
         ResponseBodyReceivedFromRemote,
 
+        [Description("Applied only on action. The action associated with this scope will copy his value from the triggering filter.")]
+        CopySibling = 10000, 
+
         [Description("Means that the filter or action associated to this scope won't be trigger in the regular HTTP flow. This scope" +
-                     " is applied only on view filter and internat actions.")]
+                     " is applied only on view filter and internal actions.")]
         OutOfScope = 99999
     }
 }

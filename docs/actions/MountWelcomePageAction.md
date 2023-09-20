@@ -10,7 +10,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 {.alert .alert-info}
 :::
-**requestHeaderReceivedFromClient** This scope occurs the moment fluxzy parsed the request header receiveid from client
+**dnsSolveDone** This scope occurs the moment fluxzy ends solving the DNS of the remote host
 :::
 
 ### YAML configuration name
