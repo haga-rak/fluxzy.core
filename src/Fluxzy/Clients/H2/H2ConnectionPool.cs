@@ -115,8 +115,8 @@ namespace Fluxzy.Clients.H2
             _baseStream.Write(Preface);
             SettingHelper.WriteWelcomeSettings(_baseStream, Setting.Local, _logger);
 
-            _innerReadTask = Task.Run(async () => await InternalReadLoop(_connectionToken), _connectionToken);
-            _innerWriteRun = Task.Run(async () => await InternalWriteLoop(_connectionToken), _connectionToken);
+            _innerReadTask = Task.Run(() => InternalReadLoop(_connectionToken), _connectionToken);
+            _innerWriteRun = Task.Run(() => InternalWriteLoop(_connectionToken), _connectionToken);
         }
 
         public ValueTask<bool> CheckAlive()

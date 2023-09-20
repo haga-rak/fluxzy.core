@@ -151,7 +151,7 @@ namespace Fluxzy
                 if (client == null)
                     break;
 
-                _ = Task.Run(async () => await ProcessingConnection(client));
+                _ = Task.Run(() => ProcessingConnection(client));
             }
         }
 
