@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
@@ -11,6 +12,7 @@ using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core
 {
@@ -77,5 +79,7 @@ namespace Fluxzy.Core
         public NetworkStream? UnderlyingBcStream { get; set; }
 
         public DisposeEventNotifierStream? EventNotifierStream { get; set; }
+
+        public Dictionary<Filter, bool> FilterEvaluationResult { get; } = new();
     }
 }

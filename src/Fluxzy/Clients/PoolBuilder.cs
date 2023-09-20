@@ -112,10 +112,6 @@ namespace Fluxzy.Clients
                 DnsUtility.ComputeDnsUpdateExchange(exchange, _timingProvider, 
                 _dnsSolver, proxyRuntimeSetting);
 
-            await proxyRuntimeSetting.EnforceRules(exchange.Context,
-                FilterScope.DnsSolveDone,
-                exchange.Connection, exchange);
-
             IHttpConnectionPool? result = null;
 
             var semaphorePerAuthority = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
