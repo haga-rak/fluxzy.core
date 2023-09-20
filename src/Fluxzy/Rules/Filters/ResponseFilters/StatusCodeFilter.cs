@@ -14,6 +14,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
     )]
     public class StatusCodeFilter : Filter
     {
+        [FilterDistinctive(Description = "List of status code")]
         public List<int> StatusCodes { get; set; } = new();
 
         public override FilterScope FilterScope => FilterScope.ResponseHeaderReceivedFromRemote;

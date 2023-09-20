@@ -38,10 +38,15 @@ namespace Fluxzy.Rules
             FilterScope filterScope,
             BreakPointManager breakPointManager)
         {
-            // should be a property of ExchangeContext 
             context.VariableBuildingContext = new VariableBuildingContext(context, exchange, connection, filterScope);
 
-            if (Filter.Apply(context, context.Authority, exchange, null))
+            if (!context.FilterEvaluationResult.TryGetValue(Filter, out var result))
+            {
+                result = Filter.Apply(context, context.Authority, exchange, null);
+                context.FilterEvaluationResult[Filter] = result;
+            }
+
+            if (result)
                 return Action.Alter(context, exchange, connection, filterScope, breakPointManager);
 
             return default;

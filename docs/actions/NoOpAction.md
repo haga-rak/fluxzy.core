@@ -1,8 +1,8 @@
-## mountWelcomePageAction
+## noOpAction
 
 ### Description
 
-Reply with fluxzy welcome page
+An action doing no operation.
 
 ### Evaluation scope
 
@@ -10,12 +10,12 @@ Evaluation scope defines the timing where this filter will be applied.
 
 {.alert .alert-info}
 :::
-**dnsSolveDone** This scope occurs the moment fluxzy ends solving the DNS of the remote host
+**requestBodyReceivedFromClient** This scope occurs the moment fluxzy received fully the request body from the client. In a fullstreaming mode which is the default mode, this event occurs when the full body is already fully sent to the remote server. 
 :::
 
 ### YAML configuration name
 
-mountWelcomePageAction
+noOpAction
 
 ### Settings
 
@@ -25,14 +25,15 @@ This action has no specific characteristic
 
 The following examples apply this action to any exchanges
 
-Reply with fluxzy welcome page.
+An action doing no operation.
 
 ```yaml
 rules:
 - filter:
     typeKind: AnyFilter
   actions:
-  - typeKind: MountWelcomePageAction
+  - typeKind: NoOpAction
+    description: No operation
     noEditableSetting: true
 ```
 

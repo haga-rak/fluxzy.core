@@ -43,6 +43,7 @@ rules:
 - filter:
     typeKind: AuthorityFilter
     port: 8080
+    description: Authority (Host and port)
     pattern: fluxzy.io
     operation: Exact
   actions:
@@ -58,6 +59,7 @@ rules:
 - filter:
     typeKind: AuthorityFilter
     port: 443
+    description: Authority (Host and port)
     pattern: google.com
     operation: EndsWith
   actions:
