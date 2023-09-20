@@ -85,8 +85,13 @@ namespace Fluxzy.Core
                                                .Concat(_startupSetting.AlterationRules)
                                                .ToList();
 
-            foreach (var rule in _effectiveRules.Where(a => a.Action.ActionScope == filterScope
-                                                            || a.Action.ActionScope == FilterScope.OutOfScope))
+            foreach (var rule in _effectiveRules.Where(a => 
+                         a.Action.ActionScope == filterScope
+                         || a.Action.ActionScope == FilterScope.OutOfScope 
+                         || (a.Action.ActionScope == FilterScope.CopySibling && 
+                            a.Filter.FilterScope == filterScope
+                            )
+                         ))
             {
                 await rule.Enforce(
                     context, exchange, connection, filterScope,
