@@ -19,7 +19,7 @@ namespace Fluxzy.Tests.Cli
         [InlineData("id", "^\\d+$", StringSelectorOperation.Regex, "/path?id=123456", true)]
         [InlineData("id", "\\d+", StringSelectorOperation.Regex, "/path?id=123a56", true)]
         [InlineData("id", "^\\d+$", StringSelectorOperation.Regex, "/path?id=123a56", false)]
-        public async Task Validate_AuthorityFilter(string name, string pattern,
+        public async Task Validate_QueryStringFilter(string name, string pattern,
             StringSelectorOperation stringSelectorOperation, string pathAndQuery, bool pass)
         {
             // Arrange
