@@ -10,7 +10,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 {.alert .alert-info}
 :::
-**outOfScope** Means that the filter or action associated to this scope won't be trigger in the regular HTTP flow. This scope is applied only on view filter and internat actions.
+**outOfScope** Means that the filter or action associated to this scope won't be trigger in the regular HTTP flow. This scope is applied only on view filter and internal actions.
 :::
 
 ### YAML configuration name

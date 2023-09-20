@@ -16,7 +16,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         [JsonIgnore]
         [YamlIgnore]
-        internal FilterScope InternalScope { get; set; } = FilterScope.RequestHeaderReceivedFromClient;
+        internal FilterScope InternalScope { get; set; } = FilterScope.DnsSolveDone;
 
         public override string DefaultDescription => "Reply with welcome page";
 

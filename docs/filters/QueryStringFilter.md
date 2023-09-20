@@ -1,8 +1,8 @@
-## requestHeaderFilter
+## queryStringFilter
 
 ### Description
 
-Select exchanges according to request header values.
+Select exchanges containing a specific query string. If `name` is not defined or empty, the search will be performed on any query string values.The search will pass if at least one value match.
 
 ### Evaluation scope
 
@@ -15,7 +15,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 ### YAML configuration name
 
-    requestHeaderFilter
+    queryStringFilter
 
 ### Settings
 
@@ -25,9 +25,9 @@ The following table describes the customizable properties available for this fil
 :::
 | Property | Type | Description | DefaultValue |
 | :------- | :------- | :------- | -------- |
-| headerName | string | Header name |  |
+| name | string | The query string name |  |
 | pattern | string | The string pattern to search |  |
-| operation | exact \| contains \| startsWith \| endsWith \| regex | The search operation performed | contains |
+| operation | exact \| contains \| startsWith \| endsWith \| regex | The search operation performed | exact |
 | caseSensitive | boolean | true if the Search should be case sensitive | false |
 | inverted | boolean | Negate the filter result | false |
 :::
@@ -36,30 +36,15 @@ The following table describes the customizable properties available for this fil
 
 The following examples apply a comment to the filtered exchange
 
-Select exchanges having request header `dnt: 1`.
+Select exchanges having query string `id=123456`.
 
 ```yaml
 rules:
 - filter:
-    typeKind: RequestHeaderFilter
-    headerName: dnt
-    pattern: 1
+    typeKind: QueryStringFilter
+    name: id
+    pattern: 123456
     operation: Exact
-  actions:
-  - typeKind: ApplyCommentAction
-    comment: filter was applied
-```
-
-
-Select exchanges issued by Chrome 112 by checking User-Agent.
-
-```yaml
-rules:
-- filter:
-    typeKind: RequestHeaderFilter
-    headerName: User-Agent
-    pattern: 'Chrome/112 '
-    operation: Contains
   actions:
   - typeKind: ApplyCommentAction
     comment: filter was applied
