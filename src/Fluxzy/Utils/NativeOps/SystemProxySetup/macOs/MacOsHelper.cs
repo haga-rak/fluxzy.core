@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using Fluxzy.Misc;
 
@@ -21,30 +22,26 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 
             var commandResponse = runResult.StandardOutputMessage;
 
-            return ParseInterfaces(commandResponse).Where(r => r.HardwarePort.Equals("Ethernet", StringComparison.OrdinalIgnoreCase)
-            || r.HardwarePort.Equals("Wi-Fi", StringComparison.OrdinalIgnoreCase));
+            return ParseInterfaces(commandResponse);
         }
 
         public static IEnumerable<NetworkInterface> ParseInterfaces(string commandResponse)
         {
-            var lines = commandResponse
-                .Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var networkInterfaces = System.Net.NetworkInformation.NetworkInterface
+                                          .GetAllNetworkInterfaces()
+                                          .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                                          .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Unknown)
+                                          .Where(n => n.OperationalStatus == OperationalStatus.Up)
+                                          .Where(n => n.GetIPProperties().UnicastAddresses.Any())
+                                          .ToList();
+            
+            var hardwarePorMapping = NetworkInterface.ParseHardwarePortMapping(
+                commandResponse.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries));
 
-            for (var index = 0; index < lines.Length - 1; index++) {
-                var line = lines[index];
-                var nextLine = lines[index + 1];
-
-                var iface = NetworkInterface.BuildFrom(new[] { line, nextLine });
-
-                if (iface == null)
-                    continue;
-
-                // parsing happens 
-
-                index += 1; // skip next line because it 's already parsed
-
-                yield return iface;
-            }
+            return networkInterfaces.Select(s => !hardwarePorMapping.TryGetValue(s.Name, out var hardwarePort) ?
+                null : 
+                new NetworkInterface(s.Name, s.Name, hardwarePort))
+                                    .OfType<NetworkInterface>();
         }
 
         public static async Task<Dictionary<string, NetworkInterfaceProxySetting?>> ReadProxySettings(IEnumerable<string> interfaceNames)
