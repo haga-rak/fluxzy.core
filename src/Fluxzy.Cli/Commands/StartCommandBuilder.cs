@@ -256,7 +256,14 @@ namespace Fluxzy.Cli.Commands
                     }
                     finally {
                         if (registerAsSystemProxy) {
-                            systemProxyManager.UnRegister();
+                            try {
+                                await systemProxyManager.UnRegister();
+                            }
+                            catch (Exception ex) {
+                                invocationContext.Console.Error.WriteLine(
+                                    $"Failed to unregister as system proxy : {ex.Message}");
+                            }
+                            
                             invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
                         }
                     }
