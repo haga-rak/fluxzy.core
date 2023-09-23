@@ -54,6 +54,7 @@ jobs:
       run: dotnet-project-licenses -i . -f ".artefacts/raw/thirdParty" -o ".artefacts/raw/license.txt" -e
 
     - name: Building standalone zip
+      shell: bash 
       run: nbgv get-version -v Version | (dotnet script tools/scripts/NameAndCompress.csx -- ".artefacts/output" ".artefacts/raw") > ".artefacts/filename.txt"
           
     - name: Upload artefacts
