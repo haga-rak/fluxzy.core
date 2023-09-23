@@ -101,6 +101,9 @@ namespace Fluxzy
                                                          t.Filter is AnyFilter)
                 && StartupSetting.AutoInstallCertificate)
                 certificateAuthorityManager.CheckAndInstallCertificate(startupSetting.CaCertificate.GetX509Certificate());
+
+            ThreadPoolUtility.AutoAdjustThreadPoolSize(StartupSetting.ConnectionPerHost);
+
         }
 
         internal ProxyExecutionContext ExecutionContext { get; }
@@ -240,5 +243,5 @@ namespace Fluxzy
         }
     }
 
-   // public class 
+    // public class 
 }
