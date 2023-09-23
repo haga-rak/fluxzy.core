@@ -59,6 +59,8 @@ jobs:
           
     - name: Upload artefacts
       shell: bash 
+      env:
+         UPLOAD_RELEASE_KEY: ${{ secrets.UPLOAD_RELEASE_KEY }}
       run: | 
          FILENAME=$(cat ".artefacts/filename.txt")
          HASH=$(sha512sum ".artefacts/output/$FILENAME" | cut -d " " -f 1)
