@@ -27,8 +27,6 @@ namespace Fluxzy.Tests.NativeOps.Macos
             Assert.Contains(cmdLineResult, i => i.Name == "Bluetooth PAN");
             Assert.Contains(cmdLineResult, i => i.Name == "Thunderbolt Bridge");
 
-            Assert.Equal(3, cmdLineResult.First(i => i.Name == "Wi-Fi").Index);
-            Assert.Equal(5, cmdLineResult.First(i => i.DeviceName == "en3").Index);
         }
 
         [Fact]
@@ -46,8 +44,6 @@ namespace Fluxzy.Tests.NativeOps.Macos
             Assert.Contains(cmdLineResult, i => i.Name == "Bluetooth PAN");
             Assert.Contains(cmdLineResult, i => i.Name == "Thunderbolt Bridge");
 
-            Assert.Equal(3, cmdLineResult.First(i => i.Name == "Wi-Fi").Index);
-            Assert.Equal(5, cmdLineResult.First(i => i.DeviceName == "en3").Index);
         }
 
         [Fact]
@@ -65,8 +61,6 @@ namespace Fluxzy.Tests.NativeOps.Macos
             Assert.Contains(cmdLineResult, i => i.Name == "Bluetooth PAN");
             Assert.Contains(cmdLineResult, i => i.Name == "Thunderbolt Bridge");
 
-            Assert.Equal(3, cmdLineResult.First(i => i.Name == "Wi-Fi").Index);
-            Assert.Equal(5, cmdLineResult.First(i => i.DeviceName == "en3").Index);
         }
 
         [Fact]

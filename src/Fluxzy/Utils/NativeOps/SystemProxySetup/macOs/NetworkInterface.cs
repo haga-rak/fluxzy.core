@@ -9,9 +9,8 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 {
     internal class NetworkInterface
     {
-        public NetworkInterface(int index, string name, string deviceName, string hardwarePort)
+        public NetworkInterface(string name, string deviceName, string hardwarePort)
         {
-            Index = index;
             Name = name;
             DeviceName = deviceName;
             HardwarePort = hardwarePort;
@@ -23,37 +22,33 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 
         public string HardwarePort { get; }
 
-        public int Index { get;  }
-        
-        public bool Up { get; set; }
-
         public NetworkInterfaceProxySetting? ProxySetting { get; set; }
 
-        public static NetworkInterface?  BuildFrom(string[] lines)
+        
+        
+        /// <summary>
+        /// Mapping between device name and hardward port 
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        public static Dictionary<string, string> ParseHardwarePortMapping(string[] lines)
         {
-            if (lines.Length != 2)
-                return null; // Must be two consecutive lines
-
-            var regexInterfaceName = @"^\((?<deviceIndex>\d+)\) (?<interfaceName>.*)$"; 
             var regexDeviceName = @"Hardware Port: (?<hardwarePort>.*), Device: (?<deviceName>[a-zA-Z0-9_]+)\)$";
 
-            var matchInterfaceName = Regex.Match(lines[0], regexInterfaceName);
+            var result = new Dictionary<string, string>();
+            
+            foreach (var line in lines) {
+                var matchResult = Regex.Match(line, regexDeviceName);
 
-            if (!matchInterfaceName.Success)
-                return null;
-
-            var interfaceName = matchInterfaceName.Groups["interfaceName"].Value; 
-            var deviceIndex = int.Parse(matchInterfaceName.Groups["deviceIndex"].Value);
-
-            var matchDeviceName = Regex.Match(lines[1], regexDeviceName);
-
-            if (!matchDeviceName.Success) 
-                return null;
-
-            var deviceName = matchDeviceName.Groups["deviceName"].Value;
-            var hardwarePort = matchDeviceName.Groups["hardwarePort"].Value;
-
-            return new NetworkInterface(deviceIndex, interfaceName, deviceName, hardwarePort);
+                if (!matchResult.Success)
+                    continue; 
+                
+                var deviceName = matchResult.Groups["deviceName"].Value;
+                var hardwarePort = matchResult.Groups["hardwarePort"].Value;
+                
+                result[deviceName] = hardwarePort;
+            }
+            return result; 
         }
     }
 

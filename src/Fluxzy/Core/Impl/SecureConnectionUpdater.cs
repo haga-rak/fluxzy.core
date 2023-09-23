@@ -5,10 +5,12 @@ using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Misc.Traces;
 
 namespace Fluxzy.Core
 {
@@ -54,7 +56,18 @@ namespace Fluxzy.Core
 
             var secureStream = new SslStream(new RecomposedStream(stream, originalStream), false);
 
-            var certificate = _certificateProvider.GetCertificate(host);
+            X509Certificate2 certificate;
+
+            try {
+                certificate = _certificateProvider.GetCertificate(host);
+            }
+            catch (Exception e) {
+                if (D.EnableTracing) {
+                    D.TraceException(e, "An error occured while getting certificate");
+                }
+                
+                throw;
+            }
 
             try {
                 await secureStream

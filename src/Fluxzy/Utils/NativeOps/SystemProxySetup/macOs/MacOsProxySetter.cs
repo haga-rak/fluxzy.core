@@ -55,7 +55,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
             // networksetup -setproxybypassdomains domain1 domain2 
 
             var activeInterfaceNames = (await MacOsHelper.GetEnabledInterfaces())
-                                                  .Select(s => s.Name).ToList();
+                                                  .Select(s => s.HardwarePort).ToList();
 
 
             var throwOnFail = false;

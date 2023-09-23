@@ -53,8 +53,7 @@ namespace Samples.No004.BasicAlterations
                     new MockedResponseAction(
                         new MockedResponseContent(
                             200, 
-                            Body.CreateFromString("This is a plain text content", "text/plain")
-                                       .AddHeader("server", "fluxzy"))
+                            BodyContent.CreateFromString("This is a plain text content"))
                         ),
                     new AbsoluteUriFilter(@"^https\:\/\/api\.example\.com", StringSelectorOperation.Regex)
                 ),
