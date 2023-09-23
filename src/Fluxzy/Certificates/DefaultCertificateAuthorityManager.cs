@@ -56,21 +56,30 @@ namespace Fluxzy.Certificates
         public override ValueTask<bool> InstallCertificate(X509Certificate2 certificate)
         {
             try {
-                using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
-                using var store = new X509Store(StoreName.Root);
-
-                store.Open(OpenFlags.ReadWrite);
-                store.Add(newCertificate);
-
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     ExtendedLinuxCertificateInstaller.Install(certificate);
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                     ExtendedMacOsCertificateInstaller.Install(certificate);
                 
+                using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
+                using var store = new X509Store(StoreName.Root);
+
+                try {
+                    store.Open(OpenFlags.ReadWrite);
+                    store.Add(newCertificate);
+                }
+                catch (Exception) {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        throw; 
+                    // we ignore errors for macos and linux
+                }
+                
                 return new ValueTask<bool>(true);
             }
-            catch {
+            catch (Exception ex) {
+                Console.Error.WriteLineAsync($"Certificate installation failed (possible insufficient right)");
+                Console.Error.WriteLineAsync($"Error message : {ex.Message}");
                 // Probably user as refused to install the certificate or user has not enough right 
                 return new ValueTask<bool>(false);
             }
