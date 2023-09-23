@@ -49,11 +49,14 @@ namespace Fluxzy.Misc.Traces
         {
             var builder = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(message))
-                builder.AppendLine(message);
-
-            builder.AppendLine(ex.ToString());
-
+            if (!string.IsNullOrEmpty(message)) {
+                builder.AppendLine($"{message}: {ex.Message}");
+            }
+            else
+            {
+                builder.AppendLine(ex.Message);
+            }
+            
             Trace(builder.ToString(), TraceType.Error);
         }
 
