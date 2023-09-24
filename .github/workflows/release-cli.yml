@@ -7,7 +7,7 @@ jobs:
     name: "Publish release"
     strategy:
       matrix:
-        osversion: [Linux, Windows]
+        osversion: [Linux, Windows, macOS]
         ostype: ['self-hosted']
 
     runs-on: ${{ matrix.osversion }}
@@ -36,12 +36,12 @@ jobs:
       continue-on-error: true  # ignore error
       run: dotnet tool install --global dotnet-project-licenses
 
-    - name: Packaging Fluxzy.Cli
+    - name: Packaging Fluxzy.Cli (OSX, Linux)
       if: matrix.osversion != 'Windows'
       shell: bash 
       run: dotnet publish --sc true -c Release "/p:DebugType=None" "/p:DebugSymbols=false"  -o ".artefacts/raw" "./src/Fluxzy.Cli"
 
-    - name: Packaging Fluxzy.Cli
+    - name: Packaging Fluxzy.Cli (Windows)
       if: matrix.osversion == 'Windows'
       shell: bash 
       run: dotnet publish --sc true -c Release "//p:DebugType=None" "//p:DebugSymbols=false"  -o ".artefacts/raw" "./src/Fluxzy.Cli"
@@ -55,17 +55,29 @@ jobs:
 
     - name: Building standalone zip
       shell: bash 
-      run: nbgv get-version -v Version | (dotnet script tools/scripts/NameAndCompress.csx -- ".artefacts/output" ".artefacts/raw") > ".artefacts/filename.txt"
-          
+      run: nbgv get-version -v Version | (dotnet script "tools/scripts/NameAndCompress.csx" -- ".artefacts/output" ".artefacts/raw") > ".artefacts/filename.txt"
+
+    - name: Calculate SHA512 (Linux, OSX)
+      if: matrix.osversion != 'Windows'
+      shell: bash 
+      run: |
+          FILENAME=$(cat ".artefacts/filename.txt")
+          shasum -a 512 ".artefacts/output/$FILENAME" | cut -d " " -f 1 > ".artefacts/sha512.txt"
+
+    - name: Calculate SHA512 (Windows)
+      if: matrix.osversion == 'Windows'
+      shell: bash 
+      run: |
+          FILENAME=$(cat ".artefacts/filename.txt") 
+          sha512sum ".artefacts/output/$FILENAME" | cut -d " " -f 1 > ".artefacts/sha512.txt"
+
     - name: Upload artefacts
       shell: bash 
-      env:
-         UPLOAD_RELEASE_KEY: ${{ secrets.UPLOAD_RELEASE_KEY }}
       run: | 
          FILENAME=$(cat ".artefacts/filename.txt")
-         HASH=$(sha512sum ".artefacts/output/$FILENAME" | cut -d " " -f 1)
-         curl -k --location 'https://upload.fluxzy.io:4300/release/upload' \
-            --header "Authorization: Bearer $UPLOAD_RELEASE_KEY" \
+         HASH=$(cat ".artefacts/sha512.txt")
+         curl --fail -k --location 'https://upload.fluxzy.io:4300/release/upload' \
+            --header "Authorization: Bearer ${{ secrets.UPLOAD_RELEASE_TOKEN }}" \
             --form "FileName=$FILENAME" \
             --form "FileSha512Hash=$HASH" \
             --form "$FILENAME=@.artefacts/output/$FILENAME" \
