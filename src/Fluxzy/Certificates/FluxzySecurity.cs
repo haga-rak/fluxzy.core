@@ -8,7 +8,7 @@ namespace Fluxzy.Certificates
     {
         static FluxzySecurity()
         {
-            BuiltinCertificate = new X509Certificate2(FileStore.Fluxzy, "echoes");
+            BuiltinCertificate = new X509Certificate2(FileStore.Fluxzy, "youshallnotpass");
         }
 
         public static X509Certificate2 BuiltinCertificate { get; }

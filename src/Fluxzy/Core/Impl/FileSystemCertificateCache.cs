@@ -18,19 +18,19 @@ namespace Fluxzy.Core
         }
 
         public byte[] Load(
-            string baseCertificatSerialNumber,
+            string baseCertificateSerialNumber,
             string rootDomain,
-            Func<string, byte[]> certificateGeneratoringProcess)
+            Func<string, byte[]> certificateBuilder)
         {
             if (_startupSetting.DisableCertificateCache)
-                return certificateGeneratoringProcess(rootDomain);
+                return certificateBuilder(rootDomain);
 
-            var fullFileName = GetCertificateFileName(baseCertificatSerialNumber, rootDomain);
+            var fullFileName = GetCertificateFileName(baseCertificateSerialNumber, rootDomain);
 
             if (File.Exists(fullFileName))
                 return File.ReadAllBytes(fullFileName);
 
-            var fileContent = certificateGeneratoringProcess(rootDomain);
+            var fileContent = certificateBuilder(rootDomain);
             var containingDirectory = Path.GetDirectoryName(fullFileName);
 
             if (containingDirectory != null)
@@ -52,13 +52,13 @@ namespace Fluxzy.Core
         private readonly ConcurrentDictionary<string, byte[]> _repository = new();
 
         public byte[] Load(
-            string baseCertificatSerialNumber,
-            string rootDomain, Func<string, byte[]> certificateGeneratoringProcess)
+            string baseCertificateSerialNumber,
+            string rootDomain, Func<string, byte[]> certificateBuilder)
         {
-            var key = $"{baseCertificatSerialNumber}_{rootDomain}";
+            var key = $"{baseCertificateSerialNumber}_{rootDomain}";
 
             return _repository.GetOrAdd(key, _ =>
-                certificateGeneratoringProcess(rootDomain)
+                certificateBuilder(rootDomain)
             );
         }
     }
