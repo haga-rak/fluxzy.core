@@ -25,7 +25,7 @@ namespace Fluxzy.Tests.Cli
             var responseArray = await response.Content.ReadAsByteArrayAsync();
 
             Assert.True(response.IsSuccessStatusCode);
-            Assert.Equal(2220, responseArray.Length);
+            Assert.Equal(1404, responseArray.Length);
         }
 
         [Theory]

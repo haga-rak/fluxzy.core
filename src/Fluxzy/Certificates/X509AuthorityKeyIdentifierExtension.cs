@@ -31,6 +31,7 @@ namespace Fluxzy.Certificates
 
             var rawData = subjectKeyIdentifier.RawData;
             var segment = new ArraySegment<byte>(rawData, 2, rawData.Length - 2);
+
             var authorityKeyIdentifier = new byte[segment.Count + 4];
 
             // KeyID of the AuthorityKeyIdentifier

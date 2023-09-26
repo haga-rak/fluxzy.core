@@ -284,7 +284,7 @@ namespace Fluxzy.Clients.H2
                 _logger.TraceResponse(this, _exchange);
 
                 if (DebugContext.InsertFluxzyMetricsOnResponseHeader) {
-                    var headerName = "echoes-h2-debug";
+                    var headerName = "fluxzy-h2-debug";
 
                     var headerValue = $"connectionId = {Parent.Context.ConnectionId} " +
                                       $"- streamId = {StreamIdentifier} - ";

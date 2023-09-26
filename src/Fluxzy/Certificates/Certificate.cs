@@ -90,7 +90,7 @@ namespace Fluxzy.Certificates
 
             switch (RetrieveMode) {
                 case CertificateRetrieveMode.FluxzyDefault:
-                    return _cachedCertificate = new X509Certificate2(FileStore.Fluxzy, "echoes");
+                    return _cachedCertificate = FluxzySecurity.BuiltinCertificate;
 
                 case CertificateRetrieveMode.FromUserStoreSerialNumber: {
                     using var store = new X509Store(StoreName.My,

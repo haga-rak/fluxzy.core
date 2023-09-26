@@ -483,7 +483,7 @@ namespace Fluxzy.Cli.Commands
         {
             var option = new Option<string>(
                 "--cert-password",
-                "Set the password corresponding to the certfile");
+                "Set the password of certfile if any");
 
             option.Arity = ArgumentArity.ExactlyOne;
 
