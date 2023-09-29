@@ -25,7 +25,7 @@ namespace Fluxzy.Interop.Pcap.Cli.Clients
                     commandName += ".exe"; // TODO : find a more elegant trick than this 
             }
 
-            _process = await ProcessUtils.RunElevated(commandName, new[] { $"{currentPid}" }, true,
+            _process = await ProcessUtils.RunElevatedAsync(commandName, new[] { $"{currentPid}" }, true,
                 "Fluxzy need to acquire privilege for capturing raw packet");
 
 
