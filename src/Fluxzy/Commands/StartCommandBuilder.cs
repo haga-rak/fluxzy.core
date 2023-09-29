@@ -52,7 +52,7 @@ namespace Fluxzy.Cli.Commands
                     return _tempDumpDirectory;
 
                 var path = Path.Combine(Environment.ExpandEnvironmentVariables("%TEMP%"),
-                    "fxzy", _instanceIdentifier);
+                    "fluxzy.cli", _instanceIdentifier);
 
                 return _tempDumpDirectory = new DirectoryInfo(path);
             }

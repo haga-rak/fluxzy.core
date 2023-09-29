@@ -80,11 +80,10 @@ namespace Fluxzy {
         ///    &lt;style type=&quot;text/css&quot;&gt;
         ///        *, b {
         ///            font-family: Verdana;
-        ///            color: #666666;
+        ///            color: rgba(142, 147, 150, 0.92);
         ///        }
         ///        body {
-        ///            background-color: #f5f5f5;
-        ///        
+        ///            background-color: #1c2027;
         ///        }
         ///
         ///        .main-color {
@@ -92,9 +91,9 @@ namespace Fluxzy {
         ///        }
         ///
         ///        a {
-        ///            color: #2e2e2f;
+        ///            color: rgba(233, 236, 239, 0.92);
         ///            font-weight: bold;
-        ///            text-decoratio [le reste de la chaîne a été tronqué]&quot;;.
+        /// [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         public static string welcome {
             get {
