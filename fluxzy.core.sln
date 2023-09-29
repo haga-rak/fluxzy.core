@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy", "src\Fluxzy\Fluxzy.csproj", "{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Cli", "src\Fluxzy.Cli\Fluxzy.Cli.csproj", "{A020742E-DADE-42CE-8235-18C084DFC597}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests", "test\Fluxzy.Tests\Fluxzy.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CAD5F2E1-227B-43AD-AFF9-1311097038D6}"
@@ -56,20 +52,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{F5C5
 		tools\scripts\NameAndCompress.csx = tools\scripts\NameAndCompress.csx
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Core", "src\Fluxzy.Core\Fluxzy.Core.csproj", "{C79EDDB1-E4FA-4AB3-BAE4-B60D4D4E0B5E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fluxzy", "src\Fluxzy\fluxzy.csproj", "{7826F811-8525-456B-99AC-03FBB8D37484}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DD0F010F-DEEC-43AA-A1A9-BF6014ECF3BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A020742E-DADE-42CE-8235-18C084DFC597}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A020742E-DADE-42CE-8235-18C084DFC597}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A020742E-DADE-42CE-8235-18C084DFC597}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A020742E-DADE-42CE-8235-18C084DFC597}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -114,6 +106,14 @@ Global
 		{08C4DBAB-4EAD-413D-9A00-5CDC22F56985}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08C4DBAB-4EAD-413D-9A00-5CDC22F56985}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08C4DBAB-4EAD-413D-9A00-5CDC22F56985}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C79EDDB1-E4FA-4AB3-BAE4-B60D4D4E0B5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C79EDDB1-E4FA-4AB3-BAE4-B60D4D4E0B5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C79EDDB1-E4FA-4AB3-BAE4-B60D4D4E0B5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C79EDDB1-E4FA-4AB3-BAE4-B60D4D4E0B5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7826F811-8525-456B-99AC-03FBB8D37484}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7826F811-8525-456B-99AC-03FBB8D37484}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7826F811-8525-456B-99AC-03FBB8D37484}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7826F811-8525-456B-99AC-03FBB8D37484}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

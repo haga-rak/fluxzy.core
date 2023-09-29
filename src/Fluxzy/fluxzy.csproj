@@ -2,14 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <AssemblyName>fxzy</AssemblyName>
+    <AssemblyName>fluxzy</AssemblyName>
+    <RootNamespace>Fluxzy.Cli</RootNamespace>
     <Description>Fluxzy Command Line</Description>
     <Product>Fluxzy Command Line</Product>
     <AssemblyDescription>fluxzy is a versatile HTTP intermediate for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.fluxzy is a versatile HTTP intermediate for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.</AssemblyDescription>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <ApplicationIcon>.Assets/icon.ico</ApplicationIcon>
     <Copyright>Copyright © 2022 Haga Rakotoharivelo</Copyright>
-      <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -38,7 +39,6 @@
     <ProjectReference Include="..\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
     <ProjectReference Include="..\Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj" />
     <ProjectReference Include="..\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj" />
-    <ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
   </ItemGroup>
 
   <ItemGroup>

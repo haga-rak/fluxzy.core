@@ -31,8 +31,8 @@ jobs:
     - name: Restore dependencies of tests
       run: dotnet restore test/Fluxzy.Tests
     - name: Restore dependencies
-      run: dotnet restore src/Fluxzy
+      run: dotnet restore src/Fluxzy.Core
     - name: Build
-      run: dotnet build src/Fluxzy --no-restore
+      run: dotnet build src/Fluxzy.Core --no-restore
     - name: Test
       run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy

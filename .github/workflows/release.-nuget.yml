@@ -42,16 +42,12 @@ jobs:
 
     - name: Packaging Fluxzy
       shell: cmd
-      run: dotnet build -c Release src/Fluxzy && dotnet pack --include-symbols -c Release src/Fluxzy -o _npkgout
+      run: dotnet build -c Release src/Fluxzy.Core && dotnet pack --include-symbols -c Release src/Fluxzy.Core -o _npkgout
 
     - name: Packaging Fluxzy.Interop.Pcap
       shell: cmd
       run: dotnet build -c Release src/Fluxzy.Interop.Pcap && dotnet pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout
-
-    - name: Packaging Fluxzy.Cli
-      shell: cmd
-      run: dotnet build -c Release src/Fluxzy.Cli && dotnet pack --include-symbols -c Release src/Fluxzy.Cli -o _npkgout
-
+      
     - name: Push
       working-directory: _npkgout
       run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
