@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Fluxzy\Fluxzy.csproj" />
+	  <ProjectReference Include="..\Fluxzy.Core\Fluxzy.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
