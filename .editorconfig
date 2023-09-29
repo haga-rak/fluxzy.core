@@ -7,6 +7,9 @@ dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 dotnet_style_coalesce_expression = true:suggestion
 indent_style = space
 
+[*.csproj]
+indent_size = 2
+
 [*.cs]
 #### Styles de nommage ####
 
