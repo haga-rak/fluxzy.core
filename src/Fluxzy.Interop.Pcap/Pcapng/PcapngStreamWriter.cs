@@ -98,7 +98,7 @@ namespace Fluxzy.Interop.Pcap.Pcapng
                 (uint) (longTimeSpan & 0xFFFFFFFF),
                 capture.Data.Length,
                 capture.Data.Length,
-                "fxzy"
+                "fluxzy"
             );
 
             // This need to be corrected if MTU is very large
