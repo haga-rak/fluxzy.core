@@ -12,14 +12,29 @@ namespace Fluxzy.Certificates
         /// Check if certificate is installed with : security verify-cert -c
         /// </summary>
         /// <param name="certificate"></param>
+        /// <param name="tryElevate"></param>
         /// <returns></returns>
-        public static bool IsCertificateInstalled(X509Certificate2 certificate)
+        public static bool IsCertificateInstalled(X509Certificate2 certificate, bool tryElevate)
         {
             var tempFile = Path.GetTempFileName();
 
             try {
 
                 certificate.ExportToPem(tempFile);
+
+                if (tryElevate) {
+
+                    var res = ProcessUtils.RunElevated("security", new[] { "verify-cert", "-c", tempFile }, false,
+                        "");
+
+                    if (res == null)
+                        return false; 
+
+                    res.WaitForExit();
+
+                    return res.ExitCode == 0;
+                }
+
                 var runResult = ProcessUtils.QuickRun("security", $"verify-cert -c \"{tempFile}\"");
                 return runResult.ExitCode == 0;
             }
@@ -33,13 +48,29 @@ namespace Fluxzy.Certificates
         /// Install certificate with : security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain r.cer
         /// </summary>
         /// <param name="certificate"></param>
+        /// <param name="tryElevate"></param>
         /// <returns></returns>
-        public static bool Install(X509Certificate2 certificate)
+        public static bool Install(X509Certificate2 certificate, bool tryElevate)
         {
             var tempFile = Path.GetTempFileName();
 
             try {
                 certificate.ExportToPem(tempFile);
+
+                if (tryElevate) {
+                    var res = ProcessUtils.RunElevated("security",
+                                               new[] {
+                            "add-trusted-cert", "-d", "-r", "trustRoot", "-k",
+                            "/Library/Keychains/System.keychain", tempFile
+                        }, false, "");
+
+                    if (res == null)
+                        return false;
+
+                    res.WaitForExit();
+
+                    return res.ExitCode == 0;
+                }
 
                 var runResult = ProcessUtils.QuickRun("security",
                     $"add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain \"{tempFile}\"");

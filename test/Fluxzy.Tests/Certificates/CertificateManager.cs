@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.Certificates
         // [Fact]
         public async Task InstallCertificateAndWaitForResult()
         {
-            var outOfProcCertManager = new OutOfProcAuthorityManager(_manager);
+            var outOfProcCertManager = new OutOfProcAuthorityManager();
 
             await outOfProcCertManager.InstallCertificate(_certificate);
             Assert.True(_manager.IsCertificateInstalled(_certificate));

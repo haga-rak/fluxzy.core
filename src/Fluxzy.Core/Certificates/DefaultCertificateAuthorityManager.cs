@@ -10,6 +10,9 @@ namespace Fluxzy.Certificates
 {
     public class DefaultCertificateAuthorityManager : CertificateAuthorityManager
     {
+        private static readonly bool AttemptAskElevation  = string.Equals(Environment.GetEnvironmentVariable("FLUXZY_ASK_ELEVATION"),
+            "1", StringComparison.OrdinalIgnoreCase);
+
         /// <summary>
         ///     Check whether a certificate is installed as root certificate
         /// </summary>
@@ -18,7 +21,7 @@ namespace Fluxzy.Certificates
         public override bool IsCertificateInstalled(X509Certificate2 certificate)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                return ExtendedMacOsCertificateInstaller.IsCertificateInstalled(certificate);
+                return ExtendedMacOsCertificateInstaller.IsCertificateInstalled(certificate, AttemptAskElevation);
             }
 
             // TODO implementation for Linux should be here 
@@ -31,6 +34,17 @@ namespace Fluxzy.Certificates
 
         public override ValueTask<bool> RemoveCertificate(string thumbPrint)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                ExtendedLinuxCertificateInstaller.Uninstall(thumbPrint, AttemptAskElevation);
+                return new ValueTask<bool>(true); 
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                // ExtendedMacOsCertificateInstaller.Uninstall(thumbPrint);
+                return new ValueTask<bool>(false);
+            }
+
             using var store = new X509Store(StoreName.Root);
 
             store.Open(OpenFlags.ReadWrite);
@@ -57,10 +71,10 @@ namespace Fluxzy.Certificates
         {
             try {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    ExtendedLinuxCertificateInstaller.Install(certificate);
+                    ExtendedLinuxCertificateInstaller.Install(certificate, AttemptAskElevation);
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                    ExtendedMacOsCertificateInstaller.Install(certificate);
+                    ExtendedMacOsCertificateInstaller.Install(certificate, AttemptAskElevation);
                 
                 using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
                 using var store = new X509Store(StoreName.Root);

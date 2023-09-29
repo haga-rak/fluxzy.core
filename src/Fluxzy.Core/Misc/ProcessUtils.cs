@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc
 {
-    public static class ProcessUtils
+    internal static class ProcessUtils
     {
         public static string? RunAndExpectZero(string commandLine, string args)
         {
@@ -175,7 +175,7 @@ namespace Fluxzy.Misc
             return true;
         }
 
-        public static async Task<Process?> RunElevated(string commandName, string[] args, bool redirectStdOut,
+        public static async Task<Process?> RunElevatedAsync(string commandName, string[] args, bool redirectStdOut,
             string askPasswordPrompt)
         {
             var fullArgs = string.Join(" ", args.Select(s => s.EscapeSegment()));
@@ -215,6 +215,8 @@ namespace Fluxzy.Misc
                 return osXProcess;
             }
 
+            // For other OS we use pkexec
+
             var process = Process.Start(new ProcessStartInfo("pkexec", $"{commandName} {fullArgs}") {
                 UseShellExecute = false,
                 Verb = "runas",
@@ -225,16 +227,25 @@ namespace Fluxzy.Misc
             return process;
         }
 
+        public static Process? RunElevated(
+            string commandName, string[] args, bool redirectStdOut,
+            string askPasswordPrompt)
+        {
+            return
+                Task.Run(() => RunElevatedAsync(commandName, args, redirectStdOut, askPasswordPrompt)).GetAwaiter()
+                    .GetResult(); 
+        }
+
     }
 
     internal static class ProcessExtensions
     {
-        public static Task WaitForExitAsync(
+        public static async Task<int?> WaitForExitAsync(
             this Process process,
             CancellationToken cancellationToken = default)
         {
             if (process.HasExited)
-                return Task.CompletedTask;
+                return process.ExitCode;
 
             var tcs = new TaskCompletionSource<object?>();
             process.EnableRaisingEvents = true;
@@ -243,7 +254,7 @@ namespace Fluxzy.Misc
             if (cancellationToken != default)
                 cancellationToken.Register(() => tcs.SetCanceled());
 
-            return process.HasExited ? Task.CompletedTask : tcs.Task;
+            return process.HasExited ? process.ExitCode : null;
         }
 
         public static string EscapeSegment(this string commandLineSegment)
