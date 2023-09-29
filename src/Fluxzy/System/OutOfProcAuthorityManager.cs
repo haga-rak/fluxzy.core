@@ -17,12 +17,9 @@ namespace Fluxzy.Cli.System
     public class OutOfProcAuthorityManager : DefaultCertificateAuthorityManager
     {
         private readonly string _currentBinaryFullPath;
-        private readonly DefaultCertificateAuthorityManager _defaultCertificateAuthorityManager;
 
-        public OutOfProcAuthorityManager(DefaultCertificateAuthorityManager defaultCertificateAuthorityManager)
+        public OutOfProcAuthorityManager()
         {
-            _defaultCertificateAuthorityManager = defaultCertificateAuthorityManager;
-            
             _currentBinaryFullPath = new FileInfo(Assembly.GetExecutingAssembly().Location).FullName;
         }
 
@@ -101,7 +98,7 @@ namespace Fluxzy.Cli.System
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 
-                ExtendedMacOsCertificateInstaller.Install(certificate);
+                ExtendedMacOsCertificateInstaller.Install(certificate, false);
 
                 return true; 
             }
