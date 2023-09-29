@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -84,10 +85,8 @@ namespace Fluxzy.Tests.Cli
         }
 
         [Theory]
-        [InlineData(5)]
-        [InlineData(125 * 1024 + 5)]
-        [InlineData(1024 * 64 * 16)]
-        public async Task Run_Cli_For_Web_Socket_Req_Res(int length)
+        [MemberData(nameof(GetCliWebSocketTestRepetitionArgs))]
+        public async Task Run_Cli_For_Web_Socket_Req_Res(int length, int repetitionCount)
         {
             var random = new Random(9);
 
@@ -172,6 +171,22 @@ namespace Fluxzy.Tests.Cli
 
             return new string(Enumerable.Repeat(chars, length)
                                         .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public static List<object[]> GetCliWebSocketTestRepetitionArgs()
+        {
+            int repetitionCount = 10; 
+            var definitiveValue = new[] { 5, 125 * 1024 + 5, 1024 * 64 * 16 };
+
+            var result = new List<object[]>();
+
+            for (int i = 0; i < repetitionCount; i++) {
+                foreach (var value in definitiveValue) {
+                    result.Add(new object[] { value, i });
+                }
+            }
+
+            return result;
         }
     }
 }
