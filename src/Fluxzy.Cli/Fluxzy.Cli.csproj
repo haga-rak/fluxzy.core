@@ -3,8 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>fxzy</AssemblyName>
-    <SignAssembly>False</SignAssembly>
-    <SatelliteResourceLanguages>en</SatelliteResourceLanguages> 
+    <Description>Fluxzy Command Line</Description>
+    <Product>Fluxzy Command Line</Product>
+    <AssemblyDescription>fluxzy is a versatile HTTP intermediate for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.fluxzy is a versatile HTTP intermediate for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.</AssemblyDescription>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ApplicationIcon>.Assets/icon.ico</ApplicationIcon>
+    <Copyright>Copyright © 2022 Haga Rakotoharivelo</Copyright>
+      <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -19,6 +24,10 @@
     <Compile Remove="Cli\**" />
     <EmbeddedResource Remove="Cli\**" />
     <None Remove="Cli\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include=".Assets\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
