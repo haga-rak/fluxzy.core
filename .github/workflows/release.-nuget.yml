@@ -51,15 +51,15 @@ jobs:
       shell: cmd
       working-directory: _npkgout
       run: >
-        sign code azure-key-vault 
-            *.nupkg 
-            --publisher-name "Fluxzy SAS" 
-            --description "Fluxzy Signed" 
-            --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" 
-            --azure-key-vault-url "${{secrets.AZURE_VAULT_URL}}" 
-            --azure-key-vault-certificate "${{secrets.AZURE_VAULT_CERTIFICATE}}" 
-            --azure-key-vault-client-id "${{secrets.AZURE_VAULT_CLIENT_ID}}" 
-            --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" 
+        sign code azure-key-vault \
+            *.nupkg \
+            --publisher-name "Fluxzy SAS" \
+            --description "Fluxzy Signed" \
+            --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" \
+            --azure-key-vault-url "${{secrets.AZURE_VAULT_URL}}" \
+            --azure-key-vault-certificate "${{secrets.AZURE_VAULT_CERTIFICATE}}" \
+            --azure-key-vault-client-id "${{secrets.AZURE_VAULT_CLIENT_ID}}" \
+            --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" \
             --azure-key-vault-tenant-id "${{secrets.AZURE_VAULT_TENANT_ID}}"
 
     - name: Push
