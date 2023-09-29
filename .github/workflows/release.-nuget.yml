@@ -1,12 +1,7 @@
 name: Publish NuGet packages
 
-on:  
-  push:
-    branches:    
-      - 'release/**'
-    tags:
-      - 'v*'
-      
+on: workflow_dispatch
+
 jobs:
   publish-release:
     name: "Publish release"
@@ -34,8 +29,12 @@ jobs:
       run: dotnet tool install --global dotnet-script
 
     - name: Install nbgv
-      continue-on-error: true  # ignore error (dotnet script already present on the runner)
+      continue-on-error: true  # ignore error (dotnet nbgv already present on the runner)
       run: dotnet tool install --global nbgv
+
+    - name: Install dotnet-sign
+      continue-on-error: true  # ignore error (dotnet sign already present on the runner)
+      run: dotnet tool install --global sign --version 0.9.1-beta.23356.1
 
     - name: Test
       run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
@@ -47,7 +46,22 @@ jobs:
     - name: Packaging Fluxzy.Interop.Pcap
       shell: cmd
       run: dotnet build -c Release src/Fluxzy.Interop.Pcap && dotnet pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout
-      
+    
+    - name: Sign packages
+      shell: pwsh
+      working-directory: _npkgout
+      run: >
+        sign code azure-key-vault 
+            *.nupkg 
+            --publisher-name "Fluxzy SAS" 
+            --description "Fluxzy Signed" 
+            --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" 
+            --azure-key-vault-url "${{secrets.AZURE_VAULT_URL}}" 
+            --azure-key-vault-certificate "${{secrets.AZURE_VAULT_CERTIFICATE}}" 
+            --azure-key-vault-client-id "${{secrets.AZURE_VAULT_CLIENT_ID}}" 
+            --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" 
+            --azure-key-vault-tenant-id "${{secrets.AZURE_VAULT_TENANT_ID}}"
+
     - name: Push
       working-directory: _npkgout
       run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
