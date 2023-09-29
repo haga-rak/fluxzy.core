@@ -48,11 +48,10 @@ jobs:
       run: dotnet build -c Release src/Fluxzy.Interop.Pcap && dotnet pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout
     
     - name: Sign packages
-      shell: cmd
+      shell: bash
       working-directory: _npkgout
       run: >
-        sign code azure-key-vault \
-            *.nupkg \
+        sign code azure-key-vault *.nupkg \
             --publisher-name "Fluxzy SAS" \
             --description "Fluxzy Signed" \
             --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" \
