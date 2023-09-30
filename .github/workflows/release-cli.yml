@@ -77,7 +77,7 @@ jobs:
       shell: cmd
       working-directory: .artefacts/raw
       run: >
-        sign code azure-key-vault *.dll ^
+        sign code azure-key-vault *.exe ^
             --publisher-name "Fluxzy SAS" ^
             --description "Fluxzy Signed" ^
             --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" ^
