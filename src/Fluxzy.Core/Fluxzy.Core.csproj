@@ -11,6 +11,7 @@
     <PackageLicenseUrl>https://www.fluxzy.io/license/fluxzy-core/plain</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/haga-rak/fluxzy.core</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -58,6 +59,10 @@
 
   <ItemGroup>
     <None Include="..\..\assets\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

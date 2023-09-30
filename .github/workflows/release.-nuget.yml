@@ -64,3 +64,7 @@ jobs:
     - name: Push
       working-directory: _npkgout
       run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
+
+    - name: Push
+      working-directory: _npkgout
+      run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.PARTNER_SECRET}} --source https://nuget.2befficient.io/v3/index.json
