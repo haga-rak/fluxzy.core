@@ -10,6 +10,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseUrl>https://www.fluxzy.io/license/fluxzy-core/plain</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/haga-rak/fluxzy.core</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -53,6 +54,13 @@
 
   <ItemGroup>
     <Folder Include="Clients\Ssl\BouncyCastle\Streams\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
