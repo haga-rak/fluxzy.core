@@ -53,6 +53,24 @@ jobs:
     - name: Extract license files
       run: dotnet-project-licenses -i . -f ".artefacts/raw/thirdParty" -o ".artefacts/raw/license.txt" -e
 
+    - name: Install dotnet-sign
+      continue-on-error: true  # ignore error (dotnet sign already present on the runner)
+      run: dotnet tool install --global sign --version 0.9.1-beta.23356.1
+    
+    - name: Sign packages
+      shell: cmd
+      working-directory: .artefacts/raw
+      run: >
+        sign code azure-key-vault *.dll *.exe ^
+            --publisher-name "Fluxzy SAS" ^
+            --description "Fluxzy Signed" ^
+            --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" ^
+            --azure-key-vault-url "${{secrets.AZURE_VAULT_URL}}" ^
+            --azure-key-vault-certificate "${{secrets.AZURE_VAULT_CERTIFICATE}}" ^
+            --azure-key-vault-client-id "${{secrets.AZURE_VAULT_CLIENT_ID}}" ^
+            --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" ^
+            --azure-key-vault-tenant-id "${{secrets.AZURE_VAULT_TENANT_ID}}"
+
     - name: Building standalone zip
       shell: bash 
       run: nbgv get-version -v Version | (dotnet script "tools/scripts/NameAndCompress.csx" -- ".artefacts/output" ".artefacts/raw") > ".artefacts/filename.txt"
