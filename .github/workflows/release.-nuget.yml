@@ -61,6 +61,10 @@ jobs:
             --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" ^
             --azure-key-vault-tenant-id "${{secrets.AZURE_VAULT_TENANT_ID}}"
 
-    - name: Push
+    - name: Push private GitHub
       working-directory: _npkgout
       run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
+
+    - name: Push private partner
+      working-directory: _npkgout
+      run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.PARTNER_SECRET}} --source https://nuget.2befficient.io/v3/index.json
