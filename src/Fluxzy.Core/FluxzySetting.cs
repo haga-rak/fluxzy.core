@@ -419,6 +419,24 @@ namespace Fluxzy
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetVerbose(bool value)
+        {
+            Verbose = value;
+
+            return this;
+        }
+
+        public FluxzySetting UseBouncyCastleSslEngine(bool value)
+        {
+            UseBouncyCastle = value;
+            return this;
+        }
+
+        /// <summary>
         ///     Create a default setting for a fluxzy capture session.
         ///     Fluxzy will listen on 127.0.0.1 on port 44344
         /// </summary>
