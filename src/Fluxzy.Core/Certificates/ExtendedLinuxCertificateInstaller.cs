@@ -17,7 +17,7 @@ namespace Fluxzy.Certificates
             new InstallableCertificate("/etc/pki/ca-trust/source/anchors", "update-ca-trust", string.Empty)
         };
 
-        public static bool Install(X509Certificate2 x509Certificate2)
+        public static bool Install(X509Certificate2 x509Certificate2, bool askElevation)
         {
             // Extension must be .crt for certain Linux distributions
             var fileName = $"fluxzy-{x509Certificate2.Thumbprint}.crt";
@@ -27,6 +27,39 @@ namespace Fluxzy.Certificates
                     continue;
 
                 var filePath = Path.Combine(installableCertificate.Directory, fileName);
+
+
+                if (askElevation) {
+
+                    var tempFile = Path.GetTempPath(); 
+
+                    x509Certificate2.ExportToPem(tempFile);
+
+                    // cp tempFile to file path elevated
+
+                    var cpResult = ProcessUtils.RunElevated("cp", new[] { tempFile, $"{filePath}" }, false, "");
+
+                    if (cpResult == null)
+                        return false;
+
+                    cpResult.WaitForExit();
+
+                    if (cpResult.ExitCode != 0)
+                        return false;
+
+                    var processResult = ProcessUtils.RunElevated(
+                         $"{installableCertificate.UpdateCommand}",
+                         new[] {$"{installableCertificate.UpdateCommandArgs}"}, false, "");
+
+                    if (processResult == null)
+                        return false;
+
+                    processResult.WaitForExit();
+
+                    if (processResult.ExitCode == 0)
+                        return true;
+                }
+
                 x509Certificate2.ExportToPem(filePath);
 
                 var result = ProcessUtils.QuickRun($"{installableCertificate.UpdateCommand}",
@@ -39,11 +72,24 @@ namespace Fluxzy.Certificates
             return false;
         }
 
-        public static void Uninstall(X509Certificate2 x509Certificate2)
+        public static void Uninstall(X509Certificate2 x509Certificate2, bool askElevation)
+        {
+            Uninstall(x509Certificate2.Thumbprint, askElevation);
+        }
+
+        public static void Uninstall(string thumbPrint, bool askElevation)
         {
             foreach (var installableCertificate in InstallableCertificates) {
                 var filePath = Path.Combine(installableCertificate.Directory,
-                    $"fluxzy-{x509Certificate2.Thumbprint}.crt");
+                    $"fluxzy-{thumbPrint}.crt");
+
+                if (askElevation) {
+                    // run RM command 
+
+                    ProcessUtils.RunElevated("rm", new[] {$"{filePath}"}, false, "");
+                    return;
+                }
+
 
                 if (File.Exists(filePath))
                     File.Delete(filePath);
