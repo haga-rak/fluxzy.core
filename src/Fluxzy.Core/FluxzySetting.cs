@@ -430,9 +430,15 @@ namespace Fluxzy
             return this;
         }
 
-        public FluxzySetting UseBouncyCastleSslEngine(bool value)
+        public FluxzySetting UseBouncyCastleSslEngine()
         {
-            UseBouncyCastle = value;
+            UseBouncyCastle = true;
+            return this;
+        }
+
+        public FluxzySetting UseOsSslEngine()
+        {
+            UseBouncyCastle = false;
             return this;
         }
 
