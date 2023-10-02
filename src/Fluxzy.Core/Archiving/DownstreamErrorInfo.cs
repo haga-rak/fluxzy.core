@@ -31,6 +31,9 @@ namespace Fluxzy
         [Key(5)]
         public string LongDescription { get; private set; }
 
+        [Key(6)]
+        public string ? RequiredHost { get; private set; }
+
         public static DownstreamErrorInfo CreateFrom(TcpClient client, Exception ex)
         {
             var endPoint = (IPEndPoint) client.Client.RemoteEndPoint!;
@@ -41,6 +44,7 @@ namespace Fluxzy
                 InstantDateUtc = DateTime.UtcNow,
                 SourceIp = endPoint.Address.ToString(),
                 SourcePort = endPoint.Port,
+                RequiredHost = ex is FluxzyException fluxzyException ? fluxzyException.TargetHost : null,
             }; 
         }
     }
