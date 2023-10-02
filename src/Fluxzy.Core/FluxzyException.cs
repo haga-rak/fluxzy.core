@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 
@@ -10,5 +10,7 @@ namespace Fluxzy
             : base(message, innerException)
         {
         }
+
+        public string?  TargetHost { get; set; }
     }
 }

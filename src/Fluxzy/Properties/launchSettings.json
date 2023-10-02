@@ -1,17 +1,17 @@
 {
-  "profiles": {
-    "fxzy": {
-      "commandName": "Project",
-      "environmentVariables": {
-      },
-      "commandLineArgs": "start --llo -sp"
-    },
-    "fxzy (normal)": {
-        "commandName": "Project",
-        "environmentVariables": {
+    "profiles": {
+        "launch (system proxy)": {
+            "commandName": "Project",
+            "environmentVariables": {
+            },
+            "commandLineArgs": "start --llo -sp"
         },
-        "commandLineArgs": "start"
+        "launch (normal)": {
+            "commandName": "Project",
+            "environmentVariables": {
+            },
+            "commandLineArgs": "start --lany --trace"
+        }
     }
-  }
 
 }
