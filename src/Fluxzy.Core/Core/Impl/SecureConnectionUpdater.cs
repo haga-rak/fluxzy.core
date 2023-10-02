@@ -74,7 +74,12 @@ namespace Fluxzy.Core
                     .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false);
             }
             catch (Exception ex) {
-                throw new FluxzyException(ex.Message, ex);
+                throw new FluxzyException(
+                    $"Impersonating “{host}” failed: {ex.Message}"
+                    , ex)
+                    {
+                        TargetHost = host
+                    };
             }
 
             return new SecureConnectionUpdateResult(false, true,
