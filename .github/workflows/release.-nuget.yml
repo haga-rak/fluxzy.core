@@ -48,20 +48,23 @@ jobs:
       run: dotnet build -c Release src/Fluxzy.Interop.Pcap && dotnet pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout
     
     - name: Sign packages
-      shell: pwsh
+      shell: cmd
       working-directory: _npkgout
       run: >
-        sign code azure-key-vault 
-            *.nupkg 
-            --publisher-name "Fluxzy SAS" 
-            --description "Fluxzy Signed" 
-            --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" 
-            --azure-key-vault-url "${{secrets.AZURE_VAULT_URL}}" 
-            --azure-key-vault-certificate "${{secrets.AZURE_VAULT_CERTIFICATE}}" 
-            --azure-key-vault-client-id "${{secrets.AZURE_VAULT_CLIENT_ID}}" 
-            --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" 
+        sign code azure-key-vault *.nupkg ^
+            --publisher-name "Fluxzy SAS" ^
+            --description "Fluxzy Signed" ^
+            --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" ^
+            --azure-key-vault-url "${{secrets.AZURE_VAULT_URL}}" ^
+            --azure-key-vault-certificate "${{secrets.AZURE_VAULT_CERTIFICATE}}" ^
+            --azure-key-vault-client-id "${{secrets.AZURE_VAULT_CLIENT_ID}}" ^
+            --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" ^
             --azure-key-vault-tenant-id "${{secrets.AZURE_VAULT_TENANT_ID}}"
 
-    - name: Push
+    - name: Push private GitHub
       working-directory: _npkgout
       run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.TOKEN_FOR_NUGET}} --source https://nuget.pkg.github.com/haga-rak/index.json
+
+    - name: Push private partner
+      working-directory: _npkgout
+      run: dotnet nuget push *.nupkg --skip-duplicate --api-key ${{secrets.PARTNER_SECRET}} --source https://nuget.2befficient.io/v3/index.json

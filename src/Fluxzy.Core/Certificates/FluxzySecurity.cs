@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Security.Cryptography.X509Certificates;
-using Fluxzy.Core;
 
 namespace Fluxzy.Certificates
 {
