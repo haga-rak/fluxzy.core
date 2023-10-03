@@ -21,20 +21,7 @@ namespace Fluxzy.Certificates
             try {
 
                 certificate.ExportToPem(tempFile);
-
-                if (tryElevate) {
-
-                    var res = ProcessUtils.RunElevated("security", new[] { "verify-cert", "-c", tempFile }, false,
-                        "");
-
-                    if (res == null)
-                        return false; 
-
-                    res.WaitForExit();
-
-                    return res.ExitCode == 0;
-                }
-
+                
                 var runResult = ProcessUtils.QuickRun("security", $"verify-cert -c \"{tempFile}\"");
                 return runResult.ExitCode == 0;
             }
