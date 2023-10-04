@@ -24,20 +24,18 @@ jobs:
       continue-on-error: true  # ignore error (package source already present on the runner)
       run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
 
-    - name: Install dotnet script
+    - name: Install dotnet tools
       continue-on-error: true  # ignore error (dotnet script already present on the runner)
-      run: dotnet tool install --global dotnet-script
+      run:  |
+          dotnet tool install --global dotnet-script || true 
+          dotnet tool install --global nbgv || true
+          dotnet tool install --global dotnet-project-licenses || true
+          dotnet tool install --global sign --version 0.9.1-beta.23356.1
 
-    - name: Install nbgv
-      continue-on-error: true  # ignore error (dotnet nbgv already present on the runner)
-      run: dotnet tool install --global nbgv
-
-    - name: Install dotnet-sign
-      continue-on-error: true  # ignore error (dotnet sign already present on the runner)
-      run: dotnet tool install --global sign --version 0.9.1-beta.23356.1
-
-    - name: Test
-      run: dotnet test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
+    - name: Tests
+      env:
+        EnableDumpStackTraceOn502: true
+      run: dotnet test test/Fluxzy.Tests --logger "trx;logfilename=fluxzytests.trx" --results-directory ./TestResults/Fluxzy
 
     - name: Packaging Fluxzy
       shell: cmd
