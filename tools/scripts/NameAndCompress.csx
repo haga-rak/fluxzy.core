@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 
 var version = Console.In.ReadToEnd().Trim('\r', '\n', ' ', '\t');
-var fileName = $"fxzy-{version}-{RuntimeInformation.RuntimeIdentifier}.zip"; 
+var fileName = $"fluxzy-{version}-{RuntimeInformation.RuntimeIdentifier}.zip"; 
 
 var fullFileName = Path.Combine(Args[0], fileName);
 
@@ -15,4 +15,5 @@ System.IO.Compression.ZipFile.CreateFromDirectory(
           System.IO.Compression.CompressionLevel.Optimal,
           false
        );
+
 Console.Write($"{fileName}");
