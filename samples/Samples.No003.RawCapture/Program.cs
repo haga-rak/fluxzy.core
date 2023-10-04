@@ -33,7 +33,7 @@ namespace Samples.No003.RawCapture
 
             if (extractNssKey) {
                 // To enable nss key capture, the SSL engine used by Fluxzy must be BouncyCastle 
-                fluxzyStartupSetting.UseBouncyCastle = true; 
+                fluxzyStartupSetting.UseBouncyCastleSslEngine(); 
             }
             
             await using (var tcpConnectionProvider = await CapturedTcpConnectionProvider.CreateInProcessCapture()) {
