@@ -8,7 +8,7 @@ namespace Fluxzy.Cli.Commands
     {
         public Command Build()
         {
-            var command = new Command("dissect", "Read content of a previously captured file or directory"); 
+            var command = new Command("dissect", "Read content of a previously captured file or directory. Search and format"); 
 
             command.AddAlias("dis");
 
@@ -16,10 +16,9 @@ namespace Fluxzy.Cli.Commands
 
             // options 
 
-            // -fi : Filter by exchange id, can be comma separated of exchanges 
-            // 
+            // --id : -i // Exchange ids, comma separated exchange list 
 
-            // -f "content;url;method;authority;host;port;request-body;pcap;header:'Authority'" // formatting option 
+            // --format "id;content;url;method;authority;host;port;request-body;pcap;header:'Authority'" // formatting option 
             // -o  "output-file" 
             // -u  --unique: Result must be unique or exit error 
             // 

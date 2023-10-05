@@ -6,21 +6,19 @@ namespace Fluxzy.Cli.Commands.Dissects
 {
     internal class DissectionOptions
     {
-        public DissectionOptions(bool mustBeUnique, 
-            IReadOnlyCollection<IDissectionFilter> filters,
-            IReadOnlyCollection<IDissectionFormatter> formatters)
+        public DissectionOptions(
+            bool mustBeUnique,
+            HashSet<int>?  exchangeIds, string format)
         {
             MustBeUnique = mustBeUnique;
-            Filters = filters;
-            Formatters = formatters;
+            ExchangeIds = exchangeIds;
+            Format = format;
         }
 
         public string Format { get; }
 
         public bool MustBeUnique { get;  }
 
-        public IReadOnlyCollection<IDissectionFilter> Filters { get;  }
-
-        public IReadOnlyCollection<IDissectionFormatter> Formatters { get; }
+        public HashSet<int>? ExchangeIds { get; }
     }
 }
