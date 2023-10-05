@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,10 +10,11 @@ namespace Fluxzy.Cli.Commands.Dissects
 {
     internal class SequentialFormatter
     {
+        [SuppressMessage("ReSharper", "MethodHasAsyncOverload")]
         public async Task Format<TArg>(
             string format,
             Dictionary<string, IDissectionFormatter<TArg>> map,
-            StreamWriter stdOutWritter,
+            StreamWriter stdOutWriter,
             StreamWriter stdErrorWriter, 
             TArg payload)
         {
@@ -23,12 +25,19 @@ namespace Fluxzy.Cli.Commands.Dissects
             {
                 if (@char == '{')
                 {
+                    if (inExpression) {
+                        // we clear buffer for stacked expressions
+
+                        stdOutWriter.Write(pendingText);
+                        pendingText.Clear(); 
+                    }
+
                     inExpression = true;
                     pendingText.Append(@char);
                     continue;
                 }
 
-                if (@char == '}')
+                if (@char == '}' && inExpression)
                 {
                     pendingText.Append(@char);
                     inExpression = false;
@@ -39,12 +48,12 @@ namespace Fluxzy.Cli.Commands.Dissects
 
                     if (!map.TryGetValue(hint, out var formatter))
                     {
-                        await stdOutWritter.WriteAsync(pendingText.ToString());
+                        await stdOutWriter.WriteAsync(pendingText.ToString());
                         await stdErrorWriter.WriteLineAsync($"WARN: Unknown formatter {hint}");
                     }
                     else
                     {
-                        await formatter.Write(payload, stdOutWritter);
+                        await formatter.Write(payload, stdOutWriter);
                     }
 
                     pendingText.Clear();
@@ -59,11 +68,11 @@ namespace Fluxzy.Cli.Commands.Dissects
                     continue;
                 }
 
-                stdOutWritter.Write(@char);
+                stdOutWriter.Write(@char);
             }
 
-            stdOutWritter.Write(pendingText.ToString());
-            stdOutWritter.Flush();
+            stdOutWriter.Write(pendingText.ToString());
+            stdOutWriter.Flush();
         }
     }
 }

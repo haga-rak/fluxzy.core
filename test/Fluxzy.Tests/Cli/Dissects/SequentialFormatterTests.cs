@@ -26,8 +26,13 @@ namespace Fluxzy.Tests.Cli.Dissects
         [InlineData("{hello}", "world")]
         [InlineData("{hello} {hello}", "world world")]
         [InlineData("{hello} {Hello}", "world world")]
+        [InlineData("{hello}{baz}", "worldqux")]
         [InlineData("{hel", "{hel")]
         [InlineData("{hel{hello}", "{helworld")]
+        [InlineData("{{{hello}}}", "{{world}}")]
+        [InlineData("{}", "{}")]
+        [InlineData("", "")]
+        [InlineData("}", "}")]
         public async Task Verify(string format, string expected)
         {
             var sequentialFormatter = new SequentialFormatter();
