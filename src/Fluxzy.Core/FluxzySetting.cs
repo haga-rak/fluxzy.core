@@ -22,7 +22,7 @@ namespace Fluxzy
         [JsonInclude()]
         [Obsolete("Used only for serialization")]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public List<Rule> InternalAlterationRules { get; private set; }
+        public List<Rule> InternalAlterationRules { get; internal set; } = new();
 
         [JsonConstructor]
         public FluxzySetting()
@@ -111,7 +111,6 @@ namespace Fluxzy
         ///     True if fluxzy should capture raw packet matching exchanges
         /// </summary>
         [JsonInclude]
-        [Obsolete("This option is ignored when set directly. Use CapturedTcpConnectionProvider to enable raw capture.")]
         public bool CaptureRawPacket { get; internal set; }
 
         /// <summary>
@@ -137,6 +136,7 @@ namespace Fluxzy
         /// <summary>
         ///     Archiving policy
         /// </summary>
+        [JsonInclude]
         public ArchivingPolicy ArchivingPolicy { get; internal set; } = ArchivingPolicy.None;
 
         /// <summary>
@@ -148,6 +148,7 @@ namespace Fluxzy
         ///     Specify a filter which trigger save to directory when passed.
         ///     When this filter is null, all exchanges will be saved.
         /// </summary>
+        [JsonInclude]
         public Filter? SaveFilter { get; internal set; }
 
         /// <summary>
@@ -159,17 +160,20 @@ namespace Fluxzy
         /// <summary>
         ///     When set to true, the raw network capture will be done out of process.
         /// </summary>
-        public bool OutOfProcCapture { get; set; } = true;
+        [JsonInclude]
+        public bool OutOfProcCapture { get; internal set; } = true;
 
         /// <summary>
         ///     Using bouncy castle for ssl streams instead of OsDefault (SChannel or OpenSSL)
         /// </summary>
+        [JsonInclude]
         public bool UseBouncyCastle { get; internal set; } = false;
 
         /// <summary>
         ///     Fluxzy will exit when the number of exchanges reaches this value.
         ///     Default value is null (no limit)
         /// </summary>
+        [JsonInclude]
         public int? MaxExchangeCount { get; set; }
 
 
