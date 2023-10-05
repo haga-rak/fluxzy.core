@@ -22,15 +22,15 @@ namespace Samples.No002.Filtering
 			                           .SetOutDirectory(tempDirectory);
 
             // Only filter with OnAuthorityReceived scope will be accepted
-            fluxzyStartupSetting.SaveFilter = new HostFilter("fluxzy.io", StringSelectorOperation.EndsWith);
+            fluxzyStartupSetting.SetSaveFilter(new HostFilter("fluxzy.io", StringSelectorOperation.EndsWith));
 
             // We can combine multiple condition wit a filter collection 
-            fluxzyStartupSetting.SaveFilter = new FilterCollection(
+            fluxzyStartupSetting.SetSaveFilter(new FilterCollection(
                 new HostFilter("fluxzy.io", StringSelectorOperation.EndsWith),
                 new IsSecureFilter()
             ) {
                 Operation = SelectorCollectionOperation.And
-            };
+            });
 
             // Create a proxy instance
             await using (var proxy = new Proxy(fluxzyStartupSetting))

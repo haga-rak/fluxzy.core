@@ -12,11 +12,12 @@ namespace Fluxzy.Cli
         private static async Task<int> Main(string[] args)
         {
             if (Environment.GetEnvironmentVariable("appdata") == null) {
+
                 // For Linux and OSX environment this EV is missing, so we need to set it manually 
                 // to XDG_DATA_HOME
 
                 Environment.SetEnvironmentVariable("appdata",
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
             }
 
             // Environment.SetEnvironmentVariable("EnableDumpStackTraceOn502", "true");
