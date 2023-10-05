@@ -67,7 +67,7 @@ namespace Fluxzy.Core
 
                         if (D.EnableTracing)
                         {
-                            var message = $"Location connection failure {client.Client.RemoteEndPoint}";
+                            var message = $"Client connection failure {client.Client.RemoteEndPoint}";
                             D.TraceException(ex, message);
                         }
 
