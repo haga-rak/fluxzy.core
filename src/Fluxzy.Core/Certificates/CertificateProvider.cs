@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -14,6 +15,22 @@ namespace Fluxzy.Certificates
     /// </summary>
     public class CertificateProvider : ICertificateProvider
     {
+        private static List<X509Extension> InvariantCaExtensions { get; } = new() {
+
+            new X509KeyUsageExtension(
+                X509KeyUsageFlags.DigitalSignature
+                | X509KeyUsageFlags.DataEncipherment
+                | X509KeyUsageFlags.KeyEncipherment
+                ,
+                true),
+
+            new X509EnhancedKeyUsageExtension(
+                new OidCollection {
+                    new("1.3.6.1.5.5.7.3.1")
+                },
+                true)
+        };
+
         private readonly ICertificateCache _certCache;
         private readonly ConcurrentDictionary<string, Lazy<byte[]>> _certificateRepository = new();
         private readonly ECDsa _defaultEcdsaKeyEngine = ECDsa.Create()!;
@@ -75,6 +92,10 @@ namespace Fluxzy.Certificates
         {
             _defaultRsaKeyEngine.Dispose();
             _defaultEcdsaKeyEngine.Dispose();
+
+            foreach (var (_ , certificate) in _solveCertificateRepository) {
+                certificate.Dispose();
+            }
         }
 
         private string GetRootDomain(string hostName)
@@ -103,6 +124,7 @@ namespace Fluxzy.Certificates
             throw new NotSupportedException($"The private key type {privateKey.GetType()} is not supported");
         }
 
+
         private static byte[] InternalBuildCertificateForRootDomain(
             X509Certificate2 rootCertificate,
             RSA privateKey, string rootDomain)
@@ -115,16 +137,12 @@ namespace Fluxzy.Certificates
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
 
-            certificateRequest.CertificateExtensions.Add(
-                new X509KeyUsageExtension(
-                    X509KeyUsageFlags.DigitalSignature
-                    | X509KeyUsageFlags.DataEncipherment
-                    | X509KeyUsageFlags.KeyEncipherment
-                    ,
-                    true));
+            foreach (var extension in InvariantCaExtensions)
+            {
+                certificateRequest.CertificateExtensions.Add(extension);
+            }
 
             var alternativeName = new SubjectAlternativeNameBuilder();
-
             alternativeName.AddDnsName(rootDomain);
             alternativeName.AddDnsName($"*.{rootDomain}");
 
@@ -132,13 +150,6 @@ namespace Fluxzy.Certificates
 
             certificateRequest.CertificateExtensions.Add(
                 new X509AuthorityKeyIdentifierExtension(rootCertificate, false));
-
-            certificateRequest.CertificateExtensions.Add(
-                new X509EnhancedKeyUsageExtension(
-                    new OidCollection {
-                        new("1.3.6.1.5.5.7.3.1")
-                    },
-                    true));
 
             certificateRequest.CertificateExtensions.Add(
                 new X509SubjectKeyIdentifierExtension(certificateRequest.PublicKey, false)
@@ -153,7 +164,12 @@ namespace Fluxzy.Certificates
                 offSetEnd = offsetLimit;
             }
 
+#if NET5_0_OR_GREATER
+
+            Span<byte> buffer = stackalloc byte[16];
+#else 
             var buffer = new byte[16];
+#endif
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
 
@@ -178,13 +194,10 @@ namespace Fluxzy.Certificates
                 privateKey,
                 HashAlgorithmName.SHA256);
 
-            certificateRequest.CertificateExtensions.Add(
-                new X509KeyUsageExtension(
-                    X509KeyUsageFlags.DigitalSignature
-                    | X509KeyUsageFlags.DataEncipherment
-                    | X509KeyUsageFlags.KeyEncipherment
-                    ,
-                    true));
+            foreach (var extension in InvariantCaExtensions)
+            {
+                certificateRequest.CertificateExtensions.Add(extension);
+            }
 
             var alternativeName = new SubjectAlternativeNameBuilder();
 
@@ -195,14 +208,7 @@ namespace Fluxzy.Certificates
 
             certificateRequest.CertificateExtensions.Add(
                 new X509AuthorityKeyIdentifierExtension(rootCertificate, false));
-
-            certificateRequest.CertificateExtensions.Add(
-                new X509EnhancedKeyUsageExtension(
-                    new OidCollection {
-                        new("1.3.6.1.5.5.7.3.1")
-                    },
-                    true));
-
+            
             certificateRequest.CertificateExtensions.Add(
                 new X509SubjectKeyIdentifierExtension(certificateRequest.PublicKey, false)
             );
@@ -216,7 +222,12 @@ namespace Fluxzy.Certificates
                 offSetEnd = offsetLimit;
             }
 
+#if NET5_0_OR_GREATER
+            
             Span<byte> buffer = stackalloc byte[16];
+#else 
+            var buffer = new byte[16];
+#endif
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
 
