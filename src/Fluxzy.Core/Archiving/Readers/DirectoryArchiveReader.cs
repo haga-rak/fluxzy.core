@@ -40,6 +40,9 @@ namespace Fluxzy.Readers
         {
             var exchangeDirectory = new DirectoryInfo(Path.Combine(BaseDirectory, "exchanges"));
 
+            if (!exchangeDirectory.Exists)
+                return Enumerable.Empty<ExchangeInfo>();
+
             return exchangeDirectory.EnumerateFiles("*.mpack", SearchOption.AllDirectories)
                                     .Select(f => {
 
@@ -73,6 +76,9 @@ namespace Fluxzy.Readers
         public IEnumerable<ConnectionInfo> ReadAllConnections()
         {
             var connectionDirectory = new DirectoryInfo(Path.Combine(BaseDirectory, "connections"));
+
+            if (!connectionDirectory.Exists)
+                return Enumerable.Empty<ConnectionInfo>();
 
             return connectionDirectory.EnumerateFiles("*.mpack", SearchOption.AllDirectories)
                                       .Select(f => {

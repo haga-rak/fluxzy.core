@@ -235,7 +235,7 @@ namespace Fluxzy
         /// <returns></returns>
         public FluxzySetting SetSkipGlobalSslDecryption(bool value)
         {
-            GlobalSkipSslDecryption = true; 
+            GlobalSkipSslDecryption = value; 
 
             return this;
         }
