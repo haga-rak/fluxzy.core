@@ -16,12 +16,12 @@ namespace Fluxzy.Certificates
     {
         private readonly ICertificateCache _certCache;
         private readonly ConcurrentDictionary<string, Lazy<byte[]>> _certificateRepository = new();
-        private readonly X509Certificate2 _rootCertificate;
-
-        private readonly RSA _defaultRsaKeyEngine = RSA.Create(2048);
         private readonly ECDsa _defaultEcdsaKeyEngine = ECDsa.Create()!;
 
+        private readonly RSA _defaultRsaKeyEngine = RSA.Create(2048);
+
         private readonly AsymmetricAlgorithm _privateKey;
+        private readonly X509Certificate2 _rootCertificate;
 
         private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new();
 
@@ -35,7 +35,7 @@ namespace Fluxzy.Certificates
                 startupSetting.CaCertificate.GetX509Certificate();
 
             var pk = _rootCertificate.PublicKey;
-            
+
             _privateKey = _rootCertificate.GetECDsaPublicKey() == null ? _defaultRsaKeyEngine : _defaultEcdsaKeyEngine;
 
             // Warming : pre uild certicate 
@@ -46,17 +46,19 @@ namespace Fluxzy.Certificates
         {
             hostName = GetRootDomain(hostName);
 
-            if (_solveCertificateRepository.TryGetValue(hostName, out var value))
+            if (_solveCertificateRepository.TryGetValue(hostName, out var value)) {
                 return value;
+            }
 
             lock (string.Intern(hostName)) {
-                if (_solveCertificateRepository.TryGetValue(hostName, out value))
+                if (_solveCertificateRepository.TryGetValue(hostName, out value)) {
                     return value;
+                }
 
                 var lazyCertificate =
                     _certificateRepository.GetOrAdd(hostName, new Lazy<byte[]>(() =>
-                            _certCache.Load(_rootCertificate.SerialNumber!, hostName, 
-                                (rootDomain) => BuildCertificateForRootDomain(_rootCertificate, _privateKey, rootDomain)),
+                            _certCache.Load(_rootCertificate.SerialNumber!, hostName,
+                                rootDomain => BuildCertificateForRootDomain(_rootCertificate, _privateKey, rootDomain)),
                         true));
 
                 var val = lazyCertificate.Value;
@@ -79,27 +81,30 @@ namespace Fluxzy.Certificates
         {
             var splittedArray = hostName.Split('.');
 
-            if (splittedArray.Length <= 2)
+            if (splittedArray.Length <= 2) {
                 return hostName;
+            }
 
             return string.Join(".", splittedArray.Reverse().Take(splittedArray.Length - 1).Reverse());
         }
 
-
-        private static byte[] BuildCertificateForRootDomain(X509Certificate2 rootCertificate,
+        private static byte[] BuildCertificateForRootDomain(
+            X509Certificate2 rootCertificate,
             AsymmetricAlgorithm privateKey, string rootDomain)
         {
-            if (privateKey is RSA rsa)
+            if (privateKey is RSA rsa) {
                 return InternalBuildCertificateForRootDomain(rootCertificate, rsa, rootDomain);
+            }
 
-            if (privateKey is ECDsa ecdsa)
+            if (privateKey is ECDsa ecdsa) {
                 return InternalBuildCertificateForRootDomain(rootCertificate, ecdsa, rootDomain);
+            }
 
             throw new NotSupportedException($"The private key type {privateKey.GetType()} is not supported");
         }
 
-
-        private static byte[] InternalBuildCertificateForRootDomain(X509Certificate2 rootCertificate, 
+        private static byte[] InternalBuildCertificateForRootDomain(
+            X509Certificate2 rootCertificate,
             RSA privateKey, string rootDomain)
         {
             var randomGenerator = new Random();
@@ -144,9 +149,10 @@ namespace Fluxzy.Certificates
             var offSetEnd = new DateTimeOffset(rootCertificate.NotAfter.AddSeconds(-1));
             var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(12));
 
-            if (offSetEnd > offsetLimit)
+            if (offSetEnd > offsetLimit) {
                 offSetEnd = offsetLimit;
-            
+            }
+
             var buffer = new byte[16];
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
@@ -161,7 +167,8 @@ namespace Fluxzy.Certificates
             return privateKeyCertificate.Export(X509ContentType.Pkcs12);
         }
 
-        private static byte[] InternalBuildCertificateForRootDomain(X509Certificate2 rootCertificate,
+        private static byte[] InternalBuildCertificateForRootDomain(
+            X509Certificate2 rootCertificate,
             ECDsa privateKey, string rootDomain)
         {
             var randomGenerator = new Random();
@@ -205,10 +212,11 @@ namespace Fluxzy.Certificates
             var offSetEnd = new DateTimeOffset(rootCertificate.NotAfter.AddSeconds(-1));
             var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(12));
 
-            if (offSetEnd > offsetLimit)
+            if (offSetEnd > offsetLimit) {
                 offSetEnd = offsetLimit;
-            
-            var buffer = new byte[16];
+            }
+
+            Span<byte> buffer = stackalloc byte[16];
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
 
