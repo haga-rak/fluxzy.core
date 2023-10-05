@@ -8,35 +8,41 @@ namespace Fluxzy.Cli.Commands.Dissects
 {
     internal class DissectionFlowManager
     {
-        private readonly IEnumerable<IDissectionFormatter> _formatters;
-        private readonly List<IDissectionFilter> _dissectionFilters; // to be loaded statically
-
-        public DissectionFlowManager(IEnumerable<IDissectionFilter> dissectionFilters,
-            IEnumerable<IDissectionFormatter> formatters)
+        public DissectionFlowManager()
         {
-            _formatters = formatters;
-            _dissectionFilters = dissectionFilters.ToList();
+
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="archiveReader"></param>
+        /// <param name="stdoutStream"></param>
+        /// <param name="stdErrorStream"></param>
+        /// <param name="dissectionOptions"></param>
+        /// <returns></returns>
         public async Task<bool> Apply(
             IArchiveReader archiveReader,
             Stream stdoutStream, 
-            Stream stdErrorStream)
+            Stream stdErrorStream, DissectionOptions dissectionOptions)
         {
             var exchangeInfos = archiveReader.ReadAllExchanges().ToList();
             var connectionInfos = archiveReader.ReadAllConnections().ToList()
                                                .ToDictionary(t => t.Id, t => t);
 
-            
+            var filteredExchangeInfos = exchangeInfos.Where(exchangeInfo =>
+                dissectionOptions.Filters
+                                 .Any(filter => filter.IsApplicable(exchangeInfo, connectionInfos[exchangeInfo.ConnectionId])));
+
+
+
+            foreach (var exchangeInfo in filteredExchangeInfos) {
+
+            }
                 
 
 
         }
-    }
-
-    internal class DissectionOptions
-    {
-        public bool MustBeUnique { get; set; }
     }
 
     internal interface IDissectionFilter
