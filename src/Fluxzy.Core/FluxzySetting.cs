@@ -17,12 +17,12 @@ using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy
 {
-    public class FluxzySetting
+    public partial class FluxzySetting
     {
         [JsonInclude()]
         [Obsolete("Used only for serialization")]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public List<Rule> InternalAlterationRules = new();
+        public List<Rule> InternalAlterationRules { get; internal set; } = new();
 
         [JsonConstructor]
         public FluxzySetting()
@@ -55,10 +55,11 @@ namespace Fluxzy
 
         /// <summary>
         ///     Number of concurrent connection per host maintained by the connection pool excluding websocket connections. Default
-        ///     value is 8.
+        ///     value is 16.
         /// </summary>
         [JsonInclude]
         public int ConnectionPerHost { get; internal set; } = 16;
+
 
         /// <summary>
         ///     Ssl protocols for remote host connection
@@ -66,13 +67,20 @@ namespace Fluxzy
         [JsonInclude]
         public SslProtocols ServerProtocols { get; internal set; } =
 #pragma warning disable SYSLIB0039
-            SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+            SslProtocols.Tls 
+            | SslProtocols.Tls11 
+            | SslProtocols.Tls12
+#if NETCOREAPP3_1_OR_GREATER
+            | SslProtocols.Tls13
+#endif
+            ;
 #pragma warning restore SYSLIB0039
 
         /// <summary>
         ///     The CA certificate used for decryption
         /// </summary>
-        public Certificate CaCertificate { get; set; } = Certificate.UseDefault();
+        [JsonInclude]
+        public Certificate CaCertificate { get; internal set; } = Certificate.UseDefault();
 
         /// <summary>
         ///     The default certificate cache directory. Setting this value helps improving performance because producing
@@ -103,8 +111,7 @@ namespace Fluxzy
         ///     True if fluxzy should capture raw packet matching exchanges
         /// </summary>
         [JsonInclude]
-        [Obsolete("This option is ignored when set directly. Use CapturedTcpConnectionProvider to enable raw capture.")]
-        public bool CaptureRawPacket { get; set; }
+        public bool CaptureRawPacket { get; internal set; }
 
         /// <summary>
         /// </summary>
@@ -114,8 +121,7 @@ namespace Fluxzy
         /// <summary>
         ///     Hosts that by pass proxy
         /// </summary>
-        [JsonInclude]
-        public List<string> ByPassHost
+        public IReadOnlyCollection<string> ByPassHost
         {
             get
             {
@@ -124,11 +130,13 @@ namespace Fluxzy
             }
         }
 
-        public string ByPassHostFlat { get; set; } = "";
+        [JsonInclude]
+        public string ByPassHostFlat { get; internal set; } = "";
 
         /// <summary>
         ///     Archiving policy
         /// </summary>
+        [JsonInclude]
         public ArchivingPolicy ArchivingPolicy { get; internal set; } = ArchivingPolicy.None;
 
         /// <summary>
@@ -140,28 +148,34 @@ namespace Fluxzy
         ///     Specify a filter which trigger save to directory when passed.
         ///     When this filter is null, all exchanges will be saved.
         /// </summary>
-        public Filter? SaveFilter { get; set; }
+        [JsonInclude]
+        public Filter? SaveFilter { get; internal set; }
 
         /// <summary>
         ///     Skip SSL decryption for any exchanges. This setting cannot be overriden by rules
         /// </summary>
-        public bool GlobalSkipSslDecryption { get; set; } = false;
+        [JsonInclude]
+        public bool GlobalSkipSslDecryption { get; internal set; } = false;
 
         /// <summary>
         ///     When set to true, the raw network capture will be done out of process.
         /// </summary>
-        public bool OutOfProcCapture { get; set; } = true;
+        [JsonInclude]
+        public bool OutOfProcCapture { get; internal set; } = true;
 
         /// <summary>
         ///     Using bouncy castle for ssl streams instead of OsDefault (SChannel or OpenSSL)
         /// </summary>
-        public bool UseBouncyCastle { get; set; } = false;
+        [JsonInclude]
+        public bool UseBouncyCastle { get; internal set; } = false;
 
         /// <summary>
         ///     Fluxzy will exit when the number of exchanges reaches this value.
         ///     Default value is null (no limit)
         /// </summary>
+        [JsonInclude]
         public int? MaxExchangeCount { get; set; }
+
 
         internal IEnumerable<Rule> FixedRules()
         {
@@ -177,245 +191,6 @@ namespace Fluxzy
 
             yield return new Rule(
                 new MountWelcomePageAction(), new IsSelfFilter());
-        }
-
-        /// <summary>
-        ///     Set hosts that bypass the proxy
-        /// </summary>
-        /// <param name="hosts"></param>
-        /// <returns></returns>
-        public FluxzySetting SetByPassedHosts(params string[] hosts)
-        {
-            ByPassHostFlat = string.Join(";", hosts.Distinct());
-            return this;
-        }
-
-        /// <summary>
-        ///     Set archiving policy
-        /// </summary>
-        /// <param name="archivingPolicy"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        public FluxzySetting SetArchivingPolicy(ArchivingPolicy archivingPolicy)
-        {
-            ArchivingPolicy = archivingPolicy ?? throw new ArgumentNullException(nameof(archivingPolicy));
-
-            return this;
-        }
-
-        public FluxzySetting SetOutDirectory(string directoryName)
-        {
-            ArchivingPolicy = Fluxzy.ArchivingPolicy.CreateFromDirectory(directoryName);
-            return this;
-        }
-
-        /// <summary>
-        ///     Add hosts that fluxzy should not decrypt
-        /// </summary>
-        /// <param name="hosts"></param>
-        /// <returns></returns>
-        public FluxzySetting AddTunneledHosts(params string[] hosts)
-        {
-            foreach (var host in hosts.Where(h => !string.IsNullOrWhiteSpace(h)))
-            {
-                InternalAlterationRules.Add(new Rule(
-                    new SkipSslTunnelingAction(),
-                    new HostFilter(host, StringSelectorOperation.Exact)));
-            }
-
-            return this;
-        }
-
-        public FluxzySetting ClearBoundAddresses()
-        {
-            BoundPoints.Clear();
-
-            return this;
-        }
-
-        public FluxzySetting AddBoundAddress(IPEndPoint endpoint, bool? @default = null)
-        {
-            var isDefault = @default ?? BoundPoints.All(e => !e.Default);
-            BoundPoints.Add(new ProxyBindPoint(endpoint, isDefault));
-
-            return this;
-        }
-
-        public FluxzySetting AddBoundAddress(string boundAddress, int port, bool? @default = null)
-        {
-            if (!IPAddress.TryParse(boundAddress, out var address))
-                throw new ArgumentException($"{boundAddress} is not a valid IP address");
-
-            if (port < 0 || port >= ushort.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
-
-            return AddBoundAddress(new IPEndPoint(address, port), @default);
-        }
-
-        public FluxzySetting AddBoundAddress(IPAddress boundAddress, int port, bool? @default = null)
-        {
-            if (port < 0 || port >= ushort.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
-
-            return AddBoundAddress(new IPEndPoint(boundAddress, port), @default);
-        }
-
-        public FluxzySetting SetBoundAddress(string boundAddress, int port)
-        {
-            if (!IPAddress.TryParse(boundAddress, out var address))
-                throw new ArgumentException($"{boundAddress} is not a valid IP address");
-
-            if (port < 0 || port >= ushort.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
-
-            BoundPoints.Clear();
-            BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(address, port), true));
-
-            return this;
-        }
-
-        public FluxzySetting SetBoundAddress(IPAddress boundAddress, int port)
-        {
-            if (port < 0 || port >= ushort.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(port), $"port should be between 1 and {ushort.MaxValue}");
-
-            BoundPoints.Clear();
-            BoundPoints.Add(new ProxyBindPoint(new IPEndPoint(boundAddress, port), true));
-
-            return this;
-        }
-
-        public FluxzySetting SetConnectionPerHost(int connectionPerHost)
-        {
-            if (connectionPerHost < 1 || connectionPerHost >= 64)
-                throw new ArgumentOutOfRangeException(nameof(connectionPerHost), "value should be between 1 and 64");
-
-            ConnectionPerHost = connectionPerHost;
-
-            return this;
-        }
-
-        public FluxzySetting SetClientCertificateOnHost(string host, Certificate certificate)
-        {
-            InternalAlterationRules.Add(new Rule(new SetClientCertificateAction(certificate), new HostFilter(host)));
-
-            return this;
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <param name="subDomain"></param>
-        /// <param name="certificate"></param>
-        /// <returns></returns>
-        public FluxzySetting SetClientCertificateOnSubdomain(string subDomain, Certificate certificate)
-        {
-            InternalAlterationRules.Add(new Rule(new SetClientCertificateAction(certificate),
-                new HostFilter(subDomain, StringSelectorOperation.EndsWith)));
-
-            return this;
-        }
-
-        public FluxzySetting SetServerProtocols(SslProtocols protocols)
-        {
-            ServerProtocols = protocols;
-
-            return this;
-        }
-
-        public FluxzySetting SetCheckCertificateRevocation(bool value)
-        {
-            CheckCertificateRevocation = value;
-
-            return this;
-        }
-
-        /// <summary>
-        /// If true, fluxzy will automatically install the certificate in the user store.
-        /// This call needs administrator/root privileges. 
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public FluxzySetting SetAutoInstallCertificate(bool value)
-        {
-            AutoInstallCertificate = value;
-
-            return this;
-        }
-
-        public FluxzySetting SetSkipGlobalSslDecryption(bool value)
-        {
-            if (value)
-                InternalAlterationRules.Add(new Rule(new SkipSslTunnelingAction(), new AnyFilter()));
-
-            return this;
-        }
-
-        /// <summary>
-        ///     Change the default certificate used by fluxzy
-        /// </summary>
-        /// <returns></returns>
-        public FluxzySetting SetCaCertificate(Certificate caCertificate)
-        {
-            CaCertificate = caCertificate;
-
-            return this;
-        }
-
-        public FluxzySetting SetDisableCertificateCache(bool value)
-        {
-            DisableCertificateCache = value;
-
-            return this;
-        }
-
-        /// <summary>
-        /// Remove existing alteration rules
-        /// </summary>
-        /// <returns></returns>
-        public FluxzySetting ClearAlterationRules()
-        {
-            InternalAlterationRules.Clear();
-            return this;
-        }
-
-        /// <summary>
-        /// Add alteration rules
-        /// </summary>
-        /// <param name="rules"></param>
-        /// <returns></returns>
-        public FluxzySetting AddAlterationRules(params Rule[] rules)
-        {
-            InternalAlterationRules.AddRange(rules);
-            return this;
-        }
-
-        /// <summary>
-        /// Add alteration rules
-        /// </summary>
-        /// <param name="rules"></param>
-        /// <returns></returns>
-        public FluxzySetting AddAlterationRules(IEnumerable<Rule> rules)
-        {
-            InternalAlterationRules.AddRange(rules);
-            return this;
-        }
-
-        /// <summary>
-        /// Add alteration rules from a config file
-        /// </summary>
-        /// <param name="plainConfiguration"></param>
-        /// <returns></returns>
-        public FluxzySetting AddAlterationRules(string plainConfiguration)
-        {
-            RuleConfigParser parser = new RuleConfigParser();
-
-            var ruleSet = parser.TryGetRuleSetFromYaml(plainConfiguration, out var readErrors);
-
-            if (readErrors != null && readErrors.Any())
-                throw new ArgumentException($"Invalid configuration:\r\n {string.Join("\r\n", readErrors)}");
-
-            AddAlterationRules(ruleSet!.Rules.SelectMany(s => s.GetAllRules()));
-            return this;
         }
 
         /// <summary>
@@ -444,5 +219,8 @@ namespace Fluxzy
                 ConnectionPerHost = 16
             }.SetBoundAddress(address, port);
         }
+
     }
+
+    
 }

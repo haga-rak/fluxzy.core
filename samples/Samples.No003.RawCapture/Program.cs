@@ -1,5 +1,6 @@
 using System.Net;
 using Fluxzy;
+using Fluxzy.Core;
 using Fluxzy.Interop.Pcap;
 using Fluxzy.Interop.Pcap.Pcapng;
 using Fluxzy.Misc.Streams;
@@ -32,9 +33,9 @@ namespace Samples.No003.RawCapture
 
             if (extractNssKey) {
                 // To enable nss key capture, the SSL engine used by Fluxzy must be BouncyCastle 
-                fluxzyStartupSetting.UseBouncyCastle = true; 
+                fluxzyStartupSetting.UseBouncyCastleSslEngine(); 
             }
-
+            
             await using (var tcpConnectionProvider = await CapturedTcpConnectionProvider.CreateInProcessCapture()) {
                 await using var proxy = new Proxy(fluxzyStartupSetting, tcpConnectionProvider: tcpConnectionProvider);
 

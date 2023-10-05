@@ -14,42 +14,41 @@ namespace Fluxzy
         /// Export a dump directory as HttpArchive
         /// </summary>
         /// <param name="directory">Dump directory</param>
-        /// <param name="filePath">The outputed archive file</param>
+        /// <param name="exportArchiveFilePath">The outputed archive file</param>
         /// <param name="savingSetting">Save settings</param>
-        public static void ExportAsHttpArchive(string directory, string filePath, HttpArchiveSavingSetting? savingSetting = null)
+        public static void ExportAsHttpArchive(string directory, string exportArchiveFilePath, HttpArchiveSavingSetting? savingSetting = null)
         {
             var packager = new HttpArchivePackager(savingSetting);
 
-            using var fileStream = File.Create(filePath);
+            using var fileStream = File.Create(exportArchiveFilePath);
 
-            Task.Run(async () => await packager.Pack(directory, fileStream, null)).GetAwaiter().GetResult();
+            Task.Run(() => packager.Pack(directory, fileStream, null)).GetAwaiter().GetResult();
         }
 
 		/// <summary>
-		/// Export a dump directory to a fluxzy file.
-		/// This is the recommended file format as it can holds raw capture datas. 
+		/// Export a dump directory to a fluxzy file (.fxzy).
 		/// </summary>
 		/// <param name="directory"></param>
-		/// <param name="filePath"></param>
-		public static void Export(string directory, string filePath)
+		/// <param name="exportFilePath"></param>
+		public static void Export(string directory, string exportFilePath)
 		{
 			var packager = new FxzyDirectoryPackager();
 
-			using var fileStream = File.Create(filePath);
-			Task.Run(async () => await packager.Pack(directory, fileStream, null)).GetAwaiter().GetResult();
+			using var fileStream = File.Create(exportFilePath)!;
+			Task.Run(() => packager.Pack(directory, fileStream, null)).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
 		/// Export a dump directory to a saz file. This is an experimental feature. 
 		/// </summary>
 		/// <param name="directory"></param>
-		/// <param name="filePath"></param>
+		/// <param name="exportedSazFilePath"></param>
 		[Obsolete]
-		public static void ExportAsSaz(string directory, string filePath)
+		public static void ExportAsSaz(string directory, string exportedSazFilePath)
 		{
 			var packager = new SazPackager();
 
-			using var fileStream = File.Create(filePath);
+			using var fileStream = File.Create(exportedSazFilePath);
 			Task.Run(async () => await packager.Pack(directory, fileStream, null)).GetAwaiter().GetResult();
 		}
     }
