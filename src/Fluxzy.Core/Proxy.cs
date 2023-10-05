@@ -26,6 +26,7 @@ namespace Fluxzy
     public class Proxy : IAsyncDisposable
     {
         private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
+        private readonly ICertificateProvider _certificateProvider;
         private readonly CancellationTokenSource _externalCancellationSource;
         private readonly CancellationTokenSource _proxyHaltTokenSource = new();
 
@@ -59,6 +60,7 @@ namespace Fluxzy
             FromIndexIdProvider? idProvider = null,
             CancellationTokenSource externalCancellationSource = null)
         {
+            _certificateProvider = certificateProvider;
             _externalCancellationSource = externalCancellationSource;
             var tcpConnectionProvider1 = tcpConnectionProvider ?? ITcpConnectionProvider.Default;
             StartupSetting = startupSetting ?? throw new ArgumentNullException(nameof(startupSetting));
@@ -238,6 +240,8 @@ namespace Fluxzy
             _proxyHaltTokenSource.Cancel();
 
             _proxyHaltTokenSource.Dispose();
+
+            _certificateProvider.Dispose();
 
             _disposed = true;
         }
