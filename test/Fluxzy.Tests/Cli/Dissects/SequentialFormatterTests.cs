@@ -15,7 +15,8 @@ namespace Fluxzy.Tests.Cli.Dissects
             = new Dictionary<string, string>() {
                 ["hello"] = "world",
                 ["foo"] = "bar",
-                ["baz"] = "qux"
+                ["baz"] = "qux",
+                ["h"] = "w",
                 }
                 .ToDictionary(
                     t => t.Key, 
@@ -38,6 +39,30 @@ namespace Fluxzy.Tests.Cli.Dissects
         [InlineData("", "")]
         [InlineData("}", "}")]
         public async Task Verify(string format, string expected)
+        {
+            var sequentialFormatter = new SequentialFormatter();
+
+            using var stdoutStream = new MemoryStream();
+            using var writer = new StreamWriter(stdoutStream);
+
+            await sequentialFormatter.Format(format, _formatterMap, writer, StreamWriter.Null, 0);
+            await writer.FlushAsync();
+
+            var actual = Encoding.UTF8.GetString(stdoutStream.ToArray());
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(@"\{h}", "{h}")]
+        [InlineData(@"\{hello\}", "{hello}")]
+        [InlineData(@"\{hello}", "{hello}")]
+        [InlineData(@"{hello\}", "{hello}")]
+        [InlineData(@"\{{hello}\}", "{world}")]
+        [InlineData(@"abcd\", @"abcd\")]
+        [InlineData(@"\", @"\")]
+        [InlineData(@"\{", @"{")]
+        public async Task VerifyWithEscape(string format, string expected)
         {
             var sequentialFormatter = new SequentialFormatter();
 

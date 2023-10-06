@@ -20,55 +20,81 @@ namespace Fluxzy.Cli.Commands.Dissects
         {
             var pendingText = new StringBuilder();
             var inExpression = false;
+            var escapeWasPrevious = false; 
 
             foreach (var @char in format)
             {
-                if (@char == '{')
-                {
-                    if (inExpression) {
-                        // we clear buffer for stacked expressions
-
-                        stdOutWriter.Write(pendingText);
-                        pendingText.Clear(); 
-                    }
-
-                    inExpression = true;
-                    pendingText.Append(@char);
-                    continue;
+                if (!escapeWasPrevious && @char == '\\') {
+                    escapeWasPrevious = true;
+                    continue; 
                 }
 
-                if (@char == '}' && inExpression)
+                if (@char == '{')
                 {
-                    pendingText.Append(@char);
-                    inExpression = false;
+                    if (escapeWasPrevious) {
+                       // pendingText.Append('\\');
+                    }
+                    else {
+                        if (inExpression)
+                        {
+                            // we clear buffer for stacked expressions
 
-                    // Dump expression 
+                            stdOutWriter.Write(pendingText);
+                            pendingText.Clear();
+                        }
 
-                    var hint = pendingText.ToString(1, pendingText.Length - 2).Trim();
+                        inExpression = true;
+                        pendingText.Append(@char);
+                        continue;
+                    }
+                }
 
-                    if (!map.TryGetValue(hint, out var formatter))
+                if (@char == '}')
+                {
+                    if (escapeWasPrevious)
                     {
-                        await stdOutWriter.WriteAsync(pendingText.ToString());
-                        await stdErrorWriter.WriteLineAsync($"WARN: Unknown formatter {hint}");
+                       // pendingText.Append('\\');
                     }
                     else
                     {
-                        await formatter.Write(payload, stdOutWriter);
+                        if (inExpression)
+                        {
+                            pendingText.Append(@char);
+                            inExpression = false;
+
+                            // Dump expression 
+
+                            var hint = pendingText.ToString(1, pendingText.Length - 2).Trim();
+
+                            if (!map.TryGetValue(hint, out var formatter))
+                            {
+                                await stdOutWriter.WriteAsync(pendingText.ToString());
+                                await stdErrorWriter.WriteLineAsync($"WARN: Unknown formatter {hint}");
+                            }
+                            else
+                            {
+                                await formatter.Write(payload, stdOutWriter);
+                            }
+
+                            pendingText.Clear();
+                            continue;
+                        }
                     }
-
-                    pendingText.Clear();
-
-                    continue;
                 }
+
+                escapeWasPrevious = false;
 
                 if (inExpression)
                 {
                     pendingText.Append(@char);
-
                     continue;
                 }
 
                 stdOutWriter.Write(@char);
+            }
+
+            if (escapeWasPrevious) {
+                pendingText.Append('\\');
             }
 
             stdOutWriter.Write(pendingText.ToString());
