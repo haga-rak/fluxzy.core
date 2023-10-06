@@ -19,7 +19,6 @@ using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
-using Fluxzy.Utils;
 using Fluxzy.Utils.NativeOps.SystemProxySetup;
 
 namespace Fluxzy.Cli.Commands
@@ -62,27 +61,28 @@ namespace Fluxzy.Cli.Commands
         {
             var command = new Command("start", "Start a capturing session");
 
-            command.AddOption(CreateListenInterfaceOption());
-            command.AddOption(CreateListenLocalhost());
-            command.AddOption(CreateListToAllInterfaces());
-            command.AddOption(CreateOutputFileOption());
-            command.AddOption(CreateDumpToFolderOption());
-            command.AddOption(CreateSystemProxyOption());
-            command.AddOption(CreateTcpDumpOption());
-            command.AddOption(CreateSkipSslOption());
-            command.AddOption(CreateBouncyCastleOption());
+            command.AddOption(StartCommandOptions.CreateListenInterfaceOption());
+            command.AddOption(StartCommandOptions.CreateListenLocalhost());
+            command.AddOption(StartCommandOptions.CreateListToAllInterfaces());
+            command.AddOption(StartCommandOptions.CreateOutputFileOption());
+            command.AddOption(StartCommandOptions.CreateDumpToFolderOption());
+            command.AddOption(StartCommandOptions.CreateSystemProxyOption());
+            command.AddOption(StartCommandOptions.CreateTcpDumpOption());
+            command.AddOption(StartCommandOptions.CreateSkipSslOption());
+            command.AddOption(StartCommandOptions.CreateBouncyCastleOption());
 
-            command.AddOption(CreateSkipCertInstallOption());
-            command.AddOption(CreateNoCertCacheOption());
-            command.AddOption(CreateCertificateFileOption());
-            command.AddOption(CreateCertificatePasswordOption());
-            command.AddOption(CreateRuleFileOption());
-            command.AddOption(CreateRuleStdinOption());
-            command.AddOption(CreateUaParsingOption());
-            command.AddOption(CreateOutOfProcCaptureOption());
-            command.AddOption(CreateProxyBuffer());
-            command.AddOption(CreateCounterOption());
-            command.AddOption(CreateEnableTracingOption());
+            command.AddOption(StartCommandOptions.CreateSkipCertInstallOption());
+            command.AddOption(StartCommandOptions.CreateNoCertCacheOption());
+            command.AddOption(StartCommandOptions.CreateCertificateFileOption());
+            command.AddOption(StartCommandOptions.CreateCertificatePasswordOption());
+            command.AddOption(StartCommandOptions.CreateRuleFileOption());
+            command.AddOption(StartCommandOptions.CreateRuleStdinOption());
+            command.AddOption(StartCommandOptions.CreateUaParsingOption());
+            command.AddOption(StartCommandOptions.CreateUser502Option());
+            command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
+            command.AddOption(StartCommandOptions.CreateProxyBuffer());
+            command.AddOption(StartCommandOptions.CreateCounterOption());
+            command.AddOption(StartCommandOptions.CreateEnableTracingOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -113,10 +113,13 @@ namespace Fluxzy.Cli.Commands
             var requestBuffer = invocationContext.Value<int?>("request-buffer");
             var count = invocationContext.Value<int?>("max-capture-count");
             var trace = invocationContext.Value<bool>("trace");
+            var use502 = invocationContext.Value<bool>("use-502");
 
             if (trace) {
                 D.EnableTracing = true; 
             }
+
+            FluxzySharedSetting.Use528 = !use502; 
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
 
@@ -283,273 +286,6 @@ namespace Fluxzy.Cli.Commands
 
                 invocationContext.Console.WriteLine("Packing output done.");
             }
-        }
-
-        private static Option CreateListenInterfaceOption()
-        {
-            var listenInterfaceOption = new Option<List<IPEndPoint>>(
-                "--listen-interface",
-                description:
-                "Set up the binding addresses. " +
-                "Default value is \"127.0.0.1:44344\" which will listen to localhost on port 44344. " +
-                "0.0.0.0 to listen on all interface with default port. Use port 0 to let OS affect a random available port." +
-                " Accept multiple values.",
-                isDefault: true,
-                parseArgument: result => {
-                    var listResult = new List<IPEndPoint>();
-
-                    foreach (var token in result.Tokens) {
-
-                        if (!AuthorityUtility.TryParseIp(token.Value, out var ipAddress, out var port)) {
-                            result.ErrorMessage = $"Invalid listen value address {token.Value}";
-                            return null!;
-                        }
-
-                        listResult.Add(new IPEndPoint(ipAddress!, port));
-                    }
-
-                    return listResult;
-                }
-            );
-
-            listenInterfaceOption.AddAlias("-l");
-            listenInterfaceOption.SetDefaultValue(new List<IPEndPoint> { new(IPAddress.Loopback, 44344) });
-            listenInterfaceOption.Arity = ArgumentArity.OneOrMore;
-
-            return listenInterfaceOption;
-        }
-
-        private static Option CreateOutputFileOption()
-        {
-            var option = new Option<FileInfo?>(
-                "--output-file",
-                description: "Output the captured traffic to file",
-                parseArgument: result => new FileInfo(result.Tokens.First().Value));
-
-            option.AddAlias("-o");
-            option.Arity = ArgumentArity.ExactlyOne;
-            option.SetDefaultValue(null);
-
-            return option;
-        }
-
-        private static Option CreateDumpToFolderOption()
-        {
-            var option = new Option<DirectoryInfo>(
-                "--dump-folder",
-                "Output the captured traffic to folder");
-
-            option.AddAlias("-d");
-
-            return option;
-        }
-
-        private static Option CreateSystemProxyOption()
-        {
-            var option = new Option<bool>(
-                "--system-proxy",
-                "Try to register fluxzy as system proxy when started");
-
-            option.AddAlias("-sp");
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateTcpDumpOption()
-        {
-            var option = new Option<bool>(
-                "--include-dump",
-                "Include tcp dumps on captured output");
-
-            option.AddAlias("-c");
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateSkipSslOption()
-        {
-            var option = new Option<bool>(
-                "--skip-ssl-decryption",
-                "Disable ssl traffic decryption");
-
-            option.AddAlias("-ss");
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateListenLocalhost()
-        {
-            var option = new Option<bool>(
-                "--llo",
-                "Listen on localhost address with default port. Same as -l 127.0.0.1/44344");
-
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateListToAllInterfaces()
-        {
-            var option = new Option<bool>(
-                "--lany",
-                "Listen on all interfaces with default port (44344)");
-
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateBouncyCastleOption()
-        {
-            var option = new Option<bool>(
-                "--bouncy-castle",
-                "Use Bouncy Castle as SSL/TLS provider");
-
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateSkipCertInstallOption()
-        {
-            var option = new Option<bool>(
-                "--install-cert",
-                "Install root CA in current cert store (require higher privilege)");
-
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateNoCertCacheOption()
-        {
-            var option = new Option<bool>(
-                "--no-cert-cache",
-                "Don't cache generated certificate on file system");
-
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-
-        private static Option CreateUaParsingOption()
-        {
-            var option = new Option<bool>(
-                "--parse-ua",
-                "Parse user agent");
-
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateOutOfProcCaptureOption()
-        {
-            var option = new Option<bool>(
-                "--external-capture",
-                "Indicates that the raw capture will be done by an external process");
-
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateCertificateFileOption()
-        {
-            var option = new Option<FileInfo>(
-                "--cert-file",
-                "Substitute the default CA certificate with a compatible PKCS#12 (p12, pfx) root CA certificate for SSL decryption");
-
-            option.Arity = ArgumentArity.ExactlyOne;
-
-            return option;
-        }
-
-        private static Option CreateCertificatePasswordOption()
-        {
-            var option = new Option<string>(
-                "--cert-password",
-                "Set the password of certfile if any");
-
-            option.Arity = ArgumentArity.ExactlyOne;
-
-            return option;
-        }
-
-        private static Option CreateProxyBuffer()
-        {
-            var option = new Option<int?>(
-                "--request-buffer",
-                "Set the default request buffer"
-            );
-
-            option.Arity = ArgumentArity.ExactlyOne;
-            option.SetDefaultValue(null);
-
-            return option;
-        }
-
-        private static Option CreateRuleFileOption()
-        {
-            var option = new Option<FileInfo>(
-                "--rule-file",
-                "Use a fluxzy rule file. See more at : https://www.fluxzy.io/docs/concept/rule-configuration-file");
-
-            option.AddAlias("-r");
-            option.Arity = ArgumentArity.ExactlyOne;
-
-            return option;
-        }
-
-        private static Option CreateCounterOption()
-        {
-            var option = new Option<int?>(
-                "--max-capture-count",
-                "Exit after count exchange");
-
-            option.AddAlias("-n");
-            option.SetDefaultValue(null);
-            option.Arity = ArgumentArity.ExactlyOne;
-
-            return option;
-        }
-
-        private static Option CreateRuleStdinOption()
-        {
-            var option = new Option<bool>(
-                "--rule-stdin",
-                "Read rule from stdin");
-
-            option.AddAlias("-R");
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
-        private static Option CreateEnableTracingOption()
-        {
-            var option = new Option<bool>(
-                "--trace",
-                "Output trace on stdout");
-
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
         }
 
         public async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)
