@@ -44,7 +44,7 @@ namespace Fluxzy.Cli.Commands.Dissects
 
                     // Dump expression 
 
-                    var hint = pendingText.ToString(1, pendingText.Length - 2);
+                    var hint = pendingText.ToString(1, pendingText.Length - 2).Trim();
 
                     if (!map.TryGetValue(hint, out var formatter))
                     {
