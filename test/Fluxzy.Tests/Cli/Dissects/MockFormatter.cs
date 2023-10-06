@@ -18,7 +18,7 @@ namespace Fluxzy.Tests.Cli.Dissects
 
         public string Indicator { get; }
 
-        public Task Write(int exchangeInfo, StreamWriter stdOutWriter)
+        public Task Write(int payload, StreamWriter stdOutWriter)
         {
             stdOutWriter.Write(_value);
             return Task.CompletedTask;

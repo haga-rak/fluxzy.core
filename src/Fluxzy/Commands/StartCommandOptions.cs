@@ -27,7 +27,6 @@ namespace Fluxzy.Cli.Commands
 
                     foreach (var token in result.Tokens)
                     {
-
                         if (!AuthorityUtility.TryParseIp(token.Value, out var ipAddress, out var port))
                         {
                             result.ErrorMessage = $"Invalid listen value address {token.Value}";

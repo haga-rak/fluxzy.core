@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     {
         private readonly Dictionary<string, TimeoutTaskCompletionSource<string>> _runningWait = new();
 
-        public override Encoding Encoding => Encoding.UTF8;
+        public override Encoding Encoding { get; } = new UTF8Encoding(false);
 
         public override void Write(string? value)
         {

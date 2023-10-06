@@ -23,10 +23,12 @@ namespace Fluxzy.Cli.Commands
             var startCommandBuilder = new StartCommandBuilder(instanceIdentifier);
             var certificateCommandBuilder = new CertificateCommandBuilder();
             var packCommandBuilder = new PackCommandBuilder();
+            var dissectCommandBuilder = new DissectCommandBuilder();
 
             rootCommand.Add(startCommandBuilder.Build(token));
             rootCommand.Add(certificateCommandBuilder.Build());
             rootCommand.Add(packCommandBuilder.Build());
+            rootCommand.Add(dissectCommandBuilder.Build());
 
             var final = new CommandLineBuilder(rootCommand)
                         .UseVersionOption()

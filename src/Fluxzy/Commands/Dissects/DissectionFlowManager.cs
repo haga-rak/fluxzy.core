@@ -11,11 +11,11 @@ namespace Fluxzy.Cli.Commands.Dissects
     internal class DissectionFlowManager
     {
         private readonly SequentialFormatter _formatter;
-        private readonly IReadOnlyCollection<IDissectionFormatter<ExchangeInfo>> _formatters;
-        private readonly Dictionary<string, IDissectionFormatter<ExchangeInfo>> _formatterMap;
+        private readonly IReadOnlyCollection<IDissectionFormatter<EntryInfo>> _formatters;
+        private readonly Dictionary<string, IDissectionFormatter<EntryInfo>> _formatterMap;
 
         public DissectionFlowManager(SequentialFormatter formatter, 
-            IReadOnlyCollection<IDissectionFormatter<ExchangeInfo>> formatters)
+            IReadOnlyCollection<IDissectionFormatter<EntryInfo>> formatters)
         {
             _formatter = formatter;
             _formatters = formatters; 
@@ -48,18 +48,13 @@ namespace Fluxzy.Cli.Commands.Dissects
             using var writer = new StreamWriter(stdoutStream, new UTF8Encoding(false), leaveOpen: true);
 
             foreach (var exchangeInfo in filteredExchangeInfos) {
-                await _formatter.Format(dissectionOptions.Format, _formatterMap, writer, stdErrorWriter, exchangeInfo);
+                connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo);
+                await _formatter.Format(dissectionOptions.Format, _formatterMap, writer, stdErrorWriter,
+                    new (exchangeInfo, connectionInfo, archiveReader));
             }
 
             return true;
         }
 
-    }
-
-    internal interface IDissectionFormatter<in T>
-    {
-        string Indicator { get; }
-
-        Task Write(T exchangeInfo, StreamWriter stdOutWriter);
     }
 }
