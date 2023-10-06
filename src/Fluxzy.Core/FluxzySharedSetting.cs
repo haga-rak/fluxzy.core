@@ -4,6 +4,9 @@ using System;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// Contains unique settings per instance
+    /// </summary>
     public static class FluxzySharedSetting
     {
         static FluxzySharedSetting()
@@ -19,5 +22,7 @@ namespace Fluxzy
         public static int RequestProcessingBuffer { get; set; } = 1024 * 4; 
 
         public static int OverallMaxConcurrentConnections { get;  } = 102400;
+
+        public static bool Use528 { get; set; } = true; 
     }
 }

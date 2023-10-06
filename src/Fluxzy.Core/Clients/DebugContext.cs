@@ -47,8 +47,12 @@ namespace Fluxzy.Clients
         /// </summary>
         public static bool EnableWindowSizeTrace { get; }
 
+        /// <summary>
+        ///    Get the value whether 502 error should dump the stack trace. Can be modified by setting environment variable
+        /// </summary>
         public static bool EnableDumpStackTraceOn502 { get; }
             = Environment.GetEnvironmentVariable("EnableDumpStackTraceOn502") == "true";
+
 
         public static bool InsertFluxzyMetricsOnResponseHeader { get; }
             = !string.IsNullOrWhiteSpace(Environment
