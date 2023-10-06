@@ -21,27 +21,31 @@ namespace Fluxzy.Cli.Commands
                 "Read content of a previously captured file or directory.");
 
             command.AddAlias("dis");
+            
+            Argument<IArchiveReader> archiveReaderArgument = CreateInputFileOrDirectoryArgument(); 
 
-            command.AddArgument(CreateInputFileOrDirectoryArgument());
             command.AddOption(CreateExchangeIdsOption());
             command.AddOption(CreateFormatOption());
             command.AddOption(CreateOutputFileOption());
             command.AddOption(CreateUniqueOption());
+            command.AddArgument(archiveReaderArgument);
 
-            command.SetHandler(Run);
+            command.SetHandler(context => Run(context, archiveReaderArgument));
 
             return command;
         }
 
-        private async Task Run(InvocationContext context)
+        private async Task Run(InvocationContext context, Argument<IArchiveReader> archiveReaderArgument)
         {
-            var exchangeIds = context.Value<HashSet<int>?>("id");
+            var exchangeIds = context.Value<List<int>?>("id");
             var format = context.Value<string>("format");
             var outputFile = context.Value<FileInfo?>("output-file");
             var mustBeUnique = context.Value<bool>("unique");
-            var archiveReader = context.Value<IArchiveReader>("input-file-or-directory");
 
-            var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds, format);
+            var archiveReader =
+                (IArchiveReader) context.ParseResult.GetValueForArgument(archiveReaderArgument);
+
+            var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds?.ToHashSet(), format);
             var flowManager = new DissectionFlowManager(new SequentialFormatter(),
                 FormatterRegistration.Formatters);
 
@@ -73,6 +77,8 @@ namespace Fluxzy.Cli.Commands
                           if (File.Exists(inputFileOrDirectory)) {
                               return new FluxzyArchiveReader(inputFileOrDirectory);
                           }
+
+                          t.ErrorMessage = $"Input file or directory \"{inputFileOrDirectory}\" does not exists";
                       }
                       catch (Exception ex) {
                           t.ErrorMessage = $"Cannot read {inputFileOrDirectory} : {ex.Message}";
@@ -88,12 +94,12 @@ namespace Fluxzy.Cli.Commands
         }
 
 
-        private static Option<HashSet<int>?> CreateExchangeIdsOption()
+        private static Option<List<int>?> CreateExchangeIdsOption()
         {
-            var option = new Option<HashSet<int>?>(
+            var option = new Option<List<int>?>(
                 "--id",
                 result => {
-                    var listResult = new HashSet<int>();
+                    var listResult = new List<int>();
 
                     foreach (var token in result.Tokens) {
                         var rawValue = token.Value;
