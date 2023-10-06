@@ -29,56 +29,44 @@ namespace Fluxzy.Cli.Commands.Dissects
                     continue; 
                 }
 
-                if (@char == '{')
+                if (@char == '{' && !escapeWasPrevious)
                 {
-                    if (escapeWasPrevious) {
-                       // pendingText.Append('\\');
-                    }
-                    else {
-                        if (inExpression)
-                        {
-                            // we clear buffer for stacked expressions
+                    if (inExpression)
+                    {
+                        // we clear buffer for stacked expressions
 
-                            stdOutWriter.Write(pendingText);
-                            pendingText.Clear();
-                        }
-
-                        inExpression = true;
-                        pendingText.Append(@char);
-                        continue;
+                        stdOutWriter.Write(pendingText);
+                        pendingText.Clear();
                     }
+
+                    inExpression = true;
+                    pendingText.Append(@char);
+                    continue;
                 }
 
-                if (@char == '}')
+                if (@char == '}' && !escapeWasPrevious)
                 {
-                    if (escapeWasPrevious)
+                    if (inExpression)
                     {
-                       // pendingText.Append('\\');
-                    }
-                    else
-                    {
-                        if (inExpression)
+                        pendingText.Append(@char);
+                        inExpression = false;
+
+                        // Dump expression 
+
+                        var hint = pendingText.ToString(1, pendingText.Length - 2).Trim();
+
+                        if (!map.TryGetValue(hint, out var formatter))
                         {
-                            pendingText.Append(@char);
-                            inExpression = false;
-
-                            // Dump expression 
-
-                            var hint = pendingText.ToString(1, pendingText.Length - 2).Trim();
-
-                            if (!map.TryGetValue(hint, out var formatter))
-                            {
-                                await stdOutWriter.WriteAsync(pendingText.ToString());
-                                await stdErrorWriter.WriteLineAsync($"WARN: Unknown formatter {hint}");
-                            }
-                            else
-                            {
-                                await formatter.Write(payload, stdOutWriter);
-                            }
-
-                            pendingText.Clear();
-                            continue;
+                            await stdOutWriter.WriteAsync(pendingText.ToString());
+                            await stdErrorWriter.WriteLineAsync($"WARN: Unknown formatter {hint}");
                         }
+                        else
+                        {
+                            await formatter.Write(payload, stdOutWriter);
+                        }
+
+                        pendingText.Clear();
+                        continue;
                     }
                 }
 

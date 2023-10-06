@@ -27,6 +27,7 @@ namespace Fluxzy.Tests.Cli.Dissects
         [InlineData("{hello}", "world")]
         [InlineData("{ hello}", "world")]
         [InlineData("{hello }", "world")]
+        [InlineData("{hel", "{hel")]
         [InlineData("{ hello }", "world")]
         [InlineData("{hello} {hello}", "world world")]
         [InlineData("{hello} {Hello}", "world world")]
