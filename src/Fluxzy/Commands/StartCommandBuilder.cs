@@ -113,7 +113,7 @@ namespace Fluxzy.Cli.Commands
             var requestBuffer = invocationContext.Value<int?>("request-buffer");
             var count = invocationContext.Value<int?>("max-capture-count");
             var trace = invocationContext.Value<bool>("trace");
-            var use502 = invocationContext.Value<bool>("user-502");
+            var use502 = invocationContext.Value<bool>("use-502");
 
             if (trace) {
                 D.EnableTracing = true; 
