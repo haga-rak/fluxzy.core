@@ -61,6 +61,36 @@ namespace Fluxzy {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à &lt;!DOCTYPE html&gt;
+        ///
+        ///&lt;html lang=&quot;en&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+        ///&lt;head&gt;
+        ///    &lt;meta charset=&quot;utf-8&quot; /&gt;
+        ///    &lt;title&gt;@@error-status-code@@ - Transport error - @@error-host@@&lt;/title&gt;
+        ///    &lt;style type=&quot;text/css&quot;&gt;
+        ///        *, b {
+        ///            font-family: &quot;Lucida Sans&quot;, Verdana;
+        ///            color: rgba(142, 147, 150, 0.92);
+        ///        }
+        ///
+        ///        body {
+        ///            background-color: #1c2027;
+        ///            font-size:1.1em; 
+        ///        }
+        ///
+        ///        .main-color {
+        ///            color: #6abeec;
+        ///        }
+        ///
+        ///    [le reste de la chaîne a été tronqué]&quot;;.
+        /// </summary>
+        public static string error {
+            get {
+                return ResourceManager.GetString("error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
         public static byte[] Fluxzy {

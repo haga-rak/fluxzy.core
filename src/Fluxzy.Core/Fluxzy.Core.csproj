@@ -22,6 +22,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Pages\error.html" />
+    <None Remove="Resources\Pages\welcome.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Pages\error.html" />
+    <EmbeddedResource Include="Resources\Pages\welcome.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BouncyCastle.Crypto.Async" Version="2.3.4" />
     <PackageReference Include="MessagePack" Version="2.5.124" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />

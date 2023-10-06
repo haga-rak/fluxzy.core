@@ -20,8 +20,9 @@ namespace Fluxzy.Core
         {
             // Filling client error
 
-            if (exchange.Metrics.ResponseBodyEnd == default)
+            if (exchange.Metrics.ResponseBodyEnd == default) {
                 exchange.Metrics.ResponseBodyEnd = timingProvider.Instant();
+            }
 
             var remoteIpAddress = exchange.Connection?.RemoteAddress?.ToString();
 
@@ -30,7 +31,7 @@ namespace Fluxzy.Core
                     case SocketError.ConnectionReset: {
                         var clientError = new ClientError(
                             (int) socketException.SocketErrorCode,
-                            $"The connection was reset by remote peer {remoteIpAddress}") {
+                            $"The connection was reset by remote peer {remoteIpAddress}.") {
                             ExceptionMessage = socketException.Message
                         };
 
@@ -42,46 +43,48 @@ namespace Fluxzy.Core
                     case SocketError.TimedOut: {
                         var clientError = new ClientError(
                             (int) socketException.SocketErrorCode,
-                            $"The remote peer ({remoteIpAddress}) could not be contacted within the configured timeout") {
-                            ExceptionMessage = socketException.Message
-                        };
+                            $"The remote peer ({remoteIpAddress}) " +
+                            $"could not be contacted within the configured timeout on the port {exchange.Authority.Port}.") {
+                                ExceptionMessage = socketException.Message
+                            };
 
-                        exchange.ClientErrors.Add(clientError);
+                            exchange.ClientErrors.Add(clientError);
 
-                        break;
-                    }
+                            break;
+                        }
 
-                    case SocketError.ConnectionRefused: {
-                        var clientError = new ClientError(
-                            (int) socketException.SocketErrorCode,
-                            $"The remote peer ({remoteIpAddress}) responded but refused actively to establish a connection") {
-                            ExceptionMessage = socketException.Message
-                        };
+                        case SocketError.ConnectionRefused: {
+                            var clientError = new ClientError(
+                                (int) socketException.SocketErrorCode,
+                                $"The remote peer ({remoteIpAddress}) responded but refused actively to establish a connection.") {
+                                    ExceptionMessage = socketException.Message
+                                };
 
-                        exchange.ClientErrors.Add(clientError);
+                                exchange.ClientErrors.Add(clientError);
 
-                        break;
-                    }
+                                break;
+                            }
 
-                    default: {
-                        var clientError = new ClientError(
-                            (int) socketException.SocketErrorCode,
-                            "A socket exception has occured") {
-                            ExceptionMessage = socketException.Message
-                        };
+                            default: {
+                                var clientError = new ClientError(
+                                    (int) socketException.SocketErrorCode,
+                                    "A socket exception has occured") {
+                                    ExceptionMessage = socketException.Message
+                                };
 
-                        exchange.ClientErrors.Add(clientError);
+                                exchange.ClientErrors.Add(clientError);
 
-                        break;
-                    }
-                }
+                                break;
+                            }
+                        }
             }
 
-            if (ex.TryGetException<ClientErrorException>(out var clientErrorException))
+            if (ex.TryGetException<ClientErrorException>(out var clientErrorException)) {
                 exchange.ClientErrors.Add(clientErrorException.ClientError);
+            }
 
             if (!exchange.ClientErrors.Any()) {
-                exchange.ClientErrors.Add(new ClientError(0, $"A generic error has occured") {
+                exchange.ClientErrors.Add(new ClientError(0, "A generic error has occured") {
                     ExceptionMessage = ex.Message
                 });
             }
@@ -91,43 +94,67 @@ namespace Fluxzy.Core
                 ex is H2Exception ||
                 ex is ClientErrorException ||
                 ex is AuthenticationException) {
-                var message = "Fluxzy close connection due to server connection errors.\r\n\r\n";
-
-                if (DebugContext.EnableDumpStackTraceOn502 && exchange.Request?.Header != null)
-                    message += exchange.Request.Header.GetHttp11Header().ToString();
-
-                if (DebugContext.EnableDumpStackTraceOn502)
-                    message += ex.ToString();
-
                 if (DebugContext.EnableDumpStackTraceOn502) {
-                    exchange.Metrics.ErrorInstant = DateTime.Now;
+                    var message = "Fluxzy close connection due to server connection errors.\r\n\r\n";
 
-                    message += "\r\n" + "\r\n" + JsonSerializer.Serialize(exchange.Metrics, new JsonSerializerOptions {
-                        WriteIndented = true
-                    });
+                    if (DebugContext.EnableDumpStackTraceOn502 && exchange.Request?.Header != null) {
+                        message += exchange.Request.Header.GetHttp11Header().ToString();
+                    }
+
+                    if (DebugContext.EnableDumpStackTraceOn502) {
+                        message += ex.ToString();
+                    }
+
+                    if (DebugContext.EnableDumpStackTraceOn502) {
+                        exchange.Metrics.ErrorInstant = DateTime.Now;
+
+                        message += "\r\n" + "\r\n" + JsonSerializer.Serialize(exchange.Metrics,
+                            new JsonSerializerOptions {
+                                WriteIndented = true
+                            });
+                    }
+
+                    var messageBinary = Encoding.UTF8.GetBytes(message);
+
+                    var header = string.Format(ConnectionErrorConstants.Generic502,
+                        messageBinary.Length);
+
+                    exchange.Response.Header = new ResponseHeader(
+                        header.AsMemory(),
+                        exchange.Authority.Secure, true);
+
+                    //if (DebugContext.EnableDumpStackTraceOn502)
+                    //    Console.WriteLine(message);
+
+                    exchange.Response.Body = new MemoryStream(messageBinary);
+
+                    if (!exchange.ExchangeCompletionSource.Task.IsCompleted) {
+                        exchange.ExchangeCompletionSource.TrySetResult(true);
+                    }
+
+                    return true;
                 }
+                else {
+                    var (header, body) = ConnectionErrorPageHelper.GetPrettyErrorPage(
+                        exchange.Authority,
+                        exchange.ClientErrors,
+                        ex);
 
-                var messageBinary = Encoding.UTF8.GetBytes(message);
+                    exchange.Response.Header = new ResponseHeader(
+                        header.AsMemory(),
+                        exchange.Authority.Secure, true);
 
-                var header = string.Format(ConnectionErrorConstants.Generic502,
-                    messageBinary.Length);
+                    exchange.Response.Body = new MemoryStream(body);
 
-                exchange.Response.Header = new ResponseHeader(
-                    header.AsMemory(),
-                    exchange.Authority.Secure, true);
+                    if (!exchange.ExchangeCompletionSource.Task.IsCompleted) {
+                        exchange.ExchangeCompletionSource.TrySetResult(true);
+                    }
 
-                //if (DebugContext.EnableDumpStackTraceOn502)
-                //    Console.WriteLine(message);
-
-                exchange.Response.Body = new MemoryStream(messageBinary);
-
-                if (!exchange.ExchangeCompletionSource.Task.IsCompleted)
-                    exchange.ExchangeCompletionSource.TrySetResult(true);
-
-                return true;
+                    return true;
+                }
             }
 
             return false;
+                }
+            }
         }
-    }
-}
