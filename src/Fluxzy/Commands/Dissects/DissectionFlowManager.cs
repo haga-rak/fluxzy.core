@@ -54,14 +54,23 @@ namespace Fluxzy.Cli.Commands.Dissects
                 return false; 
             }
 
+            var first = true; 
+
+
             foreach (var exchangeInfo in filteredExchangeInfos) {
+
+                if (first) {
+
+                    first = false; 
+                }
+                else
+                {
+                    await writer.WriteLineAsync();
+                }
+
                 connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo);
                 await _formatter.Format(dissectionOptions.Format, _formatterMap, writer, stdErrorWriter,
                     new (exchangeInfo, connectionInfo, archiveReader));
-
-                if (!dissectionOptions.MustBeUnique) {
-                    await writer.WriteLineAsync();
-                }
             }
 
             return true;
