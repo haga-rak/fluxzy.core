@@ -51,17 +51,25 @@ namespace Fluxzy.Cli.Commands
 
             outputFile?.Directory?.Create();
 
-            var stdout = outputFile != null ? outputFile.Create() : 
-                (context.Console is OutputConsole outputConsole ?
-                outputConsole.BinaryStdout : Console.OpenStandardOutput());
+            Stream? outputFileStream = null;
 
-            var stdErr = context.Console is OutputConsole outputConsole2? 
-                outputConsole2.BinaryStderr : Console.OpenStandardError();
+            try {
+                var stdout = outputFile != null ? (outputFileStream = outputFile.Create()) :
+                    (context.Console is OutputConsole outputConsole ?
+                        outputConsole.BinaryStdout : Console.OpenStandardOutput());
 
-            var result = await flowManager.Apply(archiveReader, stdout, stdErr, dissectionOptions);
+                var stdErr = context.Console is OutputConsole outputConsole2 ?
+                    outputConsole2.BinaryStderr : Console.OpenStandardError();
 
-            if (!result)
-                context.ExitCode = 1;
+                var result = await flowManager.Apply(archiveReader, stdout, stdErr, dissectionOptions);
+
+                if (!result)
+                    context.ExitCode = 1;
+            }
+            finally {
+                // ReSharper disable once MethodHasAsyncOverload
+                outputFileStream?.Dispose();
+            }
         }
 
         private static Argument<IArchiveReader> CreateInputFileOrDirectoryArgument()

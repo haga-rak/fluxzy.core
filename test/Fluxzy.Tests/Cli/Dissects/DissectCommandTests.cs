@@ -58,9 +58,11 @@ namespace Fluxzy.Tests.Cli.Dissects
             Assert.Equal(value, rawStdout);
         }
 
-
         [Theory]
         [InlineData("_Files/Archives/pink-floyd.fxzy", 92, "pcap-raw", 256012)]
+        [InlineData("_Files/Archives/pink-floyd.fxzy", 92, "pcap", 257288)]
+        [InlineData("_Files/Archives/pink-floyd.fxzy", 55, "request-body", 0)]
+        [InlineData("_Files/Archives/pink-floyd.fxzy", 55, "response-body", 3264)]
         public async Task Read_Fxzy_Check_Property_Binary(
             string input, string exchangeId,
             string property, int expectedLength)
@@ -71,6 +73,24 @@ namespace Fluxzy.Tests.Cli.Dissects
 
             Assert.Equal(0, runResult.ExitCode);
             Assert.Equal(expectedLength, actualLength);
+        }
+
+        [Theory]
+        [InlineData("_Files/Archives/pink-floyd.fxzy", 92, "pcap-raw", 256012)]
+        [InlineData("_Files/Archives/pink-floyd.fxzy", 92, "pcap", 257288)]
+        [InlineData("_Files/Archives/pink-floyd.fxzy", 55, "request-body", 0)]
+        [InlineData("_Files/Archives/pink-floyd.fxzy", 55, "response-body", 3264)]
+        public async Task Read_Fxzy_Check_Property_Binary_Output_File(
+            string input, string exchangeId,
+            string property, int expectedLength)
+        {
+            var tempFile = GetTempFile(); 
+
+            var runResult = await InternalRun(input, $"-f", $"{{{property}}}", "-i", exchangeId, 
+                "-o", tempFile.FullName);
+            
+            Assert.Equal(0, runResult.ExitCode);
+            Assert.Equal(expectedLength, tempFile.Length);
         }
 
         public static List<object[]> GetParam_Read_Fxzy_Check_Property()
