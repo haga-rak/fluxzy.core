@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Cli.Commands.Dissects;
+using Fluxzy.Tests.Cli.Dissects.Utils;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli.Dissects

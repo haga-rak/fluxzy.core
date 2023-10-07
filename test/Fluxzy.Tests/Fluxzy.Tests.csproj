@@ -18,6 +18,9 @@
   <ItemGroup>
     <None Remove="_Files\Headers\Req001.txt.bin" />
     <None Remove="_Files\Headers\Resp001.txt.bin" />
+    <None Update="_Files\Archives\pink-floyd.fxzy">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Certificates\fluxzytest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -83,6 +86,6 @@
     <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties files_4headers_1resx__JsonSchema="https://docs.gradle.com/build-cache-node/schema/build-cache-node-config-schema-5.json" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

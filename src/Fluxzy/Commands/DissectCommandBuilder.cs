@@ -58,7 +58,10 @@ namespace Fluxzy.Cli.Commands
             var stdErr = context.Console is OutputConsole outputConsole2? 
                 outputConsole2.BinaryStderr : Console.OpenStandardError();
 
-            await flowManager.Apply(archiveReader, stdout, stdErr, dissectionOptions);
+            var result = await flowManager.Apply(archiveReader, stdout, stdErr, dissectionOptions);
+
+            if (!result)
+                context.ExitCode = 1;
         }
 
         private static Argument<IArchiveReader> CreateInputFileOrDirectoryArgument()

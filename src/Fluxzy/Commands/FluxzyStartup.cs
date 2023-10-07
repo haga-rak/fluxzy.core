@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Cli.Commands
 {
-    public class FluxzyStartup
+    public static class FluxzyStartup
     {
         public static async Task<int> Run(string[] args, OutputConsole? outputConsole, CancellationToken token)
         {

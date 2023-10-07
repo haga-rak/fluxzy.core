@@ -3,7 +3,8 @@
         "launch (system proxy)": {
             "commandName": "Project",
             "environmentVariables": {
-            },            "commandLineArgs": "start --llo -sp --use-502"
+            },            
+            "commandLineArgs": "start --llo -sp --use-502"
 
         },
         "launch (normal)": {
@@ -16,7 +17,7 @@
             "commandName": "Project",
             "environmentVariables": {
             },
-            "commandLineArgs": "dis z"
+            "commandLineArgs": "dis d:\\pink-floyd.fxzy"
         }
     }
 

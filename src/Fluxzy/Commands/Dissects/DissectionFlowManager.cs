@@ -39,18 +39,29 @@ namespace Fluxzy.Cli.Commands.Dissects
             var connectionInfos = archiveReader.ReadAllConnections().ToList()
                                                .ToDictionary(t => t.Id, t => t);
 
-            var filteredExchangeInfos = (IEnumerable<ExchangeInfo>) exchangeInfos; 
+            var filteredExchangeInfos = exchangeInfos; 
 
-            if (dissectionOptions.ExchangeIds != null)
-                filteredExchangeInfos = filteredExchangeInfos.Where(t => dissectionOptions.ExchangeIds.Contains(t.Id));
+            if (dissectionOptions.ExchangeIds != null && dissectionOptions.ExchangeIds.Any())
+                filteredExchangeInfos = filteredExchangeInfos
+                    .Where(t => dissectionOptions.ExchangeIds.Contains(t.Id)).ToList();
 
-            using var stdErrorWriter = new StreamWriter(stdErrorStream, leaveOpen: true);
-            using var writer = new StreamWriter(stdoutStream, new UTF8Encoding(false), leaveOpen: true);
+            await using var stdErrorWriter = new StreamWriter(stdErrorStream, leaveOpen: true);
+            await using var writer = new StreamWriter(stdoutStream, new UTF8Encoding(false), leaveOpen: true);
+
+            if (dissectionOptions.MustBeUnique && filteredExchangeInfos.Count != 1) {
+                await stdErrorWriter.WriteLineAsync($"Error: results not unique ({filteredExchangeInfos.Count}) when --unique option set");
+
+                return false; 
+            }
 
             foreach (var exchangeInfo in filteredExchangeInfos) {
                 connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo);
                 await _formatter.Format(dissectionOptions.Format, _formatterMap, writer, stdErrorWriter,
                     new (exchangeInfo, connectionInfo, archiveReader));
+
+                if (!dissectionOptions.MustBeUnique) {
+                    await writer.WriteLineAsync();
+                }
             }
 
             return true;

@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Fluxzy.Cli.Commands.Dissects;
 
-namespace Fluxzy.Tests.Cli.Dissects
+namespace Fluxzy.Tests.Cli.Dissects.Utils
 {
     internal class MockFormatter : IDissectionFormatter<int>
     {
