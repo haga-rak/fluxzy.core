@@ -17,7 +17,7 @@
             "commandName": "Project",
             "environmentVariables": {
             },
-            "commandLineArgs": "dis d:\\pink-floyd.fxzy"
+            "commandLineArgs": "dis d:\\pink-floyd.fxzy  -f \"{pcap}\" -u -i 87"
         }
     }
 

@@ -2,6 +2,8 @@
 
 using System.IO;
 using System.Threading.Tasks;
+using Fluxzy.Interop.Pcap.Pcapng;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Cli.Commands.Dissects.Formatters;
 
@@ -136,7 +138,7 @@ internal class ResponseBodyFormatter : IDissectionFormatter<EntryInfo>
 
     public async Task Write(EntryInfo payload, StreamWriter stdOutWriter)
     {
-        var responseBodyStream = payload.ArchiveReader.GetResponseBody(payload.Exchange.Id);
+        await using var responseBodyStream = payload.ArchiveReader.GetResponseBody(payload.Exchange.Id);
 
         if (responseBodyStream == null)
             return;
@@ -151,7 +153,7 @@ internal class RequestBodyFormatter : IDissectionFormatter<EntryInfo>
 
     public async Task Write(EntryInfo payload, StreamWriter stdOutWriter)
     {
-        var requestBodyStream = payload.ArchiveReader.GetRequestBody(payload.Exchange.Id);
+        await using var requestBodyStream = payload.ArchiveReader.GetRequestBody(payload.Exchange.Id);
 
         if (requestBodyStream == null)
             return;
@@ -163,6 +165,49 @@ internal class RequestBodyFormatter : IDissectionFormatter<EntryInfo>
 internal class PcapFormatter : IDissectionFormatter<EntryInfo>
 {
     public string Indicator => "pcap";
+
+    public async Task Write(EntryInfo payload, StreamWriter stdOutWriter)
+    {
+        await using Stream? pcapStream = payload.ArchiveReader.GetRawCaptureStream(payload.Connection?.Id ?? 0);
+
+        if (pcapStream == null)
+            return;
+        
+            // Extract SSL key log file 
+        var sslKeyLogContent = payload.ArchiveReader.GetRawCaptureKeyStream(payload.Connection?.Id ?? 0)
+            ?.ReadToEndGreedy();
+
+        if (sslKeyLogContent == null) {
+            await pcapStream.CopyToAsync(stdOutWriter.BaseStream);
+            return; 
+        }
+
+        if (pcapStream.CanSeek) {
+            await PcapngUtils.CreatePcapngFileWithKeysAsync(sslKeyLogContent, pcapStream!, stdOutWriter.BaseStream);
+            return; 
+        }
+
+        var tempFile = Path.GetTempFileName();
+
+        await using (var tempFileStream = File.Create(tempFile))
+        {
+            await pcapStream.CopyToAsync(tempFileStream);
+        };
+
+        try {
+            await using var inStream = File.OpenRead(tempFile);
+            await PcapngUtils.CreatePcapngFileWithKeysAsync(sslKeyLogContent, inStream, stdOutWriter.BaseStream);
+        }
+        finally {
+            File.Delete(tempFile);
+            
+        }
+    }
+}
+
+internal class PcapRawFormatter : IDissectionFormatter<EntryInfo>
+{
+    public string Indicator => "pcap-raw";
 
     public async Task Write(EntryInfo payload, StreamWriter stdOutWriter)
     {

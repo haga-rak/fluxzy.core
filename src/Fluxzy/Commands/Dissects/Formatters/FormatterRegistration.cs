@@ -24,7 +24,8 @@ namespace Fluxzy.Cli.Commands.Dissects.Formatters
                 new ResponseBodyLengthFormatter(),
                 new ResponseBodyFormatter(),
                 new RequestBodyFormatter(),
-                new PcapFormatter()
+                new PcapFormatter(),
+                new PcapRawFormatter()
             };
 
         public static IReadOnlyCollection<string> Indicators { get; } = Formatters.Select(s => s.Indicator)
