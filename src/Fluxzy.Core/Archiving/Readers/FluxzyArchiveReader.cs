@@ -17,7 +17,12 @@ namespace Fluxzy.Readers
 
         public FluxzyArchiveReader(string filePath)
         {
-            _zipFile = ZipFile.OpenRead(filePath);
+            try {
+                _zipFile = ZipFile.OpenRead(filePath);
+            }
+            catch (Exception ex) {
+                throw new Exception("Invalid fluxzy archive file", ex);
+            }
         }
 
         public FluxzyArchiveReader(Stream stream)
