@@ -8,7 +8,7 @@ namespace Fluxzy.Cli.Commands.Dissects
     {
         public DissectionOptions(
             bool mustBeUnique,
-            HashSet<int>?  exchangeIds, string format)
+            HashSet<int>? exchangeIds, string format)
         {
             MustBeUnique = mustBeUnique;
             ExchangeIds = exchangeIds;
@@ -17,7 +17,7 @@ namespace Fluxzy.Cli.Commands.Dissects
 
         public string Format { get; }
 
-        public bool MustBeUnique { get;  }
+        public bool MustBeUnique { get; }
 
         public HashSet<int>? ExchangeIds { get; }
     }

@@ -15,24 +15,22 @@ namespace Fluxzy.Cli.Commands.Dissects
             string format,
             Dictionary<string, IDissectionFormatter<TArg>> map,
             StreamWriter stdOutWriter,
-            StreamWriter stdErrorWriter, 
+            StreamWriter stdErrorWriter,
             TArg payload)
         {
             var pendingText = new StringBuilder();
             var inExpression = false;
-            var escapeWasPrevious = false; 
+            var escapeWasPrevious = false;
 
-            foreach (var @char in format)
-            {
+            foreach (var @char in format) {
                 if (!escapeWasPrevious && @char == '\\') {
                     escapeWasPrevious = true;
-                    continue; 
+
+                    continue;
                 }
 
-                if (@char == '{' && !escapeWasPrevious)
-                {
-                    if (inExpression)
-                    {
+                if (@char == '{' && !escapeWasPrevious) {
+                    if (inExpression) {
                         // we clear buffer for stacked expressions
 
                         stdOutWriter.Write(pendingText);
@@ -41,13 +39,12 @@ namespace Fluxzy.Cli.Commands.Dissects
 
                     inExpression = true;
                     pendingText.Append(@char);
+
                     continue;
                 }
 
-                if (@char == '}' && !escapeWasPrevious)
-                {
-                    if (inExpression)
-                    {
+                if (@char == '}' && !escapeWasPrevious) {
+                    if (inExpression) {
                         pendingText.Append(@char);
                         inExpression = false;
 
@@ -55,26 +52,25 @@ namespace Fluxzy.Cli.Commands.Dissects
 
                         var hint = pendingText.ToString(1, pendingText.Length - 2).Trim();
 
-                        if (!map.TryGetValue(hint, out var formatter))
-                        {
+                        if (!map.TryGetValue(hint, out var formatter)) {
                             await stdOutWriter.WriteAsync(pendingText.ToString());
                             await stdErrorWriter.WriteLineAsync($"WARN: Unknown formatter {hint}");
                         }
-                        else
-                        {
+                        else {
                             await formatter.Write(payload, stdOutWriter);
                         }
 
                         pendingText.Clear();
+
                         continue;
                     }
                 }
 
                 escapeWasPrevious = false;
 
-                if (inExpression)
-                {
+                if (inExpression) {
                     pendingText.Append(@char);
+
                     continue;
                 }
 

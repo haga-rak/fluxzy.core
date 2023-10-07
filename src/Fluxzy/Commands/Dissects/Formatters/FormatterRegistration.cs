@@ -8,8 +8,7 @@ namespace Fluxzy.Cli.Commands.Dissects.Formatters
     internal static class FormatterRegistration
     {
         public static readonly IReadOnlyCollection<IDissectionFormatter<EntryInfo>>
-            Formatters = new List<IDissectionFormatter<EntryInfo>>
-            {
+            Formatters = new List<IDissectionFormatter<EntryInfo>> {
                 new UrlFormatter(),
                 new MethodFormatter(),
                 new StatusCodeFormatter(),
