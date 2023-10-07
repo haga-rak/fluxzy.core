@@ -151,7 +151,7 @@ namespace Fluxzy.Cli.Commands
         {
             var option = new Option<bool>(
                 "--install-cert",
-                "Install root CA in current cert store (require higher privilege)");
+                "Install root CA in current cert store if absent (require higher privilege)");
 
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;

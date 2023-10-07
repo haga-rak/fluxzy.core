@@ -22,7 +22,7 @@ namespace Fluxzy.Cli.Commands
 
             command.AddAlias("dis");
             
-            Argument<IArchiveReader> archiveReaderArgument = CreateInputFileOrDirectoryArgument(); 
+            var archiveReaderArgument = CreateInputFileOrDirectoryArgument(); 
 
             command.AddOption(CreateExchangeIdsOption());
             command.AddOption(CreateFormatOption());
@@ -87,7 +87,7 @@ namespace Fluxzy.Cli.Commands
                           t.ErrorMessage = $"Cannot read {inputFileOrDirectory} : {ex.Message}";
                       }
 
-                      return null! ;
+                      return null!;
                   })
             {
                 Arity = ArgumentArity.ExactlyOne
