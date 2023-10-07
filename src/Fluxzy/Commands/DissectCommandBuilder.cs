@@ -149,7 +149,7 @@ namespace Fluxzy.Cli.Commands
                 description: "Specify how to format each matching exchanges to the outputted result." +
                              " The default value is \"{id} - {url} - {status}\"\r\n" +
                              $"Possible format values are : {string.Join(", ", FormatterRegistration.Indicators)}.\r\n" +
-                             "You can use this option to extract specific part of an exchange. Example: \"response-body\" for response body content, ...",
+                             "Use this option to extract specific part of an exchange. Example: \"{response-body}\" for response body content, ...",
                 getDefaultValue: () => defaultFormatValue) {
                 Arity = ArgumentArity.ZeroOrOne
             };
