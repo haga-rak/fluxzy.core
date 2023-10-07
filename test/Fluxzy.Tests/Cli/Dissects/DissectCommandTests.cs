@@ -47,10 +47,10 @@ namespace Fluxzy.Tests.Cli.Dissects
 
         [Theory]
         [MemberData(nameof(GetParam_Read_Fxzy_Check_Property))]
-        public async Task Read_Fxzy_Check_Property(string input, string exchangeId, 
+        public async Task Read_Fxzy_Check_Property(string input, int exchangeId, 
             string property, string value)
         {
-            var runResult = await InternalRun(input, $"-f", $"{{{property}}}", "-i", exchangeId);
+            var runResult = await InternalRun(input, $"-f", $"{{{property}}}", "-i", exchangeId.ToString());
 
             var rawStdout = runResult.StandardOutput.ReadAsString().TrimEnd('\r', '\n');
 
@@ -64,10 +64,10 @@ namespace Fluxzy.Tests.Cli.Dissects
         [InlineData("_Files/Archives/pink-floyd.fxzy", 55, "request-body", 0)]
         [InlineData("_Files/Archives/pink-floyd.fxzy", 55, "response-body", 3264)]
         public async Task Read_Fxzy_Check_Property_Binary(
-            string input, string exchangeId,
+            string input, int exchangeId,
             string property, int expectedLength)
         {
-            var runResult = await InternalRun(input, $"-f", $"{{{property}}}", "-i", exchangeId);
+            var runResult = await InternalRun(input, $"-f", $"{{{property}}}", "-i", exchangeId.ToString());
             runResult.StandardOutput.Seek(0, SeekOrigin.Begin);
             var actualLength = await  runResult.StandardOutput.DrainAsync(); 
 
@@ -81,12 +81,12 @@ namespace Fluxzy.Tests.Cli.Dissects
         [InlineData("_Files/Archives/pink-floyd.fxzy", 55, "request-body", 0)]
         [InlineData("_Files/Archives/pink-floyd.fxzy", 55, "response-body", 3264)]
         public async Task Read_Fxzy_Check_Property_Binary_Output_File(
-            string input, string exchangeId,
+            string input, int exchangeId,
             string property, int expectedLength)
         {
             var tempFile = GetTempFile(); 
 
-            var runResult = await InternalRun(input, $"-f", $"{{{property}}}", "-i", exchangeId, 
+            var runResult = await InternalRun(input, $"-f", $"{{{property}}}", "-i", exchangeId.ToString(), 
                 "-o", tempFile.FullName);
             
             Assert.Equal(0, runResult.ExitCode);
