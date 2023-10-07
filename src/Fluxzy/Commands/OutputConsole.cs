@@ -1,7 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.CommandLine;
 using System.CommandLine.IO;
+using System.IO;
 
 namespace Fluxzy.Cli.Commands
 {
@@ -25,5 +27,9 @@ namespace Fluxzy.Cli.Commands
         public bool IsErrorRedirected => false;
 
         public bool IsInputRedirected => false;
+
+        public MemoryStream BinaryStdout { get; } = new();
+
+        public MemoryStream BinaryStderr { get; } = new();
     }
 }

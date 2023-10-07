@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -118,5 +119,6 @@ namespace Fluxzy.Cli.System
             return string.Join(".", tab[..^1]);
         }
     }
-    
+
+
 }

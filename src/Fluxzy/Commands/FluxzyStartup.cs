@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Cli.Commands
 {
-    public class FluxzyStartup
+    public static class FluxzyStartup
     {
         public static async Task<int> Run(string[] args, OutputConsole? outputConsole, CancellationToken token)
         {
@@ -23,10 +23,12 @@ namespace Fluxzy.Cli.Commands
             var startCommandBuilder = new StartCommandBuilder(instanceIdentifier);
             var certificateCommandBuilder = new CertificateCommandBuilder();
             var packCommandBuilder = new PackCommandBuilder();
+            var dissectCommandBuilder = new DissectCommandBuilder();
 
             rootCommand.Add(startCommandBuilder.Build(token));
             rootCommand.Add(certificateCommandBuilder.Build());
             rootCommand.Add(packCommandBuilder.Build());
+            rootCommand.Add(dissectCommandBuilder.Build());
 
             var final = new CommandLineBuilder(rootCommand)
                         .UseVersionOption()
