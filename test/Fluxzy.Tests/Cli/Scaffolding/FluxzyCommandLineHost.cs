@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Cli;
 using Fluxzy.Cli.Commands;
 using Xunit.Abstractions;
 

@@ -7,14 +7,19 @@ using System.Threading.Tasks;
 using Xunit;
 using System.IO;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Tests._Fixtures;
+using Fluxzy.Tests.Cli.Scaffolding;
 
 namespace Fluxzy.Tests.Cli.Dissects
 {
     public record RunResult(int ExitCode, Stream StandardOutput, Stream StandardError);
 
-    public class DissectCommandTests : DissectCommandBase
+    public class DissectCommandTests : CommandBase
     {
+        public DissectCommandTests()
+            : base("dissect")
+        {
+        }
+
         [Theory]
         [InlineData(".artefacts/tests/pink-floyd")]
         [InlineData("_Files/Archives/pink-floyd.fxzy")]
@@ -115,5 +120,6 @@ namespace Fluxzy.Tests.Cli.Dissects
 
             return args.SelectMany(x => path.Select(y => new object[] { y, x[0], x[1], x[2] })).ToList();
         }
+
     }
 }

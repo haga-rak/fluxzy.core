@@ -7,8 +7,9 @@ using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Cli.Commands;
 
-namespace Fluxzy.Cli.Commands
+namespace Fluxzy.Cli
 {
     public static class FluxzyStartup
     {

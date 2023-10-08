@@ -42,8 +42,7 @@ namespace Fluxzy.Cli.Commands
             var outputFile = context.Value<FileInfo?>("output-file");
             var mustBeUnique = context.Value<bool>("unique");
 
-            var archiveReader =
-                (IArchiveReader) context.ParseResult.GetValueForArgument(archiveReaderArgument);
+            var archiveReader = context.ParseResult.GetValueForArgument(archiveReaderArgument);
 
             var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds?.ToHashSet(), format);
             var flowManager = new DissectionFlowManager(new SequentialFormatter(),
