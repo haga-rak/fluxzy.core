@@ -112,7 +112,8 @@ jobs:
             --form "FileSha512Hash=$HASH" \
             --form "$FILENAME=@.artefacts/output/$FILENAME" \
             --form 'category="Fluxzy CLI"'
-    - uses: actions/upload-artifact@v3
+    - name: Upload artefacts (Github)
+      uses: actions/upload-artifact@v3
       with:
         path: .artefacts/output
 
