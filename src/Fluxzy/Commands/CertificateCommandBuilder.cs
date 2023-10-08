@@ -192,7 +192,7 @@ namespace Fluxzy.Cli.Commands
             };
 
             var validityOption = new Option<int>(
-                new[] { "--validity" },
+                new[] { "--validity", "-v" },
                 description: "Validity of the certificate in days from now",
                 getDefaultValue: () => 365 * 10) {
                 Arity = ArgumentArity.ExactlyOne
@@ -227,7 +227,7 @@ namespace Fluxzy.Cli.Commands
             // Build O, OU, L, ST, C options
 
             var passwordOption = new Option<string?>(
-                new[] { "--password" },
+                new[] { "--password", "-p" },
                 description: "Password for the created P12 file",
                 getDefaultValue: () => null) {
                 Arity = ArgumentArity.ExactlyOne
