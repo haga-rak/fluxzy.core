@@ -66,23 +66,22 @@ namespace Fluxzy.Certificates
 
             builder.Append($"CN={CommonName}");
 
-            if (Locality != null)
+            if (!string.IsNullOrWhiteSpace(Locality))
                 builder.Append($", L={Locality}");
 
-            if (Country != null)
+            if (!string.IsNullOrWhiteSpace(Country))
                 builder.Append($", C={Country}");
 
-            if (Organization != null)
+            if (!string.IsNullOrWhiteSpace(Organization))
                 builder.Append($", O={Organization}");
 
-            if (State != null)
+            if (!string.IsNullOrWhiteSpace(State))
                 builder.Append($", O={State}");
 
-            if (OrganizationUnit != null)
+            if (!string.IsNullOrWhiteSpace(OrganizationUnit))
                 builder.Append($", OU={OrganizationUnit}");
 
             return builder.ToString();
         }
-
     }
 }
