@@ -3,11 +3,12 @@
     "version": "1.11",
     "publicReleaseRefSpec": [
         "^refs/heads/main$",
-        "^refs/heads/release/v\\d+(?:\\.\\d+)?$"
+        "^refs/heads/v\\d+(?:\\.\\d+)?$"
     ],
     "cloudBuild": {
         "buildNumber": {
-            "enabled": true
+            "enabled": true,
+            "setVersionVariables": true
         }
     },
     "release": {

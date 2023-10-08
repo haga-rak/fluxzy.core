@@ -23,20 +23,25 @@ namespace Fluxzy.Tests
             InstallCertificate();
 
             DirectoryName = EmptyDirectory("static_website_dir");
-            var zipArchive = new ZipArchive(new MemoryStream(StorageContext.static_ws), ZipArchiveMode.Read);
 
-            zipArchive.ExtractToDirectory(DirectoryName);
+            ExtractDirectory(StorageContext.static_ws, DirectoryName);
+            ExtractDirectory(File.ReadAllBytes("_Files/Archives/pink-floyd.fxzy"), ".artefacts/tests/pink-floyd");
 
-            //Environment.SetEnvironmentVariable("Fluxzy_EnableNetworkFileDump", "true");
-            //Environment.SetEnvironmentVariable("Fluxzy_EnableWindowSizeTrace", "true");
+            // Environment.SetEnvironmentVariable("Fluxzy_EnableNetworkFileDump", "true");
+            // Environment.SetEnvironmentVariable("Fluxzy_EnableWindowSizeTrace", "true");
 
-            //Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
-            //Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
+            // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
+            // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
 
-            //Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts",
+            // Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts",
             //    "2befficient.fr;smartizy.com; discord.com; facebook.com; google.com");
         }
 
+        private static void ExtractDirectory(byte [] binary, string directoryName)
+        {
+            using var zipArchive = new ZipArchive(new MemoryStream(binary), ZipArchiveMode.Read);
+            zipArchive.ExtractToDirectory(directoryName, true);
+        }
 
         private void InstallCertificate()
         {

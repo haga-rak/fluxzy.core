@@ -31,7 +31,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             _stream = stream;
 
-            _streamWriter = new StreamWriter(stream, Encoding.UTF8) {
+            _streamWriter = new StreamWriter(stream, new UTF8Encoding(false)) {
                 NewLine = "\r\n",
                 AutoFlush = true
             };
