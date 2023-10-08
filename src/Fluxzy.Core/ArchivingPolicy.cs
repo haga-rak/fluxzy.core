@@ -8,7 +8,7 @@ namespace Fluxzy
     public class ArchivingPolicy
     {
         [JsonConstructor]
-        internal ArchivingPolicy()
+        public ArchivingPolicy()
         {
 
         }
