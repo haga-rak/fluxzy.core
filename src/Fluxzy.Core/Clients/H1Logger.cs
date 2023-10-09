@@ -54,7 +54,9 @@ namespace Fluxzy.Clients
             _directory = new DirectoryInfo(Path.Combine(loggerPath, "h1")).FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
 
-            Directory.CreateDirectory(_directory);
+            if (_active) {
+                Directory.CreateDirectory(_directory);
+            }
         }
 
         public static List<string>? AuthorizedHosts { get; }
