@@ -150,7 +150,7 @@ namespace Fluxzy.Rules.Filters.ViewOnlyFilters
                     var bodyLength = filteringContext.Reader.GetResponseBodyLength(exchangeInfo.Id);
                     using var stream = filteringContext.Reader.GetResponseBody(exchangeInfo.Id)!;
 
-                    var decodedStream = CompressionHelper.GetDecodedContentStream(exchangeInfo, stream, out _);
+                    var decodedStream = exchangeInfo.GetDecodedResponseBodyStream(stream, out _);
 
                     var caseSensitive = CaseSensitive;
 

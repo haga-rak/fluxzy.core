@@ -157,9 +157,7 @@ namespace Fluxzy.Readers
             if (originalStream == null) 
                 return null;
 
-            return CompressionHelper.GetDecodedContentStream(
-                exchangeInfo,
-                originalStream, out _);
+            return exchangeInfo.GetDecodedResponseBodyStream(originalStream, out _);
         }
 
         public long GetRequestBodyLength(int exchangeId)
@@ -230,9 +228,7 @@ namespace Fluxzy.Readers
             if (originalStream == null)
                 return null;
 
-            return CompressionHelper.GetDecodedContentStream(
-                exchangeInfo,
-                originalStream, out _, true);
+            return exchangeInfo.GetDecodedResponseBodyStream(originalStream, out _, true);
         }
 
         public bool HasResponseBody(int exchangeId)
