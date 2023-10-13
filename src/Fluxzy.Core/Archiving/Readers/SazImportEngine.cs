@@ -9,7 +9,6 @@ using System.Linq;
 using System.Security.Authentication;
 using System.Text;
 using System.Xml.Linq;
-using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
@@ -17,11 +16,10 @@ using Fluxzy.Core;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
-using Org.BouncyCastle.Asn1.Sec;
 
 namespace Fluxzy.Readers
 {
-    public class SazImportEngine : IImportEngine
+    internal class SazImportEngine : IImportEngine
     {
         public bool IsFormat(string fileName)
         {

@@ -219,8 +219,5 @@ namespace Fluxzy
                 ConnectionPerHost = 16
             }.SetBoundAddress(address, port);
         }
-
     }
-
-    
 }

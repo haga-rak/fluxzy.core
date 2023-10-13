@@ -183,32 +183,4 @@ namespace Fluxzy.Rules
             return serializer;
         }
     }
-
-    public class RuleConfigReaderError
-    {
-        public RuleConfigReaderError(string message)
-        {
-            Message = message;
-        }
-
-        public string Message { get; }
-
-        public override string ToString()
-        {
-            return Message;
-        }
-    }
-
-    public class RuleSet
-    {
-        public RuleSet(params Rule[] rules)
-        {
-            Rules = rules.GroupBy(g => g.Filter.Identifier)
-                         .Select(s => new RuleConfigContainer(s.First().Filter) {
-                             Actions = s.Select(sm => sm.Action).ToList()
-                         }).ToList();
-        }
-
-        public List<RuleConfigContainer> Rules { get; set; }
-    }
 }

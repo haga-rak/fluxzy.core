@@ -28,7 +28,7 @@ namespace Fluxzy.Cli.Commands
     {
         private readonly string _instanceIdentifier;
 
-        public readonly List<DirectoryPackager> _packagers = new() {
+        public readonly List<DirectoryPackager> Packagers = new() {
             new FxzyDirectoryPackager(),
             new SazPackager(),
             new HttpArchivePackager()
@@ -291,7 +291,7 @@ namespace Fluxzy.Cli.Commands
 
         public async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)
         {
-            var packager = _packagers.FirstOrDefault(p => p.ShouldApplyTo(outFileName));
+            var packager = Packagers.FirstOrDefault(p => p.ShouldApplyTo(outFileName));
 
             if (packager == null) {
                 throw new ArgumentException(
