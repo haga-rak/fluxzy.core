@@ -77,93 +77,176 @@ namespace Fluxzy
             Secure = secure;
         }
 
+        /// <summary>
+        /// The connection id 
+        /// </summary>
         [JsonPropertyOrder(-10)]
         [Key(0)]
         public int ConnectionId { get; private set;  }
 
+        /// <summary>
+        /// The exchange id
+        /// </summary>
         [JsonPropertyOrder(-9)]
         [Key(1)]
         public int Id { get; private set; }
 
+        /// <summary>
+        ///  The request header
+        /// </summary>
         [Key(2)]
         public RequestHeaderInfo RequestHeader { get; private set; }
 
+        /// <summary>
+        /// The response header
+        /// </summary>
         [Key(3)]
         public ResponseHeaderInfo? ResponseHeader { get; private set; }
 
+        /// <summary>
+        /// Metrics about this exchange
+        /// </summary>
         [Key(4)]
         public ExchangeMetrics Metrics { get; private set; }
 
+        /// <summary>
+        /// A simplified response content type of this exchange, values can be:
+        /// json, html, css, img, xml, js, font, audio, video, pdf, pbuf, text, xul, zip, bin
+        /// </summary>
         [IgnoreMember]
         public string? ContentType => HeaderUtility.GetSimplifiedContentType(this);
 
+        /// <summary>
+        /// The total number of bytes received
+        /// </summary>
         [IgnoreMember]
         public long Received => Metrics.TotalReceived;
-
+        
+        /// <summary>
+        /// The total number of bytes sent
+        /// </summary>
         [IgnoreMember]
         public long Sent => Metrics.TotalSent;
 
         /// <summary>
-        /// Misleading
+        ///  True if the exchange is complete
         /// </summary>
         [IgnoreMember]
         public bool Done => ResponseHeader?.StatusCode > 0;
 
+        /// <summary>
+        /// True if the exchange is pending
+        /// </summary>
         [Key(5)]
         public bool Pending { get; private set; }
 
+        /// <summary>
+        /// The http version, values possible are HTTP/1.1, HTTP/2
+        /// </summary>
         [Key(6)]
         public string HttpVersion { get; private set; }
 
+        /// <summary>
+        /// The absolute full url of the request
+        /// </summary>
         [IgnoreMember]
         public string FullUrl => RequestHeader.GetFullUrl();
 
+        /// <summary>
+        /// The remote hostname 
+        /// </summary>
         [Key(7)]
         public string KnownAuthority { get; private set; }
 
+        /// <summary>
+        /// The remote port
+        /// </summary>
         [Key(8)]
         public int KnownPort { get; private set; }
 
+        /// <summary>
+        /// True if exchange is HTTPS 
+        /// </summary>
         [Key(9)]
         public bool Secure { get; private set; }
 
+        /// <summary>
+        /// The request method
+        /// </summary>
         [IgnoreMember]
         public string Method => RequestHeader.Method.ToString();
 
+        /// <summary>
+        /// The request path only
+        /// </summary>
         [IgnoreMember]
         public string Path => RequestHeader.GetPathOnly();
 
+        /// <summary>
+        /// Enumerate request headers
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
             return RequestHeader.Headers;
         }
 
+        /// <summary>
+        /// Enumerate response headers
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<HeaderFieldInfo>? GetResponseHeaders()
         {
             return ResponseHeader?.Headers;
         }
 
+        /// <summary>
+        /// The HTTP status code. If no response has been received: 0.
+        /// </summary>
         [IgnoreMember]
         public int StatusCode => ResponseHeader?.StatusCode ?? 0;
 
+        /// <summary>
+        /// The remote IP address, null if not known 
+        /// </summary>
         [Key(10)]
         public string? EgressIp { get; private set; }
 
+        /// <summary>
+        /// A comment about about this exchange
+        /// </summary>
         [Key(11)]
         public string? Comment { get; set; }
 
+        /// <summary>
+        /// Tags (metainformation) on this exchange
+        /// </summary>
         [Key(12)]
         public HashSet<Tag> Tags { get; private set; }
 
+        /// <summary>
+        /// True if the current exchange is a websocket exchange
+        /// </summary>
         [Key(13)]
         public bool IsWebSocket { get; private set; }
 
+        /// <summary>
+        /// List of websocket messages if the current exchange is a websocket exchange.
+        /// null otherwise
+        /// </summary>
         [Key(14)]
         public List<WsMessage>? WebSocketMessages { get; private set; }
 
+        /// <summary>
+        /// A friendly information about the client agent. In default implementation, agent is inferred
+        /// from user agent. 
+        /// </summary>
         [Key(15)]
         public Agent? Agent { get; private set; }
 
+        /// <summary>
+        ///  Contains a list of transport errors that occurred during the exchange. 
+        /// </summary>
         [Key(16)]
         public List<ClientError> ClientErrors { get; private set; }
     }
