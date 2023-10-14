@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
+using Fluxzy.Extensions;
 using Fluxzy.Misc;
 using MessagePack;
 
@@ -231,6 +232,36 @@ namespace Fluxzy.Readers
             }
 
             return entry.Open();
+        }
+
+        public Stream? GetDecodedRequestBody(int exchangeId)
+        {
+            var exchangeInfo = ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                throw new InvalidOperationException($"Exchange {exchangeId} not found on this archive");
+
+            var originalStream = GetRequestBody(exchangeInfo.Id);
+
+            if (originalStream == null)
+                return null;
+
+            return exchangeInfo.GetDecodedRequestBodyStream(originalStream, out _);
+        }
+
+        public Stream? GetDecodedResponseBody(int exchangeId)
+        {
+            var exchangeInfo = ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                throw new InvalidOperationException($"Exchange {exchangeId} not found on this archive");
+
+            var originalStream = GetResponseBody(exchangeInfo.Id);
+
+            if (originalStream == null)
+                return null;
+
+            return exchangeInfo.GetDecodedResponseBodyStream(originalStream, out _, true);
         }
 
         public bool HasResponseBody(int exchangeId)

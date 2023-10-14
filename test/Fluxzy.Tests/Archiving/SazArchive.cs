@@ -82,7 +82,7 @@ namespace Fluxzy.Tests.Archiving
             var exchange3RequestBody = directoryArchiveReader.GetRequestBody(exchanges[2].Id)
                                                              ?.ReadToEndGreedy();
 
-            var exchange2ResponseBody = directoryArchiveReader.GetDecodedResponseBody(exchanges[1])
+            var exchange2ResponseBody = directoryArchiveReader.GetDecodedResponseBody(exchanges[1].Id)
                                                               ?.ReadToEndGreedy();
 
             Assert.Equal(string.Empty, exchange1RequestBody);

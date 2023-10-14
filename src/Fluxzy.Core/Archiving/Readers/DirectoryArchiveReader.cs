@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -153,15 +154,6 @@ namespace Fluxzy.Readers
             return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
-        public Stream? GetDecodedRequestBody(ExchangeInfo exchangeInfo)
-        {
-            var originalStream = GetRequestBody(exchangeInfo.Id); 
-
-            if (originalStream == null) 
-                return null;
-
-            return exchangeInfo.GetDecodedResponseBodyStream(originalStream, out _);
-        }
 
         public long GetRequestBodyLength(int exchangeId)
         {
@@ -229,8 +221,28 @@ namespace Fluxzy.Readers
             return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
-        public Stream? GetDecodedResponseBody(ExchangeInfo exchangeInfo)
+        public Stream? GetDecodedRequestBody(int exchangeId)
         {
+            var exchangeInfo = ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                throw new InvalidOperationException($"Exchange {exchangeId} not found on this archive");
+
+            var originalStream = GetRequestBody(exchangeInfo.Id);
+
+            if (originalStream == null)
+                return null;
+
+            return exchangeInfo.GetDecodedRequestBodyStream(originalStream, out _);
+        }
+
+        public Stream? GetDecodedResponseBody(int exchangeId)
+        {
+            var exchangeInfo = ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                throw new InvalidOperationException($"Exchange {exchangeId} not found on this archive"); 
+
             var originalStream = GetResponseBody(exchangeInfo.Id);
 
             if (originalStream == null)
@@ -257,31 +269,7 @@ namespace Fluxzy.Readers
         {
         }
 
-        public Stream? GetDecodedRequestBody(ExchangeInfo exchangeInfo)
-        {
-            var originalStream = GetRequestBody(exchangeInfo.Id);
-
-            if (originalStream == null) {
-                return null;
-            }
-
-            return CompressionHelper.GetDecodedContentStream(
-                exchangeInfo,
-                originalStream, out _);
-        }
-
-        public Stream? GetDecodedResponseBody(ExchangeInfo exchangeInfo)
-        {
-            var originalStream = GetResponseBody(exchangeInfo.Id);
-
-            if (originalStream == null) {
-                return null;
-            }
-
-            return CompressionHelper.GetDecodedContentStream(
-                exchangeInfo,
-                originalStream, out _, true);
-        }
+        
 
         public string? GetRawCaptureFile(int connectionId)
         {
