@@ -74,3 +74,10 @@ rules:
 
 
 
+### See also
+
+The following actions are related to this action: 
+
+ - [setRequestCookieAction](setRequestCookieAction)
+ - [setResponseCookieAction](setResponseCookieAction)
+

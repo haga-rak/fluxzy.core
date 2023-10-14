@@ -46,4 +46,13 @@ rules:
 ```
 
 
+### See also
+
+The following filters are related to this filter: 
+
+ - [statusCodeFilter](statusCodeFilter)
+ - [statusCodeSuccessFilter](statusCodeSuccessFilter)
+ - [statusCodeRedirectionFilter](statusCodeRedirectionFilter)
+ - [statusCodeClientErrorFilter](statusCodeClientErrorFilter)
+ - [statusCodeServerErrorFilter](statusCodeServerErrorFilter)
 

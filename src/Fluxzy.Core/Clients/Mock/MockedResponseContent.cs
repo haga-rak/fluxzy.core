@@ -28,7 +28,7 @@ namespace Fluxzy.Clients.Mock
         public Dictionary<string, string> Headers { get; set; } = new();
 
         [PropertyDistinctive(Description = "Body content", Expand = true)]
-        public BodyContent? Body { get; }
+        public BodyContent? Body { get; set; }
 
         public override string GetFlatH11Header(Authority authority, ExchangeContext? exchangeContext)
         {
