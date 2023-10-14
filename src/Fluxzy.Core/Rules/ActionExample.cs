@@ -13,6 +13,5 @@ namespace Fluxzy.Rules
         public string Description { get; }
 
         public Action Action { get;  }
-
     }
 }

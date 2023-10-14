@@ -11,6 +11,7 @@
     <ApplicationIcon>.Assets/icon.ico</ApplicationIcon>
     <Copyright>Copyright © 2022 Haga Rakotoharivelo</Copyright>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

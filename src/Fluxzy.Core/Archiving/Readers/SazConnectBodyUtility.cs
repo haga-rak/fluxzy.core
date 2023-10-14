@@ -8,7 +8,7 @@ using System.Xml.XPath;
 
 namespace Fluxzy.Readers
 {
-    public static class SazConnectBodyUtility
+    internal static class SazConnectBodyUtility
     {
         public static SslProtocols ? GetSslVersion(string contentBody)
         {

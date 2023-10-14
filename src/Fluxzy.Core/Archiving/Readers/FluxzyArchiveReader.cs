@@ -1,13 +1,14 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using MessagePack;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
+using Fluxzy.Extensions;
 using Fluxzy.Misc;
+using MessagePack;
 
 namespace Fluxzy.Readers
 {
@@ -34,8 +35,9 @@ namespace Fluxzy.Readers
         {
             var metaEntry = _zipFile.Entries.FirstOrDefault(e => e.FullName.EndsWith("meta.json"));
 
-            if (metaEntry == null)
+            if (metaEntry == null) {
                 return new ArchiveMetaInformation();
+            }
 
             using var metaStream = metaEntry.Open();
 
@@ -56,7 +58,7 @@ namespace Fluxzy.Readers
                                var result = MessagePackSerializer.Deserialize<ExchangeInfo>(stream,
                                    GlobalArchiveOption.MessagePackSerializerOptions);
 
-                               return result; 
+                               return result;
                            })
                            .Where(t => t != null)
                            .Select(t => t!);
@@ -67,8 +69,9 @@ namespace Fluxzy.Readers
             var path = DirectoryArchiveHelper.GetExchangePath(string.Empty, exchangeId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return null;
+            }
 
             using var stream = entry.Open();
 
@@ -97,8 +100,9 @@ namespace Fluxzy.Readers
             var path = DirectoryArchiveHelper.GetConnectionPath(string.Empty, connectionId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return null;
+            }
 
             using var stream = entry.Open();
 
@@ -109,16 +113,17 @@ namespace Fluxzy.Readers
 
         public IReadOnlyCollection<DownstreamErrorInfo> ReaderAllDownstreamErrors()
         {
-            var path = DirectoryArchiveHelper.GetErrorPath(string.Empty); 
+            var path = DirectoryArchiveHelper.GetErrorPath(string.Empty);
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return Array.Empty<DownstreamErrorInfo>();
+            }
 
             using var stream = entry.Open();
 
-            return MessagePackQueueExtensions.DeserializeMultiple<DownstreamErrorInfo>(stream,
-                GlobalArchiveOption.MessagePackSerializerOptions).ToList();
+            return stream.DeserializeMultiple<DownstreamErrorInfo>(GlobalArchiveOption.MessagePackSerializerOptions)
+                         .ToList();
         }
 
         public Stream? GetRawCaptureStream(int connectionId)
@@ -126,8 +131,9 @@ namespace Fluxzy.Readers
             var path = Path.Combine("captures", $"{connectionId}.pcapng").Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return null;
+            }
 
             return entry.Open();
         }
@@ -137,8 +143,9 @@ namespace Fluxzy.Readers
             var path = Path.Combine("captures", $"{connectionId}.nsskeylog").Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return null;
+            }
 
             return entry.Open();
         }
@@ -148,8 +155,9 @@ namespace Fluxzy.Readers
             var path = DirectoryArchiveHelper.GetContentRequestPath(string.Empty, exchangeId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return null;
+            }
 
             return entry.Open();
         }
@@ -159,8 +167,9 @@ namespace Fluxzy.Readers
             var path = DirectoryArchiveHelper.GetContentRequestPath(string.Empty, exchangeId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return -1;
+            }
 
             return entry.Length;
         }
@@ -170,8 +179,9 @@ namespace Fluxzy.Readers
             var path = DirectoryArchiveHelper.GetContentResponsePath(string.Empty, exchangeId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return 0;
+            }
 
             return entry.Length;
         }
@@ -183,8 +193,9 @@ namespace Fluxzy.Readers
 
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return null;
+            }
 
             return entry.Open();
         }
@@ -196,8 +207,9 @@ namespace Fluxzy.Readers
 
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return null;
+            }
 
             return entry.Open();
         }
@@ -215,10 +227,41 @@ namespace Fluxzy.Readers
             var path = DirectoryArchiveHelper.GetContentResponsePath(string.Empty, exchangeId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
 
-            if (entry == null)
+            if (entry == null) {
                 return null;
+            }
 
             return entry.Open();
+        }
+
+        public Stream? GetDecodedRequestBody(int exchangeId)
+        {
+            var exchangeInfo = ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                throw new InvalidOperationException($"Exchange {exchangeId} not found on this archive");
+
+            var originalStream = GetRequestBody(exchangeInfo.Id);
+
+            if (originalStream == null)
+                return null;
+
+            return exchangeInfo.GetDecodedRequestBodyStream(originalStream, out _);
+        }
+
+        public Stream? GetDecodedResponseBody(int exchangeId)
+        {
+            var exchangeInfo = ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                throw new InvalidOperationException($"Exchange {exchangeId} not found on this archive");
+
+            var originalStream = GetResponseBody(exchangeInfo.Id);
+
+            if (originalStream == null)
+                return null;
+
+            return exchangeInfo.GetDecodedResponseBodyStream(originalStream, out _, true);
         }
 
         public bool HasResponseBody(int exchangeId)

@@ -21,7 +21,7 @@ namespace Fluxzy.Clients.Mock
         }
 
         [PropertyDistinctive(Description = "The status code of the response")]
-        public int StatusCode { get; }
+        public int StatusCode { get; set; }
 
         [JsonInclude]
         [PropertyDistinctive(Description = "Key values containing extra headers")]
