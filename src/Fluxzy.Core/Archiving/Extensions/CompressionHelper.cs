@@ -9,12 +9,12 @@ namespace Fluxzy.Extensions
 {
     public static class CompressionHelper
     {
-        public static byte[]? ReadResponseBodyContent(
+        public static byte[]? ReadResponseBodyContent(this
             ExchangeInfo exchangeInfo,
             Stream responseBodyInStream, int maximumLength, out CompressionInfo compressionInfo)
         {
             // Check for chunked body 
-            var workStream = GetDecodedContentStream(exchangeInfo, responseBodyInStream, out var compressionType);
+            var workStream = GetDecodedResponseBodyStream(exchangeInfo, responseBodyInStream, out var compressionType);
 
             compressionInfo = new CompressionInfo {
                 CompressionName = compressionType.ToString()
@@ -28,7 +28,7 @@ namespace Fluxzy.Extensions
             }
         }
 
-        public static Stream GetDecodedContentStream(
+        public static Stream GetDecodedResponseBodyStream(this 
             ExchangeInfo exchangeInfo, Stream responseBodyInStream,
             out CompressionType compressionType, bool skipForwarded = false)
         {

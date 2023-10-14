@@ -153,6 +153,16 @@ namespace Fluxzy.Readers
             return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
+        public Stream? GetDecodedRequestBody(ExchangeInfo exchangeInfo)
+        {
+            var originalStream = GetRequestBody(exchangeInfo.Id); 
+
+            if (originalStream == null) 
+                return null;
+
+            return exchangeInfo.GetDecodedResponseBodyStream(originalStream, out _);
+        }
+
         public long GetRequestBodyLength(int exchangeId)
         {
             var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(BaseDirectory, exchangeId);
@@ -217,6 +227,16 @@ namespace Fluxzy.Readers
             }
 
             return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        }
+
+        public Stream? GetDecodedResponseBody(ExchangeInfo exchangeInfo)
+        {
+            var originalStream = GetResponseBody(exchangeInfo.Id);
+
+            if (originalStream == null)
+                return null;
+
+            return exchangeInfo.GetDecodedResponseBodyStream(originalStream, out _, true);
         }
 
         public bool HasResponseBody(int exchangeId)
