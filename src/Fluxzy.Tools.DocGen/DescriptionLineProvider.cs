@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Fluxzy.Rules;
+using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Utils;
+using Org.BouncyCastle.Asn1.X509.Qualified;
 using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy.Tools.DocGen
@@ -15,6 +17,11 @@ namespace Fluxzy.Tools.DocGen
     {
         private static string GetPropertyFriendlyType(Type type)
         {
+            if (type == typeof(int?))
+            {
+
+            }
+
             if (!type.IsEnum)
                 return type.Name.ToCamelCase();
 
@@ -41,9 +48,9 @@ namespace Fluxzy.Tools.DocGen
                              .Expand()
                              .Select(n => new FilterDescriptionLine(
                                  n.FullName,
-                                 GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
+                                 n.DistinctiveAttribute.FriendlyType ?? GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
                                  n.DistinctiveAttribute!.Description,
-                                 defaultInstance?.GetType().GetProperty(n.PropertyInfo.Name)
+                                 n.DistinctiveAttribute.DefaultValue ?? defaultInstance?.GetType().GetProperty(n.PropertyInfo.Name)
                                                 ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? "*null*"
                              ));
         }
@@ -52,7 +59,7 @@ namespace Fluxzy.Tools.DocGen
         {
             var defaultInstance = ReflectionHelper.GetForcedInstance<Action>(filterType);
             var isPremade = defaultInstance.IsPremade();
-
+            
             return filterType.GetProperties()
                              .Select(n => new {
                                  PropertyInfo = n,
@@ -64,10 +71,10 @@ namespace Fluxzy.Tools.DocGen
                              .Expand()
                              .Select(n => new ActionDescriptionLine(
                                  n.FullName,
-                                 GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
+                                 n.DistinctiveAttribute.FriendlyType ?? GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
                                  n.DistinctiveAttribute!.Description,
                                  defaultInstance?.GetType().GetProperty(n.PropertyInfo.Name)
-                                                ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? ""
+                                  ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? ""
                              ));
         }
 
