@@ -2,7 +2,6 @@
 
 using System;
 using System.Buffers;
-using System.IO;
 using System.Net;
 using MessagePack;
 using MessagePack.Formatters;

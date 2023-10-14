@@ -8,10 +8,13 @@ namespace Fluxzy.Certificates
 
         FromUserStoreSerialNumber,
 
+        /// <summary>
+        /// From the current store, by thumbprint
+        /// </summary>
         FromUserStoreThumbPrint,
 
         /// <summary>
-        ///     Typicaly pfx and p12 files
+        ///     Pfx and p12 files
         /// </summary>
         FromPkcs12
     }

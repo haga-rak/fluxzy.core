@@ -34,10 +34,49 @@ namespace Fluxzy.Extensions
         {
             var workStream = responseBodyInStream;
 
-            if (exchangeInfo.IsChunkedTransferEncoded(skipForwarded))
+            if (exchangeInfo.IsResponseChunkedTransferEncoded(skipForwarded))
                 workStream = new ChunkedTransferReadStream(workStream, true);
 
-            compressionType = exchangeInfo.GetCompressionType();
+            compressionType = exchangeInfo.GetResponseCompressionType();
+
+            switch (compressionType) {
+                case CompressionType.None:
+                    break;
+
+                case CompressionType.Gzip:
+                    workStream = new GZipStream(workStream, CompressionMode.Decompress, false);
+
+                    break;
+
+                case CompressionType.Deflate:
+                    workStream = new DeflateStream(workStream, CompressionMode.Decompress, false);
+
+                    break;
+
+                case CompressionType.Compress:
+                    workStream = new LzwInputStream(workStream);
+
+                    break;
+
+                case CompressionType.Brotli:
+                    workStream = new BrotliStream(workStream, CompressionMode.Decompress, false);
+
+                    break;
+            }
+
+            return workStream;
+        }
+
+        public static Stream GetDecodedRequestBodyStream(this 
+            ExchangeInfo exchangeInfo, Stream requestBodyStream,
+            out CompressionType compressionType, bool skipForwarded = false)
+        {
+            var workStream = requestBodyStream;
+
+            if (exchangeInfo.IsRequestChunkedTransferEncoded(skipForwarded))
+                workStream = new ChunkedTransferReadStream(workStream, true);
+
+            compressionType = exchangeInfo.GetRequestCompressionType();
 
             switch (compressionType) {
                 case CompressionType.None:

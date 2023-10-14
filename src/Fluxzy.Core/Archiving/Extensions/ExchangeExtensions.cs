@@ -62,12 +62,18 @@ namespace Fluxzy.Extensions
             return null;
         }
 
-        public static bool IsChunkedTransferEncoded(this ExchangeInfo exchangeInfo, bool skipForwarded = false)
+        public static bool IsResponseChunkedTransferEncoded(this ExchangeInfo exchangeInfo, bool skipForwarded = false)
         {
-            if (exchangeInfo.ResponseHeader?.Headers == null)
+            var headers = exchangeInfo.ResponseHeader?.Headers;
+            return IsChunkedTransferEncoded(skipForwarded, headers);
+        }
+
+        private static bool IsChunkedTransferEncoded(bool skipForwarded, IEnumerable<HeaderFieldInfo>? headers)
+        {
+            if (headers == null)
                 return false;
 
-            return exchangeInfo.ResponseHeader.Headers.Any(h =>
+            return headers.Any(h =>
                 (skipForwarded || !h.Forwarded) && // ----> What is this condition
                 h.Name.Span.Equals("Transfer-Encoding",
                     StringComparison.OrdinalIgnoreCase)
@@ -76,14 +82,39 @@ namespace Fluxzy.Extensions
             );
         }
 
-        public static CompressionType GetCompressionType(this ExchangeInfo exchangeInfo)
+        public static bool IsRequestChunkedTransferEncoded(this ExchangeInfo exchangeInfo, bool skipForwarded = false)
+        {
+            var headers = exchangeInfo.RequestHeader?.Headers;
+            return IsChunkedTransferEncoded(skipForwarded, headers);
+        }
+
+        public static CompressionType GetResponseCompressionType(this ExchangeInfo exchangeInfo)
         {
             if (exchangeInfo.ResponseHeader?.Headers == null)
                 throw new InvalidOperationException("This exchange does not have response body");
 
-            var encodingHeaders = exchangeInfo.ResponseHeader.Headers.Where(h => (h.Forwarded &&
-                    h.Name.Span.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase))
-                || h.Name.Span.Equals("Content-encoding", StringComparison.OrdinalIgnoreCase)).ToList();
+            var headers = exchangeInfo.ResponseHeader.Headers;
+
+            return InternalGetCompressionType(headers);
+        }
+
+        public static CompressionType GetRequestCompressionType(this ExchangeInfo exchangeInfo)
+        {
+            if (exchangeInfo.RequestHeader?.Headers == null)
+                throw new InvalidOperationException("This exchange does not have request body");
+
+            var headers = exchangeInfo.RequestHeader.Headers;
+
+            return InternalGetCompressionType(headers);
+        }
+
+        private static CompressionType InternalGetCompressionType(IEnumerable<HeaderFieldInfo> headers)
+        {
+            var encodingHeaders = headers.Where(h => (h.Forwarded &&
+                                                      h.Name.Span.Equals("Transfer-Encoding",
+                                                          StringComparison.OrdinalIgnoreCase))
+                                                     || h.Name.Span.Equals("Content-encoding",
+                                                         StringComparison.OrdinalIgnoreCase)).ToList();
 
             if (encodingHeaders.Any(h => h.Value.Span.Contains("gzip", StringComparison.OrdinalIgnoreCase)))
                 return CompressionType.Gzip;
