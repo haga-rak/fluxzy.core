@@ -51,4 +51,11 @@ rules:
 ```
 
 
+### See also
+
+The following filters are related to this filter: 
+
+ - [hasAnyCookieOnRequestFilter](hasAnyCookieOnRequestFilter)
+ - [hasCookieOnRequestFilter](hasCookieOnRequestFilter)
+ - [hasSetCookieOnResponseFilter](hasSetCookieOnResponseFilter)
 

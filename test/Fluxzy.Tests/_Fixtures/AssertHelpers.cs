@@ -18,17 +18,16 @@ namespace Fluxzy.Tests._Fixtures
         {
             var binResponse = JsonSerializer.Deserialize<MockResponse>(contentText)!;
 
-            if (responseSize >= 0 && binResponse.Headers.ContainsKey("Content-Length")) {
+            if (responseSize >= 0 && binResponse.Headers!.ContainsKey("Content-Length")) {
                 var contentLength = int.Parse(binResponse.Headers["Content-Length"]);
                 Assert.Equal(responseSize, contentLength);
-                ;
             }
 
             foreach (var header in requestMessage.Headers) {
                 if (HttpConstants.PermanentHeaders.Contains(header.Key))
                     continue;
 
-                Assert.True(binResponse.Headers.TryGetValue(header.Key, out var responseValue));
+                Assert.True(binResponse.Headers!.TryGetValue(header.Key, out var responseValue));
                 Assert.Equal(string.Join(",", header.Value), responseValue);
             }
 

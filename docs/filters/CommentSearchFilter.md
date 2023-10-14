@@ -35,4 +35,11 @@ The following table describes the customizable properties available for this fil
 
 This filter has no specific usage example
 
+### See also
+
+The following filters are related to this filter: 
+
+ - [agentFilter](agentFilter)
+ - [hasCommentFilter](hasCommentFilter)
+ - [commentSearchFilter](commentSearchFilter)
 
