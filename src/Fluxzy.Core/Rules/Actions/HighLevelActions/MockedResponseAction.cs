@@ -27,7 +27,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public override string DefaultDescription => "Full response substitution";
+        public override string DefaultDescription => "Mock response";
 
         public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
