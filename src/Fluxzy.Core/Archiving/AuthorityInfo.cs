@@ -6,6 +6,9 @@ using Fluxzy.Core;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// Information about a remote authority
+    /// </summary>
     public class AuthorityInfo
     {
         public AuthorityInfo(Authority original)
@@ -23,10 +26,19 @@ namespace Fluxzy
             Secure = secure;
         }
 
+        /// <summary>
+        /// The hostname 
+        /// </summary>
         public string HostName { get; set; }
 
+        /// <summary>
+        /// Port number
+        /// </summary>
         public int Port { get; set; }
 
+        /// <summary>
+        /// true if the request is secure (HTTPS)
+        /// </summary>
         public bool Secure { get; set; }
 
         protected bool Equals(AuthorityInfo other)
