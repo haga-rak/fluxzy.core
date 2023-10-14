@@ -33,4 +33,13 @@ The following table describes the customizable properties available for this fil
 
 This filter has no specific usage example
 
+### See also
+
+The following filters are related to this filter: 
+
+ - [statusCodeFilter](statusCodeFilter)
+ - [statusCodeSuccessFilter](statusCodeSuccessFilter)
+ - [statusCodeRedirectionFilter](statusCodeRedirectionFilter)
+ - [statusCodeClientErrorFilter](statusCodeClientErrorFilter)
+ - [statusCodeServerErrorFilter](statusCodeServerErrorFilter)
 

@@ -46,4 +46,14 @@ rules:
 ```
 
 
+### See also
+
+The following filters are related to this filter: 
+
+ - [methodFilter](methodFilter)
+ - [getFilter](getFilter)
+ - [postFilter](postFilter)
+ - [putFilter](putFilter)
+ - [deleteFilter](deleteFilter)
+ - [patchFilter](patchFilter)
 
