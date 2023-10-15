@@ -246,6 +246,4 @@ namespace Fluxzy
             _disposed = true;
         }
     }
-
-    // public class 
 }
