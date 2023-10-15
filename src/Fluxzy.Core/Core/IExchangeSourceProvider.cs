@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.ResizableBuffers;
-using Fluxzy.Rules;
 
 namespace Fluxzy.Core
 {
@@ -33,37 +32,11 @@ namespace Fluxzy.Core
         /// <param name="inStream"></param>
         /// <param name="authority"></param>
         /// <param name="buffer"></param>
-        /// <param name="options"></param>
         /// <param name="token"></param>
         /// <returns></returns>
         ValueTask<Exchange?> ReadNextExchange(
             Stream inStream, Authority authority, RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
             CancellationToken token);
-    }
-
-    internal interface IExchangeContextBuilder
-    {
-        ValueTask<ExchangeContext> Create(Authority authority, bool secure);
-    }
-
-    internal class ExchangeContextBuilder : IExchangeContextBuilder
-    {
-        private readonly ProxyRuntimeSetting _runtimeSetting;
-
-        public ExchangeContextBuilder(ProxyRuntimeSetting runtimeSetting)
-        {
-            _runtimeSetting = runtimeSetting;
-        }
-
-        public ValueTask<ExchangeContext> Create(Authority authority, bool secure)
-        {
-            var result = new ExchangeContext(authority,
-                _runtimeSetting.VariableContext, _runtimeSetting.StartupSetting) {
-                Secure = secure
-            };
-
-            return  _runtimeSetting.EnforceRules(result, FilterScope.OnAuthorityReceived); 
-        }
     }
 }

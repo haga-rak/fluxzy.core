@@ -9,7 +9,6 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Rules;
 
 namespace Fluxzy.Core
 {
@@ -37,7 +36,6 @@ namespace Fluxzy.Core
 
             AcceptTunnelResponse = Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
         }
-
 
         private readonly IIdProvider _idProvider;
         private readonly SecureConnectionUpdater _secureConnectionUpdater;

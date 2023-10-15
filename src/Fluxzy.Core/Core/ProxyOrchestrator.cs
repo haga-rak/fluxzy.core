@@ -439,38 +439,45 @@ namespace Fluxzy.Core
                     return;
                 }
 
-
                 // FATAL exception only happens here 
                 throw;
             }
         }
 
-        private async ValueTask SafeCloseRequestBody(Exchange exchange)
+        private ValueTask SafeCloseRequestBody(Exchange exchange)
         {
             if (exchange.Request.Body != null) {
                 try {
                     // Clean the pipe 
-                    await exchange.Request.Body.DisposeAsync();
-                    exchange.Request.Body = null;
+                    var body = exchange.Request.Body;
+                    exchange.Request.Body = null; 
+
+                    return body.DisposeAsync();
                 }
                 catch {
                     // ignore errors when closing pipe 
                 }
             }
+
+            return default; 
         }
 
-        private async ValueTask SafeCloseResponseBody(Exchange exchange)
+        private ValueTask SafeCloseResponseBody(Exchange exchange)
         {
             if (exchange.Response.Body != null) {
                 try {
                     // Clean the pipe 
-                    await exchange.Response.Body.DisposeAsync();
+                    var body = exchange.Response.Body;
                     exchange.Response.Body = null;
+
+                    return body.DisposeAsync();
                 }
                 catch {
                     // ignore errors when closing pipe 
                 }
             }
+
+            return default; 
         }
     }
 }
