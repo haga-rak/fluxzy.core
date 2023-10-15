@@ -14,7 +14,7 @@ using Fluxzy.Misc.Traces;
 
 namespace Fluxzy.Core
 {
-    public class SecureConnectionUpdater
+    internal class SecureConnectionUpdater
     {
         private readonly ICertificateProvider _certificateProvider;
 

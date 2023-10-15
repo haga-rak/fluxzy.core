@@ -14,7 +14,7 @@ namespace Fluxzy.Core
     public abstract class Header
     {
         protected static readonly byte[] CloseFlatHeader = "Connection: close\r\n"u8.ToArray();
-        protected static readonly byte[] KeepAliveeFlatHeader = "Connection: keep-alive\r\n"u8.ToArray();
+        protected static readonly byte[] KeepAliveFlatHeader = "Connection: keep-alive\r\n"u8.ToArray();
 
         private readonly ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields;
         private readonly List<HeaderField> _rawHeaderFields;
@@ -269,8 +269,8 @@ namespace Fluxzy.Core
             }
 
             if (writeKeepAlive) {
-                KeepAliveeFlatHeader.CopyTo(data.Slice(totalLength));
-                totalLength += KeepAliveeFlatHeader.Length;
+                KeepAliveFlatHeader.CopyTo(data.Slice(totalLength));
+                totalLength += KeepAliveFlatHeader.Length;
             }
 
             totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));

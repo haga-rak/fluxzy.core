@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,7 @@ namespace Fluxzy.Core
         /// </summary>
         /// <returns></returns>
         IReadOnlyCollection<IPEndPoint> Init(CancellationToken token);
+
 
         ValueTask<TcpClient?> GetNextPendingConnection();
     }

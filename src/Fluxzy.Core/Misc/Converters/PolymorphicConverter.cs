@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using YamlDotNet.Serialization;
 
 namespace Fluxzy.Misc.Converters
 {
@@ -64,14 +63,5 @@ namespace Fluxzy.Misc.Converters
         {
             JsonSerializer.Serialize(writer, value, value.GetType(), options);
         }
-    }
-
-    public abstract class PolymorphicObject
-    {
-        [JsonIgnore]
-        [YamlIgnore]
-        protected abstract string Suffix { get; }
-
-        public string TypeKind => GetType().Name;
     }
 }

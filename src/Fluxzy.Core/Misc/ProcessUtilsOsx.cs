@@ -38,8 +38,6 @@ namespace Fluxzy.Misc
 
             // Now we need to ask the password via osascript 
 
-            // osascript -e 'Tell application "System Events" to display dialog "Password:" default answer "" with hidden answer' -e 'text returned of result'
-
             var numberTries = 3;  // We tries 3 times
 
             for (int i = 0; i < numberTries; i++)
