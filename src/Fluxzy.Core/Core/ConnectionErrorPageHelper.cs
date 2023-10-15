@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Fluxzy.Core
 {
-    public static class ConnectionErrorPageHelper
+    internal static class ConnectionErrorPageHelper
     {
         private static readonly string ErrorHeader =
             "HTTP/1.1 {0}\r\n" +

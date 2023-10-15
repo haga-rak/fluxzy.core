@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Fluxzy.Rules;
-using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Utils;
-using Org.BouncyCastle.Asn1.X509.Qualified;
 using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy.Tools.DocGen
@@ -17,13 +15,12 @@ namespace Fluxzy.Tools.DocGen
     {
         private static string GetPropertyFriendlyType(Type type)
         {
-            if (type == typeof(int?))
-            {
-
+            if (type == typeof(int?)) {
             }
 
-            if (!type.IsEnum)
+            if (!type.IsEnum) {
                 return type.Name.ToCamelCase();
+            }
 
             var enumNames = Enum.GetNames(type)
                                 .Select(s => s.ToCamelCase())
@@ -48,10 +45,12 @@ namespace Fluxzy.Tools.DocGen
                              .Expand()
                              .Select(n => new FilterDescriptionLine(
                                  n.FullName,
-                                 n.DistinctiveAttribute.FriendlyType ?? GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
+                                 n.DistinctiveAttribute.FriendlyType ??
+                                 GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
                                  n.DistinctiveAttribute!.Description,
-                                 n.DistinctiveAttribute.DefaultValue ?? defaultInstance?.GetType().GetProperty(n.PropertyInfo.Name)
-                                                ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? "*null*"
+                                 n.DistinctiveAttribute.DefaultValue ?? defaultInstance?.GetType()
+                                     .GetProperty(n.PropertyInfo.Name)
+                                     ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? "*null*"
                              ));
         }
 
@@ -59,7 +58,7 @@ namespace Fluxzy.Tools.DocGen
         {
             var defaultInstance = ReflectionHelper.GetForcedInstance<Action>(filterType);
             var isPremade = defaultInstance.IsPremade();
-            
+
             return filterType.GetProperties()
                              .Select(n => new {
                                  PropertyInfo = n,
@@ -71,14 +70,13 @@ namespace Fluxzy.Tools.DocGen
                              .Expand()
                              .Select(n => new ActionDescriptionLine(
                                  n.FullName,
-                                 n.DistinctiveAttribute.FriendlyType ?? GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
+                                 n.DistinctiveAttribute.FriendlyType ??
+                                 GetPropertyFriendlyType(n.PropertyInfo.PropertyType),
                                  n.DistinctiveAttribute!.Description,
                                  defaultInstance?.GetType().GetProperty(n.PropertyInfo.Name)
-                                  ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? ""
+                                                ?.GetValue(defaultInstance)?.ToString()?.ToCamelCase() ?? ""
                              ));
         }
-
-
     }
 
     internal class PropertyDescription
@@ -93,12 +91,11 @@ namespace Fluxzy.Tools.DocGen
 
         public PropertyDistinctiveAttribute DistinctiveAttribute { get; }
 
-        public PropertyDescription?  Parent { get; set; }
+        public PropertyDescription? Parent { get; set; }
 
         public string FullName {
             get
             {
-
                 var ancestorNames = GetAncestors()
                                     .Select(n => n.PropertyInfo.Name.ToCamelCase())
                                     .ToList();
@@ -112,8 +109,9 @@ namespace Fluxzy.Tools.DocGen
 
         private IEnumerable<PropertyDescription> GetAncestors()
         {
-            if (Parent == null)
+            if (Parent == null) {
                 yield break;
+            }
 
             yield return Parent;
 
@@ -125,13 +123,10 @@ namespace Fluxzy.Tools.DocGen
 
     internal static class PropertyHelper
     {
-
         internal static IEnumerable<PropertyDescription> Expand(this IEnumerable<PropertyDescription> items)
         {
-            foreach (var item in items)
-            {
-                if (!item.DistinctiveAttribute.Expand)
-                {
+            foreach (var item in items) {
+                if (!item.DistinctiveAttribute.Expand) {
                     yield return item;
 
                     continue;
@@ -152,7 +147,6 @@ namespace Fluxzy.Tools.DocGen
                 foreach (var subProperty in subProperties.Expand()) {
                     yield return subProperty;
                 }
-
             }
         }
     }

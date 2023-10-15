@@ -15,13 +15,13 @@ namespace Fluxzy.Core
 {
     internal class ProxyRuntimeSetting
     {
-        private readonly FluxzySetting _startupSetting;
+
         private List<Rule>? _effectiveRules;
 
         private ProxyRuntimeSetting()
         {
             ArchiveWriter = new EventOnlyArchiveWriter();
-            _startupSetting = new FluxzySetting();
+            StartupSetting = new FluxzySetting();
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
         }
@@ -36,7 +36,7 @@ namespace Fluxzy.Core
         {
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
-            _startupSetting = startupSetting;
+            StartupSetting = startupSetting;
             ExecutionContext = executionContext;
             TcpConnectionProvider = tcpConnectionProvider;
             ArchiveWriter = archiveWriter;
@@ -49,6 +49,7 @@ namespace Fluxzy.Core
         {
             ArchiveWriter = new EventOnlyArchiveWriter()
         };
+        public FluxzySetting StartupSetting { get; }
 
         public ProxyExecutionContext? ExecutionContext { get; }
 
@@ -77,12 +78,12 @@ namespace Fluxzy.Core
 
         public int ProxyListenPort { get; set; }
 
-        public async ValueTask EnforceRules(
+        public async ValueTask<ExchangeContext> EnforceRules(
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
-            _effectiveRules ??= _startupSetting.FixedRules()
-                                               .Concat(_startupSetting.AlterationRules)
+            _effectiveRules ??= StartupSetting.FixedRules()
+                                               .Concat(StartupSetting.AlterationRules)
                                                .ToList();
 
             foreach (var rule in _effectiveRules.Where(a => 
@@ -106,6 +107,8 @@ namespace Fluxzy.Core
                 await rule.Enforce(context, exchange, connection, filterScope,
                     ExecutionContext?.BreakPointManager!);
             }
+
+            return context;
         }
     }
 }

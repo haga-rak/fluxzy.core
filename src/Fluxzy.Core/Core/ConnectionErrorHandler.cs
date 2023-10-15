@@ -12,7 +12,7 @@ using Fluxzy.Clients.H2;
 
 namespace Fluxzy.Core
 {
-    public class ConnectionErrorHandler
+    internal static class ConnectionErrorHandler
     {
         public static bool RequalifyOnResponseSendError(
             Exception ex,
@@ -45,38 +45,38 @@ namespace Fluxzy.Core
                             (int) socketException.SocketErrorCode,
                             $"The remote peer ({remoteIpAddress}) " +
                             $"could not be contacted within the configured timeout on the port {exchange.Authority.Port}.") {
-                                ExceptionMessage = socketException.Message
-                            };
+                            ExceptionMessage = socketException.Message
+                        };
 
-                            exchange.ClientErrors.Add(clientError);
+                        exchange.ClientErrors.Add(clientError);
 
-                            break;
-                        }
+                        break;
+                    }
 
-                        case SocketError.ConnectionRefused: {
-                            var clientError = new ClientError(
-                                (int) socketException.SocketErrorCode,
-                                $"The remote peer ({remoteIpAddress}) responded but refused actively to establish a connection.") {
-                                    ExceptionMessage = socketException.Message
-                                };
+                    case SocketError.ConnectionRefused: {
+                        var clientError = new ClientError(
+                            (int) socketException.SocketErrorCode,
+                            $"The remote peer ({remoteIpAddress}) responded but refused actively to establish a connection.") {
+                            ExceptionMessage = socketException.Message
+                        };
 
-                                exchange.ClientErrors.Add(clientError);
+                        exchange.ClientErrors.Add(clientError);
 
-                                break;
-                            }
+                        break;
+                    }
 
-                            default: {
-                                var clientError = new ClientError(
-                                    (int) socketException.SocketErrorCode,
-                                    "A socket exception has occured") {
-                                    ExceptionMessage = socketException.Message
-                                };
+                    default: {
+                        var clientError = new ClientError(
+                            (int) socketException.SocketErrorCode,
+                            "A socket exception has occured") {
+                            ExceptionMessage = socketException.Message
+                        };
 
-                                exchange.ClientErrors.Add(clientError);
+                        exchange.ClientErrors.Add(clientError);
 
-                                break;
-                            }
-                        }
+                        break;
+                    }
+                }
             }
 
             if (ex.TryGetException<ClientErrorException>(out var clientErrorException)) {
@@ -155,6 +155,6 @@ namespace Fluxzy.Core
             }
 
             return false;
-                }
-            }
         }
+    }
+}
