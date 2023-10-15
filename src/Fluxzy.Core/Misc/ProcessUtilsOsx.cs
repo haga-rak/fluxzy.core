@@ -47,14 +47,19 @@ namespace Fluxzy.Misc
                 var result =
                     await AskForElevation(askPasswordPrompt);
 
-                if (result)
+                if (result == PasswordElevationRequestResult.OK)
                     return true;
+
+                if (result == PasswordElevationRequestResult.Refused)
+                    break;
+
+                // Otherwise, we try again
             }
 
             return false;
         }
 
-        private static async Task<bool> AskForElevation(string askPasswordPrompt)
+        private static async Task<PasswordElevationRequestResult> AskForElevation(string askPasswordPrompt)
         {
             var osascript = new ProcessStartInfo("osascript", $"-e \"Tell application \\\"System Events\\\" " +
                                                               $"to display dialog \\\"{askPasswordPrompt}\\\" " +
@@ -73,7 +78,7 @@ namespace Fluxzy.Misc
 
             if (osascriptProcess.ExitCode != 0)
             {
-                return false;
+                return PasswordElevationRequestResult.Refused;
             }
 
             try
@@ -92,7 +97,7 @@ namespace Fluxzy.Misc
 
                 await checkStartProcess.WaitForExitAsync();
 
-                return checkStartProcess.ExitCode == 0;
+                return checkStartProcess.ExitCode == 0 ? PasswordElevationRequestResult.OK : PasswordElevationRequestResult.BadPassword;
             }
             finally
             {
@@ -111,6 +116,13 @@ namespace Fluxzy.Misc
 
             await checkStart.WaitForExitAsync();
             return checkStart.ExitCode == 0;
+        }
+
+        internal enum PasswordElevationRequestResult
+        {
+            Refused,
+            BadPassword,
+            OK
         }
     }
 }
