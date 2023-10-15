@@ -197,9 +197,7 @@ namespace Fluxzy.Clients
 
                 // HTTPS test 1.1/2
 
-                RemoteConnectionResult openingResult = default;
-
-
+                RemoteConnectionResult openingResult;
                 try
                 {
                     openingResult =

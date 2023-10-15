@@ -26,8 +26,8 @@ namespace Fluxzy.Clients.H11
         public static async ValueTask<HeaderBlockReadResult>
             GetNext(
                 Stream stream, RsBuffer buffer,
-                Action firstByteReceived,
-                Action headerBlockReceived,
+                Action? firstByteReceived,
+                Action? headerBlockReceived,
                 bool throwOnError = false,
                 CancellationToken token = default)
         {
@@ -86,7 +86,7 @@ namespace Fluxzy.Clients.H11
                 return default;
             }
 
-            headerBlockReceived();
+            headerBlockReceived?.Invoke();
 
             return new HeaderBlockReadResult(indexFound, totalRead);
         }

@@ -51,11 +51,9 @@ namespace Fluxzy.Interop.Pcap.Cli
 
             var haltSource = new CancellationTokenSource();
 
-            var stdInClose = Task.Run(async () => { await CancelTokenSourceOnStandardInputClose(haltSource); });
+            var stdInClose = Task.Run(() => CancelTokenSourceOnStandardInputClose(haltSource), haltSource.Token);
 
-            var parentMonitoringTask = Task.Run(async () => {
-                await CancelTokenWhenParentProcessExit(haltSource, processId);
-            });
+            var parentMonitoringTask = Task.Run(() => CancelTokenWhenParentProcessExit(haltSource, processId));
 
             await using var receiverContext =
                 new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);

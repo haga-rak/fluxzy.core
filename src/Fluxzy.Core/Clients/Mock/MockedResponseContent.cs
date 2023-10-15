@@ -24,7 +24,7 @@ namespace Fluxzy.Clients.Mock
         public int StatusCode { get; set; }
 
         [JsonInclude]
-        [PropertyDistinctive(Description = "Key values containing extra headers")]
+        [PropertyDistinctive(Description = "Key values containing extra headers", FriendlyType = "Map<string, string>")]
         public Dictionary<string, string> Headers { get; set; } = new();
 
         [PropertyDistinctive(Description = "Body content", Expand = true)]
