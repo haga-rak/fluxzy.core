@@ -21,19 +21,21 @@ namespace Fluxzy.Core
     internal class ProxyOrchestrator : IDisposable
     {
         private readonly RealtimeArchiveWriter _archiveWriter;
-        private readonly ExchangeBuilder _exchangeBuilder;
+        private readonly FromProxyConnectSourceProvider _fromProxyConnectSourceProvider;
         private readonly PoolBuilder _poolBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
+        private readonly ExchangeContextBuilder _exchangeContextBuilder;
 
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
-            ExchangeBuilder exchangeBuilder,
+            FromProxyConnectSourceProvider fromProxyConnectSourceProvider,
             PoolBuilder poolBuilder)
         {
             _proxyRuntimeSetting = proxyRuntimeSetting;
-            _exchangeBuilder = exchangeBuilder;
+            _fromProxyConnectSourceProvider = fromProxyConnectSourceProvider;
             _poolBuilder = poolBuilder;
             _archiveWriter = proxyRuntimeSetting.ArchiveWriter;
+            _exchangeContextBuilder = new ExchangeContextBuilder(proxyRuntimeSetting);
         }
 
         public void Dispose()
@@ -56,11 +58,11 @@ namespace Fluxzy.Core
 
                 if (!token.IsCancellationRequested) {
                     // READ initial state of connection, 
-                    ExchangeBuildingResult? localConnection = null;
+                    ExchangeSourceInitResult? localConnection = null;
 
                     try {
-                        localConnection = await _exchangeBuilder.InitClientConnection(client.GetStream(), buffer,
-                            _proxyRuntimeSetting, closeImmediately, token);
+                        localConnection = await _fromProxyConnectSourceProvider.InitClientConnection(client.GetStream(), buffer,
+                            _exchangeContextBuilder, token);
                     }
                     catch (Exception ex) {
                         // Failure from the local connection
@@ -396,10 +398,10 @@ namespace Fluxzy.Core
 
                         try {
                             // Read the next HTTP message 
-                            exchange = await _exchangeBuilder.ReadExchange(
+                            exchange = await _fromProxyConnectSourceProvider.ReadNextExchange(
                                 localConnection.ReadStream,
                                 localConnection.Authority,
-                                buffer, _proxyRuntimeSetting, token
+                                buffer, _exchangeContextBuilder, token
                             );
 
                             if (exchange != null) {
