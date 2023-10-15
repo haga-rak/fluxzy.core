@@ -25,12 +25,10 @@ namespace Fluxzy.Clients.H11
         private readonly H1Logger _logger;
 
         private readonly Channel<Http11ProcessingState> _pendingConnections;
-
-        //private readonly Queue<Http11ProcessingState> _processingStates = new();
+        
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
-        //private readonly SemaphoreSlim _semaphoreSlim;
         private readonly ITimingProvider _timingProvider;
 
         internal Http11ConnectionPool(
@@ -47,7 +45,6 @@ namespace Fluxzy.Clients.H11
             _archiveWriter = archiveWriter;
             _resolutionResult = resolutionResult;
             Authority = authority;
-            //_semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection);
 
             _pendingConnections = Channel.CreateBounded<Http11ProcessingState>(
                     new BoundedChannelOptions(proxyRuntimeSetting.ConcurrentConnection) {
@@ -83,10 +80,7 @@ namespace Fluxzy.Clients.H11
 
             try {
                 _logger.Trace(exchange, "Begin wait for authority slot");
-
-                //if (!_semaphoreSlim.Wait(0))
-                //    await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
-
+                
                 _logger.Trace(exchange.Id, "Acquiring slot");
 
                 var requestDate = _timingProvider.Instant();
@@ -96,7 +90,7 @@ namespace Fluxzy.Clients.H11
                     if (HasConnectionExpired(requestDate, state))
                     {
                         // The connection pool exceeds timing connection ..
-                        //  TODO: Gracefully relese connection
+                        //  TODO: Gracefully release connection
 
                         continue;
                     }
@@ -105,7 +99,6 @@ namespace Fluxzy.Clients.H11
                     _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
 
                     break;
-
                 }
 
                 if (exchange.Connection == null) {

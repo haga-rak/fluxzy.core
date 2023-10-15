@@ -34,10 +34,10 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         [ActionDistinctive(Description = "Cookie domain")]
         public string? Domain { get; set; } = null;
 
-        [ActionDistinctive(Description = "Cookie expiration date in seconds from now`")]
+        [ActionDistinctive(Description = "Cookie expiration date in seconds from now", FriendlyType = "integer")]
         public int? ExpireInSeconds { get; set; } = null;
 
-        [ActionDistinctive(Description = "Cookie max age in seconds")]
+        [ActionDistinctive(Description = "Cookie max age in seconds", FriendlyType = "integer")]
         public int? MaxAge { get; set; } = null;
 
         [ActionDistinctive(Description = "HttpOnly property")]

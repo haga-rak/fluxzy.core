@@ -46,4 +46,10 @@ rules:
 ```
 
 
+### See also
+
+The following filters are related to this filter: 
+
+ - [h11TrafficOnlyFilter](h11TrafficOnlyFilter)
+ - [h2TrafficOnlyFilter](h2TrafficOnlyFilter)
 

@@ -48,7 +48,8 @@ namespace Fluxzy.Rules.Filters
         }
 
 
-        [FilterDistinctive(Description = "Children filters")]
+        [FilterDistinctive(Description = "Children filters", FriendlyType = "array of filters",
+            DefaultValue = "[]")]
         public List<Filter> Children { get; set; } = new();
 
 

@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,7 +13,6 @@ namespace Fluxzy.Readers
 {
     public class DirectoryArchiveReader : IArchiveReader
     {
-
         private readonly string _captureDirectory;
 
         public DirectoryArchiveReader(string baseDirectory)
@@ -27,8 +27,9 @@ namespace Fluxzy.Readers
         {
             var metaPath = DirectoryArchiveHelper.GetMetaPath(BaseDirectory);
 
-            if (!File.Exists(metaPath))
+            if (!File.Exists(metaPath)) {
                 return new ArchiveMetaInformation();
+            }
 
             using var metaStream = File.Open(metaPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
@@ -40,22 +41,22 @@ namespace Fluxzy.Readers
         {
             var exchangeDirectory = new DirectoryInfo(Path.Combine(BaseDirectory, "exchanges"));
 
-            if (!exchangeDirectory.Exists)
+            if (!exchangeDirectory.Exists) {
                 return Enumerable.Empty<ExchangeInfo>();
+            }
 
             return exchangeDirectory.EnumerateFiles("*.mpack", SearchOption.AllDirectories)
                                     .Select(f => {
-
                                         try {
-                                            return MessagePackSerializer.Deserialize<ExchangeInfo>(File.ReadAllBytes(f.FullName),
+                                            return MessagePackSerializer.Deserialize<ExchangeInfo>(
+                                                File.ReadAllBytes(f.FullName),
                                                 GlobalArchiveOption.MessagePackSerializerOptions);
                                         }
                                         catch {
                                             // some files may be halfwritten in the proxy was not halted correctly
                                             // ignore
-                                            return null; 
+                                            return null;
                                         }
-                                        
                                     })
                                     .Where(t => t != null)
                                     .OrderBy(t => t!.Id)
@@ -66,9 +67,10 @@ namespace Fluxzy.Readers
         {
             var exchangePath = DirectoryArchiveHelper.GetExchangePath(BaseDirectory, exchangeId);
 
-            if (!File.Exists(exchangePath))
+            if (!File.Exists(exchangePath)) {
                 return null;
-            
+            }
+
             return MessagePackSerializer.Deserialize<ExchangeInfo>(File.ReadAllBytes(exchangePath),
                 GlobalArchiveOption.MessagePackSerializerOptions);
         }
@@ -77,20 +79,18 @@ namespace Fluxzy.Readers
         {
             var connectionDirectory = new DirectoryInfo(Path.Combine(BaseDirectory, "connections"));
 
-            if (!connectionDirectory.Exists)
+            if (!connectionDirectory.Exists) {
                 return Enumerable.Empty<ConnectionInfo>();
+            }
 
             return connectionDirectory.EnumerateFiles("*.mpack", SearchOption.AllDirectories)
                                       .Select(f => {
-
-                                          try
-                                          {
+                                          try {
                                               return MessagePackSerializer.Deserialize<ConnectionInfo>(
                                                   File.ReadAllBytes(f.FullName),
                                                   GlobalArchiveOption.MessagePackSerializerOptions);
                                           }
-                                          catch
-                                          {
+                                          catch {
                                               // some files may be halfwritten in the proxy was not halted correctly
                                               // ignore
                                               return null;
@@ -112,8 +112,9 @@ namespace Fluxzy.Readers
         {
             var connectionPath = DirectoryArchiveHelper.GetConnectionPath(BaseDirectory, connectionId);
 
-            if (!File.Exists(connectionPath))
+            if (!File.Exists(connectionPath)) {
                 return null;
+            }
 
             return MessagePackSerializer.Deserialize<ConnectionInfo>(
                 File.ReadAllBytes(connectionPath),
@@ -124,8 +125,9 @@ namespace Fluxzy.Readers
         {
             var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
 
-            if (!File.Exists(capturePath))
+            if (!File.Exists(capturePath)) {
                 return null;
+            }
 
             return File.Open(capturePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
@@ -134,8 +136,9 @@ namespace Fluxzy.Readers
         {
             var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.nsskeylog");
 
-            if (!File.Exists(capturePath))
+            if (!File.Exists(capturePath)) {
                 return null;
+            }
 
             return File.Open(capturePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
@@ -144,31 +147,22 @@ namespace Fluxzy.Readers
         {
             var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(BaseDirectory, exchangeId);
 
-            if (!File.Exists(requestBodyPath))
+            if (!File.Exists(requestBodyPath)) {
                 return null;
+            }
 
             return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
-        public Stream? GetDecodedRequestBody(ExchangeInfo exchangeInfo)
-        {
-            var originalStream = GetRequestBody(exchangeInfo.Id); 
-
-            if (originalStream == null) 
-                return null;
-
-            return CompressionHelper.GetDecodedContentStream(
-                exchangeInfo,
-                originalStream, out _);
-        }
 
         public long GetRequestBodyLength(int exchangeId)
         {
             var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(BaseDirectory, exchangeId);
             var fileInfo = new FileInfo(requestBodyPath);
 
-            if (!fileInfo.Exists)
+            if (!fileInfo.Exists) {
                 return -1;
+            }
 
             return fileInfo.Length;
         }
@@ -178,8 +172,9 @@ namespace Fluxzy.Readers
             var responseBodyPath = DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId);
             var fileInfo = new FileInfo(responseBodyPath);
 
-            if (!fileInfo.Exists)
+            if (!fileInfo.Exists) {
                 return 0;
+            }
 
             return fileInfo.Length;
         }
@@ -189,8 +184,9 @@ namespace Fluxzy.Readers
             var requestBodyPath =
                 DirectoryArchiveHelper.GetWebsocketContentRequestPath(BaseDirectory, exchangeId, messageId);
 
-            if (!File.Exists(requestBodyPath))
+            if (!File.Exists(requestBodyPath)) {
                 return null;
+            }
 
             return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
@@ -200,8 +196,9 @@ namespace Fluxzy.Readers
             var responseBodyPath =
                 DirectoryArchiveHelper.GetWebsocketContentResponsePath(BaseDirectory, exchangeId, messageId);
 
-            if (!File.Exists(responseBodyPath))
+            if (!File.Exists(responseBodyPath)) {
                 return null;
+            }
 
             return File.Open(responseBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
@@ -217,22 +214,41 @@ namespace Fluxzy.Readers
         {
             var requestContentPath = DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId);
 
-            if (!File.Exists(requestContentPath))
+            if (!File.Exists(requestContentPath)) {
                 return null;
+            }
 
             return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
-        public Stream? GetDecodedResponseBody(ExchangeInfo exchangeInfo)
+        public Stream? GetDecodedRequestBody(int exchangeId)
         {
+            var exchangeInfo = ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                throw new InvalidOperationException($"Exchange {exchangeId} not found on this archive");
+
+            var originalStream = GetRequestBody(exchangeInfo.Id);
+
+            if (originalStream == null)
+                return null;
+
+            return exchangeInfo.GetDecodedRequestBodyStream(originalStream, out _);
+        }
+
+        public Stream? GetDecodedResponseBody(int exchangeId)
+        {
+            var exchangeInfo = ReadExchange(exchangeId);
+
+            if (exchangeInfo == null)
+                throw new InvalidOperationException($"Exchange {exchangeId} not found on this archive"); 
+
             var originalStream = GetResponseBody(exchangeInfo.Id);
 
             if (originalStream == null)
                 return null;
 
-            return CompressionHelper.GetDecodedContentStream(
-                exchangeInfo,
-                originalStream, out _, true);
+            return exchangeInfo.GetDecodedResponseBodyStream(originalStream, out _, true);
         }
 
         public bool HasResponseBody(int exchangeId)
@@ -253,12 +269,15 @@ namespace Fluxzy.Readers
         {
         }
 
+        
+
         public string? GetRawCaptureFile(int connectionId)
         {
             var capturePath = Path.Combine(_captureDirectory, $"{connectionId}.pcapng");
 
-            if (!File.Exists(capturePath))
+            if (!File.Exists(capturePath)) {
                 return null;
+            }
 
             return capturePath;
         }

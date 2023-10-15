@@ -97,7 +97,7 @@ namespace Fluxzy
                 Writer, IdProvider, userAgentProvider);
 
             _proxyOrchestrator = new ProxyOrchestrator(_runTimeSetting,
-                new ExchangeBuilder(secureConnectionManager, IdProvider), poolBuilder);
+                new FromProxyConnectSourceProvider(secureConnectionManager, IdProvider), poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
                                                          t.Filter is AnyFilter)
@@ -246,6 +246,4 @@ namespace Fluxzy
             _disposed = true;
         }
     }
-
-    // public class 
 }

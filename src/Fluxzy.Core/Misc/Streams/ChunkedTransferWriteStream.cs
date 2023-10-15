@@ -93,18 +93,15 @@ namespace Fluxzy.Misc.Streams
                 ArrayPool<byte>.Shared.Return(poolBuffer);
             }
         }
-
-        public override async ValueTask DisposeAsync()
-        {
-            await base.DisposeAsync();
-        }
-
-        public async ValueTask WriteEof()
+        
+        public ValueTask WriteEof()
         {
             if (!_eof) {
                 _eof = true;
-                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(ChunkTerminator));
+                return _innerStream.WriteAsync(ChunkTerminator);
             }
+
+            return default;
         }
     }
 }

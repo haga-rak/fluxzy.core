@@ -157,7 +157,25 @@ namespace Fluxzy.Tools.DocGen
                 }
             }
 
+            writer.WriteLine("### See also");
             writer.WriteLine();
+
+            var seeAlsoFilters = SeeAlsoHelper.GetSeeAlsoFilters(type).ToList();
+
+            if (!seeAlsoFilters.Any()) {
+                writer.WriteLine("This filter has no related filter");
+                writer.WriteLine();
+            }
+            else {
+                writer.WriteLine("The following filters are related to this filter: ");
+                writer.WriteLine();
+
+                foreach (var seeAlsoFilter in seeAlsoFilters) {
+                    writer.WriteLine($" - [{seeAlsoFilter.Name.ToCamelCase()}]({seeAlsoFilter.Name.ToCamelCase()})");
+                }
+
+                writer.WriteLine();
+            }
         }
 
         public void BuildAction(string directory, Type type, List<SearchableItem> items)
@@ -283,6 +301,26 @@ namespace Fluxzy.Tools.DocGen
             }
 
             writer.WriteLine();
+
+            writer.WriteLine("### See also");
+            writer.WriteLine();
+
+            var seeAlsoActions = SeeAlsoHelper.GetSeeAlsoActions(type).ToList();
+
+            if (!seeAlsoActions.Any()) {
+                writer.WriteLine("This action has no related action");
+                writer.WriteLine();
+            }
+            else {
+                writer.WriteLine("The following actions are related to this action: ");
+                writer.WriteLine();
+
+                foreach (var seeAlsoAction in seeAlsoActions) {
+                    writer.WriteLine($" - [{seeAlsoAction.Name.ToCamelCase()}]({seeAlsoAction.Name.ToCamelCase()})");
+                }
+
+                writer.WriteLine();
+            }
         }
 
         private static string ProduceMarkdownTableLine(IEnumerable<string> columns)

@@ -29,8 +29,8 @@ The following table describes the customizable properties available for this act
 | value | string | Cookie value |  |
 | path | string | Cookie path |  |
 | domain | string | Cookie domain |  |
-| expireInSeconds | nullable`1 | Cookie expiration date in seconds from now` |  |
-| maxAge | nullable`1 | Cookie max age in seconds |  |
+| expireInSeconds | integer | Cookie expiration date in seconds from now |  |
+| maxAge | integer | Cookie max age in seconds |  |
 | httpOnly | boolean | HttpOnly property | false |
 | secure | boolean | Secure property | false |
 | sameSite | string | Set `SameSite` property. Usual values are Strict, Lax and None. [Check](https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie)  |  |
@@ -73,4 +73,11 @@ rules:
 ```
 
 
+
+### See also
+
+The following actions are related to this action: 
+
+ - [setRequestCookieAction](setRequestCookieAction)
+ - [setResponseCookieAction](setResponseCookieAction)
 

@@ -46,4 +46,12 @@ rules:
 ```
 
 
+### See also
+
+The following filters are related to this filter: 
+
+ - [hasAuthorizationFilter](hasAuthorizationFilter)
+ - [hasAuthorizationBearerFilter](hasAuthorizationBearerFilter)
+ - [hasSetCookieOnResponseFilter](hasSetCookieOnResponseFilter)
+ - [requestHeaderFilter](requestHeaderFilter)
 

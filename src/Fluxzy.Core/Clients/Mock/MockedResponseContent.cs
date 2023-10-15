@@ -21,14 +21,14 @@ namespace Fluxzy.Clients.Mock
         }
 
         [PropertyDistinctive(Description = "The status code of the response")]
-        public int StatusCode { get; }
+        public int StatusCode { get; set; }
 
         [JsonInclude]
-        [PropertyDistinctive(Description = "Key values containing extra headers")]
+        [PropertyDistinctive(Description = "Key values containing extra headers", FriendlyType = "Map<string, string>")]
         public Dictionary<string, string> Headers { get; set; } = new();
 
         [PropertyDistinctive(Description = "Body content", Expand = true)]
-        public BodyContent? Body { get; }
+        public BodyContent? Body { get; set; }
 
         public override string GetFlatH11Header(Authority authority, ExchangeContext? exchangeContext)
         {

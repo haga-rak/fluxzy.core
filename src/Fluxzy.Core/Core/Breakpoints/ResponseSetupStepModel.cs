@@ -61,7 +61,7 @@ namespace Fluxzy.Core.Breakpoints
 
                     // TODO : we need to decode here 
                     
-                    await CompressionHelper.GetDecodedContentStream(new ExchangeInfo(exchange),
+                    await CompressionHelper.GetDecodedResponseBodyStream(new ExchangeInfo(exchange),
                         exchange.Response.Body, out _).CopyToAsync(fileStream);
                 }
 

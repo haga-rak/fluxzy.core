@@ -7,11 +7,11 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    public class ExchangeBuildingResult : ILocalLink
+    internal class ExchangeSourceInitResult : ILocalLink
     {
         private static int _count;
 
-        public ExchangeBuildingResult(
+        public ExchangeSourceInitResult(
             Authority authority,
             Stream readStream,
             Stream writeStream,

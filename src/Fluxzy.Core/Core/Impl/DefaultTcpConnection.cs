@@ -9,7 +9,7 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    public class DefaultTcpConnection : ITcpConnection
+    internal class DefaultTcpConnection : ITcpConnection
     {
         private readonly TcpClient _client;
 
