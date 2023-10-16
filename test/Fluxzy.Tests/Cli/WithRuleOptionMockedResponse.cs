@@ -85,8 +85,10 @@ namespace Fluxzy.Tests.Cli
                     response:
                       statusCode: 200
                       headers:
-                        coco: lolo 
-                        zozo: zaza 
+                        - name: coco 
+                          value: lolo 
+                        - name: zozo 
+                          value: zaza 
                       body:
                         text: cocoyes
                 """;

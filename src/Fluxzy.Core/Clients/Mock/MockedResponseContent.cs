@@ -24,8 +24,8 @@ namespace Fluxzy.Clients.Mock
         public int StatusCode { get; set; }
 
         [JsonInclude]
-        [PropertyDistinctive(Description = "Key values containing extra headers", FriendlyType = "Map<string, string>")]
-        public Dictionary<string, string> Headers { get; set; } = new();
+        [PropertyDistinctive(Description = "Response headers", FriendlyType = "array of (name, value)")]
+        public List<MockedResponseHeader> Headers { get; set; } = new();
 
         [PropertyDistinctive(Description = "Body content", Expand = true)]
         public BodyContent? Body { get; set; }
@@ -47,7 +47,7 @@ namespace Fluxzy.Clients.Mock
 
                 builder.Append($"Content-length: {bodyContentLength}\r\n"); }
 
-            if (Body != null && !Headers.Keys.Any(k => k.Equals("content-type", StringComparison.OrdinalIgnoreCase))) {
+            if (Body != null && !Headers.Any(k => k.Name.Equals("content-type", StringComparison.OrdinalIgnoreCase))) {
                 var shortCutContentType = Body.GetContentTypeHeaderValue();
 
                 if (shortCutContentType != null)
@@ -55,7 +55,7 @@ namespace Fluxzy.Clients.Mock
             }
             
             foreach (var header in Headers) {
-                builder.Append($"{header.Key}: {header.Value}\r\n");
+                builder.Append($"{header.Name}: {header.Value}\r\n");
             }
 
             builder.Append("\r\n");
@@ -67,5 +67,20 @@ namespace Fluxzy.Clients.Mock
         {
             return Body == null ? Stream.Null : Body.GetStream();
         }
+    }
+
+    public class MockedResponseHeader
+    {
+        public MockedResponseHeader(string name, string value)
+        {
+            Name = name;
+            Value = value;
+        }
+
+        [PropertyDistinctive(Description = "Header name")]
+        public string Name { get; }
+
+        [PropertyDistinctive(Description = "Header value")]
+        public string Value { get;  }
     }
 }

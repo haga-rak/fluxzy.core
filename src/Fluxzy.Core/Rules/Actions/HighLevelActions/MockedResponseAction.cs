@@ -14,16 +14,16 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     [ActionMetadata("Reply with a pre-made response from a raw text or file")]
     public class MockedResponseAction : Action
     {
-        public MockedResponseAction(MockedResponseContent response)
+        public MockedResponseAction(MockedResponseContent?  response)
         {
-            Response = response;
+            Response = response ?? new MockedResponseContent(200, BodyContent.CreateFromString(""));
         }
 
         /// <summary>
         ///     The response
         /// </summary>
         [ActionDistinctive(Expand = true)]
-        public MockedResponseContent Response { get; set; }
+        public MockedResponseContent Response { get; set; } 
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
@@ -48,8 +48,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     new MockedResponseAction(new MockedResponseContent(200, bodyContent)
                     {
                         Headers = {
-                            ["DNT"] = "1",
-                            ["X-Custom-Header"] = "Custom-HeaderValue"
+                            new ("DNT", "1"),
+                            new ("X-Custom-Header", "Custom-HeaderValue"),
                         },
                     }));
             }
@@ -62,11 +62,10 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     new MockedResponseAction(new MockedResponseContent(404, bodyContent)
                     {
                         Headers = {
-                            ["Server"] = "Fluxzy",
-                            ["X-Custom-Header-2"] = "Custom-HeaderValue-2"
+                            new ("Server", "Fluxzy"),
+                            new ("X-Custom-Header-2", "Custom-HeaderValue-2"),
                         },
                     }));
-
             }
         }
 
@@ -79,8 +78,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             return new MockedResponseAction(new MockedResponseContent(200, bodyContent)
             {
                 Headers = {
-                    ["DN"] = "1",
-                    ["X-Custom-Header"] = "Custom-HeaderValue"
+                    new ("DNT", "1"),
+                    new ("X-Custom-Header", "Custom-HeaderValue")
                 },
             });
         }
