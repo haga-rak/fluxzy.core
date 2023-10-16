@@ -14,16 +14,16 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     [ActionMetadata("Reply with a pre-made response from a raw text or file")]
     public class MockedResponseAction : Action
     {
-        public MockedResponseAction(MockedResponseContent response)
+        public MockedResponseAction(MockedResponseContent?  response)
         {
-            Response = response;
+            Response = response ?? new MockedResponseContent(200, BodyContent.CreateFromString(""));
         }
 
         /// <summary>
         ///     The response
         /// </summary>
         [ActionDistinctive(Expand = true)]
-        public MockedResponseContent Response { get; set; }
+        public MockedResponseContent Response { get; set; } 
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
