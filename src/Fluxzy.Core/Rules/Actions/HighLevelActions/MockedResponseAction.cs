@@ -48,8 +48,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     new MockedResponseAction(new MockedResponseContent(200, bodyContent)
                     {
                         Headers = {
-                            ["DNT"] = "1",
-                            ["X-Custom-Header"] = "Custom-HeaderValue"
+                            new ("DNT", "1"),
+                            new ("X-Custom-Header", "Custom-HeaderValue"),
                         },
                     }));
             }
@@ -62,11 +62,10 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     new MockedResponseAction(new MockedResponseContent(404, bodyContent)
                     {
                         Headers = {
-                            ["Server"] = "Fluxzy",
-                            ["X-Custom-Header-2"] = "Custom-HeaderValue-2"
+                            new ("Server", "Fluxzy"),
+                            new ("X-Custom-Header-2", "Custom-HeaderValue-2"),
                         },
                     }));
-
             }
         }
 
@@ -79,8 +78,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             return new MockedResponseAction(new MockedResponseContent(200, bodyContent)
             {
                 Headers = {
-                    ["DN"] = "1",
-                    ["X-Custom-Header"] = "Custom-HeaderValue"
+                    new ("DNT", "1"),
+                    new ("X-Custom-Header", "Custom-HeaderValue")
                 },
             });
         }
