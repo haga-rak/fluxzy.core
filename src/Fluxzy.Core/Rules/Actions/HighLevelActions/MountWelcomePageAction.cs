@@ -32,7 +32,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     bodyContent)
                 {
                     Headers = {
-                        ["Content-Type"] = "text/html"
+                        new ("Content-Type","text/html")
                     }
                 };
             }

@@ -74,7 +74,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                 })
                 {
                     Headers = {
-                        ["Content-Type"] = contentType
+                        new ("Content-Type", contentType)
                     }
                 };
 
@@ -94,7 +94,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     })
                     {
                         Headers = {
-                            ["Content-Type"] = contentType
+                            new ("Content-Type", contentType)
                         }
                     };
                     return default;

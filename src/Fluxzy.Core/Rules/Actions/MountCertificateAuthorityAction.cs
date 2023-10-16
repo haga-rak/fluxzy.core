@@ -26,11 +26,11 @@ namespace Fluxzy.Rules.Actions
                 var mockedResponse = new MockedResponseContent(200,
                     bodyContent) {
                     Headers = {
-                        ["Content-Type"] = "application/x-x509-ca-cert"
+                        new ("Content-Type", "application/x-x509-ca-cert")
                     }
                 };
 
-                mockedResponse.Headers.Add("Content-Disposition", "attachment; filename=\"ca.crt\"");
+                mockedResponse.Headers.Add(new ("Content-Disposition", "attachment; filename=\"ca.crt\""));
 
                 context.PreMadeResponse = mockedResponse; 
             }
