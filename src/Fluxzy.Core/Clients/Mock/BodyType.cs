@@ -4,6 +4,7 @@ namespace Fluxzy.Clients.Mock
 {
     public enum BodyType
     {
+        Unknown = 0,
         Text = 1,
         Json,
         Xml,
