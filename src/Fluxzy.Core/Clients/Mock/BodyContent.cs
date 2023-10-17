@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json.Serialization;
 using Fluxzy.Rules;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Clients.Mock
 {
@@ -41,9 +42,31 @@ namespace Fluxzy.Clients.Mock
         [PropertyDistinctive(Description = "When Origin = fromFile, the path to the file to be used as response body.")]
         public string? FileName { get; set; }
 
+        [JsonIgnore]
+        [YamlIgnore]
+        public byte[]? Content { get; set; }
+
         [JsonInclude]
         [PropertyDistinctive(Description = "When Origin = fromImmediateArray, base64 encoded content of the response")]
-        public byte[]? Content { get; set; }
+        public string ? ContentBase64 {
+            get
+            {
+                if (Content == null) {
+                    return null;
+                }
+
+                return Convert.ToBase64String(Content);
+            }
+            set
+            {
+                if (value == null) {
+                    Content = null;
+                }
+                else {
+                    Content = Convert.FromBase64String(value);
+                }
+            }
+        }
         
         public static BodyContent CreateFromFile(string fileName)
         {
@@ -114,6 +137,7 @@ namespace Fluxzy.Clients.Mock
 
     public enum BodyContentLoadingType
     {
+        NotSet = 0,
         FromString = 1,
         FromImmediateArray,
         FromFile
