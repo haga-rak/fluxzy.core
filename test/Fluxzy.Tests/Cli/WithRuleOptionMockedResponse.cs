@@ -1,12 +1,11 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.IO.Compression;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Fluxzy.Tests._Files;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -41,6 +40,70 @@ namespace Fluxzy.Tests.Cli
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.Equal("cocoyes", responseBody);
+        }
+
+        [Fact]
+        public async Task Validate_MockedResponse_Base64()
+        {
+            // Arrange
+            var yamlContent = """
+                rules:
+                - filter: 
+                    typeKind: anyFilter  
+                    operation: endsWith
+                  action : 
+                    typeKind: mockedResponseAction
+                    response:
+                      statusCode: 200
+                      body:
+                        origin: FromImmediateARray
+                        contentBase64: Y29jb3llcw==
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://veryinvalidhost79795-sfsdfdsf.com/cookies");
+
+            // Act 
+            using var response = await Exec(yamlContent, requestMessage);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("cocoyes", responseBody);
+        }
+
+        [Fact]
+        public async Task Validate_MockedResponse_File()
+        {
+            File.WriteAllText("coco.txt", "cocoyesfile");
+
+            // Arrange
+            var yamlContent = """
+                rules:
+                - filter: 
+                    typeKind: anyFilter  
+                    operation: endsWith
+                  action : 
+                    typeKind: mockedResponseAction
+                    response:
+                      statusCode: 200
+                      body:
+                        origin: FromFile
+                        fileName: coco.txt
+                """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://veryinvalidhost79795-sfsdfdsf.com/cookies");
+
+            // Act 
+            using var response = await Exec(yamlContent, requestMessage);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("cocoyesfile", responseBody);
         }
 
         [Fact]
