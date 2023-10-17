@@ -51,7 +51,7 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [InlineData("https://fr.wiktionary.org/w/skins/Vector/resources/common/images/arrow-down.svg?9426f")]
+        [InlineData("https://fr.wiktionary.org/static/images/icons/wiktionary.svg")]
         [InlineData("https://discord.com/assets/afe2828ad8a44f9ed87d.js")]
         [InlineData("https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js")]
         [InlineData("https://services.gfe.nvidia.com/GFE/v1.0/dao/x64")]
