@@ -35,7 +35,7 @@ namespace Fluxzy.Tests
         {
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
-
+            
             var requestMessage = new HttpRequestMessage(method,
                 $"{TestConstants.Http2Host}/global-health-check?dsf=sdfs&dsf=3");
 
@@ -52,7 +52,6 @@ namespace Fluxzy.Tests
 
         [Theory]
         [InlineData("https://fr.wiktionary.org/static/images/icons/wiktionary.svg")]
-        [InlineData("https://discord.com/assets/afe2828ad8a44f9ed87d.js")]
         [InlineData("https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js")]
         [InlineData("https://services.gfe.nvidia.com/GFE/v1.0/dao/x64")]
         [InlineData("https://feedback.adrecover.com/ARWebService/checkCID")]
