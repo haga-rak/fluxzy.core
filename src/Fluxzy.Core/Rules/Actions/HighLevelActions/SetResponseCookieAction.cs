@@ -78,20 +78,19 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
             cookieBuilder.Append($"{actualName}={actualValue}");
 
-            if (Domain != null)
+            if (!string.IsNullOrWhiteSpace(Domain))
                 cookieBuilder.Append($"; Domain={Domain.EvaluateVariable(context)}");
 
-            if (Path != null)
+            if (!string.IsNullOrWhiteSpace(Path))
                 cookieBuilder.Append($"; Path={actualPath}");
 
-
-            if (ExpireInSeconds != null)
+            if (ExpireInSeconds != null || ExpireInSeconds == 0)
             {
                 var realExpires = DateTime.Now.AddSeconds(ExpireInSeconds.Value);
                 cookieBuilder.Append($"; Expires={realExpires:R}");
             }
 
-            if (MaxAge != null)
+            if (MaxAge != null || MaxAge == 0)
                 cookieBuilder.Append($"; Max-Age={MaxAge.Value}");
 
             if (HttpOnly)
