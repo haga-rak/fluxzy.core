@@ -10,7 +10,7 @@ namespace Fluxzy.Rules.Actions
 {
     [ActionMetadata(
         "Forward request to a specific URL. This action makes fluxzy act as a reverse proxy. " +
-        "Host header is automatically set. The URL must be an absolute path.")]
+        "Unlike [SpoofDnsAction](https://www.fluxzy.io/rule/item/spoofDnsAction), host header is automatically set and protocol switch is supported (http to https, http/1.1 to h2, ...). The URL must be an absolute path.")]
     public class ForwardAction : Action
     {
         public ForwardAction(string url)
