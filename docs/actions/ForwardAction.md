@@ -2,7 +2,7 @@
 
 ### Description
 
-Forward request to a specific URL. This action makes fluxzy act as a reverse proxy. Host header is automatically set. The URL must be an absolute path.
+Forward request to a specific URL. This action makes fluxzy act as a reverse proxy. Unlike [SpoofDnsAction](https://www.fluxzy.io/rule/item/spoofDnsAction), host header is automatically set and protocol switch is supported (http to https, http/1.1 to h2, ...). The URL must be an absolute path.
 
 ### Evaluation scope
 
@@ -52,5 +52,6 @@ The following actions are related to this action:
  - [mountCertificateAuthorityAction](mountCertificateAuthorityAction)
  - [mountWelcomePageAction](mountWelcomePageAction)
  - [forwardAction](forwardAction)
+ - [spoofDnsAction](spoofDnsAction)
  - [serveDirectoryAction](serveDirectoryAction)
 

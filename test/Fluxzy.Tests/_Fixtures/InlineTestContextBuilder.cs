@@ -28,7 +28,7 @@ namespace Fluxzy.Tests._Fixtures
             });
 
             var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting,
+                new CertificateProvider(startupSetting.CaCertificate,
                     new FileSystemCertificateCache(startupSetting)), new DefaultCertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 

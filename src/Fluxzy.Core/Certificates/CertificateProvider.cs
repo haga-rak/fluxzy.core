@@ -43,13 +43,13 @@ namespace Fluxzy.Certificates
         private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new();
 
         public CertificateProvider(
-            FluxzySetting startupSetting,
+            Certificate rootCertificate,
             ICertificateCache certCache)
         {
             _certCache = certCache;
 
             _rootCertificate =
-                startupSetting.CaCertificate.GetX509Certificate();
+                rootCertificate.GetX509Certificate();
 
             var pk = _rootCertificate.PublicKey;
 
@@ -86,6 +86,12 @@ namespace Fluxzy.Certificates
 
                 return r;
             }
+        }
+
+        internal byte[] GetCertificateBytes(string hostName)
+        {
+            hostName = GetRootDomain(hostName);
+            return BuildCertificateForRootDomain(_rootCertificate, _privateKey, hostName); 
         }
 
         public void Dispose()
@@ -230,14 +236,13 @@ namespace Fluxzy.Certificates
 #endif
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
-
+            
             using var cert = certificateRequest.Create(rootCertificate,
                 new DateTimeOffset(rootCertificate.NotBefore.AddSeconds(1)),
                 offSetEnd,
                 buffer);
 
             using var privateKeyCertificate = cert.CopyWithPrivateKey(privateKey);
-
             return privateKeyCertificate.Export(X509ContentType.Pkcs12);
         }
     }

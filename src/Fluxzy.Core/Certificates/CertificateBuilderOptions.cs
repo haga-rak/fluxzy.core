@@ -28,7 +28,7 @@ namespace Fluxzy.Certificates
 
         public string? P12Password { get; set; }
 
-        public int KeySize { get; set; }
+        public int KeySize { get; set; } = 2048;
 
         public void Validate()
         {

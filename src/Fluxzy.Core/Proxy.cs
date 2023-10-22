@@ -45,7 +45,7 @@ namespace Fluxzy
         /// <param name="startupSetting"></param>
         /// <param name="tcpConnectionProvider"></param>
         public Proxy(FluxzySetting startupSetting, ITcpConnectionProvider?  tcpConnectionProvider = null)
-			: this (startupSetting, new CertificateProvider(startupSetting, new InMemoryCertificateCache()), 
+			: this (startupSetting, new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()), 
 				new DefaultCertificateAuthorityManager(), tcpConnectionProvider: tcpConnectionProvider)
         {
 

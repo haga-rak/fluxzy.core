@@ -32,7 +32,7 @@ namespace Fluxzy.Core
         }
 
         public async Task<SecureConnectionUpdateResult> AuthenticateAsServer(
-            Stream stream, string host, CancellationToken token)
+            Stream stream, string host, ExchangeContext context, CancellationToken token)
         {
             var buffer = new byte[4];
             var originalStream = stream;
@@ -59,7 +59,7 @@ namespace Fluxzy.Core
             X509Certificate2 certificate;
 
             try {
-                certificate = _certificateProvider.GetCertificate(host);
+                certificate = context.ServerCertificate ?? _certificateProvider.GetCertificate(host);
             }
             catch (Exception e) {
                 if (D.EnableTracing) {
