@@ -32,7 +32,7 @@ namespace Fluxzy.Tests._Fixtures
                              .SetBoundAddress(BindHost, BindPort);
 
             InternalProxy = new Proxy(StartupSetting,
-                new CertificateProvider(StartupSetting, new InMemoryCertificateCache()),
+                new CertificateProvider(StartupSetting.CaCertificate, new InMemoryCertificateCache()),
                 new DefaultCertificateAuthorityManager());
 
             InternalProxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;

@@ -59,7 +59,7 @@ namespace Fluxzy.Rules.Actions
                 context.RemoteHostIp = ip;
             }
 
-            if (RemoteHostPort != null) {
+            if (RemoteHostPort != null && RemoteHostPort != 0) {
                 if (RemoteHostPort < 0 || RemoteHostPort > 65535)
                     throw new RuleExecutionFailureException(
                         $"{RemoteHostPort} is not a valid port. Port must be between 0 and 65536 exclusive.");

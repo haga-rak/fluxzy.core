@@ -98,7 +98,8 @@ namespace Fluxzy.Tools.DocGen
 
             ActionCategories.Add(
                 new() {
-                    typeof(MountCertificateAuthorityAction), typeof(MountWelcomePageAction), typeof(ForwardAction),
+                    typeof(MountCertificateAuthorityAction), typeof(MountWelcomePageAction), 
+                    typeof(ForwardAction), typeof(SpoofDnsAction),
                     typeof(ServeDirectoryAction),
 
                 });

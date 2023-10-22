@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -12,10 +13,22 @@ namespace Fluxzy.Tests.Cli
     public class WithRuleOptionBase : IAsyncDisposable
     {
         private ProxyInstance? _fluxzyInstance;
-        private ProxiedHttpClient? _proxiedHttpClient;
+
+        protected ProxiedHttpClient? Client { get; private set; }
+
         private string? _ruleFile;
 
         public CookieContainer CookieContainer { get; } = new();
+
+        private readonly List<FileInfo> _tempFiles = new();
+
+        protected FileInfo GetTempFile()
+        {
+            var uniqueIdentifier = Guid.NewGuid().ToString();
+            var tempFile = new FileInfo($"{uniqueIdentifier}.yml");
+            _tempFiles.Add(tempFile);
+            return tempFile;
+        }
 
         protected async Task<HttpResponseMessage> Exec(string yamlContent, HttpRequestMessage requestMessage, bool allowAutoRedirect = true)
         {
@@ -33,9 +46,9 @@ namespace Fluxzy.Tests.Cli
 
             _fluxzyInstance = await commandLineHost.Run();
 
-            _proxiedHttpClient = new ProxiedHttpClient(_fluxzyInstance.ListenPort, cookieContainer: CookieContainer, allowAutoRedirect: allowAutoRedirect);
+            Client = new ProxiedHttpClient(_fluxzyInstance.ListenPort, cookieContainer: CookieContainer, allowAutoRedirect: allowAutoRedirect);
 
-            return  await _proxiedHttpClient.Client.SendAsync(requestMessage);
+            return  await Client.Client.SendAsync(requestMessage);
         }
         
         public async ValueTask DisposeAsync()
@@ -44,10 +57,15 @@ namespace Fluxzy.Tests.Cli
                 File.Delete(_ruleFile);
 
 
-            _proxiedHttpClient?.Dispose();
+            Client?.Dispose();
 
             if (_fluxzyInstance != null)
                 await _fluxzyInstance.DisposeAsync();
+
+            foreach (var tempFile in _tempFiles) {
+                if (tempFile.Exists)
+                    tempFile.Delete();
+            }
         }
     }
 }

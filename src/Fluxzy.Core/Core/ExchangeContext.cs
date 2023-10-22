@@ -44,6 +44,11 @@ namespace Fluxzy.Core
         public X509Certificate2Collection? ClientCertificates { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public X509Certificate2? ServerCertificate { get; set; }
+
+        /// <summary>
         ///     true if fluxzy should not decrypt this exchange
         /// </summary>
         public bool BlindMode { get; set; }
