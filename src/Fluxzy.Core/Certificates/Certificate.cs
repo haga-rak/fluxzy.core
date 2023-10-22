@@ -76,6 +76,14 @@ namespace Fluxzy.Certificates
             };
         }
 
+        public static Certificate LoadFromPkcs12(string pkcs12File)
+        {
+            return new Certificate {
+                RetrieveMode = CertificateRetrieveMode.FromPkcs12,
+                Pkcs12File = pkcs12File,
+            };
+        }
+
         public static Certificate UseDefault()
         {
             return new Certificate {
@@ -140,7 +148,10 @@ namespace Fluxzy.Certificates
                 }
 
                 case CertificateRetrieveMode.FromPkcs12:
-                    return _cachedCertificate = new X509Certificate2(Pkcs12File ?? throw new InvalidOperationException("Pkcs12File is not set"), Pkcs12Password);
+                    return _cachedCertificate = (Pkcs12Password != null ? 
+                        new X509Certificate2(Pkcs12File ?? throw new InvalidOperationException("Pkcs12File is not set"), Pkcs12Password) :
+                        new X509Certificate2(Pkcs12File ?? throw new InvalidOperationException("Pkcs12File is not set"))) ;
+                        
 
                 default:
                     throw new ArgumentOutOfRangeException($"Unknown retrieve mode : {RetrieveMode}");
