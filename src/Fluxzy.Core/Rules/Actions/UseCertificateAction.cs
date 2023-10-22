@@ -12,16 +12,16 @@ namespace Fluxzy.Rules.Actions
         "Use a specific server certificate. Certificate can be retrieved from user store or from a PKCS12 file")]
     public class UseCertificateAction : Action
     {
-        public UseCertificateAction(Certificate clientCertificate)
+        public UseCertificateAction(Certificate serverCertificate)
         {
 #pragma warning disable CS0618
-            clientCertificate ??= new Certificate
+            serverCertificate ??= new Certificate
 #pragma warning restore CS0618
             {
                 RetrieveMode = CertificateRetrieveMode.FromPkcs12
             };
 
-            ServerCertificate = clientCertificate;
+            ServerCertificate = serverCertificate;
         }
 
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
