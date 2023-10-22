@@ -221,7 +221,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.OutOfProcCapture = outOfProcCapture;
             proxyStartUpSetting.UseBouncyCastle = bouncyCastle;
 
-            var certificateProvider = new CertificateProvider(proxyStartUpSetting,
+            var certificateProvider = new CertificateProvider(proxyStartUpSetting.CaCertificate,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
 
             proxyStartUpSetting.CaptureRawPacket = includeTcpDump;

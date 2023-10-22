@@ -323,7 +323,7 @@ namespace Fluxzy.Tests
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting))
+                new CertificateProvider(startupSetting.CaCertificate, new FileSystemCertificateCache(startupSetting))
                 , new DefaultCertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 
@@ -368,7 +368,7 @@ namespace Fluxzy.Tests
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                new CertificateProvider(startupSetting.CaCertificate, new FileSystemCertificateCache(startupSetting)),
                 new DefaultCertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 
@@ -416,7 +416,7 @@ namespace Fluxzy.Tests
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                new CertificateProvider(startupSetting.CaCertificate, new FileSystemCertificateCache(startupSetting)),
                 new DefaultCertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 
@@ -461,7 +461,7 @@ namespace Fluxzy.Tests
             });
 
             await using var proxy = new Proxy(startupSetting,
-                new CertificateProvider(startupSetting, new FileSystemCertificateCache(startupSetting)),
+                new CertificateProvider(startupSetting.CaCertificate, new FileSystemCertificateCache(startupSetting)),
                 new DefaultCertificateAuthorityManager(),
                 userAgentProvider: new UaParserUserAgentInfoProvider());
 

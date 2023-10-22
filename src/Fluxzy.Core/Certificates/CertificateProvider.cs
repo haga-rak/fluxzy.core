@@ -43,13 +43,13 @@ namespace Fluxzy.Certificates
         private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new();
 
         public CertificateProvider(
-            FluxzySetting startupSetting,
+            Certificate rootCertificate,
             ICertificateCache certCache)
         {
             _certCache = certCache;
 
             _rootCertificate =
-                startupSetting.CaCertificate.GetX509Certificate();
+                rootCertificate.GetX509Certificate();
 
             var pk = _rootCertificate.PublicKey;
 
