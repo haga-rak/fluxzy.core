@@ -105,7 +105,7 @@ namespace Fluxzy.Core
                 var certEnd = ITimingProvider.Default.Instant();
 
                 var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
-                    plainStream, authority.HostName, token);
+                    plainStream, authority.HostName, exchangeContext, token);
 
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, StreamUtils.EmptyStream,

@@ -3,6 +3,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Fluxzy.Tests.Cli.Scaffolding
 {
@@ -16,7 +17,12 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{remoteHost}:{port}"),
                 UseProxy = true,
-                AllowAutoRedirect = allowAutoRedirect
+                AllowAutoRedirect = allowAutoRedirect, 
+                ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => {
+                    ServerCertificate = certificate2;
+                    ServerChain = arg3;
+                    return true;
+                }
             };
 
             if (cookieContainer != null)
@@ -24,6 +30,10 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
             Client = new HttpClient(_clientHandler);
         }
+
+        public X509Chain? ServerChain { get; private set; }
+
+        public X509Certificate2?  ServerCertificate { get; private set; }
 
         public HttpClient Client { get; }
 
