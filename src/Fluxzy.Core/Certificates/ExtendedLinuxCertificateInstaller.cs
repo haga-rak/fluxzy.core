@@ -34,7 +34,7 @@ namespace Fluxzy.Certificates
 
                 if (askElevation) {
 
-                    var tempFile = ExtendedPathHelper.GetTempPath(); 
+                    var tempFile = ExtendedPathHelper.GetTempFileName(); 
 
                     x509Certificate2.ExportToPem(tempFile);
 
