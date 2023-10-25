@@ -28,8 +28,6 @@ namespace Fluxzy.Utils
             var tempPath = GetTempPath(); 
             
             var fileName = Path.GetRandomFileName();
-
-            var s = Path.GetTempFileName();
             
             return Path.Combine(tempPath, fileName);
         }
