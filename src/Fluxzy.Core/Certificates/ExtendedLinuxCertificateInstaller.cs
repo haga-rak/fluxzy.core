@@ -14,7 +14,10 @@ namespace Fluxzy.Certificates
     public static class ExtendedLinuxCertificateInstaller
     {
         private static IReadOnlyCollection<InstallableCertificate> InstallableCertificates { get; } = new[] {
+            // UBUNTU
             new InstallableCertificate("/usr/local/share/ca-certificates", "update-ca-certificates", string.Empty),
+            
+            // FEDORA
             new InstallableCertificate("/etc/pki/ca-trust/source/anchors", "update-ca-trust", string.Empty)
         };
 
