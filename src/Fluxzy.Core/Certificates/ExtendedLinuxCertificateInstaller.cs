@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Misc;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Certificates
 {
@@ -28,10 +29,9 @@ namespace Fluxzy.Certificates
 
                 var filePath = Path.Combine(installableCertificate.Directory, fileName);
 
-
                 if (askElevation) {
 
-                    var tempFile = Path.GetTempPath(); 
+                    var tempFile = ExtendedPathHelper.GetTempPath(); 
 
                     x509Certificate2.ExportToPem(tempFile);
 

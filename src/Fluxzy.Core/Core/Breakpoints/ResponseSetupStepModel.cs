@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Extensions;
 using Fluxzy.Misc;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Core.Breakpoints
 {
@@ -55,7 +56,7 @@ namespace Fluxzy.Core.Breakpoints
             // rewind body 
 
             if (exchange.Response.Body != null) {
-                var tempFileName = Path.GetTempFileName();
+                var tempFileName = ExtendedPathHelper.GetTempFileName();
 
                 await using (var fileStream = File.Create(tempFileName)) {
 
