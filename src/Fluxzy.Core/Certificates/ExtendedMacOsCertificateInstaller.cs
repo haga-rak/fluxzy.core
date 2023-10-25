@@ -3,6 +3,7 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Misc;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Certificates
 {
@@ -16,7 +17,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public static bool IsCertificateInstalled(X509Certificate2 certificate, bool tryElevate)
         {
-            var tempFile = Path.GetTempFileName();
+            var tempFile = ExtendedPathHelper.GetTempFileName();
 
             try {
 
@@ -39,7 +40,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public static bool Install(X509Certificate2 certificate, bool tryElevate)
         {
-            var tempFile = Path.GetTempFileName();
+            var tempFile = ExtendedPathHelper.GetTempFileName();
 
             try {
                 certificate.ExportToPem(tempFile);

@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Fluxzy.Interop.Pcap.Pcapng;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Cli.Commands.Dissects.Formatters
 {
@@ -195,14 +196,12 @@ namespace Fluxzy.Cli.Commands.Dissects.Formatters
                 return;
             }
 
-            var tempFile = Path.GetTempFileName();
+            var tempFile = ExtendedPathHelper.GetTempFileName();
 
             await using (var tempFileStream = File.Create(tempFile)) {
                 await pcapStream.CopyToAsync(tempFileStream);
             }
-
-            ;
-
+            
             try {
                 await using var inStream = File.OpenRead(tempFile);
                 await PcapngUtils.CreatePcapngFileWithKeysAsync(sslKeyLogContent, inStream, stdOutWriter.BaseStream);
