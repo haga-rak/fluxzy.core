@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Extensions;
 using Fluxzy.Misc;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Core.Breakpoints
 {
@@ -56,7 +57,7 @@ namespace Fluxzy.Core.Breakpoints
             // Drinking request body to temp file or memory stream
 
             if (exchange.Request.Body != null) {
-                var tempFileName = Path.GetTempFileName();
+                var tempFileName = ExtendedPathHelper.GetTempFileName();
 
                 await using (var fileStream = File.Create(tempFileName)) {
                     await exchange.Request.Body.CopyToAsync(fileStream);
