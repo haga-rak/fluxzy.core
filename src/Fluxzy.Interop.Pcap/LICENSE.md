@@ -1,1 +1,1 @@
-Check [Fluxzy.Core license](../Fluxzy.Core/LICENSE.md) for more details.
+Same as [Fluxzy.Core license](../Fluxzy.Core/LICENSE.md)
