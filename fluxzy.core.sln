@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "__global", "__global", "{00
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		Directory.Build.props = Directory.Build.props
 		global.json = global.json
+		LICENSE.md = LICENSE.md
 		.github\workflows\pull-request.yaml = .github\workflows\pull-request.yaml
 		README.md = README.md
 		.github\workflows\release-cli.yml = .github\workflows\release-cli.yml
