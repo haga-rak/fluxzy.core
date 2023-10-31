@@ -1,4 +1,4 @@
-Copyright 2023 - Maholy and Haga Rakotoharivel, Fluxzy SAS
+Copyright 2023 - Maholy, Haga Rakotoharivelo, Fluxzy SAS
 
 
 - **Fluxzy CLI**: [GPVLv3](src/fluxzy/LICENSE.md) 
