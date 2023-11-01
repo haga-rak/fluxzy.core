@@ -1,7 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO.Compression;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using SimpleExec;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
@@ -23,6 +26,10 @@ namespace Fluxzy.Build
             [OSPlatform.Linux] = new[] { "linux-x64", "linux-arm64" },
             [OSPlatform.OSX] = new[] { "osx-x64", "osx-arm64" }
         };
+
+        private static readonly HttpClient Client = new HttpClient(new HttpClientHandler {
+            Proxy = new WebProxy("127.0.0.1", 44344)
+        }); 
 
         /// <summary>
         ///     Obtains GetEvOrFail or throw exception if not found.
@@ -78,6 +85,51 @@ namespace Fluxzy.Build
                 finally {
                     SemaphoreSlim.Release(); 
                 }
+            }
+        }
+
+        private static string GetSha512Hash(FileInfo file)
+        {
+            using var sha512 = SHA512.Create();
+            using var stream = file.OpenRead();
+            var hash = sha512.ComputeHash(stream);
+            return Convert.ToHexString(hash).ToLower();
+        }
+
+        private static async Task Upload(FileInfo fullFile)
+        {
+            var uploadReleaseToken = GetEvOrFail("UPLOAD_RELEASE_TOKEN");
+
+            var hashValue = GetSha512Hash(fullFile);
+            var fileName = fullFile.Name;
+            var finalUrl = "https://upload.fluxzy.io:4300/release/upload";
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, finalUrl); 
+
+            requestMessage.Headers.Authorization =
+                new AuthenticationHeaderValue("Bearer", uploadReleaseToken);
+
+            var boundary = Guid.NewGuid().ToString();
+            var multipartFormContent = new MultipartFormDataContent(boundary); 
+
+            var dictionary = new Dictionary<string, string> {
+                ["FileName"] = fileName,
+                ["FileSha512Hash"] = hashValue,
+                ["category"] = "Fluxzy CLI",
+            };
+
+            multipartFormContent.Add(new FormUrlEncodedContent(dictionary));
+            multipartFormContent.Add(new StreamContent(fullFile.OpenRead()), "FILENAME", fileName);
+
+            requestMessage.Content = new MultipartFormDataContent(boundary);
+
+            var response = await Client.SendAsync(requestMessage);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var fullResponseText = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Upload failed {response.StatusCode}.\r\n" +
+                                    $"{fullResponseText}");
             }
         }
 
@@ -145,6 +197,21 @@ namespace Fluxzy.Build
                     }
                 });
 
+            Target("fluxzy-cli-publish-internal",
+                DependsOn("fluxzy-cli-package-zip"),
+                async () => {
+
+                    var candidates = new DirectoryInfo(".artefacts/final/").EnumerateFiles("*.zip").ToList();
+
+                    var uploadTasks = new List<Task>();
+
+                    foreach (var candidate in candidates) {
+                        uploadTasks.Add(Upload(candidate));
+                    }
+                    
+                    await Task.WhenAll(uploadTasks);
+                });
+
             Target("fluxzy-cli-package-sign",
                 DependsOn("fluxzy-cli-package-build"),
                 async () => {
@@ -193,6 +260,9 @@ namespace Fluxzy.Build
 
             // Build local CLI packages signed 
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
+
+            // Build local CLI packages signed 
+            Target("fluxzy-cli-publish", DependsOn("fluxzy-cli-publish-internal"));
 
             // Validate current branch
             Target("validate-main", DependsOn("tests"));
