@@ -2,7 +2,7 @@
   "profiles": {
     "Fluxzy.Build": {
       "commandName": "Project",
-      "commandLineArgs": "hello"
+      "commandLineArgs": "default"
     }
   }
 }

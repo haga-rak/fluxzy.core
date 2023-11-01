@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
 using System.CommandLine;
@@ -20,7 +20,7 @@ namespace Fluxzy.Cli.Commands
 
             var option = command.Options.Get<T>(name);
 
-            return (T) context.ParseResult.GetValueForOption(option);
+            return (T) context.ParseResult.GetValueForOption(option)!;
         }
     }
 }
