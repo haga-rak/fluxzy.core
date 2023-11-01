@@ -13,6 +13,11 @@ namespace Fluxzy.Build
     /// </summary>
     internal class Program
     {
+        private static readonly int ConcurrentSignCount = 
+            int.Parse(Environment.GetEnvironmentVariable("CONCURRENT_SIGN")?.Trim() ?? "6"); 
+
+        private static readonly SemaphoreSlim SemaphoreSlim = new(ConcurrentSignCount);
+
         public static Dictionary<OSPlatform, string[]> TargetRuntimeIdentifiers { get; } = new() {
             [OSPlatform.Windows] = new[] { "win-x64", "win-x86", "win-arm64" },
             [OSPlatform.Linux] = new[] { "linux-x64", "linux-arm64" },
@@ -40,6 +45,40 @@ namespace Fluxzy.Build
         private static string GetFileName(string runtimeIdentifier, string version)
         {
             return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
+        }
+
+
+        private static async Task Sign(string workingDirectory, IEnumerable<FileInfo> signableFiles)
+        {
+            var azureVaultDescriptionUrl = GetEvOrFail("AZURE_VAULT_DESCRIPTION_URL");
+            var azureVaultUrl = GetEvOrFail("AZURE_VAULT_URL");
+            var azureVaultCertificate = GetEvOrFail("AZURE_VAULT_CERTIFICATE");
+            var azureVaultClientId = GetEvOrFail("AZURE_VAULT_CLIENT_ID");
+            var azureVaultClientSecret = GetEvOrFail("AZURE_VAULT_CLIENT_SECRET");
+            var azureVaultTenantId = GetEvOrFail("AZURE_VAULT_TENANT_ID");
+
+            foreach (var file in signableFiles) {
+                try {
+                    await SemaphoreSlim.WaitAsync();
+
+                    await RunAsync("sign",
+                        $"code azure-key-vault \"{file.FullName}\" " +
+                        "  --publisher-name \"Fluxzy SAS\"" +
+                        " --description \"Fluxzy Signed\"" +
+                        $" --description-url {azureVaultDescriptionUrl}" +
+                        $" --azure-key-vault-url {azureVaultUrl}" +
+                        $" --azure-key-vault-certificate {azureVaultCertificate}" +
+                        $" --azure-key-vault-client-id {azureVaultClientId}" +
+                        $" --azure-key-vault-client-secret {azureVaultClientSecret}" +
+                        $" --azure-key-vault-tenant-id {azureVaultTenantId}"
+                        , noEcho: false,
+                        workingDirectory: workingDirectory
+                    );
+                }
+                finally {
+                    SemaphoreSlim.Release(); 
+                }
+            }
         }
 
         private static async Task Main(string[] args)
@@ -88,7 +127,7 @@ namespace Fluxzy.Build
                 });
 
             Target("fluxzy-cli-package-zip",
-                DependsOn("fluxzy-cli-package-build"),
+                DependsOn("fluxzy-cli-package-sign"),
                 async () => {
 
                     var runningVersion = await GetRunningVersion(); 
@@ -106,9 +145,59 @@ namespace Fluxzy.Build
                     }
                 });
 
+            Target("fluxzy-cli-package-sign",
+                DependsOn("fluxzy-cli-package-build"),
+                async () => {
+                    if (current != OSPlatform.Windows) {
+                        Console.WriteLine("Skipping signing for non-windows platform");
+                        return;
+                    }
+
+                    var skipSigning = string.Equals(Environment.GetEnvironmentVariable("NO_SIGN"), "1");
+
+                    if (skipSigning)
+                        return; 
+                    
+                    Directory.CreateDirectory(".artefacts/final");
+
+                    var signedFilesPrefix = new[] {
+                        "Flux", "Yaml", "ICSharpCode", "BouncyCastle.Crypto.Async", "YamlDotNet", "MessagePack",
+                        "UAParser", "SharpPcap"
+
+                    };
+
+                    var signTasks = new List<Task>();
+                    
+                    foreach (var runtimeIdentifier in TargetRuntimeIdentifiers[current])
+                    {
+                        var outDirectory = $".artefacts/{runtimeIdentifier}";
+
+                        var candidates = new DirectoryInfo(outDirectory)
+                            .EnumerateFiles("*", SearchOption.AllDirectories)
+                            .Where(f => 
+                                (
+                                    string.Equals(f.Extension, ".dll", StringComparison.OrdinalIgnoreCase) 
+                                    || string.Equals(f.Extension, ".exe", StringComparison.OrdinalIgnoreCase)) &&
+                                signedFilesPrefix.Any(s => f.Name.StartsWith(s, StringComparison.OrdinalIgnoreCase)))
+                            .ToList();
+
+                        // SIGN dll and exe in this directory
+
+                        signTasks.Add(Sign(outDirectory, candidates));  
+                    }
+                    
+                    await Task.WhenAll(signTasks);
+                });
+
             Target("default", () => Console.WriteLine("No default target"));
 
+            // Build local CLI packages signed 
+            Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
+
+            // Validate current branch
             Target("validate-main", DependsOn("tests"));
+
+            // Validate a pull request 
             Target("on-pull-request", DependsOn("tests"));
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
