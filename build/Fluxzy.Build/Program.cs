@@ -28,7 +28,7 @@ namespace Fluxzy.Build
         };
 
         private static readonly HttpClient Client = new HttpClient(new HttpClientHandler {
-            Proxy = new WebProxy("127.0.0.1", 44344)
+            //Proxy = new WebProxy("127.0.0.1", 44344)
         }); 
 
         /// <summary>
