@@ -1,0 +1,1 @@
+Same as [Fluxzy.Core license](../Fluxzy.Core/LICENSE.md)
