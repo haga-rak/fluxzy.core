@@ -66,5 +66,9 @@
     <Folder Include="Clients\Ssl\BouncyCastle\Streams\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath=""/>
+  </ItemGroup>
+
 
 </Project>
