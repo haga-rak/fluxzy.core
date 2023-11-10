@@ -179,8 +179,12 @@ namespace Fluxzy.Certificates
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
 
+            var notBefore = rootCertificate.NotBefore.AddSeconds(1);
+            var now = DateTime.Today;
+            notBefore = now < notBefore ? notBefore : now;
+
             using var cert = certificateRequest.Create(rootCertificate,
-                new DateTimeOffset(rootCertificate.NotBefore.AddSeconds(1)),
+                new DateTimeOffset(notBefore),
                 offSetEnd,
                 buffer);
 
@@ -236,9 +240,13 @@ namespace Fluxzy.Certificates
 #endif
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
-            
+
+            var notBefore = rootCertificate.NotBefore.AddSeconds(1);
+            var now = DateTime.Today; 
+            notBefore = now < notBefore ? notBefore : now;
+
             using var cert = certificateRequest.Create(rootCertificate,
-                new DateTimeOffset(rootCertificate.NotBefore.AddSeconds(1)),
+                new DateTimeOffset(notBefore),
                 offSetEnd,
                 buffer);
 
