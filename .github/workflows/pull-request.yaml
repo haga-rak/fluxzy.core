@@ -28,4 +28,7 @@ jobs:
         dotnet-version: 7.0.203
     - name: On pull request
       shell: bash
+      env:
+        TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
+        PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
       run: bash build.sh -- on-pull-request
