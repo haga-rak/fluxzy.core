@@ -28,7 +28,6 @@ namespace Fluxzy.Build
         };
 
         private static readonly HttpClient Client = new HttpClient(new HttpClientHandler {
-            //Proxy = new WebProxy("127.0.0.1", 44344)
         }); 
 
         /// <summary>
@@ -41,7 +40,6 @@ namespace Fluxzy.Build
             return Environment.GetEnvironmentVariable(variableName) ??
                    throw new Exception($"GetEvOrFail {variableName} not found");
         }
-
         private static async Task<string> GetRunningVersion()
         {
             // nbgv get-version -v Version
@@ -53,7 +51,6 @@ namespace Fluxzy.Build
         {
             return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
         }
-
 
         private static async Task Sign(string workingDirectory, IEnumerable<FileInfo> signableFiles)
         {
@@ -115,13 +112,20 @@ namespace Fluxzy.Build
             var dictionary = new Dictionary<string, string> {
                 ["FileName"] = fileName,
                 ["FileSha512Hash"] = hashValue,
-                ["category"] = "Fluxzy CLI",
+                ["Category"] = "Fluxzy CLI",
             };
 
-            multipartFormContent.Add(new FormUrlEncodedContent(dictionary));
-            multipartFormContent.Add(new StreamContent(fullFile.OpenRead()), "FILENAME", fileName);
+            await using var uploadStream = fullFile.OpenRead();
 
-            requestMessage.Content = new MultipartFormDataContent(boundary);
+            // multipartFormContent.Add(new FormUrlEncodedContent(dictionary));
+
+            foreach (var (name, value) in dictionary) {
+                multipartFormContent.Add(new StringContent(value), name);
+            }
+            
+            multipartFormContent.Add(new StreamContent(uploadStream), "FILENAME", fileName);
+
+            requestMessage.Content = multipartFormContent;
 
             var response = await Client.SendAsync(requestMessage);
 
@@ -131,6 +135,44 @@ namespace Fluxzy.Build
                 throw new Exception($"Upload failed {response.StatusCode}.\r\n" +
                                     $"{fullResponseText}");
             }
+        }
+
+        private static void AddBasicBuildTargets(string privateNugetToken)
+        {
+            Target("add-nuget-source",
+                async () => {
+                    await RunAsync("dotnet",
+                        "nuget add source https://nuget.pkg.github.com/haga-rak/index.json " +
+                        $"-n nuget-fluxy -u haga-rak -p {privateNugetToken}", handleExitCode: _ => true, noEcho: true);
+                });
+
+            Target("restore-tests",
+                DependsOn("add-nuget-source"),
+                async () => {
+                    await RunAsync("dotnet",
+                        "restore test/Fluxzy.Tests");
+                });
+
+            Target("restore-fluxzy-core",
+                DependsOn("add-nuget-source"),
+                async () => {
+                    await RunAsync("dotnet",
+                        "restore src/Fluxzy.Core");
+                });
+
+            Target("build-fluxzy-core",
+                DependsOn("restore-fluxzy-core"),
+                async () => {
+                    await RunAsync("dotnet",
+                        "build src/Fluxzy.Core  --no-restore");
+                });
+
+            Target("tests",
+                DependsOn("restore-tests", "build-fluxzy-core"),
+                async () => {
+                    await RunAsync("dotnet",
+                        "test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true");
+                });
         }
 
         private static async Task Main(string[] args)
@@ -256,13 +298,7 @@ namespace Fluxzy.Build
                     await Task.WhenAll(signTasks);
                 });
 
-            Target("default", () => Console.WriteLine("No default target"));
-
-            // Build local CLI packages signed 
-            Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
-
-            // Build local CLI packages signed 
-            Target("fluxzy-cli-publish", DependsOn("fluxzy-cli-publish-internal"));
+            Target("default", () => Console.WriteLine("DefaultTarget is doing nothing"));
 
             // Validate current branch
             Target("validate-main", DependsOn("tests"));
@@ -270,45 +306,14 @@ namespace Fluxzy.Build
             // Validate a pull request 
             Target("on-pull-request", DependsOn("tests"));
 
+            // Build local CLI packages signed 
+            Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
+
+            // Build local CLI packages signed 
+            Target("fluxzy-cli-publish", DependsOn("fluxzy-cli-publish-internal"));
+
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
         }
 
-        private static void AddBasicBuildTargets(string privateNugetToken)
-        {
-            Target("add-nuget-source",
-                async () => {
-                    await RunAsync("dotnet",
-                        "nuget add source https://nuget.pkg.github.com/haga-rak/index.json " +
-                        $"-n nuget-fluxy -u haga-rak -p {privateNugetToken}", handleExitCode: _ => true, noEcho:true);
-                });
-
-            Target("restore-tests",
-                DependsOn("add-nuget-source"),
-                async () => {
-                    await RunAsync("dotnet",
-                        "restore test/Fluxzy.Tests");
-                });
-
-            Target("restore-fluxzy-core",
-                DependsOn("add-nuget-source"),
-                async () => {
-                    await RunAsync("dotnet",
-                        "restore src/Fluxzy.Core");
-                });
-
-            Target("build-fluxzy-core",
-                DependsOn("restore-fluxzy-core"),
-                async () => {
-                    await RunAsync("dotnet",
-                        "build src/Fluxzy.Core  --no-restore");
-                });
-
-            Target("tests",
-                DependsOn("restore-tests", "build-fluxzy-core"),
-                async () => {
-                    await RunAsync("dotnet",
-                        "test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true");
-                });
-        }
     }
 }
