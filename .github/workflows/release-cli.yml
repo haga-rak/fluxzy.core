@@ -21,5 +21,18 @@ jobs:
         dotnet-version: 7.0.x
     - name: Publish CLI
       shell: bash
+      env:
+        TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
+        PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
+
+        UPLOAD_RELEASE_TOKEN : ${{ secrets.UPLOAD_RELEASE_TOKEN }}
+
+        AZURE_VAULT_DESCRIPTION_URL : ${{ secrets.AZURE_VAULT_DESCRIPTION_URL }}
+        AZURE_VAULT_URL : ${{ secrets.AZURE_VAULT_URL }}
+        AZURE_VAULT_CERTIFICATE : ${{ secrets.AZURE_VAULT_CERTIFICATE }}
+        AZURE_VAULT_CLIENT_ID : ${{ secrets.AZURE_VAULT_CLIENT_ID }}
+        AZURE_VAULT_CLIENT_SECRET : ${{ secrets.AZURE_VAULT_CLIENT_SECRET }}
+        AZURE_VAULT_TENANT_ID : ${{ secrets.AZURE_VAULT_TENANT_ID }}
+
       run: bash build.sh -- fluxzy-cli-publish
 
