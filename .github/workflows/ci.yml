@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - 'design/**'
+      - 'README.md'
       - '.github/workflows/release*'
       - '.github/workflows/pull-request*'
 
@@ -24,10 +25,10 @@ jobs:
       with:
         fetch-depth: 0
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7.0.x
     - name: On validate main
       shell: bash
-      run: ./build.sh on-pull-request
+      run: ./build.sh validate-main
           

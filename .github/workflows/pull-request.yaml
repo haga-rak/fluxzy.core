@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - 'design/**'
+      - 'README.md'
 
 jobs:
   build-and-test-backend:
@@ -27,4 +28,4 @@ jobs:
         dotnet-version: 7.0.203
     - name: On pull request
       shell: bash
-      run: ./build.sh validate-main
+      run: ./build.sh on-pull-request
