@@ -52,7 +52,7 @@ namespace Fluxzy.Build
             return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
         }
 
-        private static async Task Sign(string workingDirectory, IEnumerable<FileInfo> signableFiles)
+        private static async Task SignCli(string workingDirectory, IEnumerable<FileInfo> signableFiles)
         {
             var azureVaultDescriptionUrl = GetEvOrFail("AZURE_VAULT_DESCRIPTION_URL");
             var azureVaultUrl = GetEvOrFail("AZURE_VAULT_URL");
@@ -75,7 +75,7 @@ namespace Fluxzy.Build
                         $" --azure-key-vault-client-id {azureVaultClientId}" +
                         $" --azure-key-vault-client-secret {azureVaultClientSecret}" +
                         $" --azure-key-vault-tenant-id {azureVaultTenantId}"
-                        , noEcho: false,
+                        , noEcho: true,
                         workingDirectory: workingDirectory
                     );
                 }
@@ -83,6 +83,30 @@ namespace Fluxzy.Build
                     SemaphoreSlim.Release(); 
                 }
             }
+        }
+
+        private static async Task SignPackages(string workingDirectory)
+        {
+            var azureVaultDescriptionUrl = GetEvOrFail("AZURE_VAULT_DESCRIPTION_URL");
+            var azureVaultUrl = GetEvOrFail("AZURE_VAULT_URL");
+            var azureVaultCertificate = "FluxzyCodeSigningGS"; // GetEvOrFail("AZURE_VAULT_CERTIFICATE");
+            var azureVaultClientId = GetEvOrFail("AZURE_VAULT_CLIENT_ID");
+            var azureVaultClientSecret = GetEvOrFail("AZURE_VAULT_CLIENT_SECRET");
+            var azureVaultTenantId = GetEvOrFail("AZURE_VAULT_TENANT_ID");
+
+            await RunAsync("sign",
+                $"code azure-key-vault *.nupkg " +
+                "  --publisher-name \"Fluxzy SAS\"" +
+                " --description \"Fluxzy Signed\"" +
+                $" --description-url {azureVaultDescriptionUrl}" +
+                $" --azure-key-vault-url {azureVaultUrl}" +
+                $" --azure-key-vault-certificate {azureVaultCertificate}" +
+                $" --azure-key-vault-client-id {azureVaultClientId}" +
+                $" --azure-key-vault-client-secret {azureVaultClientSecret}" +
+                $" --azure-key-vault-tenant-id {azureVaultTenantId}"
+                , noEcho: true,
+                workingDirectory: workingDirectory
+            );
         }
 
         private static string GetSha512Hash(FileInfo file)
@@ -179,11 +203,16 @@ namespace Fluxzy.Build
         {
             var (stdOut, _) = await ReadAsync("git", "branch --show-current");
             var currentBranch = stdOut.Trim();
+
             var privateNugetToken = GetEvOrFail("TOKEN_FOR_NUGET");
+            var partnerNugetToken = GetEvOrFail("PARTNER_SECRET");
 
             // Why there's no better way to do it?
             var current = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OSPlatform.OSX :
                 RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OSPlatform.Linux : OSPlatform.Windows;
+
+            if (Directory.Exists("_npkgout"))
+                Directory.Delete("_npkgout", true);
 
             Target("must-be-release",
                 () => {
@@ -204,6 +233,53 @@ namespace Fluxzy.Build
 
                     await RunAsync("dotnet",
                         "tool install --global dotnet-project-licenses", handleExitCode: _ => true);
+                });
+
+            Target("fluxzy-core-create-package",
+                DependsOn("install-tools"),
+                async () => {
+
+                    await RunAsync("dotnet",
+                        "build -c Release src/Fluxzy.Core");
+
+                    await RunAsync("dotnet",
+                        "pack --include-symbols -c Release src/Fluxzy.Core -o _npkgout");
+                });
+
+            Target("fluxzy-core-pcap-create-package",
+                DependsOn("fluxzy-core-create-package"),
+                async () => {
+
+                    await RunAsync("dotnet",
+                        "build -c Release src/Fluxzy.Interop.Pcap");
+
+                    await RunAsync("dotnet",
+                        "pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout");
+                });
+
+            Target("fluxzy-package-sign",
+                DependsOn("fluxzy-core-pcap-create-package"),
+                async () => {
+                    await SignPackages("_npkgout");
+                });
+
+            Target("fluxzy-package-push-github",
+                DependsOn("fluxzy-package-sign"),
+                async () => {
+                    
+                    await RunAsync("dotnet",
+                        $"nuget push *.nupkg --skip-duplicate --api-key {privateNugetToken} " +
+                        "--source https://nuget.pkg.github.com/haga-rak/index.json",
+                        workingDirectory: "_npkgout", noEcho: true);
+                });
+
+            Target("fluxzy-package-push-partner",
+                DependsOn("fluxzy-package-sign"),
+                async () => {
+                    await RunAsync("dotnet",
+                        $"nuget push *.nupkg --skip-duplicate --api-key {partnerNugetToken} " +
+                        "--source https://nuget.2befficient.io/v3/index.json",
+                        workingDirectory: "_npkgout", noEcho: true);
                 });
 
             Target("fluxzy-cli-package-build",
@@ -292,7 +368,7 @@ namespace Fluxzy.Build
 
                         // SIGN dll and exe in this directory
 
-                        signTasks.Add(Sign(outDirectory, candidates));  
+                        signTasks.Add(SignCli(outDirectory, candidates));  
                     }
                     
                     await Task.WhenAll(signTasks);
@@ -307,6 +383,8 @@ namespace Fluxzy.Build
             Target("on-pull-request", DependsOn("tests"));
 
             // Build local CLI packages signed 
+            Target("fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"));
+
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
 
             // Build local CLI packages signed 
