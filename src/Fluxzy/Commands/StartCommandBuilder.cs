@@ -34,7 +34,7 @@ namespace Fluxzy.Cli.Commands
             new HttpArchivePackager()
         };
 
-        private DirectoryInfo _tempDumpDirectory;
+        private DirectoryInfo _tempDumpDirectory = null!;
 
         /// <summary>
         /// 
@@ -168,7 +168,7 @@ namespace Fluxzy.Cli.Commands
                 try {
                     var cert = Certificate.LoadFromPkcs12(
                         certFile.FullName,
-                        certPassword ?? string.Empty);
+                        certPassword ?? string.Empty!);
 
                     proxyStartUpSetting.SetCaCertificate(cert);
                 }
@@ -201,7 +201,7 @@ namespace Fluxzy.Cli.Commands
                         out var errors);
 
                     if (ruleSet == null && errors!.Any())
-                        throw new ArgumentException(string.Join("\r\n", errors.Select(s => s.Message)));
+                        throw new ArgumentException(string.Join("\r\n", errors!.Select(s => s.Message)));
 
                     if (ruleSet != null)
                         proxyStartUpSetting.AddAlterationRules(ruleSet.Rules.SelectMany(s => s.GetAllRules()));
@@ -282,7 +282,7 @@ namespace Fluxzy.Cli.Commands
                 outFileInfo.Directory?.Create();
 
                 await PackDirectoryToFile(
-                    new DirectoryInfo(proxyStartUpSetting.ArchivingPolicy.Directory),
+                    new DirectoryInfo(proxyStartUpSetting.ArchivingPolicy.Directory!),
                     outFileInfo.FullName);
 
                 invocationContext.Console.WriteLine("Packing output done.");

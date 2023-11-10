@@ -107,7 +107,7 @@ namespace Fluxzy.Interop.Pcap.Cli
 
                 return 81;
             }
-            catch (Exception ex) {
+            catch (Exception) {
                 // TODO set logger here 
                 return 90;
             }
