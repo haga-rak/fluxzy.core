@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Fluxzy.Build": {
+      "commandName": "Project",
+      "commandLineArgs": "default"
+    }
+  }
+}
