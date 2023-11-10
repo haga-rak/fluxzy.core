@@ -34,5 +34,5 @@ jobs:
         TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
         PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
         
-      run: bash build.sh -- validate-main
+      run: bash build.sh validate-main
           

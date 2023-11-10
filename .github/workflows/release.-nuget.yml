@@ -32,4 +32,4 @@ jobs:
         AZURE_VAULT_CLIENT_SECRET : ${{ secrets.AZURE_VAULT_CLIENT_SECRET }}
         AZURE_VAULT_TENANT_ID : ${{ secrets.AZURE_VAULT_TENANT_ID }}
 
-      run: bash build.sh -- fluxzy-publish-nuget
+      run: bash build.sh fluxzy-publish-nuget

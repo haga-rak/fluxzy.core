@@ -31,4 +31,4 @@ jobs:
       env:
         TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
         PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
-      run: bash build.sh -- on-pull-request
+      run: bash build.sh on-pull-request
