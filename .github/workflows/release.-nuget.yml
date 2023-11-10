@@ -21,4 +21,4 @@ jobs:
         dotnet-version: 7.0.x
     - name: Publish to private Nugets
       shell: bash
-      run: ./build.sh fluxzy-publish-nuget
+      run: bash build.sh -- fluxzy-publish-nuget
