@@ -19,102 +19,20 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 7.0.x
+    - name: Publish CLI
+      shell: bash
+      env:
+        TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
+        PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
 
-    - name: Add nuget package source 
-      continue-on-error: true  # ignore error (package source already present on the runner)
-      run: dotnet nuget add source https://nuget.pkg.github.com/haga-rak/index.json -n nuget-fluxy -u haga-rak -p ${{ secrets.TOKEN_FOR_NUGET }}
+        UPLOAD_RELEASE_TOKEN : ${{ secrets.UPLOAD_RELEASE_TOKEN }}
 
-    - name: Install dotnet tools
-      continue-on-error: true  # ignore error (dotnet script already present on the runner)
-      run:  |
-          dotnet tool install --global dotnet-script || true 
-          dotnet tool install --global nbgv || true
-          dotnet tool install --global dotnet-project-licenses || true
+        AZURE_VAULT_DESCRIPTION_URL : ${{ secrets.AZURE_VAULT_DESCRIPTION_URL }}
+        AZURE_VAULT_URL : ${{ secrets.AZURE_VAULT_URL }}
+        AZURE_VAULT_CERTIFICATE : ${{ secrets.AZURE_VAULT_CERTIFICATE }}
+        AZURE_VAULT_CLIENT_ID : ${{ secrets.AZURE_VAULT_CLIENT_ID }}
+        AZURE_VAULT_CLIENT_SECRET : ${{ secrets.AZURE_VAULT_CLIENT_SECRET }}
+        AZURE_VAULT_TENANT_ID : ${{ secrets.AZURE_VAULT_TENANT_ID }}
 
-    - name: Packaging Fluxzy.Cli (OSX, Linux)
-      if: matrix.osversion != 'Windows'
-      shell: bash 
-      run: dotnet publish --sc true -c Release "/p:DebugType=None" "/p:DebugSymbols=false"  -o ".artefacts/raw" "./src/Fluxzy"
+      run: bash build.sh fluxzy-cli-publish
 
-    - name: Packaging Fluxzy.Cli (Windows)
-      if: matrix.osversion == 'Windows'
-      shell: bash 
-      run: dotnet publish --sc true -c Release "//p:DebugType=None" "//p:DebugSymbols=false"  -o ".artefacts/raw" "./src/Fluxzy"
-
-    - name: Create file folder
-      continue-on-error: true 
-      run: mkdir ".artefacts/output"
-
-    - name: Extract license files
-      run: dotnet-project-licenses -i . -f ".artefacts/raw/thirdParty" -o ".artefacts/raw/license.txt" -e
-
-    - name: Install dotnet-sign
-      if: matrix.osversion == 'Windows'
-      continue-on-error: true  # ignore error (dotnet sign already present on the runner)
-      run: dotnet tool install --global sign --version 0.9.1-beta.23356.1
-    
-    - name: Sign packages DLL
-      if: matrix.osversion == 'Windows' # Sign only on Windows
-      shell: cmd
-      working-directory: .artefacts/raw
-      run: >
-        sign code azure-key-vault *.dll ^
-            --publisher-name "Fluxzy SAS" ^
-            --description "Fluxzy Signed" ^
-            --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" ^
-            --azure-key-vault-url "${{secrets.AZURE_VAULT_URL}}" ^
-            --azure-key-vault-certificate "${{secrets.AZURE_VAULT_CERTIFICATE}}" ^
-            --azure-key-vault-client-id "${{secrets.AZURE_VAULT_CLIENT_ID}}" ^
-            --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" ^
-            --azure-key-vault-tenant-id "${{secrets.AZURE_VAULT_TENANT_ID}}"
-
-    - name: Sign packages EXE
-      if: matrix.osversion == 'Windows' # Sign only on Windows
-      shell: cmd
-      working-directory: .artefacts/raw
-      run: >
-        sign code azure-key-vault *.exe ^
-            --publisher-name "Fluxzy SAS" ^
-            --description "Fluxzy Signed" ^
-            --description-url "${{secrets.AZURE_VAULT_DESCRIPTION_URL}}" ^
-            --azure-key-vault-url "${{secrets.AZURE_VAULT_URL}}" ^
-            --azure-key-vault-certificate "${{secrets.AZURE_VAULT_CERTIFICATE}}" ^
-            --azure-key-vault-client-id "${{secrets.AZURE_VAULT_CLIENT_ID}}" ^
-            --azure-key-vault-client-secret "${{secrets.AZURE_VAULT_CLIENT_SECRET}}" ^
-            --azure-key-vault-tenant-id "${{secrets.AZURE_VAULT_TENANT_ID}}"
-
-    - name: Building standalone zip
-      shell: bash 
-      run: nbgv get-version -v Version | (dotnet script "tools/scripts/NameAndCompress.csx" -- ".artefacts/output" ".artefacts/raw") > ".artefacts/filename.txt"
-
-    - name: Calculate SHA512 (Linux, OSX)
-      if: matrix.osversion != 'Windows'
-      shell: bash 
-      run: |
-          FILENAME=$(cat ".artefacts/filename.txt")
-          shasum -a 512 ".artefacts/output/$FILENAME" | cut -d " " -f 1 > ".artefacts/sha512.txt"
-
-    - name: Calculate SHA512 (Windows)
-      if: matrix.osversion == 'Windows'
-      shell: bash 
-      run: |
-          FILENAME=$(cat ".artefacts/filename.txt") 
-          sha512sum ".artefacts/output/$FILENAME" | cut -d " " -f 1 > ".artefacts/sha512.txt"
-
-    - name: Upload artefacts
-      shell: bash 
-      run: | 
-         FILENAME=$(cat ".artefacts/filename.txt")
-         HASH=$(cat ".artefacts/sha512.txt")
-         curl --fail -k --location 'https://upload.fluxzy.io:4300/release/upload' \
-            --header "Authorization: Bearer ${{ secrets.UPLOAD_RELEASE_TOKEN }}" \
-            --form "FileName=$FILENAME" \
-            --form "FileSha512Hash=$HASH" \
-            --form "$FILENAME=@.artefacts/output/$FILENAME" \
-            --form 'category="Fluxzy CLI"'
-    - name: Upload artefacts (Github)
-      uses: actions/upload-artifact@v3
-      with:
-        path: .artefacts/output
-
-# TODO : sign, add licenses

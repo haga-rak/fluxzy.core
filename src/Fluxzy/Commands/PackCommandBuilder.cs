@@ -27,7 +27,7 @@ namespace Fluxzy.Cli.Commands
 
                 outputFile.Directory?.Create();
 
-                var packager = format == null
+                var packager = format == null!
                     ? PackagerRegistry.Instance.InferPackagerFromFileName(outputFile.Name)
                     : PackagerRegistry.Instance.GetPackageOrDefault(format);
 
@@ -68,7 +68,7 @@ namespace Fluxzy.Cli.Commands
             var option = new Option<string>(
                 "f",
                 description: "The output file format among fluxzy and saz",
-                getDefaultValue: () => null) {
+                getDefaultValue: () => null!) {
                 Arity = ArgumentArity.ExactlyOne
             };
 

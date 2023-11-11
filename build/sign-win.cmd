@@ -1,1 +1,0 @@
-signtool.exe sign /a /f "child.pfx" /p "Babilo92" /t "http://timestamp.digicert.com" osign.dll
