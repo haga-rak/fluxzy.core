@@ -8,7 +8,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Description>fluxzy is an cross-platform HTTP engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageLicenseUrl>https://www.fluxzy.io/license/fluxzy-core/plain</PackageLicenseUrl>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/haga-rak/fluxzy.core</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
@@ -27,12 +27,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="LICENSE.md" Pack="true" PackagePath="LICENSE.md" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Resources\Pages\error.html" />
     <EmbeddedResource Include="Resources\Pages\welcome.html" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Crypto.Async" Version="2.3.4" />
+    <PackageReference Include="Fluxzy.BouncyCastle.Crypto.Async" Version="2.5.1" />
     <PackageReference Include="MessagePack" Version="2.5.124" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
@@ -67,7 +71,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="icon.png" Pack="true" PackagePath=""/>
+    <None Include="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
 

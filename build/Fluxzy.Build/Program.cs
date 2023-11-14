@@ -250,10 +250,10 @@ namespace Fluxzy.Build
                 async () => {
 
                     await RunAsync("dotnet",
-                        "build -c Release src/Fluxzy.Interop.Pcap");
+                        "build -c Release src/Fluxzy.Core.Pcap");
 
                     await RunAsync("dotnet",
-                        "pack --include-symbols -c Release src/Fluxzy.Interop.Pcap -o _npkgout");
+                        "pack --include-symbols -c Release src/Fluxzy.Core.Pcap -o _npkgout");
                 });
 
             Target("fluxzy-package-sign",
