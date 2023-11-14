@@ -11,4 +11,8 @@
     <ProjectReference Include="..\..\src\Fluxzy.Core.Pcap\Fluxzy.Core.Pcap.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
+  </ItemGroup>
+
 </Project>
