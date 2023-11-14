@@ -1,8 +1,7 @@
 using System.Net;
 using Fluxzy;
-using Fluxzy.Core;
-using Fluxzy.Interop.Pcap;
-using Fluxzy.Interop.Pcap.Pcapng;
+using Fluxzy.Core.Pcap;
+using Fluxzy.Core.Pcap.Pcapng;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 

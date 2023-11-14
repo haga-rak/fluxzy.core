@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Fluxzy.Interop.Pcap\Fluxzy.Interop.Pcap.csproj" />
+    <ProjectReference Include="..\..\src\Fluxzy.Core.Pcap\Fluxzy.Core.Pcap.csproj" />
   </ItemGroup>
 
 </Project>
