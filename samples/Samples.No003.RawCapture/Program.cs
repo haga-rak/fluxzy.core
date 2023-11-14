@@ -13,7 +13,7 @@ namespace Samples.No003.RawCapture
         /// This short sample show how to enable raw capture with Fluxzy with out without capturing the NSS key log file. 
         /// The following code need to be run with administrator/root privilege.
         ///
-        /// Fluxzy.Interop.Pcap library is required for this sample to work.
+        /// Fluxzy.Core.Pcap library is required for this sample to work.
         /// </summary>
         /// <returns></returns>
         static async Task Main()
