@@ -2,7 +2,7 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using Fluxzy.Interop.Pcap.Pcapng;
+using Fluxzy.Core.Pcap.Pcapng;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
 

@@ -10,13 +10,12 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Fluxzy.Certificates;
 using Fluxzy.Core;
+using Fluxzy.Core.Pcap;
+using Fluxzy.Core.Pcap.Cli.Clients;
 using Fluxzy.Extensions;
 using Fluxzy.Har;
-using Fluxzy.Interop.Pcap;
-using Fluxzy.Interop.Pcap.Cli.Clients;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
 using Fluxzy.Saz;
@@ -37,7 +36,6 @@ namespace Fluxzy.Cli.Commands
         private DirectoryInfo _tempDumpDirectory = null!;
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="instanceIdentifier"></param>
         public StartCommandBuilder(string instanceIdentifier)
@@ -48,8 +46,9 @@ namespace Fluxzy.Cli.Commands
         private DirectoryInfo TempDumpDirectory {
             get
             {
-                if (_tempDumpDirectory != null)
+                if (_tempDumpDirectory != null) {
                     return _tempDumpDirectory;
+                }
 
                 var path = Path.Combine(Environment.ExpandEnvironmentVariables("%TEMP%"),
                     "fluxzy.cli", _instanceIdentifier);
@@ -117,10 +116,10 @@ namespace Fluxzy.Cli.Commands
             var use502 = invocationContext.Value<bool>("use-502");
 
             if (trace) {
-                D.EnableTracing = true; 
+                D.EnableTracing = true;
             }
 
-            FluxzySharedSetting.Use528 = !use502; 
+            FluxzySharedSetting.Use528 = !use502;
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
 
@@ -131,8 +130,9 @@ namespace Fluxzy.Cli.Commands
                     : CancellationTokenSource.CreateLinkedTokenSource(
                         processToken, invokeCancellationToken);
 
-            if (requestBuffer.HasValue && requestBuffer >= 16)
+            if (requestBuffer.HasValue && requestBuffer >= 16) {
                 FluxzySharedSetting.RequestProcessingBuffer = requestBuffer.Value;
+            }
 
             var cancellationToken = linkedTokenSource.Token;
 
@@ -161,8 +161,9 @@ namespace Fluxzy.Cli.Commands
                 ? ArchivingPolicy.None
                 : ArchivingPolicy.CreateFromDirectory(dumpDirectory);
 
-            if (outFileInfo != null && archivingPolicy.Type == ArchivingPolicyType.None)
+            if (outFileInfo != null && archivingPolicy.Type == ArchivingPolicyType.None) {
                 archivingPolicy = ArchivingPolicy.CreateFromDirectory(TempDumpDirectory);
+            }
 
             if (certFile != null) {
                 try {
@@ -187,8 +188,9 @@ namespace Fluxzy.Cli.Commands
                 : null;
 
             if (ruleContent == null && ruleFile != null) {
-                if (!ruleFile.Exists)
+                if (!ruleFile.Exists) {
                     throw new FileNotFoundException($"File not found : {ruleFile.FullName}");
+                }
 
                 ruleContent = File.ReadAllText(ruleFile.FullName);
             }
@@ -200,11 +202,13 @@ namespace Fluxzy.Cli.Commands
                     var ruleSet = ruleConfigParser.TryGetRuleSetFromYaml(ruleContent,
                         out var errors);
 
-                    if (ruleSet == null && errors!.Any())
+                    if (ruleSet == null && errors!.Any()) {
                         throw new ArgumentException(string.Join("\r\n", errors!.Select(s => s.Message)));
+                    }
 
-                    if (ruleSet != null)
+                    if (ruleSet != null) {
                         proxyStartUpSetting.AddAlterationRules(ruleSet.Rules.SelectMany(s => s.GetAllRules()));
+                    }
                 }
                 catch (Exception ex) {
                     invocationContext.BindingContext.Console.WriteLine($"Error while reading rule file : {ex.Message}");
@@ -267,7 +271,7 @@ namespace Fluxzy.Cli.Commands
                                 invocationContext.Console.Error.WriteLine(
                                     $"Failed to unregister as system proxy : {ex.Message}");
                             }
-                            
+
                             invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
                         }
                     }

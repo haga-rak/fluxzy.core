@@ -7,8 +7,8 @@ using System.Net.Security;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Core;
-using Fluxzy.Interop.Pcap;
-using Fluxzy.Interop.Pcap.Cli.Clients;
+using Fluxzy.Core.Pcap;
+using Fluxzy.Core.Pcap.Cli.Clients;
 using Fluxzy.Writers;
 using Xunit;
 

@@ -47,8 +47,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Fluxzy.Core.Pcap\Fluxzy.Core.Pcap.csproj" />
     <ProjectReference Include="..\..\src\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
-    <ProjectReference Include="..\..\src\Fluxzy.Interop.Pcap.Cli\Fluxzy.Interop.Pcap.Cli.csproj" />
     <ProjectReference Include="..\..\src\Fluxzy\fluxzy.csproj" />
   </ItemGroup>
 

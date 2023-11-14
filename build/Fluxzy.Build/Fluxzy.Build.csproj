@@ -12,4 +12,8 @@
     <PackageReference Include="SimpleExec" Version="11.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
+  </ItemGroup>
+
 </Project>
