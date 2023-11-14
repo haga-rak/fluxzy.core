@@ -4,7 +4,7 @@
     <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Description>fluxzy extensions to allow raw packet capture</Description>
+    <Description>fluxzy extensions for raw packet capture</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
