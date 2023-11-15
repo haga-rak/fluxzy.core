@@ -9,6 +9,7 @@ jobs:
       matrix:
         osversion: [Linux, Windows, macOS, macosarm]
         ostype: ['self-hosted']
+      fail-fast: false
 
     runs-on: ${{ matrix.osversion }}
     steps:
