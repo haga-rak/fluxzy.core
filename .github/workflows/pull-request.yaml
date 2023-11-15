@@ -26,7 +26,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 7.0.203
+        dotnet-version: 8.0.0
     - name: On pull request
       shell: bash
       env:
