@@ -9,6 +9,7 @@ jobs:
       matrix:
         osversion: [Windows]
         ostype: ['self-hosted']
+      fail-fast: false
 
     runs-on: ${{ matrix.osversion }}
     steps:
@@ -18,7 +19,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
     - name: Publish to private Nugets
       shell: bash
       env:
