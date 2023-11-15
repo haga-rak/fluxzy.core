@@ -9,6 +9,7 @@ jobs:
       matrix:
         osversion: [Linux, Windows, macOS, macosarm]
         ostype: ['self-hosted']
+      fail-fast: false
 
     runs-on: ${{ matrix.osversion }}
     steps:
@@ -18,7 +19,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
     - name: Publish CLI
       shell: bash
       env:
