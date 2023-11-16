@@ -6,11 +6,14 @@
     <TargetFrameworks>net8.0;net6.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Fluxzy</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Description>fluxzy is an cross-platform HTTP engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
+    <Description>MITM engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/haga-rak/fluxzy.core</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/haga-rak/fluxzy.core</RepositoryUrl>
+    <PackageTags>mitm;http</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -28,6 +31,7 @@
 
   <ItemGroup>
     <None Include="LICENSE.md" Pack="true" PackagePath="LICENSE.md" />
+    <None Include="README.md" Pack="True" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
