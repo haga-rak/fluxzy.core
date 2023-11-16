@@ -4,10 +4,13 @@
     <TargetFrameworks>net8.0;net6.0;netstandard2.1</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Description>fluxzy extensions for raw packet capture</Description>
+    <Description>Extensions for Fluxzy.Core that enables raw packet capture.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/haga-rak/fluxzy.core</RepositoryUrl>
+    <PackageTags>mitm;http;pcap</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,7 +22,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="LICENSE.md" Pack="true" PackagePath="LICENSE.md"/>
+    <None Include="LICENSE.md" Pack="true" PackagePath="LICENSE.md" />
+    <None Include="README.md" Pack="True" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

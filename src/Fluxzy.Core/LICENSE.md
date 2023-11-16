@@ -1,5 +1,8 @@
 Copyright 2023 - Haga Rakotoharivelo - Fluxzy SAS
 
+GNU General Public License V3 or other
+.....................
+
 1. TERMS AND DEFINITIONS
 
 1.1. "Software" refers to "Fluxzy Core", which includes the software, associated media, and online or electronic documentation.

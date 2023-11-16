@@ -1,1 +1,1 @@
-Same as [Fluxzy.Core license](../Fluxzy.Core/LICENSE.md)
+Referer to [Fluxzy.Core license](https://github.com/haga-rak/fluxzy.core/blob/main/src/Fluxzy.Core/LICENSE.md)
