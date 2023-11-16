@@ -25,6 +25,7 @@ jobs:
       env:
         TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
         PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
+        NUGET_ORG_API_KEY : ${{ secrets.NUGET_ORG_API_KEY }}
         
         AZURE_VAULT_DESCRIPTION_URL : ${{ secrets.AZURE_VAULT_DESCRIPTION_URL }}
         AZURE_VAULT_URL : ${{ secrets.AZURE_VAULT_URL }}

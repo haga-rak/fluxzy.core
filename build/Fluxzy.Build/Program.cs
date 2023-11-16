@@ -281,6 +281,18 @@ namespace Fluxzy.Build
                         workingDirectory: "_npkgout", noEcho: true);
                 });
 
+            Target("fluxzy-package-push-public-internal",
+                DependsOn("fluxzy-package-sign"),
+                async () => {
+
+                    var nugetOrgApiKey = GetEvOrFail("NUGET_ORG_API_KEY"); 
+
+                    await RunAsync("dotnet",
+                        $"nuget push *.nupkg --skip-duplicate --api-key {nugetOrgApiKey} " +
+                        "--source https://api.nuget.org/v3/index.json",
+                        workingDirectory: "_npkgout", noEcho: true);
+                });
+
             Target("fluxzy-cli-package-build",
                 DependsOn("install-tools", "build-fluxzy-core"),
                 async () => {
@@ -383,6 +395,7 @@ namespace Fluxzy.Build
 
             // Build local CLI packages signed 
             Target("fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"));
+            Target("fluxzy-publish-nuget-public", DependsOn("must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal"));
 
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
 
