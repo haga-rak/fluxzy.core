@@ -32,7 +32,6 @@ namespace Fluxzy.Clients
             _directory = new DirectoryInfo(Path.Combine(loggerPath, "h2")).FullName;
             _directory = Path.Combine(_directory, DebugContext.ReferenceString);
 
-            Directory.CreateDirectory(_directory);
 
             var hosts = Environment.GetEnvironmentVariable("EnableH2TracingFilterHosts");
 
@@ -45,6 +44,7 @@ namespace Fluxzy.Clients
                 return;
             }
 
+            Directory.CreateDirectory(_directory);
             AuthorizedHosts = null;
         }
 
