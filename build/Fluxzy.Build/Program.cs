@@ -242,7 +242,7 @@ namespace Fluxzy.Build
                         "build -c Release src/Fluxzy.Core");
 
                     await RunAsync("dotnet",
-                        "pack --include-symbols -c Release src/Fluxzy.Core -o _npkgout");
+                        "pack -c Release src/Fluxzy.Core -o _npkgout");
                 });
 
             Target("fluxzy-core-pcap-create-package",
@@ -253,7 +253,7 @@ namespace Fluxzy.Build
                         "build -c Release src/Fluxzy.Core.Pcap");
 
                     await RunAsync("dotnet",
-                        "pack --include-symbols -c Release src/Fluxzy.Core.Pcap -o _npkgout");
+                        "pack -c Release src/Fluxzy.Core.Pcap -o _npkgout");
                 });
 
             Target("fluxzy-package-sign",
