@@ -7,8 +7,8 @@ fluxzy is a versatile HTTP intermediate and MITM engine for recording, analyzing
 
 This repository contains the .NET library and the [fluxzy command line line utility](https://www.fluxzy.io/download#cli).
 
-![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core&logo=nuget)
-![Fluxzy.Core.Pcap](https://img.shields.io/nuget/v/Fluxzy.Core.Pcap.svg?label=Fluxzy.Core.Pcap&logo=nuget)
+[![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)
+[![Fluxzy.Core.Pcap](https://img.shields.io/nuget/v/Fluxzy.Core.Pcap.svg?label=Fluxzy.Core.Pcap&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)
 
 ## Main features 
 - Capture raw packet along with HTTP requests (with the extension `Fluxzy.Core.Pcap` (NSS key log can be automatically retrieved when using Bouncy Castle)
