@@ -12,11 +12,10 @@ This repository contains the .NET library and the [fluxzy command line line util
 
 ## Main features 
 - Capture raw packet along with HTTP requests (with the extension `Fluxzy.Core.Pcap` (NSS key log can be automatically retrieved when using Bouncy Castle)
-- Export as Http Archive
 - Deflect OS trafic
 - Automatic certificate installation (with elevation on Windows, macOS and several linux distribution)
 - Certficate management: build-in feature to create CA compatible certificate
-  
+- Export as Http Archive
 
 ## Alteration features 
 
@@ -26,10 +25,12 @@ This repository contains the .NET library and the [fluxzy command line line util
 - Alter request and response body
 - Mock request and response body
 - Forward requests (reverse proxy like)
-- Add request and response cookie
 - Remove any cache directive
 - Serve directory as static website
-- Configuration-based data extraction
+- Add request and response cookie
+- Configuration-based data extraction and alteration
+- Add metadas to HTTP exchanges (tags and comments)
+- ......
 
 ### Transport level alteration features
 - Support HTTP/1.1, H2, WebSocket on outbound stream
@@ -43,12 +44,16 @@ This repository contains the .NET library and the [fluxzy command line line util
 - Simulate transport failures
 - ......
 
-Check this [dedicated page](https://www.fluxzy.io/rule/find/) to see available directives in the latest stable version. 
+Check this [dedicated page](https://www.fluxzy.io/rule/find/) to see all available directives. 
 
 ## Download and installation 
 
-- NuGet packages: [Fluxzy.Core](https://www.nuget.org/packages/Fluxzy.Core) and [Fluxzy.Core.Pcap](https://www.nuget.org/packages/Fluxzy.Core.Pcap/)
-- CLI:  [Download page](https://www.fluxzy.io/download#cli)
+### NuGet packages: 
+[![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)
+[![Fluxzy.Core.Pcap](https://img.shields.io/nuget/v/Fluxzy.Core.Pcap.svg?label=Fluxzy.Core.Pcap&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)
+
+### CLI
+Check [download page](https://www.fluxzy.io/download#cli) to see all available options.
 
 
 
