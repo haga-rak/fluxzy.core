@@ -4,13 +4,18 @@
 # fluxzy 
 
 fluxzy is a versatile HTTP intermediate and MITM engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.
+
 This repository contains the .NET library and the [fluxzy command line line utility](https://www.fluxzy.io/download#cli).
+
+![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core&logo=nuget)
+![Fluxzy.Core.Pcap](https://img.shields.io/nuget/v/Fluxzy.Core.Pcap.svg?label=Fluxzy.Core.Pcap&logo=nuget)
 
 ## Main features 
 - Capture raw packet along with HTTP requests (with the extension `Fluxzy.Core.Pcap` (NSS key log can be automatically retrieved when using Bouncy Castle)
 - Export as Http Archive
 - Deflect OS trafic
 - Automatic certificate installation (with elevation on Windows, macOS and several linux distribution)
+- Certficate management: build-in feature to create CA compatible certificate
   
 
 ## Alteration features 
