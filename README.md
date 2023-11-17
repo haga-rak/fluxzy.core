@@ -23,7 +23,8 @@ This repository contains the .NET library and the [fluxzy command line line util
 - Forward requests (reverse proxy like)
 - Add request and response cookie
 - Remove any cache directive
-- Serve directory as static website 
+- Serve directory as static website
+- Configuration-based data extraction
 
 ### Transport level alteration features
 - Support HTTP/1.1, H2, WebSocket on outbound stream
