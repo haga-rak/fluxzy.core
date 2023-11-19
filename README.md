@@ -16,18 +16,18 @@ This repository contains the .NET
 | Fluxzy.Core.Pcap | Extensions that enables raw packet capture along the HTTP(S) exchange |  [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)|
 
 
-## Features
+## 1. Features
 
-### Core features 
+### 1.1 Core features 
 - Capture raw packet along with HTTP requests (with the extension `Fluxzy.Core.Pcap`). NSS key log can be automatically retrieved when using Bouncy Castle
 - Deflect OS traffic (act as system proxy)
 - Automatic certificate installation (with elevation on Windows, macOS and several linux distribution)
 - Certificate management: build-in feature to create CA compatible certificate
 - Export as Http Archive
 
-### Alteration features 
+### 1.2 Alteration features 
 
-#### Application level alteration features:
+#### 1.2.1 Application level alteration features:
 - Add, remove, modify request and response headers
 - Change request method path, change status code and host
 - Alter request and response body
@@ -40,7 +40,7 @@ This repository contains the .NET
 - Add metadas to HTTP exchanges (tags and comments)
 - ......
 
-#### Transport level alteration features
+#### 1.2.2 Transport level alteration features
 - Support HTTP/1.1, H2, WebSocket on outbound stream
 - Spoof DNS
 - Add client certificate
@@ -55,9 +55,9 @@ This repository contains the .NET
 
 Check this [dedicated search page](https://www.fluxzy.io/rule/find/) to see all available directives. 
 
-## Download and installation 
+## 2. Download and installation 
 
-### NuGet packages
+### 2.1 NuGet packages
 
 Stable versions of fluxzy are available on NuGet.org.
 
@@ -66,21 +66,21 @@ Stable versions of fluxzy are available on NuGet.org.
 | Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=netstandard2.1%20net6%20net8&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)|
 | Fluxzy.Core.Pcap | Extensions that enables raw packet capture along the HTTP(S) exchange |  [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=netstandard2.1%20net6%20net8&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)|
 
-### Fluxzy CLI
+### 2.2 Fluxzy CLI
 
 
 Check [download page](https://www.fluxzy.io/download#cli) to see all available options.
 
 
-## Basic usage
+## 3. Basic usage
 
 
-### Fluxzy CLI 
+### 3.1 Fluxzy CLI 
 
 
 The following shows basic was to use fluxzy. For a more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or just go with '--help' option available for each command.
 
-#### Minimal start
+#### 3.1.1 Minimal start
 
 ```bash
 fluxzy start
@@ -88,7 +88,7 @@ fluxzy start
 
 By default, this command line will start the proxy on port `127.0.0.1:44344`, which is equivalent to `fluxzy start -l 127.0.0.1:44344`
 
-#### Force certificate registration when starting 
+#### 3.1.2 Force certificate registration when starting 
 
 The option `--install-cert` will force the default certificate to be installed on the current user. This option needs elevation and may trigger interactive dialogs on certain OS. 
 This option will do nothing if the certificate is already installed.
@@ -97,7 +97,7 @@ This option will do nothing if the certificate is already installed.
 fluxzy start --install-cert
 ```
 
-#### Act as system proxy 
+#### 3.1.3 Act as system proxy 
 
 Use the `-sp` option make fluxzy act as system proxy. The proxy settings will be reverted when fluxzy is stopped with SIGINT (Ctrl+C). The proxy settings won't be reverted if the fluxzy process is killed.
 
@@ -106,7 +106,7 @@ fluxzy start -sp
 ```
 
 
-#### Save collected data
+#### 3.1.4 Save collected data
 
 ##### As a directory
 The option `-d` will save all collected data in the specified directory. The directory will be created if it does not exist. 
@@ -131,7 +131,7 @@ The command `pack` contains feature to export collected data (directory) as HAR.
 fluxzy pack ./dump_directory -o data.har
 ```
 
-#### Enable raw packet capture
+#### 3.1.5 Enable raw packet capture
 
 The option `-c` will enable raw packet capture. This option may require elevated privileges on macOS and Linux. 
 
@@ -139,7 +139,7 @@ The option `-c` will enable raw packet capture. This option may require elevated
 fluxzy start -d ./dump_directory -c
 ```
 
-#### Read fxzy file 
+#### 3.1.6 Read fxzy file 
 
 The command `dissect` will read a fluxzy file and display all exchanges. 
 
@@ -161,7 +161,7 @@ fluxzy dis dd.fxzy -f "{id} - {method}" | find "POST"
 
 
 
-#### Extract a Pcap file from a fluxzy file. 
+#### 3.1.7 Extract a Pcap file from a fluxzy file. 
 
 For example, the exchange id is `69`
 
