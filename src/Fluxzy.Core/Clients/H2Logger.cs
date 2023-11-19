@@ -20,7 +20,7 @@ namespace Fluxzy.Clients
 
         private static readonly string loggerPath = Environment.ExpandEnvironmentVariables(
             Environment.GetEnvironmentVariable("TracingDirectory")
-            ?? "%appdata%/.fluxzy-debug");
+            ?? LoggingConstants.DefaultTracingDirectory);
 
         private readonly bool _active;
 

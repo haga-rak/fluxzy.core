@@ -176,7 +176,7 @@ namespace Fluxzy.Misc
         }
 
         public static async Task<Process?> RunElevatedAsync(string commandName, string[] args, bool redirectStdOut,
-            string askPasswordPrompt)
+            string askPasswordPrompt, bool redirectStandardError = false)
         {
             var fullArgs = string.Join(" ", args.Select(s => s.EscapeSegment()));
 
@@ -209,7 +209,8 @@ namespace Fluxzy.Misc
                     UseShellExecute = false,
                     Verb = "runas",
                     RedirectStandardOutput = redirectStdOut,
-                    RedirectStandardInput = redirectStdOut
+                    RedirectStandardInput = redirectStdOut,
+                    RedirectStandardError = redirectStandardError
                 });
 
                 return osXProcess;
@@ -221,7 +222,8 @@ namespace Fluxzy.Misc
                 UseShellExecute = false,
                 Verb = "runas",
                 RedirectStandardOutput = redirectStdOut,
-                RedirectStandardInput = redirectStdOut
+                RedirectStandardInput = redirectStdOut,
+                RedirectStandardError = redirectStandardError
             });
 
             return process;
