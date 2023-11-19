@@ -3,6 +3,7 @@
 
 # fluxzy 
 
+[![CI](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml/badge.svg)](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml)
 
 fluxzy is a versatile HTTP intermediate and MITM engine for recording and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.
 
@@ -11,8 +12,8 @@ This repository contains the .NET
 
 | Package | Description | Version |
 | --- | --- | --- |
-| Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=netstandard2.1%20net6%20net8&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)|
-| Fluxzy.Core.Pcap | Extensions that enables raw packet capture along the HTTP(S) exchange |  [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=netstandard2.1%20net6%20net8&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)|
+| Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)|
+| Fluxzy.Core.Pcap | Extensions that enables raw packet capture along the HTTP(S) exchange |  [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)|
 
 
 ## Features
