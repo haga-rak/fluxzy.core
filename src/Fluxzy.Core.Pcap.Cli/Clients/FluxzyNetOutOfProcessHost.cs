@@ -25,8 +25,7 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
             }
 
             _process = await ProcessUtils.RunElevatedAsync(commandName, new[] { $"{currentPid}" }, true,
-                "Fluxzy need to acquire privilege for capturing raw packet");
-
+                "Fluxzy needs to acquire privilege for capturing raw packet", redirectStandardError: FnpLog.LoggingEnabled);
 
             if (_process == null) {
                 // Log "Cannot run process as sudo"
@@ -40,15 +39,31 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
                 _process.EnableRaisingEvents = true;
 
                 var nextLine = await _process.StandardOutput.ReadLineAsync()
-
                                              // We wait 5s for the the process to be ready
                                              .WaitAsync(TimeSpan.FromSeconds(300));
 
                 if (nextLine == null || !int.TryParse(nextLine, out var port))
+                {
+                    if (FnpLog.LoggingEnabled) {
+                        var message = $"Unable to parse a port value from fluxzynetcap." +
+                                      $"Output line: \"{nextLine}\"";
+
+                        FnpLog.Log(message);
+
+                        var fullStdout = nextLine + 
+                                         await _process.StandardOutput.ReadToEndAsync();
+
+                        FnpLog.Log("FullStdout: " + fullStdout);
+
+                        var fullStderr = await _process.StandardError.ReadToEndAsync();
+
+                        FnpLog.Log("FullStderr: " + fullStderr);
+                    }
+
                     return false; // Did not receive port number
+                }
 
                 Port = port;
-
 
                 return true;
             }
@@ -91,7 +106,15 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
             FaultedOrDisposed = true;
 
             if (_process != null)
+            {
                 _process.Exited -= ProcessOnExited; // Detach process
+
+                if (FnpLog.LoggingEnabled) {
+
+                    FnpLog.Log($"FluxzyNetOutOfProcessHost exited with exit code: {_process.ExitCode}");
+                    return;
+                }
+            }
         }
 
         public void Dispose()

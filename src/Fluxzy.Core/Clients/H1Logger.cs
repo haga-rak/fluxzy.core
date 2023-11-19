@@ -39,7 +39,7 @@ namespace Fluxzy.Clients
 
             var loggerPath = Environment.ExpandEnvironmentVariables(
                 Environment.GetEnvironmentVariable("TracingDirectory")
-                ?? "%appdata%/.fluxzy-debug");
+                ?? LoggingConstants.DefaultTracingDirectory);
 
             _active = active.Value;
 
