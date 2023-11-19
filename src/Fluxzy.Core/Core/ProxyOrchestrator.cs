@@ -131,6 +131,10 @@ namespace Fluxzy.Core
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);
 
+                            if (exchange.Context.Abort) {
+                                return;
+                            }
+
                             if (exchange.Context.BreakPointContext != null) {
                                 await exchange.Context.BreakPointContext.ConnectionSetupCompletion
                                               .WaitForEdit();
