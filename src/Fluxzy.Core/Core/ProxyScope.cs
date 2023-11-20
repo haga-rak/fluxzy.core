@@ -48,7 +48,7 @@ namespace Fluxzy.Core
             if (_currentCaptureHost == null || _currentCaptureHost.FaultedOrDisposed) {
                 _currentCaptureHost = null;
 
-                var newHost = _captureHostBuilder();
+                var newHost = _captureHostBuilder!();
 
                 var res = await newHost.Start();
 
