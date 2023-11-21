@@ -47,7 +47,7 @@ namespace Fluxzy.Rules.Actions
                 return default;
             }
             
-            context.VariableContext.Set($"captured.{Name}", actualValue);
+            context.VariableContext.Set($"user.{Name}", actualValue);
             return default;
         }
     }
