@@ -121,9 +121,9 @@ fluxzy start -r rule.yaml --install-cert -sp -o output.fxzy -c
 
 - `--install-cert` will install the default certificate on the current user. This option needs elevation and may trigger interactive dialogs on certain OS.
 
-You can use the command `dissect` to read the fluxzy file or, alternatively, use [Fluxzy Desktop](https://www.fluxzy.io/download) to view it with a GUI. 
+You can use the command [`dissect`](https://www.fluxzy.io/resources/cli/command-dissect) to read the fluxzy file or, alternatively, you can use [Fluxzy Desktop](https://www.fluxzy.io/download) to view it with a GUI. 
 
-More command and options are available, including exporting to HAR or managing certificates, you can run `--help` to see all available options and commands.
+More command and options are available, including [exporting to HAR](https://www.fluxzy.io/resources/cli/command-pack#pack-a-fluxzy-dump-directory-into-a-fluxzy-archive) or [managing certificates](https://www.fluxzy.io/resources/cli/command-cert), you can run `--help` to see all available options and commands.
 
 By default, fluxzy will bind to `127.0.0.1:44344`.
 
