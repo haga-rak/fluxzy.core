@@ -143,7 +143,7 @@ Install NUGET package `Fluxzy.Core`
 dotnet add package Fluxzy.Core
 ```
 
-Run the following command 
+And with .NET 6 or above
 
 
 ```csharp	
