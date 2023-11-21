@@ -16,7 +16,7 @@ namespace Fluxzy.Rules
             "When RunScope is defined. The action is only evaluated when the value of the scope occured.")]
         public FilterScope? RunScope { get; set; } = null;
 
-        public override FilterScope ActionScope { get; } = FilterScope.OutOfScope;
+        public override FilterScope ActionScope { get; } = FilterScope.CopySibling;
 
         public abstract ValueTask MultiScopeAlter(
             ExchangeContext context,
