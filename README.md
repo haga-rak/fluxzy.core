@@ -29,17 +29,17 @@ This repository contains the .NET
 | Add, remove, modify request and response header | Application level alteration ||
 | Change request method path, change status code and host | Application level alteration ||
 | Mock request and response body | Application level alteration ||
-| Forward requests (reverse proxy like) | Application level alteration ||
-| Remove any cache directive | Application level alteration ||
-| Serve directory as static website | Application level alteration ||
+| [Forward requests (reverse proxy like)](https://www.fluxzy.io/rule/item/forwardAction) | Application level alteration ||
+| [Remove any cache directive](https://www.fluxzy.io/rule/item/removeCacheAction) | Application level alteration ||
+| [Serve directory as static website](https://www.fluxzy.io/rule/item/serveDirectoryAction) | Application level alteration ||
 | Add request and response cookie | Application level alteration ||
-| Configuration-based data extraction and alteration | Application level alteration ||
+| [Configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) | Application level alteration ||
 | Add metadas to HTTP exchanges (tags and comments) | Application level alteration ||
 | Support HTTP/1.1, H2, WebSocket on outbound stream | Transport level alteration ||
 | Spoof DNS | Transport level alteration ||
-| Add client certificate | Transport level alteration ||
+| [Add client certificate](https://www.fluxzy.io/rule/item/setClientCertificateAction) | Transport level alteration ||
 | Use a custom root certificate | Transport level alteration ||
-| Use a specific certificate for host | Transport level alteration |With native SSL engine|
+| [Use a specific certificate for host](https://www.fluxzy.io/rule/item/useCertificateAction) | Transport level alteration |With native SSL engine|
 | Force HTTP version | Transport level alteration ||
 | Use specific TLS protocols | Transport level alteration ||
 | Use native SSL client (SChannel, OpenSSL,...) or BouncyCastle | Transport level alteration ||
@@ -72,7 +72,10 @@ Check [download page](https://www.fluxzy.io/download#cli) to see all available o
 
 ### 3.1 Fluxzy CLI 
 
-The following shows basic of how to use fluxzy with a simple rule file. For a more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or just go with `--help` option available for each command.
+The following shows basic of how to use fluxzy with a simple rule file.
+The "rule file" is a straightforward yaml file containing a list of directives that fluxzy will evaluate during the proxying.
+
+ For a more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or just go with `--help` option available for each command.
 
 
 Create a `rule.yaml` file as the following
@@ -130,4 +133,49 @@ fluxzy start -r rule.yaml --install-cert -sp -o output.fxzy -c
 
 You can use the command `dissect` to read the fluxzy file or, alternatively, use [Fluxzy Desktop](https://www.fluxzy.io/download) to view it with a GUI. 
 
+More command and options are available, including exporting to HAR or managing certificates, you can run `--help` to see all available options and commands.
 
+By default, fluxzy will bind to `127.0.0.1:44344`.
+
+
+
+### 3.2 .NET libraries 
+
+The following shows basic of how to use get started quickly with the .NET packages.
+
+The main line is to create a `FluxzySetting` instance and run it through the `Proxy` class.
+
+Install NUGET package `Fluxzy.Core` 
+
+```bash
+dotnet add package Fluxzy.Core
+```
+
+Run the following command 
+
+
+```csharp	
+using System.Net;
+using Fluxzy;
+using Fluxzy.Rules;
+using Fluxzy.Rules.Actions;
+using Fluxzy.Rules.Filters;
+
+var fluxzyStartupSetting = FluxzySetting
+    .CreateDefault(IPAddress.Loopback, 44344)
+    .AddAlterationRules(
+        new Rule(
+            new AddResponseHeaderAction("X-Proxy", "Passed through fluxzy"),
+            AnyFilter.Default
+        ));
+
+await using (var proxy = new Proxy(fluxzyStartupSetting))
+{
+    var _ = proxy.Run();
+
+    Console.WriteLine("Press any key to exit...");
+    Console.ReadLine();
+}
+```
+
+A more detailed documentation and samples are available at [fluxzy.io](https://www.fluxzy.io/resources/core/kick-off-examples) or in the samples folder of this repository.
