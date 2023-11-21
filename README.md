@@ -155,8 +155,6 @@ or on Windows
 fluxzy dis dd.fxzy -f "{id} - {method}" | find "POST"
 ```
 
-
-
 #### 3.1.7 Extract a Pcap file from a fluxzy file. 
 
 For example, the exchange id is `69`
@@ -164,8 +162,6 @@ For example, the exchange id is `69`
 ```bash
 fluxzy dis data.fxzy -i 69 -f "{pcap}" -o rawcapture.png
 ```
-
-
 
 
 
