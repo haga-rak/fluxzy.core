@@ -18,39 +18,35 @@ This repository contains the .NET
 
 ## 1. Features
 
-### 1.1 Core features 
-- Capture raw packet along with HTTP requests (with the extension `Fluxzy.Core.Pcap`). NSS key log can be automatically retrieved when using Bouncy Castle
-- Deflect OS traffic (act as system proxy)
-- Automatic certificate installation (with elevation on Windows, macOS and several linux distribution)
-- Certificate management: build-in feature to create CA compatible certificate
-- Export as Http Archive
+| Description | Category | Comment | 
+| --- | --- | --- |
+| View HTTP(s) traffic in clear text | General ||
+| Capture raw packet along with HTTP requests (with the extension `Fluxzy.Core.Pcap`). NSS key log can be automatically retrieved when using Bouncy Castle | General ||
+| Deflect OS traffic (act as system proxy) | General | Partially on linux|
+| Automatic certificate installation (with elevation on Windows, macOS and several linux distribution) | General |Partially on linux|
+| Certificate management: build-in feature to create CA compatible certificate | General ||
+| Export as Http Archive | General ||
+| Add, remove, modify request and response header | Application level alteration ||
+| Change request method path, change status code and host | Application level alteration ||
+| Alter request and response body | Application level alteration ||
+| Mock request and response body | Application level alteration ||
+| Forward requests (reverse proxy like) | Application level alteration ||
+| Remove any cache directive | Application level alteration ||
+| Serve directory as static website | Application level alteration ||
+| Add request and response cookie | Application level alteration ||
+| Configuration-based data extraction and alteration | Application level alteration ||
+| Add metadas to HTTP exchanges (tags and comments) | Application level alteration ||
+| Support HTTP/1.1, H2, WebSocket on outbound stream | Transport level alteration ||
+| Spoof DNS | Transport level alteration ||
+| Add client certificate | Transport level alteration ||
+| Use a custom root certificate | Transport level alteration ||
+| Use a specific certificate for host | Transport level alteration |With native SSL engine|
+| Force HTTP version | Transport level alteration ||
+| Use specific TLS protocols | Transport level alteration ||
+| Use native SSL client (SChannel, OpenSSL,...) or BouncyCastle | Transport level alteration ||
+| Abort connection | Transport level alteration ||
+| ...... | ...... ||
 
-### 1.2 Alteration features 
-
-#### 1.2.1 Application level alteration features:
-- Add, remove, modify request and response headers
-- Change request method path, change status code and host
-- Alter request and response body
-- Mock request and response body
-- Forward requests (reverse proxy like)
-- Remove any cache directive
-- Serve directory as static website
-- Add request and response cookie
-- Configuration-based data extraction and alteration
-- Add metadas to HTTP exchanges (tags and comments)
-- ......
-
-#### 1.2.2 Transport level alteration features
-- Support HTTP/1.1, H2, WebSocket on outbound stream
-- Spoof DNS
-- Add client certificate
-- Use a custom root certificate
-- Use a specific certificate for host
-- Force HTTP version
-- Use specific TLS protocols
-- Use native SSL client (SChannel, OpenSSL,...) or BouncyCastle
-- Simulate transport failures
-- ......
 
 
 Check this [dedicated search page](https://www.fluxzy.io/rule/find/) to see all available directives. 
@@ -78,9 +74,9 @@ Check [download page](https://www.fluxzy.io/download#cli) to see all available o
 ### 3.1 Fluxzy CLI 
 
 
-The following shows basic was to use fluxzy. For a more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or just go with '--help' option available for each command.
+The following shows basic of how to use fluxzy with a simple rule file. For a more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or just go with '--help' option available for each command.
 
-#### 3.1.1 Minimal start
+#### 3.1.2 Minimal start
 
 ```bash
 fluxzy start
