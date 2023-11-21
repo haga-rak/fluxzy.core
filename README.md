@@ -5,10 +5,10 @@
 
 [![CI](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml/badge.svg)](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml)
 
-fluxzy is a versatile HTTP intermediate and MITM engine for recording and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.
+fluxzy is an HTTP intermediate and MITM engine for recording and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels.
 
 This repository contains the .NET
- library and the [fluxzy CLI](https://www.fluxzy.io/download#cli) that enables you to use fluxzy as a standalone application on a terminal.
+ library and  [Fluxzy CLI](https://www.fluxzy.io/download#cli) that enables you to use fluxzy as a standalone application on a terminal on Windows, macOS  and linux.
 
 | Package | Description | Version |
 | --- | --- | --- |
@@ -20,15 +20,14 @@ This repository contains the .NET
 
 | Description | Category | Comment | 
 | --- | --- | --- |
-| View HTTP(s) traffic in clear text | General ||
-| Capture raw packet along with HTTP requests (with the extension `Fluxzy.Core.Pcap`). NSS key log can be automatically retrieved when using Bouncy Castle | General ||
 | Deflect OS traffic (act as system proxy) | General | Partially on linux|
-| Automatic certificate installation (with elevation on Windows, macOS and several linux distribution) | General |Partially on linux|
+| Automatic root certificate installation (with elevation on Windows, macOS and several linux distribution) | General |Partially on linux|
 | Certificate management: build-in feature to create CA compatible certificate | General ||
 | Export as Http Archive | General ||
+| View HTTP(s) traffic in clear text | General ||
+| Capture raw packet along with HTTP requests (with the extension `Fluxzy.Core.Pcap`). NSS key log can be automatically retrieved when using Bouncy Castle | General ||
 | Add, remove, modify request and response header | Application level alteration ||
 | Change request method path, change status code and host | Application level alteration ||
-| Alter request and response body | Application level alteration ||
 | Mock request and response body | Application level alteration ||
 | Forward requests (reverse proxy like) | Application level alteration ||
 | Remove any cache directive | Application level alteration ||
@@ -55,7 +54,7 @@ Check this [dedicated search page](https://www.fluxzy.io/rule/find/) to see all 
 
 ### 2.1 NuGet packages
 
-Stable versions of fluxzy are available on NuGet.org.
+Stable and signed versions of **fluxzy** are available on NuGet.org.
 
 | Package | Description | Version |
 | --- | --- | --- |
@@ -73,8 +72,38 @@ Check [download page](https://www.fluxzy.io/download#cli) to see all available o
 
 ### 3.1 Fluxzy CLI 
 
+The following shows basic of how to use fluxzy with a simple rule file. For a more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or just go with `--help` option available for each command.
 
-The following shows basic of how to use fluxzy with a simple rule file. For a more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or just go with '--help' option available for each command.
+
+Create a `rule.yaml` file as the following
+
+
+```yaml	
+rules:
+  - filter: 
+      typeKind: FilterCollection # can be multiple combination of filters
+      operation: and
+      children:
+         - typeKind: postFilter # select only post requests 
+         - typeKind: requestHeaderFilter
+           headerName: authorization # select only request with authorization header
+           operation: regex
+           pattern: "Bearer (?<BEARER_TOKEN>.*)" # A named regex instructs fluxzy
+                                                 # to extract token from authorization
+                                                 # header into the variable BEARER_TOKEN
+    action : 
+      # Write the token on file 
+      typeKind: FileAppendAction # Append the token to the file
+      filename: token-file.txt # save the token to token-file.txt
+      text: "${captured.BEARER_TOKEN}\r\n"  # captured.BEARER_TOKEN retrieves 
+                                            # the previously captured variables 
+      runScope: RequestHeaderReceivedFromClient  # run the action when the request header 
+                                                 # is received from client
+```
+
+  <sub>For more information about the rule syntax, visit the [documentation](https://www.fluxzy.io/resources/documentation/the-rule-file) page.</sub>
+
+
 
 #### 3.1.2 Minimal start
 
