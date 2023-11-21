@@ -67,7 +67,7 @@ namespace Fluxzy.Cli.Commands
         {
             var option = new Option<string>(
                 "f",
-                description: "The output file format among fluxzy and saz",
+                description: "The output file format among fluxzy, har and saz",
                 getDefaultValue: () => null!) {
                 Arity = ArgumentArity.ExactlyOne
             };

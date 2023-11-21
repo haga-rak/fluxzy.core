@@ -184,7 +184,7 @@ namespace Fluxzy.Cli.Commands
             var ruleContent = ruleStdin
                 ? invocationContext.BindingContext.Console is OutputConsole oc
                     ? oc.StandardInputContent
-                    : Console.In.ReadToEnd()
+                    : await Console.In.ReadToEndAsync(cancellationToken)
                 : null;
 
             if (ruleContent == null && ruleFile != null) {
@@ -293,7 +293,7 @@ namespace Fluxzy.Cli.Commands
             }
         }
 
-        public async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)
+        private async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)
         {
             var packager = Packagers.FirstOrDefault(p => p.ShouldApplyTo(outFileName));
 
