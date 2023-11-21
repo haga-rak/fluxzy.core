@@ -28,6 +28,8 @@ This repository contains the .NET library and the [Fluxzy CLI](https://www.fluxz
 
 ## 1. Features
 
+To get an exhaustive list of all built-in alteration capabilities, check this [dedicated search page](https://www.fluxzy.io/rule/find/).
+
 | Description | Category | Comment |
 | --- | --- | --- |
 | Deflect OS traffic (act as system proxy) | General | Partially on Linux |
@@ -56,26 +58,11 @@ This repository contains the .NET library and the [Fluxzy CLI](https://www.fluxz
 | Abort connections | Transport-level alteration ||
 | ...... | ...... ||
 
-Check this [dedicated search page](https://www.fluxzy.io/rule/find/) to see all available directives.
 
-## 2. Download and Installation
 
-### 2.1 NuGet Packages
+## 2. Basic Usage
 
-Stable and signed versions of **fluxzy** are available on NuGet.org.
-
-| Package | Description | Version |
-| --- | --- | --- |
-| Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core) |
-| Fluxzy.Core.Pcap | Extensions that enable raw packet capture along the HTTP(S) exchange | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap) |
-
-### 2.2 Fluxzy CLI
-
-Check the [download page](https://www.fluxzy.io/download#cli) to see all available options.
-
-## 3. Basic Usage
-
-### 3.1 Fluxzy CLI
+### 2.1 Fluxzy CLI
 
 The following demonstrates the basics of how to use fluxzy with a simple rule file.
 The "rule file" is a straightforward YAML file containing a list of directives that fluxzy will evaluate during proxying.
@@ -142,7 +129,7 @@ By default, fluxzy will bind to `127.0.0.1:44344`.
 
 
 
-### 3.2 .NET libraries 
+### 2.2 .NET libraries 
 
 The following shows a very basic usage of the .NET packages.
 
