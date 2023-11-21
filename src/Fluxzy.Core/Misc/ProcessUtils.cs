@@ -176,7 +176,7 @@ namespace Fluxzy.Misc
         }
 
         public static async Task<Process?> RunElevatedAsync(string commandName, string[] args, bool redirectStdOut,
-            string askPasswordPrompt)
+            string askPasswordPrompt, bool redirectStandardError = false)
         {
             var fullArgs = string.Join(" ", args.Select(s => s.EscapeSegment()));
 
@@ -205,11 +205,12 @@ namespace Fluxzy.Misc
                         return null; 
                 }
                 
-                var osXProcess = Process.Start(new ProcessStartInfo("sudo", $"-n {commandName} {fullArgs}") {
+                var osXProcess = Process.Start(new ProcessStartInfo("sudo", $"-n \"{commandName}\" {fullArgs}") {
                     UseShellExecute = false,
                     Verb = "runas",
                     RedirectStandardOutput = redirectStdOut,
-                    RedirectStandardInput = redirectStdOut
+                    RedirectStandardInput = redirectStdOut,
+                    RedirectStandardError = redirectStandardError
                 });
 
                 return osXProcess;
@@ -217,11 +218,12 @@ namespace Fluxzy.Misc
 
             // For other OS we use pkexec
 
-            var process = Process.Start(new ProcessStartInfo("pkexec", $"{commandName} {fullArgs}") {
+            var process = Process.Start(new ProcessStartInfo("pkexec", $"\"{commandName}\" {fullArgs}") {
                 UseShellExecute = false,
                 Verb = "runas",
                 RedirectStandardOutput = redirectStdOut,
-                RedirectStandardInput = redirectStdOut
+                RedirectStandardInput = redirectStdOut,
+                RedirectStandardError = redirectStandardError
             });
 
             return process;
@@ -277,8 +279,6 @@ namespace Fluxzy.Misc
             return str.Replace("'", "'\\''");
         }
     }
-
-
 
     public class ProcessRunResult
     {

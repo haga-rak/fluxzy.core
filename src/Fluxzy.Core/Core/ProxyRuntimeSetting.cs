@@ -89,8 +89,9 @@ namespace Fluxzy.Core
             foreach (var rule in _effectiveRules.Where(a => 
                          a.Action.ActionScope == filterScope
                          || a.Action.ActionScope == FilterScope.OutOfScope 
-                         || (a.Action.ActionScope == FilterScope.CopySibling && 
-                            a.Filter.FilterScope == filterScope
+                         || (a.Action.ActionScope == FilterScope.CopySibling 
+                             && a.Action is MultipleScopeAction multipleScopeAction
+                             && multipleScopeAction .RunScope == filterScope
                             )
                          ))
             {

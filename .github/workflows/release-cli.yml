@@ -7,7 +7,7 @@ jobs:
     name: "Publish release"
     strategy:
       matrix:
-        osversion: [Linux, Windows, macOS, macosarm]
+        osversion: [Linux, Windows, ARM64]
         ostype: ['self-hosted']
       fail-fast: false
 

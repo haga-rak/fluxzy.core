@@ -80,7 +80,7 @@ rules:
   actions: 
   - typeKind: FileAppendAction
     filename: filenamevalue
-    text: "${captured.myvar}"  
+    text: "${user.myvar}"  
     runScope: ResponseHeaderReceivedFromRemote
 
 """;
@@ -92,6 +92,45 @@ rules:
 
             Assert.NotNull(exchange.ResponseHeader);
             Assert.Equal("sandbox", fileContent);
+        }
+
+
+        [Fact]
+        public async Task String_Filter_Extract_A_Value_To_File_Main_Example()
+        {
+            var requestMessage = new HttpRequestMessage(HttpMethod.Delete,
+                $"{TestConstants.GetHost("http2")}/global-health-check");
+
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "a_bearer_token");
+
+            if (File.Exists("token-file.txt"))
+                File.Delete("token-file.txt");
+
+            var rule = """
+rules:
+- filter: 
+    typeKind: requestHeaderFilter
+    headerName: authorization # select only request with authorization header
+    operation: regex
+    pattern: "Bearer (?<BEARER_TOKEN>.*)" # A named regex instructs fluxzy
+                                           # to extract token from authorization
+                                           # header into the variable BEARER_TOKEN
+  action : 
+    # Write the token on file 
+    typeKind: FileAppendAction # Append the token to the file
+    filename: token-file.txt # save the token to token-file.txt
+    text: "${authority.host} --> ${user.BEARER_TOKEN}\r\n"  # user.BEARER_TOKEN retrieves 
+                                          # the previously captured variables 
+    runScope: RequestHeaderReceivedFromClient  # run the action when the request header 
+                                               # is received from client
+
+""";
+            
+            var (exchange, _, _) = await RequestHelper.DirectRequest(requestMessage, rule);
+
+            Assert.NotNull(exchange.ResponseHeader);
+            Assert.True(File.Exists("token-file.txt"), "File does not exists");
+            Assert.Equal("sandbox.smartizy.com --> "  + "a_bearer_token", File.ReadAllLines("token-file.txt").First());
         }
 
         [Fact]
@@ -111,7 +150,7 @@ rules:
     operation: regex
   actions: 
   - typeKind: applyCommentAction
-    comment: "${captured.token}" 
+    comment: "${user.token}" 
 """;
 
             var (exchange, _, _) = await RequestHelper.DirectRequest(requestMessage, rule);
