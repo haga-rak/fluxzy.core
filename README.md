@@ -10,10 +10,21 @@ fluxzy is an HTTP intermediate and MITM engine for recording and altering HTTP/1
 
 This repository contains the .NET library and the [Fluxzy CLI](https://www.fluxzy.io/download#cli) that enables you to use fluxzy as a standalone application on a terminal on Windows, macOS, and Linux.
 
-| Package | Description | Version |
+| .NET Package | Description | Version |
 | --- | --- | --- |
 | Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core) |
 | Fluxzy.Core.Pcap | Extensions that enable raw packet capture along the HTTP(S) exchange | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap) |
+
+
+| Fluxzy CLI | Version |
+| --- | --- |
+| Windows |   [![win32](https://fluxzy.io/misc/badge/cli/Windows32)  ![win64](https://fluxzy.io/misc/badge/cli/Windows64)      ![winArm64](https://fluxzy.io/misc/badge/cli/WindowsArm64)](https://www.fluxzy.io/download#cli)     | 
+|macOS |  [![osx64](https://fluxzy.io/misc/badge/cli/Osx64)  ![osxArm64](https://fluxzy.io/misc/badge/cli/OsxArm64)](https://www.fluxzy.io/download#cli)   | 
+| Linux |  [![linux64](https://fluxzy.io/misc/badge/cli/Linux64)  ![linuxArm64](https://fluxzy.io/misc/badge/cli/LinuxArm64)](https://www.fluxzy.io/download#cli)   |
+
+
+
+
 
 ## 1. Features
 
@@ -113,15 +124,15 @@ Then start fluxzy with the rule file
 fluxzy start -r rule.yaml --install-cert -sp -o output.fxzy -c 
 ```
 
-`--install-cert`, `-sp`, `-o`, `-c`, `-r` are optional.
+- `--install-cert`, `-sp`, `-o`, `-c`, `-r` are optional.
 
-`-o` will save all collected data in a fluxzy file. The file will be created only at the end of the capture session. 
+- `-o` will save all collected data in a fluxzy file. The file will be created only at the end of the capture session. 
 
-`-sp` will make fluxzy act as system proxy. The proxy settings will be reverted when fluxzy is stopped with SIGINT (Ctrl+C). The proxy settings won't be reverted if the fluxzy process is killed.
+- `-sp` will make fluxzy act as system proxy. The proxy settings will be reverted when fluxzy is stopped with SIGINT (Ctrl+C). The proxy settings won't be reverted if the fluxzy process is killed.
 
-`-c` will enable raw packet capture.
+- `-c` will enable raw packet capture.
 
-`--install-cert` will install the default certificate on the current user. This option needs elevation and may trigger interactive dialogs on certain OS.
+- `--install-cert` will install the default certificate on the current user. This option needs elevation and may trigger interactive dialogs on certain OS.
 
 You can use the command `dissect` to read the fluxzy file or, alternatively, use [Fluxzy Desktop](https://www.fluxzy.io/download) to view it with a GUI. 
 
