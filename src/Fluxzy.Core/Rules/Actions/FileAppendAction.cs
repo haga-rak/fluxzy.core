@@ -48,8 +48,7 @@ namespace Fluxzy.Rules.Actions
                 if (!string.IsNullOrWhiteSpace(directoryName))
                     Directory.CreateDirectory(directoryName);
 
-                lock (string.Intern(fileName)) {
-                    // TODO : Write a better lock than this 
+                lock (this) {
                     File.AppendAllText(fileName, finalText, encoding);
                 }
             }

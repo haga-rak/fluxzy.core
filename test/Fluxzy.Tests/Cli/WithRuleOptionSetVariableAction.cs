@@ -22,11 +22,11 @@ namespace Fluxzy.Tests.Cli
                                  actions :
                                    - typeKind: setVariableAction
                                      name: FOO
-                                     value: '${captured.FOO}BAR'
+                                     value: '${user.FOO}BAR'
                                      scope: RequestHeaderReceivedFromClient
                                    - typeKind: addResponseHeaderAction
                                      headerName: Passed
-                                     headerValue: '${captured.FOO}'
+                                     headerValue: '${user.FOO}'
                                """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,

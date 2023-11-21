@@ -95,7 +95,7 @@ namespace Fluxzy.Rules.Filters
                                     // If variable are present we update it
 
                                     foreach (var kp in matchedVariable) {
-                                        exchangeContext.VariableContext.Set($"captured.{kp.Name}", kp.Value);
+                                        exchangeContext.VariableContext.Set($"user.{kp.Name}", kp.Value);
                                     }
                                 }
 
