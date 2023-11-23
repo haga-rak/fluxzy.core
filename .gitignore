@@ -35,8 +35,6 @@ out/
 .publish/
 dist/
 
-# docfx build output
-_site/
 
 .angular/
 .publish/
@@ -406,3 +404,8 @@ auto-generated.ts
 _npkgout/
 .artefacts/
 thirdParty/
+
+
+# docfx build output
+_site/
+docs/docfx/api/
