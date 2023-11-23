@@ -35,6 +35,9 @@ out/
 .publish/
 dist/
 
+# docfx build output
+_site/
+
 .angular/
 .publish/
 
