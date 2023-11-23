@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Fluxzy.Har;
+using Fluxzy.Archiving.Har;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Tests._Fixtures;

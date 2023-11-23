@@ -2,7 +2,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Fluxzy.MessagePack;
+using Fluxzy.Archiving.MessagePack;
 using Fluxzy.Misc.Converters;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;

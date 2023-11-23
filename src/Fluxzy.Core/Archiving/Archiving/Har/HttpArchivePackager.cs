@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Fluxzy.Readers;
 
-namespace Fluxzy.Har
+namespace Fluxzy.Archiving.Har
 {
     [PackagerInformation("har", "HAR 1.2 archive format", ".har")]
     public class HttpArchivePackager : DirectoryPackager
