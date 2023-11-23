@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc.Streams
 {
+    /// <summary>
+    ///  A stream that write chunked transfer encoding
+    /// </summary>
     public class ChunkedTransferWriteStream : Stream
     {
         private static readonly byte[] ChunkTerminator =

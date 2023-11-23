@@ -6,16 +6,27 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Fluxzy.Certificates
 {
+    /// <summary>
+    /// An utility to create fluxzy compatatible root CA
+    /// </summary>
     public class CertificateBuilder
     {
         private readonly CertificateBuilderOptions _options;
 
+        /// <summary>
+        /// Create a new instance with option
+        /// </summary>
+        /// <param name="options"></param>
         public CertificateBuilder(CertificateBuilderOptions options)
         {
             options.Validate();
             _options = options; 
         }
 
+        /// <summary>
+        /// Returns a PKCS12 certificate as a byte array
+        /// </summary>
+        /// <returns></returns>
         public byte[] CreateSelfSigned()
         {
             using var privateKey = RSA.Create(_options.KeySize);

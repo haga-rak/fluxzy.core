@@ -16,6 +16,10 @@ using Fluxzy.Writers;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
+    /// <summary>
+    ///  An HttpMessageHandler that uses fluxzy internals to send requests.
+    ///  Unless you know what you are doing, you should not use this class directly instead of HttpClientHandler.
+    /// </summary>
     public class FluxzyDefaultHandler : HttpMessageHandler
     {
         private readonly ITcpConnectionProvider? _connectionProvider;

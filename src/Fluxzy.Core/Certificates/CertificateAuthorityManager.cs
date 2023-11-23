@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Certificates
 {
+    /// <summary>
+    /// An utility to create and manage certificate authority
+    /// </summary>
     public abstract class CertificateAuthorityManager
     {
         /// <summary>
@@ -35,34 +38,70 @@ namespace Fluxzy.Certificates
         //    return IsCertificateInstalled(FluxzySecurity.DefaultThumbPrint);
         //}
 
+        /// <summary>
+        ///    Remove a certificate from the root store
+        /// </summary>
+        /// <param name="thumbPrint"></param>
+        /// <returns></returns>
         public abstract ValueTask<bool> RemoveCertificate(string thumbPrint);
 
+        /// <summary>
+        ///    Install a certificate as root certificate
+        /// </summary>
+        /// <param name="certificate"></param>
+        /// <returns></returns>
         public abstract ValueTask<bool> InstallCertificate(X509Certificate2 certificate);
 
+        /// <summary>
+        ///    Install the default root CA
+        /// </summary>
+        /// <returns></returns>
         public virtual ValueTask<bool> InstallDefaultCertificate()
         {
             return InstallCertificate(FluxzySecurity.BuiltinCertificate);
         }
 
+        /// <summary>
+        /// Check if the provided certificate is installed a root CA
+        /// </summary>
+        /// <param name="certificate"></param>
         public virtual void CheckAndInstallCertificate(X509Certificate2 certificate)
         {
             if (!IsCertificateInstalled(certificate))
                 InstallCertificate(certificate);
         }
 
+        /// <summary>
+        /// List all installed root certificates
+        /// </summary>
+        /// <returns></returns>
         public abstract IEnumerable<CaCertificateInfo> EnumerateRootCertificates();
     }
 
+    /// <summary>
+    /// A light information about a CA certificate
+    /// </summary>
     public class CaCertificateInfo
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="thumbPrint"></param>
+        /// <param name="subject"></param>
         public CaCertificateInfo(string thumbPrint, string subject)
         {
             ThumbPrint = thumbPrint;
             Subject = subject;
         }
 
+        /// <summary>
+        /// The certifiate thumbprint 
+        /// </summary>
         public string ThumbPrint { get; }
 
+        /// <summary>
+        /// The certificate subject 
+        /// </summary>
         public string Subject { get; }
     }
 }

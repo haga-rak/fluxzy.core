@@ -5,6 +5,9 @@ using System.IO.Compression;
 
 namespace Fluxzy.Readers
 {
+    /// <summary>
+    ///   
+    /// </summary>
     public class FxzyImportEngine : IImportEngine
     {
         private readonly FxzyDirectoryPackager _directoryPackager;

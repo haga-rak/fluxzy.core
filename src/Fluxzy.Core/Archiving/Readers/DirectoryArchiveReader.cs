@@ -11,6 +11,9 @@ using MessagePack;
 
 namespace Fluxzy.Readers
 {
+    /// <summary>
+    ///   An archive reader that read from a directory
+    /// </summary>
     public class DirectoryArchiveReader : IArchiveReader
     {
         private readonly string _captureDirectory;

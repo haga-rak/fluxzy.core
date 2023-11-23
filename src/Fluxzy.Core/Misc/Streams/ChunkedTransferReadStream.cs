@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Globalization;
@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc.Streams
 {
+    /// <summary>
+    /// A stream that read chunked transfer encoding
+    /// </summary>
     public class ChunkedTransferReadStream : Stream
     {
         private readonly bool _closeOnDone;
