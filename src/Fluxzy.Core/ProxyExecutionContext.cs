@@ -6,7 +6,7 @@ using Fluxzy.Rules.Actions;
 
 namespace Fluxzy
 {
-    public class ProxyExecutionContext
+    internal class ProxyExecutionContext
     {
         public ProxyExecutionContext(string sessionId, FluxzySetting startupSetting)
         {

@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Fluxzy
 {
-    public static class FluxzyMetaInformation
+    internal static class FluxzyMetaInformation
     {
         private static string? _version;
 

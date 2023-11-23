@@ -12,6 +12,9 @@ using MessagePack.Resolvers;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// Provide serialization settings for producing default archive format
+    /// </summary>
     public static class GlobalArchiveOption
     {
         /// <summary>
@@ -21,6 +24,9 @@ namespace Fluxzy
             CompositeResolver.Create(new IMessagePackFormatter[] { new MessagePackAddressFormatter() },
             new IFormatterResolver[] { StandardResolverAllowPrivate.Instance, ContractlessStandardResolver.Instance }));
 
+        /// <summary>
+        /// STJ default archive option 
+        /// </summary>
         public static JsonSerializerOptions DefaultSerializerOptions { get; } = new() {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
@@ -36,6 +42,9 @@ namespace Fluxzy
             NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
 
+        /// <summary>
+        /// STJ default archive option  for configuration file
+        /// </summary>
         public static JsonSerializerOptions ConfigSerializerOptions { get; } = new() {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
@@ -52,6 +61,9 @@ namespace Fluxzy
             NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
 
+        /// <summary>
+        /// HAR STJ archiving option, used by Har Packager
+        /// </summary>
         public static JsonSerializerOptions HttpArchiveSerializerOptions { get; } = new() {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false,
