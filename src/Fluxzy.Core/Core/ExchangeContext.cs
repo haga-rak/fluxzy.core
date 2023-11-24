@@ -17,7 +17,8 @@ namespace Fluxzy.Core
 {
     public class ExchangeContext
     {
-        public ExchangeContext(IAuthority authority,
+        public ExchangeContext(
+            IAuthority authority,
             VariableContext variableContext, FluxzySetting? fluxzySetting)
         {
             Authority = authority;
@@ -43,7 +44,6 @@ namespace Fluxzy.Core
         public X509Certificate2Collection? ClientCertificates { get; set; }
 
         /// <summary>
-        /// 
         /// </summary>
         public X509Certificate2? ServerCertificate { get; set; }
 
@@ -53,33 +53,32 @@ namespace Fluxzy.Core
         public bool BlindMode { get; set; }
 
         /// <summary>
-        /// If true, fluxzy will not try to reuse an existing connection
+        ///     If true, fluxzy will not try to reuse an existing connection
         /// </summary>
         public bool ForceNewConnection { get; set; } = false;
 
         /// <summary>
-        ///  Abort  the current exchange
+        ///     Abort  the current exchange
         /// </summary>
-        public bool Abort { get; set; } = false; 
+        public bool Abort { get; set; } = false;
 
         /// <summary>
-        ///    Provide a premade response (a mock)
+        ///     Provide a premade response (a mock)
         /// </summary>
         public PreMadeResponse? PreMadeResponse { get; set; }
 
         /// <summary>
-        ///   Available ALPN protocols, leave null to use default
+        ///     Available ALPN protocols, leave null to use default
         /// </summary>
         public List<SslApplicationProtocol>? SslApplicationProtocols { get; set; }
 
-
         /// <summary>
-        ///    Available TLS protocols, leave null to use default
+        ///     Available TLS protocols, leave null to use default
         /// </summary>
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
 
         /// <summary>
-        ///  Don't validate the remote certificate
+        ///     Don't validate the remote certificate
         /// </summary>
         public bool SkipRemoteCertificateValidation { get; set; } = false;
 
