@@ -11,7 +11,6 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/haga-rak/fluxzy.core</RepositoryUrl>
     <PackageTags>mitm;http;pcap</PackageTags>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
