@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 
 namespace Fluxzy.Tests.Substitutions.Actions
@@ -41,8 +42,9 @@ namespace Fluxzy.Tests.Substitutions.Actions
             _content = content;
         }
 
-        public Stream Substitute(Stream stream)
+        public async ValueTask<Stream> Substitute(Stream stream)
         {
+            var length = await stream.DrainAsync();
             return new MemoryStream(Encoding.UTF8.GetBytes(_content));
         }
     }

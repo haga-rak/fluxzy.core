@@ -169,7 +169,7 @@ namespace Fluxzy.Core
 
                                         if (exchange.Context.RequestBodySubstitution != null) {
                                             originalRequestBodyStream = exchange.Request.Body;
-                                            exchange.Request.Body =
+                                            exchange.Request.Body = await
                                                 exchange.Context.RequestBodySubstitution
                                                         .Substitute(exchange.Request.Body);
                                         }
@@ -303,7 +303,7 @@ namespace Fluxzy.Core
 
                                         if (exchange.Context.ResponseBodySubstitution != null) {
                                             originalResponseBodyStream = responseBodyStream;
-                                            responseBodyStream =
+                                            responseBodyStream = await
                                                 exchange.Context.ResponseBodySubstitution
                                                         .Substitute(responseBodyStream);
                                         }

@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Fluxzy.Core
 {
@@ -14,7 +15,7 @@ namespace Fluxzy.Core
         /// </summary>
         /// <param name="stream">The original stream (must be drained and disposed) </param>
         /// <returns></returns>
-        Stream Substitute(Stream stream);
+        ValueTask<Stream> Substitute(Stream stream);
     }
 
 }
