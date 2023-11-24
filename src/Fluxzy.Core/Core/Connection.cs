@@ -21,18 +21,41 @@ namespace Fluxzy.Core
             Id = idProvider.NextConnectionId();
         }
 
+        /// <summary>
+        ///  An unique identifier for this connection relative to the current fluxzy session
+        /// </summary>
         public int Id { get; internal set; }
 
+        /// <summary>
+        ///  The HTTP version used for this connection
+        /// </summary>
         public string? HttpVersion { get; internal set; }
 
+        /// <summary>
+        ///  The number of request processed by this connection
+        /// </summary>
         public int RequestProcessed => _requestProcessed;
 
+        /// <summary>
+        /// The authority used for this connection
+        /// </summary>
         public Authority Authority { get; internal set; }
 
+        /// <summary>
+        ///  The remote address of the connection
+        /// </summary>
         public IPAddress? RemoteAddress { get; internal set; }
 
-        public SslInfo? SslInfo { get; internal set; }
+        /// <summary>
+        ///  The remote port of the connection
+        /// </summary>
+        public int LocalPort { get; internal set; }
 
+        /// <summary>
+        /// SSL information if any
+        /// </summary>
+        public SslInfo? SslInfo { get; internal set; }
+        
         public DateTime DnsSolveStart { get; internal set; }
 
         public DateTime DnsSolveEnd { get; internal set; }
@@ -44,9 +67,10 @@ namespace Fluxzy.Core
         public DateTime SslNegotiationStart { get; internal set; }
 
         public DateTime SslNegotiationEnd { get; internal set; }
-        
-        public int LocalPort { get; internal set; }
 
+        /// <summary>
+        ///  Address of the local endpoint
+        /// </summary>
         public string? LocalAddress { get; internal set; }
 
         public Stream? WriteStream { get; internal set; }
