@@ -146,6 +146,8 @@ namespace Fluxzy.Core
                             }
 
                             IHttpConnectionPool connectionPool;
+                            Stream? originalRequestBodyStream = null; 
+                            Stream? originalResponseBodyStream = null;
 
                             try {
                                 if (exchange.Context.BreakPointContext != null) {
@@ -166,6 +168,7 @@ namespace Fluxzy.Core
                                         // here we have a chance substitute the requestBodyStream
 
                                         if (exchange.Context.RequestBodySubstitution != null) {
+                                            originalRequestBodyStream = exchange.Request.Body;
                                             exchange.Request.Body =
                                                 exchange.Context.RequestBodySubstitution
                                                         .Substitute(exchange.Request.Body);
@@ -219,7 +222,7 @@ namespace Fluxzy.Core
                                     }
                                     finally {
                                         // We close the request body dispatchstream
-                                        await SafeCloseRequestBody(exchange);
+                                        await SafeCloseRequestBody(exchange, originalRequestBodyStream);
                                     }
 
                                     break;
@@ -228,8 +231,8 @@ namespace Fluxzy.Core
                             catch (Exception exception) {
                                 // The caller cancelled the task 
 
-                                await SafeCloseRequestBody(exchange);
-                                await SafeCloseResponseBody(exchange);
+                                await SafeCloseRequestBody(exchange, originalRequestBodyStream);
+                                await SafeCloseResponseBody(exchange, originalResponseBodyStream);
 
                                 if (exception is OperationCanceledException)
                                     break;
@@ -299,6 +302,7 @@ namespace Fluxzy.Core
                                         // here we have a chance substitute the reponseBodyStream
 
                                         if (exchange.Context.ResponseBodySubstitution != null) {
+                                            originalResponseBodyStream = responseBodyStream;
                                             responseBodyStream =
                                                 exchange.Context.ResponseBodySubstitution
                                                         .Substitute(responseBodyStream);
@@ -346,8 +350,8 @@ namespace Fluxzy.Core
                                         token);
                                 }
                                 catch (Exception ex) {
-                                    await SafeCloseRequestBody(exchange);
-                                    await SafeCloseResponseBody(exchange);
+                                    await SafeCloseRequestBody(exchange, originalRequestBodyStream);
+                                    await SafeCloseResponseBody(exchange, originalResponseBodyStream);
 
                                     if (ex is OperationCanceledException || ex is IOException)
 
@@ -392,14 +396,14 @@ namespace Fluxzy.Core
                                         throw;
                                     }
                                     finally {
-                                        await SafeCloseRequestBody(exchange);
-                                        await SafeCloseResponseBody(exchange);
+                                        await SafeCloseRequestBody(exchange, originalRequestBodyStream);
+                                        await SafeCloseResponseBody(exchange, originalResponseBodyStream);
                                     }
                                 }
                                 else {
                                     if (responseBodyStream != null) {
-                                        await SafeCloseRequestBody(exchange);
-                                        await SafeCloseResponseBody(exchange);
+                                        await SafeCloseRequestBody(exchange, originalRequestBodyStream);
+                                        await SafeCloseResponseBody(exchange, originalResponseBodyStream);
                                     }
                                 }
 
@@ -470,7 +474,7 @@ namespace Fluxzy.Core
             }
         }
 
-        private ValueTask SafeCloseRequestBody(Exchange exchange)
+        private ValueTask SafeCloseRequestBody(Exchange exchange, Stream? substitutionStream)
         {
             if (exchange.Request.Body != null) {
                 try {
@@ -485,10 +489,12 @@ namespace Fluxzy.Core
                 }
             }
 
+            SafeCloseExtraStream(substitutionStream);
+
             return default; 
         }
 
-        private ValueTask SafeCloseResponseBody(Exchange exchange)
+        private ValueTask SafeCloseResponseBody(Exchange exchange, Stream? substitutionStream)
         {
             if (exchange.Response.Body != null) {
                 try {
@@ -503,7 +509,27 @@ namespace Fluxzy.Core
                 }
             }
 
+            SafeCloseExtraStream(substitutionStream);
+
             return default; 
+        }
+
+        private ValueTask SafeCloseExtraStream(params Stream?[] streams)
+        {
+            foreach (var stream in streams) {
+
+                if (stream == null)
+                    continue;
+
+                try
+                {
+                    return stream.DisposeAsync();
+                }
+                catch
+                {
+                }
+            }
+            return default;
         }
     }
 }

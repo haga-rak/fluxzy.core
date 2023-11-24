@@ -12,6 +12,7 @@ namespace Fluxzy.Tests.Substitutions
     {
         [Theory]
         [InlineData(TestConstants.Http11Host)]
+        [InlineData(TestConstants.Http2Host)]
         public async Task TestSimpleMock(string host)
         {
             var expectedContent = "Mocked !!!"; 
