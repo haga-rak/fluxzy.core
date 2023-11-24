@@ -82,32 +82,56 @@ namespace Fluxzy.Core
         /// </summary>
         public bool SkipRemoteCertificateValidation { get; set; } = false;
 
+        /// <summary>
+        ///    Alteration operations to be performed on the request headers
+        /// </summary>
         public List<HeaderAlteration> RequestHeaderAlterations { get; } = new();
 
+        /// <summary>
+        ///  Alteration operations to be performed on the response headers 
+        /// </summary>
         public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new();
 
         public BreakPointContext? BreakPointContext { get; set; }
 
+        /// <summary>
+        ///   The variable values holder
+        /// </summary>
         public VariableContext VariableContext { get; }
 
-        public VariableBuildingContext? VariableBuildingContext { get; set; } = null;
+        /// <summary>
+        ///  The variable building context
+        /// </summary>
+        public VariableBuildingContext? VariableBuildingContext { get; internal set; } = null;
 
+        /// <summary>
+        ///    The setting used by fluxzy
+        /// </summary>
         public FluxzySetting? FluxzySetting { get; }
 
-        public IPAddress DownStreamLocalAddressStruct { get; set; }
+        /// <summary>
+        ///  The client bound address 
+        /// </summary>
+        internal IPAddress DownStreamLocalAddressStruct { get; set; }
 
-        public int ProxyListenPort { get; set; }
+        /// <summary>
+        ///  The proxy listening port 
+        /// </summary>
+        public int ProxyListenPort { get; internal set; }
 
+        /// <summary>
+        ///  if fluxzy should use https or not
+        /// </summary>
         public bool Secure { get; set; }
-
-        public NetworkStream? UnderlyingBcStream { get; set; }
-
-        public DisposeEventNotifierStream? EventNotifierStream { get; set; }
-
-        public Dictionary<Filter, bool> FilterEvaluationResult { get; } = new();
 
         public IStreamSubstitution? RequestBodySubstitution { get; set; }
 
         public IStreamSubstitution? ResponseBodySubstitution { get; set; }
+
+        internal NetworkStream? UnderlyingBcStream { get; set; }
+
+        internal DisposeEventNotifierStream? EventNotifierStream { get; set; }
+
+        internal Dictionary<Filter, bool> FilterEvaluationResult { get; } = new();
     }
 }
