@@ -119,7 +119,7 @@ namespace Fluxzy.Core
         /// <summary>
         ///     The remote authority
         /// </summary>
-        public Authority Authority { get; set; }
+        public Authority Authority { get; internal set; }
 
         /// <summary>
         ///     Contains the request sent from the proxy to the remote server
@@ -140,7 +140,7 @@ namespace Fluxzy.Core
         ///     Connection used by this exchange. The connection object is the connection open between
         ///     the proxy and the remote server
         /// </summary>
-        public Connection? Connection { get; set; }
+        public Connection? Connection { get; internal set; }
 
         /// <summary>
         ///     Contains a list of errors
@@ -151,15 +151,15 @@ namespace Fluxzy.Core
 
         public ExchangeContext Context { get; }
 
-        public bool RunInLiveEdit { get; set; }
+        public bool RunInLiveEdit { get; internal set; }
 
         public int Id { get; }
 
-        public string HttpVersion { get; set; }
+        public string HttpVersion { get; internal set; }
 
         public bool IsWebSocket => Request.Header.IsWebSocketRequest;
 
-        public List<WsMessage>? WebSocketMessages { get; set; }
+        public List<WsMessage>? WebSocketMessages { get; internal set; }
 
         public string FullUrl => Request.Header.GetFullUrl();
 
