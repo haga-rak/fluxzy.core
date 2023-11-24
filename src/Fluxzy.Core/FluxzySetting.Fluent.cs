@@ -8,6 +8,7 @@ using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
+using Action = Fluxzy.Rules.Action;
 
 namespace Fluxzy
 {
@@ -287,6 +288,29 @@ namespace Fluxzy
         public FluxzySetting AddAlterationRules(IEnumerable<Rule> rules)
         {
             InternalAlterationRules.AddRange(rules);
+            return this;
+        }
+
+        /// <summary>
+        /// Add alteration rules from a filter and an action
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public FluxzySetting AddAlterationRules(Action action, Filter filter)
+        {
+            InternalAlterationRules.Add(new Rule(action, filter));
+            return this;
+        }
+        
+        /// <summary>
+        ///  Add alteration rules for any requests
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public FluxzySetting AddAlterationRulesForAny(Action action)
+        {
+            InternalAlterationRules.Add(new Rule(action, AnyFilter.Default));
             return this;
         }
 
