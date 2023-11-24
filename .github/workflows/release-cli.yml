@@ -1,4 +1,4 @@
-name: Publish Fluxzy CLI binaries
+name: Publish CLI
 
 on: workflow_dispatch
       

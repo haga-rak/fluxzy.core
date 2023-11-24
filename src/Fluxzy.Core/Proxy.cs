@@ -23,6 +23,9 @@ using Fluxzy.Writers;
 
 namespace Fluxzy
 {
+    /// <summary>
+    ///  A proxy capture instance that can be started and disposed.
+    /// </summary>
     public class Proxy : IAsyncDisposable
     {
         private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
@@ -42,8 +45,8 @@ namespace Fluxzy
         /// Create a new instance of Proxy with the provided setting.
         /// An InMemoryCertificateCache will be used as the certificate cache.
         /// </summary>
-        /// <param name="startupSetting"></param>
-        /// <param name="tcpConnectionProvider"></param>
+        /// <param name="startupSetting">The startup Setting</param>
+        /// <param name="tcpConnectionProvider">The tcp connection provider, if null the default is used</param>
         public Proxy(FluxzySetting startupSetting, ITcpConnectionProvider?  tcpConnectionProvider = null)
 			: this (startupSetting, new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()), 
 				new DefaultCertificateAuthorityManager(), tcpConnectionProvider: tcpConnectionProvider)
@@ -51,6 +54,18 @@ namespace Fluxzy
 
         }
 
+        /// <summary>
+        ///  Create a new instance with specific providers.
+        /// If a provider is not provided the default will be used.
+        /// </summary>
+        /// <param name="startupSetting">The startup Setting</param>
+        /// <param name="certificateProvider">A certificate provider</param>
+        /// <param name="certificateAuthorityManager">A certificate authority manager</param>
+        /// <param name="tcpConnectionProvider">A tcp connection Provider</param>
+        /// <param name="userAgentProvider">An user Agent provider</param>
+        /// <param name="idProvider">An id provider</param>
+        /// <param name="externalCancellationSource">An external cancellation token</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider,
@@ -108,16 +123,27 @@ namespace Fluxzy
 
         }
 
+
         internal ProxyExecutionContext ExecutionContext { get; }
 
         internal RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
 
         internal FromIndexIdProvider IdProvider { get; }
 
+        /// <summary>
+        /// Get the setting that was used to start this proxy. Altering this setting will not affect the proxy.
+        /// </summary>
         public FluxzySetting StartupSetting { get; }
 
+        /// <summary>
+        ///  Get the unique identifier of this proxy instance.
+        /// </summary>
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
 
+        /// <summary>
+        ///  Release all resources used by this proxy.
+        /// </summary>
+        /// <returns></returns>
         public async ValueTask DisposeAsync()
         {
             InternalDispose();
@@ -202,8 +228,10 @@ namespace Fluxzy
         }
 
         /// <summary>
-        ///     Start the proxy and return the end points that the proxy is listening to.
+        ///  Start the proxy and return the end points that the proxy is listening to.
         /// </summary>
+        /// <returns>Returns an exhaustive list of endpoints that the proxy is listen to</returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public IReadOnlyCollection<IPEndPoint> Run()
         {
             if (_disposed)

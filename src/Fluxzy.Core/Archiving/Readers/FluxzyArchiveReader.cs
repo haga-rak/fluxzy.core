@@ -12,6 +12,9 @@ using MessagePack;
 
 namespace Fluxzy.Readers
 {
+    /// <summary>
+    ///  An archive reader that reads from a fluxzy archive file
+    /// </summary>
     public class FluxzyArchiveReader : IArchiveReader
     {
         private readonly ZipArchive _zipFile;

@@ -5,7 +5,7 @@ using System;
 namespace Fluxzy
 {
     /// <summary>
-    /// Contains unique settings per instance
+    /// Contains static low level settings for Fluxzy
     /// </summary>
     public static class FluxzySharedSetting
     {
@@ -17,12 +17,20 @@ namespace Fluxzy
                 OverallMaxConcurrentConnections = value;
         }
 
-        public static bool IsRunningInDesktop => Environment.GetEnvironmentVariable("Desktop") == "true";
-
+        /// <summary>
+        /// The buffer size used to process this request
+        /// </summary>
         public static int RequestProcessingBuffer { get; set; } = 1024 * 4; 
 
+        /// <summary>
+        /// The maximum number of concurrent connections allowed
+        /// </summary>
         public static int OverallMaxConcurrentConnections { get;  } = 102400;
 
+        /// <summary>
+        ///  If true, the proxy will use HTTP 528 to inform remote connection error,
+        ///  otherwise it will use HTTP 502
+        /// </summary>
         public static bool Use528 { get; set; } = true; 
     }
 }

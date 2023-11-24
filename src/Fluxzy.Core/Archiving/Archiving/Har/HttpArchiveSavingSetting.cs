@@ -1,6 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-namespace Fluxzy.Har
+namespace Fluxzy.Archiving.Har
 {
     public sealed class HttpArchiveSavingSetting
     {

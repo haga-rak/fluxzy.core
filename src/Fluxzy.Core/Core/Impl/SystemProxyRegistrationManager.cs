@@ -24,13 +24,25 @@ namespace Fluxzy.Core
             _systemProxySetter = systemProxySetter;
         }
 
-        public Task<SystemProxySetting> Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
+        /// <summary>
+        /// Register the system proxy with the given endPoints and bypass hosts
+        /// </summary>
+        /// <param name="endPoints"></param>
+        /// <param name="fluxzySetting"></param>
+        /// <returns></returns>
+        internal Task<SystemProxySetting> Register(IEnumerable<IPEndPoint> endPoints, FluxzySetting fluxzySetting)
         {
             return Register(endPoints.OrderByDescending(t => Equals(t.Address, IPAddress.Loopback)
                                                              || t.Address.Equals(IPAddress.IPv6Loopback)).First(),
                 fluxzySetting.ByPassHost.ToArray());
         }
 
+        /// <summary>
+        ///  Register the system proxy with the given endPoint and bypass hosts
+        /// </summary>
+        /// <param name="endPoint"></param>
+        /// <param name="byPassHosts"></param>
+        /// <returns></returns>
         public async Task<SystemProxySetting> Register(IPEndPoint endPoint, params string[] byPassHosts)
         {
             var existingSetting = await GetSystemProxySetting();
@@ -55,6 +67,10 @@ namespace Fluxzy.Core
             return _currentSetting;
         }
 
+        /// <summary>
+        /// Retrieve the current system proxy setting
+        /// </summary>
+        /// <returns></returns>
         public async Task<SystemProxySetting> GetSystemProxySetting()
         {
             var existingSetting = _systemProxySetter.ReadSetting();
@@ -62,6 +78,10 @@ namespace Fluxzy.Core
             return await existingSetting;
         }
 
+        /// <summary>
+        /// Unregister any previous setting 
+        /// </summary>
+        /// <returns></returns>
         public async Task UnRegister()
         {
             if (_oldSetting != null) {
@@ -86,7 +106,7 @@ namespace Fluxzy.Core
                 await _systemProxySetter.ApplySetting(existingSetting);
             }
         }
-
+        
         private IPAddress GetConnectableIpAddr(IPAddress address)
         {
             if (address == null)

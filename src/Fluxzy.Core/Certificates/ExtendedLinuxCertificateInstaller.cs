@@ -21,6 +21,13 @@ namespace Fluxzy.Certificates
             new InstallableCertificate("/etc/pki/ca-trust/source/anchors", "update-ca-trust", string.Empty)
         };
 
+        /// <summary>
+        ///     Install a certificate on the system, if askElevation is true,
+        /// the user will be prompted for elevation (with pkexec) if needed
+        /// </summary>
+        /// <param name="x509Certificate2"></param>
+        /// <param name="askElevation"></param>
+        /// <returns></returns>
         public static bool Install(X509Certificate2 x509Certificate2, bool askElevation)
         {
             // Extension must be .crt for certain Linux distributions
@@ -74,12 +81,23 @@ namespace Fluxzy.Certificates
 
             return false;
         }
-
+        
+        /// <summary>
+        ///     Remove a certificate from the system, if askElevation is true,
+        ///     the user will be prompted for elevation (with pkexec) if needed
+        /// </summary>
+        /// <param name="x509Certificate2"></param>
+        /// <param name="askElevation"></param>
         public static void Uninstall(X509Certificate2 x509Certificate2, bool askElevation)
         {
             Uninstall(x509Certificate2.Thumbprint, askElevation);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="thumbPrint"></param>
+        /// <param name="askElevation"></param>
         public static void Uninstall(string thumbPrint, bool askElevation)
         {
             foreach (var installableCertificate in InstallableCertificates) {

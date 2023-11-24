@@ -10,15 +10,15 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Archiving.Har;
+using Fluxzy.Archiving.Saz;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
 using Fluxzy.Core.Pcap;
 using Fluxzy.Core.Pcap.Cli.Clients;
 using Fluxzy.Extensions;
-using Fluxzy.Har;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
-using Fluxzy.Saz;
 using Fluxzy.Utils.NativeOps.SystemProxySetup;
 
 namespace Fluxzy.Cli.Commands
@@ -184,7 +184,7 @@ namespace Fluxzy.Cli.Commands
             var ruleContent = ruleStdin
                 ? invocationContext.BindingContext.Console is OutputConsole oc
                     ? oc.StandardInputContent
-                    : Console.In.ReadToEnd()
+                    : await Console.In.ReadToEndAsync(cancellationToken)
                 : null;
 
             if (ruleContent == null && ruleFile != null) {
@@ -293,7 +293,7 @@ namespace Fluxzy.Cli.Commands
             }
         }
 
-        public async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)
+        private async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)
         {
             var packager = Packagers.FirstOrDefault(p => p.ShouldApplyTo(outFileName));
 

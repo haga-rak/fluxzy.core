@@ -8,6 +8,9 @@ using Fluxzy.Rules;
 
 namespace Fluxzy.Certificates
 {
+    /// <summary>
+    /// Holds information about an X509 certificate configuration
+    /// </summary>
     public class Certificate
     {
         private X509Certificate2? _cachedCertificate;
@@ -19,6 +22,9 @@ namespace Fluxzy.Certificates
             
         }
 
+        /// <summary>
+        /// Defines how to retrieve the certificate
+        /// </summary>
         [JsonInclude]
         [PropertyDistinctive(Description = "Retrieve mode" , DefaultValue = "fluxzyDefault")]
         public CertificateRetrieveMode RetrieveMode { get; set; } = CertificateRetrieveMode.FluxzyDefault;
@@ -51,6 +57,11 @@ namespace Fluxzy.Certificates
         [PropertyDistinctive(Description = "Certificate passphrase when Pkcs12File is defined")]
         public string? Pkcs12Password { get; set; }
 
+        /// <summary>
+        /// Create a new instance from a certificate in the current user store by its thumbprint
+        /// </summary>
+        /// <param name="thumbPrint"></param>
+        /// <returns></returns>
         public static Certificate LoadFromUserStoreByThumbprint(string thumbPrint)
         {
             return new Certificate {
@@ -59,6 +70,11 @@ namespace Fluxzy.Certificates
             };
         }
 
+        /// <summary>
+        ///    Create a new instance from a certificate in the current user store by its serialNumber
+        /// </summary>
+        /// <param name="serialNumber"></param>
+        /// <returns></returns>
         public static Certificate LoadFromUserStoreBySerialNumber(string serialNumber)
         {
             return new Certificate {
@@ -67,6 +83,12 @@ namespace Fluxzy.Certificates
             };
         }
 
+        /// <summary>
+        ///   Create a new instance from a PCKS12 file with a password
+        /// </summary>
+        /// <param name="pkcs12File"></param>
+        /// <param name="pkcs12Password"></param>
+        /// <returns></returns>
         public static Certificate LoadFromPkcs12(string pkcs12File, string pkcs12Password)
         {
             return new Certificate {
@@ -76,6 +98,11 @@ namespace Fluxzy.Certificates
             };
         }
 
+        /// <summary>
+        ///    Create a new instance from a PCKS12 file
+        /// </summary>
+        /// <param name="pkcs12File"></param>
+        /// <returns></returns>
         public static Certificate LoadFromPkcs12(string pkcs12File)
         {
             return new Certificate {
@@ -84,6 +111,10 @@ namespace Fluxzy.Certificates
             };
         }
 
+        /// <summary>
+        ///   Get the default built-in fluxzy certificate
+        /// </summary>
+        /// <returns></returns>
         public static Certificate UseDefault()
         {
             return new Certificate {
@@ -91,6 +122,13 @@ namespace Fluxzy.Certificates
             };
         }
 
+        /// <summary>
+        /// Retrieve the current certificate as X509Certificate2
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="FluxzyException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public X509Certificate2 GetX509Certificate()
         {
             if (_cachedCertificate != null)
@@ -158,6 +196,11 @@ namespace Fluxzy.Certificates
             }
         }
 
+        /// <summary>
+        ///  Check if the certificate is equal to another certificate. Don't use this method to check if the certificate is the same
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
         protected bool Equals(Certificate other)
         {
             return RetrieveMode == other.RetrieveMode
@@ -167,6 +210,11 @@ namespace Fluxzy.Certificates
                    && Pkcs12Password == other.Pkcs12Password;
         }
 
+        /// <summary>
+        ///  Check if the certificate is equal to another certificate. Don't use this method to check if the certificate is the same
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))

@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Certificates
 {
+    /// <summary>
+    ///     The default certificate authority manager
+    /// </summary>
     public class DefaultCertificateAuthorityManager : CertificateAuthorityManager
     {
         private static readonly bool AttemptAskElevation  = string.Equals(Environment.GetEnvironmentVariable("FLUXZY_ASK_ELEVATION"),

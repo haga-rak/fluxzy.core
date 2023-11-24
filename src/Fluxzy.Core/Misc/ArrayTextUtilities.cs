@@ -49,6 +49,14 @@ namespace Fluxzy.Misc
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="maxCheckLength"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static bool IsText(Stream stream, int maxCheckLength = 1024, Encoding? encoding = null)
         {
             if (!stream.CanSeek)
