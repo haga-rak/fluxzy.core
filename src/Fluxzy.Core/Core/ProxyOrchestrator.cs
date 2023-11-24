@@ -162,6 +162,15 @@ namespace Fluxzy.Core
 
                                     if (exchange.Request.Body != null &&
                                         (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0)) {
+
+                                        // here we have a chance substitute the requestBodyStream
+
+                                        if (exchange.Context.RequestBodySubstitution != null) {
+                                            exchange.Request.Body =
+                                                exchange.Context.RequestBodySubstitution
+                                                        .Substitute(exchange.Request.Body);
+                                        }
+
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body,
                                             true,
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
@@ -249,8 +258,12 @@ namespace Fluxzy.Core
                                     await exchange.Context.BreakPointContext.ResponseHeaderCompletion
                                                   .WaitForEdit();
                                 }
+
+                                var responseBodyStream = exchange.Response?.Body;
+
+
                                 if (exchange.Response.Header.ContentLength == -1 &&
-                                    exchange.Response.Body != null &&
+                                    responseBodyStream != null &&
                                     exchange.HttpVersion == "HTTP/2")
 
                                     // HTTP2 servers are allowed to send response body
@@ -280,9 +293,18 @@ namespace Fluxzy.Core
                                         CancellationToken.None
                                     );
 
-                                    if (exchange.Response.Body != null &&
-                                        (!exchange.Response.Body.CanSeek || exchange.Response.Body.Length > 0)) {
-                                        var dispatchStream = new DispatchStream(exchange.Response.Body,
+                                    if (responseBodyStream != null &&
+                                        (!responseBodyStream.CanSeek || responseBodyStream.Length > 0)) {
+
+                                        // here we have a chance substitute the reponseBodyStream
+
+                                        if (exchange.Context.ResponseBodySubstitution != null) {
+                                            responseBodyStream =
+                                                exchange.Context.ResponseBodySubstitution
+                                                        .Substitute(responseBodyStream);
+                                        }
+
+                                        var dispatchStream = new DispatchStream(responseBodyStream,
                                             true,
                                             _archiveWriter.CreateResponseBodyStream(exchange.Id));
 
@@ -304,6 +326,7 @@ namespace Fluxzy.Core
                                         };
 
                                         exchange.Response.Body = dispatchStream;
+                                        responseBodyStream = dispatchStream; 
                                     }
                                     else {
                                         // No response body, we ensure the stream is done
@@ -335,7 +358,7 @@ namespace Fluxzy.Core
                                 }
 
                                 if (exchange.Response.Header.ContentLength != 0 &&
-                                    exchange.Response.Body != null) {
+                                    responseBodyStream != null) {
                                     var localConnectionWriteStream = localConnection.WriteStream;
 
                                     if (exchange.Response.Header.ChunkedBody) {
@@ -344,7 +367,7 @@ namespace Fluxzy.Core
                                     }
 
                                     try {
-                                        await exchange.Response.Body.CopyDetailed(
+                                        await responseBodyStream.CopyDetailed(
                                             localConnectionWriteStream, buffer.Buffer, _ => { }, token);
 
                                         (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
@@ -374,7 +397,7 @@ namespace Fluxzy.Core
                                     }
                                 }
                                 else {
-                                    if (exchange.Response.Body != null) {
+                                    if (responseBodyStream != null) {
                                         await SafeCloseRequestBody(exchange);
                                         await SafeCloseResponseBody(exchange);
                                     }
