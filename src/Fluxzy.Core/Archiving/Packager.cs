@@ -3,11 +3,14 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Fluxzy.Har;
-using Fluxzy.Saz;
+using Fluxzy.Archiving.Har;
+using Fluxzy.Archiving.Saz;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// An helper for quickly exporting a dump directory to a specific package file
+    /// </summary>
     public static class Packager
     {
         /// <summary>

@@ -12,6 +12,9 @@ using MessagePack;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// Packed information about an exchange
+    /// </summary>
     [MessagePackObject]
     public class ExchangeInfo : IExchange, IExchangeLine
     {
@@ -23,7 +26,11 @@ namespace Fluxzy
 
         }
 
-        public ExchangeInfo(Exchange exchange)
+        /// <summary>
+        /// Create an exchange info from an internal exchange object
+        /// </summary>
+        /// <param name="exchange"></param>
+        internal ExchangeInfo(Exchange exchange)
         {
             Id = exchange.Id;
             HttpVersion = exchange.HttpVersion ?? "-";
@@ -49,6 +56,26 @@ namespace Fluxzy
             
         }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="connectionId"></param>
+        /// <param name="httpVersion"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="responseHeader"></param>
+        /// <param name="metrics"></param>
+        /// <param name="egressIp"></param>
+        /// <param name="pending"></param>
+        /// <param name="comment"></param>
+        /// <param name="tags"></param>
+        /// <param name="isWebSocket"></param>
+        /// <param name="webSocketMessages"></param>
+        /// <param name="agent"></param>
+        /// <param name="clientErrors"></param>
+        /// <param name="knownAuthority"></param>
+        /// <param name="knownPort"></param>
+        /// <param name="secure"></param>
         [JsonConstructor]
         public ExchangeInfo(
             int id, int connectionId, string httpVersion,

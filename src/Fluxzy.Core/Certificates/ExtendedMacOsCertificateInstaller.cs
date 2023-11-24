@@ -7,6 +7,9 @@ using Fluxzy.Utils;
 
 namespace Fluxzy.Certificates
 {
+    /// <summary>
+    ///    Extended certificate installer for MacOs
+    /// </summary>
     public static class ExtendedMacOsCertificateInstaller
     {
         /// <summary>

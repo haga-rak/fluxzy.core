@@ -8,6 +8,9 @@ using MessagePack;
 
 namespace Fluxzy
 {
+    /// <summary>
+    ///    Represent a header field
+    /// </summary>
     [MessagePackObject]
     public class HeaderFieldInfo
     {
@@ -64,15 +67,29 @@ namespace Fluxzy
 
         }
 
+        /// <summary>
+        /// Header name
+        /// </summary>
         [Key(0)]
         public ReadOnlyMemory<char> Name { get; set; }
 
+        /// <summary>
+        /// Header value
+        /// </summary>
         [Key(1)]
         public ReadOnlyMemory<char> Value { get; set; }
 
+        /// <summary>
+        /// True if the header should be forwarded to the client or the server,
+        /// otherwise the header will be ignored by fluxzy (typically for connection related headers)
+        /// </summary>
         [Key(2)]
         public bool Forwarded { get; set; }
 
+        /// <summary>
+        /// Convenience method to convert this object to <see cref="HeaderField"/>
+        /// </summary>
+        /// <param name="d"></param>
         public static implicit operator HeaderFieldInfo(HeaderField d)
         {
             return new(d);
