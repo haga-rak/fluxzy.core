@@ -72,17 +72,16 @@ namespace Fluxzy {
         ///            font-family: &quot;Lucida Sans&quot;, Verdana;
         ///            color: rgba(142, 147, 150, 0.92);
         ///        }
-        ///
         ///        body {
         ///            background-color: #1c2027;
         ///            font-size:1.1em; 
         ///        }
-        ///
         ///        .main-color {
         ///            color: #6abeec;
         ///        }
         ///
-        ///    [le reste de la chaîne a été tronqué]&quot;;.
+        ///        .danger-color {
+        ///   [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         public static string error {
             get {
@@ -123,7 +122,7 @@ namespace Fluxzy {
         ///        a {
         ///            color: rgba(233, 236, 239, 0.92);
         ///            font-weight: bold;
-        /// [le reste de la chaîne a été tronqué]&quot;;.
+        ///            text-decor [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         public static string welcome {
             get {
