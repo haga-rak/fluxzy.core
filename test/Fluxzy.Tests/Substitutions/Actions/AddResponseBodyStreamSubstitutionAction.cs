@@ -42,9 +42,9 @@ namespace Fluxzy.Tests.Substitutions.Actions
             _content = content;
         }
 
-        public async ValueTask<Stream> Substitute(Stream stream)
+        public async ValueTask<Stream> Substitute(Stream originalStream)
         {
-            var length = await stream.DrainAsync();
+            var length = await originalStream.DrainAsync();
             return new MemoryStream(Encoding.UTF8.GetBytes(_content));
         }
     }
