@@ -9,15 +9,15 @@ using Fluxzy.Rules;
 namespace Fluxzy.Tests.Substitutions.Actions
 {
     /// <summary>
-    /// A simple action that returns the content length of the original response instead of the response
+    /// A simple action that install a body substitution
     /// </summary>
-    internal class ReturnsStaticContentAction : Action
+    internal class AddResponseBodyStreamSubstitutionAction : Action
     {
-        private readonly string _content;
+        private readonly IStreamSubstitution _substitution;
 
-        public ReturnsStaticContentAction(string content)
+        public AddResponseBodyStreamSubstitutionAction(IStreamSubstitution substitution)
         {
-            _content = content;
+            _substitution = substitution;
         }
 
         public override FilterScope ActionScope { get; } = FilterScope.RequestHeaderReceivedFromClient;
@@ -28,7 +28,7 @@ namespace Fluxzy.Tests.Substitutions.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.ResponseBodySubstitution = new ReturnsContentLengthSubstitution(_content);
+            context.ResponseBodySubstitution = _substitution;
             return default;
         }
     }

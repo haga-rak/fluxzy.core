@@ -15,11 +15,13 @@ namespace Fluxzy.Tests.Substitutions
         [InlineData(TestConstants.Http2Host)]
         public async Task TestSimpleMock(string host)
         {
-            var expectedContent = "Mocked !!!"; 
+            var expectedContent = "Mocked !!!";
+
+            var substitution = new ReturnsContentLengthSubstitution(expectedContent);
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
-            proxy.StartupSetting.AddAlterationRulesForAny(new ReturnsStaticContentAction(expectedContent));
+            proxy.StartupSetting.AddAlterationRulesForAny(new AddResponseBodyStreamSubstitutionAction(substitution));
             var endPoint = proxy.Run().First();
 
             using var clientHandler = new HttpClientHandler
