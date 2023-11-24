@@ -7,7 +7,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
-using Fluxzy.Clients.H2;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;

@@ -6,7 +6,7 @@ using System.Net;
 using MessagePack;
 using MessagePack.Formatters;
 
-namespace Fluxzy.MessagePack
+namespace Fluxzy.Archiving.MessagePack
 {
     public class MessagePackAddressFormatter : IMessagePackFormatter<IPAddress>
     {

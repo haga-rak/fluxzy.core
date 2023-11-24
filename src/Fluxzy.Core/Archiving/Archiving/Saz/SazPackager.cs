@@ -11,8 +11,11 @@ using System.Threading.Tasks;
 using System.Xml;
 using Fluxzy.Archiving.Extensions;
 
-namespace Fluxzy.Saz
+namespace Fluxzy.Archiving.Saz
 {
+    /// <summary>
+    /// An experimental saz packager reverse engineered from a random .saz, use at your own risk.
+    /// </summary>
     [PackagerInformation("saz", "saz archive format", ".saz")]
     public class SazPackager : DirectoryPackager
     {
@@ -21,6 +24,7 @@ namespace Fluxzy.Saz
             return fileName.EndsWith(".saz", StringComparison.CurrentCultureIgnoreCase);
         }
 
+        /// <inheritdoc />
         public override async Task Pack(string directory, Stream outputStream, HashSet<int>? exchangeIds)
         {
             var baseDirectory = new DirectoryInfo(directory);

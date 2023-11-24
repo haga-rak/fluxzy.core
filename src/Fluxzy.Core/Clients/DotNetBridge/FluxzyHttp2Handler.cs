@@ -11,6 +11,10 @@ using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
+    /// <summary>
+    ///  An HttpMessageHandler that uses fluxzy internals to send requests and forces connection to be HTTP/2.
+    ///  Unless you know what you are doing, you should not use this class directly instead of HttpClientHandler.
+    /// </summary>
     public class FluxzyHttp2Handler : HttpMessageHandler, IAsyncDisposable
     {
         private readonly IDictionary<string, H2ConnectionPool>

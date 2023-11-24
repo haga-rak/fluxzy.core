@@ -7,6 +7,9 @@ using Fluxzy.Clients.Ssl.BouncyCastle;
 
 namespace Fluxzy
 {
+    /// <summary>
+    ///    Represent a SSL information
+    /// </summary>
     public class SslInfo
     {
         /// <summary>

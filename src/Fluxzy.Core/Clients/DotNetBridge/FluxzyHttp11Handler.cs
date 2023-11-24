@@ -12,6 +12,10 @@ using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
+    /// <summary>
+    ///  An HttpMessageHandler that uses fluxzy internals to send requests and forces connection to be HTTP/1.1.
+    ///  Unless you know what you are doing, you should not use this class directly instead of HttpClientHandler.
+    /// </summary>
     public class FluxzyHttp11Handler : HttpMessageHandler
     {
         private readonly IDictionary<string, Http11ConnectionPool>
@@ -72,9 +76,19 @@ namespace Fluxzy.Clients.DotNetBridge
         }
     }
 
+    /// <summary>
+    /// The ssl provider used by the handlers
+    /// </summary>
     public enum SslProvider
     {
+        /// <summary>
+        /// The .NET default SSL provider for the OS. 
+        /// </summary>
         OsDefault = 1,
+
+        /// <summary>
+        ///  The BouncyCastle SSL provider. It is a managed implementation in .NET
+        /// </summary>
         BouncyCastle
     }
 }
