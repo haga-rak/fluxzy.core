@@ -17,5 +17,4 @@ namespace Fluxzy.Core
         /// <returns></returns>
         ValueTask<Stream> Substitute(Stream stream);
     }
-
 }
