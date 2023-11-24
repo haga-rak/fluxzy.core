@@ -5,6 +5,9 @@ using System;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// A tag is an indexed string that can be attached to an exchange
+    /// </summary>
     [MessagePackObject]
     public class Tag : IEquatable<Tag>
     {
@@ -20,9 +23,15 @@ namespace Fluxzy
             Value = value;
         }
 
+        /// <summary>
+        /// An unique identifier
+        /// </summary>
         [Key(0)]
         public Guid Identifier { get; }
 
+        /// <summary>
+        /// The tag value 
+        /// </summary>
         [Key(1)]
         public string Value { get; }
 

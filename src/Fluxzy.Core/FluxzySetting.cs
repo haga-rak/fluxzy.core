@@ -17,6 +17,9 @@ using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// The main configuration for starting a proxy instance
+    /// </summary>
     public partial class FluxzySetting
     {
         [JsonInclude()]

@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -6,12 +6,12 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Fluxzy.Har;
-using Fluxzy.Saz;
+using Fluxzy.Archiving.Har;
+using Fluxzy.Archiving.Saz;
 
 namespace Fluxzy
 {
-    public class PackagerInformationAttribute : Attribute
+    internal class PackagerInformationAttribute : Attribute
     {
         public PackagerInformationAttribute(
             string name, string description, string defaultExtension,
@@ -34,7 +34,7 @@ namespace Fluxzy
         public HashSet<string> Extensions { get; }
     }
 
-    public static class AttributeExtensions
+    internal static class AttributeExtensions
     {
         public static PackagerInformationAttribute GetInfo<T>(this T element)
             where T : DirectoryPackager
@@ -43,7 +43,7 @@ namespace Fluxzy
         }
     }
 
-    public class PackagerRegistry
+    internal class PackagerRegistry
     {
         public static PackagerRegistry Instance { get; } = new();
 

@@ -16,7 +16,7 @@ using Fluxzy.Misc;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 
-namespace Fluxzy.Har
+namespace Fluxzy.Archiving.Har
 {
     public class HarSerializeRootModel
     {

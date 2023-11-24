@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// The default fluxzy archive packager
+    /// </summary>
     [PackagerInformation("fluxzy", "The fluxzy archive format", ".fxzy", ".fzy", ".fluxzy")]
     public class FxzyDirectoryPackager : DirectoryPackager
     {

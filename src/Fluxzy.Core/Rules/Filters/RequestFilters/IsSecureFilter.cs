@@ -6,7 +6,7 @@ using Fluxzy.Core;
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
     /// <summary>
-    /// elect secure exchange only (non plain HTTP).
+    /// Select secure exchange only (non plain HTTP).
     /// </summary>
     [FilterMetaData(
         LongDescription = "Select secure exchange only (non plain HTTP)."

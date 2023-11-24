@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using Fluxzy.Clients.H2.Frames;
@@ -18,14 +18,5 @@ namespace Fluxzy.Clients.H2
         ///     Error code according to https://httpwg.org/specs/rfc7540.html#ErrorCodes
         /// </summary>
         public H2ErrorCode ErrorCode { get; }
-    }
-
-    public class ExchangeException : Exception
-    {
-        public ExchangeException(string message, Exception? innerException = null)
-            :
-            base(message, innerException)
-        {
-        }
     }
 }

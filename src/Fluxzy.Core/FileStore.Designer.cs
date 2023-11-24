@@ -22,7 +22,7 @@ namespace Fluxzy {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class FileStore {
+    internal class FileStore {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Fluxzy {
         ///   Retourne l'instance ResourceManager mise en cache utilisée par cette classe.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Fluxzy.FileStore", typeof(FileStore).Assembly);
@@ -51,7 +51,7 @@ namespace Fluxzy {
         ///   les recherches de ressources à l'aide de cette classe de ressource fortement typée.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -72,19 +72,18 @@ namespace Fluxzy {
         ///            font-family: &quot;Lucida Sans&quot;, Verdana;
         ///            color: rgba(142, 147, 150, 0.92);
         ///        }
-        ///
         ///        body {
         ///            background-color: #1c2027;
         ///            font-size:1.1em; 
         ///        }
-        ///
         ///        .main-color {
         ///            color: #6abeec;
         ///        }
         ///
-        ///    [le reste de la chaîne a été tronqué]&quot;;.
+        ///        .danger-color {
+        ///   [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
-        public static string error {
+        internal static string error {
             get {
                 return ResourceManager.GetString("error", resourceCulture);
             }
@@ -93,7 +92,7 @@ namespace Fluxzy {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
-        public static byte[] Fluxzy {
+        internal static byte[] Fluxzy {
             get {
                 object obj = ResourceManager.GetObject("Fluxzy", resourceCulture);
                 return ((byte[])(obj));
@@ -123,9 +122,9 @@ namespace Fluxzy {
         ///        a {
         ///            color: rgba(233, 236, 239, 0.92);
         ///            font-weight: bold;
-        /// [le reste de la chaîne a été tronqué]&quot;;.
+        ///            text-decor [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
-        public static string welcome {
+        internal static string welcome {
             get {
                 return ResourceManager.GetString("welcome", resourceCulture);
             }

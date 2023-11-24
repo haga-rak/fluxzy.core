@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Net;
@@ -6,8 +6,16 @@ using System.Text.Json.Serialization;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// A fluxzy bound endpoint
+    /// </summary>
     public class FluxzyEndPoint : IEquatable<FluxzyEndPoint>
     {
+        /// <summary>
+        /// Create from a provided address and port
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
         [JsonConstructor]
         public FluxzyEndPoint(string address, int port)
         {
@@ -15,13 +23,23 @@ namespace Fluxzy
             Port = port;
         }
 
+        /// <summary>
+        /// Create from an IPEndPoint
+        /// </summary>
+        /// <param name="endPoint"></param>
         public FluxzyEndPoint(IPEndPoint endPoint)
             : this(endPoint.Address.ToString(), endPoint.Port)
         {
         }
 
+        /// <summary>
+        /// End point address
+        /// </summary>
         public string Address { get; set; }
 
+        /// <summary>
+        /// Endpoint port 
+        /// </summary>
         public int Port { get; set; }
 
         public bool Equals(FluxzyEndPoint? other)
