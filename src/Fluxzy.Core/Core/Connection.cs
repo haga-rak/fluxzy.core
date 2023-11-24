@@ -21,39 +21,39 @@ namespace Fluxzy.Core
             Id = idProvider.NextConnectionId();
         }
 
-        public int Id { get; set; }
+        public int Id { get; internal set; }
 
-        public string? HttpVersion { get; set; }
+        public string? HttpVersion { get; internal set; }
 
         public int RequestProcessed => _requestProcessed;
 
-        public Authority Authority { get; set; }
+        public Authority Authority { get; internal set; }
 
-        public IPAddress? RemoteAddress { get; set; }
+        public IPAddress? RemoteAddress { get; internal set; }
 
-        public SslInfo? SslInfo { get; set; }
+        public SslInfo? SslInfo { get; internal set; }
 
-        public DateTime DnsSolveStart { get; set; }
+        public DateTime DnsSolveStart { get; internal set; }
 
-        public DateTime DnsSolveEnd { get; set; }
+        public DateTime DnsSolveEnd { get; internal set; }
 
-        public DateTime TcpConnectionOpening { get; set; }
+        public DateTime TcpConnectionOpening { get; internal set; }
 
-        public DateTime TcpConnectionOpened { get; set; }
+        public DateTime TcpConnectionOpened { get; internal set; }
 
-        public DateTime SslNegotiationStart { get; set; }
+        public DateTime SslNegotiationStart { get; internal set; }
 
-        public DateTime SslNegotiationEnd { get; set; }
+        public DateTime SslNegotiationEnd { get; internal set; }
         
-        public int LocalPort { get; set; }
+        public int LocalPort { get; internal set; }
 
-        public string? LocalAddress { get; set; }
+        public string? LocalAddress { get; internal set; }
 
-        public Stream? WriteStream { get; set; }
+        public Stream? WriteStream { get; internal set; }
 
-        public Stream? ReadStream { get; set; }
+        public Stream? ReadStream { get; internal set; }
 
-        public int TimeoutIdleSeconds { get; set; } = -1; 
+        public int TimeoutIdleSeconds { get; internal set; } = -1; 
 
         public void AddNewRequestProcessed()
         {
