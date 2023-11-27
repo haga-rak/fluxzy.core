@@ -127,10 +127,9 @@ More command and options are available, including [exporting to HAR](https://www
 
 By default, fluxzy will bind to `127.0.0.1:44344`.
 
-
-
 ### 2.2 .NET libraries 
 
+A detail documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
 The following shows a very basic usage of the .NET packages.
 
 The main line to start a capture session is to create a `FluxzySetting` instance and run it through the `Proxy` class.
