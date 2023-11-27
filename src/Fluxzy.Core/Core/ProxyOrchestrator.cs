@@ -7,7 +7,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
-using Fluxzy.Clients.H2;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
@@ -131,6 +130,10 @@ namespace Fluxzy.Core
                                 FilterScope.RequestHeaderReceivedFromClient,
                                 exchange.Connection, exchange);
 
+                            if (exchange.Context.Abort) {
+                                return;
+                            }
+
                             if (exchange.Context.BreakPointContext != null) {
                                 await exchange.Context.BreakPointContext.ConnectionSetupCompletion
                                               .WaitForEdit();
@@ -143,6 +146,8 @@ namespace Fluxzy.Core
                             }
 
                             IHttpConnectionPool connectionPool;
+                            Stream? originalRequestBodyStream = null; 
+                            Stream? originalResponseBodyStream = null;
 
                             try {
                                 if (exchange.Context.BreakPointContext != null) {
@@ -159,6 +164,16 @@ namespace Fluxzy.Core
 
                                     if (exchange.Request.Body != null &&
                                         (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0)) {
+
+                                        // here we have a chance substitute the requestBodyStream
+
+                                        if (exchange.Context.RequestBodySubstitution != null) {
+                                            originalRequestBodyStream = exchange.Request.Body;
+                                            exchange.Request.Body = await
+                                                exchange.Context.RequestBodySubstitution
+                                                        .Substitute(exchange.Request.Body);
+                                        }
+
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body,
                                             true,
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
@@ -207,7 +222,7 @@ namespace Fluxzy.Core
                                     }
                                     finally {
                                         // We close the request body dispatchstream
-                                        await SafeCloseRequestBody(exchange);
+                                        await SafeCloseRequestBody(exchange, originalRequestBodyStream);
                                     }
 
                                     break;
@@ -216,8 +231,8 @@ namespace Fluxzy.Core
                             catch (Exception exception) {
                                 // The caller cancelled the task 
 
-                                await SafeCloseRequestBody(exchange);
-                                await SafeCloseResponseBody(exchange);
+                                await SafeCloseRequestBody(exchange, originalRequestBodyStream);
+                                await SafeCloseResponseBody(exchange, originalResponseBodyStream);
 
                                 if (exception is OperationCanceledException)
                                     break;
@@ -246,8 +261,12 @@ namespace Fluxzy.Core
                                     await exchange.Context.BreakPointContext.ResponseHeaderCompletion
                                                   .WaitForEdit();
                                 }
+
+                                var responseBodyStream = exchange.Response?.Body;
+
+
                                 if (exchange.Response.Header.ContentLength == -1 &&
-                                    exchange.Response.Body != null &&
+                                    responseBodyStream != null &&
                                     exchange.HttpVersion == "HTTP/2")
 
                                     // HTTP2 servers are allowed to send response body
@@ -277,9 +296,19 @@ namespace Fluxzy.Core
                                         CancellationToken.None
                                     );
 
-                                    if (exchange.Response.Body != null &&
-                                        (!exchange.Response.Body.CanSeek || exchange.Response.Body.Length > 0)) {
-                                        var dispatchStream = new DispatchStream(exchange.Response.Body,
+                                    if (responseBodyStream != null &&
+                                        (!responseBodyStream.CanSeek || responseBodyStream.Length > 0)) {
+
+                                        // here we have a chance substitute the reponseBodyStream
+
+                                        if (exchange.Context.ResponseBodySubstitution != null) {
+                                            originalResponseBodyStream = responseBodyStream;
+                                            responseBodyStream = await
+                                                exchange.Context.ResponseBodySubstitution
+                                                        .Substitute(responseBodyStream);
+                                        }
+
+                                        var dispatchStream = new DispatchStream(responseBodyStream,
                                             true,
                                             _archiveWriter.CreateResponseBodyStream(exchange.Id));
 
@@ -301,6 +330,7 @@ namespace Fluxzy.Core
                                         };
 
                                         exchange.Response.Body = dispatchStream;
+                                        responseBodyStream = dispatchStream; 
                                     }
                                     else {
                                         // No response body, we ensure the stream is done
@@ -320,8 +350,8 @@ namespace Fluxzy.Core
                                         token);
                                 }
                                 catch (Exception ex) {
-                                    await SafeCloseRequestBody(exchange);
-                                    await SafeCloseResponseBody(exchange);
+                                    await SafeCloseRequestBody(exchange, originalRequestBodyStream);
+                                    await SafeCloseResponseBody(exchange, originalResponseBodyStream);
 
                                     if (ex is OperationCanceledException || ex is IOException)
 
@@ -332,7 +362,7 @@ namespace Fluxzy.Core
                                 }
 
                                 if (exchange.Response.Header.ContentLength != 0 &&
-                                    exchange.Response.Body != null) {
+                                    responseBodyStream != null) {
                                     var localConnectionWriteStream = localConnection.WriteStream;
 
                                     if (exchange.Response.Header.ChunkedBody) {
@@ -341,7 +371,7 @@ namespace Fluxzy.Core
                                     }
 
                                     try {
-                                        await exchange.Response.Body.CopyDetailed(
+                                        await responseBodyStream.CopyDetailed(
                                             localConnectionWriteStream, buffer.Buffer, _ => { }, token);
 
                                         (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
@@ -366,14 +396,14 @@ namespace Fluxzy.Core
                                         throw;
                                     }
                                     finally {
-                                        await SafeCloseRequestBody(exchange);
-                                        await SafeCloseResponseBody(exchange);
+                                        await SafeCloseRequestBody(exchange, originalRequestBodyStream);
+                                        await SafeCloseResponseBody(exchange, originalResponseBodyStream);
                                     }
                                 }
                                 else {
-                                    if (exchange.Response.Body != null) {
-                                        await SafeCloseRequestBody(exchange);
-                                        await SafeCloseResponseBody(exchange);
+                                    if (responseBodyStream != null) {
+                                        await SafeCloseRequestBody(exchange, originalRequestBodyStream);
+                                        await SafeCloseResponseBody(exchange, originalResponseBodyStream);
                                     }
                                 }
 
@@ -444,7 +474,7 @@ namespace Fluxzy.Core
             }
         }
 
-        private ValueTask SafeCloseRequestBody(Exchange exchange)
+        private ValueTask SafeCloseRequestBody(Exchange exchange, Stream? substitutionStream)
         {
             if (exchange.Request.Body != null) {
                 try {
@@ -459,10 +489,12 @@ namespace Fluxzy.Core
                 }
             }
 
+            SafeCloseExtraStream(substitutionStream);
+
             return default; 
         }
 
-        private ValueTask SafeCloseResponseBody(Exchange exchange)
+        private ValueTask SafeCloseResponseBody(Exchange exchange, Stream? substitutionStream)
         {
             if (exchange.Response.Body != null) {
                 try {
@@ -477,7 +509,27 @@ namespace Fluxzy.Core
                 }
             }
 
+            SafeCloseExtraStream(substitutionStream);
+
             return default; 
+        }
+
+        private ValueTask SafeCloseExtraStream(params Stream?[] streams)
+        {
+            foreach (var stream in streams) {
+
+                if (stream == null)
+                    continue;
+
+                try
+                {
+                    return stream.DisposeAsync();
+                }
+                catch
+                {
+                }
+            }
+            return default;
         }
     }
 }

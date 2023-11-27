@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Fluxzy.Certificates
 {
+    /// <summary>
+    ///  Certificate builder options
+    /// </summary>
     public class CertificateBuilderOptions
     {
         public CertificateBuilderOptions(string commonName)
@@ -12,25 +15,56 @@ namespace Fluxzy.Certificates
             CommonName = commonName;
         }
 
+        /// <summary>
+        /// The common name of the certificate
+        /// </summary>
         public string CommonName { get; }
 
+        /// <summary>
+        /// The locality of the certificate
+        /// </summary>
         public string? Locality { get; set; }
 
+        /// <summary>
+        /// The state of the certificate
+        /// </summary>
         public string? State { get; set; }
-
+        
+        /// <summary>
+        /// The country of the certificate
+        /// </summary>
         public string? Country { get; set; }
 
+        /// <summary>
+        ///  The organization of the certificate
+        /// </summary>
         public string? Organization { get; set; }
 
+        /// <summary>
+        /// The organization unit of the certificate
+        /// </summary>
         public string? OrganizationUnit { get; set; }
 
+        /// <summary>
+        ///  Number of days before the certificate expires
+        /// </summary>
         public int DaysBeforeExpiration { get; set; } = 365 * 10;
 
+        /// <summary>
+        ///  A password to protect the generated p12 file
+        /// </summary>
         public string? P12Password { get; set; }
 
+        /// <summary>
+        /// The key size of the certificate
+        /// </summary>
         public int KeySize { get; set; } = 2048;
 
-        public void Validate()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
+        internal void Validate()
         {
             if (string.IsNullOrWhiteSpace(CommonName))
                 throw new ArgumentException("CommonName is required");
@@ -60,6 +94,10 @@ namespace Fluxzy.Certificates
                 throw new ArgumentException("DaysBeforeExpiration cannot be negative or zero");
         }
 
+        /// <summary>
+        /// Get the certificate subject formatted
+        /// </summary>
+        /// <returns></returns>
         public string Format()
         {
             var builder = new StringBuilder();

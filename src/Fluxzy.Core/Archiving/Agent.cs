@@ -7,6 +7,9 @@ using MessagePack;
 
 namespace Fluxzy
 {
+    /// <summary>
+    /// Holds information about the source agent making the request.
+    /// </summary>
     [MessagePackObject]
     public class Agent
     {
@@ -16,11 +19,18 @@ namespace Fluxzy
             FriendlyName = friendlyName;
         }
 
+        /// <summary>
+        /// An unique ID relative to the capture session
+        /// </summary>
         [Key(0)]
         public int Id { get; }
 
+        /// <summary>
+        /// A friendly name for the agent
+        /// </summary>
         [Key(1)]
         public string FriendlyName { get; }
+
 
         protected bool Equals(Agent other)
         {
@@ -51,7 +61,7 @@ namespace Fluxzy
             return HashCode.Combine(Id, FriendlyName);
         }
 
-        public static Agent Create(
+        internal static Agent Create(
             string userAgentValue,
             IPAddress localAddress,
             IUserAgentInfoProvider userAgentInfoProvider)
@@ -61,7 +71,7 @@ namespace Fluxzy
             return new Agent(id, userAgentInfoProvider.GetFriendlyName(id, userAgentValue));
         }
 
-        public static int CreateId(string userAgentValue, IPAddress localAddress)
+        private static int CreateId(string userAgentValue, IPAddress localAddress)
         {
             var id = HashUtility.GetLongHash(userAgentValue);
             id ^= (ulong) localAddress.GetHashCode(); // WARNING: IPAddress GetHashCode is not stable

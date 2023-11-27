@@ -6,7 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
-using Fluxzy.Har;
+using Fluxzy.Archiving.Har;
 using Fluxzy.Readers;
 using Fluxzy.Tests._Files;
 

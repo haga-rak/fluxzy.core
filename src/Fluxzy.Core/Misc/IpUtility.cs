@@ -8,11 +8,21 @@ using System.Net.Sockets;
 
 namespace Fluxzy.Misc
 {
+    /// <summary>
+    /// An helper class for IP related operations
+    /// </summary>
     public static class IpUtility
     {
-        public static HashSet<IPAddress> LocalAddresses { get; } = GetAllLocalIp();
+        /// <summary>
+        /// All unicat adresses (IPv4 and IPv6) found on the current computer
+        /// </summary>
+        public static HashSet<IPAddress> LocalAddresses { get; } = GetAllLocalIps();
 
-        internal static HashSet<IPAddress> GetAllLocalIp()
+        /// <summary>
+        /// Get all local IP addresses
+        /// </summary>
+        /// <returns></returns>
+        internal static HashSet<IPAddress> GetAllLocalIps()
         {
             return NetworkInterface.GetAllNetworkInterfaces()
                                    .Where(x => 

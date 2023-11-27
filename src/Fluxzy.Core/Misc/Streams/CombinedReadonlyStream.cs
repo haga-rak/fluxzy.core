@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc.Streams
 {
+    /// <summary>
+    /// Combine multiple streams into one, this stream is readonly
+    /// </summary>
     public class CombinedReadonlyStream : Stream
     {
         private readonly bool _closeStreams;

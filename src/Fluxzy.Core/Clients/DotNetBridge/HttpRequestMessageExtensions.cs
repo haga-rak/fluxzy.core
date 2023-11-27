@@ -1,12 +1,20 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net.Http;
 using System.Text;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
+    /// <summary>
+    /// Request message extensions
+    /// </summary>
     public static class HttpRequestMessageExtensions
     {
+        /// <summary>
+        /// Returns a flat HTTP/1.1 string representation of the request message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public static string ToHttp11String(this HttpRequestMessage message)
         {
             var builder = new StringBuilder();

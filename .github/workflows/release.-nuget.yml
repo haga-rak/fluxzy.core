@@ -1,4 +1,4 @@
-name: Publish NuGet packages
+name: Publish NuGet (PRIVATE!)
 
 on: workflow_dispatch
 

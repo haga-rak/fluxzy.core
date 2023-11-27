@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,9 @@ using Fluxzy.Core;
 
 namespace Fluxzy.Clients.DotNetBridge
 {
+    /// <summary>
+    /// An HttpResponseMessage that uses fluxzy internals to send requests.
+    /// </summary>
     public class FluxzyHttpResponseMessage : HttpResponseMessage
     {
         public FluxzyHttpResponseMessage(Exchange exchange)

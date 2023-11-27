@@ -8,7 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Fluxzy.Certificates
 {
-    public class X509AuthorityKeyIdentifierExtension : X509Extension
+    internal class X509AuthorityKeyIdentifierExtension : X509Extension
     {
         public X509AuthorityKeyIdentifierExtension(X509Certificate2 certificateAuthority, bool critical)
             : base(AuthorityKeyIdentifierOid, EncodeExtension(certificateAuthority), critical)
@@ -45,7 +45,7 @@ namespace Fluxzy.Certificates
         }
     }
 
-    public static class X509ExtensionsExtensions
+    internal static class X509ExtensionsExtensions
     {
         public static IEnumerable<X509Extension> GetExtensions(this X509ExtensionCollection collection)
         {
