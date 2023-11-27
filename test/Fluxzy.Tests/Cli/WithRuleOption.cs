@@ -78,6 +78,7 @@ namespace Fluxzy.Tests.Cli
             requestMessage.Headers.Add("X-Test-Header-256", "That value");
             
             File.WriteAllBytes("cc2.pfx", StorageContext.client_cert);
+            File.WriteAllBytes("cc.pfx", StorageContext.client_cert);
 
             var yamlContent = """
                 rules:
