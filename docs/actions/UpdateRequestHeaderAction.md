@@ -49,6 +49,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [UpdateRequestHeaderAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.UpdateRequestHeaderAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

@@ -45,6 +45,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [ApplyCommentAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.ApplyCommentAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

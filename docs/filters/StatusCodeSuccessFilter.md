@@ -46,6 +46,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [StatusCodeSuccessFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.ResponseFilters.StatusCodeSuccessFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 

@@ -46,6 +46,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [IsWebSocketFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.IsWebSocketFilter.html) for .NET integration.
+
 ### See also
 
 This filter has no related filter

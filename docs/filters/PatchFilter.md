@@ -46,6 +46,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [PatchFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.PatchFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 

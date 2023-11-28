@@ -38,6 +38,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [MountWelcomePageAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.HighLevelActions.MountWelcomePageAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

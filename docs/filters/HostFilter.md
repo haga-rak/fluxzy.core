@@ -63,6 +63,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [HostFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.HostFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 

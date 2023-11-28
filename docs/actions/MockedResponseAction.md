@@ -83,6 +83,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [MockedResponseAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.HighLevelActions.MockedResponseAction.html) for .NET integration.
+
 ### See also
 
 This action has no related action
