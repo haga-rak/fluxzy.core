@@ -46,6 +46,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [GetFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.GetFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 

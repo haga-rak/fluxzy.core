@@ -38,6 +38,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [SkipRemoteCertificateValidationAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.SkipRemoteCertificateValidationAction.html) for .NET integration.
+
 ### See also
 
 This action has no related action

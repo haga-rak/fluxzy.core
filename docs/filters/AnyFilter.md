@@ -34,6 +34,10 @@ The following table describes the customizable properties available for this fil
 
 This filter has no specific usage example
 
+### .NET reference
+
+View definition of [AnyFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.AnyFilter.html) for .NET integration.
+
 ### See also
 
 This filter has no related filter

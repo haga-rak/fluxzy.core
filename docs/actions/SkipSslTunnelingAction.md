@@ -38,6 +38,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [SkipSslTunnelingAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.SkipSslTunnelingAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

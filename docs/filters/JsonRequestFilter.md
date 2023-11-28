@@ -64,6 +64,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [JsonRequestFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.JsonRequestFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 

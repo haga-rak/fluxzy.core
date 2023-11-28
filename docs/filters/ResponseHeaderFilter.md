@@ -51,6 +51,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [ResponseHeaderFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.ResponseFilters.ResponseHeaderFilter.html) for .NET integration.
+
 ### See also
 
 This filter has no related filter

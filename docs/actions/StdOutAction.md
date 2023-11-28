@@ -34,6 +34,10 @@ The following table describes the customizable properties available for this act
 This filter has no specific usage example
 
 
+### .NET reference
+
+View definition of [StdOutAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.StdOutAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

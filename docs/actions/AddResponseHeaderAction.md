@@ -47,6 +47,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [AddResponseHeaderAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.AddResponseHeaderAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

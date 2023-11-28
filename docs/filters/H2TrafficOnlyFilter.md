@@ -46,6 +46,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [H2TrafficOnlyFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.H2TrafficOnlyFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 
