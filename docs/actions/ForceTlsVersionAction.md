@@ -45,6 +45,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [ForceTlsVersionAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.ForceTlsVersionAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

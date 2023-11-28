@@ -46,6 +46,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [IsSecureFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.IsSecureFilter.html) for .NET integration.
+
 ### See also
 
 This filter has no related filter

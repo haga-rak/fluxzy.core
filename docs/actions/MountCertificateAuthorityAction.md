@@ -38,6 +38,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [MountCertificateAuthorityAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.MountCertificateAuthorityAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

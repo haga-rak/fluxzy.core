@@ -40,6 +40,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [ApplyTagAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.ApplyTagAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

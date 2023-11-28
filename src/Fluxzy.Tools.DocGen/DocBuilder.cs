@@ -157,6 +157,11 @@ namespace Fluxzy.Tools.DocGen
                 }
             }
 
+            writer.WriteLine("### .NET reference");
+            writer.WriteLine();
+            writer.WriteLine($"View definition of [{type.Name}](https://docs.fluxzy.io/api/{type.FullName}.html) for .NET integration.");
+            writer.WriteLine();
+
             writer.WriteLine("### See also");
             writer.WriteLine();
 
@@ -300,6 +305,11 @@ namespace Fluxzy.Tools.DocGen
                 }
             }
 
+            writer.WriteLine();
+
+            writer.WriteLine("### .NET reference");
+            writer.WriteLine();
+            writer.WriteLine($"View definition of [{type.Name}](https://docs.fluxzy.io/api/{type.FullName}.html) for .NET integration.");
             writer.WriteLine();
 
             writer.WriteLine("### See also");

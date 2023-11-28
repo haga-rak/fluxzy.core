@@ -49,6 +49,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [AgentLabelFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.AgentLabelFilter.html) for .NET integration.
+
 ### See also
 
 This filter has no related filter

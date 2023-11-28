@@ -68,6 +68,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [AuthorityFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.AuthorityFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 
