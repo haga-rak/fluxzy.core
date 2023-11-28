@@ -10,7 +10,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 {.alert .alert-info}
 :::
-**outOfScope** Means that the filter or action associated to this scope won't be trigger in the regular HTTP flow. This scope is applied only on view filter and internal actions.
+**copySibling** Applied only on action. The action associated with this scope will copy his value from the triggering filter.
 :::
 
 ### YAML configuration name
@@ -33,6 +33,10 @@ The following table describes the customizable properties available for this act
 
 This filter has no specific usage example
 
+
+### .NET reference
+
+View definition of [StdErrAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.StdErrAction.html) for .NET integration.
 
 ### See also
 

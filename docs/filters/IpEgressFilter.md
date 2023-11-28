@@ -63,6 +63,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [IpEgressFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.IpEgressFilter.html) for .NET integration.
+
 ### See also
 
 This filter has no related filter

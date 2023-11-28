@@ -38,6 +38,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [ForceHttp2Action](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.ForceHttp2Action.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

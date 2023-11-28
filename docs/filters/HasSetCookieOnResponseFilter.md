@@ -36,6 +36,10 @@ The following table describes the customizable properties available for this fil
 
 This filter has no specific usage example
 
+### .NET reference
+
+View definition of [HasSetCookieOnResponseFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.HasSetCookieOnResponseFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 

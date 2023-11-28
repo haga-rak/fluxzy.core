@@ -40,14 +40,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fluxzy.BouncyCastle.Crypto.Async" Version="2.5.1" />
-    <PackageReference Include="MessagePack" Version="2.5.124" />
+    <PackageReference Include="Fluxzy.BouncyCastle.Crypto.Async" Version="2.5.2" />
+    <PackageReference Include="MessagePack" Version="2.5.129" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
-    <PackageReference Include="System.Text.Json" Version="7.0.3" />
-    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
-    <PackageReference Include="YamlDotNet" Version="13.1.1" />
+    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageReference Include="YamlDotNet" Version="13.7.1" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
 

@@ -51,6 +51,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [HasCookieOnRequestFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.HasCookieOnRequestFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 

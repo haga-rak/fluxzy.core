@@ -45,6 +45,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [ServeDirectoryAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.HighLevelActions.ServeDirectoryAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

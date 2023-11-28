@@ -47,6 +47,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [AddBasicAuthenticationAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.HighLevelActions.AddBasicAuthenticationAction.html) for .NET integration.
+
 ### See also
 
 This action has no related action

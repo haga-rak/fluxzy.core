@@ -1,5 +1,5 @@
 **Fluxzy.Core.Pcap**
 
-This .NET package contains an extension for [Fluxzy.Core](https://www.nuget.org/packages/Fluxzy.Core) that enables raw packet captures along with HTTP(S) captures.
+This .NET package contains an extension for [Fluxzy.Core](https://www.nuget.org/packages/Fluxzy.Core) that enables raw packet captures along with HTTP(S) captures using SharpPcap.
 
-Visit [the documentation page](https://www.fluxzy.io/resources/core/fluxzy-net-packages) to learn more on how to use it. 
+Visit  [docs.fluxzy.io](https://docs.fluxzy.io) to learn more on how to use it. 

@@ -46,6 +46,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [NetworkErrorFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.ResponseFilters.NetworkErrorFilter.html) for .NET integration.
+
 ### See also
 
 This filter has no related filter

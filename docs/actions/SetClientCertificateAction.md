@@ -51,6 +51,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [SetClientCertificateAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.SetClientCertificateAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 
