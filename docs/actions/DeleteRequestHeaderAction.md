@@ -45,6 +45,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [DeleteRequestHeaderAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.DeleteRequestHeaderAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

@@ -51,6 +51,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [UseCertificateAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.UseCertificateAction.html) for .NET integration.
+
 ### See also
 
 This action has no related action

@@ -45,6 +45,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [ForwardAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.ForwardAction.html) for .NET integration.
+
 ### See also
 
 The following actions are related to this action: 

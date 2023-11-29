@@ -1,8 +1,8 @@
-## removeCacheAction
+## abortAction
 
 ### Description
 
-Remove all cache directive from request and response headers. This will force the clientto ask the latest version of the requested resource.
+Abort an exchange at the transport level. This action will close connection between fluxzy and client which may lead to depended exchanges to be aborted too.
 
 ### Evaluation scope
 
@@ -15,7 +15,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 ### YAML configuration name
 
-removeCacheAction
+abortAction
 
 ### Settings
 
@@ -25,14 +25,15 @@ This action has no specific characteristic
 
 The following examples apply this action to any exchanges
 
-Remove all cache directive from request and response headers. This will force the clientto ask the latest version of the requested resource.
+Abort an exchange at the transport level. This action will close connection between fluxzy and client which may lead to depended exchanges to be aborted too.
 
 ```yaml
 rules:
 - filter:
     typeKind: AnyFilter
   actions:
-  - typeKind: RemoveCacheAction
+  - typeKind: AbortAction
+    description: Abort
     noEditableSetting: true
 ```
 
@@ -40,7 +41,7 @@ rules:
 
 ### .NET reference
 
-View definition of [RemoveCacheAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.RemoveCacheAction.html) for .NET integration.
+View definition of [AbortAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.AbortAction.html) for .NET integration.
 
 ### See also
 

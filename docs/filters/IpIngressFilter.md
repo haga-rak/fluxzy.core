@@ -49,6 +49,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [IpIngressFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.IpIngressFilter.html) for .NET integration.
+
 ### See also
 
 This filter has no related filter

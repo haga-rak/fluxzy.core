@@ -39,6 +39,10 @@ rules:
 
 
 
+### .NET reference
+
+View definition of [NoOpAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actions.NoOpAction.html) for .NET integration.
+
 ### See also
 
 This action has no related action

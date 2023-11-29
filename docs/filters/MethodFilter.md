@@ -49,6 +49,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [MethodFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.MethodFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 

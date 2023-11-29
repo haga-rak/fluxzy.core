@@ -46,6 +46,10 @@ rules:
 ```
 
 
+### .NET reference
+
+View definition of [HasAuthorizationBearerFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.RequestFilters.HasAuthorizationBearerFilter.html) for .NET integration.
+
 ### See also
 
 The following filters are related to this filter: 
