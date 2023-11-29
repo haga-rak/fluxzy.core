@@ -95,9 +95,12 @@ namespace Fluxzy.Core
 
         public bool ConnectionCloseRequest { get; }
 
-        public bool HasResponseBody()
+        public bool HasResponseBody(ReadOnlySpan<char> method)
         {
             if (ContentLength == 0)
+                return false;
+
+            if (method.Equals("HEAD", StringComparison.OrdinalIgnoreCase))
                 return false;
 
             if (ContentLength > 0)
