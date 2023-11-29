@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -15,6 +16,20 @@ namespace Fluxzy.Core
             "Content-length: {1}\r\n" +
             "Content-type: text/html\r\n" +
             "Connection : close\r\n\r\n";
+
+        private static string BodyTemplate { get;  }
+
+        static ConnectionErrorPageHelper()
+        {
+            var bodyTemplatePath = Environment.GetEnvironmentVariable("FluxzyErrorPageTemplatePath");
+
+            if (!string.IsNullOrEmpty(bodyTemplatePath)) {
+                BodyTemplate = File.ReadAllText(bodyTemplatePath);
+            }
+            else {
+                BodyTemplate = FileStore.error;
+            }
+        }
 
         public static (string FlatHeader, byte[] BodyContent) GetPrettyErrorPage(
             Authority authority, 
@@ -38,7 +53,7 @@ namespace Fluxzy.Core
                 errorMessage = originalException?.Message ?? "Internal fluxzy error.";
             }
 
-            var bodyTemplate = FileStore.error;
+            var bodyTemplate = BodyTemplate;
 
             bodyTemplate = bodyTemplate.Replace("@@error-status-code@@", rawStatusCode);
             bodyTemplate = bodyTemplate.Replace("@@error-host@@", authority.ToString());
