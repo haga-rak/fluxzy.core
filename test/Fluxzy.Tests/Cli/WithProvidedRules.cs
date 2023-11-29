@@ -63,6 +63,39 @@ namespace Fluxzy.Tests.Cli
             // Assert
             await AssertionHelper.ValidateCheck(requestMessage, hashedStream.Hash, response);
         }
+
+        [Theory]
+        [MemberData(nameof(GetSingleRequestParameters))]
+        public async Task Run_Cli_Head_Method(string protocol, bool noDecryption)
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0";
+
+            if (noDecryption)
+                commandLine += " -ss";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+            var requestMessage =
+                new HttpRequestMessage(HttpMethod.Head, $"{TestConstants.GetHost(protocol)}/swagger/swagger-ui-bundle.js");
+
+            await using var randomStream = new RandomDataStream(48, 23632, true);
+            await using var hashedStream = new HashedStream(randomStream);
+
+            requestMessage.Content = new StreamContent(hashedStream);
+            requestMessage.Headers.Add("X-Test-Header-256", "That value");
+
+            // Act 
+            using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(string.Empty, content);
+        }
         
         [Fact]
         public async Task Run_Cli_Wait_For_Complete_When_304()

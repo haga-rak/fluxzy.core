@@ -115,7 +115,8 @@ namespace Fluxzy.Clients.H11
                     exchange.Response.Header.ConnectionCloseRequest
                 ; //|| exchange.Response.Header.ChunkedBody; // Chunked body response always en with connection close 
 
-            if (!exchange.Response.Header.HasResponseBody()) {
+            if (!exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span)) {
+
                 // We close the connection because
                 // many web server still sends a content-body with a 304 response 
                 // https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html 10.3.5
