@@ -242,12 +242,12 @@ namespace Fluxzy.Misc
 
     internal static class ProcessExtensions
     {
-        public static async Task<int?> WaitForExitAsync(
+        public static Task<int?> WaitForExitAsync(
             this Process process,
             CancellationToken cancellationToken = default)
         {
             if (process.HasExited)
-                return process.ExitCode;
+                return Task.FromResult<int?>(process.ExitCode);
 
             var tcs = new TaskCompletionSource<object?>();
             process.EnableRaisingEvents = true;
@@ -256,7 +256,7 @@ namespace Fluxzy.Misc
             if (cancellationToken != default)
                 cancellationToken.Register(() => tcs.SetCanceled());
 
-            return process.HasExited ? process.ExitCode : null;
+            return Task.FromResult<int?>(process.HasExited ? process.ExitCode : null);
         }
 
         public static string EscapeSegment(this string commandLineSegment)

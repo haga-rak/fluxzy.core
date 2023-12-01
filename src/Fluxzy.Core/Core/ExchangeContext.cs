@@ -94,7 +94,7 @@ namespace Fluxzy.Core
 
         public FluxzySetting? FluxzySetting { get; }
 
-        public IPAddress DownStreamLocalAddressStruct { get; set; }
+        public IPAddress DownStreamLocalAddressStruct { get; set; } = null!;
 
         public int ProxyListenPort { get; set; }
 
