@@ -117,7 +117,7 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             Assert.NotNull(cookie);
-            Assert.Equal(1, cookieCollection.Count);
+            Assert.Single(cookieCollection);
             Assert.Equal(value, HttpUtility.UrlDecode(cookie.Value));
             Assert.Single(cookieCollection);
         }
@@ -165,7 +165,7 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             Assert.NotNull(cookie);
-            Assert.Equal(1, cookieCollection.Count);
+            Assert.Single(cookieCollection);
             Assert.Equal(value, HttpUtility.UrlDecode(cookie.Value));
             Assert.Equal(path, cookie.Path);
             Assert.Equal(domain, cookie.Domain);
@@ -258,7 +258,7 @@ namespace Fluxzy.Tests.Cli
         [InlineData("CAMPAIGNS", "{", StringSelectorOperation.Contains, "CAMPAIGNS", "aaa{", true)]
         [InlineData("coco", null, StringSelectorOperation.Exact, "coco", "lolo", true)]
         public async Task Validate_HasSetCookieOnResponseFilter_Generic(
-            string name, string value, StringSelectorOperation operation,
+            string? name, string? value, StringSelectorOperation operation,
             string expectedName, string expectedValue, bool result)
         {
             // Arrange
@@ -290,7 +290,7 @@ namespace Fluxzy.Tests.Cli
         public class HttpBinCookieResult
         {
             [JsonPropertyName("cookies")]
-            public Dictionary<string, string> Cookies { get; set; }
+            public Dictionary<string, string> Cookies { get; set; } = new();
         }
 
         private static Dictionary<string, string> GetCookies(string responseBody)

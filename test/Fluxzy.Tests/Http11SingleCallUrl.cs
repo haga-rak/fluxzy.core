@@ -31,21 +31,6 @@ namespace Fluxzy.Tests
             Assert.True(response.IsSuccessStatusCode);
         }
 
-        // [Fact : TODO à corriger
-        public async Task Get_Error_Case()
-        {
-            using var handler = new FluxzyHttp11Handler();
-            using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
-
-            var requestMessage = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://fr.wiktionary.org/w/skins/Vector/resources/common/images/arrow-down.svg?9426f"
-            );
-
-            var response = await httpClient.SendAsync(requestMessage);
-
-            Assert.True(response.IsSuccessStatusCode);
-        }
 
         [Fact]
         public async Task Get_Control_Single_Headers()
@@ -59,7 +44,7 @@ namespace Fluxzy.Tests
             );
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
@@ -77,7 +62,7 @@ namespace Fluxzy.Tests
             );
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
@@ -95,7 +80,7 @@ namespace Fluxzy.Tests
             );
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
             Assert.True(contentText == string.Empty);
@@ -134,7 +119,7 @@ namespace Fluxzy.Tests
             );
 
             var response = await httpClient.SendAsync(requestMessage);
-            var array = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+            var array = await response.Content.ReadAsByteArrayAsync();
 
             var actualLength =
                 int.Parse(response.Headers.GetValues("actual-content-length").First());
@@ -158,7 +143,7 @@ namespace Fluxzy.Tests
             requestMessage.Headers.Add("X-fAVorite-header", "2");
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
@@ -183,7 +168,7 @@ namespace Fluxzy.Tests
             requestMessage.Content = content;
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
@@ -210,7 +195,7 @@ namespace Fluxzy.Tests
             requestMessage.ToHttp11String();
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
@@ -233,7 +218,7 @@ namespace Fluxzy.Tests
             requestMessage.Content = content;
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
 
@@ -256,7 +241,7 @@ namespace Fluxzy.Tests
             requestMessage.Headers.Add("Connection", "Keep-alive");
 
             var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -276,7 +261,7 @@ namespace Fluxzy.Tests
 
             var response = await httpClient.SendAsync(requestMessage);
 
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
             AssertHelpers.ControlHeaders(contentText, requestMessage);
