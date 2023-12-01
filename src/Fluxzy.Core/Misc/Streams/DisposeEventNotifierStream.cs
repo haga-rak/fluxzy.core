@@ -108,7 +108,7 @@ namespace Fluxzy.Misc.Streams
 
             if (!_fromAsyncDispose)
             {
-                DisposeAsync();
+                _ = DisposeAsync();
             }
         }
 

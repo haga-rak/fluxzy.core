@@ -17,7 +17,7 @@ namespace Fluxzy.Tests._Fixtures
                 PropertyNameCaseInsensitive = true
             });
 
-            return res;
+            return res!;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Tests._Fixtures;
@@ -15,9 +16,9 @@ namespace Fluxzy.Tests
 {
     public class Http2ConcurrentCall
     {
-        public async Task CallSimple(
+        private async Task CallSimple(
             HttpClient httpClient,
-            int bufferSize, int length, NameValueCollection? nvCol = null)
+            int bufferSize, int length, NameValueCollection? nvCol = null, CancellationToken token = default)
         {
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
@@ -37,7 +38,7 @@ namespace Fluxzy.Tests
 
             requestMessage.Content = content;
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, token);
 
             Assert.True(response.IsSuccessStatusCode);
 
@@ -97,8 +98,10 @@ namespace Fluxzy.Tests
         public async Task Post_Dynamic_Table_Evict_Simple_Large_Object(int bodyLength)
         {
             using var handler = new FluxzyHttp2Handler();
-
             using var httpClient = new HttpClient(handler, false);
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+            var token = cancellationTokenSource.Token;
 
             var count = 1;
 
@@ -109,10 +112,13 @@ namespace Fluxzy.Tests
                     new Random(index % 2).NextBytes(buffer);
 
                     return CallSimple(
-                        h, bodyLength,
-                        524288, new NameValueCollection {
-                            { "Cookie", Convert.ToBase64String(buffer) }
-                        });
+                        h, bodyLength, 524288, 
+                        new NameValueCollection {
+                            {
+                                "Cookie", Convert.ToBase64String(buffer)
+                            }
+                        }, 
+                        token);
                 });
 
             await Task.WhenAll(tasks);
@@ -145,14 +151,7 @@ namespace Fluxzy.Tests
 
             await Task.WhenAll(tasks);
         }
-
-        //[Fact]
-        public async Task Headers_Multiple_Reception_Repeating_Value()
-        {
-            await Task.WhenAll(Enumerable.Repeat(0, 10)
-                                         .Select(p => Receiving_Multiple_Repeating_Header_Value_Call()));
-        }
-
+        
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call()
         {
             using var handler = new FluxzyHttp2Handler();

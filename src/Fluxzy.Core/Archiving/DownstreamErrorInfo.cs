@@ -32,7 +32,7 @@ namespace Fluxzy
         /// Source IP address
         /// </summary>
         [Key(2)]
-        public string SourceIp { get; private set; }
+        public string SourceIp { get; private set; } = null!;
 
         /// <summary>
         /// Source port
@@ -44,13 +44,13 @@ namespace Fluxzy
         /// Error message
         /// </summary>
         [Key(4)]
-        public string Message { get; private set; }
+        public string Message { get; private set; } = null!;
 
         /// <summary>
         /// Error message Description
         /// </summary>
         [Key(5)]
-        public string LongDescription { get; private set; }
+        public string LongDescription { get; private set; } = null!;
 
         /// <summary>
         /// The host that caused the error if any

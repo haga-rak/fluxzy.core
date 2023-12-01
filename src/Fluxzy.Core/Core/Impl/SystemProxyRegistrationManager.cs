@@ -123,7 +123,7 @@ namespace Fluxzy.Core
 
         private void ProxyUnregisterOnAppdomainExit()
         {
-            AppDomain.CurrentDomain.ProcessExit += delegate { UnRegister(); };
+            AppDomain.CurrentDomain.ProcessExit += delegate { _ = UnRegister(); };
         }
     }
 }

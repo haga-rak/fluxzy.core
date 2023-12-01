@@ -84,17 +84,4 @@ namespace Fluxzy.Tools.DocGen
             }
         }
     }
-
-    public class SearchableItem
-    {
-        public string Title { get; set; }
-
-        public string Description { get; set; }
-
-        public string FullTypeName { get; set; }
-
-        public string Category { get; set; }
-
-        public string Scope { get; set; }
-    }
 }

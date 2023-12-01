@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace Fluxzy.Rules.Actions
 {
@@ -44,11 +45,13 @@ namespace Fluxzy.Rules.Actions
             yield return new ActionExample(
                 "Use a certificate with serial number `xxxxxx` retrieved from for local user " +
                 "as a server certificate",
+#pragma warning disable CS0618 // Type or member is obsolete
                 new UseCertificateAction(new Certificate
                 {
                     RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
                     SerialNumber = "xxxxxx"
                 }));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

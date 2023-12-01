@@ -145,7 +145,9 @@ namespace Fluxzy
         /// <summary>
         ///     Global alteration rules
         /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete for JSON serialization
         public ReadOnlyCollection<Rule> AlterationRules => new ReadOnlyCollection<Rule>(InternalAlterationRules);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
         ///     Specify a filter which trigger save to directory when passed.

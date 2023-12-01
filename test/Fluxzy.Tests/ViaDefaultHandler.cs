@@ -138,10 +138,10 @@ namespace Fluxzy.Tests
                 result.Add(response.ContinueWith(t => t.Result.IsSuccessStatusCode));
             }
 
-            await Task.WhenAll(result);
+            var allResult = await Task.WhenAll(result);
 
-            foreach (var task in result) {
-                Assert.True(task.Result);
+            foreach (var b in allResult) {
+                Assert.True(b);
             }
         }
     }

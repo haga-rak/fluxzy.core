@@ -35,7 +35,7 @@ rules:
             var (exchange, _, _) = await RequestHelper.DirectRequest(requestMessage, rule);
 
             Assert.NotNull(exchange.ResponseHeader);
-            Assert.True(exchange.ResponseHeader.Headers.Any(a => a.Name.ToString() == "my_name_is_yaya"));
+            Assert.Contains(exchange.ResponseHeader.Headers, a => a.Name.ToString() == "my_name_is_yaya"); 
         }
 
         [Fact]
@@ -60,7 +60,7 @@ rules:
             var (exchange, _, _) = await RequestHelper.DirectRequest(requestMessage, rule);
 
             Assert.NotNull(exchange.ResponseHeader);
-            Assert.True(exchange.ResponseHeader.Headers.Any(a => a.Name.ToString() == "my_name_is_"));
+            Assert.Contains(exchange.ResponseHeader.Headers, t => t.Name.ToString() == "my_name_is_");
         }
 
         [Fact]

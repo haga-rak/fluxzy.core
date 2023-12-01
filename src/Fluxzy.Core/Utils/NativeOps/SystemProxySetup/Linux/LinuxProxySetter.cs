@@ -74,7 +74,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
                 }
 
                 var finalSettings = new SystemProxySetting(
-                    previousSettings["org.gnome.system.proxy.http host"]!.ToString(),
+                    previousSettings["org.gnome.system.proxy.http host"]?.ToString()!,
                     (int) previousSettings["org.gnome.system.proxy.http port"]!,
                     previousSettings["org.gnome.system.proxy ignore-hosts"] == null
                         ? Array.Empty<string>()

@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +29,7 @@ namespace Fluxzy.Tests.Configurations
     /// </summary>
     public class GreedyFilterComparer : IEqualityComparer<Filter>
     {
-        public bool Equals(Filter x, Filter y)
+        public bool Equals(Filter? x, Filter? y)
         {
             if (ReferenceEquals(x, y))
                 return true;
@@ -82,7 +82,7 @@ namespace Fluxzy.Tests.Configurations
 
     public class GreedyActionComparer : IEqualityComparer<Action>
     {
-        public bool Equals(Action x, Action y)
+        public bool Equals(Action? x, Action? y)
         {
             if (ReferenceEquals(x, y))
                 return true;

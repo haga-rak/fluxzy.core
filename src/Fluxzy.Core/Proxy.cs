@@ -30,7 +30,7 @@ namespace Fluxzy
     {
         private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
         private readonly ICertificateProvider _certificateProvider;
-        private readonly CancellationTokenSource _externalCancellationSource;
+        private readonly CancellationTokenSource? _externalCancellationSource;
         private readonly CancellationTokenSource _proxyHaltTokenSource = new();
 
         private readonly ProxyOrchestrator _proxyOrchestrator;
@@ -73,7 +73,7 @@ namespace Fluxzy
             ITcpConnectionProvider? tcpConnectionProvider = null,
             IUserAgentInfoProvider? userAgentProvider = null,
             FromIndexIdProvider? idProvider = null,
-            CancellationTokenSource externalCancellationSource = null)
+            CancellationTokenSource? externalCancellationSource = null)
         {
             _certificateProvider = certificateProvider;
             _externalCancellationSource = externalCancellationSource;
@@ -170,7 +170,7 @@ namespace Fluxzy
             if (StartupSetting.MaxExchangeCount > 0) {
                 Writer.RegisterExchangeLimit(StartupSetting.MaxExchangeCount,
                     () => {
-                        if (!_externalCancellationSource.IsCancellationRequested)
+                        if (_externalCancellationSource != null && !_externalCancellationSource.IsCancellationRequested)
                             _externalCancellationSource.Cancel();
                     });
             }
