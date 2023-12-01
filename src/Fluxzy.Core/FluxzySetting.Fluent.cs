@@ -9,6 +9,7 @@ using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Action = Fluxzy.Rules.Action;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace Fluxzy
 {
