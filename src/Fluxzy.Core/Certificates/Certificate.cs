@@ -22,6 +22,11 @@ namespace Fluxzy.Certificates
             
         }
 
+        private Certificate(CertificateRetrieveMode retrieveMode)
+        {
+            RetrieveMode = retrieveMode;
+        }
+
         /// <summary>
         /// Defines how to retrieve the certificate
         /// </summary>
@@ -64,8 +69,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public static Certificate LoadFromUserStoreByThumbprint(string thumbPrint)
         {
-            return new Certificate {
-                RetrieveMode = CertificateRetrieveMode.FromUserStoreThumbPrint,
+            return new Certificate(CertificateRetrieveMode.FromUserStoreThumbPrint) {
                 ThumbPrint = thumbPrint
             };
         }
@@ -77,8 +81,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public static Certificate LoadFromUserStoreBySerialNumber(string serialNumber)
         {
-            return new Certificate {
-                RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
+            return new Certificate(CertificateRetrieveMode.FromUserStoreSerialNumber) {
                 SerialNumber = serialNumber
             };
         }
@@ -91,8 +94,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public static Certificate LoadFromPkcs12(string pkcs12File, string pkcs12Password)
         {
-            return new Certificate {
-                RetrieveMode = CertificateRetrieveMode.FromPkcs12,
+            return new Certificate(CertificateRetrieveMode.FromPkcs12) {
                 Pkcs12File = pkcs12File,
                 Pkcs12Password = pkcs12Password
             };
@@ -105,8 +107,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public static Certificate LoadFromPkcs12(string pkcs12File)
         {
-            return new Certificate {
-                RetrieveMode = CertificateRetrieveMode.FromPkcs12,
+            return new Certificate(CertificateRetrieveMode.FromPkcs12) {
                 Pkcs12File = pkcs12File,
             };
         }
@@ -117,9 +118,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public static Certificate UseDefault()
         {
-            return new Certificate {
-                RetrieveMode = CertificateRetrieveMode.FluxzyDefault
-            };
+            return new Certificate(CertificateRetrieveMode.FluxzyDefault);
         }
 
         /// <summary>

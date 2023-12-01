@@ -32,7 +32,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
 
         public override bool Common { get; set; } = true;
 
-        public override string Description { get; set; } = "Authority (Host and port)";
+        public override string? Description { get; set; } = "Authority (Host and port)";
 
         protected override IEnumerable<string> GetMatchInputs(
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)

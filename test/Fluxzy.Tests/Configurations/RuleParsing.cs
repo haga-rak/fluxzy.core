@@ -540,12 +540,14 @@ namespace Fluxzy.Tests.Configurations
 
             yield return new object[] {
                 new Rule(
+#pragma warning disable CS0618 // Type or member is obsolete
                     new SetClientCertificateAction(new Certificate {
                         RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
                         Pkcs12File = "A pkcs12file",
                         Pkcs12Password = "A pkcs12 password",
                         SerialNumber = "absdf465"
                     }),
+#pragma warning restore CS0618 // Type or member is obsolete
                     new IpEgressFilter(IPAddress.Loopback.ToString(), StringSelectorOperation.Contains)
                 )
             };
@@ -576,12 +578,14 @@ namespace Fluxzy.Tests.Configurations
                             StringSelectorOperation.EndsWith, "Content-type"))
                     ),
                     new Rule(
+#pragma warning disable CS0618 // Type or member is obsolete
                         new SetClientCertificateAction(new Certificate {
                             RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
                             Pkcs12File = "A pkcs12file",
                             Pkcs12Password = "A pkcs12 password",
                             SerialNumber = "absdf465"
                         }),
+#pragma warning restore CS0618 // Type or member is obsolete
                         new IpEgressFilter(IPAddress.Loopback.ToString(), StringSelectorOperation.Contains)
                     )
                 )
