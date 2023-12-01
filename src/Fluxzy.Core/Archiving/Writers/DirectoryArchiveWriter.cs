@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using Fluxzy.Core;
@@ -15,7 +16,25 @@ namespace Fluxzy.Writers
 {
     public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {
-        private readonly ArchiveMetaInformation _archiveMetaInformation = new();
+        private readonly ArchiveMetaInformation _archiveMetaInformation = CreateNewCaptureArchiveMetaInformation();
+
+        private static ArchiveMetaInformation CreateNewCaptureArchiveMetaInformation()
+        {
+            var metaInformation = new ArchiveMetaInformation {
+                EnvironmentInformation = new EnvironmentInformation(
+                    RuntimeInformation.OSDescription,
+#if NET6_0_OR_GREATER
+                    RuntimeInformation.RuntimeIdentifier,
+#else
+                    "unknown",
+#endif
+                    FluxzySharedSetting.SkipCollectingEnvironmentInformation ? "": Environment.MachineName
+                )
+            };
+
+            return metaInformation;
+        }
+
         private readonly string _archiveMetaInformationPath;
         private readonly string _baseDirectory;
         private readonly string _captureDirectory;

@@ -15,6 +15,8 @@ namespace Fluxzy
 
             if (rawValue != null && int.TryParse(rawValue, out var value) && value > 0)
                 OverallMaxConcurrentConnections = value;
+
+            SkipCollectingEnvironmentInformation = Environment.GetEnvironmentVariable("SkipCollectingEnvironmentInformation") == "1";
         }
 
         /// <summary>
@@ -32,5 +34,10 @@ namespace Fluxzy
         ///  otherwise it will use HTTP 502
         /// </summary>
         public static bool Use528 { get; set; } = true; 
+
+        /// <summary>
+        /// When set to true, the proxy will not collect environment information on the archive file
+        /// </summary>
+        public static bool SkipCollectingEnvironmentInformation { get; set; }
     }
 }
