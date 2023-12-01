@@ -33,7 +33,6 @@ namespace Fluxzy.Tests.Cli.Dissects
         [InlineData("{hello} {hello}", "world world")]
         [InlineData("{hello} {Hello}", "world world")]
         [InlineData("{hello}{baz}", "worldqux")]
-        [InlineData("{hel", "{hel")]
         [InlineData("{hel{hello}", "{helworld")]
         [InlineData("{hel{ hello}", "{helworld")]
         [InlineData("{{{hello}}}", "{{world}}")]

@@ -14,7 +14,7 @@ namespace Fluxzy.Core.Pcap
 
         private bool _disposed;
         private IPEndPoint? _localEndPoint;
-        private IPAddress _remoteAddress;
+        private IPAddress? _remoteAddress;
         private DisposeEventNotifierStream? _stream;
         private long _subscription;
 
@@ -84,7 +84,7 @@ namespace Fluxzy.Core.Pcap
                                                    && _innerTcpClient.Client.RemoteEndPoint != null) {
                 var remoteEndPoint = (IPEndPoint) _innerTcpClient.Client.RemoteEndPoint;
 
-                _proxyScope.CaptureContext.StoreKey(nssKey, _remoteAddress, remoteEndPoint.Port,
+                _proxyScope.CaptureContext.StoreKey(nssKey, _remoteAddress!, remoteEndPoint.Port,
                     _localEndPoint.Port);
             }
         }

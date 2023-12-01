@@ -13,7 +13,7 @@ namespace Fluxzy.Tests
 {
     public class Http11ConcurrentCall
     {
-        public async Task CallSimple(
+        private async Task CallSimple(
             HttpClient httpClient,
             int anotherBufferSize, int length, NameValueCollection? nvCol = null)
         {
@@ -35,7 +35,7 @@ namespace Fluxzy.Tests
             requestMessage.Content = new StreamContent(randomStream);
 
             using var response = await httpClient.SendAsync(requestMessage);
-            var contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode, response.ToString());
             AssertHelpers.ControlHeaders(contentText, requestMessage, length);

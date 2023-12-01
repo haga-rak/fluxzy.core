@@ -74,7 +74,6 @@ namespace Fluxzy.Tests._Fixtures
         {
             private readonly Encoding _encoding;
             private ReadOnlyMemory<char> _array;
-            private int _totalRead;
 
             public DecodingStream(ReadOnlyMemory<char> array)
             {

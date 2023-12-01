@@ -103,16 +103,16 @@ namespace Fluxzy.Tests._Fixtures
             throw new NotSupportedException();
         }
 
-        public override async ValueTask DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             if (_disposed)
-                return;
+                return default;
 
             _disposed = true;
 
             _crypto.Dispose();
 
-            //  await _cryptoStream.DisposeAsync(); ;
+            return default;
         }
     }
 }

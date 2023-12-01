@@ -30,7 +30,6 @@ namespace Fluxzy.Tests.Cli
             commandLine += " -c";
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
-            var requestBodyLength = 23632;
             var bodyLength = 0L;
 
             await using var fluxzyInstance = await commandLineHost.Run();

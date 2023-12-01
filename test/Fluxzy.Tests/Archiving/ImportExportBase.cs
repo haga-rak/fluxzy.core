@@ -84,8 +84,8 @@ namespace Fluxzy.Tests.Archiving
             var actualExchangeInfos = directoryArchiveReader.ReadAllExchanges().ToList();
             var actualConnectionInfos = directoryArchiveReader.ReadAllConnections().ToList();
 
-            Assert.Equal(1, actualExchangeInfos.Count);
-            Assert.Equal(1, actualConnectionInfos.Count);
+            Assert.Single(actualExchangeInfos);
+            Assert.Single(actualConnectionInfos);
 
             var actualExchangeInfo = actualExchangeInfos.First();
             var actualConnectionInfo = actualConnectionInfos.First();

@@ -40,7 +40,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _outputConsole = new OutputConsole(_standardOutput, _standardError, standardInput);
         }
 
-        public Task<int> ExitCode { get; private set; }
+        public Task<int> ExitCode { get; private set; } = null!;
 
         public async Task<ProxyInstance> Run(int timeoutSeconds = 5)
         {
@@ -56,7 +56,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
             ExitCode = FluxzyStartup.Run(_commandLineArgs, _outputConsole, _cancellationToken);
 
-            ExitCode.ContinueWith(runResult => {
+            _ = ExitCode.ContinueWith(runResult => {
                 if (!blockingListingTokenSource.IsCancellationRequested)
                     blockingListingTokenSource.Cancel();
 

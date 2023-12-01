@@ -19,7 +19,7 @@ namespace Fluxzy.Tests.Misc
         [InlineData("/8080", false, null, 0)]
         [InlineData("8080:", false, null, 0)]
         [InlineData("8080/", false, null, 0)]
-        public void Test_With_HostName(string input, bool expectedResult, string expectedHost, int expectedPort)
+        public void Test_With_HostName(string input, bool expectedResult, string? expectedHost, int expectedPort)
         {
             var result = Utils.AuthorityUtility.TryParse(input, out var host, out var port);
 

@@ -56,8 +56,6 @@ namespace Fluxzy.Readers
                            .Select(s => {
                                using var stream = s.Open();
 
-                               FileStream fs;
-
                                var result = MessagePackSerializer.Deserialize<ExchangeInfo>(stream,
                                    GlobalArchiveOption.MessagePackSerializerOptions);
 

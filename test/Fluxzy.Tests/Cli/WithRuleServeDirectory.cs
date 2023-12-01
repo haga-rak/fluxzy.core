@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Cli
         [InlineData("index_files/googlePlay.png", 6271, "image/png", 200)]
         [InlineData("/index_files/googlePlay.png", 6271, "image/png", 200)]
         [InlineData("../../yes.html", 0, null, 404)]
-        public async Task Validate_Serve_Static_Dir(string path, long size, string mime, int statusCode)
+        public async Task Validate_Serve_Static_Dir(string path, long size, string? mime, int statusCode)
         {
             // Arrange
             var yamlContent = $"""

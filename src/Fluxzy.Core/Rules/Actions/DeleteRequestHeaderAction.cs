@@ -34,7 +34,7 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.RequestHeaderAlterations.Add(new HeaderAlterationDelete(HeaderName.EvaluateVariable(context)));
+            context.RequestHeaderAlterations.Add(new HeaderAlterationDelete(HeaderName.EvaluateVariable(context) ?? string.Empty));
 
             return default;
         }

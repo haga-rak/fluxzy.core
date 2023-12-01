@@ -41,8 +41,7 @@ namespace Fluxzy.Tests
             }
         }
 
-        //TESTER SUR Sandbox UN ENVOI D ENTETE MULTIPLE POUR FORCER LE DYNAMIC TableAttribute UPDATE
-        //    [Theory]
+        [Theory(Skip = "Not available on sandbox")]
         [InlineData(TestConstants.Http2Host)]
         public async Task LargeHeaderFieldValue(string host)
         {
