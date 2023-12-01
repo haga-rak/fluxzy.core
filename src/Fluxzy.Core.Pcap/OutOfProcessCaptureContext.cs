@@ -59,6 +59,9 @@ namespace Fluxzy.Core.Pcap
             if (_writer == null)
                 return;
 
+            if (_reader == null)
+                throw new InvalidOperationException("Start() not called");
+
             var includeMessage = new IncludeMessage(remoteAddress, remotePort);
 
             lock (this) {
@@ -74,6 +77,9 @@ namespace Fluxzy.Core.Pcap
             if (_writer == null)
                 return default;
 
+            if (_reader == null)
+                throw new InvalidOperationException("Start() not called");
+
             lock (this) {
                 var subscribeMessage = new SubscribeMessage(remoteAddress, remotePort, localPort, outFileName);
                 _writer.Write((byte) MessageType.Subscribe);
@@ -88,6 +94,9 @@ namespace Fluxzy.Core.Pcap
         {
             if (_writer == null)
                 return;
+
+            if (_reader == null)
+                throw new InvalidOperationException("Start() not called");
 
             lock (this) {
                 var storeKeyMessage = new StoreKeyMessage(remoteAddress, remotePort, localPort, nssKey);
@@ -141,15 +150,6 @@ namespace Fluxzy.Core.Pcap
 
         public void Dispose()
         {
-            // This is a singleton, so we never dispose 
-
-            return;
-
-            lock (this) {
-                _writer?.Write((byte) MessageType.Exit);
-            }
-
-            _client?.Dispose();
         }
     }
 }
