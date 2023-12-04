@@ -365,5 +365,15 @@ namespace Fluxzy
             return this;
         }
 
+        /// <summary>
+        /// Set the directory of the certificate cache. 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public FluxzySetting SetCertificateCacheDirectory(string path)
+        {
+            CertificateCacheDirectory = path; 
+            return this;
+        }
     }
 }
