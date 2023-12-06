@@ -414,7 +414,8 @@ namespace Fluxzy.Build
             Target("on-pull-request", DependsOn("tests"));
 
             // Build local CLI packages signed 
-            Target("install-tools", "fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"),
+            Target("fluxzy-publish-nuget",
+                DependsOn("install-tools", "fluxzy-package-push-github", "fluxzy-package-push-partner"),
                 _ => CreateAndPushVersionedTag(""));
 
             Target("fluxzy-publish-nuget-public",
