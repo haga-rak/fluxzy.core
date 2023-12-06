@@ -202,6 +202,12 @@ namespace Fluxzy.Build
                         "test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true");
                 });
         }
+        private static async Task CreateAndPushVersionedTag(string suffix)
+        {
+            var runningVersion = (await GetRunningVersion()) + suffix;
+            await RunAsync("git", $"tag -a v{runningVersion} -m \"Release {runningVersion}\"");
+            await RunAsync("git", $"push origin v{runningVersion}");
+        }
 
         private static async Task Main(string[] args)
         {
@@ -384,6 +390,7 @@ namespace Fluxzy.Build
                     await Task.WhenAll(signTasks);
                 });
 
+
             Target("docs", async () => {
                 var docOutputPath = GetEvOrFail("DOCS_OUTPUT_PATH");
 
@@ -402,15 +409,18 @@ namespace Fluxzy.Build
             Target("on-pull-request", DependsOn("tests"));
 
             // Build local CLI packages signed 
-            Target("fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"));
+            Target("fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"),
+                _ => CreateAndPushVersionedTag(""));
 
             Target("fluxzy-publish-nuget-public",
-                DependsOn("must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal"));
+                DependsOn("must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal", "install-tools"),
+                _ => CreateAndPushVersionedTag(""));
 
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
 
             // Build local CLI packages signed 
-            Target("fluxzy-cli-publish", DependsOn("fluxzy-cli-publish-internal"));
+            Target("fluxzy-cli-publish", DependsOn("fluxzy-cli-publish-internal"),
+                _ => CreateAndPushVersionedTag("-cli"));
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
         }
