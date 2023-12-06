@@ -27,7 +27,7 @@ namespace Fluxzy.Core
                               if (t.Exception != null && t.Exception.InnerExceptions.Any())
                                   throw t.Exception.InnerExceptions.First();
 
-                              return (IPEndPoint)_client.Client.LocalEndPoint;
+                              return (IPEndPoint) _client.Client.LocalEndPoint!;
                           });
         }
 

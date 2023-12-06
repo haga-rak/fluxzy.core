@@ -20,8 +20,8 @@ namespace Fluxzy.Tests.NativeOps.Macos
 
             Assert.NotNull(setting);
             Assert.False(setting.Enabled);
-            Assert.Equal(setting.Server, string.Empty);
-            Assert.Equal(setting.Port, 0);
+            Assert.Equal(string.Empty, setting.Server);
+            Assert.Equal(0, setting.Port);
         }
 
         [Fact]

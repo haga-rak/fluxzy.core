@@ -262,8 +262,7 @@ namespace Fluxzy.Core
                                                   .WaitForEdit();
                                 }
 
-                                var responseBodyStream = exchange.Response?.Body;
-
+                                var responseBodyStream = exchange.Response.Body;
 
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     responseBodyStream != null &&

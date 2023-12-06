@@ -27,7 +27,7 @@ namespace Fluxzy.Tests
     {
         [Theory]
         [InlineData(TestConstants.Http2Host)]
-        public async Task Proxy_Receiving_Multiple_Repeating_Header_Value(string host)
+        public async Task Proxy_Receiving_Multiple_Repeating_Header_Value(string _)
         {
             await using var proxy = new AddHocProxy(1, 10);
 
@@ -147,7 +147,7 @@ namespace Fluxzy.Tests
 
         [Theory]
         [InlineData(TestConstants.Http2Host)]
-        public async Task Proxy_SingleRequest_WsStatic(string host)
+        public async Task Proxy_SingleRequest_WsStatic(string _)
         {
             await using var proxy = new AddHocProxy(1, 10);
 

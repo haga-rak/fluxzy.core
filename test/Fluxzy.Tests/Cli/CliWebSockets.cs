@@ -86,7 +86,7 @@ namespace Fluxzy.Tests.Cli
 
         [Theory(Skip = "Websocket test server is not stable on sandbox.smartizy.com")]
         [MemberData(nameof(GetCliWebSocketTestRepetitionArgs))]
-        public async Task Run_Cli_For_Web_Socket_Req_Res(int length, int repetitionCount)
+        public async Task Run_Cli_For_Web_Socket_Req_Res(int length, int _)
         {
             var random = new Random(9);
 
@@ -143,7 +143,7 @@ namespace Fluxzy.Tests.Cli
 
                 if (testData == null) {
                     using var fileStream = archiveReader.GetRequestWebsocketContent(exchange.Id, fistSentMessage.Id);
-                    testData = await fileStream.ToArrayGreedyAsync();
+                    testData = await fileStream!.ToArrayGreedyAsync();
                 }
 
                 var resultMessage = Encoding.UTF8.GetString(testData);

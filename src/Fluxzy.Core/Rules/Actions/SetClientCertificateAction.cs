@@ -22,9 +22,11 @@ namespace Fluxzy.Rules.Actions
     {
         public SetClientCertificateAction(Certificate? clientCertificate)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             clientCertificate ??= new Certificate {
                 RetrieveMode = CertificateRetrieveMode.FromPkcs12
             };
+#pragma warning restore CS0618 // Type or member is obsolete
 
             ClientCertificate = clientCertificate;
         }
@@ -54,10 +56,13 @@ namespace Fluxzy.Rules.Actions
             yield return new ActionExample(
                 "Use a certificate with serial number `xxxxxx` retrieved from for local user " +
                 "store to establish mTLS authentication",
+
+#pragma warning disable CS0618 // Type or member is obsolete
                 new SetClientCertificateAction(new Certificate {
                     RetrieveMode = CertificateRetrieveMode.FromUserStoreSerialNumber,
                     SerialNumber = "xxxxxx"
                 }));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

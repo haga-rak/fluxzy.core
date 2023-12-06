@@ -193,6 +193,8 @@ namespace Fluxzy.Tests.Cli
                 Directory.Delete(directory, true);
         }
 
+
+        [Fact(Skip = "Not supported by test server")]
         public async Task Run_Cli_Aggressive_Request_Response()
         {
             // Arrange 

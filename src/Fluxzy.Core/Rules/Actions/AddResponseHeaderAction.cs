@@ -47,8 +47,8 @@ namespace Fluxzy.Rules.Actions
             if (string.IsNullOrWhiteSpace(HeaderName))
                 throw new RuleExecutionFailureException("Header name cannot be empty");
 
-            context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName.EvaluateVariable(context),
-                HeaderValue.EvaluateVariable(context)));
+            context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName.EvaluateVariable(context) ?? string.Empty,
+                HeaderValue.EvaluateVariable(context) ?? string.Empty));
 
             return default;
         }

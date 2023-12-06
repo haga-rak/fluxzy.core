@@ -9,6 +9,7 @@ using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Action = Fluxzy.Rules.Action;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace Fluxzy
 {
@@ -364,5 +365,15 @@ namespace Fluxzy
             return this;
         }
 
+        /// <summary>
+        /// Set the directory of the certificate cache. 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public FluxzySetting SetCertificateCacheDirectory(string path)
+        {
+            CertificateCacheDirectory = path; 
+            return this;
+        }
     }
 }

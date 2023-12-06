@@ -307,7 +307,7 @@ namespace Fluxzy.Tests.Rules
         [MemberData(nameof(GetResponseBreakAndChangeParams))]
         public async Task ChangeEntireResponse(string host, TestBreakpointPayloadType payloadType)
         {
-            await using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 20);
 
             var stepModel = payloadType.GetResponseStepModel(out var payloadLength);
 

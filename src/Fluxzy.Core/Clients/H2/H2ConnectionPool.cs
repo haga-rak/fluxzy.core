@@ -207,9 +207,8 @@ namespace Fluxzy.Clients.H2
 
                 await _baseStream.DisposeAsync();
             }
-            catch (Exception ex) {
+            catch (Exception) {
                 // Ignore dispose errors
-
             }
         }
 

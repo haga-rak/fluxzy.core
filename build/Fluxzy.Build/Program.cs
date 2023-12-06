@@ -15,8 +15,13 @@ namespace Fluxzy.Build
     /// </summary>
     internal class Program
     {
-        private static readonly int ConcurrentSignCount = 
-            int.Parse(Environment.GetEnvironmentVariable("CONCURRENT_SIGN")?.Trim() ?? "6"); 
+        private static readonly bool SkipSigning =
+            string.Equals(Environment.GetEnvironmentVariable("NO_SIGN"), "1");
+
+        private static readonly int ConcurrentSignCount =
+            int.Parse(Environment.GetEnvironmentVariable("CONCURRENT_SIGN")?.Trim() ?? "6");
+
+        private static readonly HttpClient Client = new(new HttpClientHandler());
 
         private static readonly SemaphoreSlim SemaphoreSlim = new(ConcurrentSignCount);
 
@@ -26,9 +31,6 @@ namespace Fluxzy.Build
             [OSPlatform.OSX] = new[] { "osx-x64", "osx-arm64" }
         };
 
-        private static readonly HttpClient Client = new HttpClient(new HttpClientHandler {
-        }); 
-
         /// <summary>
         ///     Obtains GetEvOrFail or throw exception if not found.
         /// </summary>
@@ -37,12 +39,14 @@ namespace Fluxzy.Build
         private static string GetEvOrFail(string variableName)
         {
             return Environment.GetEnvironmentVariable(variableName) ??
-                   throw new Exception($"GetEvOrFail {variableName} not found");
+                   throw new Exception($"Environment variable \"{variableName}\" must be SET");
         }
+
         private static async Task<string> GetRunningVersion()
         {
             // nbgv get-version -v Version
             var (stdOut, _) = await ReadAsync("nbgv", "get-version -v Version");
+
             return stdOut.Trim();
         }
 
@@ -79,7 +83,7 @@ namespace Fluxzy.Build
                     );
                 }
                 finally {
-                    SemaphoreSlim.Release(); 
+                    SemaphoreSlim.Release();
                 }
             }
         }
@@ -94,7 +98,7 @@ namespace Fluxzy.Build
             var azureVaultTenantId = GetEvOrFail("AZURE_VAULT_TENANT_ID");
 
             await RunAsync("sign",
-                $"code azure-key-vault *.nupkg " +
+                "code azure-key-vault *.nupkg " +
                 "  --publisher-name \"Fluxzy SAS\"" +
                 " --description \"Fluxzy Signed\"" +
                 $" --description-url {azureVaultDescriptionUrl}" +
@@ -113,6 +117,7 @@ namespace Fluxzy.Build
             using var sha512 = SHA512.Create();
             using var stream = file.OpenRead();
             var hash = sha512.ComputeHash(stream);
+
             return Convert.ToHexString(hash).ToLower();
         }
 
@@ -124,18 +129,18 @@ namespace Fluxzy.Build
             var fileName = fullFile.Name;
             var finalUrl = "https://upload.fluxzy.io:4300/release/upload";
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, finalUrl); 
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, finalUrl);
 
             requestMessage.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", uploadReleaseToken);
 
             var boundary = Guid.NewGuid().ToString();
-            var multipartFormContent = new MultipartFormDataContent(boundary); 
+            var multipartFormContent = new MultipartFormDataContent(boundary);
 
             var dictionary = new Dictionary<string, string> {
                 ["FileName"] = fileName,
                 ["FileSha512Hash"] = hashValue,
-                ["Category"] = "Fluxzy CLI",
+                ["Category"] = "Fluxzy CLI"
             };
 
             await using var uploadStream = fullFile.OpenRead();
@@ -145,16 +150,16 @@ namespace Fluxzy.Build
             foreach (var (name, value) in dictionary) {
                 multipartFormContent.Add(new StringContent(value), name);
             }
-            
+
             multipartFormContent.Add(new StreamContent(uploadStream), "FILENAME", fileName);
 
             requestMessage.Content = multipartFormContent;
 
             var response = await Client.SendAsync(requestMessage);
 
-            if (!response.IsSuccessStatusCode)
-            {
+            if (!response.IsSuccessStatusCode) {
                 var fullResponseText = await response.Content.ReadAsStringAsync();
+
                 throw new Exception($"Upload failed {response.StatusCode}.\r\n" +
                                     $"{fullResponseText}");
             }
@@ -197,6 +202,12 @@ namespace Fluxzy.Build
                         "test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true");
                 });
         }
+        private static async Task CreateAndPushVersionedTag(string suffix)
+        {
+            var runningVersion = (await GetRunningVersion()) + suffix;
+            await RunAsync("git", $"tag -a v{runningVersion} -m \"Release {runningVersion}\"");
+            await RunAsync("git", $"push origin v{runningVersion}");
+        }
 
         private static async Task Main(string[] args)
         {
@@ -210,8 +221,9 @@ namespace Fluxzy.Build
             var current = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OSPlatform.OSX :
                 RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OSPlatform.Linux : OSPlatform.Windows;
 
-            if (Directory.Exists("_npkgout"))
+            if (Directory.Exists("_npkgout")) {
                 Directory.Delete("_npkgout", true);
+            }
 
             Target("must-be-release",
                 () => {
@@ -237,7 +249,6 @@ namespace Fluxzy.Build
             Target("fluxzy-core-create-package",
                 DependsOn("install-tools"),
                 async () => {
-
                     await RunAsync("dotnet",
                         "build -c Release src/Fluxzy.Core");
 
@@ -248,7 +259,6 @@ namespace Fluxzy.Build
             Target("fluxzy-core-pcap-create-package",
                 DependsOn("fluxzy-core-create-package"),
                 async () => {
-
                     await RunAsync("dotnet",
                         "build -c Release src/Fluxzy.Core.Pcap");
 
@@ -258,18 +268,15 @@ namespace Fluxzy.Build
 
             Target("fluxzy-package-sign",
                 DependsOn("fluxzy-core-pcap-create-package"),
-                async () => {
-                    await SignPackages("_npkgout");
-                });
+                async () => { await SignPackages("_npkgout"); });
 
             Target("fluxzy-package-push-github",
                 DependsOn("fluxzy-package-sign"),
                 async () => {
-                    
                     await RunAsync("dotnet",
                         $"nuget push *.nupkg --skip-duplicate --api-key {privateNugetToken} " +
                         "--source https://nuget.pkg.github.com/haga-rak/index.json",
-                        workingDirectory: "_npkgout", noEcho: true);
+                        "_npkgout", true);
                 });
 
             Target("fluxzy-package-push-partner",
@@ -278,27 +285,27 @@ namespace Fluxzy.Build
                     await RunAsync("dotnet",
                         $"nuget push *.nupkg --skip-duplicate --api-key {partnerNugetToken} " +
                         "--source https://nuget.2befficient.io/v3/index.json",
-                        workingDirectory: "_npkgout", noEcho: true);
+                        "_npkgout", true);
                 });
 
             Target("fluxzy-package-push-public-internal",
                 DependsOn("fluxzy-package-sign"),
                 async () => {
-
-                    var nugetOrgApiKey = GetEvOrFail("NUGET_ORG_API_KEY"); 
+                    var nugetOrgApiKey = GetEvOrFail("NUGET_ORG_API_KEY");
 
                     await RunAsync("dotnet",
                         $"nuget push *.nupkg --skip-duplicate --api-key {nugetOrgApiKey} " +
                         "--source https://api.nuget.org/v3/index.json",
-                        workingDirectory: "_npkgout", noEcho: true);
+                        "_npkgout", true);
                 });
 
             Target("fluxzy-cli-package-build",
                 DependsOn("install-tools", "build-fluxzy-core"),
                 async () => {
-                    if (Directory.Exists(".artefacts"))
+                    if (Directory.Exists(".artefacts")) {
                         Directory.Delete(".artefacts", true);
-                    
+                    }
+
                     foreach (var runtimeIdentifier in TargetRuntimeIdentifiers[current]) {
                         var outDirectory = $".artefacts/{runtimeIdentifier}";
 
@@ -310,13 +317,12 @@ namespace Fluxzy.Build
             Target("fluxzy-cli-package-zip",
                 DependsOn("fluxzy-cli-package-sign"),
                 async () => {
-
-                    var runningVersion = await GetRunningVersion(); 
+                    var runningVersion = await GetRunningVersion();
                     Directory.CreateDirectory(".artefacts/final");
 
                     foreach (var runtimeIdentifier in TargetRuntimeIdentifiers[current]) {
                         var outDirectory = $".artefacts/{runtimeIdentifier}";
-                        
+
                         ZipFile.CreateFromDirectory(
                             outDirectory,
                             $".artefacts/final/{GetFileName(runtimeIdentifier, runningVersion)}",
@@ -329,7 +335,6 @@ namespace Fluxzy.Build
             Target("fluxzy-cli-publish-internal",
                 DependsOn("fluxzy-cli-package-zip"),
                 async () => {
-
                     var candidates = new DirectoryInfo(".artefacts/final/").EnumerateFiles("*.zip").ToList();
 
                     var uploadTasks = new List<Task>();
@@ -337,7 +342,7 @@ namespace Fluxzy.Build
                     foreach (var candidate in candidates) {
                         uploadTasks.Add(Upload(candidate));
                     }
-                    
+
                     await Task.WhenAll(uploadTasks);
                 });
 
@@ -346,44 +351,54 @@ namespace Fluxzy.Build
                 async () => {
                     if (current != OSPlatform.Windows) {
                         Console.WriteLine("Skipping signing for non-windows platform");
+
                         return;
                     }
 
-                    var skipSigning = string.Equals(Environment.GetEnvironmentVariable("NO_SIGN"), "1");
+                    if (SkipSigning) {
+                        return;
+                    }
 
-                    if (skipSigning)
-                        return; 
-                    
                     Directory.CreateDirectory(".artefacts/final");
 
                     var signedFilesPrefix = new[] {
                         "Flux", "Yaml", "ICSharpCode", "BouncyCastle.Crypto.Async", "YamlDotNet", "MessagePack",
                         "UAParser", "SharpPcap"
-
                     };
 
                     var signTasks = new List<Task>();
-                    
-                    foreach (var runtimeIdentifier in TargetRuntimeIdentifiers[current])
-                    {
+
+                    foreach (var runtimeIdentifier in TargetRuntimeIdentifiers[current]) {
                         var outDirectory = $".artefacts/{runtimeIdentifier}";
 
                         var candidates = new DirectoryInfo(outDirectory)
-                            .EnumerateFiles("*", SearchOption.AllDirectories)
-                            .Where(f => 
-                                (
-                                    string.Equals(f.Extension, ".dll", StringComparison.OrdinalIgnoreCase) 
-                                    || string.Equals(f.Extension, ".exe", StringComparison.OrdinalIgnoreCase)) &&
-                                signedFilesPrefix.Any(s => f.Name.StartsWith(s, StringComparison.OrdinalIgnoreCase)))
-                            .ToList();
+                                         .EnumerateFiles("*", SearchOption.AllDirectories)
+                                         .Where(f =>
+                                             (
+                                                 string.Equals(f.Extension, ".dll", StringComparison.OrdinalIgnoreCase)
+                                                 || string.Equals(f.Extension, ".exe",
+                                                     StringComparison.OrdinalIgnoreCase)) &&
+                                             signedFilesPrefix.Any(s =>
+                                                 f.Name.StartsWith(s, StringComparison.OrdinalIgnoreCase)))
+                                         .ToList();
 
                         // SIGN dll and exe in this directory
 
-                        signTasks.Add(SignCli(outDirectory, candidates));  
+                        signTasks.Add(SignCli(outDirectory, candidates));
                     }
-                    
+
                     await Task.WhenAll(signTasks);
                 });
+
+
+            Target("docs", async () => {
+                var docOutputPath = GetEvOrFail("DOCS_OUTPUT_PATH");
+
+                await RunAsync("dotnet",
+                    $"run --project src/Fluxzy.Tools.DocGen",
+                    configureEnvironment: env => env["DOCS_OUTPUT_PATH"] = docOutputPath,
+                    noEcho: false);
+            });
 
             Target("default", () => Console.WriteLine("DefaultTarget is doing nothing"));
 
@@ -394,16 +409,20 @@ namespace Fluxzy.Build
             Target("on-pull-request", DependsOn("tests"));
 
             // Build local CLI packages signed 
-            Target("fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"));
-            Target("fluxzy-publish-nuget-public", DependsOn("must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal"));
+            Target("fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"),
+                _ => CreateAndPushVersionedTag(""));
+
+            Target("fluxzy-publish-nuget-public",
+                DependsOn("must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal", "install-tools"),
+                _ => CreateAndPushVersionedTag(""));
 
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
 
             // Build local CLI packages signed 
-            Target("fluxzy-cli-publish", DependsOn("fluxzy-cli-publish-internal"));
+            Target("fluxzy-cli-publish", DependsOn("fluxzy-cli-publish-internal"),
+                _ => CreateAndPushVersionedTag("-cli"));
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
         }
-
     }
 }

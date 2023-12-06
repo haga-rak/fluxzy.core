@@ -33,7 +33,12 @@ namespace Fluxzy
         public string ArchiveVersion { get; set; } = "0.2.0";
 
         /// <summary>
-        /// 
+        ///  Information about the environment where the archive was created.
+        /// </summary>
+        public EnvironmentInformation? EnvironmentInformation { get; set; }
+
+        /// <summary>
+        /// Fluxzy version used to create this archive
         /// </summary>
         public string FluxzyVersion { get; set; } = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
     }

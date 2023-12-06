@@ -109,7 +109,6 @@ namespace Fluxzy.Tests.Rules
         public async Task UpdateRequestHeaderWithFilterHostOnlyIfMissing(string host)
         {
             var headerName = "X-Haga-Unit-Test";
-            var headerValue = "X-Haga-Unit-Test-value!!";
             var headerNewValue = "updated to ABCDef";
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
