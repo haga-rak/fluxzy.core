@@ -210,7 +210,7 @@ namespace Fluxzy.Build
             await RunAsync("git", $"config --global user.email \"admin@fluxzy.io\"");
             await RunAsync("git", $"config --global user.name \"fluxzy-ci\"");
 
-            await RunAsync("git", $"tag -a v{runningVersion} -m \"Release {runningVersion}\"");
+            await RunAsync("git", $"tag -a v{runningVersion} -m \"Release {runningVersion}\"", handleExitCode: i => true);
             await RunAsync("git", $"push origin v{runningVersion}", handleExitCode: i => true);
         }
 
