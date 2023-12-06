@@ -35,13 +35,3 @@ jobs:
         AZURE_VAULT_TENANT_ID : ${{ secrets.AZURE_VAULT_TENANT_ID }}
 
       run: bash build.sh fluxzy-publish-nuget-public
-    - name: Create tag
-      uses: actions/github-script@v5
-      with:
-        script: |
-            github.rest.git.createRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: "refs/tags/${{ env.GITHUB_REF_NAME }}",
-                sha: context.sha
-            })
