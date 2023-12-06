@@ -54,7 +54,23 @@ namespace Fluxzy.Clients.H11
             while (totalRead < buffer.Buffer.Length) {
                 stopWatch.Restart();
 
-                var currentRead = await stream.ReadAsync(bufferIndex, token);
+                int currentRead; 
+
+                try {
+                    currentRead = await stream.ReadAsync(bufferIndex, token);
+                }
+                catch (Exception) {
+
+                    if (dontThrowIfEarlyClosed && 
+                        stopWatch.ElapsedTicks < ConnectionDisposeDetectionThreshHold)
+                    {
+                        //  OpenSSL and SecureTransport throw an exception instead of returning 0 with .NET 
+
+                        return new(-1, 0, true);
+                    }
+
+                    throw; 
+                }
 
                 if (currentRead == 0) {
                     if (dontThrowIfEarlyClosed && stopWatch.ElapsedTicks < ConnectionDisposeDetectionThreshHold) {
