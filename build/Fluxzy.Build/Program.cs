@@ -414,17 +414,17 @@ namespace Fluxzy.Build
             Target("on-pull-request", DependsOn("tests"));
 
             // Build local CLI packages signed 
-            Target("fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"),
+            Target("install-tools", "fluxzy-publish-nuget", DependsOn("fluxzy-package-push-github", "fluxzy-package-push-partner"),
                 _ => CreateAndPushVersionedTag(""));
 
             Target("fluxzy-publish-nuget-public",
-                DependsOn("must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal", "install-tools"),
+                DependsOn("install-tools", "must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal"),
                 _ => CreateAndPushVersionedTag(""));
 
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
 
             // Build local CLI packages signed 
-            Target("fluxzy-cli-publish", DependsOn("fluxzy-cli-publish-internal"),
+            Target("fluxzy-cli-publish", DependsOn("install-tools", "fluxzy-cli-publish-internal"),
                 _ => CreateAndPushVersionedTag("-cli"));
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
