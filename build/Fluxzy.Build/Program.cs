@@ -416,17 +416,17 @@ namespace Fluxzy.Build
             // Build local CLI packages signed 
             Target("fluxzy-publish-nuget",
                 DependsOn("install-tools", "fluxzy-package-push-github", "fluxzy-package-push-partner"),
-                _ => CreateAndPushVersionedTag(""));
+                async () => await CreateAndPushVersionedTag(""));
 
             Target("fluxzy-publish-nuget-public",
                 DependsOn("install-tools", "must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal"),
-                _ => CreateAndPushVersionedTag(""));
+                async () => await CreateAndPushVersionedTag(""));
 
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
 
             // Build local CLI packages signed 
             Target("fluxzy-cli-publish", DependsOn("install-tools", "fluxzy-cli-publish-internal"),
-                _ => CreateAndPushVersionedTag("-cli"));
+                async () => await CreateAndPushVersionedTag("-cli"));
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
         }
