@@ -202,11 +202,16 @@ namespace Fluxzy.Build
                         "test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true");
                 });
         }
+        
         private static async Task CreateAndPushVersionedTag(string suffix)
         {
             var runningVersion = (await GetRunningVersion()) + suffix;
+
+            await RunAsync("git", $"config --global user.email \"admin@fluxzy.io\"");
+            await RunAsync("git", $"config --global user.name \"fluxzy-ci\"");
+
             await RunAsync("git", $"tag -a v{runningVersion} -m \"Release {runningVersion}\"");
-            await RunAsync("git", $"push origin v{runningVersion}");
+            await RunAsync("git", $"push origin v{runningVersion}", handleExitCode: i => true);
         }
 
         private static async Task Main(string[] args)
