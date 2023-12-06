@@ -16,18 +16,11 @@ namespace Fluxzy.Tools.DocGen
     {
         public static void Main(string[] args)
         {
+            var outputPath = GetOutputPath(args);
+
             var docBuilder = new DocBuilder(new DescriptionLineProvider(), new RuleConfigParser());
 
-            var rootDirectory = new DirectoryInfo(".");
-
-            while (rootDirectory.EnumerateFiles().All(d => d.Name != "fluxzy.core.sln")) {
-                rootDirectory = rootDirectory.Parent;
-
-                if (rootDirectory == null)
-                    throw new Exception("Unable to locate fluxzy.core.sln");
-            }
-
-            var docsBaseDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "docs"));
+            var docsBaseDirectory = new DirectoryInfo(outputPath);
 
             var items = new List<SearchableItem>(); 
 
@@ -38,6 +31,36 @@ namespace Fluxzy.Tools.DocGen
                 JsonSerializer.Serialize(items, new JsonSerializerOptions(JsonSerializerDefaults.Web) {}));
 
             Console.WriteLine("Done");
+        }
+
+        private static string GetOutputPath(string[] args)
+        {
+            if (Environment.GetEnvironmentVariable("DOCS_OUTPUT_PATH") != null)
+                return Environment.GetEnvironmentVariable("DOCS_OUTPUT_PATH")!; 
+
+            string outputPath;
+
+            var outputIndex = args
+                              .Select((e, i) => e.Equals("-o") || e.Equals("--output") ? i : (int?) null)
+                              .LastOrDefault(s => s != null);
+
+            if (outputIndex != null && args.Length > (outputIndex.Value + 1)) {
+                outputPath = args[outputIndex.Value + 1];
+            }
+            else {
+                var rootDirectory = new DirectoryInfo(".");
+
+                while (rootDirectory.EnumerateFiles().All(d => d.Name != "fluxzy.core.sln")) {
+                    rootDirectory = rootDirectory.Parent;
+
+                    if (rootDirectory == null)
+                        throw new Exception("Unable to locate fluxzy.core.sln");
+                }
+
+                outputPath = Path.Combine(rootDirectory.FullName, "docs");
+            }
+
+            return outputPath;
         }
 
         private static void BuildFilterDocs(DirectoryInfo docsBaseDirectory, DocBuilder docBuilder, List<SearchableItem> items)
