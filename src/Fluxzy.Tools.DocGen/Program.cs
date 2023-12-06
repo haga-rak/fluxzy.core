@@ -35,6 +35,9 @@ namespace Fluxzy.Tools.DocGen
 
         private static string GetOutputPath(string[] args)
         {
+            if (Environment.GetEnvironmentVariable("DOCS_OUTPUT_PATH") != null)
+                return Environment.GetEnvironmentVariable("DOCS_OUTPUT_PATH")!; 
+
             string outputPath;
 
             var outputIndex = args
