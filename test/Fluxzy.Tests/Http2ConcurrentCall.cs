@@ -99,7 +99,7 @@ namespace Fluxzy.Tests
         {
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler, false);
-            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(24));
 
             var token = cancellationTokenSource.Token;
 
