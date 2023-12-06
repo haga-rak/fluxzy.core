@@ -1,8 +1,9 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -16,11 +17,12 @@ namespace Fluxzy.Tests._Fixtures
         /// <param name="request"></param>
         /// <param name="requestHashBodyHash"></param>
         /// <param name="response"></param>
+        /// <param name="token"></param>
         public static async Task ValidateCheck(
             HttpRequestMessage request, string? requestHashBodyHash,
-            HttpResponseMessage response)
+            HttpResponseMessage response, CancellationToken token = default)
         {
-            var checkResult = await response.GetCheckResult();
+            var checkResult = await response.GetCheckResult(token);
 
             foreach (var header in request.Headers.Where(h => h.Key != "fluxzy")) {
                 foreach (var headerValue in header.Value) {

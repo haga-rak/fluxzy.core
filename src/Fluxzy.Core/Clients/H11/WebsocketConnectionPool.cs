@@ -138,7 +138,7 @@ namespace Fluxzy.Clients.H11
                 Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, rsBuffer,
                     () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
                     () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
-                    false, cancellationToken);
+                    throwOnError: false, cancellationToken);
 
             Memory<char> headerContent = new char[headerBlock.HeaderLength];
 

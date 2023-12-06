@@ -87,8 +87,9 @@ namespace Fluxzy.Clients.H11
                 headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, buffer,
                     () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
                     () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
-                    true,
-                    cancellationToken);
+                    throwOnError: true,
+                    cancellationToken,
+                    dontThrowIfEarlyClosed: true);
             }
             catch (Exception ex) {
 
@@ -99,6 +100,11 @@ namespace Fluxzy.Clients.H11
 
                 throw new ClientErrorException(0, $"The connection was close while trying to read the response header",
                     ex.Message);
+            }
+
+            if (headerBlockDetectResult.CloseNotify)
+            {
+                throw new ConnectionCloseException("Relaunch");
             }
 
             Memory<char> headerContent = new char[headerBlockDetectResult.HeaderLength];

@@ -57,7 +57,7 @@ namespace Fluxzy.Core
             var plainStream = stream;
 
             var blockReadResult = await
-                Http11HeaderBlockReader.GetNext(plainStream, buffer, null, null, false, token);
+                Http11HeaderBlockReader.GetNext(plainStream, buffer, null, null, throwOnError: false, token);
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
 
@@ -195,7 +195,7 @@ namespace Fluxzy.Core
             // Every next request after the first one is read from the stream
 
             var blockReadResult = await
-                Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, false, token);
+                Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, throwOnError: false, token);
 
             if (blockReadResult.TotalReadLength == 0)
                 return null;

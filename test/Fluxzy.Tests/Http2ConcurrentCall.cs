@@ -42,7 +42,7 @@ namespace Fluxzy.Tests
 
             Assert.True(response.IsSuccessStatusCode);
 
-            await AssertionHelper.ValidateCheck(requestMessage, null, response);
+            await AssertionHelper.ValidateCheck(requestMessage, null, response, token);
         }
 
         [Fact]
@@ -99,7 +99,7 @@ namespace Fluxzy.Tests
         {
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler, false);
-            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(6));
 
             var token = cancellationTokenSource.Token;
 
