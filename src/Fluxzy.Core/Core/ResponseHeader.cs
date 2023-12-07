@@ -28,7 +28,10 @@ namespace Fluxzy.Core
             if (parseConnectionInfo) {
                 ConnectionCloseRequest = HeaderFields.Any(
                     r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
-                         && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+                         && (
+                             r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase) ||
+                             r.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase)
+                         ));
 
                 if (!ConnectionCloseRequest)
                     ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
@@ -46,7 +49,10 @@ namespace Fluxzy.Core
 
             ConnectionCloseRequest = HeaderFields.Any(
                 r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
-                     && r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase));
+                     && (
+                         r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase) || 
+                         r.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase) 
+                         ));
 
             if (!ConnectionCloseRequest)
                 ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
