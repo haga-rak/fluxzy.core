@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -10,7 +11,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     ///     Select exchanges according to url path. Path includes query string if any.
     /// </summary>
     [FilterMetaData(
-        LongDescription = "Select exchanges according to url path. Path includes query string if any. Path must with `/`"
+        LongDescription = "Select exchanges according to url path. Path includes query string if any. Path must start with `/`"
     )]
     public class PathFilter : StringFilter
     {
@@ -44,5 +45,20 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             if (exchange != null)
                 yield return exchange.Path;
         }
+    }
+
+    public static class PathFilterExtensions
+    {
+        /// <summary>
+        /// Sets a filter for configuring actions based on the request path matching a specified pattern.
+        /// </summary>
+        /// <param name="filterBuilder">The filter builder.</param>
+        /// <param name="pattern">The pattern to be matched.</param>
+        /// <param name="operation">The string selector operation. The default value is StringSelectorOperation.StartsWith.</param>
+        /// <returns>The configure action builder.</returns>
+        public static IConfigureActionBuilder WhenPathMatch(
+            this IConfigureFilterBuilder filterBuilder, string pattern,
+            StringSelectorOperation operation = StringSelectorOperation.StartsWith)
+            => filterBuilder.When(new PathFilter(pattern, operation));
     }
 }

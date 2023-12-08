@@ -51,7 +51,6 @@ namespace Fluxzy
 			: this (startupSetting, new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()), 
 				new DefaultCertificateAuthorityManager(), tcpConnectionProvider: tcpConnectionProvider)
         {
-
         }
 
         /// <summary>
@@ -249,8 +248,17 @@ namespace Fluxzy
 
             _loopTask = Task.Run(MainLoop);
 
+            EndPoints = endPoints;
             return endPoints;
         }
+
+        /// <summary>
+        /// Gets the collection of IP endpoints associated with this proxy. Returns null if the proxy is not started.
+        /// </summary>
+        /// <remarks>
+        /// The IP endpoints represent the network addresses that the property can be accessed on.
+        /// </remarks>
+        public IReadOnlyCollection<IPEndPoint>? EndPoints { get; private set; }
 
         private void InternalDispose()
         {

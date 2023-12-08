@@ -163,7 +163,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         /// <param name="statusCode">The HTTP status code of the response. Default is 200.</param>
         /// <param name="headers">The custom headers to be included in the response.</param>
         /// <returns>A configure filter builder for further configuration.</returns>
-        public static IConfigureFilterBuilder ReplyWithJson(
+        public static IConfigureFilterBuilder ReplyJson(
             this IConfigureActionBuilder actionBuilder, string json,
             int statusCode = 200, params (string, string)[] headers)
         {
@@ -185,7 +185,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         /// <param name="statusCode">The status code to be set in the response. Default is 200.</param>
         /// <param name="headers">Additional headers to be included in the response.</param>
         /// <returns>A configure filter builder instance.</returns>
-        public static IConfigureFilterBuilder ReplyWithJsonFile(
+        public static IConfigureFilterBuilder ReplyJsonFile(
             this IConfigureActionBuilder actionBuilder, string fileName,
             int statusCode = 200, params (string, string)[] headers)
         {
