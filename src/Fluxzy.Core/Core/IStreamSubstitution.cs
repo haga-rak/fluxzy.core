@@ -13,7 +13,7 @@ namespace Fluxzy.Core
     {
         /// <summary>
         /// This class is used to low level-mock request and response body.
-        /// Even if this class is async for fast mocking purpose, calling async in the implementation will lead to unecessary overhead.
+        /// Even if this class is async for fast mocking purpose, calling async in the implementation will lead to unnecessary overhead.
         /// Additionally, you must drain (read to EOF) the provided stream in order to not hang the remote connection when
         /// the original stream is coming from a remote connection.
         /// </summary>
