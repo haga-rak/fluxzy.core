@@ -1,5 +1,8 @@
 using System.Net;
 using Fluxzy;
+using Fluxzy.Rules;
+using Fluxzy.Rules.Actions;
+using Fluxzy.Rules.Extensions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 
@@ -7,6 +10,26 @@ namespace Samples.No002.Filtering
 {
 	internal class Program
 	{
+
+        static async Task Do()
+        {
+            var fluxzyStartupSetting = FluxzySetting
+                                       .CreateDefault(IPAddress.Loopback, 44344)
+                                       .AddAlterationRules(
+                                           new Rule(
+                                               new AddResponseHeaderAction("X-Proxy", "Passed through fluxzy"),
+                                               AnyFilter.Default
+                                           ));
+
+            await using (var proxy = new Proxy(fluxzyStartupSetting))
+            {
+                var _ = proxy.Run();
+
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadLine();
+            }
+        }
+
 		/// <summary>
 		/// Capture only specific traffic.  
 		/// </summary>
