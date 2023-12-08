@@ -12,7 +12,7 @@ using Fluxzy.Rules;
 
 namespace Fluxzy.Clients.Mock
 {
-    public class MockedResponseContent : PreMadeResponse
+    public partial class MockedResponseContent : PreMadeResponse
     {
         public MockedResponseContent(int statusCode, BodyContent body)
         {
@@ -68,6 +68,8 @@ namespace Fluxzy.Clients.Mock
             return Body == null ? Stream.Null : Body.GetStream();
         }
     }
+
+
 
     public class MockedResponseHeader
     {
