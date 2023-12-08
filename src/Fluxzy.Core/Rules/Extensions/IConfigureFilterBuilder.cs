@@ -18,20 +18,20 @@ namespace Fluxzy.Rules.Extensions
         /// <param name="filter"></param>
         /// <returns></returns>
 
-        ConfigureActionBuilder When(Filter filter);
+        IConfigureActionBuilder When(Filter filter);
 
         /// <summary>
         ///  Create a rule that will be applied when any of the filters passes. If no filters are provided, the rule will be applied always.
         /// </summary>
         /// <param name="filters"></param>
         /// <returns></returns>
-        ConfigureActionBuilder WhenAny(params Filter[] filters);
+        IConfigureActionBuilder WhenAny(params Filter[] filters);
 
         /// <summary>
         ///  Create a rule that will be applied when all of the filters passes
         /// </summary>
         /// <param name="filters"></param>
         /// <returns></returns>
-        ConfigureActionBuilder WhenAll(params Filter[] filters);
+        IConfigureActionBuilder WhenAll(params Filter[] filters);
     }
 }

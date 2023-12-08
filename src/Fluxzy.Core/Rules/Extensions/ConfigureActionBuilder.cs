@@ -4,7 +4,7 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Extensions
 {
-    public class ConfigureActionBuilder : IConfigureActionBuilder
+    internal class ConfigureActionBuilder : IConfigureActionBuilder
     {
         private readonly FluxzySetting _setting;
         private readonly Filter _filter;

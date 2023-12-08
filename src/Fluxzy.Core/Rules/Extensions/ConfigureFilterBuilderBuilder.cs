@@ -13,7 +13,7 @@ namespace Fluxzy.Rules.Extensions
 
         public FluxzySetting FluxzySetting { get; }
 
-        public ConfigureActionBuilder When(Filter filter)
+        public IConfigureActionBuilder When(Filter filter)
         {
             if (filter == null)
                 throw new ArgumentNullException(nameof(filter));
@@ -21,13 +21,13 @@ namespace Fluxzy.Rules.Extensions
             return new ConfigureActionBuilder(FluxzySetting, filter);
         }
 
-        public ConfigureActionBuilder WhenAny(params Filter[] filters)
+        public IConfigureActionBuilder WhenAny(params Filter[] filters)
         {
             return new ConfigureActionBuilder(FluxzySetting,
                 filters.Any() ? new FilterCollection(filters) { Operation = SelectorCollectionOperation.Or }: AnyFilter.Default);
         }
 
-        public ConfigureActionBuilder WhenAll(params Filter[] filters)
+        public IConfigureActionBuilder WhenAll(params Filter[] filters)
         {
             return new ConfigureActionBuilder(FluxzySetting, filters.Any() ? 
                 new FilterCollection(filters) { Operation = SelectorCollectionOperation.And } 
