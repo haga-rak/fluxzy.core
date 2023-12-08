@@ -36,7 +36,7 @@ namespace Samples.No004.BasicAlterations
 
                 // Append "fluxzy-on" header to any request 
                 .WhenAny().Do(new AddRequestHeaderAction("fluxzy-on", "true"))
-
+                
                 // Remove any cache directive from any request 
                 .WhenAny().Do(new RemoveCacheAction())
 
@@ -45,7 +45,7 @@ namespace Samples.No004.BasicAlterations
                     .Do(new SkipSslTunnelingAction())
 
                 // Mock an entire response according to an URL 
-                .When(new AbsoluteUriFilter(@"^https\:\/\/api\.example\.com", StringSelectorOperation.Regex))
+                .WhenAbsoluteUriMatch(@"^https\:\/\/api\.example\.com", StringSelectorOperation.Regex)
                     .Do(new MockedResponseAction(MockedResponseContent.CreateFromPlainText("This is a plain text content")))
 
                 // Using a client certificate
