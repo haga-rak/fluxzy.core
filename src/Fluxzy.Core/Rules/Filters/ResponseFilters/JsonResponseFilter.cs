@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Fluxzy.Misc;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
@@ -34,6 +35,19 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
 
             if (defaultSample != null)
                 yield return defaultSample;
+        }
+    }
+
+    public static class JsonResponseFilterExtensions
+    {
+        /// <summary>
+        ///  
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenResponseHasJsonBody(this IConfigureFilterBuilder builder)
+        {
+            return builder.When(new JsonResponseFilter());
         }
     }
 }
