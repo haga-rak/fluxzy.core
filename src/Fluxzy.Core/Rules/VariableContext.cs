@@ -10,7 +10,7 @@ namespace Fluxzy.Rules
 {
     /// <summary>
     ///     Retrieving variables and updating variables.
-    ///     This object is a singleton according to the proxy instance .
+    ///     This object is unique per proxy instance
     /// </summary>
     public class VariableContext
     {

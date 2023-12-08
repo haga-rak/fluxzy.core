@@ -15,6 +15,9 @@ using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core
 {
+    /// <summary>
+    /// Holds the mutable state of the ongoing exchange
+    /// </summary>
     public class ExchangeContext
     {
         public ExchangeContext(
@@ -26,7 +29,16 @@ namespace Fluxzy.Core
             FluxzySetting = fluxzySetting;
         }
 
+        /// <summary>
+        /// Remote authority, this value is used to build the host header on H11/request and
+        /// :authority pseudo header on H2/request
+        /// </summary>
         public IAuthority Authority { get; set; }
+        
+        /// <summary>
+        ///  If the ongoing connection to Authority should use TLS
+        /// </summary>
+        public bool Secure { get; set; }
 
         /// <summary>
         ///     Host IP that shall be used instead of a classic DNS resolution
@@ -82,32 +94,76 @@ namespace Fluxzy.Core
         /// </summary>
         public bool SkipRemoteCertificateValidation { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets the list of header alterations for the request.
+        /// </summary>
+        /// <value>
+        /// The list of <see cref="HeaderAlteration"/> objects representing the header alterations for the request.
+        /// </value>
         public List<HeaderAlteration> RequestHeaderAlterations { get; } = new();
 
+        /// <summary>
+        /// Gets or sets the list of response header alterations.
+        /// </summary>
+        /// <value>
+        /// The list of response header alterations.
+        /// </value>
         public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new();
 
+        /// <summary>
+        /// Holds information about a breakpoint context.
+        /// </summary>
         public BreakPointContext? BreakPointContext { get; set; }
 
+        /// <summary>
+        /// Gets the variable context associated with the current object.
+        /// </summary>
+        /// <remarks>
+        /// The VariableContext property provides access to the variable context, which represents the scope and lifetime of variables used within the current object. The variable context stores
+        /// variables as key-value pairs and allows access to their values.
+        /// </remarks>
+        /// <returns>
+        /// The variable context associated with the current object.
+        /// </returns>
         public VariableContext VariableContext { get; }
 
-        public VariableBuildingContext? VariableBuildingContext { get; set; } = null;
+        /// <summary>
+        ///   Information about the ongoing exchange and connection
+        /// </summary>
+        public VariableBuildingContext? VariableBuildingContext { get; internal set; } = null;
 
+        /// <summary>
+        ///  The proxy setting
+        /// </summary>
         public FluxzySetting? FluxzySetting { get; }
 
+        /// <summary>
+        /// Gets or sets the down stream local IP address of the struct.
+        /// </summary>
+        /// <value>
+        /// The down stream local IP address.
+        /// </value>
         public IPAddress DownStreamLocalAddressStruct { get; set; } = null!;
 
-        public int ProxyListenPort { get; set; }
+        /// <summary>
+        ///  Information about the proxy port that has been used to retrieve the ongoing exchange
+        /// </summary>
+        public int ProxyListenPort { get; internal set; }
 
-        public bool Secure { get; set; }
+        internal NetworkStream? UnderlyingBcStream { get; set; }
 
-        public NetworkStream? UnderlyingBcStream { get; set; }
+        internal DisposeEventNotifierStream? EventNotifierStream { get; set; }
 
-        public DisposeEventNotifierStream? EventNotifierStream { get; set; }
+        internal Dictionary<Filter, bool> FilterEvaluationResult { get; } = new();
 
-        public Dictionary<Filter, bool> FilterEvaluationResult { get; } = new();
-
+        /// <summary>
+        /// Gets or sets the request body substitution.
+        /// </summary>
         public IStreamSubstitution? RequestBodySubstitution { get; set; }
 
+        /// <summary>
+        /// Gets or sets the substitution for the response body.
+        /// </summary>
         public IStreamSubstitution? ResponseBodySubstitution { get; set; }
     }
 }
