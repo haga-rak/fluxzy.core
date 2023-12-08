@@ -65,7 +65,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         /// <param name="pattern"></param>
         /// <param name="operation"></param>
         /// <returns></returns>
-        public static IConfigureActionBuilder WhenAbsoluteUriMatch(this IConfigureFilterBuilder filterBuilder,
+        public static IConfigureActionBuilder WhenUriMatch(this IConfigureFilterBuilder filterBuilder,
             string pattern, StringSelectorOperation operation = StringSelectorOperation.Exact)
         {
             return new ConfigureActionBuilder(filterBuilder.FluxzySetting,
