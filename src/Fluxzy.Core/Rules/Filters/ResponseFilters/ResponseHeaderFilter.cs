@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
@@ -51,6 +52,22 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             return exchange?.GetResponseHeaders()?.Where(e =>
                                e.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
                            .Select(s => s.Value.ToString()) ?? Array.Empty<string>();
+        }
+    }
+
+    public static class ResponseHeaderFilterExtensions
+    {
+        public static IConfigureActionBuilder WhenResponseHeaderMatch(
+            this IConfigureFilterBuilder builder, string headerName, string headerValue,
+            StringSelectorOperation headerValueOperation = StringSelectorOperation.Exact)
+        {
+            return builder.When(new ResponseHeaderFilter(headerValue, headerValueOperation, headerName));
+        }
+
+        public static IConfigureActionBuilder WhenResponseHeaderExists(
+            this IConfigureFilterBuilder builder, string headerName)
+        {
+            return builder.When(new ResponseHeaderFilter("", StringSelectorOperation.Contains, headerName));
         }
     }
 }

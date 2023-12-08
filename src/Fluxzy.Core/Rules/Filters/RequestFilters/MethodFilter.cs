@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Fluxzy.Core;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -48,6 +49,29 @@ namespace Fluxzy.Rules.Filters.RequestFilters
                 "Select exchanges having TRACE request method.",
                 new MethodFilter("TRACE")
             );
+        }
+    }
+
+    public static class MethodFilterExtensions
+    {
+        public static IConfigureActionBuilder WhenMethodIs(this IConfigureFilterBuilder builder, string method)
+        {
+            return builder.When(new MethodFilter(method));
+        }
+
+        public static IConfigureActionBuilder WhenMethodIsGet(this IConfigureFilterBuilder builder)
+        {
+            return builder.WhenMethodIs("GET");
+        }
+
+        public static IConfigureActionBuilder WhenMethodIsPost(this IConfigureFilterBuilder builder)
+        {
+            return builder.WhenMethodIs("POST");
+        }
+
+        public static IConfigureActionBuilder WhenMethodIsPut(this IConfigureFilterBuilder builder)
+        {
+            return builder.WhenMethodIs("PUT");
         }
     }
 }

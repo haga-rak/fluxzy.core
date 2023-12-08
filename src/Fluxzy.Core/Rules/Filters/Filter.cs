@@ -11,15 +11,28 @@ namespace Fluxzy.Rules.Filters
 {
     public abstract class Filter : PolymorphicObject
     {
+        /// <summary>
+        ///   An identifier for this filter, should be the same value for the same filter.
+        /// </summary>
         [YamlIgnore]
         public virtual Guid Identifier => this.BuildDistinctiveIdentifier();
 
+        /// <summary>
+        ///  Negate the filter result
+        /// </summary>
         [FilterDistinctive(Description = "Negate the filter result")]
         public bool Inverted { get; set; }
 
+
+        /// <summary>
+        ///  The scope of this filter
+        /// </summary>
         [YamlIgnore]
         public abstract FilterScope FilterScope { get; }
 
+        /// <summary>
+        /// The scope id of this filter
+        /// </summary>
         [YamlIgnore]
         public int ScopeId => (int) FilterScope;
 
@@ -39,6 +52,9 @@ namespace Fluxzy.Rules.Filters
         
         public virtual string? Description { get; set; }
 
+        /// <summary>
+        ///  A friendly name
+        /// </summary>
         [YamlIgnore]
         public string FriendlyName {
             get

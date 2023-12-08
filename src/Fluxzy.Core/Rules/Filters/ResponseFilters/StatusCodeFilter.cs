@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Core;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.ResponseFilters
 {
@@ -45,4 +46,54 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             yield break;
         }
     }
+
+    public static class StatusCodeFilterExtensions
+    {
+        public static IConfigureActionBuilder WhenStatusCode(this IConfigureFilterBuilder builder, params int [] statusCodes)
+        {
+            return builder.When(new StatusCodeFilter { StatusCodes = statusCodes.ToList()});
+        }
+
+        /// <summary>
+        ///   
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenSuccess(this IConfigureFilterBuilder builder)
+        {
+            return builder.When(new StatusCodeSuccessFilter());
+        }
+
+        /// <summary>
+        ///   When remote returnx 3XX
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenRedirect(this IConfigureFilterBuilder builder)
+        {
+            return builder.When(new StatusCodeRedirectionFilter());
+        }
+
+        /// <summary>
+        ///  When remote returnx 4XX
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenClientError(this IConfigureFilterBuilder builder)
+        {
+            return builder.When(new StatusCodeClientErrorFilter());
+        }
+
+        /// <summary>
+        ///  When remote returnx 5XX
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenServerError(this IConfigureFilterBuilder builder)
+        {
+            return builder.When(new StatusCodeServerErrorFilter());
+        }
+    }
+
+
 }
