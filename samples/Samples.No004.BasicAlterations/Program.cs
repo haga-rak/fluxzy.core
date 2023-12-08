@@ -36,7 +36,6 @@ namespace Samples.No004.BasicAlterations
 
                 // Append "fluxzy-on" header to any request 
                 .WhenAny().Do(new AddRequestHeaderAction("fluxzy-on", "true"))
-                
                 // Remove any cache directive from any request 
                 .WhenAny().Do(new RemoveCacheAction())
 
