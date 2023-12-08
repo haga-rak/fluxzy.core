@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -76,6 +77,22 @@ namespace Fluxzy.Rules.Actions
             yield return new ActionExample(
                 "Forward any request to https://www.example.com. ",
                 new ForwardAction("https://www.example.com"));
+        }
+    }
+
+    public static class ForwardActionExtensions
+    {
+        /// <summary>
+        /// Forwards the request to the specified URL.
+        /// </summary>
+        /// <param name="builder">The <see cref="IConfigureActionBuilder"/> object.</param>
+        /// <param name="url">The URL to which the request should be forwarded.</param>
+        /// <returns>The <see cref="IConfigureFilterBuilder"/> object.</returns>
+        public static IConfigureFilterBuilder Forward(this IConfigureActionBuilder builder, string url)
+        {
+            builder.Do(new ForwardAction(url));
+
+            return new ConfigureFilterBuilderBuilder(builder.Setting); 
         }
     }
 }

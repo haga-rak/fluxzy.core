@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -56,5 +57,18 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             if (hostName != null)
                 yield return hostName;
         }
+    }
+
+    public static class HostFilterExtensions
+    {
+        /// <summary>
+        ///  Chain an HostFilter to a ConfigureFilterBuilder
+        /// </summary>
+        /// <param name="filterBuilder"></param>
+        /// <param name="pattern"></param>
+        /// <param name="operation"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenHostMatch(this IConfigureFilterBuilder filterBuilder, string pattern, StringSelectorOperation operation = StringSelectorOperation.EndsWith)
+            => filterBuilder.When(new HostFilter(pattern, operation));
     }
 }
