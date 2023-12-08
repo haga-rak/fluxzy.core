@@ -6,6 +6,7 @@ using System.Security.Authentication;
 using Fluxzy.Certificates;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
+using Fluxzy.Rules.Extensions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Action = Fluxzy.Rules.Action;
@@ -374,6 +375,16 @@ namespace Fluxzy
         {
             CertificateCacheDirectory = path; 
             return this;
+        }
+
+        /// <summary>
+        ///  Set up a new rule adding chain
+        /// </summary>
+        /// <returns></returns>
+        public IConfigureFilterBuilder ConfigureRule()
+        {
+            var addFilter = new ConfigureFilterBuilderBuilder(this);
+            return addFilter;
         }
     }
 }

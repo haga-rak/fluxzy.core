@@ -69,8 +69,6 @@ namespace Fluxzy.Clients.Mock
         }
     }
 
-
-
     public class MockedResponseHeader
     {
         public MockedResponseHeader(string name, string value)

@@ -2,9 +2,9 @@ using System.Net;
 using Fluxzy;
 using Fluxzy.Certificates;
 using Fluxzy.Clients.Mock;
-using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Actions.HighLevelActions;
+using Fluxzy.Rules.Extensions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 
@@ -22,51 +22,39 @@ namespace Samples.No004.BasicAlterations
             var tempDirectory = "basic_alteration";
 
             // Create a default run settings 
-            var fluxzyStartupSetting = FluxzySetting
+            var fluxzySetting = FluxzySetting
                                        .CreateDefault(IPAddress.Loopback, 44344)
                                        .SetOutDirectory(tempDirectory);
 
             // The full list of available actions and rules are available at 
             // https://www.fluxzy.io/rule/search
-            
-            fluxzyStartupSetting.AddAlterationRules(
+
+
+            fluxzySetting
+                // Set up rule configuration in a fluent way
+                .ConfigureRule()
+
                 // Append "fluxzy-on" header to any request 
-                new Rule(
-                    new AddRequestHeaderAction("fluxzy-on", "true"),
-                    new AnyFilter()
-                ), 
+                .WhenAny().Do(new AddRequestHeaderAction("fluxzy-on", "true"))
 
                 // Remove any cache directive from any request 
-                new Rule(
-                    new RemoveCacheAction(),
-                    new AnyFilter()
-                ), 
+                .WhenAny().Do(new RemoveCacheAction())
 
                 // Avoid decrypting particular host 
-                new Rule(
-                    new SkipSslTunnelingAction(),
-                    new HostFilter("secure.domain.com", StringSelectorOperation.Exact)
-                ),
+                .When(new HostFilter("secure.domain.com", StringSelectorOperation.Exact))
+                    .Do(new SkipSslTunnelingAction())
 
                 // Mock an entire response according to an URL 
-                new Rule(
-                    new MockedResponseAction(
-                        new MockedResponseContent(
-                            200, 
-                            BodyContent.CreateFromString("This is a plain text content"))
-                        ),
-                    new AbsoluteUriFilter(@"^https\:\/\/api\.example\.com", StringSelectorOperation.Regex)
-                ),
+                .When(new AbsoluteUriFilter(@"^https\:\/\/api\.example\.com", StringSelectorOperation.Regex))
+                    .Do(new MockedResponseAction(MockedResponseContent.CreateFromPlainText("This is a plain text content")))
 
                 // Using a client certificate
-                new Rule(
-                    new SetClientCertificateAction(Certificate.LoadFromUserStoreBySerialNumber("xxxxxx")),
-                    new HostFilter("domain.with.mandatory.client.cert.com", StringSelectorOperation.Exact)
-                )
-                );
+                .When(new HostFilter("domain.with.mandatory.client.cert.com", StringSelectorOperation.Exact))
+                    .Do(new SetClientCertificateAction(Certificate.LoadFromUserStoreBySerialNumber("xxxxxx")));
+
             
             // Create a proxy instance
-            await using (var proxy = new Proxy(fluxzyStartupSetting))
+            await using (var proxy = new Proxy(fluxzySetting))
             {
                 var endpoints = proxy.Run();
 
