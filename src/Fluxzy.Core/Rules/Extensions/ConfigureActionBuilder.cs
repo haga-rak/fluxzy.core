@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Fluxzy.Rules.Filters;
 
@@ -6,12 +6,13 @@ namespace Fluxzy.Rules.Extensions
 {
     internal class ConfigureActionBuilder : IConfigureActionBuilder
     {
-        private readonly FluxzySetting _setting;
+        public FluxzySetting Setting { get; }
+
         private readonly Filter _filter;
 
         public ConfigureActionBuilder(FluxzySetting setting, Filter filter)
         {
-            _setting = setting;
+            Setting = setting;
             _filter = filter;
         }
         
@@ -20,10 +21,10 @@ namespace Fluxzy.Rules.Extensions
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            _setting.AddAlterationRules(new Rule(action, _filter));
-            _setting.AddAlterationRules(actions.Select(a => new Rule(a, _filter)));
+            Setting.AddAlterationRules(new Rule(action, _filter));
+            Setting.AddAlterationRules(actions.Select(a => new Rule(a, _filter)));
             
-            return new ConfigureFilterBuilderBuilder(_setting);
+            return new ConfigureFilterBuilderBuilder(Setting);
         }
     }
 }

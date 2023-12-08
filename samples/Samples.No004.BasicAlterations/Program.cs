@@ -32,7 +32,7 @@ namespace Samples.No004.BasicAlterations
 
             fluxzySetting
                 // Set up rule configuration in a fluent way
-                .SetupRule()
+                .ConfigureRule()
 
                 // Append "fluxzy-on" header to any request 
                 .WhenAny().Do(new AddRequestHeaderAction("fluxzy-on", "true"))

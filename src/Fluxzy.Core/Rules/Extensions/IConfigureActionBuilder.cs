@@ -1,10 +1,15 @@
-﻿namespace Fluxzy.Rules.Extensions
+namespace Fluxzy.Rules.Extensions
 {
     /// <summary>
     ///  Helper to build alteration rules in a fluent way
     /// </summary>
     public interface IConfigureActionBuilder
     {
+        /// <summary>
+        ///  The current setting
+        /// </summary>
+        FluxzySetting Setting { get; }
+
         /// <summary>
         ///  Add one or more actions to the rule
         /// </summary>
