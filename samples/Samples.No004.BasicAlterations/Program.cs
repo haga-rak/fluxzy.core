@@ -44,7 +44,7 @@ namespace Samples.No004.BasicAlterations
                     .Do(new SkipSslTunnelingAction())
 
                 // Mock an entire response according to an URL 
-                .WhenAbsoluteUriMatch(@"^https\:\/\/api\.example\.com", StringSelectorOperation.Regex)
+                .WhenUriMatch(@"^https\:\/\/api\.example\.com", StringSelectorOperation.Regex)
                     .Do(new MockedResponseAction(MockedResponseContent.CreateFromPlainText("This is a plain text content")))
 
                 // Using a client certificate
