@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Fluxzy.Core;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -30,6 +31,19 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             IFilteringContext? filteringContext)
         {
             return filteringContext?.HasRequestBody ?? false;
+        }
+    }
+
+    public static class JsonRequestFilterExtensions
+    {
+        /// <summary>
+        ///  When request has a JSON body. Filtering is made by inspecting value of `Content-Type` header"
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenRequestHasJsonBody(this IConfigureFilterBuilder builder)
+        {
+            return builder.When(new JsonRequestFilter());
         }
     }
 }

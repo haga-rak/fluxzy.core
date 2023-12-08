@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -52,6 +53,23 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             yield return new FilterExample(
                 "Match all HTTPS exchanges by checking URL scheme with a regular expression",
                 new AbsoluteUriFilter(@"^https\:\/\/", StringSelectorOperation.Regex));
+        }
+    }
+
+    public static class AbsoluteUriFilterExtensions
+    {
+        /// <summary>
+        /// Chain an AbsoluteUriFilter to a ConfigureFilterBuilder
+        /// </summary>
+        /// <param name="filterBuilder"></param>
+        /// <param name="pattern"></param>
+        /// <param name="operation"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenAbsoluteUriMatch(this IConfigureFilterBuilder filterBuilder,
+            string pattern, StringSelectorOperation operation = StringSelectorOperation.Exact)
+        {
+            return new ConfigureActionBuilder(filterBuilder.FluxzySetting,
+                new AbsoluteUriFilter(pattern, operation));
         }
     }
 }

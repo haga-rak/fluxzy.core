@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -63,6 +64,24 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             yield return new FilterExample(
                 "Select any exchanges going to a subdomain of `google.com` at port 443",
                 new AuthorityFilter(443, "google.com", StringSelectorOperation.EndsWith));
+        }
+    }
+
+    public static class AuthorityFilterExtensions
+    {
+        /// <summary>
+        /// Chain an AuthorityFilter to a ConfigureFilterBuilder
+        /// </summary>
+        /// <param name="filterBuilder"></param>
+        /// <param name="hostname"></param>
+        /// <param name="port"></param>
+        /// <param name="operation"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenAuthorityMatch(this IConfigureFilterBuilder filterBuilder,
+            string hostname, int port, StringSelectorOperation operation = StringSelectorOperation.Exact)
+        {
+            return new ConfigureActionBuilder(filterBuilder.FluxzySetting,
+                new AuthorityFilter(port, hostname, operation));
         }
     }
 }

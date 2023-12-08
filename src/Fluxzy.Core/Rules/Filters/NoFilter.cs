@@ -23,6 +23,11 @@ namespace Fluxzy.Rules.Filters
             return false;
         }
 
+        public static NoFilter Default { get; } = new()
+        {
+            Locked = true
+        };
+
         public override IEnumerable<FilterExample> GetExamples()
         {
             var defaultSample = GetDefaultSample();
