@@ -7,7 +7,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Tests._Files;
 using Xunit;
 
-namespace Fluxzy.Tests.HPack
+namespace Fluxzy.Tests.UnitTests.HPack
 {
     public class Http11ParserTests
     {

@@ -9,7 +9,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Tests._Files;
 using Xunit;
 
-namespace Fluxzy.Tests.HPack
+namespace Fluxzy.Tests.UnitTests.HPack
 {
     public class HPackCodecTests
     {
@@ -93,7 +93,8 @@ namespace Fluxzy.Tests.HPack
 
             var input = new UTF8Encoding(false).GetString(Headers.Req001);
 
-            for (var i = 0; i < 2; i++) {
+            for (var i = 0; i < 2; i++)
+            {
                 var encoded = encoder.Encode(input.AsMemory(), encodingBuffer);
                 var decoded = decoder.Decode(encoded, decodingBuffer);
 

@@ -5,7 +5,7 @@ using System.Text;
 using Fluxzy.Clients.H2.Encoder;
 using Xunit;
 
-namespace Fluxzy.Tests.HPack
+namespace Fluxzy.Tests.UnitTests.HPack
 {
     public class HuffmanCodecTests
     {
@@ -25,7 +25,8 @@ namespace Fluxzy.Tests.HPack
 
             var codec = new HuffmanCodec();
 
-            for (var i = 0; i < testCount; i++) {
+            for (var i = 0; i < testCount; i++)
+            {
                 var input = StringGenerationHelper.GenerateRandomInput(testBuffer,
                     minLength, maxLength, r);
 
@@ -57,7 +58,8 @@ namespace Fluxzy.Tests.HPack
 
             var input = StringGenerationHelper.GetFastString();
 
-            for (var i = 0; i < testCount; i++) {
+            for (var i = 0; i < testCount; i++)
+            {
                 var provisionalLength = codec.GetEncodedLength(input.Span);
                 var encoded = codec.Encode(input.Span, bufferEncoded);
                 var decoded = codec.Decode(encoded, bufferDecoded);
