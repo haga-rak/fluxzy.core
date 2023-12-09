@@ -41,10 +41,12 @@ namespace Fluxzy.Tests
             AssertHelpers.ControlHeaders(contentText, requestMessage, length);
         }
 
-        [Fact]
-        public async Task Post_Random_Data_And_Validate_Content()
+        [Theory]
+        [InlineData(SslProvider.BouncyCastle)]
+        [InlineData(SslProvider.OsDefault)]
+        public async Task Post_Random_Data_And_Validate_Content(SslProvider sslProvider)
         {
-            using var handler = new FluxzyHttp11Handler();
+            using var handler = new FluxzyHttp11Handler(sslProvider);
             using var httpClient = new HttpClient(handler, false);
 
             var random = new Random(9);
@@ -62,10 +64,12 @@ namespace Fluxzy.Tests
         ///     The goal of this test is to challenge the dynamic table content
         /// </summary>
         /// <returns></returns>
-        [Fact]
-        public async Task Post_Multi_Header_Dynamic_Table_Evict_Simple()
+        [Theory]
+        [InlineData(SslProvider.BouncyCastle)]
+        [InlineData(SslProvider.OsDefault)]
+        public async Task Post_Multi_Header_Dynamic_Table_Evict_Simple(SslProvider sslProvider)
         {
-            using var handler = new FluxzyHttp11Handler();
+            using var handler = new FluxzyHttp11Handler(sslProvider);
 
             using var httpClient = new HttpClient(handler, false);
 
