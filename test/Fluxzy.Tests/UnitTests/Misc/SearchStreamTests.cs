@@ -5,9 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Tests.UnitTests.Misc;
 using Xunit;
 
-namespace Fluxzy.Tests.Misc
+namespace Fluxzy.Tests.UnitTests.Misc
 {
     public class SearchStreamTests
     {
@@ -39,8 +40,10 @@ namespace Fluxzy.Tests.Misc
 
             var bufferSizes = new[] { 1, 14, 5, 4, 20 };
 
-            foreach (var buffersize in bufferSizes) {
-                foreach (var baseTestCase in baseTestCases) {
+            foreach (var buffersize in bufferSizes)
+            {
+                foreach (var baseTestCase in baseTestCases)
+                {
                     yield return new List<object> { buffersize }.Concat(baseTestCase).ToArray();
                 }
             }

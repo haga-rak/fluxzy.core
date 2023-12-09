@@ -9,7 +9,7 @@ namespace Fluxzy.Tests.Cases
 {
     public class EarlyCloseNotify
     {
-        [Theory]
+        [Theory] 
         [InlineData("BouncyCastle")]
         [InlineData("OSDefault")]
         public async Task Run_Until_Close_Notify(string sslEngine)

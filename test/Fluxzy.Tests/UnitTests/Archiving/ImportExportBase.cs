@@ -11,7 +11,7 @@ using Fluxzy.Readers;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests.Archiving
+namespace Fluxzy.Tests.UnitTests.Archiving
 {
     public class FxzyToHarToFxzy : ImportExportBase
     {
@@ -67,11 +67,13 @@ namespace Fluxzy.Tests.Archiving
             var (exchangeInfo, connectionInfo, originalDirectoryArchiveReader) =
                 await RequestHelper.DirectRequest(requestMessage);
 
-            var packager = new HttpArchivePackager(new HttpArchiveSavingSetting {
+            var packager = new HttpArchivePackager(new HttpArchiveSavingSetting
+            {
                 Policy = HttpArchiveSavingBodyPolicy.AlwaysSave
             });
 
-            await using (var fileStream = File.Create(outFileName)) {
+            await using (var fileStream = File.Create(outFileName))
+            {
                 await packager.Pack(originalDirectoryArchiveReader.BaseDirectory, fileStream, null);
             }
 

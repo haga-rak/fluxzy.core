@@ -3,7 +3,7 @@
 using Fluxzy.Utils.NativeOps.SystemProxySetup.macOs;
 using Xunit;
 
-namespace Fluxzy.Tests.NativeOps.Macos
+namespace Fluxzy.Tests.UnitTests.NativeOps.Macos
 {
     public class CliMacosTests
     {

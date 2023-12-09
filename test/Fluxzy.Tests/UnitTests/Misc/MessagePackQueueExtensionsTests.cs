@@ -9,7 +9,7 @@ using Fluxzy.Misc;
 using Xunit;
 using Fluxzy.Tests._Fixtures;
 
-namespace Fluxzy.Tests.Misc
+namespace Fluxzy.Tests.UnitTests.Misc
 {
     public class MessagePackQueueExtensionsTests : ProduceDeletableItem
     {
@@ -34,7 +34,7 @@ namespace Fluxzy.Tests.Misc
                 MessagePackQueueExtensions.DeserializeMultiple<TestPayload>(filename,
                     GlobalArchiveOption.MessagePackSerializerOptions).ToList();
 
-            
+
             Assert.Equal(4, result.Count);
             Assert.Equal(payload1, result[0]);
             Assert.Equal(payload2, result[1]);
@@ -65,7 +65,7 @@ namespace Fluxzy.Tests.Misc
                 MessagePackQueueExtensions.DeserializeMultiple<TestPayload>(filename,
                     GlobalArchiveOption.MessagePackSerializerOptions).ToList();
 
-            
+
             Assert.Equal(4, result.Count);
             Assert.Equal(payload1, result[0]);
             Assert.Equal(payload2, result[1]);
@@ -91,10 +91,10 @@ namespace Fluxzy.Tests.Misc
             if (ReferenceEquals(this, obj))
                 return true;
 
-            if (obj.GetType() != this.GetType())
+            if (obj.GetType() != GetType())
                 return false;
 
-            return Equals((TestPayload) obj);
+            return Equals((TestPayload)obj);
         }
 
         public override int GetHashCode()

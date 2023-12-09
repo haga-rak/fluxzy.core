@@ -43,6 +43,7 @@ namespace Fluxzy.Tests
 
         [Theory(Skip = "Not available on sandbox")]
         [InlineData(TestConstants.Http2Host)]
+        [InlineData(TestConstants.Http11Host)]
         public async Task LargeHeaderFieldValue(string host)
         {
             await using var proxy = new AddHocProxy();
@@ -65,28 +66,6 @@ namespace Fluxzy.Tests
 
             Assert.True(!string.IsNullOrWhiteSpace(responseBody));
         }
-
-        //[Fact]
-        //public async Task Connection_RefusedTcplevel()
-        //{
-        //    using var proxy = new AddHocProxy();
-
-        //    using var clientHandler = new HttpClientHandler
-        //    {
-        //        Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}"),
-        //    };
-
-        //    using var httpClient = new HttpClient(clientHandler);
-
-        //    var requestMessage = new HttpRequestMessage(HttpMethod.ParseFromCommandLineResult,
-        //        $"https://sandbox.smartizy.com:4988/");
-
-        //    using var response = await httpClient.SendAsync(requestMessage);
-
-        //    var responseBody = await response.Content.ReadAsStringAsync(); 
-
-        //    Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
-        //    Assert.True(!string.IsNullOrWhiteSpace(responseBody));
         //}
 
         [Theory]

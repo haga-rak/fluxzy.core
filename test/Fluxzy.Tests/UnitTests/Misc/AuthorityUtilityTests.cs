@@ -3,7 +3,7 @@
 using System.Net;
 using Xunit;
 
-namespace Fluxzy.Tests.Misc
+namespace Fluxzy.Tests.UnitTests.Misc
 {
     public class AuthorityUtilityTests
     {

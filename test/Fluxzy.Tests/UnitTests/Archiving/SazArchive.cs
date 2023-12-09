@@ -9,7 +9,7 @@ using Fluxzy.Tests._Files;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests.Archiving
+namespace Fluxzy.Tests.UnitTests.Archiving
 {
     public class SazArchive : ProduceDeletableItem
     {

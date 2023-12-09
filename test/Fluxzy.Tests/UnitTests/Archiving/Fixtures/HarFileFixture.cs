@@ -10,7 +10,7 @@ using Fluxzy.Archiving.Har;
 using Fluxzy.Readers;
 using Fluxzy.Tests._Files;
 
-namespace Fluxzy.Tests.Archiving.Fixtures
+namespace Fluxzy.Tests.UnitTests.Archiving.Fixtures
 {
     public class HarFileFixture : IDisposable
     {
@@ -20,7 +20,8 @@ namespace Fluxzy.Tests.Archiving.Fixtures
         {
             _tempDirectory = nameof(HarFileFixture) + Guid.NewGuid();
 
-            using (var zipArchive = new ZipArchive(new MemoryStream(StorageContext.multipart_request_fxzy))) {
+            using (var zipArchive = new ZipArchive(new MemoryStream(StorageContext.multipart_request_fxzy)))
+            {
                 zipArchive.ExtractToDirectory(_tempDirectory);
             }
 

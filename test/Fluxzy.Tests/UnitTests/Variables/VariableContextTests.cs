@@ -3,7 +3,7 @@
 using Fluxzy.Rules;
 using Xunit;
 
-namespace Fluxzy.Tests.Variables
+namespace Fluxzy.Tests.UnitTests.Variables
 {
     public class VariableContextTests
     {

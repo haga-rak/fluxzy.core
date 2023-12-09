@@ -10,7 +10,7 @@ using Fluxzy.Misc.Streams;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests.Misc
+namespace Fluxzy.Tests.UnitTests.Misc
 {
     public class MultiPartBoundaryReaderTest
     {
@@ -26,7 +26,8 @@ namespace Fluxzy.Tests.Misc
 
             var fileName = "out.txt";
 
-            try {
+            try
+            {
                 var hashes = MultiPartTestCaseBuilder.Write(fileName, boundary, exampleHeader, prefferedLength)
                                                      .ToList();
 
@@ -34,11 +35,13 @@ namespace Fluxzy.Tests.Misc
 
                 List<RawMultipartItem> items;
 
-                using (var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                using (var readStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
                     items = MultipartReader.ReadItems(readStream, boundary);
                 }
 
-                for (var index = 0; index < prefferedLength.Length; index++) {
+                for (var index = 0; index < prefferedLength.Length; index++)
+                {
                     var length = prefferedLength[index];
                     var res = items[index];
                     var expected = index + exampleHeader;
@@ -61,7 +64,8 @@ namespace Fluxzy.Tests.Misc
                     Assert.Equal(expectedHash, resultHash);
                 }
             }
-            finally {
+            finally
+            {
                 if (File.Exists(fileName))
                     File.Delete(fileName);
             }
@@ -90,7 +94,8 @@ namespace Fluxzy.Tests.Misc
 
             using var outStream = File.Create(fileName);
 
-            for (var index = 0; index < preferedLengths.Length; index++) {
+            for (var index = 0; index < preferedLengths.Length; index++)
+            {
                 var length = preferedLengths[index];
                 using var randomDataStream = new RandomDataStream(r.Next(), length, true);
 

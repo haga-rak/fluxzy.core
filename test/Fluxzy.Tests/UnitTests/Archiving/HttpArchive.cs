@@ -1,10 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Linq;
-using Fluxzy.Tests.Archiving.Fixtures;
+using Fluxzy.Tests.UnitTests.Archiving.Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests.Archiving
+namespace Fluxzy.Tests.UnitTests.Archiving
 {
     public class HttpArchive : IClassFixture<HarFileFixture>
     {
@@ -28,7 +28,8 @@ namespace Fluxzy.Tests.Archiving
             Assert.Equal("1.2", log.GetProperty("version").GetString());
             Assert.Equal(exchanges.Count, entries.Count);
 
-            foreach (var exchange in exchanges) {
+            foreach (var exchange in exchanges)
+            {
                 var entry = entries.FirstOrDefault(e => e.GetProperty("_exchangeId")
                                                          .GetInt32() == exchange.Id);
 
@@ -44,7 +45,8 @@ namespace Fluxzy.Tests.Archiving
                          .GetProperty("url")
                          .GetString());
 
-                foreach (var requestHeader in exchange.RequestHeader.Headers) {
+                foreach (var requestHeader in exchange.RequestHeader.Headers)
+                {
                     var header = entry.GetProperty("request")
                                       .GetProperty("headers")
                                       .EnumerateArray()
@@ -56,8 +58,10 @@ namespace Fluxzy.Tests.Archiving
                     Assert.NotEqual(default, header);
                 }
 
-                if (exchange.ResponseHeader != null) {
-                    foreach (var responseHeader in exchange.ResponseHeader.Headers) {
+                if (exchange.ResponseHeader != null)
+                {
+                    foreach (var responseHeader in exchange.ResponseHeader.Headers)
+                    {
                         var header = entry.GetProperty("response")
                                           .GetProperty("headers")
                                           .EnumerateArray()
