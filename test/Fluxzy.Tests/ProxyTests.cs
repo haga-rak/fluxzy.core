@@ -281,7 +281,7 @@ namespace Fluxzy.Tests
 
             try {
                 var response = await httpClient.GetAsync(
-                    "https://particuliers.societegenerale.fr/staticfiles/Resources/stylesheets/index_pri_20220921192127.min.css",
+                    "https://particuliers.sg.fr/staticfiles/Resources/stylesheets/index_pri_20220921192127.min.css",
                     cancellationTokenSource.Token);
 
                 _ = await response.Content.ReadAsStringAsync(
