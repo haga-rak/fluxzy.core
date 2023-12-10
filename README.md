@@ -130,17 +130,17 @@ By default, fluxzy will bind to `127.0.0.1:44344`.
 ### 2.2 .NET library
 
 ### 2.2.1 Simple usage
-A detail documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
+The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
 The following shows a very basic usage of the .NET packages.
 
-The main line to start a capture session is to create a [FluxzySetting](https://docs.fluxzy.io/documentation/core/fluxzy-settings.html) instance and use it to create a `Proxy` instance.
+The main line to begin a capture session is to create a [FluxzySetting](https://docs.fluxzy.io/documentation/core/fluxzy-settings.html) instance and use it to create a `Proxy` instance.
 
 Install NuGet package `Fluxzy.Core` 
 
 ```bash
 dotnet add package Fluxzy.Core
 ```
-Run this top-level statement console app with .NET 6.0 or above, 
+Create a top-level statement console app, with .NET 6.0 or above:
 
 ```csharp	
 using System.Net;
@@ -159,7 +159,7 @@ fluxzySetting
     .ConfigureRule() 
         // Forward request
         .WhenHostMatch("twitter.com", StringSelectorOperation.EndsWith) 
-        .Forward("https://example.com") // Reply with the host content 
+        .Forward("https://truthsocial.com/") 
 
         // Mock any POST request to /api/auth/token
         .WhenAll(new PostFilter(), new PathFilter("/api/auth/token"))
@@ -192,4 +192,5 @@ await using (var proxy = new Proxy(fluxzySetting))
 }
 ```
 
-A more detailed documentation and samples are available at [fluxzy.io](https://www.fluxzy.io/resources/core/fluxzy-net-packages) or in the samples folder of this repository.
+
+Visit [docs.fluxzy.io](https://docs.fluxzy.io) to view usage and more examples.
