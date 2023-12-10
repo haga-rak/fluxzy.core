@@ -42,8 +42,7 @@ namespace Fluxzy.Tests
         }
 
         [Theory(Skip = "Not available on sandbox")]
-        [InlineData(TestConstants.Http2Host)]
-        [InlineData(TestConstants.Http11Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task LargeHeaderFieldValue(string host)
         {
             await using var proxy = new AddHocProxy();

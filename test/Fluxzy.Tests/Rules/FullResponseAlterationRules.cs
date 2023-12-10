@@ -16,8 +16,7 @@ namespace Fluxzy.Tests.Rules
     public class FullResponseAlterationRules
     {
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task AddNewResponseHeaderWithFilterHostOnly(string host)
         {
             var bodyString = "This will be the default body you received";

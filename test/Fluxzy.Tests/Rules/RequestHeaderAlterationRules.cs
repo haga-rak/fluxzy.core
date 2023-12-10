@@ -16,8 +16,7 @@ namespace Fluxzy.Tests.Rules
     public class RequestHeaderAlterationRules
     {
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task AddNewRequestHeaderWithFilterHostOnly(string host)
         {
             var headerValue = "anyrandomtexTyoo!!";
@@ -59,8 +58,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task UpdateRequestHeaderWithFilterHostOnly(string host)
         {
             var headerName = "X-Haga-Unit-Test";
@@ -104,8 +102,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task UpdateRequestHeaderWithFilterHostOnlyIfMissing(string host)
         {
             var headerName = "X-Haga-Unit-Test";
@@ -148,8 +145,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task UpdateRequestHeaderReuseExistingValueWithFilterHostOnly(string host)
         {
             var headerName = "x-h";
@@ -194,8 +190,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task DeleteRequestHeaderWithFilterHostOnly(string host)
         {
             var headerName = "X-Haga-Unit-Test";
@@ -234,8 +229,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task ChangeMethodFilterHostOnly(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);

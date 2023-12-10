@@ -88,8 +88,7 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task Proxy_SingleRequest(string host)
         {
             await using var proxy = new AddHocProxy(1, 10);
@@ -117,8 +116,7 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task Proxy_SingleRequest_XL(string host)
         {
             await using var proxy = new AddHocProxy(1, 10);
@@ -168,8 +166,7 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task Proxy_MultipleRequest(string host)
         {
             var concurrentCount = 15;
@@ -287,10 +284,8 @@ namespace Fluxzy.Tests
                     "https://particuliers.societegenerale.fr/staticfiles/Resources/stylesheets/index_pri_20220921192127.min.css",
                     cancellationTokenSource.Token);
 
-                var responseString = await response.Content.ReadAsStringAsync(
+                _ = await response.Content.ReadAsStringAsync(
                     cancellationTokenSource.Token);
-
-                //Assert.StartsWith("HTTP", responseString);
 
                 var exchange = await requestReceived.Task;
 
@@ -340,10 +335,9 @@ namespace Fluxzy.Tests
 
             var httpClient = new HttpClient(messageHandler);
 
-            var response = await httpClient.GetAsync("http://info.cern.ch/",
-                cancellationTokenSource.Token);
+            var response = await httpClient.GetAsync("http://example.com/", cancellationTokenSource.Token);
 
-            var responseString = await response.Content.ReadAsStringAsync(
+            _ = await response.Content.ReadAsStringAsync(
                 cancellationTokenSource.Token);
 
             await requestReceived.Task;

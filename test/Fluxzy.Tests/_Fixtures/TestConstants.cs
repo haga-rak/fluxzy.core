@@ -1,6 +1,8 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Fluxzy.Tests._Fixtures
 {
@@ -27,6 +29,13 @@ namespace Fluxzy.Tests._Fixtures
                 return PlainHttp11;
 
             throw new ArgumentException(nameof(protocol), "Unknown protocol");
+        }
+
+        public static IEnumerable<object[]> GetHosts()
+        {
+            yield return new object[] { Http11Host };
+            yield return new object[] { Http2Host };
+            yield return new object[] { PlainHttp11 };
         }
     }
 }

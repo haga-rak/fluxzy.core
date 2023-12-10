@@ -15,8 +15,7 @@ namespace Fluxzy.Tests.Rules
     public class ResponseHeaderAlterationRules
     {
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task AddNewResponseHeaderWithFilterHostOnly(string host)
         {
             var headerValue = "value!!!";
@@ -57,8 +56,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task UpdateResponseHeaderWithFilterHostOnly(string host)
         {
             var headerValue = "fluxzy-proxy";
@@ -97,8 +95,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task UpdateResponseHeaderReuseExistingValueWithFilterHostOnly(string host)
         {
             var headerValue = "{{previous}}fluxzy-proxy";
@@ -137,8 +134,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task DeleteResponseHeaderWithFilterHostOnly(string host)
         {
             var headerName = "server";

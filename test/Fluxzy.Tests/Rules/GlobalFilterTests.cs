@@ -14,8 +14,7 @@ namespace Fluxzy.Tests.Rules
     public class GlobalFilterTests : FilterTestTemplate
     {
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task CheckPass_HasCookieOnRequestFilter(string host)
         {
             var filter = new HasCookieOnRequestFilter("test", "1") {
@@ -34,8 +33,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task CheckSkipped_HasCookieOnRequestFilter(string host)
         {
             var filter = new HasCookieOnRequestFilter("test", "2")

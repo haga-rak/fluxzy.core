@@ -11,8 +11,7 @@ namespace Fluxzy.Tests.Substitutions
     public class BasicSubstitutions
     {
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task TestSimpleMock(string host)
         {
             var expectedContent = "Mocked !!!";

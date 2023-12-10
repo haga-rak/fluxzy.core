@@ -49,9 +49,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
-        [InlineData(TestConstants.PlainHttp11)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task ContinueUntilEnd(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
@@ -97,9 +95,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
-        [InlineData(TestConstants.PlainHttp11)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task FilterSkip(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
@@ -131,9 +127,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
-        [InlineData(TestConstants.PlainHttp11)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task ChangeDnsMapping(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
@@ -241,9 +235,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
-        [InlineData(TestConstants.PlainHttp11)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task ChangeEntireRequestInvalidHeaders(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
@@ -362,9 +354,7 @@ namespace Fluxzy.Tests.Rules
         }
 
         [Theory]
-        [InlineData(TestConstants.Http11Host)]
-        [InlineData(TestConstants.Http2Host)]
-        [InlineData(TestConstants.PlainHttp11)]
+        [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task ChangeEntireResponseInvalidHeaders(string host)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
