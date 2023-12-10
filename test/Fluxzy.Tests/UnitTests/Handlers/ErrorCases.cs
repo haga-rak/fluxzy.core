@@ -9,7 +9,7 @@ using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
 using Xunit;
 
-namespace Fluxzy.Tests
+namespace Fluxzy.Tests.UnitTests.Handlers
 {
     public class ErrorCases
     {
@@ -19,7 +19,8 @@ namespace Fluxzy.Tests
         {
             await using var proxy = new AddHocProxy();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 
@@ -28,15 +29,17 @@ namespace Fluxzy.Tests
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/connection-broken-abort-before-response");
 
-            try {
+            try
+            {
                 using var response = await httpClient.SendAsync(requestMessage);
 
                 var responseBody = await response.Content.ReadAsStringAsync();
 
-                Assert.Equal((HttpStatusCode) 528, response.StatusCode);
+                Assert.Equal((HttpStatusCode)528, response.StatusCode);
                 Assert.True(!string.IsNullOrWhiteSpace(responseBody));
             }
-            catch (HttpRequestException) {
+            catch (HttpRequestException)
+            {
                 // May reached here 
             }
         }
@@ -47,7 +50,8 @@ namespace Fluxzy.Tests
         {
             await using var proxy = new AddHocProxy();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{proxy.BindHost}:{proxy.BindPort}")
             };
 

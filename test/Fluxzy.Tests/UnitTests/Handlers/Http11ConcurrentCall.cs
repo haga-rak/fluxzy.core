@@ -9,7 +9,7 @@ using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests
+namespace Fluxzy.Tests.UnitTests.Handlers
 {
     public class Http11ConcurrentCall
     {
@@ -24,8 +24,10 @@ namespace Fluxzy.Tests
 
             requestMessage.Headers.Add("x-buffer-size", length.ToString());
 
-            if (nvCol != null) {
-                foreach (string nv in nvCol) {
+            if (nvCol != null)
+            {
+                foreach (string nv in nvCol)
+                {
                     requestMessage.Headers.Add(nv, nvCol[nv]);
                 }
             }
@@ -78,7 +80,8 @@ namespace Fluxzy.Tests
             var buffer = new byte[500];
 
             var tasks =
-                Enumerable.Repeat(httpClient, count).Select((h, index) => {
+                Enumerable.Repeat(httpClient, count).Select((h, index) =>
+                {
                     new Random(index % 2).NextBytes(buffer);
 
                     return CallSimple(h, 1024 * 16 + 10, 512, new NameValueCollection {

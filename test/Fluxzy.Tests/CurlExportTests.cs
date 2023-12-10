@@ -18,11 +18,7 @@ namespace Fluxzy.Tests
     public class CurlExportTests
     {
         [Theory]
-        [InlineData("GET", TestPayloadType.FlatText)]
-        [InlineData("POST", TestPayloadType.FlatText)]
-        [InlineData("PUT", TestPayloadType.FormContentEncoded)]
-        [InlineData("POST", TestPayloadType.Binary)]
-        [InlineData("POST", TestPayloadType.BinarySmall)]
+        [MemberData(nameof(GetCurlCompareArgs))]
         public async Task Compare_Curl_W_HttpClient(
             string methodString,
             TestPayloadType payloadType)
@@ -155,6 +151,22 @@ namespace Fluxzy.Tests
             await commandLineHost.ExitCode;
 
             return quickTestResult;
+        }
+
+        public static IEnumerable<object[]> GetCurlCompareArgs()
+        {
+            var methods = new List<string> { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" };
+            var payloadTypes = new List<TestPayloadType> {
+                TestPayloadType.FlatText,
+                TestPayloadType.FormContentEncoded,
+                TestPayloadType.Binary,
+                TestPayloadType.BinarySmall
+            };
+
+            foreach (var method in methods)
+            foreach (var payloadType in payloadTypes) {
+                yield return new object[] { method, payloadType };
+            }
         }
     }
 

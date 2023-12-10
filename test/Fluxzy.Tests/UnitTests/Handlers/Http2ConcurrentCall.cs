@@ -12,7 +12,7 @@ using Fluxzy.Tests._Fixtures;
 using Xunit;
 using Header2 = fluxzy.sandbox.models.Header;
 
-namespace Fluxzy.Tests
+namespace Fluxzy.Tests.UnitTests.Handlers
 {
     public class Http2ConcurrentCall
     {
@@ -27,8 +27,10 @@ namespace Fluxzy.Tests
 
             requestMessage.Headers.Add("x-buffer-size", bufferSize.ToString());
 
-            if (nvCol != null) {
-                foreach (string nv in nvCol) {
+            if (nvCol != null)
+            {
+                foreach (string nv in nvCol)
+                {
                     requestMessage.Headers.Add(nv, nvCol[nv]);
                 }
             }
@@ -77,7 +79,8 @@ namespace Fluxzy.Tests
             var buffer = new byte[500];
 
             var tasks =
-                Enumerable.Repeat(httpClient, count).Select((h, index) => {
+                Enumerable.Repeat(httpClient, count).Select((h, index) =>
+                {
                     new Random(index).NextBytes(buffer);
 
                     return CallSimple(h, 1024 * 16 + 10, 128 * 4, new NameValueCollection {
@@ -108,16 +111,17 @@ namespace Fluxzy.Tests
             var buffer = new byte[500];
 
             var tasks =
-                Enumerable.Repeat(httpClient, count).Select((h, index) => {
+                Enumerable.Repeat(httpClient, count).Select((h, index) =>
+                {
                     new Random(index % 2).NextBytes(buffer);
 
                     return CallSimple(
-                        h, bodyLength, 524288, 
+                        h, bodyLength, 524288,
                         new NameValueCollection {
                             {
                                 "Cookie", Convert.ToBase64String(buffer)
                             }
-                        }, 
+                        },
                         token);
                 });
 
@@ -134,12 +138,14 @@ namespace Fluxzy.Tests
             var repeatCount = 20;
 
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
-                                  .Select(async client => {
+                                  .Select(async client =>
+                                  {
                                       var response = await client.GetAsync($"{TestConstants.Http2Host}/headers-random");
                                       var text = await response.Content.ReadAsStringAsync();
 
                                       var items = JsonSerializer.Deserialize<Header2[]>(text
-                                          , new JsonSerializerOptions {
+                                          , new JsonSerializerOptions
+                                          {
                                               PropertyNameCaseInsensitive = true
                                           })!;
 
@@ -151,7 +157,7 @@ namespace Fluxzy.Tests
 
             await Task.WhenAll(tasks);
         }
-        
+
         private static async Task Receiving_Multiple_Repeating_Header_Value_Call()
         {
             using var handler = new FluxzyHttp2Handler();
@@ -161,14 +167,16 @@ namespace Fluxzy.Tests
             var repeatCount = 40;
 
             var tasks = Enumerable.Repeat(httpClient, repeatCount)
-                                  .Select(async client => {
+                                  .Select(async client =>
+                                  {
                                       var response =
                                           await client.GetAsync($"{TestConstants.Http2Host}/headers-random-repeat");
 
                                       var text = await response.Content.ReadAsStringAsync();
 
                                       var items = JsonSerializer.Deserialize<Header2[]>(text
-                                          , new JsonSerializerOptions {
+                                          , new JsonSerializerOptions
+                                          {
                                               PropertyNameCaseInsensitive = true
                                           })!;
 

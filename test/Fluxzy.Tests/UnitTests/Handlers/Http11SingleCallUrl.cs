@@ -11,7 +11,7 @@ using Fluxzy.Misc.Streams;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests
+namespace Fluxzy.Tests.UnitTests.Handlers
 {
     public class Http11SingleCallUrl
     {
@@ -280,7 +280,8 @@ namespace Fluxzy.Tests
 
             var source = new CancellationTokenSource();
 
-            await Assert.ThrowsAsync<TaskCanceledException>(async () => {
+            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            {
                 var responsePromise = httpClient.SendAsync(requestMessage, source.Token);
                 source.Cancel();
                 await responsePromise;

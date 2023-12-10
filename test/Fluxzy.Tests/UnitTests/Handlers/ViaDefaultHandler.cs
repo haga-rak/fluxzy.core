@@ -12,7 +12,7 @@ using Fluxzy.Core.Pcap.Cli.Clients;
 using Fluxzy.Writers;
 using Xunit;
 
-namespace Fluxzy.Tests
+namespace Fluxzy.Tests.UnitTests.Handlers
 {
     public class ViaDefaultHandler
     {
@@ -52,11 +52,13 @@ namespace Fluxzy.Tests
             await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
 
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
-                new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null)) {
+                new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null))
+            {
                 Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 }
             };
 
-            using var httpClient = new HttpClient(handler) {
+            using var httpClient = new HttpClient(handler)
+            {
                 Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular)
             };
 
@@ -126,9 +128,10 @@ namespace Fluxzy.Tests
             using var handler = new FluxzyDefaultHandler(sslProvider);
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Extended) };
 
-            var result = new List<Task<bool>>(); 
+            var result = new List<Task<bool>>();
 
-            for (var i = 0; i < 15; i++) {
+            for (var i = 0; i < 15; i++)
+            {
                 var requestMessage = new HttpRequestMessage(
                     HttpMethod.Get,
                     urls[i % urls.Length]
@@ -140,7 +143,8 @@ namespace Fluxzy.Tests
 
             var allResult = await Task.WhenAll(result);
 
-            foreach (var b in allResult) {
+            foreach (var b in allResult)
+            {
                 Assert.True(b);
             }
         }

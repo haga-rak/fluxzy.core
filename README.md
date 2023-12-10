@@ -159,7 +159,7 @@ fluxzySetting
     .ConfigureRule() 
         // Forward request
         .WhenHostMatch("twitter.com", StringSelectorOperation.EndsWith) 
-        .Forward("https://truthsocial.com/") 
+        .Forward("https://www.debunk.org/") 
 
         // Mock any POST request to /api/auth/token
         .WhenAll(new PostFilter(), new PathFilter("/api/auth/token"))

@@ -11,16 +11,18 @@ using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests
+namespace Fluxzy.Tests.UnitTests.Handlers
 {
     public class Http2ClientHandler
     {
-        public static IEnumerable<object[]> GetHttpMethods {
+        public static IEnumerable<object[]> GetHttpMethods
+        {
             get
             {
                 int[] checkLength = { 0, 152, 12464, 150002 };
 
-                foreach (var length in checkLength) {
+                foreach (var length in checkLength)
+                {
                     yield return new object[] { HttpMethod.Get, length };
                     yield return new object[] { HttpMethod.Post, length };
                     yield return new object[] { HttpMethod.Put, length };
@@ -35,7 +37,7 @@ namespace Fluxzy.Tests
         {
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
-            
+
             var requestMessage = new HttpRequestMessage(method,
                 $"{TestConstants.Http2Host}/global-health-check?dsf=sdfs&dsf=3");
 
@@ -270,7 +272,8 @@ namespace Fluxzy.Tests
 
             var source = new CancellationTokenSource();
 
-            await Assert.ThrowsAsync<TaskCanceledException>(async () => {
+            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            {
                 var responsePromise = httpClient.SendAsync(requestMessage, source.Token);
                 source.Cancel();
                 await responsePromise;
@@ -294,7 +297,7 @@ namespace Fluxzy.Tests
 
             var contentText = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal((HttpStatusCode) 304, response.StatusCode);
+            Assert.Equal((HttpStatusCode)304, response.StatusCode);
             Assert.Equal(string.Empty, contentText);
         }
     }
