@@ -9,13 +9,13 @@ namespace Fluxzy.Tests.Cases
 {
     public class EarlyCloseNotify
     {
-        [Theory]
+        [Theory] 
         [InlineData("BouncyCastle")]
         [InlineData("OSDefault")]
         public async Task Run_Until_Close_Notify(string sslEngine)
         {
             var count = 10;
-            var url = "https://espace-client.mma.fr/connexion/main-es2015.b75177084686b8f6f756.js"; 
+            var url = "https://sandbox.smartizy.com/swagger/index.html"; 
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
@@ -30,7 +30,7 @@ namespace Fluxzy.Tests.Cases
             using var httpClient = new HttpClient(clientHandler);
 
             for (int i = 0; i < count; i++) {
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                var requestMessage = new HttpRequestMessage(HttpMethod.Head,
                                        url);
 
                 using var response = await httpClient.SendAsync(requestMessage);

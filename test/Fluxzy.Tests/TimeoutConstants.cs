@@ -17,6 +17,7 @@ namespace Fluxzy.Tests
                 }
             }
         }
+
         public static int Extended {
             get
             {
