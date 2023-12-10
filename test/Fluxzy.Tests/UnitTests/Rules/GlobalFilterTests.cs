@@ -9,7 +9,7 @@ using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests.Rules
+namespace Fluxzy.Tests.UnitTests.Rules
 {
     public class GlobalFilterTests : FilterTestTemplate
     {
@@ -17,7 +17,8 @@ namespace Fluxzy.Tests.Rules
         [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task CheckPass_HasCookieOnRequestFilter(string host)
         {
-            var filter = new HasCookieOnRequestFilter("test", "1") {
+            var filter = new HasCookieOnRequestFilter("test", "1")
+            {
                 Operation = StringSelectorOperation.Contains
             };
 
@@ -83,8 +84,10 @@ namespace Fluxzy.Tests.Rules
                 new(new AbsoluteUriFilter("smartzzizy.com"), r => { }, false)
             };
 
-            foreach (var host in testedHosts) {
-                foreach (var checkPassGenericFilterInfo in checkPassGenericFilterInfos) {
+            foreach (var host in testedHosts)
+            {
+                foreach (var checkPassGenericFilterInfo in checkPassGenericFilterInfos)
+                {
                     yield return new object[] { host, checkPassGenericFilterInfo };
                 }
             }

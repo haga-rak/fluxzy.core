@@ -7,7 +7,7 @@ using System.Reflection;
 using Fluxzy.Rules.Filters;
 using Action = Fluxzy.Rules.Action;
 
-namespace Fluxzy.Tests.Configurations
+namespace Fluxzy.Tests._Fixtures.Configurations
 {
     internal static class ReflectionHelper
     {
@@ -43,7 +43,8 @@ namespace Fluxzy.Tests.Configurations
             if (x.GetType() != y.GetType())
                 return false;
 
-            if (x is FilterCollection colX && y is FilterCollection colY) {
+            if (x is FilterCollection colX && y is FilterCollection colY)
+            {
                 if (colX.Children.Count != colY.Children.Count)
                     return false;
 
@@ -53,15 +54,18 @@ namespace Fluxzy.Tests.Configurations
                 if (colX.Operation != colY.Operation)
                     return false;
 
-                for (var i = 0; i < colX.Children.Count; i++) {
+                for (var i = 0; i < colX.Children.Count; i++)
+                {
                     if (!Equals(colX.Children[i], colY.Children[i]))
                         return false;
                 }
             }
-            else {
+            else
+            {
                 var properties = ReflectionHelper.GetSettableProperties(x.GetType());
 
-                foreach (var propertyInfo in properties) {
+                foreach (var propertyInfo in properties)
+                {
                     var valX = x.GetPropertyValue(propertyInfo);
                     var valY = y.GetPropertyValue(propertyInfo);
 
@@ -98,7 +102,8 @@ namespace Fluxzy.Tests.Configurations
 
             var properties = ReflectionHelper.GetSettableProperties(x.GetType());
 
-            foreach (var propertyInfo in properties) {
+            foreach (var propertyInfo in properties)
+            {
                 var valX = x.GetPropertyValue(propertyInfo);
                 var valY = y.GetPropertyValue(propertyInfo);
 

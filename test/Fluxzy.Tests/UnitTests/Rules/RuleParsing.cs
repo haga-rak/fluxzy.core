@@ -10,10 +10,11 @@ using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
+using Fluxzy.Tests._Fixtures.Configurations;
 using Xunit;
 using Action = Fluxzy.Rules.Action;
 
-namespace Fluxzy.Tests.Configurations
+namespace Fluxzy.Tests.UnitTests.Rules
 {
     public class RuleParsing
     {
@@ -363,7 +364,7 @@ namespace Fluxzy.Tests.Configurations
             var yamlContent = $"""
                 filter: 
                   typeKind: FilterCollection        
-                  operation: { operation.ToString().ToLower()}  
+                  operation: {operation.ToString().ToLower()}  
                   children:
                     - typeKind: JsonResponseFilter
                       inverted: true
@@ -372,7 +373,7 @@ namespace Fluxzy.Tests.Configurations
                   typeKind: AddRequestHeaderAction
                   headerName: fluxzy
                   headerValue: on
-                """ ;
+                """;
 
             var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var _)!;
 
@@ -503,7 +504,8 @@ namespace Fluxzy.Tests.Configurations
             Assert.NotNull(outputRule);
             Assert.Equal(ruleSet.Rules.Count, outputRule.Rules.Count);
 
-            for (var index = 0; index < ruleSet.Rules.Count; index++) {
+            for (var index = 0; index < ruleSet.Rules.Count; index++)
+            {
                 var originalRule = ruleSet.Rules[index];
                 var resultRule = outputRule.Rules[index];
 

@@ -14,37 +14,41 @@ using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests.Rules
+namespace Fluxzy.Tests.UnitTests.Rules
 {
     public class BreakPointRules
     {
-        public static IEnumerable<object[]> GetResponseBreakAndChangeParams {
+        public static IEnumerable<object[]> GetResponseBreakAndChangeParams
+        {
             get
             {
                 var hosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11 };
 
                 var breakpointPayloadTypes =
-                    (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
+                    (TestBreakpointPayloadType[])Enum.GetValues(typeof(TestBreakpointPayloadType));
 
                 foreach (var host in hosts)
-                foreach (var withPcap in breakpointPayloadTypes) {
-                    yield return new object[] { host, withPcap };
-                }
+                    foreach (var withPcap in breakpointPayloadTypes)
+                    {
+                        yield return new object[] { host, withPcap };
+                    }
             }
         }
 
-        public static IEnumerable<object[]> GetRequestBreakAndChangeParams {
+        public static IEnumerable<object[]> GetRequestBreakAndChangeParams
+        {
             get
             {
                 var hosts = new[] { TestConstants.Http11Host, TestConstants.Http2Host, TestConstants.PlainHttp11 };
 
                 var breakpointPayloadTypes =
-                    (TestBreakpointPayloadType[]) Enum.GetValues(typeof(TestBreakpointPayloadType));
+                    (TestBreakpointPayloadType[])Enum.GetValues(typeof(TestBreakpointPayloadType));
 
                 foreach (var host in hosts)
-                foreach (var withPcap in breakpointPayloadTypes) {
-                    yield return new object[] { host, withPcap };
-                }
+                    foreach (var withPcap in breakpointPayloadTypes)
+                    {
+                        yield return new object[] { host, withPcap };
+                    }
             }
         }
 
@@ -62,7 +66,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -73,7 +78,8 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -89,7 +95,7 @@ namespace Fluxzy.Tests.Rules
 
             var _ = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(200, (int) response.StatusCode);
+            Assert.Equal(200, (int)response.StatusCode);
 
             await proxy.WaitUntilDone();
         }
@@ -108,7 +114,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -121,7 +128,7 @@ namespace Fluxzy.Tests.Rules
 
             var response = await responseTask;
 
-            Assert.Equal(200, (int) response.StatusCode);
+            Assert.Equal(200, (int)response.StatusCode);
 
             await proxy.WaitUntilDone();
         }
@@ -140,7 +147,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -151,7 +159,8 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -159,7 +168,8 @@ namespace Fluxzy.Tests.Rules
 
             var context = await completionSourceContext.Task;
 
-            context.ConnectionSetupCompletion.SetValue(new ConnectionSetupStepModel {
+            context.ConnectionSetupCompletion.SetValue(new ConnectionSetupStepModel
+            {
                 IpAddress = IPAddress.Loopback.ToString(),
                 Port = 523
             });
@@ -172,7 +182,7 @@ namespace Fluxzy.Tests.Rules
 
             var _ = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(528, (int) response.StatusCode);
+            Assert.Equal(528, (int)response.StatusCode);
 
             await proxy.WaitUntilDone();
         }
@@ -201,7 +211,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -212,7 +223,8 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -228,7 +240,7 @@ namespace Fluxzy.Tests.Rules
 
             var checkResult = await response.GetCheckResult();
 
-            Assert.Equal(200, (int) response.StatusCode);
+            Assert.Equal(200, (int)response.StatusCode);
             Assert.Equal(payloadLength, checkResult.RequestContent.Length);
 
             await proxy.WaitUntilDone();
@@ -262,7 +274,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -273,7 +286,8 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -289,7 +303,7 @@ namespace Fluxzy.Tests.Rules
 
             var checkResult = await response.GetCheckResult();
 
-            Assert.Equal(200, (int) response.StatusCode);
+            Assert.Equal(200, (int)response.StatusCode);
             Assert.Equal(payloadLength, checkResult.RequestContent.Length);
 
             await proxy.WaitUntilDone();
@@ -319,7 +333,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -330,7 +345,8 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -346,7 +362,7 @@ namespace Fluxzy.Tests.Rules
 
             var actualBodyString = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(203, (int) response.StatusCode);
+            Assert.Equal(203, (int)response.StatusCode);
             Assert.Equal(payloadLength, actualBodyString.Length);
             Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added"));
 
@@ -381,7 +397,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -392,7 +409,8 @@ namespace Fluxzy.Tests.Rules
 
             var completionSourceContext = new TaskCompletionSource<BreakPointContext>();
 
-            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) => {
+            proxy.InternalProxy.ExecutionContext.BreakPointManager.OnContextUpdated += (sender, args) =>
+            {
                 completionSourceContext.TrySetResult(args.Context);
             };
 
@@ -408,7 +426,7 @@ namespace Fluxzy.Tests.Rules
 
             var actualBodyString = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(203, (int) response.StatusCode);
+            Assert.Equal(203, (int)response.StatusCode);
             Assert.Equal(payloadLength, actualBodyString.Length);
             Assert.Contains(response.Headers, t => t.Key.Equals("x-header-added"));
 
@@ -430,11 +448,13 @@ namespace Fluxzy.Tests.Rules
         {
             var fileName = Guid.NewGuid() + ".temp";
 
-            switch (type) {
+            switch (type)
+            {
                 case TestBreakpointPayloadType.NoPayload:
                     payloadLength = 0;
 
-                    return new ResponseSetupStepModel {
+                    return new ResponseSetupStepModel
+                    {
                         ContentBody = string.Empty,
                         FromFile = false
                     };
@@ -443,7 +463,8 @@ namespace Fluxzy.Tests.Rules
                     File.WriteAllText(fileName, "FromFile");
                     payloadLength = "FromFile".Length;
 
-                    return new ResponseSetupStepModel {
+                    return new ResponseSetupStepModel
+                    {
                         ContentBody = "FromFile",
                         FromFile = true,
                         FileName = fileName
@@ -452,7 +473,8 @@ namespace Fluxzy.Tests.Rules
                 case TestBreakpointPayloadType.FromString:
                     payloadLength = "FromString".Length;
 
-                    return new ResponseSetupStepModel {
+                    return new ResponseSetupStepModel
+                    {
                         ContentBody = "FromString",
                         FromFile = false
                     };
@@ -467,11 +489,13 @@ namespace Fluxzy.Tests.Rules
         {
             var fileName = Guid.NewGuid() + ".temp";
 
-            switch (type) {
+            switch (type)
+            {
                 case TestBreakpointPayloadType.NoPayload:
                     payloadLength = 0;
 
-                    return new RequestSetupStepModel {
+                    return new RequestSetupStepModel
+                    {
                         ContentBody = string.Empty,
                         FromFile = false
                     };
@@ -480,7 +504,8 @@ namespace Fluxzy.Tests.Rules
                     File.WriteAllText(fileName, "FromFile");
                     payloadLength = "FromFile".Length;
 
-                    return new RequestSetupStepModel {
+                    return new RequestSetupStepModel
+                    {
                         ContentBody = "FromFile",
                         FromFile = true,
                         FileName = fileName
@@ -489,7 +514,8 @@ namespace Fluxzy.Tests.Rules
                 case TestBreakpointPayloadType.FromString:
                     payloadLength = "FromString".Length;
 
-                    return new RequestSetupStepModel {
+                    return new RequestSetupStepModel
+                    {
                         ContentBody = "FromString",
                         FromFile = false
                     };

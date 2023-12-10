@@ -10,7 +10,7 @@ using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests.Rules
+namespace Fluxzy.Tests.UnitTests.Rules
 {
     public class ResponseHeaderAlterationRules
     {
@@ -31,7 +31,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -72,7 +73,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -111,7 +113,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -149,7 +152,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 

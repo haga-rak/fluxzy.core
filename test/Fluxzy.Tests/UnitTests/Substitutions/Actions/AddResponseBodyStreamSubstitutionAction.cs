@@ -6,7 +6,7 @@ using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 
-namespace Fluxzy.Tests.Substitutions.Actions
+namespace Fluxzy.Tests.UnitTests.Substitutions.Actions
 {
     /// <summary>
     /// A simple action that install a body substitution

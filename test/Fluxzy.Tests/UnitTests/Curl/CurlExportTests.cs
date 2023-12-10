@@ -13,7 +13,7 @@ using Fluxzy.Tests.Cli.Scaffolding;
 using Fluxzy.Utils.Curl;
 using Xunit;
 
-namespace Fluxzy.Tests
+namespace Fluxzy.Tests.UnitTests.Curl
 {
     public class CurlExportTests
     {
@@ -29,7 +29,8 @@ namespace Fluxzy.Tests
             var folderManagement = new CurlExportFolderManagement(tempPath);
             var converter = new CurlRequestConverter(folderManagement);
 
-            try {
+            try
+            {
                 var quickTestResult = await DoRequestThroughHttpClient(directoryName,
                     new HttpMethod(methodString), payloadType);
 
@@ -42,7 +43,8 @@ namespace Fluxzy.Tests
 
                 var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
-                await using (var fluxzyInstance = await commandLineHost.Run()) {
+                await using (var fluxzyInstance = await commandLineHost.Run())
+                {
                     var commandResult = converter.BuildCurlRequest(archiveReader, quickTestResult.ExchangeInfo,
                         new CurlProxyConfiguration(
                             "127.0.0.1", fluxzyInstance.ListenPort));
@@ -81,7 +83,8 @@ namespace Fluxzy.Tests
                 Assert.Equal(httpClientFlatHeader, curlFlatHeader);
                 Assert.Equal(httpClientRequestBodyStream?.DrainAndSha1(), curlRequestBodyStream?.DrainAndSha1());
             }
-            finally {
+            finally
+            {
                 if (Directory.Exists(rootDir))
                     Directory.Delete(rootDir, true);
             }
@@ -98,17 +101,20 @@ namespace Fluxzy.Tests
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
-            await using (var fluxzyInstance = await commandLineHost.Run()) {
+            await using (var fluxzyInstance = await commandLineHost.Run())
+            {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
                 var requestMessage = new HttpRequestMessage(method,
                     $"{TestConstants.GetHost(protocol)}/global-health-check");
 
-                if (method != HttpMethod.Get) {
+                if (method != HttpMethod.Get)
+                {
                     if (payloadType == TestPayloadType.FlatText)
                         requestMessage.Content = new StringContent("Some flatString", Encoding.UTF8);
 
-                    if (payloadType == TestPayloadType.FormContentEncoded) {
+                    if (payloadType == TestPayloadType.FormContentEncoded)
+                    {
                         requestMessage.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
                             { "A", "B" },
                             { "C", "p" },
@@ -117,12 +123,14 @@ namespace Fluxzy.Tests
                         });
                     }
 
-                    if (payloadType == TestPayloadType.Binary) {
+                    if (payloadType == TestPayloadType.Binary)
+                    {
                         requestMessage.Content =
                             new StreamContent(new RandomDataStream(9, 1024 * 9 + 5, true));
                     }
 
-                    if (payloadType == TestPayloadType.BinarySmall) {
+                    if (payloadType == TestPayloadType.BinarySmall)
+                    {
                         requestMessage.Content =
                             new StreamContent(new RandomDataStream(9, 1024 + 5, true));
                     }
@@ -164,9 +172,10 @@ namespace Fluxzy.Tests
             };
 
             foreach (var method in methods)
-            foreach (var payloadType in payloadTypes) {
-                yield return new object[] { method, payloadType };
-            }
+                foreach (var payloadType in payloadTypes)
+                {
+                    yield return new object[] { method, payloadType };
+                }
         }
     }
 

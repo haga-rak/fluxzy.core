@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Tests._Fixtures;
-using Fluxzy.Tests.Substitutions.Actions;
+using Fluxzy.Tests.UnitTests.Substitutions.Actions;
 using Xunit;
 
-namespace Fluxzy.Tests.Substitutions
+namespace Fluxzy.Tests.UnitTests.Substitutions
 {
     public class BasicSubstitutions
     {

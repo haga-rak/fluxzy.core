@@ -6,7 +6,7 @@ using Fluxzy.Certificates;
 using Fluxzy.Cli.System;
 using Xunit;
 
-namespace Fluxzy.Tests.Certificates
+namespace Fluxzy.Tests.UnitTests.Certificates
 {
     public class CertificateManager
     {

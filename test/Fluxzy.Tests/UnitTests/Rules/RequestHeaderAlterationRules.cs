@@ -11,7 +11,7 @@ using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests.Rules
+namespace Fluxzy.Tests.UnitTests.Rules
 {
     public class RequestHeaderAlterationRules
     {
@@ -32,7 +32,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -75,7 +76,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -113,14 +115,16 @@ namespace Fluxzy.Tests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new UpdateRequestHeaderAction(
-                        headerName, headerNewValue) {
+                        headerName, headerNewValue)
+                    {
                         AddIfMissing = true
                     },
                     new HostFilter("sandbox.smartizy.com")));
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -128,7 +132,7 @@ namespace Fluxzy.Tests.Rules
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{host}/global-health-check");
-            
+
             using var response = await httpClient.SendAsync(requestMessage);
 
             var checkResult = await response.GetCheckResult();
@@ -163,7 +167,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -204,7 +209,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
@@ -242,7 +248,8 @@ namespace Fluxzy.Tests.Rules
 
             var endPoint = proxy.Run().First();
 
-            using var clientHandler = new HttpClientHandler {
+            using var clientHandler = new HttpClientHandler
+            {
                 Proxy = new WebProxy($"http://{endPoint}")
             };
 
