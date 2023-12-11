@@ -373,7 +373,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
         [MemberData(nameof(TestConstants.GetHosts), MemberType = typeof(TestConstants))]
         public async Task ChangeEntireResponseInvalidHeaders(string host)
         {
-            await using var proxy = new AddHocConfigurableProxy(1, 10);
+            await using var proxy = new AddHocConfigurableProxy(1, 20);
 
             var payloadType = TestBreakpointPayloadType.FromFile;
 
