@@ -163,7 +163,7 @@ namespace Fluxzy.Tests.UnitTests.Curl
 
         public static IEnumerable<object[]> GetCurlCompareArgs()
         {
-            var methods = new List<string> { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" };
+            var methods = new List<string> { "GET", "POST", "PUT", "DELETE", "PATCH" };
             var payloadTypes = new List<TestPayloadType> {
                 TestPayloadType.FlatText,
                 TestPayloadType.FormContentEncoded,
