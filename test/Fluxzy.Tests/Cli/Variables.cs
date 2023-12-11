@@ -13,10 +13,12 @@ namespace Fluxzy.Tests.Cli
 {
     public class Variables
     {
-        [Fact]
-        public async Task Inject_From_GlobalEv()
+        [Theory]
+        [InlineData("yaya")]
+        [InlineData("")]
+        public async Task Inject_From_GlobalEv(string input)
         {
-            Environment.SetEnvironmentVariable(nameof(Inject_From_GlobalEv), "yaya");
+            Environment.SetEnvironmentVariable(nameof(Inject_From_GlobalEv), input);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"{TestConstants.GetHost("http2")}/global-health-check");
@@ -32,10 +34,12 @@ rules:
 
 """;
 
+            var expectedValue = "my_name_is_" + input;
+
             var (exchange, _, _) = await RequestHelper.DirectRequest(requestMessage, rule);
 
             Assert.NotNull(exchange.ResponseHeader);
-            Assert.Contains(exchange.ResponseHeader.Headers, a => a.Name.ToString() == "my_name_is_yaya"); 
+            Assert.Contains(exchange.ResponseHeader.Headers, a => a.Name.ToString() == expectedValue); 
         }
 
         [Fact]
@@ -166,6 +170,7 @@ rules:
         [InlineData("exchange.url", "FullUrl")]
         [InlineData("exchange.method", "Method")]
         [InlineData("exchange.status", "StatusCode")]
+        [InlineData("exchange.id", "Id")]
         public async Task Self_Generated_Context_Variables(string variableName, string propertyName)
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Patch,

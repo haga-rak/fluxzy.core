@@ -143,7 +143,8 @@ namespace Fluxzy.Tests.UnitTests.HPack
                 Assert.Equal(readValue, writeValue);
             }
         }
-        
+
+        [Fact]
         public void Write_And_Read_Until_2N_16_Prefix_7()
         {
             Span<byte> buffer = stackalloc byte[8];
@@ -157,8 +158,6 @@ namespace Fluxzy.Tests.UnitTests.HPack
 
                 var offsetWrite = binaryHelper.WriteInt32(buffer, writeValue, prefixSize);
                 var offsetRead = binaryHelper.ReadInt32(buffer, prefixSize, out var readValue);
-
-                // buffer.Clear();
 
                 Assert.Equal(offsetRead, offsetWrite);
                 Assert.Equal(readValue, writeValue);
