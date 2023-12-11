@@ -26,15 +26,6 @@ namespace Fluxzy.Tests
 
             ExtractDirectory(StorageContext.static_ws, DirectoryName);
             ExtractDirectory(File.ReadAllBytes("_Files/Archives/pink-floyd.fxzy"), ".artefacts/tests/pink-floyd");
-
-            // Environment.SetEnvironmentVariable("Fluxzy_EnableNetworkFileDump", "true");
-            // Environment.SetEnvironmentVariable("Fluxzy_EnableWindowSizeTrace", "true");
-
-            // Environment.SetEnvironmentVariable("EnableH1Tracing", "true");
-            // Environment.SetEnvironmentVariable("EnableH2Tracing", "true");
-
-            // Environment.SetEnvironmentVariable("EnableH2TracingFilterHosts",
-            //    "2befficient.fr;smartizy.com; discord.com; facebook.com; google.com");
         }
 
         private static void ExtractDirectory(byte [] binary, string directoryName)

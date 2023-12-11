@@ -8,12 +8,12 @@
 
 fluxzy is an HTTP intermediate and MITM engine for recording and altering HTTP/1.1, H2, and WebSocket traffic over plain or secure channels.
 
-This repository contains the .NET library and the [Fluxzy CLI](https://www.fluxzy.io/download#cli) that enables you to use fluxzy as a standalone application on a terminal on Windows, macOS, and Linux.
+This repository contains the source code of the .NET packages and [Fluxzy CLI](https://www.fluxzy.io/download#cli) that enables you to use fluxzy as a standalone application on a terminal on Windows, macOS, and Linux.
 
 | .NET Package | Description | Version |
 | --- | --- | --- |
-| Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core) |
-| Fluxzy.Core.Pcap | Extensions that enable raw packet capture along the HTTP(S) exchange | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap) |
+| Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=NuGet&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core) |
+| Fluxzy.Core.Pcap | Extensions that enable raw packet capture along the HTTP(S) exchange | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=NuGet&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap) |
 
 
 | Fluxzy CLI | Version |
@@ -127,44 +127,70 @@ More command and options are available, including [exporting to HAR](https://www
 
 By default, fluxzy will bind to `127.0.0.1:44344`.
 
-### 2.2 .NET libraries 
+### 2.2 .NET library
 
-A detail documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
+### 2.2.1 Simple usage
+The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
 The following shows a very basic usage of the .NET packages.
 
-The main line to start a capture session is to create a `FluxzySetting` instance and run it through the `Proxy` class.
+The main line to begin a capture session is to create a [FluxzySetting](https://docs.fluxzy.io/documentation/core/fluxzy-settings.html) instance and use it to create a `Proxy` instance.
 
-Install NUGET package `Fluxzy.Core` 
+Install NuGet package `Fluxzy.Core` 
 
 ```bash
 dotnet add package Fluxzy.Core
 ```
-
-And with .NET 6 or above
-
+Create a top-level statement console app, with .NET 6.0 or above:
 
 ```csharp	
 using System.Net;
 using Fluxzy;
-using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
+using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 
-var fluxzyStartupSetting = FluxzySetting
-    .CreateDefault(IPAddress.Loopback, 44344)
-    .AddAlterationRules(
-        new Rule(
-            new AddResponseHeaderAction("X-Proxy", "Passed through fluxzy"),
-            AnyFilter.Default
-        ));
+// Create a new setting 
+var fluxzySetting = FluxzySetting
+    .CreateDefault(IPAddress.Loopback, 44344) // Listen on localhost:44344
+    .SetOutDirectory("dump_directory"); // Save traffic to dump_directory
 
-await using (var proxy = new Proxy(fluxzyStartupSetting))
+fluxzySetting
+    .ConfigureRule() 
+        // Forward request
+        .WhenHostMatch("twitter.com", StringSelectorOperation.EndsWith) 
+        .Forward("https://www.debunk.org/") 
+
+        // Mock any POST request to /api/auth/token
+        .WhenAll(new PostFilter(), new PathFilter("/api/auth/token"))
+        .ReplyText("I lock the door and throw away the key", 403);
+
+await using (var proxy = new Proxy(fluxzySetting))
 {
-    var _ = proxy.Run();
+    var endPoints = proxy.Run();
+
+    var firstEndPoint = endPoints.First(); 
+
+    Console.WriteLine($"Fluxzy is listen on the following endpoints: " +
+                     $"{string.Join(" ", endPoints.Select(t => t.ToString()))}");
+
+    // Create a test http sample matching fluxzy setting
+
+    var httpClient = new HttpClient(new HttpClientHandler()
+    {
+        Proxy = new WebProxy(firstEndPoint.Address.ToString(), firstEndPoint.Port),
+        ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+    }); 
+
+    using var response = await httpClient.PostAsync("https://lunatic-on-the-grass.com/api/auth/token", null); 
+    var responseText = await response.Content.ReadAsStringAsync();
+
+    Console.WriteLine($"Final answer: {responseText}");
 
     Console.WriteLine("Press any key to exit...");
     Console.ReadLine();
 }
 ```
 
-A more detailed documentation and samples are available at [fluxzy.io](https://www.fluxzy.io/resources/core/fluxzy-net-packages) or in the samples folder of this repository.
+
+Visit [docs.fluxzy.io](https://docs.fluxzy.io) to view usage and more examples.

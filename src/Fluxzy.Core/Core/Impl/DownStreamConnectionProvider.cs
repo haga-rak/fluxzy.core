@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Core
 {
@@ -47,7 +48,11 @@ namespace Fluxzy.Core
                     var tcpClient = listener.EndAcceptTcpClient(asyncState);
 
                     tcpClient.NoDelay = true;
-                    tcpClient.ReceiveTimeout = 5000; 
+
+                    if (FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds >= 0)
+                    {
+                        tcpClient.ReceiveTimeout = FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds;
+                    }
 
                     return tcpClient;
                 }

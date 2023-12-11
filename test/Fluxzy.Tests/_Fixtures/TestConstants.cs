@@ -1,6 +1,8 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Fluxzy.Tests._Fixtures
 {
@@ -9,7 +11,6 @@ namespace Fluxzy.Tests._Fixtures
         public const string Http11Host = "https://sandbox.smartizy.com";
         public const string Http2Host = "https://sandbox.smartizy.com:5001";
         public const string PlainHttp11 = "http://sandbox.smartizy.com:8899";
-        public const string Http2Host2 = "https://sandbox.smartizy.com:4430";
         public const string WssHost = "wss://sandbox.smartizy.com:5001";
 
         public const string HttpBinHost = "registry.2befficient.io:40300";
@@ -27,6 +28,13 @@ namespace Fluxzy.Tests._Fixtures
                 return PlainHttp11;
 
             throw new ArgumentException(nameof(protocol), "Unknown protocol");
+        }
+
+        public static IEnumerable<object[]> GetHosts()
+        {
+            yield return new object[] { Http11Host };
+            yield return new object[] { Http2Host };
+            yield return new object[] { PlainHttp11 };
         }
     }
 }

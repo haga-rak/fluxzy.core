@@ -48,7 +48,7 @@ namespace Fluxzy
             var messageHandler = new HttpClientHandler() {
                 Proxy = new WebProxy(address, validIpEndPoint.Port),
                 ServerCertificateCustomValidationCallback = (_, _, chain, _) => {
-                    if (chain.ChainElements.Count < 1)
+                    if (chain == null || chain.ChainElements.Count < 1)
                         return false; 
                     
                     var lastChainThumbPrint = 
