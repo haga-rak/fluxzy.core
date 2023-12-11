@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using Fluxzy.Utils;
 
 namespace Fluxzy
 {
@@ -39,5 +40,12 @@ namespace Fluxzy
         /// When set to true, the proxy will not collect environment information on the archive file
         /// </summary>
         public static bool SkipCollectingEnvironmentInformation { get; set; }
+
+
+        /// <summary>
+        ///  
+        /// </summary>
+        public static readonly int DownStreamProviderReceiveTimeoutMilliseconds
+            = EnvironmentUtility.GetInt32("FLUXZY_DOWNSTREAM_CONNECTION_RECEIVE_TIMEOUT_MILLISECONDS", -1);
     }
 }
