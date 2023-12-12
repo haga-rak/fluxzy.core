@@ -11,8 +11,10 @@ namespace Fluxzy.Tests.UnitTests.Misc
     {
         [Theory]
         [MemberData(nameof(GenerateArgsForTestStrings))]
-        public void TestStrings(string encodingName, string contentString, string patternString, int expectedIndex)
+        public void TestStrings(string encodingName, string contentString, string patternString, int expectedIndex, bool lowerThreshold)
         {
+            FluxzySharedSetting.StackAllocThreshold = lowerThreshold ? 1 : 1024; 
+            
             // Arrange
             var encoding = Encoding.GetEncoding(encodingName);
             var content = contentString.ToBytes(encoding);
@@ -46,7 +48,9 @@ namespace Fluxzy.Tests.UnitTests.Misc
             {
                 foreach (var testCase in stringTestCases)
                 {
-                    yield return new object[] { enc.WebName, testCase.Content, testCase.Pattern, testCase.ExpectedIndex};
+                    for (int i = 0; i < 2; i++) {
+                        yield return new object[] { enc.WebName, testCase.Content, testCase.Pattern, testCase.ExpectedIndex, i % 2 == 0};
+                    }
                 }
             }
         }
