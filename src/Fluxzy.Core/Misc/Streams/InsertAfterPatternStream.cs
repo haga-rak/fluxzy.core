@@ -20,10 +20,7 @@ public class InsertAfterPatternStream : Stream
 
     // The pattern to match
     private readonly byte[] _matchingPattern;
-
-
-    private readonly byte [] _internalBuffer;
-
+    
     // Validated buffer that waits to be read 
     private readonly byte [] _pendingValidatedBuffer;
 
@@ -50,8 +47,7 @@ public class InsertAfterPatternStream : Stream
         _injectedStream = injectedStream;
 
         var bufferSize = Math.Max(_matchingPattern.Length * 2, 4096);
-
-        _internalBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+        
         _pendingValidatedBuffer = ArrayPool<byte>.Shared.Rent(bufferSize * 2);
         _pendingUnvalidatedBuffer = ArrayPool<byte>.Shared.Rent(bufferSize * 2);
     }
@@ -196,6 +192,18 @@ public class InsertAfterPatternStream : Stream
     {
         get => throw new NotSupportedException();
         set => throw new NotSupportedException();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) {
+            _injectedStream.Dispose();
+            _innerStream.Dispose();
+            ArrayPool<byte>.Shared.Return(_pendingValidatedBuffer);
+            ArrayPool<byte>.Shared.Return(_pendingUnvalidatedBuffer);
+        }
+
+        base.Dispose(disposing);
     }
 }
 
