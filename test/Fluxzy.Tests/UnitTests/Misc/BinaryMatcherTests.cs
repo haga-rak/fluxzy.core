@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Misc
@@ -58,14 +59,6 @@ namespace Fluxzy.Tests.UnitTests.Misc
         internal record TestStringsArgsTuple(string Content, string Pattern, int ExpectedIndex)
         {
             
-        }
-    }
-        
-    internal static class ToBytesExtension
-    {
-        public static byte[] ToBytes(this string str, Encoding encoding)
-        {
-            return encoding.GetBytes(str);
         }
     }
 }
