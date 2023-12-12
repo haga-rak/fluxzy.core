@@ -47,5 +47,11 @@ namespace Fluxzy
         /// </summary>
         public static readonly int DownStreamProviderReceiveTimeoutMilliseconds
             = EnvironmentUtility.GetInt32("FLUXZY_DOWNSTREAM_CONNECTION_RECEIVE_TIMEOUT_MILLISECONDS", -1);
+        
+        /// <summary>
+        ///   Fluxzy will use stackalloc for buffer allocation if the buffer size is less than this value.
+        ///   Can bet set by environment variable FLUXZY_STACK_ALLOC_THRESHOLD
+        /// </summary>
+        public static readonly int StackAllocThreshold = EnvironmentUtility.GetInt32("FLUXZY_STACK_ALLOC_THRESHOLD", 1024);
     }
 }
