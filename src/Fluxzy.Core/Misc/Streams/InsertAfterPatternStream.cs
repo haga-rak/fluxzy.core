@@ -14,6 +14,9 @@ public class InsertAfterPatternStream : Stream
     // The stream to be injected
     private readonly Stream _injectedStream;
 
+    // Flag indicating that the injected stream has reached EOF
+    private bool _injectedStreamEof;
+
     // The matcher 
     private readonly IBinaryMatcher _binaryMatcher;
 
@@ -72,14 +75,13 @@ public class InsertAfterPatternStream : Stream
                 BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingValidatedBuffer, readable, _pendingValidatedBufferLength - readable);
 
                 _pendingValidatedBufferLength -= readable;
-                
 
                 return readable;
             }
 
             // Drain zone copy to the reader
 
-            if (_continueInjecting) {
+            if (_continueInjecting && !_injectedStreamEof) {
                 var injectRead = _injectedStream.Read(buffer, offset, count);
                 _continueInjecting = injectRead > 0;
 
