@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -308,12 +309,12 @@ namespace Fluxzy.Misc.Streams
             return index;
         }
 
-        public static string ReadToEndGreedy(this Stream stream)
+        public static string ReadToEndGreedy(this Stream stream, Encoding? encoding = null)
         {
             if (!stream.CanRead)
                 return string.Empty; 
 
-            using var streamReader = new StreamReader(stream);
+            using var streamReader = new StreamReader(stream, encoding ?? Encoding.UTF8);
 
             return streamReader.ReadToEnd();
         }

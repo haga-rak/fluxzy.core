@@ -52,6 +52,6 @@ namespace Fluxzy
         ///   Fluxzy will use stackalloc for buffer allocation if the buffer size is less than this value.
         ///   Can bet set by environment variable FLUXZY_STACK_ALLOC_THRESHOLD
         /// </summary>
-        public static readonly int StackAllocThreshold = EnvironmentUtility.GetInt32("FLUXZY_STACK_ALLOC_THRESHOLD", 1024);
+        public static int StackAllocThreshold { get; set; } = EnvironmentUtility.GetInt32("FLUXZY_STACK_ALLOC_THRESHOLD", 1024);
     }
 }

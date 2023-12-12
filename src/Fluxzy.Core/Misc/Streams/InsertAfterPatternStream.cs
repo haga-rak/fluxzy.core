@@ -1,124 +1,208 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
 using System.IO;
-using System.Text;
+using System.IO.Pipelines;
 
-namespace Fluxzy.Misc.Streams
+namespace Fluxzy.Misc.Streams;
+
+public class InsertAfterPatternStream : Stream
 {
-    /// <summary>
-    ///   
-    /// </summary>
-    public class InsertAfterPatternStream : Stream
-    {
-        public InsertAfterPatternStream(Stream innerStream, string searchPattern, string replacement)
-        {
-            
-        }
-        
-        public override void Flush()
-        {
-            throw new System.NotImplementedException();
-        }
+    // The original stream 
+    private readonly Stream _innerStream;
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            throw new System.NotImplementedException();
-        }
+    // The stream to be injected
+    private readonly Stream _injectedStream;
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw new System.NotImplementedException();
-        }
+    // The matcher 
+    private readonly IBinaryMatcher _binaryMatcher;
 
-        public override void SetLength(long value)
-        {
-            throw new System.NotImplementedException();
-        }
+    // The pattern to match
+    private readonly byte[] _matchingPattern;
 
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new System.NotImplementedException();
-        }
 
-        public override bool CanRead { get; }
+    private readonly byte [] _internalBuffer;
 
-        public override bool CanSeek { get; }
+    // Validated buffer that waits to be read 
+    private readonly byte [] _pendingValidatedBuffer;
 
-        public override bool CanWrite { get; }
+    // Validated buffer length
+    private int _pendingValidatedBufferLength; 
 
-        public override long Length { get; }
-
-        public override long Position { get; set; }
-    }
-
-    public interface IBinaryMatcher
-    {
-        int FindIndex(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> searchText); 
-    }
+    // Previous read that was not validated yet
+    private readonly byte[] _pendingUnvalidatedBuffer;
     
-    public class RawByteBinaryMatcher : IBinaryMatcher
+    // Unvalidated buffer length
+    private int _pendingUnvalidatedBufferLength;
+
+    // Flag indicating that injection should start
+    private bool _continueInjecting;
+
+    public InsertAfterPatternStream(Stream innerStream,
+        IBinaryMatcher binaryMatcher,
+        byte[] matchingPattern, 
+        Stream injectedStream)
     {
-        public int FindIndex(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> searchText)
-        {
-            return buffer.IndexOf(searchText);
-        }
+        _innerStream = innerStream;
+        _binaryMatcher = binaryMatcher;
+        _matchingPattern = matchingPattern;
+        _injectedStream = injectedStream;
+
+        var bufferSize = Math.Max(_matchingPattern.Length * 2, 4096);
+
+        _internalBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+        _pendingValidatedBuffer = ArrayPool<byte>.Shared.Rent(bufferSize * 2);
+        _pendingUnvalidatedBuffer = ArrayPool<byte>.Shared.Rent(bufferSize * 2);
     }
-    
-    public class StringBinaryMatcher : IBinaryMatcher
+
+    public override void Flush()
     {
-        private readonly Encoding _encoding;
+    }
 
-        public StringBinaryMatcher(Encoding encoding)
-        {
-            _encoding = encoding;
+    private bool _innerStreamEof;
+
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        while (true) {
+            // Copy pendingBuffer to reader 
+
+            if (_pendingValidatedBufferLength > 0)
+            {
+                var readable = Math.Min(count, _pendingValidatedBufferLength);
+                _pendingValidatedBuffer.AsSpan(0, readable).CopyTo(buffer.AsSpan(offset));
+
+                // Shift buffer 
+
+                BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingValidatedBuffer, readable, _pendingValidatedBufferLength - readable);
+
+                _pendingValidatedBufferLength -= readable;
+                return readable;
+            }
+
+            // Drain zone copy to the reader
+
+            if (_continueInjecting) {
+                var injectRead = _injectedStream.Read(buffer, offset, count);
+                _continueInjecting = injectRead > 0;
+
+                if (injectRead > 0)
+                    return injectRead; // Inject the datas
+            }
+
+            if (_innerStreamEof)
+                break; 
+
+            var canBeStored = 
+                _pendingUnvalidatedBuffer.Length - _pendingUnvalidatedBufferLength;
+
+            var maxRead = Math.Min(buffer.Length, canBeStored); // MAYBE not usefull ? 
+            
+            var read = _innerStream.Read(_pendingUnvalidatedBuffer,
+                _pendingUnvalidatedBufferLength, maxRead);
+
+            _pendingUnvalidatedBufferLength += read;
+
+
+            if (read == 0) {
+
+                _innerStreamEof = true; 
+
+                if (_pendingUnvalidatedBufferLength == 0)
+                {
+                    // EOF 
+                    return 0;
+                }
+                else {
+                    Array.Copy(_pendingUnvalidatedBuffer, 0, 
+                        _pendingValidatedBuffer, 0, _pendingUnvalidatedBufferLength);
+
+                    continue; 
+                }
+            }
+
+            var index = _binaryMatcher
+                .FindIndex(_pendingUnvalidatedBuffer.AsSpan(0, _pendingUnvalidatedBufferLength), 
+                    _matchingPattern);
+
+            if (index < 0) {
+
+                var validatedLength = _pendingUnvalidatedBufferLength - _matchingPattern.Length;
+
+                if (validatedLength > 0) {
+                    // validate _pendingUnvalidatedBufferLength - _matchingPattern.Length
+
+                    _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
+
+                    BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
+                        validatedLength, _matchingPattern.Length);
+
+                    _pendingUnvalidatedBufferLength -= validatedLength;
+                    _pendingValidatedBufferLength = validatedLength;
+
+                    continue; 
+                }
+            }
+            else {
+                // Copy to validated buffer 
+
+                var validatedLength = index + _matchingPattern.Length;
+
+                _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
+
+                BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
+                                           validatedLength, _pendingUnvalidatedBufferLength - validatedLength);
+
+                _pendingUnvalidatedBufferLength -= validatedLength;
+                _pendingValidatedBufferLength = validatedLength;
+
+                // Copy to reader 
+
+                _continueInjecting = true; 
+
+                continue; 
+            }
+            
         }
+
         
-        public int FindIndex(ReadOnlySpan<byte> content, ReadOnlySpan<byte> searchText)
-        {
-            var searchTextStringCount = _encoding.GetCharCount(searchText);
+        return -1; 
+    }
 
-            char[]? rawSearchTextBuffer = null;
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        throw new NotSupportedException("Readonly Stream");
+    }
 
-            var searchTextArray = searchTextStringCount < FluxzySharedSetting.StackAllocThreshold
-                ? stackalloc char[searchTextStringCount]
-                : (rawSearchTextBuffer = ArrayPool<char>.Shared.Rent(searchTextStringCount));
-            
-            var contentTextStringCount = _encoding.GetCharCount(content);
-            
-            char[]? rawContentTextBuffer = null;
-            
-            var contentTextArray = contentTextStringCount < FluxzySharedSetting.StackAllocThreshold
-                ? stackalloc char[contentTextStringCount]
-                : (rawContentTextBuffer = ArrayPool<char>.Shared.Rent(contentTextStringCount));
+    public override void SetLength(long value)
+    {
+        throw new NotSupportedException("Readonly Stream");
+    }
 
-            try {
-                var searchTextCount = _encoding.GetChars(searchText, searchTextArray);
-                var searchContentCount = _encoding.GetChars(content, contentTextArray);
-                
-                searchTextArray = searchTextArray.Slice(0, searchTextCount);
-                contentTextArray = contentTextArray.Slice(0, searchContentCount);
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        throw new NotSupportedException("Readonly Stream");
+    }
 
-                var contentTextSpan = contentTextArray.Slice(0, contentTextStringCount);
-                var searchTextSpan = searchTextArray.Slice(0, searchTextStringCount);
+    public override bool CanRead { get; } = true; 
 
-                var charIndex = contentTextSpan.IndexOf(searchTextSpan);
-                
-                if (charIndex < 0)
-                    return -1;
-                
-                var byteIndex = _encoding.GetByteCount(contentTextSpan.Slice(0, charIndex));
-                
-                return byteIndex;
-            }
-            finally {
-                if (rawSearchTextBuffer != null)
-                    ArrayPool<char>.Shared.Return(rawSearchTextBuffer);
-                
-                if (rawContentTextBuffer != null)
-                    ArrayPool<char>.Shared.Return(rawContentTextBuffer);
-            }
-        }
+    public override bool CanSeek { get; } = false;
+
+    public override bool CanWrite { get; } = false; 
+
+    public override long Length  => throw new NotSupportedException();
+
+    public override long Position
+    {
+        get => throw new NotSupportedException();
+        set => throw new NotSupportedException();
+    }
+}
+
+internal static class BufferArrayShiftUtilities
+{
+    public static void ShiftOffsetToZero(byte[] buffer, int offset, int length)
+    {
+        Array.Copy(buffer, offset, buffer, 0, length);
     }
 }
