@@ -3,7 +3,6 @@
 using System;
 using System.Buffers;
 using System.IO;
-using System.IO.Pipelines;
 
 namespace Fluxzy.Misc.Streams;
 
@@ -73,6 +72,8 @@ public class InsertAfterPatternStream : Stream
                 BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingValidatedBuffer, readable, _pendingValidatedBufferLength - readable);
 
                 _pendingValidatedBufferLength -= readable;
+                
+
                 return readable;
             }
 
@@ -112,6 +113,8 @@ public class InsertAfterPatternStream : Stream
                 else {
                     Array.Copy(_pendingUnvalidatedBuffer, 0, 
                         _pendingValidatedBuffer, 0, _pendingUnvalidatedBufferLength);
+
+                    _pendingValidatedBufferLength = _pendingUnvalidatedBufferLength;
 
                     continue; 
                 }
@@ -160,9 +163,8 @@ public class InsertAfterPatternStream : Stream
             }
             
         }
-
         
-        return -1; 
+        return 0; 
     }
 
     public override long Seek(long offset, SeekOrigin origin)
