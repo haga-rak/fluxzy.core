@@ -324,5 +324,22 @@ namespace Fluxzy.Misc.Streams
             src.CopyTo(dest);
             dest.Dispose();
         }
+
+        public static string ReadToEndWithCustomBuffer(this Stream stream, Encoding? encoding = null, 
+            int bufferSize = -1)
+        {
+            var memoryStream = new MemoryStream(); 
+
+            var buffer = bufferSize == -1 ? new byte[1024] : new byte[bufferSize];
+            encoding = encoding ?? Encoding.UTF8;
+
+            int read;
+
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0) {
+                memoryStream.Write(buffer, 0, read);
+            }
+
+            return encoding.GetString(memoryStream.ToArray());
+        }
     }
 }

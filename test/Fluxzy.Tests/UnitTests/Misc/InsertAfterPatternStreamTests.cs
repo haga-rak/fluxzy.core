@@ -13,6 +13,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         [Theory]
         [InlineData("Hello World", "World", "!", "Hello World!")]
         [InlineData("Hello World", "W", "!", "Hello W!orld")]
+        [InlineData("123abcd987", "abcd", "ççç", "123abcdççç987")]
         public void TestWithContent(string content, string pattern, string insertedText, string expected)
         {
             var matcher = new StringBinaryMatcher(Encoding.UTF8);
@@ -22,7 +23,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
             
             var stream = new InsertAfterPatternStream(contentStream, matcher, matchingPattern, insertedTextStream);
 
-            var result = stream.ReadToEndGreedy(); 
+            var result = stream.ReadToEndWithCustomBuffer(bufferSize: 1); 
 
             Assert.Equal(expected, result);
         }
