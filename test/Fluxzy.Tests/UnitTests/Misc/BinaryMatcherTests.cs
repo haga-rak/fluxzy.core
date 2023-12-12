@@ -11,10 +11,18 @@ namespace Fluxzy.Tests.UnitTests.Misc
     {
         [Theory]
         [MemberData(nameof(GenerateArgsForTestStrings))]
-        public void TestStrings(Encoding encoding, byte [] content, byte [] pattern, int expectedIndex)
+        public void TestStrings(string encodingName, string contentString, string patternString, int expectedIndex)
         {
+            // Arrange
+            var encoding = Encoding.GetEncoding(encodingName);
+            var content = contentString.ToBytes(encoding);
+            var pattern = patternString.ToBytes(encoding);
             var matcher = new StringBinaryMatcher(encoding); 
+
+            // Act
             var index = matcher.FindIndex(content, pattern);
+
+            // Assert
             Assert.Equal(expectedIndex, index);
         }
 
@@ -26,6 +34,8 @@ namespace Fluxzy.Tests.UnitTests.Misc
                 new("abcd", "bc", 1),
                 new("abcd", "d", 3),
                 new("abcd", "cd", 2),
+                new("abcd", "cdefghijklmn", -1),
+                new("abcd", "a", 0),
                 new("abcd", "", 0),
                 new("", "", 0),
                 new("", "sdf", -1),
@@ -36,7 +46,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
             {
                 foreach (var testCase in stringTestCases)
                 {
-                    yield return new object[] { enc, testCase.Content.ToBytes(enc), testCase.Pattern.ToBytes(enc), testCase.ExpectedIndex};
+                    yield return new object[] { enc.WebName, testCase.Content, testCase.Pattern, testCase.ExpectedIndex};
                 }
             }
         }
