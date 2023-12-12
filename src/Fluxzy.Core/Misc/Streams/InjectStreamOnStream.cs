@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Fluxzy.Misc.Streams;
 
-public class InsertAfterPatternStream : Stream
+public class InjectStreamOnStream : Stream
 {
     // The original stream 
     private readonly Stream _innerStream;
@@ -38,7 +38,7 @@ public class InsertAfterPatternStream : Stream
     // Flag indicating that injection should start
     private bool _continueInjecting;
 
-    public InsertAfterPatternStream(Stream innerStream,
+    public InjectStreamOnStream(Stream innerStream,
         IBinaryMatcher binaryMatcher,
         byte[] matchingPattern, 
         Stream injectedStream)
@@ -53,9 +53,9 @@ public class InsertAfterPatternStream : Stream
         _pendingValidatedBuffer = ArrayPool<byte>.Shared.Rent(bufferSize * 2);
         _pendingUnvalidatedBuffer = ArrayPool<byte>.Shared.Rent(bufferSize * 2);
     }
-
     public override void Flush()
     {
+
     }
 
     private bool _innerStreamEof;
@@ -86,7 +86,7 @@ public class InsertAfterPatternStream : Stream
                 _continueInjecting = injectRead > 0;
 
                 if (injectRead > 0)
-                    return injectRead; // Inject the datas
+                    return injectRead; 
             }
 
             if (_innerStreamEof)
@@ -122,17 +122,14 @@ public class InsertAfterPatternStream : Stream
                 }
             }
 
-            var index = _binaryMatcher
+            var (index, length, shiftLength) = _binaryMatcher
                 .FindIndex(_pendingUnvalidatedBuffer.AsSpan(0, _pendingUnvalidatedBufferLength), 
                     _matchingPattern);
 
             if (index < 0) {
-
                 var validatedLength = _pendingUnvalidatedBufferLength - _matchingPattern.Length;
 
                 if (validatedLength > 0) {
-                    // validate _pendingUnvalidatedBufferLength - _matchingPattern.Length
-
                     _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
 
                     BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
@@ -146,24 +143,22 @@ public class InsertAfterPatternStream : Stream
             }
             else {
                 // Copy to validated buffer 
-
-                var validatedLength = index + _matchingPattern.Length;
+                
+                var originalLength = index + length;
+                var validatedLength = index + shiftLength;
 
                 _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
 
                 BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
-                                           validatedLength, _pendingUnvalidatedBufferLength - validatedLength);
+                    originalLength, _pendingUnvalidatedBufferLength - originalLength);
 
-                _pendingUnvalidatedBufferLength -= validatedLength;
+                _pendingUnvalidatedBufferLength -= originalLength;
                 _pendingValidatedBufferLength = validatedLength;
 
                 // Copy to reader 
 
-                _continueInjecting = true; 
-
-                continue; 
+                _continueInjecting = true;
             }
-            
         }
         
         return 0; 

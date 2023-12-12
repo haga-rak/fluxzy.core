@@ -20,13 +20,13 @@ namespace Fluxzy.Tests.UnitTests.Misc
             var encoding = Encoding.GetEncoding(encodingName);
             var content = contentString.ToBytes(encoding);
             var pattern = patternString.ToBytes(encoding);
-            var matcher = new StringBinaryMatcher(encoding); 
+            var matcher = new InsertAfterBinaryMatcher(encoding); 
 
             // Act
-            var index = matcher.FindIndex(content, pattern);
+            var (Index, _, _) = matcher.FindIndex(content, pattern);
 
             // Assert
-            Assert.Equal(expectedIndex, index);
+            Assert.Equal(expectedIndex, Index);
         }
 
         public static IEnumerable<object[]> GenerateArgsForTestStrings()
