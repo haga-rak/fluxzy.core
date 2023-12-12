@@ -11,10 +11,8 @@ namespace Fluxzy.Tests.UnitTests.Misc
     public class InsertAfterPatternStreamTests
     {
         [Theory]
-        [InlineData("Hello World", "World", "!", "Hello World!")]
-        [InlineData("Hello World", "W", "!", "Hello W!orld")]
-        [InlineData("123abcd987", "abcd", "ççç", "123abcdççç987")]
-        public void TestWithContent(string content, string pattern, string insertedText, string expected)
+        [MemberData(nameof(GenerateArgsForTestContent))]
+        public void TestWithContent(string content, string pattern, string insertedText, string expected, int bufferSize)
         {
             var matcher = new StringBinaryMatcher(Encoding.UTF8);
             var matchingPattern = pattern.ToBytes(Encoding.UTF8);
@@ -23,9 +21,32 @@ namespace Fluxzy.Tests.UnitTests.Misc
             
             var stream = new InsertAfterPatternStream(contentStream, matcher, matchingPattern, insertedTextStream);
 
-            var result = stream.ReadToEndWithCustomBuffer(bufferSize: 1); 
+            var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize); 
 
             Assert.Equal(expected, result);
+        }
+
+        public record TestContentArgsTuple(string Content, string Pattern, string InsertedText, string Expected);
+
+        public static TheoryData<string, string, string, string, int> GenerateArgsForTestContent()
+        {
+            var tuples = new TestContentArgsTuple[] {
+                new("Hello World", "World", "!", "Hello World!"),
+                new("Hello World", "W", "!", "Hello W!orld"),
+                new("123abcd987", "abcd", "ççç", "123abcdççç987"),
+            };
+
+            var bufferSize = new[] { 1, 1024 }; // 1 buffer for testing internal loop
+
+            var data = new TheoryData<string, string, string, string, int>();
+
+            foreach (var tuple in tuples) {
+                foreach (var size in bufferSize) {
+                    data.Add(tuple.Content, tuple.Pattern, tuple.InsertedText, tuple.Expected, size);
+                }
+            }
+
+            return data;
         }
     }
 
