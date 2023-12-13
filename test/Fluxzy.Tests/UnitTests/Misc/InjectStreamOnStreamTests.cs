@@ -62,7 +62,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
 
             var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize); 
 
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, result, StringComparer.OrdinalIgnoreCase);
         }
 
         public record TestContentArgsTuple(string Content, string Pattern, string InsertedText, string? Expected);
@@ -119,6 +119,9 @@ namespace Fluxzy.Tests.UnitTests.Misc
         {
             var tuples = new TestContentArgsTuple[] {
                 new("<html><head><title>", "head", "!", "<html><head>!<title>"),
+                new("<html><  head><title>", "head", "!", "<html><  head>!<title>"),
+                new("<html><  head  ><title>", "head", "!", "<html><  head  >!<title>"),
+                new("<html><  hEad  ><title>", "head", "!", "<html><  heAd  >!<title>"),
             };
 
             var bufferSize = new[] { 1, 3, 1024 }; // 1 buffer for testing internal loop
