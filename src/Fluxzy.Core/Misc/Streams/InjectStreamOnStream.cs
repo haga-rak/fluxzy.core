@@ -38,15 +38,18 @@ public class InjectStreamOnStream : Stream
     // Flag indicating that injection should start
     private bool _continueInjecting;
 
+    private int _unvalidatedBufferLength; 
+
     public InjectStreamOnStream(Stream innerStream,
         IBinaryMatcher binaryMatcher,
         byte[] matchingPattern, 
-        Stream injectedStream)
+        Stream injectedStream, int unvalidatedBufferLength = 512)
     {
         _innerStream = innerStream;
         _binaryMatcher = binaryMatcher;
         _matchingPattern = matchingPattern;
         _injectedStream = injectedStream;
+        this._unvalidatedBufferLength = unvalidatedBufferLength;
 
         var bufferSize = Math.Max(_matchingPattern.Length * 2, 4096);
         
@@ -127,13 +130,16 @@ public class InjectStreamOnStream : Stream
                     _matchingPattern);
 
             if (index < 0) {
-                var validatedLength = _pendingUnvalidatedBufferLength - _matchingPattern.Length;
+
+                var unvalidatedLength = (_matchingPattern.Length + _unvalidatedBufferLength);
+
+                var validatedLength = _pendingUnvalidatedBufferLength - unvalidatedLength;
 
                 if (validatedLength > 0) {
                     _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
 
                     BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
-                        validatedLength, _matchingPattern.Length);
+                        validatedLength, unvalidatedLength);
 
                     _pendingUnvalidatedBufferLength -= validatedLength;
                     _pendingValidatedBufferLength = validatedLength;

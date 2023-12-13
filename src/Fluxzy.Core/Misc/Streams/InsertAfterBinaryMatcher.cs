@@ -61,7 +61,7 @@ namespace Fluxzy.Misc.Streams
 
                 var byteIndex = _encoding.GetByteCount(contentTextSpan.Slice(0, charIndex));
 
-                return GetMatchValue(byteIndex, count, searchText.Length);
+                return GetMatchValue(byteIndex, count, count);
             }
             finally
             {

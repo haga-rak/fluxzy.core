@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.IO;
 using System.Text;
 using Fluxzy.Misc.Streams;
@@ -33,6 +34,24 @@ namespace Fluxzy.Tests.UnitTests.Misc
         public void Test_Replace(string content, string pattern, string insertedText, string?  expected, int bufferSize)
         {
             var matcher = new ReplaceBinaryMatcher(Encoding.UTF8);
+            var matchingPattern = pattern.ToBytes(Encoding.UTF8);
+            var contentStream = content.ToUtf8Stream();
+            var insertedTextStream = insertedText.ToUtf8Stream();
+
+            expected ??= content;  // if expected is null, we expect the same content
+
+            var stream = new InjectStreamOnStream(contentStream, matcher, matchingPattern, insertedTextStream);
+
+            var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize); 
+
+            Assert.Equal(expected, result);
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateArgsForInsertDetectHtml))]
+        public void Test_Detect_Html_Insert(string content, string pattern, string insertedText, string?  expected, int bufferSize)
+        {
+            var matcher = new SimpleHtmlTagOpeningMatcher(Encoding.UTF8, StringComparison.OrdinalIgnoreCase, false);
             var matchingPattern = pattern.ToBytes(Encoding.UTF8);
             var contentStream = content.ToUtf8Stream();
             var insertedTextStream = insertedText.ToUtf8Stream();
@@ -83,7 +102,26 @@ namespace Fluxzy.Tests.UnitTests.Misc
                 new("", "xxxx", "not_run", null),
             };
 
-            var bufferSize = new[] { 1, 3,1024 }; // 1 buffer for testing internal loop
+            var bufferSize = new[] { 1, 3, 1024 }; // 1 buffer for testing internal loop
+
+            var data = new TheoryData<string, string, string, string?, int>();
+
+            foreach (var tuple in tuples) {
+                foreach (var size in bufferSize) {
+                    data.Add(tuple.Content, tuple.Pattern, tuple.InsertedText, tuple.Expected, size);
+                }
+            }
+
+            return data;
+        }
+
+        public static TheoryData<string, string, string, string?, int> GenerateArgsForInsertDetectHtml()
+        {
+            var tuples = new TestContentArgsTuple[] {
+                new("<html><head><title>", "head", "!", "<html><head>!<title>"),
+            };
+
+            var bufferSize = new[] { 1, 3, 1024 }; // 1 buffer for testing internal loop
 
             var data = new TheoryData<string, string, string, string?, int>();
 

@@ -12,6 +12,7 @@ namespace Fluxzy.Misc.Streams
     public class SimpleHtmlTagOpeningMatcher : StringMatcher
     {
         private readonly StringComparison _stringComparison;
+        private readonly bool _replace;
 
         internal enum DetectingState
         {
@@ -20,10 +21,11 @@ namespace Fluxzy.Misc.Streams
             WaitingTagClose,
         }
 
-        public SimpleHtmlTagOpeningMatcher(Encoding encoding, StringComparison stringComparison)
+        public SimpleHtmlTagOpeningMatcher(Encoding encoding, StringComparison stringComparison, bool replace)
             : base(encoding, stringComparison)
         {
             _stringComparison = stringComparison;
+            _replace = replace;
         }
         
         public override (int Index, int Count) FindIndex(ReadOnlySpan<char> buffer, ReadOnlySpan<char> searchText)
@@ -101,7 +103,7 @@ namespace Fluxzy.Misc.Streams
 
         protected override BinaryMatchResult GetMatchValue(int index, int blockLength, int shiftLength)
         {
-            return new(index, blockLength, shiftLength);
+            return _replace ? new(index, blockLength, 0) : new(index, blockLength, shiftLength);
         }
     }
 }
