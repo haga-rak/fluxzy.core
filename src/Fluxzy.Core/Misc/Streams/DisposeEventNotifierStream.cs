@@ -11,18 +11,18 @@ namespace Fluxzy.Misc.Streams
 
     public class DisposeEventNotifierStream : Stream
     {
-        public Stream InnerStream { get; }
+        private bool _fromAsyncDispose;
 
         private int _totalRead;
-
-        private bool _fromAsyncDispose = false;
-
-        public bool Faulted { get; private set; }
 
         public DisposeEventNotifierStream(Stream innerStream)
         {
             InnerStream = innerStream;
         }
+
+        public Stream InnerStream { get; }
+
+        public bool Faulted { get; private set; }
 
         public override bool CanRead => InnerStream.CanRead;
 
@@ -54,8 +54,10 @@ namespace Fluxzy.Misc.Streams
                 return res;
             }
             catch {
-                Faulted = true; 
+                Faulted = true;
+
                 throw;
+
                 //return 0; // JUST RETURN EOF when fail
             }
         }
@@ -104,10 +106,9 @@ namespace Fluxzy.Misc.Streams
 
         public override void Close()
         {
-            Faulted = true; 
+            Faulted = true;
 
-            if (!_fromAsyncDispose)
-            {
+            if (!_fromAsyncDispose) {
                 _ = DisposeAsync();
             }
         }
@@ -130,10 +131,9 @@ namespace Fluxzy.Misc.Streams
 
             await InnerStream.DisposeAsync();
 
-            if (OnStreamDisposed != null)
+            if (OnStreamDisposed != null) {
                 await OnStreamDisposed(this, new StreamDisposeEventArgs());
-
-            
+            }
         }
     }
 }

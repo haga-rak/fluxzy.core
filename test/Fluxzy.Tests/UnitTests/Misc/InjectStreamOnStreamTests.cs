@@ -13,59 +13,59 @@ namespace Fluxzy.Tests.UnitTests.Misc
     {
         [Theory]
         [MemberData(nameof(GenerateArgsForInsertAfter))]
-        public void Test_Insert_After(string content, string pattern, string insertedText, string?  expected, int bufferSize)
+        public void Test_Insert_After(
+            string content, string pattern, string insertedText, string? expected, int bufferSize)
         {
             var matcher = new InsertAfterBinaryMatcher(Encoding.UTF8);
             var matchingPattern = pattern.ToBytes(Encoding.UTF8);
             var contentStream = content.ToUtf8Stream();
             var insertedTextStream = insertedText.ToUtf8Stream();
 
-            expected ??= content;  // if expected is null, we expect the same content
+            expected ??= content; // if expected is null, we expect the same content
 
             var stream = new InjectStreamOnStream(contentStream, matcher, matchingPattern, insertedTextStream);
 
-            var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize); 
+            var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize);
 
             Assert.Equal(expected, result);
         }
-        
+
         [Theory]
         [MemberData(nameof(GenerateArgsForReplace))]
-        public void Test_Replace(string content, string pattern, string insertedText, string?  expected, int bufferSize)
+        public void Test_Replace(string content, string pattern, string insertedText, string? expected, int bufferSize)
         {
             var matcher = new ReplaceBinaryMatcher(Encoding.UTF8);
             var matchingPattern = pattern.ToBytes(Encoding.UTF8);
             var contentStream = content.ToUtf8Stream();
             var insertedTextStream = insertedText.ToUtf8Stream();
 
-            expected ??= content;  // if expected is null, we expect the same content
+            expected ??= content; // if expected is null, we expect the same content
 
             var stream = new InjectStreamOnStream(contentStream, matcher, matchingPattern, insertedTextStream);
 
-            var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize); 
+            var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize);
 
             Assert.Equal(expected, result);
         }
 
         [Theory]
         [MemberData(nameof(GenerateArgsForInsertDetectHtml))]
-        public void Test_Detect_Html_Insert(string content, string pattern, string insertedText, string?  expected, int bufferSize)
+        public void Test_Detect_Html_Insert(
+            string content, string pattern, string insertedText, string? expected, int bufferSize)
         {
             var matcher = new SimpleHtmlTagOpeningMatcher(Encoding.UTF8, StringComparison.OrdinalIgnoreCase, false);
             var matchingPattern = pattern.ToBytes(Encoding.UTF8);
             var contentStream = content.ToUtf8Stream();
             var insertedTextStream = insertedText.ToUtf8Stream();
 
-            expected ??= content;  // if expected is null, we expect the same content
+            expected ??= content; // if expected is null, we expect the same content
 
             var stream = new InjectStreamOnStream(contentStream, matcher, matchingPattern, insertedTextStream);
 
-            var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize); 
+            var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize);
 
             Assert.Equal(expected, result, StringComparer.OrdinalIgnoreCase);
         }
-
-        public record TestContentArgsTuple(string Content, string Pattern, string InsertedText, string? Expected);
 
         public static TheoryData<string, string, string, string?, int> GenerateArgsForInsertAfter()
         {
@@ -75,10 +75,10 @@ namespace Fluxzy.Tests.UnitTests.Misc
                 new("123abcd987", "abcd", "ççç", "123abcdççç987"),
                 new("123abcd987", "", "ççç", "ççç123abcd987"),
                 new("123abcd987", "xxxx", "not_run", null),
-                new("", "xxxx", "not_run", null),
+                new("", "xxxx", "not_run", null)
             };
 
-            var bufferSize = new[] { 1, 3,1024 }; // 1 buffer for testing internal loop
+            var bufferSize = new[] { 1, 3, 1024 }; // 1 buffer for testing internal loop
 
             var data = new TheoryData<string, string, string, string?, int>();
 
@@ -99,7 +99,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
                 new("123abcd987", "abcd", "ççç", "123ççç987"),
                 new("123abcd987", "", "ççç", "ççç123abcd987"),
                 new("123abcd987", "xxxx", "not_run", null),
-                new("", "xxxx", "not_run", null),
+                new("", "xxxx", "not_run", null)
             };
 
             var bufferSize = new[] { 1, 3, 1024 }; // 1 buffer for testing internal loop
@@ -121,7 +121,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
                 new("<html><head><title>", "head", "!", "<html><head>!<title>"),
                 new("<html><  head><title>", "head", "!", "<html><  head>!<title>"),
                 new("<html><  head  ><title>", "head", "!", "<html><  head  >!<title>"),
-                new("<html><  hEad  ><title>", "head", "!", "<html><  heAd  >!<title>"),
+                new("<html><  hEad  ><title>", "head", "!", "<html><  heAd  >!<title>")
             };
 
             var bufferSize = new[] { 1, 3, 1024 }; // 1 buffer for testing internal loop
@@ -136,6 +136,8 @@ namespace Fluxzy.Tests.UnitTests.Misc
 
             return data;
         }
+
+        public record TestContentArgsTuple(string Content, string Pattern, string InsertedText, string? Expected);
     }
 
     internal static class BinaryHelper

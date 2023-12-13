@@ -5,15 +5,14 @@ using System;
 namespace Fluxzy.Misc.Streams
 {
     /// <summary>
-    /// Low level specification used to find a specific byte sequence in a buffer
+    ///     Low level specification used to find a specific byte sequence in a buffer
     /// </summary>
     public interface IBinaryMatcher
     {
-        BinaryMatchResult FindIndex(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> searchText); 
+        BinaryMatchResult FindIndex(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> searchText);
     }
 
     /// <summary>
-    /// 
     /// </summary>
     /// <param name="Index">The start position where the pattern is found</param>
     /// <param name="Length"></param>

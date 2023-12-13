@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Fluxzy.Misc.Streams
 {
     /// <summary>
-    /// Combine multiple streams into one, this stream is readonly
+    ///     Combine multiple streams into one, this stream is readonly
     /// </summary>
     public class CombinedReadonlyStream : Stream
     {
@@ -25,8 +25,9 @@ namespace Fluxzy.Misc.Streams
 
         public CombinedReadonlyStream(IEnumerable<Stream> source, bool closeStreams = false)
         {
-            if (source == null)
+            if (source == null) {
                 throw new ArgumentNullException(nameof(source));
+            }
 
             _iterator = source.GetEnumerator();
             _closeStreams = closeStreams;
@@ -39,14 +40,17 @@ namespace Fluxzy.Misc.Streams
         private Stream? Current {
             get
             {
-                if (_current != null)
+                if (_current != null) {
                     return _current;
+                }
 
-                if (_iterator == null)
+                if (_iterator == null) {
                     throw new ObjectDisposedException(GetType().Name);
+                }
 
-                if (_iterator.MoveNext())
+                if (_iterator.MoveNext()) {
                     _current = _iterator.Current;
+                }
 
                 return _current;
             }
@@ -63,8 +67,9 @@ namespace Fluxzy.Misc.Streams
 
             set
             {
-                if (value != _position)
+                if (value != _position) {
                     throw new NotSupportedException();
+                }
             }
         }
 
@@ -121,16 +126,18 @@ namespace Fluxzy.Misc.Streams
             while (count > 0) {
                 var stream = Current;
 
-                if (stream == null)
+                if (stream == null) {
                     break;
+                }
 
                 var thisCount = stream.Read(buffer, offset, count);
                 result += thisCount;
                 count -= thisCount;
                 offset += thisCount;
 
-                if (thisCount == 0)
+                if (thisCount == 0) {
                     EndOfStream();
+                }
             }
 
             _position += result;
@@ -145,8 +152,9 @@ namespace Fluxzy.Misc.Streams
             while (count > 0) {
                 var stream = Current;
 
-                if (stream == null)
+                if (stream == null) {
                     break;
+                }
 
                 var currentReadCount =
                     stream is MemoryStream
@@ -157,12 +165,14 @@ namespace Fluxzy.Misc.Streams
                 count -= currentReadCount;
                 offset += currentReadCount;
 
-                if (currentReadCount == 0)
+                if (currentReadCount == 0) {
                     EndOfStream();
+                }
 
                 // break;
-                else
+                else {
                     break; // We already have something, + NetworkStream may be blocked forever
+                }
             }
 
             _position += result;

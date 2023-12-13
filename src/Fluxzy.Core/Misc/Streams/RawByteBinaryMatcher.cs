@@ -8,7 +8,7 @@ namespace Fluxzy.Misc.Streams
     {
         public BinaryMatchResult FindIndex(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> searchText)
         {
-            return new (buffer.IndexOf(searchText), searchText.Length, searchText.Length);
+            return new BinaryMatchResult(buffer.IndexOf(searchText), searchText.Length, searchText.Length);
         }
     }
 }

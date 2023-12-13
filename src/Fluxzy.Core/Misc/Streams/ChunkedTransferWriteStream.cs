@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Fluxzy.Misc.Streams
 {
     /// <summary>
-    ///  A stream that write chunked transfer encoding
+    ///     A stream that write chunked transfer encoding
     /// </summary>
     public class ChunkedTransferWriteStream : Stream
     {
@@ -96,11 +96,12 @@ namespace Fluxzy.Misc.Streams
                 ArrayPool<byte>.Shared.Return(poolBuffer);
             }
         }
-        
+
         public ValueTask WriteEof()
         {
             if (!_eof) {
                 _eof = true;
+
                 return _innerStream.WriteAsync(ChunkTerminator);
             }
 

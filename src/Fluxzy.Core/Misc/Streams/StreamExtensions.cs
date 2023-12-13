@@ -40,8 +40,9 @@ namespace Fluxzy.Misc.Streams
                     total += read;
                 }
 
-                if (disposeStream)
+                if (disposeStream) {
                     stream.Dispose();
+                }
 
                 return total;
             }
@@ -50,13 +51,12 @@ namespace Fluxzy.Misc.Streams
             }
         }
 
-
-        public static bool DrainUntil(this Stream stream, int byteCount, int bufferSize = 16 * 1024, bool disposeStream = false)
+        public static bool DrainUntil(
+            this Stream stream, int byteCount, int bufferSize = 16 * 1024, bool disposeStream = false)
         {
             // TODO improve perf with stackalloc when bufferSize is small than an arbitrary threshold
 
             var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-
 
             try {
                 int read;
@@ -66,14 +66,16 @@ namespace Fluxzy.Misc.Streams
 
                 while ((read = stream.Read(buffer, 0, Math.Min(remaining, buffer.Length))) > 0) {
                     total += read;
-                    remaining -= read; 
+                    remaining -= read;
 
-                    if (remaining <= 0)
+                    if (remaining <= 0) {
                         break;
+                    }
                 }
 
-                if (disposeStream)
+                if (disposeStream) {
                     stream.Dispose();
+                }
 
                 return byteCount == total;
             }
@@ -96,8 +98,9 @@ namespace Fluxzy.Misc.Streams
                     total += read;
                 }
 
-                if (disposeStream)
+                if (disposeStream) {
                     await stream.DisposeAsync();
+                }
 
                 return total;
             }
@@ -113,10 +116,12 @@ namespace Fluxzy.Misc.Streams
 
             return memoryStream.ToArray();
         }
+
         public static async Task<byte[]> ToArrayGreedyAsync(this Stream stream)
         {
             var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
+
             return memoryStream.ToArray();
         }
 
@@ -124,6 +129,7 @@ namespace Fluxzy.Misc.Streams
         {
             try {
                 var array = stream.ToArrayGreedy();
+
                 return Convert.ToBase64String(array);
             }
             finally {
@@ -180,8 +186,9 @@ namespace Fluxzy.Misc.Streams
                     memoryStream.Write(buffer, 0, read);
                     totalRead += read;
 
-                    if (totalRead > maximum)
+                    if (totalRead > maximum) {
                         return null;
+                    }
                 }
 
                 return memoryStream.ToArray();
@@ -204,8 +211,9 @@ namespace Fluxzy.Misc.Streams
 
                 totalRead += read;
 
-                if (totalRead >= atLeastLength)
+                if (totalRead >= atLeastLength) {
                     return totalRead;
+                }
             }
 
             return -1;
@@ -224,8 +232,9 @@ namespace Fluxzy.Misc.Streams
 
                 totalRead += read;
 
-                if (totalRead >= atLeastLength)
+                if (totalRead >= atLeastLength) {
                     return totalRead;
+                }
             }
 
             return -1;
@@ -240,14 +249,16 @@ namespace Fluxzy.Misc.Streams
             var remain = buffer.Length;
 
             while (readen < buffer.Length) {
-                if (cancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested) {
                     return false;
+                }
 
                 var currentRead = await origin.ReadAsync(buffer.Slice(currentIndex, remain), cancellationToken)
                                               .ConfigureAwait(false);
 
-                if (currentRead <= 0)
+                if (currentRead <= 0) {
                     return false;
+                }
 
                 currentIndex += currentRead;
                 remain -= currentRead;
@@ -266,8 +277,9 @@ namespace Fluxzy.Misc.Streams
             while (readen < buffer.Length) {
                 var currentRead = origin.Read(buffer.Slice(currentIndex, remain));
 
-                if (currentRead <= 0)
+                if (currentRead <= 0) {
                     return false;
+                }
 
                 currentIndex += currentRead;
                 remain -= currentRead;
@@ -286,8 +298,9 @@ namespace Fluxzy.Misc.Streams
             while (readen < buffer.Length) {
                 var currentRead = origin.Read(buffer.Slice(currentIndex, remain));
 
-                if (currentRead <= 0)
+                if (currentRead <= 0) {
                     return readen;
+                }
 
                 currentIndex += currentRead;
                 remain -= currentRead;
@@ -311,8 +324,9 @@ namespace Fluxzy.Misc.Streams
 
         public static string ReadToEndGreedy(this Stream stream, Encoding? encoding = null)
         {
-            if (!stream.CanRead)
-                return string.Empty; 
+            if (!stream.CanRead) {
+                return string.Empty;
+            }
 
             using var streamReader = new StreamReader(stream, encoding ?? Encoding.UTF8);
 
@@ -325,10 +339,11 @@ namespace Fluxzy.Misc.Streams
             dest.Dispose();
         }
 
-        public static string ReadToEndWithCustomBuffer(this Stream stream, Encoding? encoding = null, 
+        public static string ReadToEndWithCustomBuffer(
+            this Stream stream, Encoding? encoding = null,
             int bufferSize = -1)
         {
-            var memoryStream = new MemoryStream(); 
+            var memoryStream = new MemoryStream();
 
             var buffer = bufferSize == -1 ? new byte[1024] : new byte[bufferSize];
             encoding = encoding ?? Encoding.UTF8;
