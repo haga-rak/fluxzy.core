@@ -3,19 +3,27 @@
 using System;
 using System.Buffers;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Fluxzy.Misc.Streams
 {
     public abstract class StringMatcher : IBinaryMatcher
     {
         private readonly Encoding _encoding;
+        private readonly StringComparison _stringComparison;
 
-        protected StringMatcher(Encoding encoding)
+        protected StringMatcher(Encoding encoding, StringComparison stringComparison)
         {
             _encoding = encoding;
+            _stringComparison = stringComparison;
         }
 
         protected abstract BinaryMatchResult GetMatchValue(int index, int blockLength, int shiftLength);
+
+        public virtual (int Index, int Count) FindIndex(ReadOnlySpan<char> buffer, ReadOnlySpan<char> searchText)
+        {
+            return (buffer.IndexOf(searchText, _stringComparison), searchText.Length);
+        }
 
         public BinaryMatchResult FindIndex(ReadOnlySpan<byte> content, ReadOnlySpan<byte> searchText)
         {
@@ -46,14 +54,14 @@ namespace Fluxzy.Misc.Streams
                 var contentTextSpan = contentTextArray.Slice(0, contentTextStringCount);
                 var searchTextSpan = searchTextArray.Slice(0, searchTextStringCount);
 
-                var charIndex = contentTextSpan.IndexOf(searchTextSpan);
+                var (charIndex, count) = FindIndex(contentTextSpan, searchTextSpan);
 
                 if (charIndex < 0)
                     return new(-1, 0, 0);
 
                 var byteIndex = _encoding.GetByteCount(contentTextSpan.Slice(0, charIndex));
 
-                return GetMatchValue(byteIndex, searchText.Length, searchText.Length);
+                return GetMatchValue(byteIndex, count, searchText.Length);
             }
             finally
             {
@@ -66,11 +74,10 @@ namespace Fluxzy.Misc.Streams
         }
     }
 
-
     public class InsertAfterBinaryMatcher : StringMatcher
     {
-        public InsertAfterBinaryMatcher(Encoding encoding)
-            : base(encoding)
+        public InsertAfterBinaryMatcher(Encoding encoding, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+            : base(encoding, stringComparison)
         {
 
         }
@@ -83,8 +90,8 @@ namespace Fluxzy.Misc.Streams
 
     public class ReplaceBinaryMatcher : StringMatcher
     {
-        public ReplaceBinaryMatcher(Encoding encoding)
-            : base(encoding)
+        public ReplaceBinaryMatcher(Encoding encoding, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+            : base(encoding, stringComparison)
         {
 
         }
