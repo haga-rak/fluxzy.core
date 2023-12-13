@@ -9,8 +9,10 @@ namespace Fluxzy.Misc.Streams
     /// <summary>
     ///  A trivial state-machine to detect opening tag in html. Used essentially to detect the header tag
     /// </summary>
-    public class DetectHtmlTagOpeningMatcher : StringMatcher
+    public class SimpleHtmlTagOpeningMatcher : StringMatcher
     {
+        private readonly StringComparison _stringComparison;
+
         internal enum DetectingState
         {
             None = 0,
@@ -18,10 +20,10 @@ namespace Fluxzy.Misc.Streams
             WaitingTagClose,
         }
 
-        public DetectHtmlTagOpeningMatcher(Encoding encoding, StringComparison stringComparison)
+        public SimpleHtmlTagOpeningMatcher(Encoding encoding, StringComparison stringComparison)
             : base(encoding, stringComparison)
         {
-
+            _stringComparison = stringComparison;
         }
         
         public override (int Index, int Count) FindIndex(ReadOnlySpan<char> buffer, ReadOnlySpan<char> searchText)
@@ -30,6 +32,8 @@ namespace Fluxzy.Misc.Streams
             var index = 0;
 
             var validatedSearchTextIndex = -1;
+
+            Span<char> compareBuffer = stackalloc char[1];
 
             for (var i = 0; i < buffer.Length; i++) {
                 var c = buffer[i];
@@ -71,8 +75,12 @@ namespace Fluxzy.Misc.Streams
                             }
                         }
 
-                        if (c == searchText[validatedSearchTextIndex++]) {
-                            continue; 
+                        compareBuffer[0] = c;
+
+                        if (((ReadOnlySpan<char>) compareBuffer).Equals(
+                                searchText.Slice(validatedSearchTextIndex++, 1), 
+                                _stringComparison)) {
+                            continue;
                         }
 
                         state = DetectingState.None;
