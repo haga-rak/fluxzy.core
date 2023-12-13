@@ -27,7 +27,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
 
             Assert.Equal(expected, result);
         }
-
+        
         [Theory]
         [MemberData(nameof(GenerateArgsForReplace))]
         public void Test_Replace(string content, string pattern, string insertedText, string?  expected, int bufferSize)

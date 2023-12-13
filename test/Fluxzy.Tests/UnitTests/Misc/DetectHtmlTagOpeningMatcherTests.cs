@@ -13,6 +13,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         [InlineData("<html><head><title>", "head", 6, 6)]
         [InlineData("<html><head ><title>", "head", 6, 7)]
         [InlineData("<html>< head><title>", "head", 6, 7)]
+        [InlineData("<html><a><title>", "a", 6, 3)]
 
         [InlineData("<html><head>", "head", 6, 6)]
         [InlineData("<html><head >", "head", 6, 7)]
@@ -29,11 +30,12 @@ namespace Fluxzy.Tests.UnitTests.Misc
         [InlineData("<hea d><he ad><title>", "head", -1, 0)]
 
         [InlineData("<hea d><he ad><title>", "", -1, 0)]
+        [InlineData("<hea d><heAd><title>", "", -1, 0)]
         [InlineData("", "", -1, 0)]
         [InlineData("<hea<html>< head><title>", "head", 10, 7)]
         public void Test_Ordinal(string htmlContent, string searchTag, int foundIndex, int foundCount)
         {
-            var matcher = new SimpleHtmlTagOpeningMatcher(Encoding.UTF8, StringComparison.OrdinalIgnoreCase);
+            var matcher = new SimpleHtmlTagOpeningMatcher(Encoding.UTF8, StringComparison.Ordinal);
 
             var (index, length) = matcher.FindIndex(htmlContent, searchTag);
 
@@ -45,6 +47,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         [InlineData("<html><hEad><title>", "head", 6, 6)]
         [InlineData("<html><heaD ><title>", "heaD", 6, 7)]
         [InlineData("<html>< Head><title>", "hEad", 6, 7)]
+        [InlineData("<html><A><title>", "a", 6, 3)]
 
         [InlineData("<html><heAd>", "head", 6, 6)]
 
