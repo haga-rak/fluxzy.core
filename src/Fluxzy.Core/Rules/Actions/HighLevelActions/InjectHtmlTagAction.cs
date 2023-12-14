@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,94 +18,117 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     ///     This action is issued essentially to inject a script tag in a html page.
     /// </summary>
     [ActionMetadata(
-        "This action analyze a  response body and inject a text after the first a specified html tag. " +
+        "This action analyze a  response body and inject a text after the first provided html tag." +
         "This action relies on ExchangeContext.ResponseBodySubstitution to perform the injection. " +
         "This action is issued essentially to inject a script tag in a html page.",
         NonDesktopAction = true)]
-    public class InjectIntoHtmlTagAction : Action
+    public class InjectHtmlTagAction : Action
     {
-        public InjectIntoHtmlTagAction(string tag, string text)
+        public InjectHtmlTagAction()
         {
-            Tag = tag;
-            Text = text;
+
         }
 
         /// <summary>
-        ///   Html tag name after which the injection will be performed
+        ///     Html tag name after which the injection will be performed
         /// </summary>
         [ActionDistinctive(Description = "Html tag name after which the injection will be performed")]
-        public string Tag { get; set; } 
+        public string Tag { get; set; } = "head";
 
         /// <summary>
-        ///  The text to be injected
+        ///     The text to be injected
         /// </summary>
         [ActionDistinctive(Description = "The text to be injected")]
-        public string? Text { get; set; }
+        public string? HtmlContent { get; set; }
 
         /// <summary>
-        /// If true, the text will be read from a file
+        ///     If true, the text will be read from a file
         /// </summary>
         [ActionDistinctive(Description = "If true, the text will be read from a file")]
-        public bool FromFile { get; set; } = false; 
-        
-        /// <summary>
-        /// If FromFile is true, the file name to read from
-        /// </summary>
-        [ActionDistinctive(Description = "If FromFile is true, the file name to read from")]
-        public string ? FileName { get; set; }
+        public bool FromFile { get; set; } = false;
 
         /// <summary>
-        ///  Encoding IANA name, if not specified, UTF8 will be used
+        ///     If FromFile is true, the file name to read from
+        /// </summary>
+        [ActionDistinctive(Description = "If FromFile is true, the file name to read from")]
+        public string? FileName { get; set; }
+
+        /// <summary>
+        ///     Encoding IANA name, if not specified, UTF8 will be used
         /// </summary>
         [ActionDistinctive(Description = "IANA name encoding", DefaultValue = "utf8")]
         public string? Encoding { get; set; }
 
         /// <summary>
-        /// 
+        ///     When true, the substitution will be performed only if the response is text/html. Default value is `true`
         /// </summary>
         [ActionDistinctive(Description = "Restrict substitution to text/html response", DefaultValue = "true")]
         public bool RestrictToHtml { get; set; } = true;
 
         public override FilterScope ActionScope { get; } = FilterScope.ResponseHeaderReceivedFromRemote;
 
-        public override string DefaultDescription { get; } = "inject tag"; 
+        public override string DefaultDescription { get; } = "inject tag";
 
         public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            if (exchange == null || exchange.Id == 0)
+            if (exchange == null || exchange.Id == 0) {
                 return default;
+            }
 
-            if (!FromFile && string.IsNullOrEmpty(Text)) {
+            if (!FromFile && string.IsNullOrEmpty(HtmlContent)) {
                 throw new RuleExecutionFailureException("Text is null or empty");
             }
-            
+
             if (FromFile && string.IsNullOrEmpty(FileName)) {
                 throw new RuleExecutionFailureException("FileName is null or empty");
             }
 
             if (RestrictToHtml) {
                 var isHtml = exchange.GetResponseHeaders()?
-                                          .Any(r =>
-                                              r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase)
-                                              && r.Value.Span.Contains("text/html", StringComparison.Ordinal))
-                    ?? false;
+                                 .Any(r =>
+                                     r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase)
+                                     && r.Value.Span.Contains("text/html", StringComparison.Ordinal))
+                             ?? false;
 
-                if (!isHtml)
+                if (!isHtml) {
                     return default;
+                }
             }
 
-            var encoding = string.IsNullOrEmpty(Encoding) ? System.Text.Encoding.UTF8
+            var encoding = string.IsNullOrEmpty(Encoding)
+                ? System.Text.Encoding.UTF8
                 : System.Text.Encoding.GetEncoding(Encoding);
-            
-            var stream = !FromFile ? (Stream) new MemoryStream(encoding.GetBytes(Text!))
+
+            var stream = !FromFile
+                ? (Stream) new MemoryStream(encoding.GetBytes(HtmlContent!))
                 : new FileStream(FileName!, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
-                context.RegisterResponseBodySubstitution(
-                    new InjectAfterHtmlTagSubstitution(encoding, Tag, stream));
+            context.RegisterResponseBodySubstitution(
+                new InjectAfterHtmlTagSubstitution(encoding, Tag, stream));
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample(
+                "Inject a CSS style tag after `<head>` that sets the document body color to red.",
+                new InjectHtmlTagAction() {
+                    HtmlContent = "<style>body { background-color: red !important; }</style>",
+                    Tag = "head",
+                    RestrictToHtml = true,
+                });
+
+            yield return new ActionExample(
+                "Inject a  file after `<head>`",
+                new InjectHtmlTagAction() {
+                    RestrictToHtml = true,
+                    FromFile = true,
+                    Tag = "head",
+                    FileName = "injected.html"
+                });
         }
     }
 
@@ -114,12 +138,13 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         private readonly Stream _injectedStream;
         private readonly byte[] _matchingPattern;
 
-        public InjectAfterHtmlTagSubstitution(Encoding encoding, string htmlTag, 
+        public InjectAfterHtmlTagSubstitution(
+            Encoding encoding, string htmlTag,
             Stream injectedStream)
         {
             _encoding = encoding;
             _injectedStream = injectedStream;
-            _matchingPattern = _encoding.GetBytes(htmlTag); 
+            _matchingPattern = _encoding.GetBytes(htmlTag);
         }
 
         public ValueTask<Stream> Substitute(Stream originalStream)
@@ -128,7 +153,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                 new SimpleHtmlTagOpeningMatcher(_encoding, StringComparison.OrdinalIgnoreCase,
                     false), _matchingPattern, _injectedStream);
 
-            return new ValueTask<Stream>(stream); 
+            return new ValueTask<Stream>(stream);
         }
     }
 }

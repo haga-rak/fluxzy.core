@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
-    public class WithRuleInjectAfterHtmlTag : WithRuleOptionBase
+    public class WithRuleInjectHtmlTag : WithRuleOptionBase
     {
         [Theory]
         [InlineData(false)]
@@ -20,7 +20,7 @@ namespace Fluxzy.Tests.Cli
                                - filter:
                                    typeKind: anyFilter
                                  action :
-                                   typeKind: InjectIntoHtmlTagAction
+                                   typeKind: InjectHtmlTagAction
                                    tag: head
                                    text: '<style>body { background-color: red !important; }</style>'
                                """;
@@ -48,7 +48,7 @@ namespace Fluxzy.Tests.Cli
                                - filter:
                                    typeKind: anyFilter
                                  action :
-                                   typeKind: InjectIntoHtmlTagAction
+                                   typeKind: InjectHtmlTagAction
                                    tag: head
                                    fromFile: true
                                    fileName: _Files/Rules/Injected/injected-script.js
