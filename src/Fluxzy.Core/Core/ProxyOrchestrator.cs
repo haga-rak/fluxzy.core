@@ -167,11 +167,10 @@ namespace Fluxzy.Core
 
                                         // here we have a chance substitute the requestBodyStream
 
-                                        if (exchange.Context.RequestBodySubstitution != null) {
+                                        if (exchange.Context.HasRequestBodySubstitution) {
                                             originalRequestBodyStream = exchange.Request.Body;
                                             exchange.Request.Body = await
-                                                exchange.Context.RequestBodySubstitution
-                                                        .Substitute(exchange.Request.Body);
+                                                exchange.Context.GetSubstitutedRequestBody(exchange.Request.Body);
                                         }
 
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body,
@@ -300,11 +299,11 @@ namespace Fluxzy.Core
 
                                         // here we have a chance substitute the reponseBodyStream
 
-                                        if (exchange.Context.ResponseBodySubstitution != null) {
+                                        if (exchange.Context.HasResponseBodySubstitution) {
                                             originalResponseBodyStream = responseBodyStream;
+
                                             responseBodyStream = await
-                                                exchange.Context.ResponseBodySubstitution
-                                                        .Substitute(responseBodyStream);
+                                                exchange.Context.GetSubstitutedResponseBody(responseBodyStream);
                                         }
 
                                         var dispatchStream = new DispatchStream(responseBodyStream,

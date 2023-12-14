@@ -11,25 +11,25 @@ using Fluxzy.Misc.Streams;
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
     /// <summary>
-    ///     This action analyze a response body and inject a string after the first specified html tag.
+    ///     This action analyze a response body and inject a text after the first specified html tag.
     ///     This action relies on ExchangeContext.ResponseBodySubstitution to perform the injection.
     ///     This action is issued essentially to inject a script tag in a html page.
     /// </summary>
     [ActionMetadata(
-        "This action analyze a  response body and inject a string after the first a specified html tag. " +
+        "This action analyze a  response body and inject a text after the first a specified html tag. " +
         "This action relies on ExchangeContext.ResponseBodySubstitution to perform the injection. " +
         "This action is issued essentially to inject a script tag in a html page.",
         NonDesktopAction = true)]
     public class InjectAfterHtmlTagAction : Action
     {
-        public InjectAfterHtmlTagAction(string htmlTag, string text)
+        public InjectAfterHtmlTagAction(string tag, string text)
         {
-            HtmlTag = htmlTag;
+            Tag = tag;
             Text = text;
         }
 
         [ActionDistinctive(Description = "Html tag name after which the injection will be performed")]
-        public string HtmlTag { get; set; }
+        public string Tag { get; set; } 
 
         [ActionDistinctive(Description = "The text to be injected")]
         public string Text { get; set; }
@@ -40,7 +40,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         [ActionDistinctive(Description = "Encoding")]
         public string? Encoding { get; set; }
 
-        public override FilterScope ActionScope { get; } = FilterScope.OnAuthorityReceived;
+        public override FilterScope ActionScope { get; } = FilterScope.ResponseHeaderReceivedFromRemote;
 
         public override string DefaultDescription { get; } = "inject tag"; 
 
@@ -54,15 +54,14 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             var encoding = string.IsNullOrEmpty(Encoding) ? System.Text.Encoding.UTF8
                 : System.Text.Encoding.GetEncoding(Encoding);
 
-            if (context.ResponseBodySubstitution == null)
-                context.ResponseBodySubstitution = new InjectAfterHtmlTagSubstitution(encoding,
-                    HtmlTag, Text);
+                context.RegisterResponseBodySubstitution(
+                    new InjectAfterHtmlTagSubstitution(encoding, Tag, Text));
 
             return default;
         }
     }
 
-    public class InjectAfterHtmlTagSubstitution : IStreamSubstitution
+    internal class InjectAfterHtmlTagSubstitution : IStreamSubstitution
     {
         private readonly Encoding _encoding;
         private readonly byte[] _matchingPattern;
@@ -73,7 +72,6 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             _encoding = encoding;
             _matchingPattern = _encoding.GetBytes(htmlTag); 
             _binaryText = _encoding.GetBytes(text);
-
         }
 
         public ValueTask<Stream> Substitute(Stream originalStream)
