@@ -22,7 +22,7 @@ namespace Fluxzy.Tests.Cli
                                  action :
                                    typeKind: InjectHtmlTagAction
                                    tag: head
-                                   text: '<style>body { background-color: red !important; }</style>'
+                                   htmlContent: '<style>body { background-color: red !important; }</style>'
                                """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,

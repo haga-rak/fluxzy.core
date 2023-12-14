@@ -3,8 +3,8 @@
         "launch (system proxy)": {
             "commandName": "Project",
             "environmentVariables": {
-            },            
-            "commandLineArgs": "start --llo -sp --use-502 -r e:\\test.yaml"
+            },
+            "commandLineArgs": "start --llo -sp --use-502 -r e:\\test.yaml -o e:\\ss.fxzy -c --bouncy-castle"
         },
         "launch (normal)": {
             "commandName": "Project",
