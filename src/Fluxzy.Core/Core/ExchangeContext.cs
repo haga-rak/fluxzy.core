@@ -165,16 +165,6 @@ namespace Fluxzy.Core
 
         internal Dictionary<Filter, bool> FilterEvaluationResult { get; } = new();
 
-        ///// <summary>
-        ///// Gets or sets the request body substitution.
-        ///// </summary>
-        //public IStreamSubstitution? RequestBodySubstitution { get; set; }
-
-        ///// <summary>
-        ///// Gets or sets the substitution for the response body.
-        ///// </summary>
-        //public IStreamSubstitution? ResponseBodySubstitution { get; set; }
-
         /// <summary>
         /// True if the current exchange has at least one response body substitution
         /// </summary>
