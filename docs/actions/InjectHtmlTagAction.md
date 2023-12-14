@@ -2,7 +2,7 @@
 
 ### Description
 
-This action analyze a  response body and inject a text after the first provided html tag.This action relies on ExchangeContext.ResponseBodySubstitution to perform the injection. This action is issued essentially to inject a script tag in a html page.
+This action stream a response body and inject a text after the first specified html tag.This action can be used to inject a html code snippet after opening `<head>` tag in any traversing html page.
 
 ### Evaluation scope
 

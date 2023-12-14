@@ -13,22 +13,15 @@ using Fluxzy.Misc.Streams;
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
     /// <summary>
-    ///     This action analyze a response body and inject a text after the first specified html tag.
-    ///     This action relies on ExchangeContext.ResponseBodySubstitution to perform the injection.
-    ///     This action is issued essentially to inject a script tag in a html page.
+    ///     This action stream a response body and inject a text after the first specified html tag.
+    ///     This action can be used to inject a html code snippet after opening `<head>` tag in a html page.
     /// </summary>
     [ActionMetadata(
-        "This action analyze a  response body and inject a text after the first provided html tag." +
-        "This action relies on ExchangeContext.ResponseBodySubstitution to perform the injection. " +
-        "This action is issued essentially to inject a script tag in a html page.",
+        "This action stream a response body and inject a text after the first specified html tag." +
+        "This action can be used to inject a html code snippet after opening `<head>` tag in any traversing html page.",
         NonDesktopAction = true)]
     public class InjectHtmlTagAction : Action
     {
-        public InjectHtmlTagAction()
-        {
-
-        }
-
         /// <summary>
         ///     Html tag name after which the injection will be performed
         /// </summary>
@@ -36,15 +29,15 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         public string Tag { get; set; } = "head";
 
         /// <summary>
-        ///     The text to be injected
+        ///     The html code snippet to be injected
         /// </summary>
-        [ActionDistinctive(Description = "The text to be injected")]
+        [ActionDistinctive(Description = "The html code snippet to be injected")]
         public string? HtmlContent { get; set; }
 
         /// <summary>
-        ///     If true, the text will be read from a file
+        ///     If true, the code snippet will be read from the file specified by FileName
         /// </summary>
-        [ActionDistinctive(Description = "If true, the text will be read from a file")]
+        [ActionDistinctive(Description = "If true, the code snippet will be read from the file specified by FileName")]
         public bool FromFile { get; set; } = false;
 
         /// <summary>
