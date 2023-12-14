@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Core;
@@ -37,8 +38,14 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         /// <summary>
         ///  Encoding IANA name, if not specified, UTF8 will be used
         /// </summary>
-        [ActionDistinctive(Description = "Encoding")]
+        [ActionDistinctive(Description = "IANA name encoding", DefaultValue = "utf8")]
         public string? Encoding { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [ActionDistinctive(Description = "Restrict substitution to text/html response", DefaultValue = "true")]
+        public bool RestrictToHtml { get; set; } = true;
 
         public override FilterScope ActionScope { get; } = FilterScope.ResponseHeaderReceivedFromRemote;
 
@@ -50,6 +57,20 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         {
             if (exchange == null || exchange.Id == 0)
                 return default;
+
+            if (string.IsNullOrEmpty(Text))
+                return default;
+
+            if (RestrictToHtml) {
+                var isHtml = exchange.GetResponseHeaders()?
+                                          .Any(r =>
+                                              r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase)
+                                              && r.Value.Span.Contains("text/html", StringComparison.Ordinal))
+                    ?? false;
+
+                if (!isHtml)
+                    return default;
+            }
 
             var encoding = string.IsNullOrEmpty(Encoding) ? System.Text.Encoding.UTF8
                 : System.Text.Encoding.GetEncoding(Encoding);

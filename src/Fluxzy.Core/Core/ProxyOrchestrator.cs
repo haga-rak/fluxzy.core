@@ -263,6 +263,23 @@ namespace Fluxzy.Core
 
                                 var responseBodyStream = exchange.Response.Body;
 
+                                var responseBodyChunked = false;
+                                var compressionType = CompressionType.None;
+
+                                if (exchange.Context.HasResponseBodySubstitution)
+                                {
+                                    responseBodyChunked = exchange.IsResponseChunkedTransferEncoded();
+                                    compressionType = exchange.GetResponseCompressionType();
+
+                                    if (compressionType != CompressionType.None)
+                                    {
+                                        exchange.Response.Header.RemoveHeader("content-encoding");
+                                        exchange.Response.Header.RemoveHeader("content-length");
+                                        exchange.Response.Header.ContentLength = -1;
+                                    }
+
+                                }
+
                                 if (exchange.Response.Header.ContentLength == -1 &&
                                     responseBodyStream != null &&
                                     exchange.HttpVersion == "HTTP/2")
@@ -285,19 +302,6 @@ namespace Fluxzy.Core
                                         exchange.GetMetricsSummaryAsHeader());
                                 }
 
-                                var responseBodyChunked = false; 
-                                var compressionType = CompressionType.None; 
-
-                                if (exchange.Context.HasResponseBodySubstitution && exchange.Response.Header != null) {
-                                    // If susbstitution is set we remove the content-encoding header
-
-                                    responseBodyChunked = exchange.IsResponseChunkedTransferEncoded();
-                                    compressionType = exchange.GetResponseCompressionType();
-
-                                    if (compressionType != CompressionType.None) {
-                                        exchange.Response.Header.RemoveHeader("content-encoding");
-                                    }
-                                }
                                 
                                 var responseHeaderLength = exchange.Response.Header!.WriteHttp11(buffer, true, true, shouldClose);
 
