@@ -29,11 +29,29 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             Text = text;
         }
 
+        /// <summary>
+        ///   Html tag name after which the injection will be performed
+        /// </summary>
         [ActionDistinctive(Description = "Html tag name after which the injection will be performed")]
         public string Tag { get; set; } 
 
+        /// <summary>
+        ///  The text to be injected
+        /// </summary>
         [ActionDistinctive(Description = "The text to be injected")]
-        public string Text { get; set; }
+        public string? Text { get; set; }
+
+        /// <summary>
+        /// If true, the text will be read from a file
+        /// </summary>
+        [ActionDistinctive(Description = "If true, the text will be read from a file")]
+        public bool FromFile { get; set; } = false; 
+        
+        /// <summary>
+        /// If FromFile is true, the file name to read from
+        /// </summary>
+        [ActionDistinctive(Description = "If FromFile is true, the file name to read from")]
+        public string ? FileName { get; set; }
 
         /// <summary>
         ///  Encoding IANA name, if not specified, UTF8 will be used
@@ -58,8 +76,13 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             if (exchange == null || exchange.Id == 0)
                 return default;
 
-            if (string.IsNullOrEmpty(Text))
-                return default;
+            if (!FromFile && string.IsNullOrEmpty(Text)) {
+                throw new RuleExecutionFailureException("Text is null or empty");
+            }
+            
+            if (FromFile && string.IsNullOrEmpty(FileName)) {
+                throw new RuleExecutionFailureException("FileName is null or empty");
+            }
 
             if (RestrictToHtml) {
                 var isHtml = exchange.GetResponseHeaders()?
@@ -74,9 +97,12 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
             var encoding = string.IsNullOrEmpty(Encoding) ? System.Text.Encoding.UTF8
                 : System.Text.Encoding.GetEncoding(Encoding);
+            
+            var stream = !FromFile ? (Stream) new MemoryStream(encoding.GetBytes(Text!))
+                : new FileStream(FileName!, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 context.RegisterResponseBodySubstitution(
-                    new InjectAfterHtmlTagSubstitution(encoding, Tag, Text));
+                    new InjectAfterHtmlTagSubstitution(encoding, Tag, stream));
 
             return default;
         }
@@ -85,23 +111,22 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     internal class InjectAfterHtmlTagSubstitution : IStreamSubstitution
     {
         private readonly Encoding _encoding;
+        private readonly Stream _injectedStream;
         private readonly byte[] _matchingPattern;
-        private readonly byte[] _binaryText;
 
-        public InjectAfterHtmlTagSubstitution(Encoding encoding, string htmlTag, string text)
+        public InjectAfterHtmlTagSubstitution(Encoding encoding, string htmlTag, 
+            Stream injectedStream)
         {
             _encoding = encoding;
+            _injectedStream = injectedStream;
             _matchingPattern = _encoding.GetBytes(htmlTag); 
-            _binaryText = _encoding.GetBytes(text);
         }
 
         public ValueTask<Stream> Substitute(Stream originalStream)
         {
-            var memoryStream = new MemoryStream(_binaryText);
-
             var stream = new InjectStreamOnStream(originalStream,
                 new SimpleHtmlTagOpeningMatcher(_encoding, StringComparison.OrdinalIgnoreCase,
-                    false), _matchingPattern, memoryStream);
+                    false), _matchingPattern, _injectedStream);
 
             return new ValueTask<Stream>(stream); 
         }
