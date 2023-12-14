@@ -10,9 +10,11 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     public class ProxiedHttpClient : IDisposable
     {
         private readonly HttpClientHandler _clientHandler;
-        
+
         public ProxiedHttpClient(
-            int port, string remoteHost = "127.0.0.1", bool allowAutoRedirect = true , CookieContainer? cookieContainer = null)
+            int port, string remoteHost = "127.0.0.1",
+            bool allowAutoRedirect = true, CookieContainer? cookieContainer = null,
+            bool automaticDecompression = false)
         {
             _clientHandler = new HttpClientHandler {
                 Proxy = new WebProxy($"http://{remoteHost}:{port}"),
@@ -22,11 +24,16 @@ namespace Fluxzy.Tests.Cli.Scaffolding
                     ServerCertificate = certificate2;
                     ServerChain = arg3;
                     return true;
-                }
+                },
             };
 
             if (cookieContainer != null)
                 _clientHandler.CookieContainer = cookieContainer;
+
+            if (automaticDecompression) {
+                _clientHandler.AutomaticDecompression = DecompressionMethods.GZip
+                                         | DecompressionMethods.Deflate | DecompressionMethods.Brotli;
+            }
 
             Client = new HttpClient(_clientHandler);
         }
