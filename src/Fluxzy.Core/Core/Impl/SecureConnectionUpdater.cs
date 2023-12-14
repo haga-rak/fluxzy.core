@@ -75,8 +75,7 @@ namespace Fluxzy.Core
             }
             catch (Exception ex) {
                 throw new FluxzyException(
-                    $"Impersonating “{host}” failed: {ex.Message}"
-                    , ex)
+                    $"Impersonating “{host}” failed: {ex.Message}", ex)
                     {
                         TargetHost = host
                     };

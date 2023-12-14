@@ -28,7 +28,7 @@ namespace Fluxzy.Tests.UnitTests.Substitutions.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.ResponseBodySubstitution = _substitution;
+            context.RegisterResponseBodySubstitution(_substitution);
             return default;
         }
     }

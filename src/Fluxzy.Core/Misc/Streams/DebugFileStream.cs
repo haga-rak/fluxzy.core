@@ -21,17 +21,21 @@ namespace Fluxzy.Misc.Streams
             _innerStream = innerStream;
 
             if (readOnly == null) {
-                if (_innerStream.CanRead)
+                if (_innerStream.CanRead) {
                     _fileStreamIn = File.Create(pathPrefix + ".in.txt");
+                }
 
-                if (_innerStream.CanWrite)
+                if (_innerStream.CanWrite) {
                     _fileStreamOut = File.Create(pathPrefix + ".out.txt");
+                }
             }
             else {
-                if (readOnly.Value)
+                if (readOnly.Value) {
                     _fileStreamIn = File.Create(pathPrefix + ".in.txt");
-                else
+                }
+                else {
                     _fileStreamOut = File.Create(pathPrefix + ".out.txt");
+                }
             }
         }
 
@@ -94,13 +98,15 @@ namespace Fluxzy.Misc.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (_fileStreamOut != null)
+            if (_fileStreamOut != null) {
                 _fileStreamOut.Write(buffer, offset, count);
+            }
 
             _innerStream.Write(buffer, offset, count);
 
-            if (_fileStreamOut != null)
+            if (_fileStreamOut != null) {
                 _fileStreamOut.Flush();
+            }
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -111,13 +117,15 @@ namespace Fluxzy.Misc.Streams
         public override async ValueTask WriteAsync(
             ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            if (_fileStreamOut != null)
+            if (_fileStreamOut != null) {
                 await _fileStreamOut.WriteAsync(buffer, cancellationToken);
+            }
 
             await _innerStream.WriteAsync(buffer, cancellationToken);
 
-            if (_fileStreamOut != null)
+            if (_fileStreamOut != null) {
                 await _fileStreamOut.FlushAsync(cancellationToken);
+            }
         }
 
         protected override void Dispose(bool disposing)
