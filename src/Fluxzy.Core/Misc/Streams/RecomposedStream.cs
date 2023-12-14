@@ -49,8 +49,9 @@ namespace Fluxzy.Misc.Streams
 
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested) {
                 return Task.FromResult(0);
+            }
 
             return _readStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
@@ -77,8 +78,9 @@ namespace Fluxzy.Misc.Streams
 
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested || !_writeStream.CanWrite)
+            if (cancellationToken.IsCancellationRequested || !_writeStream.CanWrite) {
                 return Task.CompletedTask;
+            }
 
             return _writeStream.WriteAsync(buffer, offset, count, cancellationToken);
         }
@@ -86,8 +88,9 @@ namespace Fluxzy.Misc.Streams
         public override async ValueTask WriteAsync(
             ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            if (cancellationToken.IsCancellationRequested || !_writeStream.CanWrite)
+            if (cancellationToken.IsCancellationRequested || !_writeStream.CanWrite) {
                 return;
+            }
 
             await _writeStream.WriteAsync(buffer, cancellationToken);
         }

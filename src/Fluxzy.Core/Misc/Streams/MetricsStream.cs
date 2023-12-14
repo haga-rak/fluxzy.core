@@ -58,11 +58,13 @@ namespace Fluxzy.Misc.Streams
         {
             var read = InnerStream.Read(buffer, offset, count);
 
-            if (TotalRead == 0 && _firstBytesReaden != null)
+            if (TotalRead == 0 && _firstBytesReaden != null) {
                 _firstBytesReaden();
+            }
 
-            if (read == 0)
+            if (read == 0) {
                 _endRead(TotalRead);
+            }
 
             TotalRead += read;
 
@@ -93,8 +95,9 @@ namespace Fluxzy.Misc.Streams
                 return res;
             }
             catch (Exception ex) {
-                if (_onReadError != null)
+                if (_onReadError != null) {
                     _onReadError(ex);
+                }
 
                 throw;
             }
@@ -117,19 +120,22 @@ namespace Fluxzy.Misc.Streams
                 var read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
                                             .ConfigureAwait(false);
 
-                if (TotalRead == 0 && _firstBytesReaden != null)
+                if (TotalRead == 0 && _firstBytesReaden != null) {
                     _firstBytesReaden();
+                }
 
-                if (read == 0)
+                if (read == 0) {
                     _endRead(TotalRead);
+                }
 
                 TotalRead += read;
 
                 return read;
             }
             catch (Exception ex) {
-                if (_onReadError != null)
+                if (_onReadError != null) {
                     _onReadError(ex);
+                }
 
                 throw;
             }

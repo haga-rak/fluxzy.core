@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Fluxzy.Misc.Streams
 {
     /// <summary>
-    /// A stream that read chunked transfer encoding
+    ///     A stream that read chunked transfer encoding
     /// </summary>
     public class ChunkedTransferReadStream : Stream
     {
@@ -71,8 +71,9 @@ namespace Fluxzy.Misc.Streams
                 while (
                     await _innerStream.ReadAsync(singleByte, cancellationToken) > 0
                     && (chunkSizeNotDetected = singleByte.Span[0] != 0XD)) {
-                    if (textCount > 40)
+                    if (textCount > 40) {
                         throw new IOException("Error while reading chunked stream : Chunk size is larger than 40.");
+                    }
 
                     textBufferBytes.Span[textCount++] = singleByte.Span[0];
                 }
@@ -99,15 +100,17 @@ namespace Fluxzy.Misc.Streams
                 }
 
                 if (chunkSize == 0) {
-                    if (!_closeOnDone)
+                    if (!_closeOnDone) {
                         await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
+                    }
 
                     return 0;
                 }
 
                 // Skip the next CRLF 
-                if (!await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken))
+                if (!await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken)) {
                     throw new EndOfStreamException("Unexpected EOF");
+                }
 
                 _nextChunkSize = chunkSize;
             }
@@ -123,8 +126,9 @@ namespace Fluxzy.Misc.Streams
 
             _nextChunkSize -= read;
 
-            if (_nextChunkSize == 0)
+            if (_nextChunkSize == 0) {
                 await _innerStream.ReadExactAsync(new Memory<byte>(_lengthHolderBytes, 0, 2), cancellationToken);
+            }
 
             return read;
         }
@@ -147,8 +151,9 @@ namespace Fluxzy.Misc.Streams
                 while (
                     _innerStream.Read(singleByte.Span) > 0
                     && (chunkSizeNotDetected = singleByte.Span[0] != 0XD)) {
-                    if (textCount > 40)
+                    if (textCount > 40) {
                         throw new IOException("Error while reading chunked stream : Chunk size is larger than 40.");
+                    }
 
                     textBufferBytes.Span[textCount++] = singleByte.Span[0];
                 }
@@ -175,15 +180,17 @@ namespace Fluxzy.Misc.Streams
                 }
 
                 if (chunkSize == 0) {
-                    if (!_closeOnDone)
+                    if (!_closeOnDone) {
                         _innerStream.ReadExact(textBufferBytes.Slice(0, 3).Span);
+                    }
 
                     return 0;
                 }
 
                 // Skip the next CRLF 
-                if (!_innerStream.ReadExact(textBufferBytes.Slice(0, 1).Span))
+                if (!_innerStream.ReadExact(textBufferBytes.Slice(0, 1).Span)) {
                     throw new EndOfStreamException("Unexpected EOF");
+                }
 
                 _nextChunkSize = chunkSize;
             }
@@ -199,8 +206,9 @@ namespace Fluxzy.Misc.Streams
 
             _nextChunkSize -= read;
 
-            if (_nextChunkSize == 0)
+            if (_nextChunkSize == 0) {
                 _innerStream.ReadExact(new Memory<byte>(_lengthHolderBytes, 0, 2).Span);
+            }
 
             return read;
         }

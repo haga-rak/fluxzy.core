@@ -48,8 +48,9 @@ namespace Fluxzy.Misc.Streams
         {
             var minCount = (int) Math.Min(count, MaxLength - TotalRead);
 
-            if (minCount == 0)
+            if (minCount == 0) {
                 return 0;
+            }
 
             var read = InnerStream.Read(buffer, offset, minCount);
 
@@ -93,8 +94,9 @@ namespace Fluxzy.Misc.Streams
         {
             var minCount = (int) Math.Min(buffer.Length, MaxLength - TotalRead);
 
-            if (minCount == 0)
+            if (minCount == 0) {
                 return 0;
+            }
 
             var res = await InnerStream.ReadAsync(buffer.Slice(0, minCount), cancellationToken)
                                        .ConfigureAwait(false);

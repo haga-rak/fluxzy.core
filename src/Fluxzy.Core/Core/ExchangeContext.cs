@@ -1,14 +1,18 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
@@ -20,6 +24,11 @@ namespace Fluxzy.Core
     /// </summary>
     public class ExchangeContext
     {
+
+        private List<IStreamSubstitution>? _responseBodySubstitutions;
+        private List<IStreamSubstitution>? _requestBodyStreamSubstitutions;
+
+
         public ExchangeContext(
             IAuthority authority,
             VariableContext variableContext, FluxzySetting? fluxzySetting)
@@ -156,14 +165,98 @@ namespace Fluxzy.Core
 
         internal Dictionary<Filter, bool> FilterEvaluationResult { get; } = new();
 
-        /// <summary>
-        /// Gets or sets the request body substitution.
-        /// </summary>
-        public IStreamSubstitution? RequestBodySubstitution { get; set; }
+        ///// <summary>
+        ///// Gets or sets the request body substitution.
+        ///// </summary>
+        //public IStreamSubstitution? RequestBodySubstitution { get; set; }
+
+        ///// <summary>
+        ///// Gets or sets the substitution for the response body.
+        ///// </summary>
+        //public IStreamSubstitution? ResponseBodySubstitution { get; set; }
 
         /// <summary>
-        /// Gets or sets the substitution for the response body.
+        /// True if the current exchange has at least one response body substitution
         /// </summary>
-        public IStreamSubstitution? ResponseBodySubstitution { get; set; }
+        public bool HasResponseBodySubstitution => _responseBodySubstitutions != null;
+
+        /// <summary>
+        /// True if the current exchange has at least one request body substitution
+        /// </summary>
+        public bool HasRequestBodySubstitution => _requestBodyStreamSubstitutions != null;
+        
+        /// <summary>
+        /// Register a response body substitution
+        /// </summary>
+        /// <param name="substitution"></param>
+        public void RegisterResponseBodySubstitution(IStreamSubstitution substitution)
+        {
+            if (_responseBodySubstitutions == null)
+                _responseBodySubstitutions = new List<IStreamSubstitution>();
+
+            _responseBodySubstitutions.Add(substitution);
+        }
+
+        /// <summary>
+        /// Register a request body substitution
+        /// </summary>
+        /// <param name="substitution"></param>
+        public void RegisterRequestBodySubstitution(IStreamSubstitution substitution)
+        {
+            if (_requestBodyStreamSubstitutions == null)
+                _requestBodyStreamSubstitutions = new List<IStreamSubstitution>();
+
+            _requestBodyStreamSubstitutions.Add(substitution);
+        }
+
+        internal ValueTask<Stream> GetSubstitutedResponseBody(
+            Stream original, bool chunkedTransfer, CompressionType compressionType)
+        {
+            // remove compression from exchange 
+            
+            var decoded = original;
+
+            if (chunkedTransfer) {
+                decoded = CompressionHelper.GetUnChunkedStream(decoded); 
+            }
+
+            if (compressionType != CompressionType.None) {
+                decoded = CompressionHelper.GetDecodedStream(compressionType, decoded);
+            }
+
+            return SubstitutionHelper.GetSubstitutedStream(decoded, _responseBodySubstitutions ??
+                                                                    throw new InvalidOperationException());
+        }
+
+        internal ValueTask<Stream> GetSubstitutedRequestBody(Stream original, Exchange exchange)
+        {
+            var decoded = exchange.GetDecodedRequestBodyStream(original, out var compressionType);
+
+            if (compressionType != CompressionType.None)
+            {
+                exchange.Request.Header.RemoveHeader("content-encoding");
+            }
+
+            exchange.Request.Header.RemoveHeader("transfer-encoding");
+
+            return SubstitutionHelper.GetSubstitutedStream(decoded, _requestBodyStreamSubstitutions ??
+                                                                    throw new InvalidOperationException());
+        }
+    }
+
+
+    internal static class SubstitutionHelper
+    {
+        public static async ValueTask<Stream> GetSubstitutedStream(
+            Stream originalStream, IEnumerable<IStreamSubstitution> substitutions)
+        {
+            var finalStream = originalStream;
+
+            foreach (var substitution in substitutions) {
+                finalStream = await substitution.Substitute(finalStream);
+            }
+
+            return finalStream;
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace Fluxzy.Core
         /// Additionally, you must drain (read to EOF) the provided stream in order to not hang the remote connection when
         /// the original stream is coming from a remote connection.
         /// </summary>
-        /// <param name="originalStream">The original stream (must be drained and disposed) </param>
+        /// <param name="originalStream">The original stream (must be drained and disposed) at the end. This stream is already decoded and chunk-free</param>
         /// <returns>The stream that will be send to the client</returns>
         ValueTask<Stream> Substitute(Stream originalStream);
     }
