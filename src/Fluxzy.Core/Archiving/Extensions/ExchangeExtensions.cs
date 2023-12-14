@@ -62,9 +62,9 @@ namespace Fluxzy.Extensions
             return null;
         }
 
-        public static bool IsResponseChunkedTransferEncoded(this ExchangeInfo exchangeInfo, bool skipForwarded = false)
+        public static bool IsResponseChunkedTransferEncoded(this IExchange exchangeInfo, bool skipForwarded = false)
         {
-            var headers = exchangeInfo.ResponseHeader?.Headers;
+            var headers = exchangeInfo.GetResponseHeaders();
             return IsChunkedTransferEncoded(skipForwarded, headers);
         }
 
@@ -82,28 +82,28 @@ namespace Fluxzy.Extensions
             );
         }
 
-        public static bool IsRequestChunkedTransferEncoded(this ExchangeInfo exchangeInfo, bool skipForwarded = false)
+        public static bool IsRequestChunkedTransferEncoded(this IExchange exchangeInfo, bool skipForwarded = false)
         {
-            var headers = exchangeInfo.RequestHeader?.Headers;
+            var headers = exchangeInfo.GetRequestHeaders();
             return IsChunkedTransferEncoded(skipForwarded, headers);
         }
 
-        public static CompressionType GetResponseCompressionType(this ExchangeInfo exchangeInfo)
+        public static CompressionType GetResponseCompressionType(this IExchange exchangeInfo)
         {
-            if (exchangeInfo.ResponseHeader?.Headers == null)
-                throw new InvalidOperationException("This exchange does not have response body");
+            var headers = exchangeInfo.GetResponseHeaders(); 
 
-            var headers = exchangeInfo.ResponseHeader.Headers;
+            if (headers == null)
+                throw new InvalidOperationException("This exchange does not have response body");
 
             return InternalGetCompressionType(headers);
         }
 
-        public static CompressionType GetRequestCompressionType(this ExchangeInfo exchangeInfo)
+        public static CompressionType GetRequestCompressionType(this IExchange exchangeInfo)
         {
-            if (exchangeInfo.RequestHeader?.Headers == null)
-                throw new InvalidOperationException("This exchange does not have request body");
+            var headers = exchangeInfo.GetRequestHeaders();
 
-            var headers = exchangeInfo.RequestHeader.Headers;
+            if (headers == null)
+                throw new InvalidOperationException("This exchange does not have request body");
 
             return InternalGetCompressionType(headers);
         }
