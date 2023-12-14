@@ -29,46 +29,23 @@ namespace Fluxzy.Extensions
         }
 
         public static Stream GetDecodedResponseBodyStream(this 
-            ExchangeInfo exchangeInfo, Stream responseBodyInStream,
+            IExchange exchangeInfo, Stream responseBodyInStream,
             out CompressionType compressionType, bool skipForwarded = false)
         {
             var workStream = responseBodyInStream;
 
             if (exchangeInfo.IsResponseChunkedTransferEncoded(skipForwarded))
-                workStream = new ChunkedTransferReadStream(workStream, true);
+                workStream = GetUnChunkedStream(workStream);
 
             compressionType = exchangeInfo.GetResponseCompressionType();
 
-            switch (compressionType) {
-                case CompressionType.None:
-                    break;
-
-                case CompressionType.Gzip:
-                    workStream = new GZipStream(workStream, CompressionMode.Decompress, false);
-
-                    break;
-
-                case CompressionType.Deflate:
-                    workStream = new DeflateStream(workStream, CompressionMode.Decompress, false);
-
-                    break;
-
-                case CompressionType.Compress:
-                    workStream = new LzwInputStream(workStream);
-
-                    break;
-
-                case CompressionType.Brotli:
-                    workStream = new BrotliStream(workStream, CompressionMode.Decompress, false);
-
-                    break;
-            }
+            workStream = GetDecodedStream(compressionType, workStream);
 
             return workStream;
         }
 
         public static Stream GetDecodedRequestBodyStream(this 
-            ExchangeInfo exchangeInfo, Stream requestBodyStream,
+            IExchange exchangeInfo, Stream requestBodyStream,
             out CompressionType compressionType, bool skipForwarded = false)
         {
             var workStream = requestBodyStream;
@@ -78,18 +55,32 @@ namespace Fluxzy.Extensions
 
             compressionType = exchangeInfo.GetRequestCompressionType();
 
-            switch (compressionType) {
+            workStream = GetDecodedStream(compressionType, workStream);
+
+            return workStream;
+        }
+
+        internal static Stream GetUnChunkedStream(Stream workStream)
+        {
+            workStream = new ChunkedTransferReadStream(workStream, true);
+
+            return workStream;
+        }
+
+
+        internal static Stream GetDecodedStream(CompressionType compressionType, Stream workStream)
+        {
+            switch (compressionType)
+            {
                 case CompressionType.None:
                     break;
 
                 case CompressionType.Gzip:
                     workStream = new GZipStream(workStream, CompressionMode.Decompress, false);
-
                     break;
 
                 case CompressionType.Deflate:
                     workStream = new DeflateStream(workStream, CompressionMode.Decompress, false);
-
                     break;
 
                 case CompressionType.Compress:
@@ -105,7 +96,8 @@ namespace Fluxzy.Extensions
 
             return workStream;
         }
-        
+
+
     }
 
     public class CompressionInfo
