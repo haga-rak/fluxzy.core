@@ -60,29 +60,29 @@ namespace Fluxzy.Cli.Commands
         public Command Build(CancellationToken cancellationToken)
         {
             var command = new Command("start", "Start a capturing session");
-
+            
             command.AddOption(StartCommandOptions.CreateListenInterfaceOption());
             command.AddOption(StartCommandOptions.CreateListenLocalhost());
             command.AddOption(StartCommandOptions.CreateListToAllInterfaces());
             command.AddOption(StartCommandOptions.CreateOutputFileOption());
             command.AddOption(StartCommandOptions.CreateDumpToFolderOption());
+            command.AddOption(StartCommandOptions.CreateRuleFileOption());
             command.AddOption(StartCommandOptions.CreateSystemProxyOption());
+            command.AddOption(StartCommandOptions.CreateBouncyCastleOption());
             command.AddOption(StartCommandOptions.CreateTcpDumpOption());
             command.AddOption(StartCommandOptions.CreateSkipSslOption());
-            command.AddOption(StartCommandOptions.CreateBouncyCastleOption());
+            command.AddOption(StartCommandOptions.CreateEnableTracingOption());
 
             command.AddOption(StartCommandOptions.CreateSkipCertInstallOption());
             command.AddOption(StartCommandOptions.CreateNoCertCacheOption());
             command.AddOption(StartCommandOptions.CreateCertificateFileOption());
             command.AddOption(StartCommandOptions.CreateCertificatePasswordOption());
-            command.AddOption(StartCommandOptions.CreateRuleFileOption());
             command.AddOption(StartCommandOptions.CreateRuleStdinOption());
             command.AddOption(StartCommandOptions.CreateUaParsingOption());
             command.AddOption(StartCommandOptions.CreateUser502Option());
             command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
             command.AddOption(StartCommandOptions.CreateProxyBuffer());
             command.AddOption(StartCommandOptions.CreateCounterOption());
-            command.AddOption(StartCommandOptions.CreateEnableTracingOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
