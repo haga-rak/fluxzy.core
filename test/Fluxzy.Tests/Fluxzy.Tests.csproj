@@ -24,6 +24,9 @@
     <None Update="_Files\Certificates\fluxzytest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="_Files\Rules\Injected\injected-script.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

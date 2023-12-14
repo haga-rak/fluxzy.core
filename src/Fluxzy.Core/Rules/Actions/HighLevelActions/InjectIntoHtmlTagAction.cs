@@ -21,9 +21,9 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         "This action relies on ExchangeContext.ResponseBodySubstitution to perform the injection. " +
         "This action is issued essentially to inject a script tag in a html page.",
         NonDesktopAction = true)]
-    public class InjectAfterHtmlTagAction : Action
+    public class InjectIntoHtmlTagAction : Action
     {
-        public InjectAfterHtmlTagAction(string tag, string text)
+        public InjectIntoHtmlTagAction(string tag, string text)
         {
             Tag = tag;
             Text = text;
