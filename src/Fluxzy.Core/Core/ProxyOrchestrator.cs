@@ -170,7 +170,7 @@ namespace Fluxzy.Core
                                         if (exchange.Context.HasRequestBodySubstitution) {
                                             originalRequestBodyStream = exchange.Request.Body;
                                             exchange.Request.Body = await
-                                                exchange.Context.GetSubstitutedRequestBody(exchange.Request.Body);
+                                                exchange.Context.GetSubstitutedRequestBody(exchange.Request.Body, exchange);
                                         }
 
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body,
@@ -284,6 +284,20 @@ namespace Fluxzy.Core
                                     exchange.Response.Header?.AddExtraHeaderFieldToLocalConnection(
                                         exchange.GetMetricsSummaryAsHeader());
                                 }
+
+                                var responseBodyChunked = false; 
+                                var compressionType = CompressionType.None; 
+
+                                if (exchange.Context.HasResponseBodySubstitution && exchange.Response.Header != null) {
+                                    // If susbstitution is set we remove the content-encoding header
+
+                                    responseBodyChunked = exchange.IsResponseChunkedTransferEncoded();
+                                    compressionType = exchange.GetResponseCompressionType();
+
+                                    if (compressionType != CompressionType.None) {
+                                        exchange.Response.Header.RemoveHeader("content-encoding");
+                                    }
+                                }
                                 
                                 var responseHeaderLength = exchange.Response.Header!.WriteHttp11(buffer, true, true, shouldClose);
 
@@ -297,13 +311,13 @@ namespace Fluxzy.Core
                                     if (responseBodyStream != null &&
                                         (!responseBodyStream.CanSeek || responseBodyStream.Length > 0)) {
 
-                                        // here we have a chance substitute the reponseBodyStream
-
-                                        if (exchange.Context.HasResponseBodySubstitution) {
+                                        if (exchange.Context.HasResponseBodySubstitution)
+                                        {
                                             originalResponseBodyStream = responseBodyStream;
 
                                             responseBodyStream = await
-                                                exchange.Context.GetSubstitutedResponseBody(responseBodyStream);
+                                                exchange.Context.GetSubstitutedResponseBody(
+                                                    responseBodyStream, responseBodyChunked, compressionType);
                                         }
 
                                         var dispatchStream = new DispatchStream(responseBodyStream,

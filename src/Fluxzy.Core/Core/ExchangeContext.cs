@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
@@ -208,16 +209,38 @@ namespace Fluxzy.Core
             _requestBodyStreamSubstitutions.Add(substitution);
         }
 
-        public ValueTask<Stream> GetSubstitutedResponseBody(Stream original)
+        internal ValueTask<Stream> GetSubstitutedResponseBody(
+            Stream original, bool chunkedTransfer, CompressionType compressionType)
         {
-            return SubstitutionHelper.GetSubstitutedStream(original, _responseBodySubstitutions ??
-                                                                     throw new InvalidOperationException());
+            // remove compression from exchange 
+            
+            var decoded = original;
+
+            if (chunkedTransfer) {
+                decoded = CompressionHelper.GetUnChunkedStream(decoded); 
+            }
+
+            if (compressionType != CompressionType.None) {
+                decoded = CompressionHelper.GetDecodedStream(compressionType, decoded);
+            }
+
+            return SubstitutionHelper.GetSubstitutedStream(decoded, _responseBodySubstitutions ??
+                                                                    throw new InvalidOperationException());
         }
 
-        public ValueTask<Stream> GetSubstitutedRequestBody(Stream original)
+        internal ValueTask<Stream> GetSubstitutedRequestBody(Stream original, Exchange exchange)
         {
-            return SubstitutionHelper.GetSubstitutedStream(original, _requestBodyStreamSubstitutions ??
-                                                                  throw new InvalidOperationException());
+            var decoded = exchange.GetDecodedRequestBodyStream(original, out var compressionType);
+
+            if (compressionType != CompressionType.None)
+            {
+                exchange.Request.Header.RemoveHeader("content-encoding");
+            }
+
+            exchange.Request.Header.RemoveHeader("transfer-encoding");
+
+            return SubstitutionHelper.GetSubstitutedStream(decoded, _requestBodyStreamSubstitutions ??
+                                                                    throw new InvalidOperationException());
         }
     }
 
