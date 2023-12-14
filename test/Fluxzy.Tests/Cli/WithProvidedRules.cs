@@ -41,7 +41,7 @@ namespace Fluxzy.Tests.Cli
             var commandLine = "start -l 127.0.0.1/0";
 
             if (noDecryption)
-                commandLine += " -ss";
+                commandLine += " --skip-ssl-decryption";
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
@@ -72,7 +72,7 @@ namespace Fluxzy.Tests.Cli
             var commandLine = "start -l 127.0.0.1/0";
 
             if (noDecryption)
-                commandLine += " -ss";
+                commandLine += " --skip-ssl-decryption";
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 

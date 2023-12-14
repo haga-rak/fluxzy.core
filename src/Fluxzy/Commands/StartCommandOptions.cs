@@ -11,7 +11,6 @@ namespace Fluxzy.Cli.Commands
 {
     public static class StartCommandOptions
     {
-
         public static Option CreateListenInterfaceOption()
         {
             var listenInterfaceOption = new Option<List<IPEndPoint>>(
@@ -19,8 +18,8 @@ namespace Fluxzy.Cli.Commands
                 description:
                 "Set up the binding addresses. " +
                 "Default value is \"127.0.0.1:44344\" which will listen to localhost on port 44344. " +
-                "0.0.0.0 to listen on all interface with default port. Use port 0 to let OS affect a random available port." +
-                " Accept multiple values.",
+                "0.0.0.0 to listen on all interface with the default port. Use port 0 to let OS assign a random available port." +
+                " Accepts multiple values.",
                 isDefault: true,
                 parseArgument: result => {
                     var listResult = new List<IPEndPoint>();
@@ -51,7 +50,7 @@ namespace Fluxzy.Cli.Commands
         {
             var option = new Option<FileInfo?>(
                 "--output-file",
-                description: "Output the captured traffic to file",
+                description: "Output the captured traffic to an archive file",
                 parseArgument: result => new FileInfo(result.Tokens.First().Value));
 
             option.AddAlias("-o");
@@ -140,7 +139,8 @@ namespace Fluxzy.Cli.Commands
             var option = new Option<bool>(
                 "--bouncy-castle",
                 "Use Bouncy Castle as SSL/TLS provider");
-
+            
+            option.AddAlias("-b");
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
@@ -153,6 +153,7 @@ namespace Fluxzy.Cli.Commands
                 "--install-cert",
                 "Install root CA in current cert store if absent (require higher privilege)");
 
+            option.AddAlias("-i");
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
@@ -247,7 +248,7 @@ namespace Fluxzy.Cli.Commands
         {
             var option = new Option<FileInfo>(
                 "--rule-file",
-                "Use a fluxzy rule file. See more at : https://www.fluxzy.io/docs/concept/rule-configuration-file");
+                "Use a fluxzy rule file. See more at : https://www.fluxzy.io/resources/documentation/the-rule-file");
 
             option.AddAlias("-r");
             option.Arity = ArgumentArity.ExactlyOne;
@@ -259,7 +260,7 @@ namespace Fluxzy.Cli.Commands
         {
             var option = new Option<int?>(
                 "--max-capture-count",
-                "Exit after count exchange");
+                "Exit after a specified count of exchanges");
 
             option.AddAlias("-n");
             option.SetDefaultValue(null);
@@ -286,6 +287,7 @@ namespace Fluxzy.Cli.Commands
                 "--trace",
                 "Output trace on stdout");
 
+            option.AddAlias("-t");
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
 
