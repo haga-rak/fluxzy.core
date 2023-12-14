@@ -22,17 +22,17 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         NonDesktopAction = true)]
     public class InjectAfterHtmlTagAction : Action
     {
-        public InjectAfterHtmlTagAction(string htmlTag, string injection)
+        public InjectAfterHtmlTagAction(string htmlTag, string text)
         {
             HtmlTag = htmlTag;
-            Injection = injection;
+            Text = text;
         }
 
         [ActionDistinctive(Description = "Html tag name after which the injection will be performed")]
         public string HtmlTag { get; set; }
 
-        [ActionDistinctive(Description = "String to inject")]
-        public string Injection { get; set; }
+        [ActionDistinctive(Description = "The text to be injected")]
+        public string Text { get; set; }
 
         /// <summary>
         ///  Encoding IANA name, if not specified, UTF8 will be used
@@ -55,13 +55,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                 : System.Text.Encoding.GetEncoding(Encoding);
 
             if (context.ResponseBodySubstitution == null)
-                context.ResponseBodySubstitution = new ResponseBodySubstitution();
-
-            context.ResponseBodySubstitution.Add(new ResponseBodySubstitution.Substitution
-            {
-                HtmlTag = HtmlTag,
-                Injection = Injection
-            });
+                context.ResponseBodySubstitution = new InjectAfterHtmlTagSubstitution(encoding,
+                    HtmlTag, Text);
 
             return default;
         }
@@ -70,21 +65,26 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     public class InjectAfterHtmlTagSubstitution : IStreamSubstitution
     {
         private readonly Encoding _encoding;
+        private readonly byte[] _matchingPattern;
+        private readonly byte[] _binaryText;
 
-        public InjectAfterHtmlTagSubstitution(Encoding encoding)
+        public InjectAfterHtmlTagSubstitution(Encoding encoding, string htmlTag, string text)
         {
             _encoding = encoding;
+            _matchingPattern = _encoding.GetBytes(htmlTag); 
+            _binaryText = _encoding.GetBytes(text);
+
         }
 
         public ValueTask<Stream> Substitute(Stream originalStream)
         {
-            Encoding.UTF8.WebName
+            var memoryStream = new MemoryStream(_binaryText);
 
-            var stream = new InjectStreamOnStream(originalStream, 
+            var stream = new InjectStreamOnStream(originalStream,
                 new SimpleHtmlTagOpeningMatcher(_encoding, StringComparison.OrdinalIgnoreCase,
-                    false))
+                    false), _matchingPattern, memoryStream);
 
-            return default; 
+            return new ValueTask<Stream>(stream); 
         }
     }
 }
