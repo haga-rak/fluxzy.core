@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
@@ -31,6 +32,25 @@ namespace Fluxzy.Tests.UnitTests.Misc
         }
 
         [Theory]
+        [MemberData(nameof(GenerateArgsForInsertAfter))]
+        public async Task Test_Insert_After_Async(
+            string content, string pattern, string insertedText, string? expected, int bufferSize)
+        {
+            var matcher = new InsertAfterBinaryMatcher(Encoding.UTF8);
+            var matchingPattern = pattern.ToBytes(Encoding.UTF8);
+            var contentStream = content.ToUtf8Stream();
+            var insertedTextStream = insertedText.ToUtf8Stream();
+
+            expected ??= content; // if expected is null, we expect the same content
+
+            var stream = new InjectStreamOnStream(contentStream, matcher, matchingPattern, insertedTextStream);
+
+            var result = await stream.ReadToEndWithCustomBufferAsync(bufferSize: bufferSize);
+
+            Assert.Equal(expected, result);
+        }
+
+        [Theory]
         [MemberData(nameof(GenerateArgsForReplace))]
         public void Test_Replace(string content, string pattern, string insertedText, string? expected, int bufferSize)
         {
@@ -44,6 +64,24 @@ namespace Fluxzy.Tests.UnitTests.Misc
             var stream = new InjectStreamOnStream(contentStream, matcher, matchingPattern, insertedTextStream);
 
             var result = stream.ReadToEndWithCustomBuffer(bufferSize: bufferSize);
+
+            Assert.Equal(expected, result);
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateArgsForReplace))]
+        public async Task Test_Replace_Async(string content, string pattern, string insertedText, string? expected, int bufferSize)
+        {
+            var matcher = new ReplaceBinaryMatcher(Encoding.UTF8);
+            var matchingPattern = pattern.ToBytes(Encoding.UTF8);
+            var contentStream = content.ToUtf8Stream();
+            var insertedTextStream = insertedText.ToUtf8Stream();
+
+            expected ??= content; // if expected is null, we expect the same content
+
+            var stream = new InjectStreamOnStream(contentStream, matcher, matchingPattern, insertedTextStream);
+
+            var result = await stream.ReadToEndWithCustomBufferAsync(bufferSize: bufferSize);
 
             Assert.Equal(expected, result);
         }
