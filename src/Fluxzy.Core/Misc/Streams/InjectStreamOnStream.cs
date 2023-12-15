@@ -3,6 +3,9 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Fluxzy.Misc.Streams
 {
@@ -77,41 +80,44 @@ namespace Fluxzy.Misc.Streams
         {
         }
 
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            return ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken).AsTask();
+        }
+
         public override int Read(byte[] buffer, int offset, int count)
         {
-            while (true) {
-                // Copy pendingBuffer to reader 
-
+            for (;;) {
+              
                 if (_pendingValidatedBufferLength > 0) {
-                    var readable = Math.Min(count, _pendingValidatedBufferLength);
-                    _pendingValidatedBuffer.AsSpan(0, readable).CopyTo(buffer.AsSpan(offset));
-
-                    // Shift buffer 
-
-                    BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingValidatedBuffer, readable,
-                        _pendingValidatedBufferLength - readable);
-
-                    _pendingValidatedBufferLength -= readable;
-
-                    return readable;
+                    // Copy pendingBuffer to reader 
+                    return ReadPendingValidatedBuffer(buffer.AsSpan(offset, count));
                 }
 
-                // Drain zone copy to the reader
-
                 if (_continueInjecting && !_injectedStreamEof) {
+                    // drain injected stream to the reader 
+
                     var injectRead = _injectedStream.Read(buffer, offset, count);
                     _continueInjecting = injectRead > 0;
 
                     if (injectRead > 0) {
                         return injectRead;
                     }
-                    else {
-                        _injectedStreamEof = true;
-                    }
+
+                    _injectedStreamEof = true;
                 }
 
                 if (_innerStreamEof) {
                     break;
+                }
+
+                if (_injectedStreamEof && _pendingUnvalidatedBufferLength == 0) {
+                    // Avoid seeking index when buffering is done 
+
+                    var directRead = _innerStream.Read(buffer,
+                        offset, count);
+
+                    return directRead; 
                 }
                 
                 var canBeStored =
@@ -140,46 +146,144 @@ namespace Fluxzy.Misc.Streams
                     continue;
                 }
 
-                var (index, length, shiftLength) = _binaryMatcher
-                    .FindIndex(_pendingUnvalidatedBuffer.AsSpan(0, _pendingUnvalidatedBufferLength),
-                        _matchingPattern);
-
-                if (index < 0) {
-                    var unvalidatedLength = _matchingPattern.Length + _unvalidatedBufferLength;
-
-                    var validatedLength = _pendingUnvalidatedBufferLength - unvalidatedLength;
-
-                    if (validatedLength > 0) {
-                        _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
-
-                        BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
-                            validatedLength, unvalidatedLength);
-
-                        _pendingUnvalidatedBufferLength -= validatedLength;
-                        _pendingValidatedBufferLength = validatedLength;
-                    }
-                }
-                else {
-                    // Copy to validated buffer 
-
-                    var originalLength = index + length;
-                    var validatedLength = index + shiftLength;
-
-                    _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
-
-                    BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
-                        originalLength, _pendingUnvalidatedBufferLength - originalLength);
-
-                    _pendingUnvalidatedBufferLength -= originalLength;
-                    _pendingValidatedBufferLength = validatedLength;
-
-                    // Copy to reader 
-
-                    _continueInjecting = true;
-                }
+                ProcessPatternLookup();
             }
 
             return 0;
+        }
+
+
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        {
+            for (; ; )
+            {
+
+                if (_pendingValidatedBufferLength > 0)
+                {
+                    // Copy pendingBuffer to reader 
+                    return ReadPendingValidatedBuffer(buffer.Span);
+                }
+
+                if (_continueInjecting && !_injectedStreamEof)
+                {
+                    // drain injected stream to the reader 
+
+                    var injectRead = await _injectedStream.ReadAsync(buffer, cancellationToken);
+                    _continueInjecting = injectRead > 0;
+
+                    if (injectRead > 0)
+                    {
+                        return injectRead;
+                    }
+
+                    _injectedStreamEof = true;
+                }
+
+                if (_innerStreamEof)
+                {
+                    break;
+                }
+
+                if (_injectedStreamEof && _pendingUnvalidatedBufferLength == 0)
+                {
+                    // Avoid seeking index when buffering is done 
+
+                    var directRead = await _innerStream.ReadAsync(buffer, cancellationToken);
+
+                    return directRead;
+                }
+
+                var canBeStored =
+                    _pendingUnvalidatedBuffer.Length - _pendingUnvalidatedBufferLength;
+
+                var maxRead = Math.Min(buffer.Length, canBeStored); // MAYBE not usefull ? 
+
+                var read = await _innerStream.ReadAsync(_pendingUnvalidatedBuffer,
+                    _pendingUnvalidatedBufferLength, maxRead, cancellationToken);
+
+                _pendingUnvalidatedBufferLength += read;
+
+                if (read == 0)
+                {
+                    _innerStreamEof = true;
+
+                    if (_pendingUnvalidatedBufferLength == 0)
+                    {
+                        // EOF 
+                        return 0;
+                    }
+
+                    Array.Copy(_pendingUnvalidatedBuffer, 0,
+                        _pendingValidatedBuffer, 0, _pendingUnvalidatedBufferLength);
+
+                    _pendingValidatedBufferLength = _pendingUnvalidatedBufferLength;
+
+                    continue;
+                }
+
+                ProcessPatternLookup();
+            }
+
+            return 0;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int ReadPendingValidatedBuffer(Span<byte> buffer)
+        {
+            var readable = Math.Min(buffer.Length, _pendingValidatedBufferLength);
+            _pendingValidatedBuffer.AsSpan(0, readable).CopyTo(buffer);
+
+            // Shift buffer 
+
+            BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingValidatedBuffer, readable,
+                _pendingValidatedBufferLength - readable);
+
+            _pendingValidatedBufferLength -= readable;
+
+            return readable;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ProcessPatternLookup()
+        {
+            var (index, length, shiftLength) = _binaryMatcher
+                .FindIndex(_pendingUnvalidatedBuffer.AsSpan(0, _pendingUnvalidatedBufferLength),
+                    _matchingPattern);
+
+            if (index < 0) {
+                var unvalidatedLength = _matchingPattern.Length + _unvalidatedBufferLength;
+
+                var validatedLength = _pendingUnvalidatedBufferLength - unvalidatedLength;
+
+                if (validatedLength > 0) {
+                    _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
+
+                    BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
+                        validatedLength, unvalidatedLength);
+
+                    _pendingUnvalidatedBufferLength -= validatedLength;
+                    _pendingValidatedBufferLength = validatedLength;
+                }
+            }
+            else {
+                // Copy to validated buffer 
+
+                var originalLength = index + length;
+                var validatedLength = index + shiftLength;
+
+                _pendingUnvalidatedBuffer.AsSpan(0, validatedLength).CopyTo(_pendingValidatedBuffer);
+
+                BufferArrayShiftUtilities.ShiftOffsetToZero(_pendingUnvalidatedBuffer,
+                    originalLength, _pendingUnvalidatedBufferLength - originalLength);
+
+                _pendingUnvalidatedBufferLength -= originalLength;
+                _pendingValidatedBufferLength = validatedLength;
+
+                // Copy to reader 
+
+                _continueInjecting = true;
+            }
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -199,11 +303,12 @@ namespace Fluxzy.Misc.Streams
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) {
-                _injectedStream.Dispose();
-                _innerStream.Dispose();
+            if (disposing)
+            {
                 ArrayPool<byte>.Shared.Return(_pendingValidatedBuffer);
                 ArrayPool<byte>.Shared.Return(_pendingUnvalidatedBuffer);
+                _injectedStream.Dispose();
+                _innerStream.Dispose();
             }
 
             base.Dispose(disposing);
