@@ -40,8 +40,9 @@ To get an exhaustive list of all built-in alteration capabilities, check this [d
 | Capture raw packets along with HTTP requests (with the extension `Fluxzy.Core.Pcap`). NSS key log can be automatically retrieved when using Bouncy Castle | General ||
 | Add, remove, modify request and response headers | Application-level alteration ||
 | Change request method path, change status code, and host | Application-level alteration ||
-| Mock request and response body | Application-level alteration ||
-| [Forward requests (reverse proxy-like)](https://www.fluxzy.io/rule/item/forwardAction) | Application-level alteration ||
+| [Mock request and response body](https://docs.fluxzy.io/documentation/core/short-examples/mock-response.html) | Application-level alteration ||
+| [Inject html snippet to intercepted responses](https://docs.fluxzy.io/documentation/core/short-examples/inject-code-in-html-pages.html) | Application-level alteration ||
+| [Forward requests to another server](https://www.fluxzy.io/rule/item/forwardAction) | Application-level alteration ||
 | [Remove any cache directives](https://www.fluxzy.io/rule/item/removeCacheAction) | Application-level alteration ||
 | [Serve directory as a static website](https://www.fluxzy.io/rule/item/serveDirectoryAction) | Application-level alteration ||
 | Add request and response cookies | Application-level alteration ||
