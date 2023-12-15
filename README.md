@@ -202,9 +202,9 @@ Visit [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.ht
 ### 3.1 Requirements
 
 - .NET 8.0 SDK
-- libpcap or any equivalent library
-- tests collecting pcap files and installing certificates requires elevation
 - Git bash for Windows
+- `libpcap` or any equivalent library
+- tests collecting pcap files and installing certificates requires elevation. 
 
 ### 3.2 Build
 
@@ -214,10 +214,11 @@ Visit [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.ht
 
 ### 3.3 Test 
 
-- Tests are run against various private web servers (iis, nginx, kestrel, apache, ...) which is not currently available to the public.
+- Several tests are run against various private web servers (iis, nginx, kestrel, apache, ...) which is not currently available to the public.
 
 
 ## 4 Contact 
 
-- Mail to: project `at` fluxzy `dot` io
+- Use github issues for bug reports and feature requests
 - [![gitter](https://badges.gitter.im/Fluxzy.svg)](https://app.gitter.im/#/room/!LRKtrkBMuIBYYNvHdA:gitter.im)
+- Mail to **project@fluxzy.io** for inquiries
