@@ -356,5 +356,23 @@ namespace Fluxzy.Misc.Streams
 
             return encoding.GetString(memoryStream.ToArray());
         }
+
+        public static async Task<string> ReadToEndWithCustomBufferAsync(
+            this Stream stream, Encoding? encoding = null,
+            int bufferSize = -1)
+        {
+            var memoryStream = new MemoryStream();
+
+            var buffer = bufferSize == -1 ? new byte[1024] : new byte[bufferSize];
+            encoding ??= Encoding.UTF8;
+
+            int read;
+
+            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
+                memoryStream.Write(buffer, 0, read);
+            }
+
+            return encoding.GetString(memoryStream.ToArray());
+        }
     }
 }
