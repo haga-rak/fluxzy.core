@@ -12,6 +12,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Extensions", "src\Fluxzy.Extensions\Fluxzy.Extensions.csproj", "{4DF649BA-8A46-4FED-8BE9-D76AC10E447A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{0680A987-3FA8-4A85-9ECD-49E185120ABB}"
+	ProjectSection(SolutionItems) = preProject
+		docs\README.md = docs\README.md
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tools.DocGen", "src\Fluxzy.Tools.DocGen\Fluxzy.Tools.DocGen.csproj", "{8D3369D8-3580-4197-893C-BCBA88DE71DD}"
 EndProject
@@ -30,7 +33,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "__global", "__global", "{00
 		README.md = README.md
 		.github\workflows\release-cli.yml = .github\workflows\release-cli.yml
 		.github\workflows\release-nuget.public.yml = .github\workflows\release-nuget.public.yml
-		.github\workflows\release.-nuget.yml = .github\workflows\release.-nuget.yml
 		version.json = version.json
 	EndProjectSection
 EndProject

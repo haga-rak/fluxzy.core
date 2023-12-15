@@ -1,6 +1,6 @@
 # Fluxzy.Core
 
-Copyright (c) 2021 Haga Rakotoharivelo
+Copyright (c) 2021 github.com/haga-rak. All rights reserved.
 
 This program is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -13,4 +13,4 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 ## Commercial License
 
- If you do not wish to comply with the GPLv3 license, you can purchase a commercial license from [Fluxzy SAS](https://www.fluxzy.io/contact).
+ If you do not want to comply with the GPLv3 license or if you wish to have extra support, you can purchase a commercial license from [Fluxzy SAS](https://www.fluxzy.io/contact).

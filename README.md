@@ -4,17 +4,28 @@
 # fluxzy
 
 
-[![CI](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml/badge.svg)](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml)
+[![build](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml/badge.svg)](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml)
+[![gitter](https://badges.gitter.im/Fluxzy.svg)](https://app.gitter.im/#/room/!LRKtrkBMuIBYYNvHdA:gitter.im)
+[![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
 
-fluxzy is an HTTP intermediate and MITM engine for recording and altering HTTP/1.1, H2, and WebSocket traffic over plain or secure channels.
 
-This repository contains the source code of the .NET packages and [Fluxzy CLI](https://www.fluxzy.io/download#cli) that enables you to use fluxzy as a standalone application on a terminal on Windows, macOS, and Linux.
+fluxzy is a *fully managed* and *fully streamed* MITM engine and a CLI app to intercept, record and alter HTTP/1.1, H2, websocket traffic over plain or secure channels.
+
+This repository contains the source code of [Fluxzy CLI](https://www.fluxzy.io/download#cli) which is a standalone command line application for Windows, macOS, and Linux and  the .NET packages that are used by [Fluxzy Desktop](https://www.fluxzy.io/download). 
+
+## Stable version
+
+### .NET packages
+
+.NET packages target .NET Standard 2.1, .NET 6.0 and .NET 8.0.
+
 
 | .NET Package | Description | Version |
 | --- | --- | --- |
 | Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=NuGet&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core) |
-| Fluxzy.Core.Pcap | Extensions that enable raw packet capture along the HTTP(S) exchange | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=NuGet&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap) |
+| Fluxzy.Core.Pcap | Extensions for raw packet capture | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=NuGet&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap) |
 
+### Fluxzy CLI
 
 | Fluxzy CLI | Version |
 | --- | --- |
@@ -24,49 +35,43 @@ This repository contains the source code of the .NET packages and [Fluxzy CLI](h
 
 
 
-
-
 ## 1. Features
 
-To get an exhaustive list of all built-in alteration capabilities, check this [dedicated search page](https://www.fluxzy.io/rule/find/).
+### 1.1 Core features 
 
-| Description | Category | Comment |
-| --- | --- | --- |
-| Deflect OS traffic (act as system proxy) | General | Partially on Linux |
-| Automatic root certificate installation (with elevation on Windows, macOS, and several Linux distributions) | General | Partially on Linux |
-| Certificate management: built-in feature to create CA compatible certificates | General ||
-| Export as HTTP Archive | General ||
-| View HTTP(s) traffic in clear text | General ||
-| Capture raw packets along with HTTP requests (with the extension `Fluxzy.Core.Pcap`). NSS key log can be automatically retrieved when using Bouncy Castle | General ||
-| Add, remove, modify request and response headers | Application-level alteration ||
-| Change request method path, change status code, and host | Application-level alteration ||
-| [Mock request and response body](https://docs.fluxzy.io/documentation/core/short-examples/mock-response.html) | Application-level alteration ||
-| [Inject html snippet to intercepted responses](https://docs.fluxzy.io/documentation/core/short-examples/inject-code-in-html-pages.html) | Application-level alteration ||
-| [Forward requests to another server](https://www.fluxzy.io/rule/item/forwardAction) | Application-level alteration ||
-| [Remove any cache directives](https://www.fluxzy.io/rule/item/removeCacheAction) | Application-level alteration ||
-| [Serve directory as a static website](https://www.fluxzy.io/rule/item/serveDirectoryAction) | Application-level alteration ||
-| Add request and response cookies | Application-level alteration ||
-| [Configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) | Application-level alteration ||
-| Add metadata to HTTP exchanges (tags and comments) | Application-level alteration ||
-| Support HTTP/1.1, H2, WebSocket on outbound streams | Transport-level alteration ||
-| Spoof DNS | Transport-level alteration ||
-| [Add client certificates](https://www.fluxzy.io/rule/item/setClientCertificateAction) | Transport-level alteration ||
-| Use a custom root certificate | Transport-level alteration ||
-| [Use a specific certificate for hosts](https://www.fluxzy.io/rule/item/useCertificateAction) | Transport-level alteration | With native SSL engine |
-| Force HTTP version | Transport-level alteration ||
-| Use specific TLS protocols | Transport-level alteration ||
-| Use native SSL client (SChannel, OpenSSL,...) or BouncyCastle | Transport-level alteration ||
-| Abort connections | Transport-level alteration ||
-| ...... | ...... ||
+- [x] Intercept HTTP/1.1, H2, WebSocket traffic over plain or secure channels
+- [x] Fully streamed proxy
+- [x] Deflect operating system traffic (act as system proxy)
+- [x] Automatic root certificate installation (with elevation on Windows, macOS, and several Linux distributions) 
+- [x] Certificate management: built-in feature to create CA compatible certificates 
+- [x] Export as HTTP Archive (experimental)
+- [x] Use a custom root certificate authority
+- [x] Choice between default .NET SSL provider and BouncyCastle
+- [x] [Raw packet capture](https://docs.fluxzy.io/documentation/core/04-capture-raw-packets.html) (with the extension `Fluxzy.Core.Pcap`)
+- [x] NSS Key log extraction (when using Bouncy Castle)
+- [x]  [Optional configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) 
 
+### 1.2 Alteration and traffic management features 
 
+Alteration and traffic management features are available as [fluxzy actions](https://www.fluxzy.io/resources/documentation/core-concepts). You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to see built-in actions on the latest stable version. Here are a few examples:
+
+- [x] Add, remove, modify request and response headers
+- [x] [Mock or substitute request and response body](https://docs.fluxzy.io/documentation/core/short-examples/mock-response.html)
+- [x] Forward, redirect, spoof DNS, abort connections 
+- [x] [Inject html snippet on intercepted request and response bodies](https://docs.fluxzy.io/documentation/core/short-examples/inject-code-in-html-pages.html)
+- [x] [Remove cache directives](https://www.fluxzy.io/rule/item/removeCacheAction), add request and response cookies
+- [x] [Serve static directory](https://www.fluxzy.io/rule/item/serveDirectoryAction) 
+- [x] Add metadata to HTTP exchanges (tags and comments)
+- [x] Provide a specific certificate for a host 
+  
 
 ## 2. Basic Usage
 
 ### 2.1 Fluxzy CLI
 
-The following demonstrates the basics of how to use fluxzy with a simple rule file.
-The "rule file" is a straightforward YAML file containing a list of directives that fluxzy will evaluate during proxying.
+The following highlights the basic way to use fluxzy with a simple rule file.
+
+The ["rule file"](https://www.fluxzy.io/resources/documentation/the-rule-file) is a straightforward YAML file containing a list of directives that fluxzy will evaluate during proxying.
 
 For more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or use the `--help` option available for each command.
 
@@ -194,4 +199,31 @@ await using (var proxy = new Proxy(fluxzySetting))
 ```
 
 
-Visit [docs.fluxzy.io](https://docs.fluxzy.io) to view usage and more examples.
+Visit [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.html) to view detailed documentation and ready to use examples. 
+
+## 3. Build
+
+### 3.1 Requirements
+
+- .NET 8.0 SDK
+- Git bash for Windows
+- `libpcap` or any equivalent library
+- tests collecting pcap files and installing certificates requires elevation. 
+- An IDE is not necessary to build the app. For information, this project was developed using both Visual Studio 2022 and JetBrains Rider on Windows, macOS and Linux.
+
+### 3.2 Build
+
+- Clone the repository
+- Run  `dotnet build src/Fluxzy.Core` for Fluxzy.Core 
+- Run  `dotnet build src/Fluxzy.Core.Pcap` for Fluxzy.Core.Pcap
+
+### 3.3 Test 
+
+- Several tests are run against various private web servers (iis, nginx, kestrel, apache, ...) which is not currently available to the public.
+
+
+## 4 Contact 
+
+- Use github issues for bug reports and feature requests
+- [![gitter](https://badges.gitter.im/Fluxzy.svg)](https://app.gitter.im/#/room/!LRKtrkBMuIBYYNvHdA:gitter.im)
+- Mail to **project@fluxzy.io** for inquiries
