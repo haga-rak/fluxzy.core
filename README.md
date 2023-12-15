@@ -6,6 +6,7 @@
 
 [![build](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml/badge.svg)](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml)
 [![gitter](https://badges.gitter.im/Fluxzy.svg)](https://app.gitter.im/#/room/!LRKtrkBMuIBYYNvHdA:gitter.im)
+[![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
 
 
 fluxzy is a *fully managed* and *fully streamed* MITM engine and a CLI app to intercept, record and alter HTTP/1.1, H2, websocket traffic over plain or secure channels.
