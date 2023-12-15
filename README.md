@@ -11,11 +11,14 @@
 
 fluxzy is a *fully managed* and *fully streamed* MITM engine and a CLI app to intercept, record and alter HTTP/1.1, H2, websocket traffic over plain or secure channels.
 
-This repository contains the source code[Fluxzy CLI](https://www.fluxzy.io/download#cli) which is a standalone command line application for Windows, macOS, and Linux and  of the .NET packages that are used by [Fluxzy Desktop](https://www.fluxzy.io/download). 
+This repository contains the source code of [Fluxzy CLI](https://www.fluxzy.io/download#cli) which is a standalone command line application for Windows, macOS, and Linux and  the .NET packages that are used by [Fluxzy Desktop](https://www.fluxzy.io/download). 
 
 ## Stable version
 
 ### .NET packages
+
+.NET packages target .NET Standard 2.1, .NET 6.0 and .NET 8.0.
+
 
 | .NET Package | Description | Version |
 | --- | --- | --- |
@@ -206,6 +209,7 @@ Visit [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.ht
 - Git bash for Windows
 - `libpcap` or any equivalent library
 - tests collecting pcap files and installing certificates requires elevation. 
+- An IDE is not necessary to build the app. For information, this project was developed using both Visual Studio 2022 and JetBrains Rider on Windows, macOS and Linux.
 
 ### 3.2 Build
 
