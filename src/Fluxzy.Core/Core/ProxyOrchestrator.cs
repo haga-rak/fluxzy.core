@@ -20,18 +20,18 @@ namespace Fluxzy.Core
     internal class ProxyOrchestrator : IDisposable
     {
         private readonly RealtimeArchiveWriter _archiveWriter;
-        private readonly FromProxyConnectSourceProvider _fromProxyConnectSourceProvider;
+        private readonly ExchangeSourceProvider _exchangeSourceProvider;
         private readonly PoolBuilder _poolBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly ExchangeContextBuilder _exchangeContextBuilder;
 
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
-            FromProxyConnectSourceProvider fromProxyConnectSourceProvider,
+            ExchangeSourceProvider exchangeSourceProvider,
             PoolBuilder poolBuilder)
         {
             _proxyRuntimeSetting = proxyRuntimeSetting;
-            _fromProxyConnectSourceProvider = fromProxyConnectSourceProvider;
+            _exchangeSourceProvider = exchangeSourceProvider;
             _poolBuilder = poolBuilder;
             _archiveWriter = proxyRuntimeSetting.ArchiveWriter;
             _exchangeContextBuilder = new ExchangeContextBuilder(proxyRuntimeSetting);
@@ -60,7 +60,7 @@ namespace Fluxzy.Core
                     ExchangeSourceInitResult? localConnection = null;
 
                     try {
-                        localConnection = await _fromProxyConnectSourceProvider.InitClientConnection(
+                        localConnection = await _exchangeSourceProvider.InitClientConnection(
                             client.GetStream(), buffer,
                             _exchangeContextBuilder, (IPEndPoint) client.Client.LocalEndPoint!, token);
                     }
@@ -445,7 +445,7 @@ namespace Fluxzy.Core
 
                         try {
                             // Read the next HTTP message 
-                            exchange = await _fromProxyConnectSourceProvider.ReadNextExchange(
+                            exchange = await _exchangeSourceProvider.ReadNextExchange(
                                 localConnection.ReadStream,
                                 localConnection.Authority,
                                 buffer, _exchangeContextBuilder, token

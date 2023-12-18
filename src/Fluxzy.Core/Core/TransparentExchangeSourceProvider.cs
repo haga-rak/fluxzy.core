@@ -13,7 +13,7 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    internal class TransparentExchangeSourceProvider : IExchangeSourceProvider
+    internal class TransparentExchangeSourceProvider : ExchangeSourceProvider
     {
         private readonly ICertificateProvider _certificateProvider;
         private readonly IIdProvider _idProvider;
@@ -26,12 +26,13 @@ namespace Fluxzy.Core
             $"\r\n";
 
         public TransparentExchangeSourceProvider(ICertificateProvider certificateProvider, IIdProvider idProvider)
+                : base(idProvider)
         {
             _certificateProvider = certificateProvider;
             _idProvider = idProvider;
         }
 
-        public async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
+        public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
             Stream stream,
             RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
@@ -48,7 +49,7 @@ namespace Fluxzy.Core
                 CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                 EncryptionPolicy = EncryptionPolicy.RequireEncryption,
                 ServerCertificateSelectionCallback = (sender, name) => {
-                    var certificate = _certificateProvider.GetCertificate(name);
+                    var certificate = _certificateProvider.GetCertificate(name ?? "fluxzy.io");
                     authorityName = name;
                     return certificate;
                 }
@@ -82,7 +83,7 @@ namespace Fluxzy.Core
             return new(authority, secureStream, secureStream, exchange, false);
         }
 
-        public ValueTask<Exchange?> ReadNextExchange(
+        public override ValueTask<Exchange?> ReadNextExchange(
             Stream inStream, Authority authority, RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
             CancellationToken token)
