@@ -335,6 +335,17 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///  If true, fluxzy will act directly as the web server.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetTransparentMode(bool value)
+        {
+            TransparentMode = value;
+            return this;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>

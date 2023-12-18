@@ -181,6 +181,12 @@ namespace Fluxzy
         [JsonInclude]
         public int? MaxExchangeCount { get; set; }
 
+        /// <summary>
+        ///     No proxy CONNECT parsing. The client will send directly requests as if fluxzy is a web server.
+        /// </summary>
+        [JsonInclude]
+        public bool TransparentMode { get; internal set; }
+
 
         internal IEnumerable<Rule> FixedRules()
         {
