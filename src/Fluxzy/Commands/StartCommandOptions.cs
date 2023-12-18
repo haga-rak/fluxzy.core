@@ -159,6 +159,17 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+        public static Option CreateReverseProxyMode()
+        {
+            var option = new Option<bool>(
+                "--reverse-proxy",
+                "Act as reverse proxy.");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
 
         public static Option CreateNoCertCacheOption()
         {

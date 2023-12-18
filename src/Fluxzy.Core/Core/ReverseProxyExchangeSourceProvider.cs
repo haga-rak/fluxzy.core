@@ -13,7 +13,7 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    internal class TransparentExchangeSourceProvider : ExchangeSourceProvider
+    internal class ReverseProxyExchangeSourceProvider : ExchangeSourceProvider
     {
         private readonly ICertificateProvider _certificateProvider;
         private readonly IIdProvider _idProvider;
@@ -25,7 +25,7 @@ namespace Fluxzy.Core
             $"Keep-alive: timeout=5\r\n" +
             $"\r\n";
 
-        public TransparentExchangeSourceProvider(ICertificateProvider certificateProvider, IIdProvider idProvider)
+        public ReverseProxyExchangeSourceProvider(ICertificateProvider certificateProvider, IIdProvider idProvider)
                 : base(idProvider)
         {
             _certificateProvider = certificateProvider;

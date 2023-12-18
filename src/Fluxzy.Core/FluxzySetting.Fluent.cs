@@ -339,9 +339,9 @@ namespace Fluxzy
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public FluxzySetting SetTransparentMode(bool value)
+        public FluxzySetting SetReverseMode(bool value)
         {
-            TransparentMode = value;
+            ReverseMode = value;
             return this;
         }
 
