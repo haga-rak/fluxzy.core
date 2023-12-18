@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.ResizableBuffers;
@@ -18,12 +19,14 @@ namespace Fluxzy.Core
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
         /// <param name="contextBuilder"></param>
+        /// <param name="requestedEndpoint"></param>
         /// <param name="token"></param>
         /// <returns></returns>
         ValueTask<ExchangeSourceInitResult?> InitClientConnection(
             Stream stream,
             RsBuffer buffer, 
             IExchangeContextBuilder contextBuilder,
+            IPEndPoint requestedEndpoint,
             CancellationToken token);
 
         /// <summary>

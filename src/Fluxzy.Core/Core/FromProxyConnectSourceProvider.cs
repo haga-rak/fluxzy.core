@@ -2,6 +2,8 @@
 
 using System;
 using System.IO;
+using System.Net;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,21 +22,11 @@ namespace Fluxzy.Core
     /// </summary>
     internal class FromProxyConnectSourceProvider : IExchangeSourceProvider
     {
-        private static string AcceptTunnelResponseString { get; }
-
         private static byte[] AcceptTunnelResponse { get; }
         
         static FromProxyConnectSourceProvider()
         {
-            AcceptTunnelResponseString =
-                $"HTTP/1.1 200 OK\r\n" +
-                $"x-fluxzy-message: enjoy your privacy!\r\n" +
-                $"Content-length: 0\r\n" +
-                $"Connection: keep-alive\r\n" +
-                $"Keep-alive: timeout=5\r\n" +
-                $"\r\n";
-
-            AcceptTunnelResponse = Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
+            AcceptTunnelResponse = Encoding.ASCII.GetBytes(ProxyConstants.AcceptTunnelResponseString);
         }
 
         private readonly IIdProvider _idProvider;
@@ -52,6 +44,7 @@ namespace Fluxzy.Core
             Stream stream,
             RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
+            IPEndPoint _,
             CancellationToken token)
         {
             var plainStream = stream;
@@ -95,7 +88,7 @@ namespace Fluxzy.Core
                             authority, plainStream, plainStream,
                             Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                                 authority, plainHeaderChars, StreamUtils.EmptyStream,
-                                AcceptTunnelResponseString.AsMemory(),
+                                ProxyConstants.AcceptTunnelResponseString.AsMemory(),
                                 StreamUtils.EmptyStream, false,
                                 "HTTP/1.1",
                                 receivedFromProxy), true);
@@ -109,7 +102,7 @@ namespace Fluxzy.Core
 
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, StreamUtils.EmptyStream,
-                    AcceptTunnelResponseString.AsMemory(),
+                    ProxyConstants.AcceptTunnelResponseString.AsMemory(),
                     StreamUtils.EmptyStream, false, "HTTP/1.1", receivedFromProxy);
 
                 exchange.Metrics.CreateCertStart = certStart;
@@ -231,7 +224,16 @@ namespace Fluxzy.Core
         }
     }
 
-
+    internal static class ProxyConstants
+    {
+        public static string AcceptTunnelResponseString { get; } =
+            $"HTTP/1.1 200 OK\r\n" +
+            $"x-fluxzy-message: enjoy your privacy!\r\n" +
+            $"Content-length: 0\r\n" +
+            $"Connection: keep-alive\r\n" +
+            $"Keep-alive: timeout=5\r\n" +
+            $"\r\n";
+    }
     public interface ILink
     {
         Stream? ReadStream { get; }

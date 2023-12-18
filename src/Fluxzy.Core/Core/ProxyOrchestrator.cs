@@ -60,8 +60,9 @@ namespace Fluxzy.Core
                     ExchangeSourceInitResult? localConnection = null;
 
                     try {
-                        localConnection = await _fromProxyConnectSourceProvider.InitClientConnection(client.GetStream(), buffer,
-                            _exchangeContextBuilder, token);
+                        localConnection = await _fromProxyConnectSourceProvider.InitClientConnection(
+                            client.GetStream(), buffer,
+                            _exchangeContextBuilder, (IPEndPoint) client.Client.LocalEndPoint!, token);
                     }
                     catch (Exception ex) {
                         // Failure from the local connection

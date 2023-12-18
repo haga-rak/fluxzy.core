@@ -16,11 +16,6 @@ namespace Fluxzy.Misc.ResizableBuffers
 
         public Memory<byte> Memory => new(Buffer);
 
-        public void Dispose()
-        {
-            ArrayPool<byte>.Shared.Return(Buffer);
-        }
-
         public static RsBuffer Allocate(int size)
         {
             var rawBuffer = ArrayPool<byte>.Shared.Rent(size);
@@ -42,5 +37,11 @@ namespace Fluxzy.Misc.ResizableBuffers
             ArrayPool<byte>.Shared.Return(Buffer);
             Buffer = newBuffer;
         }
+
+        public void Dispose()
+        {
+            ArrayPool<byte>.Shared.Return(Buffer);
+        }
+
     }
 }
