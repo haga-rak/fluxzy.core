@@ -346,6 +346,17 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///   Set Reverse mode forced port 
+        /// </summary>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        public FluxzySetting SetReverseModeForcedPort(int port)
+        {
+            ReverseModeForcedPort = port;
+            return this;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>
