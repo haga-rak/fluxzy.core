@@ -40,7 +40,7 @@ This repository contains the source code of [Fluxzy CLI](https://www.fluxzy.io/d
 ### 1.1 Core features 
 
 - [x] Intercept HTTP/1.1, H2, WebSocket traffic over plain or secure channels
-- [x] Fully streamed proxy
+- [x] Fully streamed intermediate as proxy or reverse proxy
 - [x] Deflect operating system traffic (act as system proxy)
 - [x] Automatic root certificate installation (with elevation on Windows, macOS, and several Linux distributions) 
 - [x] Certificate management: built-in feature to create CA compatible certificates 
