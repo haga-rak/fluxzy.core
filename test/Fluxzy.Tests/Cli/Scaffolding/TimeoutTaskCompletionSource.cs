@@ -18,7 +18,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _tokenSource.Token.Register(
                 () => CompletionSource.TrySetException(
                     parent.IsCancellationRequested
-                        ? new InvalidOperationException("CLI exited with invalid state")
+                        ? new FluxzyBadExitCodeException("CLI exited with invalid state")
                         : new TimeoutException($"Timeout was reached for this source : {message}")));
         }
 
@@ -27,6 +27,16 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         public void Dispose()
         {
             _tokenSource.Dispose();
+        }
+    }
+
+
+    internal class FluxzyBadExitCodeException : Exception
+    {
+        public FluxzyBadExitCodeException(string message)
+            : base(message)
+        {
+            
         }
     }
 }

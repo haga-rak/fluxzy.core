@@ -13,13 +13,25 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 {
     public class OutputWriterNotifier : TextWriter, IStandardStreamWriter
     {
+        private readonly bool _hook;
         private readonly Dictionary<string, TimeoutTaskCompletionSource<string>> _runningWait = new();
+
+        private readonly StringBuilder _builder = new();
+
+        public OutputWriterNotifier(bool hook = false)
+        {
+            _hook = hook;
+        }
 
         public override Encoding Encoding { get; } = new UTF8Encoding(false);
 
         public override void Write(string? value)
         {
             if (value != null) {
+                if (_hook) {
+                    _builder.Append(value);
+                }
+
                 lock (_runningWait) {
                     foreach (var (regexPattern, cancellableTaskSource)
                              in _runningWait.Where(v => !v.Value.CompletionSource.Task.IsCompleted)) {
@@ -63,6 +75,11 @@ namespace Fluxzy.Tests.Cli.Scaffolding
                     cancellableTaskSource.Dispose();
                 }
             }
+        }
+
+        public string GetOutput()
+        {
+            return _builder.ToString();
         }
     }
 }
