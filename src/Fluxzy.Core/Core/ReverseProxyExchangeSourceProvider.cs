@@ -17,19 +17,20 @@ namespace Fluxzy.Core
     {
         private readonly ICertificateProvider _certificateProvider;
         private readonly IIdProvider _idProvider;
+        private readonly int? _reverseModeForcedPort;
 
         private static readonly string TransparentExchangeConnectHeaderTemplate = 
-            $"GET / HTTP/1.1\r\n" +
+            $"CONNECT {{0}}:{{1}} HTTP/1.1\r\n" +
             $"Host: {{0}}:{{1}}\r\n" +
-            $"Connection: keep-alive\r\n" +
-            $"Keep-alive: timeout=5\r\n" +
             $"\r\n";
 
-        public ReverseProxyExchangeSourceProvider(ICertificateProvider certificateProvider, IIdProvider idProvider)
+        public ReverseProxyExchangeSourceProvider(ICertificateProvider certificateProvider, IIdProvider idProvider,
+            int ? reverseModeForcedPort)
                 : base(idProvider)
         {
             _certificateProvider = certificateProvider;
             _idProvider = idProvider;
+            _reverseModeForcedPort = reverseModeForcedPort;
         }
 
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
@@ -60,8 +61,10 @@ namespace Fluxzy.Core
             if (authorityName is null) {
                 throw new FluxzyException("Unable to gather remote authority hostname");
             }
-            
-            var authority = new Authority(authorityName, ipEndPoint.Port, true);
+
+            var destinationPort = _reverseModeForcedPort ?? ipEndPoint.Port; 
+
+            var authority = new Authority(authorityName, destinationPort, true);
 
             var exchangeContext = await contextBuilder.Create(authority, true);
 
@@ -69,8 +72,8 @@ namespace Fluxzy.Core
             var certStart = receivedFromProxy;
             var certEnd = receivedFromProxy;
 
-            var formattedHeaders = string.Format(TransparentExchangeConnectHeaderTemplate, authorityName,
-                ipEndPoint.Port);
+            var formattedHeaders = string.Format(TransparentExchangeConnectHeaderTemplate, 
+                authorityName, destinationPort);
             
             var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                 authority, formattedHeaders.AsMemory(), StreamUtils.EmptyStream,
@@ -81,14 +84,6 @@ namespace Fluxzy.Core
             exchange.Metrics.CreateCertEnd = certEnd;
 
             return new(authority, secureStream, secureStream, exchange, false);
-        }
-
-        public override ValueTask<Exchange?> ReadNextExchange(
-            Stream inStream, Authority authority, RsBuffer buffer,
-            IExchangeContextBuilder contextBuilder,
-            CancellationToken token)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }
