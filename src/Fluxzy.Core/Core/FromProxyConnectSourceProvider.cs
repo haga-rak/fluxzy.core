@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,45 +14,32 @@ using Fluxzy.Misc.Streams;
 namespace Fluxzy.Core
 {
     /// <summary>
-    /// Offers an implementation of IExchangeSourceProvider
+    /// Offers an implementation of ExchangeSourceProvider
     /// based on proxy CONNECT requests.
     /// Determines automatically if request is clear HTTP, HTTPS or TLS.
     /// Accept only HTTP/1.1 requests.
     /// </summary>
-    internal class FromProxyConnectSourceProvider : IExchangeSourceProvider
+    internal class FromProxyConnectSourceProvider : ExchangeSourceProvider
     {
-        private static string AcceptTunnelResponseString { get; }
-
-        private static byte[] AcceptTunnelResponse { get; }
+        private static byte[] AcceptTunnelResponse { get; } = Encoding.ASCII.GetBytes(ProxyConstants.AcceptTunnelResponseString);
         
-        static FromProxyConnectSourceProvider()
-        {
-            AcceptTunnelResponseString =
-                $"HTTP/1.1 200 OK\r\n" +
-                $"x-fluxzy-message: enjoy your privacy!\r\n" +
-                $"Content-length: 0\r\n" +
-                $"Connection: keep-alive\r\n" +
-                $"Keep-alive: timeout=5\r\n" +
-                $"\r\n";
-
-            AcceptTunnelResponse = Encoding.ASCII.GetBytes(AcceptTunnelResponseString);
-        }
-
         private readonly IIdProvider _idProvider;
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
 
         public FromProxyConnectSourceProvider(
             SecureConnectionUpdater secureConnectionUpdater,
-            IIdProvider idProvider)
+            IIdProvider idProvider) :
+            base (idProvider)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
             _idProvider = idProvider;
         }
 
-        public async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
+        public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
             Stream stream,
             RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
+            IPEndPoint _,
             CancellationToken token)
         {
             var plainStream = stream;
@@ -95,7 +83,7 @@ namespace Fluxzy.Core
                             authority, plainStream, plainStream,
                             Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                                 authority, plainHeaderChars, StreamUtils.EmptyStream,
-                                AcceptTunnelResponseString.AsMemory(),
+                                ProxyConstants.AcceptTunnelResponseString.AsMemory(),
                                 StreamUtils.EmptyStream, false,
                                 "HTTP/1.1",
                                 receivedFromProxy), true);
@@ -109,7 +97,7 @@ namespace Fluxzy.Core
 
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, StreamUtils.EmptyStream,
-                    AcceptTunnelResponseString.AsMemory(),
+                    ProxyConstants.AcceptTunnelResponseString.AsMemory(),
                     StreamUtils.EmptyStream, false, "HTTP/1.1", receivedFromProxy);
 
                 exchange.Metrics.CreateCertStart = certStart;
@@ -170,67 +158,18 @@ namespace Fluxzy.Core
                     plainAuthority,
                     plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy), false);
         }
-
-        private static Stream SetChunkedBody(RequestHeader plainHeader, Stream plainStream)
-        {
-            Stream bodyStream;
-
-            if (plainHeader.ChunkedBody)
-                bodyStream = new ChunkedTransferReadStream(plainStream, false);
-            else
-            {
-                bodyStream = plainHeader.ContentLength > 0
-                    ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                    : StreamUtils.EmptyStream;
-            }
-
-            return bodyStream;
-        }
-
-        public async ValueTask<Exchange?> ReadNextExchange(
-            Stream inStream, Authority authority, RsBuffer buffer,
-            IExchangeContextBuilder contextBuilder,
-            CancellationToken token)
-        {
-            // Every next request after the first one is read from the stream
-
-            var blockReadResult = await
-                Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, throwOnError: false, token);
-
-            if (blockReadResult.TotalReadLength == 0)
-                return null;
-
-            var receivedFromProxy = ITimingProvider.Default.Instant();
-
-            var secureHeaderChars = new char[blockReadResult.HeaderLength];
-
-            Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
-                secureHeaderChars);
-
-            var secureHeader = new RequestHeader(secureHeaderChars, true);
-
-            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
-            {
-                var copyBuffer = new byte[blockReadResult.TotalReadLength - blockReadResult.HeaderLength];
-
-                Buffer.BlockCopy(buffer.Buffer, blockReadResult.HeaderLength, copyBuffer, 0, copyBuffer.Length);
-
-                inStream = new CombinedReadonlyStream(false,
-                    new MemoryStream(copyBuffer),
-                    inStream);
-            }
-
-            var exchangeContext =  await contextBuilder.Create(authority, false);
-
-            var bodyStream = SetChunkedBody(secureHeader, inStream);
-
-            return new Exchange(_idProvider,
-                exchangeContext, authority, secureHeader,
-                bodyStream, null!, receivedFromProxy
-            );
-        }
     }
 
+    internal static class ProxyConstants
+    {
+        public static string AcceptTunnelResponseString { get; } =
+            $"HTTP/1.1 200 OK\r\n" +
+            $"x-fluxzy-message: enjoy your privacy!\r\n" +
+            $"Content-length: 0\r\n" +
+            $"Connection: keep-alive\r\n" +
+            $"Keep-alive: timeout=5\r\n" +
+            $"\r\n";
+    }
 
     public interface ILink
     {

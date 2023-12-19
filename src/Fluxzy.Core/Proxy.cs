@@ -63,6 +63,7 @@ namespace Fluxzy
         /// <param name="tcpConnectionProvider">A tcp connection Provider</param>
         /// <param name="userAgentProvider">An user Agent provider</param>
         /// <param name="idProvider">An id provider</param>
+        /// <param name="dnsSolver">Add a custom DNS solver</param>
         /// <param name="externalCancellationSource">An external cancellation token</param>
         /// <exception cref="ArgumentNullException"></exception>
         public Proxy(
@@ -72,6 +73,7 @@ namespace Fluxzy
             ITcpConnectionProvider? tcpConnectionProvider = null,
             IUserAgentInfoProvider? userAgentProvider = null,
             FromIndexIdProvider? idProvider = null,
+            IDnsSolver? dnsSolver = null,
             CancellationTokenSource? externalCancellationSource = null)
         {
             _certificateProvider = certificateProvider;
@@ -103,7 +105,7 @@ namespace Fluxzy
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, sslConnectionBuilder),
                 ITimingProvider.Default,
-                Writer, new DefaultDnsSolver());
+                Writer, dnsSolver ?? new DefaultDnsSolver());
 
             ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
 
@@ -111,7 +113,8 @@ namespace Fluxzy
                 Writer, IdProvider, userAgentProvider);
 
             _proxyOrchestrator = new ProxyOrchestrator(_runTimeSetting,
-                new FromProxyConnectSourceProvider(secureConnectionManager, IdProvider), poolBuilder);
+                ExchangeSourceProviderHelper.GetSourceProvider(startupSetting, secureConnectionManager, IdProvider, certificateProvider),
+                poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
                                                          t.Filter is AnyFilter)

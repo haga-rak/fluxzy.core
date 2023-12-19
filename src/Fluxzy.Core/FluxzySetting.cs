@@ -181,6 +181,24 @@ namespace Fluxzy
         [JsonInclude]
         public int? MaxExchangeCount { get; set; }
 
+        /// <summary>
+        ///     No proxy CONNECT parsing. The client will send directly requests as if fluxzy is a web server.
+        /// </summary>
+        [JsonInclude]
+        public bool ReverseMode { get; internal set; }
+
+        /// <summary>
+        ///     When reverse mode forced port is set, fluxzy will use the specified port to connect to the remote instead of client connected port
+        /// </summary>
+        [JsonInclude]
+        public int? ReverseModeForcedPort { get; internal set; }
+
+        /// <summary>
+        ///    When set to true, fluxzy will expect plain http for reverse mode
+        /// </summary>
+        [JsonInclude]
+        public bool ReverseModePlainHttp { get; internal set; }
+
 
         internal IEnumerable<Rule> FixedRules()
         {

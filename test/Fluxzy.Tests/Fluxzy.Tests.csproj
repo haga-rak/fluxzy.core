@@ -56,6 +56,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="UnitTests\ReverseProxying\" />
     <Folder Include="_Files\Certificates\" />
     <Folder Include="_Files\Others\" />
     <Folder Include="_Files\Outputs\" />

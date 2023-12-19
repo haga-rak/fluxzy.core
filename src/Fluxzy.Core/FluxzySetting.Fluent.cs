@@ -335,6 +335,42 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///  If true, fluxzy will act directly as the web server.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetReverseMode(bool value)
+        {
+            ReverseMode = value;
+            return this;
+        }
+
+        /// <summary>
+        ///   Set Reverse mode forced port 
+        /// </summary>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        public FluxzySetting SetReverseModeForcedPort(int port)
+        {
+            ReverseModeForcedPort = port;
+            return this;
+        }
+
+        /// <summary>
+        ///    When true, fluxzy will expect plain HTTP directly from the client.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetReverseModePlainHttp(bool value)
+        {
+            if (value)
+                ReverseMode = true; 
+
+            ReverseModePlainHttp = value;
+            return this;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>

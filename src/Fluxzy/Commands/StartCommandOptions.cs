@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
@@ -159,7 +160,53 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+        public static Option<ProxyMode> CreateReverseProxyMode()
+        {
+            var possibleValues = string.Join(", ",
+                Enum.GetNames(typeof(ProxyMode)));
 
+            var option = new Option<ProxyMode>(
+                "--mode",
+                 parseArgument : result => {
+                     var value = result.Tokens.FirstOrDefault()?.Value;
+
+                     if (value == null) {
+                        result.ErrorMessage = "Invalid proxy mode value";
+                        return default;
+                     }
+
+                     if (!Enum.TryParse<ProxyMode>(value, true, out var finalResult) 
+                         || (int) finalResult == 0) {
+                         
+                         result.ErrorMessage = $"Invalid proxy mode value. Possible values are: {possibleValues}";
+                         return default;
+                     }
+
+                     return finalResult;
+                 }
+                );
+
+            option.Description =
+                $"Set proxy mode";
+
+            option.SetDefaultValue(ProxyMode.Regular);
+            option.Arity = ArgumentArity.ExactlyOne;
+            option.AllowMultipleArgumentsPerToken = false;
+
+            return option;
+        }
+
+        public static Option<int?> CreateReverseProxyModePortOption()
+        {
+            var option = new Option<int?>(
+                "--mode-reverse-port",
+                "Set the remote authority port when --mode ReverseSecure or --mode ReversePlain is set");
+
+            option.SetDefaultValue(null);
+            option.Arity = ArgumentArity.ExactlyOne;
+
+            return option;
+        }
         public static Option CreateNoCertCacheOption()
         {
             var option = new Option<bool>(
@@ -171,7 +218,6 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
-
 
         public static Option CreateUaParsingOption()
         {

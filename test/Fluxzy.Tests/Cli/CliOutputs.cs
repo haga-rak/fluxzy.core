@@ -197,7 +197,7 @@ namespace Fluxzy.Tests.Cli
             await base.Run_Cli_Output(proto, rawCap, @out, rule);
         }
     }
-
+    
     public class CliWithCapOutOfProc : CliTestBase
     {
         public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt {

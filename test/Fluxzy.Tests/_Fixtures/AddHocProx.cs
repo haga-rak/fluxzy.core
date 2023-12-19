@@ -24,7 +24,7 @@ namespace Fluxzy.Tests._Fixtures
 
         private int _requestCount;
 
-        public AddHocProxy(int expectedRequestCount = 1, int timeoutSeconds = 5)
+        public AddHocProxy(int expectedRequestCount = 1, int timeoutSeconds = 5, Action<FluxzySetting>? configureSetting = null)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 timeoutSeconds = timeoutSeconds * 5; 
@@ -36,6 +36,8 @@ namespace Fluxzy.Tests._Fixtures
             _startupSetting = FluxzySetting
                               .CreateDefault()
                               .SetBoundAddress(BindHost, BindPort);
+
+            configureSetting?.Invoke(_startupSetting);
 
             _proxy = new Proxy(_startupSetting,
                 new CertificateProvider(_startupSetting.CaCertificate,

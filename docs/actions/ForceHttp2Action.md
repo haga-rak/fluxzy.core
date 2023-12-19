@@ -2,7 +2,7 @@
 
 ### Description
 
-Force the connection between fluxzy and remote to be HTTP/2.0. This value is enforced when setting up ALPN settings during SSL/TLS negotiation. <br/>The exchange will break if the remote does not support HTTP/2.0. <br/>This action will be ignored when the communication is clear (h2c not supported).
+Forces the connection between fluxzy and remote to be HTTP/2.0. This value is enforced when setting up ALPN settings during SSL/TLS negotiation. <br/>The exchange will break if the remote does not support HTTP/2.0. <br/>This action will be ignored when the communication is clear (h2c not supported).
 
 ### Evaluation scope
 
@@ -25,7 +25,7 @@ This action has no specific characteristic
 
 The following examples apply this action to any exchanges
 
-Force the connection between fluxzy and remote to be HTTP/2.0. This value is enforced when setting up ALPN settings during SSL/TLS negotiation. <br/>The exchange will break if the remote does not support HTTP/2.0. <br/>This action will be ignored when the communication is clear (h2c not supported).
+Forces the connection between fluxzy and remote to be HTTP/2.0. This value is enforced when setting up ALPN settings during SSL/TLS negotiation. <br/>The exchange will break if the remote does not support HTTP/2.0. <br/>This action will be ignored when the communication is clear (h2c not supported).
 
 ```yaml
 rules:
