@@ -163,7 +163,7 @@ namespace Fluxzy.Cli.Commands
         public static Option<ProxyMode> CreateReverseProxyMode()
         {
             var possibleValues = string.Join(", ",
-                Enum.GetNames(typeof(ProxyMode)).Select(s => s.ToLowerInvariant()));
+                Enum.GetNames(typeof(ProxyMode)));
 
             var option = new Option<ProxyMode>(
                 "--mode",
@@ -187,7 +187,7 @@ namespace Fluxzy.Cli.Commands
                 );
 
             option.Description =
-                $"Act as reverse proxy. Possible values are: {possibleValues}";
+                $"Set proxy mode";
 
             option.SetDefaultValue(ProxyMode.Regular);
             option.Arity = ArgumentArity.ExactlyOne;
@@ -195,8 +195,18 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
-        
 
+        public static Option<int?> CreateReverseProxyModePortOption()
+        {
+            var option = new Option<int?>(
+                "--mode-reverse-port",
+                "Set the remote authority port when --mode ReverseSecure or --mode ReversePlain is set");
+
+            option.SetDefaultValue(null);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
         public static Option CreateNoCertCacheOption()
         {
             var option = new Option<bool>(
@@ -208,7 +218,6 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
-
 
         public static Option CreateUaParsingOption()
         {

@@ -82,6 +82,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateUser502Option());
             command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
             command.AddOption(StartCommandOptions.CreateReverseProxyMode());
+            command.AddOption(StartCommandOptions.CreateReverseProxyModePortOption());
             command.AddOption(StartCommandOptions.CreateProxyBuffer());
             command.AddOption(StartCommandOptions.CreateCounterOption());
 
@@ -116,6 +117,7 @@ namespace Fluxzy.Cli.Commands
             var trace = invocationContext.Value<bool>("trace");
             var use502 = invocationContext.Value<bool>("use-502");
             var proxyMode = invocationContext.Value<ProxyMode>("mode");
+            var modeReversePort = invocationContext.Value<int?>("mode-reverse-port");
 
             if (trace) {
                 D.EnableTracing = true;
@@ -143,13 +145,30 @@ namespace Fluxzy.Cli.Commands
 
             if (proxyMode == ProxyMode.ReverseSecure)
             {
+                if (registerAsSystemProxy) {
+                    throw new ArgumentException("Cannot register as system proxy when using reverse mode");
+                }
+
                 proxyStartUpSetting.SetReverseMode(true);
+
+                if (modeReversePort != null) {
+                    proxyStartUpSetting.SetReverseModeForcedPort(modeReversePort.Value);
+                }
             }
 
             if (proxyMode == ProxyMode.ReversePlain)
             {
+                if (registerAsSystemProxy) {
+                    throw new ArgumentException("Cannot register as system proxy when using reverse mode");
+                }
+
                 proxyStartUpSetting.SetReverseMode(true);
-                proxyStartUpSetting.SetReverseModePlainHttp(true); 
+                proxyStartUpSetting.SetReverseModePlainHttp(true);
+
+                if (modeReversePort != null)
+                {
+                    proxyStartUpSetting.SetReverseModeForcedPort(modeReversePort.Value);
+                }
             }
 
             var finalListenInterfaces = listenInterfaces.ToList();
