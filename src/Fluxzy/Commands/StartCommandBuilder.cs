@@ -115,7 +115,7 @@ namespace Fluxzy.Cli.Commands
             var count = invocationContext.Value<int?>("max-capture-count");
             var trace = invocationContext.Value<bool>("trace");
             var use502 = invocationContext.Value<bool>("use-502");
-            var reverseProxyMode = invocationContext.Value<bool>("reverse-proxy");
+            var proxyMode = invocationContext.Value<ProxyMode>("mode");
 
             if (trace) {
                 D.EnableTracing = true;
@@ -140,7 +140,17 @@ namespace Fluxzy.Cli.Commands
 
             proxyStartUpSetting.MaxExchangeCount = count;
             proxyStartUpSetting.ClearBoundAddresses();
-            proxyStartUpSetting.SetReverseMode(reverseProxyMode);
+
+            if (proxyMode == ProxyMode.ReverseSecure)
+            {
+                proxyStartUpSetting.SetReverseMode(true);
+            }
+
+            if (proxyMode == ProxyMode.ReversePlain)
+            {
+                proxyStartUpSetting.SetReverseMode(true);
+                proxyStartUpSetting.SetReverseModePlainHttp(true); 
+            }
 
             var finalListenInterfaces = listenInterfaces.ToList();
 

@@ -114,8 +114,6 @@ namespace Fluxzy.Tests
 
             using var httpClient = new HttpClient(handler, false);
             
-            var requestBodyLength = 23632;
-
             for (int i = 0; i < repetition; i++)
             {
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
