@@ -3,8 +3,6 @@
 using System;
 using System.Net.Http;
 using System.Net;
-using System.Net.Security;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
@@ -30,7 +28,7 @@ namespace Fluxzy.Tests
 
             var proxyPort = proxy.BindPort;
 
-            var handler = GetSpoofedHandler(proxyPort, host);
+            var handler = ReverseProxyHelper.GetSpoofedHandler(proxyPort, host);
 
             using var httpClient = new HttpClient(handler, false);
             
@@ -70,7 +68,7 @@ namespace Fluxzy.Tests
 
             var proxyPort = proxy.BindPort;
 
-            var handler = GetSpoofedHandler(proxyPort, host, secure: false);
+            var handler = ReverseProxyHelper.GetSpoofedHandler(proxyPort, host, secure: false);
 
             using var httpClient = new HttpClient(handler, false);
             
@@ -110,7 +108,7 @@ namespace Fluxzy.Tests
 
             var proxyPort = proxy.BindPort;
 
-            var handler = GetSpoofedHandler(proxyPort, host, secure: false);
+            var handler = ReverseProxyHelper.GetSpoofedHandler(proxyPort, host, secure: false);
 
             using var httpClient = new HttpClient(handler, false);
             
@@ -125,33 +123,5 @@ namespace Fluxzy.Tests
                 await AssertionHelper.ValidateCheck(requestMessage, null, response);
             }
         }
-
-        private static SocketsHttpHandler GetSpoofedHandler(int proxyPort, string host, bool secure = true)
-        {
-            var handler =  new SocketsHttpHandler() {
-                ConnectCallback = async (_, cancellationToken) =>
-                {
-                    var tcpConnection = new TcpClient();
-
-                    await tcpConnection.ConnectAsync(new IPEndPoint(IPAddress.Loopback, proxyPort),
-                        cancellationToken);
-
-                    var networkStream = tcpConnection.GetStream();
-
-                    if (secure) {
-                        var sslStream = new SslStream(networkStream, false);
-                        await sslStream.AuthenticateAsClientAsync(host);
-                        return sslStream;
-                    }
-
-                    return networkStream;
-                }
-            };
-
-            handler.AllowAutoRedirect = false; 
-
-            return handler; 
-        }
-    }
-    
+ }
 }

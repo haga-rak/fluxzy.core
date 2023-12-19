@@ -35,7 +35,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _cancellationToken = _cancellationTokenSource.Token;
 
             _standardOutput = new OutputWriterNotifier();
-            _standardError = new OutputWriterNotifier();
+            _standardError = new OutputWriterNotifier(true);
 
             _outputConsole = new OutputConsole(_standardOutput, _standardError, standardInput);
         }
@@ -59,13 +59,21 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _ = ExitCode.ContinueWith(runResult => {
                 if (!blockingListingTokenSource.IsCancellationRequested)
                     blockingListingTokenSource.Cancel();
-
                 return runResult.Result;
-            });
+            }, blockingListenToken);
 
-            var port = int.Parse(await waitForPortTask);
-
-            return new ProxyInstance(ExitCode, _standardOutput, _standardError, port, _cancellationTokenSource);
+            try
+            {
+                var port = int.Parse(await waitForPortTask);
+                return new ProxyInstance(ExitCode, _standardOutput, _standardError, port, _cancellationTokenSource);
+            }
+            catch (FluxzyBadExitCodeException ex) {
+                throw new InvalidOperationException(
+                    "Fluxzy exits with a non-zero status code.\r\n" +
+                    $"Original args: {(string.Join(" ", _commandLineArgs))}\r\n" +
+                    "Stderr:\r\n"
+                 + _standardError.GetOutput());
+            }
         }
 
         public static Task<ProxyInstance> CreateAndRun(string commandLine, string? standardInput = null)
