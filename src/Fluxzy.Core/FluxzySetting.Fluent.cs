@@ -363,6 +363,7 @@ namespace Fluxzy
         /// <returns></returns>
         public FluxzySetting SetReverseModePlainHttp(bool value)
         {
+            ReverseMode = true; 
             ReverseModePlainHttp = value;
             return this;
         }
