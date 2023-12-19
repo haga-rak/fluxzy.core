@@ -57,10 +57,10 @@ namespace Fluxzy.Core
 
                 if (!token.IsCancellationRequested) {
                     // READ initial state of connection, 
-                    ExchangeSourceInitResult? localConnection = null;
+                    ExchangeSourceInitResult? exchangeSourceInitResult = null;
 
                     try {
-                        localConnection = await _exchangeSourceProvider.InitClientConnection(
+                        exchangeSourceInitResult = await _exchangeSourceProvider.InitClientConnection(
                             client.GetStream(), buffer,
                             _exchangeContextBuilder, (IPEndPoint) client.Client.LocalEndPoint!, token);
                     }
@@ -83,11 +83,11 @@ namespace Fluxzy.Core
                             return;
                     }
 
-                    if (localConnection == null)
+                    if (exchangeSourceInitResult == null)
                         return;
 
                     var exchange =
-                        localConnection.ProvisionalExchange;
+                        exchangeSourceInitResult.ProvisionalExchange;
 
                     var endPoint = (IPEndPoint) client.Client.RemoteEndPoint!;
                     var localEndPoint = (IPEndPoint) client.Client.LocalEndPoint!;
@@ -104,7 +104,7 @@ namespace Fluxzy.Core
                     do {
                         if (
                             !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase)
-                            || localConnection.TunnelOnly
+                            || exchangeSourceInitResult.TunnelOnly
                         ) {
                             // Check whether the local browser ask for a connection close 
 
@@ -197,7 +197,7 @@ namespace Fluxzy.Core
 
                                     try
                                     {
-                                        await connectionPool.Send(exchange, localConnection, buffer, token);
+                                        await connectionPool.Send(exchange, exchangeSourceInitResult, buffer, token);
 
                                         if (D.EnableTracing)
                                         {
@@ -362,7 +362,7 @@ namespace Fluxzy.Core
 
                                 try {
                                     // Start sending response to browser
-                                    await localConnection.WriteStream.WriteAsync(
+                                    await exchangeSourceInitResult.WriteStream.WriteAsync(
                                         new ReadOnlyMemory<byte>(buffer.Buffer, 0, responseHeaderLength),
                                         token);
                                 }
@@ -380,7 +380,7 @@ namespace Fluxzy.Core
 
                                 if (exchange.Response.Header.ContentLength != 0 &&
                                     responseBodyStream != null) {
-                                    var localConnectionWriteStream = localConnection.WriteStream;
+                                    var localConnectionWriteStream = exchangeSourceInitResult.WriteStream;
 
                                     if (exchange.Response.Header.ChunkedBody) {
                                         localConnectionWriteStream =
@@ -393,7 +393,7 @@ namespace Fluxzy.Core
 
                                         (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
 
-                                        await localConnection.WriteStream.FlushAsync(CancellationToken.None);
+                                        await exchangeSourceInitResult.WriteStream.FlushAsync(CancellationToken.None);
                                     }
                                     catch (Exception ex) {
                                         if (ex is IOException || ex is OperationCanceledException) {
@@ -446,8 +446,8 @@ namespace Fluxzy.Core
                         try {
                             // Read the next HTTP message 
                             exchange = await _exchangeSourceProvider.ReadNextExchange(
-                                localConnection.ReadStream,
-                                localConnection.Authority,
+                                exchangeSourceInitResult.ReadStream,
+                                exchangeSourceInitResult.Authority,
                                 buffer, _exchangeContextBuilder, token
                             );
 
