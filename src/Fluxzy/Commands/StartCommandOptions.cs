@@ -203,7 +203,7 @@ namespace Fluxzy.Cli.Commands
                 "Set the remote authority port when --mode ReverseSecure or --mode ReversePlain is set");
 
             option.SetDefaultValue(null);
-            option.Arity = ArgumentArity.Zero;
+            option.Arity = ArgumentArity.ExactlyOne;
 
             return option;
         }
