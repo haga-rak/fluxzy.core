@@ -10,8 +10,6 @@ namespace Fluxzy.Tests.UnitTests
     public class MessageHandlerExtension
     {
         [Theory]
-        // [InlineData("0.0.0.0")] Disable any address test causing popup on windows
-        // [InlineData("::")] Disable any address test causing popup on windows
         [InlineData("127.0.0.1")]
         [InlineData("::1")]
         public async Task Test_Create_Http_Client(string rawAddress)
