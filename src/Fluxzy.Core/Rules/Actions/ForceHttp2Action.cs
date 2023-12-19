@@ -14,11 +14,15 @@ namespace Fluxzy.Rules.Actions
     ///     This action will be ignored when the communication is clear (H2c not supported)
     /// </summary>
     [ActionMetadata(
-        "Force the connection between fluxzy and remote to be HTTP/2.0. This value is enforced when setting up ALPN settings during SSL/TLS negotiation. <br/>" +
+        "Forces the connection between fluxzy and remote to be HTTP/2.0. This value is enforced when setting up ALPN settings during SSL/TLS negotiation. <br/>" +
         "The exchange will break if the remote does not support HTTP/2.0. <br/>" +
         "This action will be ignored when the communication is clear (h2c not supported).")]
     public class ForceHttp2Action : Action
     {
+        private static readonly List<SslApplicationProtocol> Protocols = new() {
+            SslApplicationProtocol.Http2
+        };
+
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
         public override string DefaultDescription => "Force using HTTP/2.0";
@@ -27,11 +31,7 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            // TODO avoid allocating new list here 
-
-            context.SslApplicationProtocols = new List<SslApplicationProtocol> {
-                SslApplicationProtocol.Http2
-            };
+            context.SslApplicationProtocols = Protocols;
 
             return default;
         }
