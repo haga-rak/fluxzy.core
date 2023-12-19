@@ -113,9 +113,7 @@ namespace Fluxzy
                 Writer, IdProvider, userAgentProvider);
 
             _proxyOrchestrator = new ProxyOrchestrator(_runTimeSetting,
-                !startupSetting.ReverseMode ? 
-                new FromProxyConnectSourceProvider(secureConnectionManager, IdProvider): 
-                new ReverseProxyExchangeSourceProvider(certificateProvider, IdProvider, startupSetting.ReverseModeForcedPort), 
+                ExchangeSourceProviderHelper.GetSourceProvider(startupSetting, secureConnectionManager, IdProvider, certificateProvider),
                 poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&

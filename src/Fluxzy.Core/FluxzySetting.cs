@@ -191,7 +191,13 @@ namespace Fluxzy
         ///     When reverse mode forced port is set, fluxzy will use the specified port to connect to the remote instead of client connected port
         /// </summary>
         [JsonInclude]
-        public int? ReverseModeForcedPort { get; set; }
+        public int? ReverseModeForcedPort { get; internal set; }
+
+        /// <summary>
+        ///    When set to true, fluxzy will expect plain http for reverse mode
+        /// </summary>
+        [JsonInclude]
+        public bool ReverseModePlainHttp { get; internal set; }
 
 
         internal IEnumerable<Rule> FixedRules()

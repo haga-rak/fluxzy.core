@@ -357,6 +357,17 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///    When true, fluxzy will expect plain HTTP directly from the client.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetReverseModePlainHttp(bool value)
+        {
+            ReverseModePlainHttp = value;
+            return this;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>

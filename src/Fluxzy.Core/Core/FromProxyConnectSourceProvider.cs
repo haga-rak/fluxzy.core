@@ -21,13 +21,8 @@ namespace Fluxzy.Core
     /// </summary>
     internal class FromProxyConnectSourceProvider : ExchangeSourceProvider
     {
-        private static byte[] AcceptTunnelResponse { get; }
+        private static byte[] AcceptTunnelResponse { get; } = Encoding.ASCII.GetBytes(ProxyConstants.AcceptTunnelResponseString);
         
-        static FromProxyConnectSourceProvider()
-        {
-            AcceptTunnelResponse = Encoding.ASCII.GetBytes(ProxyConstants.AcceptTunnelResponseString);
-        }
-
         private readonly IIdProvider _idProvider;
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
 
