@@ -74,5 +74,20 @@ namespace Fluxzy
                 new JsonStringEnumConverter()
             }
         };
+        
+
+        /// <summary>
+        /// HAR STJ archiving option, used by Har Packager
+        /// </summary>
+        public static JsonSerializerOptions HttpArchivePrettySerializerOptions { get; } = new() {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = {
+                new ReadonlyMemoryCharConverter(),
+                new BooleanConverter(),
+                new JsonStringEnumConverter()
+            }
+        };
     }
 }

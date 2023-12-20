@@ -76,7 +76,7 @@ namespace Fluxzy.Archiving.Har
             }
 
             ExchangeId = exchangeInfo.Id;
-            StartDateTime = exchangeInfo.Metrics.ReceivedFromProxy;
+            StartedDateTime = exchangeInfo.Metrics.ReceivedFromProxy;
             ServerIpAddress = connectionInfo?.RemoteAddress;
             Connection = connectionInfo?.Id.ToString();
             Timings = new HarTimings(exchangeInfo, connectionInfo);
@@ -89,7 +89,7 @@ namespace Fluxzy.Archiving.Har
         [JsonPropertyName("_exchangeId")]
         public int ExchangeId { get; }
 
-        public DateTime StartDateTime { get; set; }
+        public DateTime StartedDateTime { get; set; }
 
         public int Time { get; }
 
@@ -125,7 +125,7 @@ namespace Fluxzy.Archiving.Har
             if (HttpHelper.TryGetQueryStrings(Url, out var item))
                 QueryString = item.Select(s => new HarQueryString(s)).ToList();
 
-            HeaderSize = exchangeInfo.Metrics.RequestHeaderLength;
+            HeadersSize = exchangeInfo.Metrics.RequestHeaderLength;
 
             BodySize = archiveReader.GetRequestBodyLength(exchangeInfo.Id);
 
@@ -147,7 +147,7 @@ namespace Fluxzy.Archiving.Har
 
         public List<HarCookie> Cookies { get; }
 
-        public int HeaderSize { get; } = -1;
+        public int HeadersSize { get; } = -1;
 
         public long BodySize { get; } = -1;
 
@@ -176,7 +176,7 @@ namespace Fluxzy.Archiving.Har
             }
 
             RedirectURL = producerContext.Exchange.FullUrl;
-            HeaderSize = producerContext.Exchange.Metrics.ResponseHeaderLength;
+            HeadersSize = producerContext.Exchange.Metrics.ResponseHeaderLength;
             BodySize = producerContext.ArchiveReader.GetResponseBodyLength(producerContext.Exchange.Id);
 
             Content = new HarContent(producerContext, saveSetting);
@@ -196,7 +196,7 @@ namespace Fluxzy.Archiving.Har
 
         public string? RedirectURL { get; }
 
-        public int HeaderSize { get; }
+        public int HeadersSize { get; }
 
         public long BodySize { get; }
 
