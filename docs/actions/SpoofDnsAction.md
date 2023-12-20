@@ -71,9 +71,9 @@ View definition of [SpoofDnsAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Acti
 
 The following actions are related to this action: 
 
- - [mountCertificateAuthorityAction](mountCertificateAuthorityAction)
- - [mountWelcomePageAction](mountWelcomePageAction)
  - [forwardAction](forwardAction)
  - [spoofDnsAction](spoofDnsAction)
  - [serveDirectoryAction](serveDirectoryAction)
+ - [mockedResponseAction](mockedResponseAction)
+ - [injectHtmlTagAction](injectHtmlTagAction)
 

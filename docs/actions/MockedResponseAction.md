@@ -89,5 +89,11 @@ View definition of [MockedResponseAction](https://docs.fluxzy.io/api/Fluxzy.Rule
 
 ### See also
 
-This action has no related action
+The following actions are related to this action: 
+
+ - [forwardAction](forwardAction)
+ - [spoofDnsAction](spoofDnsAction)
+ - [serveDirectoryAction](serveDirectoryAction)
+ - [mockedResponseAction](mockedResponseAction)
+ - [injectHtmlTagAction](injectHtmlTagAction)
 
