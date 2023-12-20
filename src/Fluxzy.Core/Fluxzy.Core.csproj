@@ -9,7 +9,7 @@
     <Description>MITM engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/haga-rak/fluxzy.core</PackageProjectUrl>
+    <PackageProjectUrl>https://www.fluxzy.io</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/haga-rak/fluxzy.core</RepositoryUrl>

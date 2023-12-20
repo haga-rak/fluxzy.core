@@ -9,6 +9,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://www.fluxzy.io</PackageProjectUrl>
     <RepositoryUrl>https://github.com/haga-rak/fluxzy.core</RepositoryUrl>
     <PackageTags>mitm;http;pcap;proxy</PackageTags>
   </PropertyGroup>
