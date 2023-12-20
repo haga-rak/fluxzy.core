@@ -49,7 +49,7 @@ namespace Fluxzy.Readers
                     continue; 
                 }
 
-                var received = entry.StartDateTime;
+                var received = entry.StartedDateTime;
                 var poolReceived = received.AddMilliseconds((entry.Timings?.Blocked).NullIfNegative() ?? 0); 
                 var dnsStart = poolReceived;
                 var dnsEnd = poolReceived.AddMilliseconds((entry.Timings?.Dns).NullIfNegative() ?? 0);
@@ -87,7 +87,7 @@ namespace Fluxzy.Readers
                 var uri = new Uri(entry.Request.Url);
 
 
-                var startDateTime = entry.StartDateTime; 
+                var startDateTime = entry.StartedDateTime; 
 
                 var exchange = new ExchangeInfo(exchangeId++, 
                     connection.Id, entry.Request.HttpVersion,
@@ -186,7 +186,7 @@ namespace Fluxzy.Readers
 
         public HarReadResponse? Response { get; set; }
 
-        public DateTime StartDateTime { get; set; }
+        public DateTime StartedDateTime { get; set; }
 
     }
 
@@ -200,7 +200,7 @@ namespace Fluxzy.Readers
 
         public List<HarReadHeader> Headers { get; set; } = new(); 
 
-        public int HeaderSize { get; set; }
+        public int HeadersSize { get; set; }
 
         public HarReadPostData PostData { get; set; } = new();
 
@@ -208,10 +208,10 @@ namespace Fluxzy.Readers
         public int EffectiveHeaderSize {
             get
             {
-                if (HeaderSize <= 0)
+                if (HeadersSize <= 0)
                     return Headers.Sum(s => s.Name.Length + s.Value.Length + 2) + 4; 
 
-                return HeaderSize;
+                return HeadersSize;
             }
         }
 
@@ -308,18 +308,17 @@ namespace Fluxzy.Readers
 
         public HarReadResponseContent Content { get; set; } = new();
 
-
-        public int HeaderSize { get; set; }
+        public int HeadersSize { get; set; }
 
         [JsonIgnore]
         public int EffectiveHeaderSize
         {
             get
             {
-                if (HeaderSize <= 0)
+                if (HeadersSize <= 0)
                     return Headers.Sum(s => s.Name.Length + s.Value.Length + 2) + 4;
 
-                return HeaderSize;
+                return HeadersSize;
             }
         }
 
