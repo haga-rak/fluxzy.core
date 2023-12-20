@@ -67,7 +67,8 @@ namespace Fluxzy.Tools.DocGen
             FilterCategories.Add(
                 new() {
                     typeof(CssStyleFilter), typeof(ContentTypeXmlFilter), typeof(FontFilter),
-                    typeof(JsonRequestFilter), typeof(JsonResponseFilter), typeof(ImageFilter)
+                    typeof(JsonRequestFilter), typeof(JsonResponseFilter), typeof(ImageFilter), 
+                    typeof(HtmlResponseFilter)
                 });
         }
 
@@ -98,10 +99,9 @@ namespace Fluxzy.Tools.DocGen
 
             ActionCategories.Add(
                 new() {
-                    typeof(MountCertificateAuthorityAction), typeof(MountWelcomePageAction), 
                     typeof(ForwardAction), typeof(SpoofDnsAction),
                     typeof(ServeDirectoryAction),
-
+                    typeof(MockedResponseAction), typeof(InjectHtmlTagAction)
                 });
 
             ActionCategories.Add(
@@ -112,6 +112,11 @@ namespace Fluxzy.Tools.DocGen
             ActionCategories.Add(
                 new() {
                     typeof(FileAppendAction), typeof(StdOutAction), typeof(StdErrAction)
+                });
+
+            ActionCategories.Add(
+                new() {
+                    typeof(MountCertificateAuthorityAction), typeof(MountWelcomePageAction)
                 });
         }
 

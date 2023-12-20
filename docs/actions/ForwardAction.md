@@ -53,9 +53,9 @@ View definition of [ForwardAction](https://docs.fluxzy.io/api/Fluxzy.Rules.Actio
 
 The following actions are related to this action: 
 
- - [mountCertificateAuthorityAction](mountCertificateAuthorityAction)
- - [mountWelcomePageAction](mountWelcomePageAction)
  - [forwardAction](forwardAction)
  - [spoofDnsAction](spoofDnsAction)
  - [serveDirectoryAction](serveDirectoryAction)
+ - [mockedResponseAction](mockedResponseAction)
+ - [injectHtmlTagAction](injectHtmlTagAction)
 

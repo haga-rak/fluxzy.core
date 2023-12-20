@@ -60,4 +60,5 @@ The following filters are related to this filter:
  - [jsonRequestFilter](jsonRequestFilter)
  - [jsonResponseFilter](jsonResponseFilter)
  - [imageFilter](imageFilter)
+ - [htmlResponseFilter](htmlResponseFilter)
 
