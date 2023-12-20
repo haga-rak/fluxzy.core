@@ -61,5 +61,11 @@ View definition of [InjectHtmlTagAction](https://docs.fluxzy.io/api/Fluxzy.Rules
 
 ### See also
 
-This action has no related action
+The following actions are related to this action: 
+
+ - [forwardAction](forwardAction)
+ - [spoofDnsAction](spoofDnsAction)
+ - [serveDirectoryAction](serveDirectoryAction)
+ - [mockedResponseAction](mockedResponseAction)
+ - [injectHtmlTagAction](injectHtmlTagAction)
 

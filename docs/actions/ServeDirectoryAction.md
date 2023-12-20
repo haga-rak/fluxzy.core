@@ -53,9 +53,9 @@ View definition of [ServeDirectoryAction](https://docs.fluxzy.io/api/Fluxzy.Rule
 
 The following actions are related to this action: 
 
- - [mountCertificateAuthorityAction](mountCertificateAuthorityAction)
- - [mountWelcomePageAction](mountWelcomePageAction)
  - [forwardAction](forwardAction)
  - [spoofDnsAction](spoofDnsAction)
  - [serveDirectoryAction](serveDirectoryAction)
+ - [mockedResponseAction](mockedResponseAction)
+ - [injectHtmlTagAction](injectHtmlTagAction)
 
