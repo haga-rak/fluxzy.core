@@ -67,7 +67,76 @@ Alteration and traffic management features are available as [fluxzy actions](htt
 
 ## 2. Basic Usage
 
-### 2.1 Fluxzy CLI
+### 2.1 .NET library
+
+### 2.1.1 Simple usage
+The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
+The following shows a very basic usage of the .NET packages.
+
+The main line to begin a capture session is to create a [FluxzySetting](https://docs.fluxzy.io/documentation/core/fluxzy-settings.html) instance and use it to create a `Proxy` instance.
+
+Install NuGet package `Fluxzy.Core` 
+
+```bash
+dotnet add package Fluxzy.Core
+```
+Create a top-level statement console app, with .NET 6.0 or above:
+
+```csharp	
+using System.Net;
+using Fluxzy;
+using Fluxzy.Rules.Actions;
+using Fluxzy.Rules.Actions.HighLevelActions;
+using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
+
+// Create a new setting 
+var fluxzySetting = FluxzySetting
+    .CreateDefault(IPAddress.Loopback, 44344) // Listen on localhost:44344
+    .SetOutDirectory("dump_directory"); // Save traffic to dump_directory
+
+fluxzySetting
+    .ConfigureRule() 
+        // Forward request
+        .WhenHostMatch("twitter.com", StringSelectorOperation.EndsWith) 
+        .Forward("https://www.debunk.org/") 
+
+        // Mock any POST request to /api/auth/token
+        .WhenAll(new PostFilter(), new PathFilter("/api/auth/token"))
+        .ReplyText("I lock the door and throw away the key", 403);
+
+await using (var proxy = new Proxy(fluxzySetting))
+{
+    var endPoints = proxy.Run();
+
+    var firstEndPoint = endPoints.First(); 
+
+    Console.WriteLine($"Fluxzy is listen on the following endpoints: " +
+                     $"{string.Join(" ", endPoints.Select(t => t.ToString()))}");
+
+    // Create a test http sample matching fluxzy setting
+
+    var httpClient = new HttpClient(new HttpClientHandler()
+    {
+        Proxy = new WebProxy(firstEndPoint.Address.ToString(), firstEndPoint.Port),
+        ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+    }); 
+
+    using var response = await httpClient.PostAsync("https://lunatic-on-the-grass.com/api/auth/token", null); 
+    var responseText = await response.Content.ReadAsStringAsync();
+
+    Console.WriteLine($"Final answer: {responseText}");
+
+    Console.WriteLine("Press any key to exit...");
+    Console.ReadLine();
+}
+```
+
+
+Visit [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.html) to view detailed documentation and ready to use examples. 
+
+
+### 2.2 Fluxzy CLI
 
 The following highlights the basic way to use fluxzy with a simple rule file.
 
@@ -133,73 +202,6 @@ More command and options are available, including [exporting to HAR](https://www
 
 By default, fluxzy will bind to `127.0.0.1:44344`.
 
-### 2.2 .NET library
-
-### 2.2.1 Simple usage
-The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
-The following shows a very basic usage of the .NET packages.
-
-The main line to begin a capture session is to create a [FluxzySetting](https://docs.fluxzy.io/documentation/core/fluxzy-settings.html) instance and use it to create a `Proxy` instance.
-
-Install NuGet package `Fluxzy.Core` 
-
-```bash
-dotnet add package Fluxzy.Core
-```
-Create a top-level statement console app, with .NET 6.0 or above:
-
-```csharp	
-using System.Net;
-using Fluxzy;
-using Fluxzy.Rules.Actions;
-using Fluxzy.Rules.Actions.HighLevelActions;
-using Fluxzy.Rules.Filters;
-using Fluxzy.Rules.Filters.RequestFilters;
-
-// Create a new setting 
-var fluxzySetting = FluxzySetting
-    .CreateDefault(IPAddress.Loopback, 44344) // Listen on localhost:44344
-    .SetOutDirectory("dump_directory"); // Save traffic to dump_directory
-
-fluxzySetting
-    .ConfigureRule() 
-        // Forward request
-        .WhenHostMatch("twitter.com", StringSelectorOperation.EndsWith) 
-        .Forward("https://www.debunk.org/") 
-
-        // Mock any POST request to /api/auth/token
-        .WhenAll(new PostFilter(), new PathFilter("/api/auth/token"))
-        .ReplyText("I lock the door and throw away the key", 403);
-
-await using (var proxy = new Proxy(fluxzySetting))
-{
-    var endPoints = proxy.Run();
-
-    var firstEndPoint = endPoints.First(); 
-
-    Console.WriteLine($"Fluxzy is listen on the following endpoints: " +
-                     $"{string.Join(" ", endPoints.Select(t => t.ToString()))}");
-
-    // Create a test http sample matching fluxzy setting
-
-    var httpClient = new HttpClient(new HttpClientHandler()
-    {
-        Proxy = new WebProxy(firstEndPoint.Address.ToString(), firstEndPoint.Port),
-        ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-    }); 
-
-    using var response = await httpClient.PostAsync("https://lunatic-on-the-grass.com/api/auth/token", null); 
-    var responseText = await response.Content.ReadAsStringAsync();
-
-    Console.WriteLine($"Final answer: {responseText}");
-
-    Console.WriteLine("Press any key to exit...");
-    Console.ReadLine();
-}
-```
-
-
-Visit [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.html) to view detailed documentation and ready to use examples. 
 
 ## 3. Build
 
