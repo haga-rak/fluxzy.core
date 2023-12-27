@@ -72,7 +72,6 @@
     <PackageReference Include="System.Text.Json" Version="8.0.0" />
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
     <PackageReference Include="YamlDotNet" Version="13.7.1" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
