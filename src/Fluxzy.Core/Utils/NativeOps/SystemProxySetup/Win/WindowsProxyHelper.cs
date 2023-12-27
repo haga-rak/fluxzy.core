@@ -3,7 +3,10 @@
 using System;
 using System.Runtime.InteropServices;
 using Fluxzy.Core.Proxy;
+
+#if NET6_0_OR_GREATER
 using Microsoft.Win32;
+#endif
 
 namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
 {
@@ -18,6 +21,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
 
         internal static SystemProxySetting GetSetting()
         {
+#if NET6_0_OR_GREATER
             using var registry =
                 Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
                     true);
@@ -38,10 +42,17 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
             return new SystemProxySetting(proxyServerName, proxyPort, proxyOverrideList) {
                 Enabled = proxyEnabled
             };
+
+#else
+            throw new NotSupportedException("This method is only supported on .NET 6.0 or greater");
+#endif
+
+
         }
 
         internal static void SetProxySetting(SystemProxySetting systemProxySetting)
         {
+#if NET6_0_OR_GREATER
             using var registry =
                 Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
                     true);
@@ -65,6 +76,9 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
 
             InternetSetOption(IntPtr.Zero, InternetOptionSettingsChanged, IntPtr.Zero, 0);
             InternetSetOption(IntPtr.Zero, InternetOptionRefresh, IntPtr.Zero, 0);
+#else
+            throw new NotSupportedException("This method is only supported on .NET 6.0 or greater");
+#endif
         }
     }
 }
