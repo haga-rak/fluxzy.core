@@ -4,20 +4,13 @@
             "commandName": "Project",
             "environmentVariables": {
             },
-            "commandLineArgs": "start --llo -sp --use-502 -r e:\\test.yaml -o e:\\ss.fxzy -c --bouncy-castle"
+            "commandLineArgs": "start --llo -sp"
         },
         "launch (normal)": {
             "commandName": "Project",
             "environmentVariables": {
             },
             "commandLineArgs": "start --no-cert-cache --trace"
-        },
-        "launch (dis)": {
-            "commandName": "Project",
-            "environmentVariables": {
-            },
-            "commandLineArgs": "dis d:\\pink-floyd.fxzy  -f \"{pcap}\" -u -i 87"
         }
     }
-
 }
