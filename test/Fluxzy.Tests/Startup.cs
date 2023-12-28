@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -20,6 +21,10 @@ namespace Fluxzy.Tests
         public Startup(IMessageSink messageSink)
             : base(messageSink)
         {
+            var fluxCapVariable = Path.Combine(
+                Path.GetDirectoryName(GetType().Assembly.Location)!, "fluxzynetcap");
+            Environment.SetEnvironmentVariable("FLUXZYNETCAP_PATH", fluxCapVariable); 
+
             InstallCertificate();
 
             DirectoryName = EmptyDirectory("static_website_dir");

@@ -17,7 +17,8 @@ namespace Fluxzy.Core.Pcap.Proc
             var fluxzyNetCapPath =
                 Environment.GetEnvironmentVariable("FLUXZYNETCAP_PATH") ?? "fluxzynetcap";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                 && !fluxzyNetCapPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                 fluxzyNetCapPath += ".exe";
 
             return fluxzyNetCapPath;
@@ -32,7 +33,7 @@ namespace Fluxzy.Core.Pcap.Proc
                 commandName = commandName.Substring(0, commandName.Length - 4);
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    commandName += ".exe"; // TODO : find a more elegant trick than this 
+                    commandName += ".exe";
             }
 
             _process = await ProcessUtils.RunElevatedAsync(commandName, new[] { $"{currentPid}" }, true,
@@ -132,7 +133,6 @@ namespace Fluxzy.Core.Pcap.Proc
         {
         }
     }
-
 
     internal static class TaskExtensions
     {

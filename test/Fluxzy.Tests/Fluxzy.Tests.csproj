@@ -50,13 +50,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Fluxzy.Core.Pcap.Cli\Fluxzy.Core.Pcap.Cli.csproj" />
     <ProjectReference Include="..\..\src\Fluxzy.Core.Pcap\Fluxzy.Core.Pcap.csproj" />
     <ProjectReference Include="..\..\src\Fluxzy.Extensions\Fluxzy.Extensions.csproj" />
     <ProjectReference Include="..\..\src\Fluxzy\fluxzy.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="UnitTests\ReverseProxying\" />
     <Folder Include="_Files\Certificates\" />
     <Folder Include="_Files\Others\" />
     <Folder Include="_Files\Outputs\" />

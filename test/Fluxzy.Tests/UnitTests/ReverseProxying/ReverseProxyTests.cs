@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 
-namespace Fluxzy.Tests
+namespace Fluxzy.Tests.UnitTests.ReverseProxying
 {
     public class ReverseProxyTests
     {
@@ -19,9 +19,10 @@ namespace Fluxzy.Tests
             var finalUrl = $"{fullHost}/global-health-check";
             var uri = new Uri(finalUrl);
             var host = uri.Host;
-            var repetition = 10; 
+            var repetition = 10;
 
-            await using var proxy = new AddHocProxy(1, 10, configureSetting: setting => {
+            await using var proxy = new AddHocProxy(1, 10, configureSetting: setting =>
+            {
                 setting.SetReverseMode(true);
                 setting.SetReverseModeForcedPort(uri.Port);
             });
@@ -31,7 +32,7 @@ namespace Fluxzy.Tests
             var handler = ReverseProxyHelper.GetSpoofedHandler(proxyPort, host);
 
             using var httpClient = new HttpClient(handler, false);
-            
+
             var requestBodyLength = 23632;
 
             for (int i = 0; i < repetition; i++)
@@ -58,9 +59,10 @@ namespace Fluxzy.Tests
             var finalUrl = $"{fullHost}/global-health-check";
             var uri = new Uri(finalUrl);
             var host = uri.Host;
-            var repetition = 5; 
+            var repetition = 5;
 
-            await using var proxy = new AddHocProxy(1, 10, configureSetting: setting => {
+            await using var proxy = new AddHocProxy(1, 10, configureSetting: setting =>
+            {
                 setting.SetReverseMode(true);
                 setting.SetReverseModeForcedPort(uri.Port);
                 setting.SetReverseModePlainHttp(true);
@@ -71,7 +73,7 @@ namespace Fluxzy.Tests
             var handler = ReverseProxyHelper.GetSpoofedHandler(proxyPort, host, secure: false);
 
             using var httpClient = new HttpClient(handler, false);
-            
+
             var requestBodyLength = 23632;
 
             for (int i = 0; i < repetition; i++)
@@ -98,9 +100,10 @@ namespace Fluxzy.Tests
             var finalUrl = $"{fullHost}/global-health-check";
             var uri = new Uri(finalUrl);
             var host = uri.Host;
-            var repetition = 5; 
+            var repetition = 5;
 
-            await using var proxy = new AddHocProxy(1, 10, configureSetting: setting => {
+            await using var proxy = new AddHocProxy(1, 10, configureSetting: setting =>
+            {
                 setting.SetReverseMode(true);
                 setting.SetReverseModeForcedPort(uri.Port);
                 setting.SetReverseModePlainHttp(true);
@@ -111,7 +114,7 @@ namespace Fluxzy.Tests
             var handler = ReverseProxyHelper.GetSpoofedHandler(proxyPort, host, secure: false);
 
             using var httpClient = new HttpClient(handler, false);
-            
+
             for (int i = 0; i < repetition; i++)
             {
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -123,5 +126,5 @@ namespace Fluxzy.Tests
                 await AssertionHelper.ValidateCheck(requestMessage, null, response);
             }
         }
- }
+    }
 }
