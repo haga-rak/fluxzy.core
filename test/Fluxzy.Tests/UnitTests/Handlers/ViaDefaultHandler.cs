@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Core;
 using Fluxzy.Core.Pcap;
-using Fluxzy.Core.Pcap.Cli.Clients;
+using Fluxzy.Core.Pcap.Proc;
 using Fluxzy.Writers;
 using Xunit;
 
@@ -21,7 +21,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         [InlineData(SslProvider.OsDefault)]
         public async Task Get_H2_IIS(SslProvider sslProvider)
         {
-            var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
+            var proxyScope = new ProxyScope(() => new FluxzyOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
@@ -46,7 +46,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         [InlineData(SslProvider.OsDefault)]
         public async Task Get_H11_IIS(SslProvider sslProvider)
         {
-            var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
+            var proxyScope = new ProxyScope(() => new FluxzyOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
@@ -77,7 +77,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         [InlineData(SslProvider.OsDefault)]
         public async Task Get_H2_Kestrel(SslProvider sslProvider)
         {
-            var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
+            var proxyScope = new ProxyScope(() => new FluxzyOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
             await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);

@@ -4,18 +4,29 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Fluxzy.Misc;
 
-namespace Fluxzy.Core.Pcap.Cli.Clients
+namespace Fluxzy.Core.Pcap.Proc
 {
-    public class FluxzyNetOutOfProcessHost : IOutOfProcessHost
+    public class FluxzyOutOfProcessHost : IOutOfProcessHost
     {
         private Process? _process;
 
         public int Port { get; private set; }
 
+        private static string GetFluxzyNetCapPath()
+        {
+            var fluxzyNetCapPath =
+                Environment.GetEnvironmentVariable("FLUXZYNETCAP_PATH") ?? "fluxzynetcap";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                fluxzyNetCapPath += ".exe";
+
+            return fluxzyNetCapPath;
+        }
+
         public async Task<bool> Start()
         {
             var currentPid = Process.GetCurrentProcess().Id;
-            var commandName = new FileInfo(typeof(Program).Assembly.Location).FullName;
+            var commandName = GetFluxzyNetCapPath();
 
             if (commandName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) {
                 commandName = commandName.Substring(0, commandName.Length - 4);
@@ -40,7 +51,7 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
 
                 var nextLine = await _process.StandardOutput.ReadLineAsync()
                                              // We wait 5s for the the process to be ready
-                                             .WaitAsync(TimeSpan.FromSeconds(300));
+                                             .InternalWaitAsync(TimeSpan.FromSeconds(300));
 
                 if (nextLine == null || !int.TryParse(nextLine, out var port))
                 {
@@ -111,7 +122,7 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
 
                 if (FnpLog.LoggingEnabled) {
 
-                    FnpLog.Log($"FluxzyNetOutOfProcessHost exited with exit code: {_process.ExitCode}");
+                    FnpLog.Log($"FluxzyOutOfProcessHost exited with exit code: {_process.ExitCode}");
                     return;
                 }
             }
@@ -119,6 +130,20 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
 
         public void Dispose()
         {
+        }
+    }
+
+
+    internal static class TaskExtensions
+    {
+        public static async Task<T> InternalWaitAsync<T>(this Task<T> task, TimeSpan timeout)
+        {
+            await Task.WhenAny(task, Task.Delay(timeout));
+
+            if (task.IsCompleted)
+                return task.Result;
+
+            throw new OperationCanceledException();
         }
     }
 }

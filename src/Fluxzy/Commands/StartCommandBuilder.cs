@@ -15,7 +15,7 @@ using Fluxzy.Archiving.Saz;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
 using Fluxzy.Core.Pcap;
-using Fluxzy.Core.Pcap.Cli.Clients;
+using Fluxzy.Core.Pcap.Proc;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
@@ -265,7 +265,7 @@ namespace Fluxzy.Cli.Commands
             var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
             var systemProxyManager = new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
-            await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
+            await using var scope = new ProxyScope(() => new FluxzyOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
             await using (var tcpConnectionProvider =
