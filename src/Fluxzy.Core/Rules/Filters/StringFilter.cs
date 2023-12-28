@@ -141,28 +141,24 @@ namespace Fluxzy.Rules.Filters
         Regex
     }
 
-    public static class GenericDescriptionExtension
+    internal static class GenericDescriptionExtension
     {
-        public static string GetDescription<T>(this T enumerationValue)
-            where T : struct
+        public static string GetDescription(this StringSelectorOperation enumerationValue)
         {
-            var type = typeof(T);
-
-            if (!type.IsEnum)
-                throw new ArgumentException($"{nameof(enumerationValue)} must be an enum");
-
-            var memberInfos = type.GetMember(enumerationValue.ToString()!);
-
-            if (memberInfos.Any()) {
-                var attr = memberInfos.First()
-                                      .GetCustomAttributes<DescriptionAttribute>(false)
-                                      .FirstOrDefault();
-
-                if (attr != null)
-                    return attr.Description;
+            switch (enumerationValue) {
+                case StringSelectorOperation.Exact:
+                    return "equals";
+                case StringSelectorOperation.Contains:
+                     return "contains";
+                case StringSelectorOperation.StartsWith:
+                    return "starts with";
+                case StringSelectorOperation.EndsWith:
+                    return "ends with";
+                case StringSelectorOperation.Regex:
+                    return "matchs (regex)";
             }
 
-            return enumerationValue.ToString()!;
+            return string.Empty;
         }
     }
 }
