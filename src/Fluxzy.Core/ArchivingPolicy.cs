@@ -65,6 +65,7 @@ namespace Fluxzy
     /// <summary>
     /// Archiving policy type
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<ArchivingPolicyType>))]
     public enum ArchivingPolicyType
     {
         /// <summary>

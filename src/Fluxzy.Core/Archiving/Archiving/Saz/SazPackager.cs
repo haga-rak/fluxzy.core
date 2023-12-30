@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 using Fluxzy.Archiving.Extensions;
@@ -270,6 +271,7 @@ namespace Fluxzy.Archiving.Saz
     }
 
     [Flags]
+    [JsonConverter(typeof(JsonStringEnumConverter<SazFlags>))]
     public enum SazFlags
     {
         None = 0,

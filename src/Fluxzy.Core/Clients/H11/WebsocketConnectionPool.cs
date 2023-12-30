@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
@@ -236,6 +237,7 @@ namespace Fluxzy.Clients.H11
         }
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<WsOpCode>))]
     public enum WsOpCode
     {
         Continuation = 0,

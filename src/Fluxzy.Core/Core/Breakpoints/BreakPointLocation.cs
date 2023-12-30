@@ -4,9 +4,11 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Core.Breakpoints
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<BreakPointLocation>))]
     public enum BreakPointLocation
     {
         Start = 0,

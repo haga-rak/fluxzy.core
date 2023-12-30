@@ -1,10 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Text.Json.Serialization;
+
 namespace Fluxzy.Certificates
 {
     /// <summary>
     /// Defines how to retrieve a certificate
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<CertificateRetrieveMode>))]
     public enum CertificateRetrieveMode
     {
         /// <summary>

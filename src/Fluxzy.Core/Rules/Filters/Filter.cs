@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Fluxzy.Core;
 using Fluxzy.Misc.Converters;
@@ -9,6 +10,10 @@ using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules.Filters
 {
+
+#if NET6_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
     public abstract class Filter : PolymorphicObject
     {
         /// <summary>

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Utils.Curl
 {
@@ -92,6 +93,7 @@ namespace Fluxzy.Utils.Curl
         string ToCommandLine(CommandLineVariant variant);
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<CommandLineVariant>))]
     public enum CommandLineVariant
     {
         Cmd = 1,

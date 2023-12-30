@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MessagePack;
@@ -216,6 +217,7 @@ namespace Fluxzy
     /// <summary>
     /// Packable file type
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<PackableFileType>))]
     public enum PackableFileType
     {
         /// <summary>

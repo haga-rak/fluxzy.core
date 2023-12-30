@@ -1,7 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Text.Json.Serialization;
+
 namespace Fluxzy.Clients.Mock
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<BodyType>))]
     public enum BodyType
     {
         Unknown = 0,

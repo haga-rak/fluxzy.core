@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
@@ -79,6 +80,7 @@ namespace Fluxzy.Clients.DotNetBridge
     /// <summary>
     /// The ssl provider used by the handlers
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<SslProvider>))]
     public enum SslProvider
     {
         /// <summary>

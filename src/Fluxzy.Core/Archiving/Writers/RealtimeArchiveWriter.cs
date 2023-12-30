@@ -4,6 +4,7 @@ using Fluxzy.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json.Serialization;
 using System.Threading;
 
 namespace Fluxzy.Writers
@@ -114,6 +115,7 @@ namespace Fluxzy.Writers
         }
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<ArchiveUpdateType>))]
     public enum ArchiveUpdateType
     {
         BeforeRequestHeader,

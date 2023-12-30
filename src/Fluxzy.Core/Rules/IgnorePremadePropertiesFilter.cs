@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Fluxzy.Rules.Filters;
 using YamlDotNet.Serialization;
@@ -18,6 +19,9 @@ namespace Fluxzy.Rules
             _innerTypeInspector = innerTypeInspector;
         }
 
+#if NET6_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
         public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
         {
             var properties = _innerTypeInspector.GetProperties(type, container);

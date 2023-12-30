@@ -33,13 +33,13 @@ namespace Fluxzy
             Converters = {
                 new ReadonlyMemoryCharConverter(),
                 new BooleanConverter(),
-                new JsonStringEnumConverter(),
                 new IpAddressConverter(),
                 new IpEndPointConverter(),
                 new PolymorphicConverter<Filter>(),
-                new PolymorphicConverter<Action>()
+                new PolymorphicConverter<Action>(),
             },
-            NumberHandling = JsonNumberHandling.AllowReadingFromString
+            NumberHandling = JsonNumberHandling.AllowReadingFromString, 
+            TypeInfoResolver = FluxzyJsonSerializerContext.Default
         };
 
         /// <summary>
@@ -52,13 +52,13 @@ namespace Fluxzy
             Converters = {
                 new ReadonlyMemoryCharConverter(),
                 new BooleanConverter(),
-                new JsonStringEnumConverter(),
                 new IpAddressConverter(),
                 new IpEndPointConverter(),
                 new PolymorphicConverter<Filter>(),
                 new PolymorphicConverter<Action>()
             },
-            NumberHandling = JsonNumberHandling.AllowReadingFromString
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            TypeInfoResolver = FluxzyJsonSerializerContext.Default
         };
 
         /// <summary>
@@ -70,9 +70,9 @@ namespace Fluxzy
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Converters = {
                 new ReadonlyMemoryCharConverter(),
-                new BooleanConverter(),
-                new JsonStringEnumConverter()
-            }
+                new BooleanConverter()
+            },
+            TypeInfoResolver = FluxzyJsonSerializerContext.Default
         };
         
 
@@ -85,9 +85,9 @@ namespace Fluxzy
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Converters = {
                 new ReadonlyMemoryCharConverter(),
-                new BooleanConverter(),
-                new JsonStringEnumConverter()
-            }
+                new BooleanConverter()
+            },
+            TypeInfoResolver = FluxzyJsonSerializerContext.Default
         };
     }
 }

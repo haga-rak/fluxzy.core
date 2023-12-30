@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Fluxzy.Extensions
@@ -132,6 +133,7 @@ namespace Fluxzy.Extensions
         }
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<CompressionType>))]
     public enum CompressionType
     {
         None,

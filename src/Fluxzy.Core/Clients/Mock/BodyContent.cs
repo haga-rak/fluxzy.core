@@ -135,6 +135,7 @@ namespace Fluxzy.Clients.Mock
         }
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<BodyContentLoadingType>))]
     public enum BodyContentLoadingType
     {
         NotSet = 0,

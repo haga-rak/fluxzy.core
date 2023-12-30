@@ -1,7 +1,10 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Clients.H2.Frames
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<H2ErrorCode>))]
     public enum H2ErrorCode
     {
         NoError = 0x0,

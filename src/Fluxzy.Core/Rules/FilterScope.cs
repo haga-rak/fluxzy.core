@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace Fluxzy.Rules
 {
@@ -20,6 +21,7 @@ namespace Fluxzy.Rules
     ///     - OutOfScope : Indicates a filter that is not usable for live alteration. This kind of filter applies only for view
     ///     filters in Fluxzy Desktop
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<FilterScope>))]
     public enum FilterScope
     {
         [Description("This scope denotes the moment fluxzy is aware the destination authority." +

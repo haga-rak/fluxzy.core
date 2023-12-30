@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Fluxzy.Core;
 
@@ -117,12 +118,14 @@ namespace Fluxzy.Rules.Filters
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange);
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<SelectorCollectionOperation>))]
     public enum SelectorCollectionOperation
     {
         Or,
         And
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<StringSelectorOperation>))]
     public enum StringSelectorOperation
     {
         [Description("equals")]

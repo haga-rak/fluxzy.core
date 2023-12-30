@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
@@ -264,6 +265,7 @@ namespace Fluxzy.Core
         }
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<ExchangeStep>))]
     public enum ExchangeStep
     {
         Received,

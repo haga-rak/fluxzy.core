@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Core.Breakpoints
@@ -77,6 +78,7 @@ namespace Fluxzy.Core.Breakpoints
         }
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<BreakPointStatus>))]
     public enum BreakPointStatus
     {
         AlreadyRun = 1, 

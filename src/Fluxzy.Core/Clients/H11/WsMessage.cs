@@ -6,11 +6,13 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.IO;
 using System.IO.Pipelines;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fluxzy.Clients.H11
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<WsMessageDirection>))]
     public enum WsMessageDirection
     {
         Sent = 1,

@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -21,7 +22,7 @@ namespace Fluxzy.Cli.System
 
         public OutOfProcAuthorityManager()
         {
-            _currentBinaryFullPath = new FileInfo(Assembly.GetExecutingAssembly().Location).FullName;
+            _currentBinaryFullPath = Process.GetCurrentProcess().MainModule!.FileName;
         }
 
         public override async ValueTask<bool> RemoveCertificate(string thumbPrint)
