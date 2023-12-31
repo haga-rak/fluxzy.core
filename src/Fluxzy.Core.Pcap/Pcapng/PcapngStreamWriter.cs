@@ -98,7 +98,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 (uint) (longTimeSpan & 0xFFFFFFFF),
                 capture.Data.Length,
                 capture.Data.Length,
-                "fluxzy"
+                Environment.GetEnvironmentVariable("FLUXZY_PCAP_PACKET_COMMENT") ?? "fluxzy"
             );
 
             // This need to be corrected if MTU is very large
