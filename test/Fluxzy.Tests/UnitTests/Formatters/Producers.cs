@@ -7,7 +7,7 @@ using Fluxzy.Tests._Fixtures;
 
 namespace Fluxzy.Tests.UnitTests.Formatters
 {
-    public class GeneralFormatter : FormatterTestBase
+    public class Producers : FormatterTestBase
     {
         [Theory]
         [InlineData("https://example.com/?a=1&b=2&c=3")]
@@ -92,7 +92,27 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             Assert.Equal(token, result.Token);
         }
 
-    }
+        [Theory]
+        [InlineData("https://example.com", "leeloo")]
+        [InlineData("https://example.com", "")]
+        public async Task AuthorizationProducer(string url, string token)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
 
-    
+            var producer = new AuthorizationProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            requestMessage.Headers.TryAddWithoutValidation("Authorization", $"{token}");
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile); 
+
+            var result = producer.Build(firstExchange, producerContext);
+
+            Assert.NotNull(result);
+            Assert.Equal(token, result.Value);
+        }
+    }
 }
