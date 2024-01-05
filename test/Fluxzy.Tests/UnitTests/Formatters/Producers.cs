@@ -151,5 +151,25 @@ namespace Fluxzy.Tests.UnitTests.Formatters
                 Assert.Equal(dictionary[item.Key], item.Value);
             }
         }
+
+        [Theory]
+        [InlineData("https://example.com")]
+        public async Task RawRequestHeaderProducer(string url)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new RawRequestHeaderProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile); 
+
+            var result = producer.Build(firstExchange, producerContext);
+            
+            Assert.NotNull(result);
+            Assert.Equal("GET / HTTP/1.1\r\nHost: example.com\r\n\r\n", result.RawHeader);
+        }
     }
 }
