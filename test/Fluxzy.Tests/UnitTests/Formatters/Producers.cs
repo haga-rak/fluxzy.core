@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using Xunit;
 using System.Threading.Tasks;
 using Fluxzy.Formatters.Producers.Requests;
@@ -170,6 +171,71 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             
             Assert.NotNull(result);
             Assert.Equal("GET / HTTP/1.1\r\nHost: example.com\r\n\r\n", result.RawHeader);
+        }
+
+        [Theory]
+        [InlineData("https://example.com")]
+        public async Task RequestBodyAnalysis(string url)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new RequestBodyAnalysis();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            requestMessage.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+
+            Assert.NotNull(result);
+            Assert.Equal(2, result.BodyLength);
+            Assert.Equal("application/json; charset=utf-8", result.ContentType);
+        }
+
+        [Theory]
+        [InlineData("https://example.com")]
+        public async Task RequestJsonBodyProducer(string url)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new RequestJsonBodyProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            requestMessage.Content = new StringContent("{  }", Encoding.UTF8, "application/json");
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+
+            Assert.NotNull(result);
+            Assert.Equal("{  }", result.RawBody);
+            Assert.Equal("{}", result.FormattedBody);
+        }
+
+        [Theory]
+        [InlineData("https://example.com")]
+        public async Task RequestTextBodyProducer(string url)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new RequestTextBodyProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            requestMessage.Content = new StringContent("{  }", Encoding.UTF8, "application/json");
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+
+            Assert.NotNull(result);
+            Assert.Equal("{  }", result.Text);
         }
     }
 }
