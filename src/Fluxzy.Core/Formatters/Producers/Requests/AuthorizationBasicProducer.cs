@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
@@ -29,7 +29,7 @@ namespace Fluxzy.Formatters.Producers.Requests
 
             try {
                 var tab = Encoding.UTF8.GetString(Convert.FromBase64String(base64Value))
-                                  .Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                                  .Split(new[] { ":" }, StringSplitOptions.None);
 
                 var clientId = tab.First();
 

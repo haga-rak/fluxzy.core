@@ -11,8 +11,11 @@
 
   <ItemGroup>
     <Compile Remove="Files\**" />
+    <Compile Remove="UnitTests\ReverseProxying\**" />
     <EmbeddedResource Remove="Files\**" />
+    <EmbeddedResource Remove="UnitTests\ReverseProxying\**" />
     <None Remove="Files\**" />
+    <None Remove="UnitTests\ReverseProxying\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,7 +59,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="UnitTests\ReverseProxying\" />
     <Folder Include="_Files\Certificates\" />
     <Folder Include="_Files\Others\" />
     <Folder Include="_Files\Outputs\" />
