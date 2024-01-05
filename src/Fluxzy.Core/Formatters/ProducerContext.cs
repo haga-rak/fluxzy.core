@@ -31,9 +31,9 @@ namespace Fluxzy.Formatters
             if (RequestBodyLength < 0)
                 RequestBodyLength = 0;
 
-            if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length <
-                Settings.MaxFormattableJsonLength) {
-                _internalBuffer = ArrayPool<byte>.Shared.Rent((int) requestBodyStream.Length);
+            if (requestBodyStream != null && RequestBodyLength > 0) {
+
+                _internalBuffer = ArrayPool<byte>.Shared.Rent((int) RequestBodyLength);
                 var length = requestBodyStream.SeekableStreamToBytes(_internalBuffer);
 
                 RequestBody = new ReadOnlyMemory<byte>(_internalBuffer, 0, length);
