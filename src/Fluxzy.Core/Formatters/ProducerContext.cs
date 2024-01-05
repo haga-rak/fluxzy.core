@@ -25,8 +25,11 @@ namespace Fluxzy.Formatters
             Settings = settings;
 
             using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
+            
+            RequestBodyLength = archiveReader.GetRequestBodyLength(exchange.Id);
 
-            RequestBodyLength = requestBodyStream?.Length ?? 0;
+            if (RequestBodyLength < 0)
+                RequestBodyLength = 0;
 
             if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length <
                 Settings.MaxFormattableJsonLength) {
