@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.IO.Compression;
 using System.Text;
 using Fluxzy.Extensions;
 using Fluxzy.Misc;
@@ -41,9 +42,10 @@ namespace Fluxzy.Formatters
             using var responseBodyStream = archiveReader.GetResponseBody(exchange.Id);
 
             if (responseBodyStream != null) {
-                ResponseBodyLength = responseBodyStream.Length;
 
-                ResponseBodyContent = CompressionHelper.ReadResponseBodyContent(exchange, responseBodyStream,
+                ResponseBodyLength = archiveReader.GetResponseBodyLength(exchange.Id); 
+
+                ResponseBodyContent = exchange.ReadResponseBodyContent(responseBodyStream,
                     settings.MaximumRenderableBodyLength,
                     out var compressionInfo);
 
