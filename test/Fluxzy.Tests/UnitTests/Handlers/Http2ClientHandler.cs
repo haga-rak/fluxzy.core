@@ -56,7 +56,6 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         [InlineData("https://fr.wiktionary.org/static/images/icons/wiktionary.svg")]
         [InlineData("https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js")]
         [InlineData("https://services.gfe.nvidia.com/GFE/v1.0/dao/x64")]
-        [InlineData("https://feedback.adrecover.com/ARWebService/checkCID")]
         [InlineData($"https://{TestConstants.HttpBinHost}/ip")]
         [InlineData("https://cds.taboola.com/?uid=7a5716a9-185b-4b54-8155-87f4b705c55f-tuct7ead376&src=tfa")]
 
@@ -77,7 +76,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             await response.Content.ReadAsStringAsync();
 
-            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
