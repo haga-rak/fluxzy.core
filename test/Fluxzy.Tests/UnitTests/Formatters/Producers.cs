@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using Xunit;
 using System.Threading.Tasks;
@@ -113,6 +114,42 @@ namespace Fluxzy.Tests.UnitTests.Formatters
 
             Assert.NotNull(result);
             Assert.Equal(token, result.Value);
+        }
+
+        [Theory]
+        [InlineData("https://example.com", "")]
+        [InlineData("https://example.com", "a=b;d=f")]
+        [InlineData("https://example.com", "a=b;d=fà56789àç(_$£*")]
+        public async Task FormUrlEncodedProducer(string url, string flatParams)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new FormUrlEncodedProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            var dictionary = flatParams.Split(";", StringSplitOptions.RemoveEmptyEntries)
+                 .Select(s => s.Split("=", 2, StringSplitOptions.RemoveEmptyEntries))
+                                        .ToDictionary(s => s[0], s => s[1]);
+
+            requestMessage.Content = new FormUrlEncodedContent(dictionary); 
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile); 
+
+            var result = producer.Build(firstExchange, producerContext);
+
+            if (dictionary.Count == 0) {
+                Assert.Null(result);
+                return;
+            }
+
+            Assert.NotNull(result);
+            Assert.Equal(dictionary.Count, result.Items.Count);
+
+            foreach (var item in result.Items) {
+                Assert.Equal(dictionary[item.Key], item.Value);
+            }
         }
     }
 }
