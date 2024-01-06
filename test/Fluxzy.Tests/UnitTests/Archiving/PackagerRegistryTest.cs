@@ -13,9 +13,21 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         [InlineData("yoyo.saz", nameof(SazPackager))]
         [InlineData("yoyo.har", nameof(HttpArchivePackager))]
         [InlineData("yoyo.invalid", nameof(FxzyDirectoryPackager))]
-        public void Test(string fileName, string typeName)
+        public void Infer(string fileName, string typeName)
         {
             var packager = PackagerRegistry.Instance.InferPackagerFromFileName(fileName);
+
+            Assert.Equal(packager.GetType().Name, typeName);
+        }
+
+        [Theory]
+        [InlineData("fluxzy", nameof(FxzyDirectoryPackager))]
+        [InlineData("har", nameof(HttpArchivePackager))]
+        [InlineData("saz", nameof(SazPackager))]
+        [InlineData("invalid", nameof(FxzyDirectoryPackager))]
+        public void GetPackageOrDefault(string requestedName, string typeName)
+        {
+            var packager = PackagerRegistry.Instance.GetPackageOrDefault(requestedName);
 
             Assert.Equal(packager.GetType().Name, typeName);
         }

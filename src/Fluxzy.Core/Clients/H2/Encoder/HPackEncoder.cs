@@ -10,7 +10,6 @@ namespace Fluxzy.Clients.H2.Encoder
     public class HPackEncoder : IDisposable
     {
         private readonly CodecSetting _codecSetting;
-        private readonly ArrayPoolMemoryProvider<char> _memoryProvider;
         private readonly PrimitiveOperation _primitiveOperation;
 
         /// <summary>
@@ -19,20 +18,17 @@ namespace Fluxzy.Clients.H2.Encoder
         /// <param name="encodingContext"></param>
         /// <param name="primitiveOperation"></param>
         /// <param name="codecSetting"></param>
-        /// <param name="memoryProvider"></param>
         /// <param name="parser"></param>
         /// <exception cref="HPackCodecException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal HPackEncoder(
             EncodingContext encodingContext,
             CodecSetting? codecSetting = null,
-            ArrayPoolMemoryProvider<char>? memoryProvider = null,
             PrimitiveOperation? primitiveOperation = null)
         {
             Context = encodingContext;
             _primitiveOperation = primitiveOperation ?? new PrimitiveOperation(new HuffmanCodec());
             _codecSetting = codecSetting ?? new CodecSetting();
-            _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
         }
 
         public EncodingContext Context { get; }
@@ -162,7 +158,7 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
 
-            return new HPackEncoder(new EncodingContext(memoryProvider), codeSetting, memoryProvider);
+            return new HPackEncoder(new EncodingContext(memoryProvider), codeSetting);
         }
     }
 }

@@ -20,10 +20,13 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         {
             var producer = new QueryStringProducer();
             var randomFile = GetRegisteredRandomFile();
+
             var uri = new Uri(url);
             var queryNameValue = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
-            await QuickArchiveBuilder.MakeQuickArchiveGet(url, randomFile);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
 
             var (producerContext, firstExchange) = await Init(randomFile); 
 

@@ -20,8 +20,7 @@ namespace Fluxzy.Tests.UnitTests.HPack
 
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
-            var encoder = new HPackEncoder(new EncodingContext(memoryProvider),
-                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
+            var encoder = new HPackEncoder(new EncodingContext(memoryProvider), primitiveOperation: primitiveOperation);
 
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
                 memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
@@ -51,8 +50,7 @@ namespace Fluxzy.Tests.UnitTests.HPack
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
-            var encoder = new HPackEncoder(new EncodingContext(memoryProvider),
-                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
+            var encoder = new HPackEncoder(new EncodingContext(memoryProvider), primitiveOperation: primitiveOperation);
 
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
                 memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
@@ -82,8 +80,7 @@ namespace Fluxzy.Tests.UnitTests.HPack
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var primitiveOperation = new PrimitiveOperation(new HuffmanCodec());
 
-            var encoder = new HPackEncoder(new EncodingContext(memoryProvider),
-                memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
+            var encoder = new HPackEncoder(new EncodingContext(memoryProvider), primitiveOperation: primitiveOperation);
 
             var decoder = new HPackDecoder(new DecodingContext(default, memoryProvider),
                 memoryProvider: memoryProvider, primitiveOperation: primitiveOperation);
