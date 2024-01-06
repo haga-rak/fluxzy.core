@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -41,17 +41,6 @@ namespace Fluxzy.Clients.H2.Encoder
         {
         }
 
-        public int GetEncodedLength(ReadOnlyMemory<char> headerContent, bool isHttps = true)
-        {
-            var offset = 0;
-
-            foreach (var headerField in Http11Parser.Read(headerContent, isHttps)) {
-                offset += GetEncodedLength(headerField);
-            }
-
-            return offset;
-        }
-
         public ReadOnlySpan<byte> Encode(ReadOnlyMemory<char> headerContent, Span<byte> buffer, bool isHttps = true)
         {
             var offset = 0;
@@ -61,71 +50,6 @@ namespace Fluxzy.Clients.H2.Encoder
             }
 
             return buffer.Slice(0, offset);
-        }
-
-        private int GetEncodedLength(in HeaderField entry)
-        {
-            if (Context.TryGetEntry(entry.Name, entry.Value, out var index)) {
-                // Existing 
-                var length = _primitiveOperation.GetInt32Length(index, 7);
-
-                return length;
-            }
-
-            if (Context.TryGetEntry(entry.Name, out index)) {
-                if (_codecSetting.EncodedHeaders.Contains(entry.Name)) {
-                    var length = _primitiveOperation.GetInt32Length(index, 6);
-                    var res = GetWriteStringLength(entry.Value.Span);
-                    length += res;
-
-                    return length;
-                }
-                else {
-                    // Value is not meant to be saved 
-
-                    var length = _primitiveOperation.GetInt32Length(index, 4);
-                    length += GetWriteStringLength(entry.Value.Span);
-
-                    return length;
-                }
-            }
-
-            if (_codecSetting.EncodedHeaders.Contains(entry.Name)) {
-                var length = 1;
-
-                Span<char> lowerCaseBuffer = stackalloc char[entry.Name.Length];
-                entry.Name.Span.ToLowerInvariant(lowerCaseBuffer);
-
-                length += GetWriteStringLength(lowerCaseBuffer);
-                length += GetWriteStringLength(entry.Value.Span);
-
-                return length;
-            }
-
-            {
-                var length = 1;
-
-                char[]? heapBuffer = null;
-
-                try {
-                    var lowerCaseBuffer = entry.Name.Length < 1024
-                        ? stackalloc char[entry.Name.Length]
-                        : heapBuffer = ArrayPool<char>.Shared.Rent(entry.Name.Length);
-
-                    lowerCaseBuffer = lowerCaseBuffer.Slice(0, entry.Name.Length);
-
-                    entry.Name.Span.ToLowerInvariant(lowerCaseBuffer);
-
-                    length += GetWriteStringLength(lowerCaseBuffer);
-                    length += GetWriteStringLength(entry.Value.Span);
-
-                    return length;
-                }
-                finally {
-                    if (heapBuffer != null)
-                        ArrayPool<char>.Shared.Return(heapBuffer);
-                }
-            }
         }
 
         private int Encode(in HeaderField entry, in Span<byte> buffer)
@@ -219,12 +143,6 @@ namespace Fluxzy.Clients.H2.Encoder
         private Span<byte> InternalWriteString(ReadOnlySpan<char> input, Span<byte> buffer)
         {
             return _primitiveOperation.WriteString(input, buffer,
-                _codecSetting.MaxLengthUncompressedString < input.Length);
-        }
-
-        private int GetWriteStringLength(ReadOnlySpan<char> input)
-        {
-            return _primitiveOperation.GetStringLength(input,
                 _codecSetting.MaxLengthUncompressedString < input.Length);
         }
 
