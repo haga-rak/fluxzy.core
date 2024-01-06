@@ -77,7 +77,7 @@ namespace Fluxzy.Core
                     inStream);
             }
 
-            var exchangeContext = await contextBuilder.Create(authority, false);
+            var exchangeContext = await contextBuilder.Create(authority, authority.Secure);
 
             var bodyStream = SetChunkedBody(secureHeader, inStream);
 
