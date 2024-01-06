@@ -29,6 +29,7 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         public override bool PreMadeFilter => true;
 
         public override bool Common { get; set; } = true;
+
         public override IEnumerable<FilterExample> GetExamples()
         {
             var defaultSample = GetDefaultSample();
