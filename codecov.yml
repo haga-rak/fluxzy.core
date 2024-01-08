@@ -1,0 +1,22 @@
+comment:
+  layout: "header, diff, flags, components"
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        branches:
+          - "chore/coverage"
+  individual_components:
+    - component_id: Fluxzy.Core
+      name: Fluxzy.Core
+      paths:
+        - src/Fluxzy.Core/**
+ignore:
+  - "src/Fluxzy.Core.Pcap/**"
+  - "src/Fluxzy.Core.Pcap.Cli/**"
+  - "src/Fluxzy.Core.Pcap/**"
+  - "src/Fluxzy.Extensions/**"
+  - "src/Fluxzy.Tools.DocGen/**"
+  - "src/Fluxzy/**"

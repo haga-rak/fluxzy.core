@@ -26,6 +26,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "__global", "__global", "{00
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		.github\workflows\ci.yml = .github\workflows\ci.yml
+		codecov.yml = codecov.yml
 		Directory.Build.props = Directory.Build.props
 		global.json = global.json
 		LICENSE.md = LICENSE.md
