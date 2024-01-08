@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using Xunit;
 using System.Threading.Tasks;
+using Fluxzy.Formatters.Metrics;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Tests._Fixtures;
 
