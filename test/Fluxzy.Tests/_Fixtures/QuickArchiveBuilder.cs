@@ -33,7 +33,8 @@ namespace Fluxzy.Tests._Fixtures
                     using var client = new HttpClient(new HttpClientHandler()
                     {
                         Proxy = new WebProxy($"127.0.0.1:{endPoint.Port}"),
-                        AllowAutoRedirect = false
+                        AllowAutoRedirect = false,
+                        AutomaticDecompression = DecompressionMethods.All
                     });
 
                     using var response = await client.SendAsync(requestMessage);

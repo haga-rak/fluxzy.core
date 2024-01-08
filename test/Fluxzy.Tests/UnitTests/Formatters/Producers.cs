@@ -174,7 +174,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             var result = producer.Build(firstExchange, producerContext);
             
             Assert.NotNull(result);
-            Assert.Equal("GET / HTTP/1.1\r\nHost: example.com\r\n\r\n", result.RawHeader);
+            Assert.Equal("GET / HTTP/1.1\r\nHost: example.com\r\nAccept-Encoding: gzip, deflate, br\r\n\r\n", result.RawHeader);
         }
 
         [Theory]
