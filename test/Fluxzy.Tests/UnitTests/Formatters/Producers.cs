@@ -283,6 +283,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         [Theory]
         [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
         [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        [InlineData("https://example.com", false)]
         public async Task ResponseBodyJsonProducer(string url, bool match)
         {
             var randomFile = GetRegisteredRandomFile();
