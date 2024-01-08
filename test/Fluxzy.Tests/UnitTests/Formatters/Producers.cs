@@ -295,6 +295,38 @@ namespace Fluxzy.Tests.UnitTests.Formatters
                 Assert.Null(result);
             }
         }
+        [Theory]
+        [InlineData("https://registry.2befficient.io:40300/cookies/set/abc/def", true)]
+        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        public async Task SetCookieProducer(string url, bool match)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new SetCookieProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+            
+            if (match) {
+                Assert.NotNull(result);
+                Assert.Single(result.Cookies);
+                Assert.Equal("abc", result.Cookies[0].Name);
+                Assert.Equal("def", result.Cookies[0].Value);
+                Assert.Null(result.Cookies[0].Domain);
+                Assert.Equal("/", result.Cookies[0].Path);
+                Assert.Null(result.Cookies[0].SameSite);
+                Assert.False(result.Cookies[0].Secure);
+                Assert.False(result.Cookies[0].HttpOnly);
+            }
+            else {
+                Assert.Null(result);
+            }
+        }
         
         [Theory]
         [InlineData("https://www.fluxzy.io/assets/images/logo-small.png", true)]

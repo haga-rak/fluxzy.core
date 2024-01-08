@@ -28,12 +28,12 @@ namespace Fluxzy.Tests._Fixtures
 
                 await using (var proxy = new Proxy(setting))
                 {
-
                     var endPoint = proxy.Run().First();
 
                     using var client = new HttpClient(new HttpClientHandler()
                     {
-                        Proxy = new WebProxy($"127.0.0.1:{endPoint.Port}")
+                        Proxy = new WebProxy($"127.0.0.1:{endPoint.Port}"),
+                        AllowAutoRedirect = false
                     });
 
                     using var response = await client.SendAsync(requestMessage);
