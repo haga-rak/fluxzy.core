@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -21,32 +21,6 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
             _codec = codec;
             _maxStringLength = maxStringLength;
-        }
-
-        public int GetInt32Length(int value, int prefixSize)
-        {
-            try {
-                var maxSize = (1 << prefixSize) - 1;
-
-                if (value < maxSize)
-                    return 1;
-
-                var fullPrefix = 0xFF >> (8 - prefixSize);
-                value -= fullPrefix;
-
-                var index = 1;
-
-                do {
-                    index++;
-                    value >>= 7;
-                }
-                while (value > 0);
-
-                return index;
-            }
-            catch (IndexOutOfRangeException) {
-                throw new HPackCodecException("Provided buffer is not large enough");
-            }
         }
 
         public int WriteInt32(Span<byte> output, int value, int prefixSize)
@@ -192,43 +166,6 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             }
             catch (IndexOutOfRangeException) {
                 throw new HPackCodecException("Provided buffer is not large enough");
-            }
-        }
-
-        public int GetStringLength(ReadOnlySpan<char> input, bool huffmanEncoded)
-        {
-            byte[]? heapBuffer = null;
-
-            try {
-                var inputByteBuffer = input.Length * 2 < 1024
-                    ? stackalloc byte[input.Length * 2]
-                    : heapBuffer = ArrayPool<byte>.Shared.Rent(input.Length * 2);
-
-                var size = Encoding.ASCII.GetBytes(input, inputByteBuffer);
-                var inputBytes = inputByteBuffer.Slice(0, size);
-
-                var encodedLength = _codec.GetEncodedLength(inputBytes);
-
-                huffmanEncoded = encodedLength < inputBytes.Length;
-
-                var length = !huffmanEncoded ? input.Length : encodedLength;
-
-                var offset = GetInt32Length(length, 7);
-
-                if (huffmanEncoded) {
-                    var encoded = _codec.GetEncodedLength(inputBytes);
-
-                    return offset + encoded;
-                }
-
-                return offset + input.Length;
-            }
-            catch (IndexOutOfRangeException) {
-                throw new HPackCodecException("Provided buffer is not large enough");
-            }
-            finally {
-                if (heapBuffer != null)
-                    ArrayPool<byte>.Shared.Return(heapBuffer);
             }
         }
 

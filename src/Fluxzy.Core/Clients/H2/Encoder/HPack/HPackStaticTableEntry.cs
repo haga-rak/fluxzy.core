@@ -81,35 +81,5 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         public static HeaderField[] StaticTable { get; }
 
         public static Dictionary<HeaderField, int> ReverseStaticTable { get; }
-
-        public static bool TryGetEntry(HeaderField entry, out int externalIndex)
-        {
-            var res = ReverseStaticTable.TryGetValue(entry, out var internalIndex);
-
-            if (res) {
-                externalIndex = internalIndex + 1;
-
-                return true;
-            }
-
-            externalIndex = -1;
-
-            return false;
-        }
-
-        public static bool TryGetEntry(int externalIndex, out HeaderField entry)
-        {
-            var internalIndex = externalIndex - 1;
-
-            if (internalIndex < 0 || internalIndex >= StaticTable.Length) {
-                entry = default;
-
-                return false;
-            }
-
-            entry = StaticTable[internalIndex];
-
-            return true;
-        }
     }
 }

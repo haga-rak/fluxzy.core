@@ -67,7 +67,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
                 var port = int.Parse(await waitForPortTask);
                 return new ProxyInstance(ExitCode, _standardOutput, _standardError, port, _cancellationTokenSource);
             }
-            catch (FluxzyBadExitCodeException ex) {
+            catch (FluxzyBadExitCodeException) {
                 throw new InvalidOperationException(
                     "Fluxzy exits with a non-zero status code.\r\n" +
                     $"Original args: {(string.Join(" ", _commandLineArgs))}\r\n" +

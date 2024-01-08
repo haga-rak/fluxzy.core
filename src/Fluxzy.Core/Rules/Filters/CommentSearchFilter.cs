@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Fluxzy.Core;
 
 namespace Fluxzy.Rules.Filters
@@ -13,6 +14,12 @@ namespace Fluxzy.Rules.Filters
     )]
     public class CommentSearchFilter : StringFilter
     {
+        public CommentSearchFilter()
+            : base(string.Empty, StringSelectorOperation.Contains)
+        {
+        }
+
+        [JsonConstructor]
         public CommentSearchFilter(string pattern)
             : base(pattern, StringSelectorOperation.Contains)
         {

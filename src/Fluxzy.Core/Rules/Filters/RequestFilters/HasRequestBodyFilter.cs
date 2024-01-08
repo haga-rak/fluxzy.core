@@ -25,7 +25,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
-            return filteringContext?.HasRequestBody ?? false;
+            return filteringContext?.HasRequestBody ?? exchangeContext?.HasRequestBody ?? false;
         }
 
         public override IEnumerable<FilterExample> GetExamples()
