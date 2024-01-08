@@ -272,6 +272,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
                 Assert.NotNull(result.BodyText);
                 Assert.NotNull(result.PreferredFileName);
                 Assert.NotNull(result.Compression);
+                Assert.True(result.ContentLength > 0);
                 Assert.Equal("application/json; charset=utf-8", result.ContentType);
             }
             else {
