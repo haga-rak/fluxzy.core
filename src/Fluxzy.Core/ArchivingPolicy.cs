@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.IO;
 using System.Text.Json.Serialization;
 
@@ -60,6 +61,37 @@ namespace Fluxzy
 
             return CreateFromDirectory(directoryInfo);
         }
+
+        protected bool Equals(ArchivingPolicy other)
+        {
+            return Type == other.Type && Directory == other.Directory;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return Equals((ArchivingPolicy)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine((int)Type, Directory);
+        }
+
     }
 
     /// <summary>
