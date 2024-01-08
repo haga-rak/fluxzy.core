@@ -99,7 +99,7 @@ fluxzySetting
     .ConfigureRule() 
         // Forward request
         .WhenHostMatch("twitter.com", StringSelectorOperation.EndsWith) 
-        .Forward("https://www.debunk.org/") 
+        .Forward("https://www.google.com/") 
 
         // Mock any POST request to /api/auth/token
         .WhenAll(new PostFilter(), new PathFilter("/api/auth/token"))
