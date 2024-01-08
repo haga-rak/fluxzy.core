@@ -243,6 +243,35 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
         
         [Theory]
+        [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
+        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        public async Task ResponseBodySummaryProducer(string url, bool match)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new ResponseBodySummaryProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+            
+            if (match) {
+                Assert.NotNull(result);
+                Assert.NotNull(result.BodyText);
+                Assert.NotNull(result.PreferredFileName);
+                Assert.NotNull(result.Compression);
+                Assert.Equal("application/json; charset=utf-8", result.ContentType);
+            }
+            else {
+                Assert.Null(result);
+            }
+        }
+        
+        [Theory]
         [InlineData("https://www.fluxzy.io/assets/images/logo-small.png", true)]
         [InlineData("https://www.fluxzy.io/favicon.ico", true)]
         [InlineData("https://example.com", false)]
