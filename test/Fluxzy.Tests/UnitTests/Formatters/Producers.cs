@@ -38,6 +38,9 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             }
             else {
                 Assert.NotNull(result);
+                Assert.NotNull(result.Title);
+                Assert.Null(result.ErrorMessage);
+                Assert.NotNull(result.Type);
                 Assert.Equal(queryNameValue.Count, result.Items.Count);
 
                 foreach (var item in result.Items)
