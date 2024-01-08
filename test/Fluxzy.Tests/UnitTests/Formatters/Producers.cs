@@ -4,8 +4,8 @@ using System.Net.Http;
 using System.Text;
 using Xunit;
 using System.Threading.Tasks;
-using Fluxzy.Formatters.Metrics;
 using Fluxzy.Formatters.Producers.Requests;
+using Fluxzy.Formatters.Producers.Responses;
 using Fluxzy.Tests._Fixtures;
 
 namespace Fluxzy.Tests.UnitTests.Formatters
@@ -240,6 +240,33 @@ namespace Fluxzy.Tests.UnitTests.Formatters
 
             Assert.NotNull(result);
             Assert.Equal("{  }", result.Text);
+        }
+        
+        [Theory]
+        [InlineData("https://www.fluxzy.io/assets/images/logo-small.png", true)]
+        [InlineData("https://www.fluxzy.io/favicon.ico", true)]
+        [InlineData("https://example.com", false)]
+        public async Task ImageResultProducer(string url, bool image)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new ImageResultProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+
+            if (image) {
+                Assert.NotNull(result);
+                Assert.Contains("image", result.ContentType);
+            }
+            else {
+                Assert.Null(result);
+            }
         }
     }
 }
