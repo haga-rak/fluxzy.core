@@ -200,25 +200,33 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com")]
-        public async Task RequestJsonBodyProducer(string url)
+        [InlineData("https://example.com", true)]
+        [InlineData("https://example.com", false)]
+        public async Task RequestJsonBodyProducer(string url, bool pass)
         {
             var randomFile = GetRegisteredRandomFile();
             var uri = new Uri(url);
 
             var producer = new RequestJsonBodyProducer();
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
-            requestMessage.Content = new StringContent("{  }", Encoding.UTF8, "application/json");
+            
+            if (pass)
+                requestMessage.Content = new StringContent("{  }", Encoding.UTF8, "application/json");
 
             await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
 
             var (producerContext, firstExchange) = await Init(randomFile);
 
             var result = producer.Build(firstExchange, producerContext);
-
-            Assert.NotNull(result);
-            Assert.Equal("{  }", result.RawBody);
-            Assert.Equal("{}", result.FormattedBody);
+            
+            if (pass) {
+                Assert.NotNull(result);
+                Assert.Equal("{  }", result.RawBody);
+                Assert.Equal("{}", result.FormattedBody);
+            }
+            else {
+                Assert.Null(result);
+            }
         }
 
         [Theory]
