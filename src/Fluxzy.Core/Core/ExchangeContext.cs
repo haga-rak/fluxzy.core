@@ -174,7 +174,9 @@ namespace Fluxzy.Core
         /// True if the current exchange has at least one request body substitution
         /// </summary>
         public bool HasRequestBodySubstitution => _requestBodyStreamSubstitutions != null;
-        
+
+        public bool HasRequestBody { get; set; }
+
         /// <summary>
         /// Register a response body substitution
         /// </summary>

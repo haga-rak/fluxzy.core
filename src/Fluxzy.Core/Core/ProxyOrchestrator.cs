@@ -156,6 +156,12 @@ namespace Fluxzy.Core
                                                   .WaitForEdit();
                                 }
 
+                                var hasRequestBody = exchange.Request.Body != null &&
+                                                     (!exchange.Request.Body.CanSeek ||
+                                                      exchange.Request.Body.Length > 0);
+
+                                exchange.Context.HasRequestBody = hasRequestBody;
+
                                 if (_archiveWriter != null) {
                                     _archiveWriter.Update(
                                         exchange,
@@ -163,8 +169,7 @@ namespace Fluxzy.Core
                                         CancellationToken.None
                                     );
 
-                                    if (exchange.Request.Body != null &&
-                                        (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0)) {
+                                    if (hasRequestBody) {
 
                                         // here we have a chance substitute the requestBodyStream
 

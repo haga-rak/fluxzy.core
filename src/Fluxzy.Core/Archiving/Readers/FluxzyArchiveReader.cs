@@ -227,7 +227,7 @@ namespace Fluxzy.Readers
         {
             var path = DirectoryArchiveHelper.GetContentResponsePath(string.Empty, exchangeId).Replace("\\", "/");
             var entry = _zipFile.Entries.FirstOrDefault(e => e.FullName == path);
-
+            
             if (entry == null) {
                 return null;
             }

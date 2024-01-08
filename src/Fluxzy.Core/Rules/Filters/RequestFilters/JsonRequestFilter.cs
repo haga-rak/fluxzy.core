@@ -25,13 +25,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         public override string ShortName => "snt. json";
 
         public override bool PreMadeFilter => true;
-
-        protected override bool InternalApply(
-            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
-            IFilteringContext? filteringContext)
-        {
-            return filteringContext?.HasRequestBody ?? false;
-        }
     }
 
     public static class JsonRequestFilterExtensions

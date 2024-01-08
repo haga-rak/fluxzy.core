@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.IO.Compression;
 using System.Text;
 using Fluxzy.Extensions;
 using Fluxzy.Misc;
@@ -24,12 +25,15 @@ namespace Fluxzy.Formatters
             Settings = settings;
 
             using var requestBodyStream = archiveReader.GetRequestBody(exchange.Id);
+            
+            RequestBodyLength = archiveReader.GetRequestBodyLength(exchange.Id);
 
-            RequestBodyLength = requestBodyStream?.Length ?? 0;
+            if (RequestBodyLength < 0)
+                RequestBodyLength = 0;
 
-            if (requestBodyStream != null && requestBodyStream.CanSeek && requestBodyStream.Length <
-                Settings.MaxFormattableJsonLength) {
-                _internalBuffer = ArrayPool<byte>.Shared.Rent((int) requestBodyStream.Length);
+            if (requestBodyStream != null && RequestBodyLength > 0) {
+
+                _internalBuffer = ArrayPool<byte>.Shared.Rent((int) RequestBodyLength);
                 var length = requestBodyStream.SeekableStreamToBytes(_internalBuffer);
 
                 RequestBody = new ReadOnlyMemory<byte>(_internalBuffer, 0, length);
@@ -41,9 +45,10 @@ namespace Fluxzy.Formatters
             using var responseBodyStream = archiveReader.GetResponseBody(exchange.Id);
 
             if (responseBodyStream != null) {
-                ResponseBodyLength = responseBodyStream.Length;
 
-                ResponseBodyContent = CompressionHelper.ReadResponseBodyContent(exchange, responseBodyStream,
+                ResponseBodyLength = archiveReader.GetResponseBodyLength(exchange.Id); 
+
+                ResponseBodyContent = exchange.ReadResponseBodyContent(responseBodyStream,
                     settings.MaximumRenderableBodyLength,
                     out var compressionInfo);
 

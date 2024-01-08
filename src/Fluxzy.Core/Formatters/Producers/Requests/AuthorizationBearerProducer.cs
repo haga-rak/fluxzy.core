@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Linq;
@@ -21,10 +21,16 @@ namespace Fluxzy.Formatters.Producers.Requests
             var targetHeader =
                 headers.FirstOrDefault(h =>
                     h.Name.Span.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
-                    && h.Value.Span.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase));
+                    && h.Value.Span.StartsWith("Bearer", StringComparison.OrdinalIgnoreCase));
 
             if (targetHeader == null)
                 return null;
+
+            var prefix = "Bearer "; 
+
+            if (prefix.Length > targetHeader.Value.Span.Length)
+                return new AuthorizationBearerResult(
+                    ResultTitle, "");
 
             var token = targetHeader.Value.Span.Slice("Bearer ".Length).ToString();
 

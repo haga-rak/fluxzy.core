@@ -14,6 +14,11 @@ namespace Fluxzy.Rules.Filters
     )]
     public class IpEgressFilter : StringFilter
     {
+        public IpEgressFilter()
+            : base(string.Empty)
+        {
+        }
+
         public IpEgressFilter(string pattern)
             : base(pattern)
         {

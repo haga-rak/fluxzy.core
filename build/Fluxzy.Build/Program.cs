@@ -199,7 +199,7 @@ namespace Fluxzy.Build
                 DependsOn("restore-tests", "build-fluxzy-core"),
                 async () => {
                     await RunAsync("dotnet",
-                        "test test/Fluxzy.Tests -e EnableDumpStackTraceOn502=true");
+                        "test test/Fluxzy.Tests --collect:\"XPlat Code Coverage\"");
                 });
         }
         
