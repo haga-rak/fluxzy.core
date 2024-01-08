@@ -283,6 +283,32 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         [Theory]
         [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
         [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        public async Task ResponseBodyJsonProducer(string url, bool match)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new ResponseBodyJsonProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+            
+            if (match) {
+                Assert.NotNull(result);
+                Assert.NotNull(result.FormattedContent);
+            }
+            else {
+                Assert.Null(result);
+            }
+        }
+        
+        [Theory]
+        [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
+        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
         public async Task ResponseTextContentProducer(string url, bool match)
         {
             var randomFile = GetRegisteredRandomFile();
