@@ -176,10 +176,10 @@ namespace Fluxzy.Core
                                         if (exchange.Context.HasRequestBodySubstitution) {
                                             originalRequestBodyStream = exchange.Request.Body;
                                             exchange.Request.Body = await
-                                                exchange.Context.GetSubstitutedRequestBody(exchange.Request.Body, exchange);
+                                                exchange.Context.GetSubstitutedRequestBody(exchange.Request.Body!, exchange);
                                         }
 
-                                        exchange.Request.Body = new DispatchStream(exchange.Request.Body,
+                                        exchange.Request.Body = new DispatchStream(exchange.Request.Body!,
                                             true,
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
                                     }

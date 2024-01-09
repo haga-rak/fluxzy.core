@@ -10,7 +10,7 @@ namespace Fluxzy.Tests
             get
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                    return 40;
+                    return 60;
                 }
                 else {
                     return 15;

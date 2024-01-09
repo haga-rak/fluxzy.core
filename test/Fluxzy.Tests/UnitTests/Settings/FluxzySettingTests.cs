@@ -1,5 +1,10 @@
 using System.Net;
+using System.Security.Authentication;
 using System.Text.Json;
+using Fluxzy.Certificates;
+using Fluxzy.Rules.Actions;
+using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Settings
@@ -14,7 +19,22 @@ namespace Fluxzy.Tests.UnitTests.Settings
         {
             var settings = FluxzySetting.CreateDefault();
 
+            // TODO make, distinct tests for each method
+            
             settings.AddBoundAddress(IPAddress.IPv6Any, 652);
+            settings.AddBoundAddress("127.0.0.1", 54652);
+            settings.ClearSaveFilter();
+            settings.SetSaveFilter(new HostFilter("google.com"));
+            settings.SetByPassedHosts("google.com", "facebook.com");
+            settings.AddTunneledHosts("microsoft.com", "apple.com");
+            settings.SetConnectionPerHost(9);
+            settings.SetServerProtocols(SslProtocols.Tls12);
+            settings.SetCheckCertificateRevocation(false);
+            settings.SetCaCertificate(Certificate.UseDefault());
+            settings.AddAlterationRules(new NoOpAction(), AnyFilter.Default);
+            settings.SetVerbose(true);
+            settings.UseBouncyCastleSslEngine();
+            settings.SetCertificateCacheDirectory("/temp"); 
 
             var jsonString = JsonSerializer.Serialize(settings, GlobalArchiveOption.ConfigSerializerOptions);
 

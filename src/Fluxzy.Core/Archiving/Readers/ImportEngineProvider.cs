@@ -22,7 +22,7 @@ namespace Fluxzy.Readers
 
         public IReadOnlyCollection<IImportEngine> Engines { get; }
 
-        public IImportEngine?  GetImportEngine(string fileName)
+        public IImportEngine? GetImportEngine(string fileName)
         {
             return Engines.FirstOrDefault(r => r.IsFormat(fileName));
         }

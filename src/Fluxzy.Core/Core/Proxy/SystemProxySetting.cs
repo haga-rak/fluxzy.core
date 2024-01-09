@@ -61,7 +61,7 @@ namespace Fluxzy.Core.Proxy
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(BoundHost, ListenPort, ByPassHosts);
+            return HashCode.Combine(BoundHost, ListenPort);
         }
     }
 }
