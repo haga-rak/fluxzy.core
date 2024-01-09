@@ -15,6 +15,12 @@ namespace Fluxzy.Utils
                 return true;
             }
 
+            if (splittedHost.Length == 2) {
+                subDomain = host;
+
+                return true; 
+            }
+
             subDomain = null;
 
             return false;
