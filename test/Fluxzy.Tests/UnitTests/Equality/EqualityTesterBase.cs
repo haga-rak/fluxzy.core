@@ -31,6 +31,8 @@ namespace Fluxzy.Tests.UnitTests.Equality
             {
                 var set = new HashSet<T> { equal };
                 Assert.Contains(Item, set);
+
+                Assert.Equal((object?) equal, Item);
             }
         }
 
@@ -41,6 +43,9 @@ namespace Fluxzy.Tests.UnitTests.Equality
             {
                 var set = new HashSet<T> { notEqual };
                 Assert.DoesNotContain(Item, set);
+
+                Assert.NotEqual((object?) notEqual, Item);
+                Assert.NotEqual((object?) "notEqual", Item);
             }
         }
     }
