@@ -24,6 +24,9 @@
     <None Update="_Files\Archives\pink-floyd.fxzy">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="_Files\Archives\with-request-payload.fxzy">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Certificates\fluxzytest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
