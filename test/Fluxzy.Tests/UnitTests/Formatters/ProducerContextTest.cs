@@ -24,7 +24,20 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             var producerFactory = new ProducerFactory(archiveReaderProvider, FormatSettings.Default);
             var firstExchange = archiveReader.ReadAllExchanges().First();
 
-            _ = await producerFactory.GetProducerContext(firstExchange.Id);
+            var context = await producerFactory.GetProducerContext(firstExchange.Id);
+            
+            Assert.NotNull(context);
+            
+            _ = producerFactory.GetRequestFormattedResults(firstExchange.Id, context).ToList();
+            var responses = producerFactory.GetResponseFormattedResults(firstExchange.Id, context).ToList();
+            
+            Assert.NotEmpty(responses);
+
+            foreach (var response in responses) {
+                Assert.NotNull(response.Title);
+                Assert.NotNull(response.Type);
+                Assert.Null(response.ErrorMessage);
+            }
         }
     }
 }
