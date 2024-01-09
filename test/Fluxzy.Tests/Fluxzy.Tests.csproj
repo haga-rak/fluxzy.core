@@ -21,8 +21,17 @@
   <ItemGroup>
     <None Remove="_Files\Headers\Req001.txt.bin" />
     <None Remove="_Files\Headers\Resp001.txt.bin" />
+    <None Update="_Files\Archives\minimal.saz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Archives\pink-floyd.fxzy">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="_Files\Archives\testarchive.saz">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="_Files\Archives\with-request-payload.fxzy">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_Files\Certificates\fluxzytest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -40,6 +49,7 @@
   <ItemGroup>
     <PackageReference Include="fluxzy.sandbox.models" Version="1.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
     <PackageReference Include="System.Threading.AccessControl" Version="8.0.0" />
     <PackageReference Include="xunit" Version="2.6.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">

@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Buffers;
 using System.Linq;
 using Fluxzy.Clients.H2.Encoder.Utils;
 
@@ -16,6 +15,11 @@ namespace Fluxzy.Utils
                                     ?.Where(r => r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
                                     .LastOrDefault();
 
+            return ResponseSuggestedExtension(contentTypeHeader);
+        }
+
+        internal static string ResponseSuggestedExtension(HeaderFieldInfo? contentTypeHeader)
+        {
             if (contentTypeHeader == null)
                 return "data";
 
@@ -67,48 +71,7 @@ namespace Fluxzy.Utils
                                     ?.Where(r => r.Name.Span.Equals("content-type", StringComparison.OrdinalIgnoreCase))
                                     .LastOrDefault();
 
-            if (contentTypeHeader == null)
-                return "data";
-
-            if (contentTypeHeader.Value.Span.Contains("json", StringComparison.OrdinalIgnoreCase))
-                return "json";
-
-            if (contentTypeHeader.Value.Span.Contains("html", StringComparison.OrdinalIgnoreCase))
-                return "html";
-
-            if (contentTypeHeader.Value.Span.Contains("css", StringComparison.OrdinalIgnoreCase))
-                return "css";
-
-            if (contentTypeHeader.Value.Span.Contains("xml", StringComparison.OrdinalIgnoreCase))
-                return "xml";
-
-            if (contentTypeHeader.Value.Span.Contains("javascript", StringComparison.OrdinalIgnoreCase))
-                return "js";
-
-            if (contentTypeHeader.Value.Span.Contains("font", StringComparison.OrdinalIgnoreCase))
-                return "font";
-
-            if (contentTypeHeader.Value.Span.Contains("png", StringComparison.OrdinalIgnoreCase))
-                return "png";
-
-            if (contentTypeHeader.Value.Span.Contains("jpeg", StringComparison.OrdinalIgnoreCase)
-                || contentTypeHeader.Value.Span.Contains("jpg", StringComparison.OrdinalIgnoreCase)
-               )
-                return "jpeg";
-
-            if (contentTypeHeader.Value.Span.Contains("gif", StringComparison.OrdinalIgnoreCase))
-                return "gif";
-
-            if (contentTypeHeader.Value.Span.Contains("svg", StringComparison.OrdinalIgnoreCase))
-                return "svg";
-
-            if (contentTypeHeader.Value.Span.Contains("pdf", StringComparison.OrdinalIgnoreCase))
-                return "pdf";
-
-            if (contentTypeHeader.Value.Span.Contains("text", StringComparison.OrdinalIgnoreCase))
-                return "txt";
-
-            return "data";
+            return ResponseSuggestedExtension(contentTypeHeader);
         }
 
         public static string? GetSimplifiedContentType(IExchange exchange)
