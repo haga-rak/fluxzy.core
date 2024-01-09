@@ -5,6 +5,7 @@ using System.Text;
 using Xunit;
 using System.Threading.Tasks;
 using Fluxzy.Formatters.Producers.Requests;
+using Fluxzy.Formatters.Producers.Responses;
 using Fluxzy.Tests._Fixtures;
 
 namespace Fluxzy.Tests.UnitTests.Formatters
@@ -37,6 +38,9 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             }
             else {
                 Assert.NotNull(result);
+                Assert.NotNull(result.Title);
+                Assert.Null(result.ErrorMessage);
+                Assert.NotNull(result.Type);
                 Assert.Equal(queryNameValue.Count, result.Items.Count);
 
                 foreach (var item in result.Items)
@@ -173,7 +177,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             var result = producer.Build(firstExchange, producerContext);
             
             Assert.NotNull(result);
-            Assert.Equal("GET / HTTP/1.1\r\nHost: example.com\r\n\r\n", result.RawHeader);
+            Assert.Equal("GET / HTTP/1.1\r\nHost: example.com\r\nAccept-Encoding: gzip, deflate, br\r\n\r\n", result.RawHeader);
         }
 
         [Theory]
@@ -199,25 +203,33 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com")]
-        public async Task RequestJsonBodyProducer(string url)
+        [InlineData("https://example.com", true)]
+        [InlineData("https://example.com", false)]
+        public async Task RequestJsonBodyProducer(string url, bool pass)
         {
             var randomFile = GetRegisteredRandomFile();
             var uri = new Uri(url);
 
             var producer = new RequestJsonBodyProducer();
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
-            requestMessage.Content = new StringContent("{  }", Encoding.UTF8, "application/json");
+            
+            if (pass)
+                requestMessage.Content = new StringContent("{  }", Encoding.UTF8, "application/json");
 
             await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
 
             var (producerContext, firstExchange) = await Init(randomFile);
 
             var result = producer.Build(firstExchange, producerContext);
-
-            Assert.NotNull(result);
-            Assert.Equal("{  }", result.RawBody);
-            Assert.Equal("{}", result.FormattedBody);
+            
+            if (pass) {
+                Assert.NotNull(result);
+                Assert.Equal("{  }", result.RawBody);
+                Assert.Equal("{}", result.FormattedBody);
+            }
+            else {
+                Assert.Null(result);
+            }
         }
 
         [Theory]
@@ -239,6 +251,147 @@ namespace Fluxzy.Tests.UnitTests.Formatters
 
             Assert.NotNull(result);
             Assert.Equal("{  }", result.Text);
+        }
+        
+        [Theory]
+        [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
+        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        public async Task ResponseBodySummaryProducer(string url, bool match)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new ResponseBodySummaryProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+            
+            if (match) {
+                Assert.NotNull(result);
+                Assert.NotNull(result.BodyText);
+                Assert.NotNull(result.PreferredFileName);
+                Assert.NotNull(result.Compression);
+                Assert.True(result.ContentLength > 0);
+                Assert.Equal("application/json; charset=utf-8", result.ContentType);
+            }
+            else {
+                Assert.Null(result);
+            }
+        }
+        
+        [Theory]
+        [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
+        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        [InlineData("https://example.com", false)]
+        public async Task ResponseBodyJsonProducer(string url, bool match)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new ResponseBodyJsonProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+            
+            if (match) {
+                Assert.NotNull(result);
+                Assert.NotNull(result.FormattedContent);
+            }
+            else {
+                Assert.Null(result);
+            }
+        }
+        
+        [Theory]
+        [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
+        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        public async Task ResponseTextContentProducer(string url, bool match)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new ResponseTextContentProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+            
+            if (match) {
+                Assert.NotNull(result);
+            }
+            else {
+                Assert.Null(result);
+            }
+        }
+        [Theory]
+        [InlineData("https://registry.2befficient.io:40300/cookies/set/abc/def", true)]
+        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        public async Task SetCookieProducer(string url, bool match)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new SetCookieProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+            
+            if (match) {
+                Assert.NotNull(result);
+                Assert.Single(result.Cookies);
+                Assert.Equal("abc", result.Cookies[0].Name);
+                Assert.Equal("def", result.Cookies[0].Value);
+                Assert.Null(result.Cookies[0].Domain);
+                Assert.Equal("/", result.Cookies[0].Path);
+                Assert.Null(result.Cookies[0].SameSite);
+                Assert.False(result.Cookies[0].Secure);
+                Assert.False(result.Cookies[0].HttpOnly);
+            }
+            else {
+                Assert.Null(result);
+            }
+        }
+        
+        [Theory]
+        [InlineData("https://www.fluxzy.io/assets/images/logo-small.png", true)]
+        [InlineData("https://www.fluxzy.io/favicon.ico", true)]
+        [InlineData("https://example.com", false)]
+        public async Task ImageResultProducer(string url, bool image)
+        {
+            var randomFile = GetRegisteredRandomFile();
+            var uri = new Uri(url);
+
+            var producer = new ImageResultProducer();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            await QuickArchiveBuilder.MakeQuickArchive(requestMessage, randomFile);
+
+            var (producerContext, firstExchange) = await Init(randomFile);
+
+            var result = producer.Build(firstExchange, producerContext);
+
+            if (image) {
+                Assert.NotNull(result);
+                Assert.Contains("image", result.ContentType);
+            }
+            else {
+                Assert.Null(result);
+            }
         }
     }
 }
