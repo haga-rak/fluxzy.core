@@ -19,4 +19,3 @@ ignore:
   - "src/Fluxzy.Core.Pcap/**"
   - "src/Fluxzy.Extensions/**"
   - "src/Fluxzy.Tools.DocGen/**"
-  - "src/Fluxzy/**"
