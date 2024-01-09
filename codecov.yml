@@ -5,7 +5,7 @@ component_management:
   default_rules:
     statuses:
       - type: project
-        target: auto
+        target: 65%
         branches:
           - "main"
   individual_components:
