@@ -90,11 +90,11 @@ namespace Fluxzy.Extensions
 
         public static CompressionType GetResponseCompressionType(this IExchange exchangeInfo)
         {
-            var headers = exchangeInfo.GetResponseHeaders(); 
+            var headers = exchangeInfo.GetResponseHeaders();
 
             if (headers == null)
-                throw new InvalidOperationException("This exchange does not have response body");
-
+                return CompressionType.None; 
+            
             return InternalGetCompressionType(headers);
         }
 
