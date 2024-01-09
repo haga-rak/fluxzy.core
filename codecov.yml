@@ -1,6 +1,12 @@
 comment:
   layout: "header, diff, flags, components"
 
+coverage:
+  status:
+    project:
+      default:
+        target: 65% 
+
 component_management:
   default_rules:
     statuses:
