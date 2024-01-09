@@ -21,8 +21,14 @@
   <ItemGroup>
     <None Remove="_Files\Headers\Req001.txt.bin" />
     <None Remove="_Files\Headers\Resp001.txt.bin" />
+    <None Update="_Files\Archives\minimal.saz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Archives\pink-floyd.fxzy">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="_Files\Archives\testarchive.saz">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="_Files\Archives\with-request-payload.fxzy">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
