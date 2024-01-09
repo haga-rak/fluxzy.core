@@ -23,3 +23,8 @@ ignore:
   - "src/Fluxzy.Core.Pcap/**"
   - "src/Fluxzy.Extensions/**"
   - "src/Fluxzy.Tools.DocGen/**"
+
+# Ignore debugging code 
+  - "src/Fluxzy.Core/Clients/H2Logger.cs"
+  - "src/Fluxzy.Core/Clients/H1Logger.cs"
+  - "src/Fluxzy.Core/Misc/Streams/DebugFileStream.cs"
