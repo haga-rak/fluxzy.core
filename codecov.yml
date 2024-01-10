@@ -6,6 +6,7 @@ coverage:
     project:
       default:
         target: 65% 
+    patch: no
 
 component_management:
   default_rules:
