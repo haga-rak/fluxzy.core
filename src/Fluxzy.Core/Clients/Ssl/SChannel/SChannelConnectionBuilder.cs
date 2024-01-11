@@ -12,11 +12,13 @@ namespace Fluxzy.Clients.Ssl.SChannel
     {
         public async Task<SslConnection> AuthenticateAsClient(
             Stream innerStream,
-            SslClientAuthenticationOptions request, Action<string> onKeyReceived, CancellationToken token)
+            SslConnectionBuilderOptions builderOptions, Action<string> onKeyReceived, CancellationToken token)
         {
             var sslStream = new SslStream(innerStream, false);
 
-            await sslStream.AuthenticateAsClientAsync(request, token);
+            var sslOptions = builderOptions.GetSslClientAuthenticationOptions();
+
+            await sslStream.AuthenticateAsClientAsync(sslOptions, token);
 
             var sslInfo = new SslInfo(sslStream);
 

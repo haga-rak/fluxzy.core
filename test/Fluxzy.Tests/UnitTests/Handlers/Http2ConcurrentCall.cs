@@ -96,9 +96,9 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         /// </summary>
         /// <returns></returns>
         [Theory]
-        [InlineData(1)]
+        [InlineData(1024)]
         [InlineData(16394)]
-        public async Task Post_Dynamic_Table_Evict_Simple_Large_Object(int bodyLength)
+        public async Task Post_Dynamic_Table_Evict_Simple_Large_Object(int bufferSize)
         {
             using var handler = new FluxzyHttp2Handler();
             using var httpClient = new HttpClient(handler, false);
@@ -111,12 +111,12 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             var buffer = new byte[500];
 
             var tasks =
-                Enumerable.Repeat(httpClient, count).Select((h, index) =>
+                Enumerable.Repeat(httpClient, count).Select((localHttpClient, index) =>
                 {
                     new Random(index % 2).NextBytes(buffer);
 
                     return CallSimple(
-                        h, bodyLength, 524288,
+                        localHttpClient, bufferSize, 524288,
                         new NameValueCollection {
                             {
                                 "Cookie", Convert.ToBase64String(buffer)

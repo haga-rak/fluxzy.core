@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Threading;
@@ -86,21 +87,19 @@ namespace Fluxzy.Clients
 
             byte[]? remoteCertificate = null;
 
-            var authenticationOptions = new SslClientAuthenticationOptions {
-                TargetHost = exchange.Authority.HostName,
-                EnabledSslProtocols = exchange.Context.ProxyTlsProtocols,
-                ApplicationProtocols = httpProtocols
-            };
-
-            if (exchange.Context.SkipRemoteCertificateValidation)
-                authenticationOptions.RemoteCertificateValidationCallback = (_, _, _, errors) => true;
-
-            if (exchange.Context.ClientCertificates != null && exchange.Context.ClientCertificates.Count > 0)
-                authenticationOptions.ClientCertificates = exchange.Context.ClientCertificates;
+            var builderOptions = new SslConnectionBuilderOptions(
+                              exchange.Authority.HostName,
+                              exchange.Context.ProxyTlsProtocols,
+                              httpProtocols,
+                              exchange.Context.SkipRemoteCertificateValidation
+                                  ? (_, _, _, errors) => true
+                                  : null,
+                              exchange.Context.ClientCertificates != null && exchange.Context.ClientCertificates.Any() ?
+                              exchange.Context.ClientCertificates.First() : null);
 
             var sslConnectionInfo =
                 await _sslConnectionBuilder.AuthenticateAsClient(
-                    newlyOpenedStream, authenticationOptions, tcpConnection.OnKeyReceived, token);
+                    newlyOpenedStream, builderOptions, tcpConnection.OnKeyReceived, token);
 
             exchange.Connection.SslInfo = sslConnectionInfo.SslInfo;
 

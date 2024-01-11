@@ -1,10 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using Org.BouncyCastle.Tls;
 using System;
 using System.IO;
-using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,14 +18,21 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public async Task<SslConnection> AuthenticateAsClient(
             Stream innerStream,
-            SslClientAuthenticationOptions request,
+            SslConnectionBuilderOptions builderOptions,
             Action<string> onKeyReceived,
             CancellationToken token)
         {
+            var crypto = new FluxzyCrypto();
+
+            var tlsAuthentication = 
+                new FluxzyTlsAuthentication(crypto, builderOptions.GetBouncyCastleClientCertificateInfo());
+
             var client = new FluxzyTlsClient(
-                request.TargetHost!,
-                request.EnabledSslProtocols,
-                request.ApplicationProtocols!.ToArray());
+                builderOptions.TargetHost!,
+                builderOptions.ClientCertificate != null ? 
+                    SslProtocols.Tls12 :
+                    builderOptions.EnabledSslProtocols,
+                builderOptions.ApplicationProtocols!.ToArray(), tlsAuthentication, crypto);
 
             var memoryStream = new MemoryStream();
 
@@ -58,7 +64,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             }
             catch (Exception ex)
             {
-                throw new ClientErrorException(0, $"Handshake with {request.TargetHost} has failed", ex.Message);
+                throw new ClientErrorException(0, $"Handshake with {builderOptions.TargetHost} has failed", ex.Message);
             }
 
             var keyInfos =

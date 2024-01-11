@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
@@ -8,8 +9,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     internal class FluxzyCrypto : BcTlsCrypto
     {
-        public FluxzyCrypto()
-            : base(new SecureRandom())
+        public TlsClientContext? Context { get; private set; }
+
+        public FluxzyCrypto() : base(new SecureRandom())
         {
         }
 
@@ -22,6 +24,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             MasterSecret = secret.ExtractKeySilently();
 
             return resultSecret;
+        }
+
+        public void UpdateContext(TlsClientContext context)
+        {
+            Context = context;
         }
     }
 }
