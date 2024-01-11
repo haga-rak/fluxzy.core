@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Fluxzy.Certificates;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
@@ -62,7 +63,7 @@ namespace Fluxzy.Core
         /// <summary>
         ///     Client certificate for this exchange
         /// </summary>
-        public X509Certificate2Collection? ClientCertificates { get; set; }
+        public List<Certificate>? ClientCertificates { get; set; }
 
         /// <summary>
         /// </summary>

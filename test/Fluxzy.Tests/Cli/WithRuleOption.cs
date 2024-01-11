@@ -18,9 +18,11 @@ namespace Fluxzy.Tests.Cli
     public class WithRuleOption : WithRuleOptionBase
     {
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task Validate_ClientCertificate(bool forceH11)
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(true, true)]
+        public async Task Validate_ClientCertificate(bool forceH11, bool useBouncyCastle)
         {
             // Arrange 
             var requestMessage =
@@ -58,7 +60,8 @@ namespace Fluxzy.Tests.Cli
                       typeKind: ForceHttp11Action
                 """;
 
-            using var response = await Exec(forceH11 ? yamlContentForceHttp11 : yamlContent, requestMessage);
+            using var response = await Exec(forceH11 ? yamlContentForceHttp11 : yamlContent, 
+                requestMessage, useBouncyCastle: useBouncyCastle);
             
             var thumbPrint = await response.Content.ReadAsStringAsync();
             var expectedThumbPrint = "960b00317d47d0d52d04a3a03b045e96bf3be3a3";
@@ -68,9 +71,11 @@ namespace Fluxzy.Tests.Cli
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task Validate_ClientCertificate_2(bool forceH11)
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(true, true)]
+        public async Task Validate_ClientCertificate_2(bool forceH11, bool useBouncyCastle)
         {
             var requestMessage =
                 new HttpRequestMessage(HttpMethod.Get, $"https://certauth.cryptomix.com/json/");
@@ -108,7 +113,8 @@ namespace Fluxzy.Tests.Cli
                       typeKind: ForceHttp11Action
                 """;
             
-            using var response = await Exec(forceH11 ? yamlContentForceHttp11 : yamlContent, requestMessage);
+            using var response = await Exec(forceH11 ? yamlContentForceHttp11 : yamlContent, 
+                requestMessage, useBouncyCastle: useBouncyCastle);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 

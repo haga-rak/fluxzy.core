@@ -14,7 +14,7 @@ namespace Fluxzy.Clients.Ssl
     {
         Task<SslConnection> AuthenticateAsClient(
             Stream innerStream,
-            SslClientAuthenticationOptions request,
+            SslConnectionBuilderOptions sslOptions,
             Action<string> onKeyReceived,
             CancellationToken token);
     }

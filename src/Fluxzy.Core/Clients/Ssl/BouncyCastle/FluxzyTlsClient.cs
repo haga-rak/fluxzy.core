@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
 using Org.BouncyCastle.Tls;
+using Org.BouncyCastle.Tls.Crypto;
 
 #pragma warning disable SYSLIB0039
 
@@ -13,19 +14,31 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
     internal class FluxzyTlsClient : DefaultTlsClient
     {
         private readonly SslApplicationProtocol[] _applicationProtocols;
+        private readonly TlsAuthentication _tlsAuthentication;
         private readonly byte[] _serverNameExtensionData;
         private readonly SslProtocols _sslProtocols;
         private readonly string _targetHost;
+        private readonly FluxzyCrypto _crypto;
 
         public FluxzyTlsClient(
             string targetHost, SslProtocols sslProtocols,
-            SslApplicationProtocol[] applicationProtocols)
-            : base(new FluxzyCrypto())
+            SslApplicationProtocol[] applicationProtocols, TlsAuthentication tlsAuthentication,
+            FluxzyCrypto crypto)
+            : base(crypto)
         {
             _targetHost = targetHost;
             _sslProtocols = sslProtocols;
             _applicationProtocols = applicationProtocols;
+            _tlsAuthentication = tlsAuthentication;
             _serverNameExtensionData = ServerNameUtilities.CreateFromHost(_targetHost);
+
+            _crypto = crypto;
+        }
+        
+        public override void Init(TlsClientContext context)
+        {
+            base.Init(context);
+            _crypto.UpdateContext(context);
         }
 
         public override IDictionary<int, byte[]> GetClientExtensions()
@@ -39,7 +52,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public override TlsAuthentication GetAuthentication()
         {
-            return new FluxzyTlsAuthentication();
+            return _tlsAuthentication;
         }
 
         protected override IList<ProtocolName> GetProtocolNames()
