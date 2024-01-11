@@ -45,6 +45,7 @@ namespace Fluxzy.Tests.UnitTests.Equality
             {
                 var set = new HashSet<T> { notEqual };
                 Assert.DoesNotContain(Item, set);
+                Assert.DoesNotContain((T) default!, set);
 
                 Assert.NotEqual((object?) notEqual, Item);
                 Assert.NotEqual(Item, (object?) notEqual);
