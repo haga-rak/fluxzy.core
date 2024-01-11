@@ -49,6 +49,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Clients\Ssl\BouncyCastle\Streams\**" />
+    <EmbeddedResource Remove="Clients\Ssl\BouncyCastle\Streams\**" />
+    <None Remove="Clients\Ssl\BouncyCastle\Streams\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resources\Pages\error.html" />
     <None Remove="Resources\Pages\welcome.html" />
   </ItemGroup>
@@ -91,10 +97,6 @@
 
   <ItemGroup>
     <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Clients\Ssl\BouncyCastle\Streams\" />
   </ItemGroup>
 
   <ItemGroup>

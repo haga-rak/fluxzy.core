@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
@@ -45,8 +44,8 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.ClientCertificates ??= new X509Certificate2Collection();
-            context.ClientCertificates.Add(ClientCertificate.GetX509Certificate());
+            context.ClientCertificates ??= new ();
+            context.ClientCertificates.Add(ClientCertificate);
 
             return default;
         }
