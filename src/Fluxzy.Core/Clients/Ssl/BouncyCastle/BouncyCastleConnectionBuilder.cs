@@ -29,7 +29,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             var client = new FluxzyTlsClient(
                 builderOptions.TargetHost!,
-                SslProtocols.Tls12,
+                builderOptions.ClientCertificate != null ? 
+                    SslProtocols.Tls12 :
+                    builderOptions.EnabledSslProtocols,
                 builderOptions.ApplicationProtocols!.ToArray(), tlsAuthentication, crypto);
 
             var memoryStream = new MemoryStream();

@@ -40,15 +40,17 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             var certificateEntry = store.GetCertificate(mainCert);
 
             var x509Certificate = certificateEntry.Certificate;
-
+            
             var tlsCertificate = new BcTlsCertificate(fluxzyCrypto, x509Certificate.CertificateStructure);
 
-            var certificate = new Certificate(
-                // certificateRequest.GetCertificateRequestContext(),
-                new[] { tlsCertificate });
+           var certificate = new Certificate(
+               certificateRequest.GetCertificateRequestContext(),
+                new[] { new CertificateEntry(tlsCertificate, null) });
+
+            var context = certificate.GetCertificateRequestContext();
 
 
-            var keyEntry = store.GetKey(mainCert);
+             var keyEntry = store.GetKey(mainCert);
 
             var rsaKeyParameters = (RsaKeyParameters) keyEntry.Key;
 
