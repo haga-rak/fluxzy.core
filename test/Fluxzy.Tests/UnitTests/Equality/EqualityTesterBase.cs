@@ -33,6 +33,8 @@ namespace Fluxzy.Tests.UnitTests.Equality
                 Assert.Contains(Item, set);
 
                 Assert.Equal((object?) equal, Item);
+                Assert.Equal(Item, (object?) equal);
+                Assert.True(Item!.Equals((object?)equal));
             }
         }
 
@@ -45,7 +47,10 @@ namespace Fluxzy.Tests.UnitTests.Equality
                 Assert.DoesNotContain(Item, set);
 
                 Assert.NotEqual((object?) notEqual, Item);
+                Assert.NotEqual(Item, (object?) notEqual);
                 Assert.NotEqual((object?) "notEqual", Item);
+                Assert.NotEqual(Item, (object?) "notEqual");
+                Assert.False(Item!.Equals((object?)notEqual));
             }
         }
     }
