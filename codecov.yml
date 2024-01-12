@@ -35,3 +35,4 @@ ignore:
   - "src/Fluxzy.Core/Clients/H2Logger.cs"
   - "src/Fluxzy.Core/Clients/H1Logger.cs"
   - "src/Fluxzy.Core/Misc/Streams/DebugFileStream.cs"
+  - "src/Fluxzy.Core/Misc/Traces/**"
