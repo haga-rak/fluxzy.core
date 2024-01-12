@@ -107,7 +107,7 @@ namespace Fluxzy
                 ITimingProvider.Default,
                 Writer, dnsSolver ?? new DefaultDnsSolver());
 
-            ExecutionContext = new ProxyExecutionContext(SessionIdentifier, startupSetting);
+            ExecutionContext = new ProxyExecutionContext(startupSetting);
 
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
                 Writer, IdProvider, userAgentProvider);
