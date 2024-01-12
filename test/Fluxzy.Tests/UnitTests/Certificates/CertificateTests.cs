@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Certificates;
+using Fluxzy.Misc.IpUtils;
 using Fluxzy.Tests._Files;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
@@ -12,6 +13,12 @@ namespace Fluxzy.Tests.UnitTests.Certificates
 {
     public class CertificateTests : ProduceDeletableItem
     {
+        [Fact]
+        public void IsCa()
+        {
+            Assert.True(FluxzySecurity.BuiltinCertificate.IsCa());
+        }
+
         [Fact]
         public void LoadFromUserStoreBySerialNumber()
         {
