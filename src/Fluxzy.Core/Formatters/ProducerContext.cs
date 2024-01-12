@@ -2,7 +2,6 @@
 
 using System;
 using System.Buffers;
-using System.IO.Compression;
 using System.Text;
 using Fluxzy.Extensions;
 using Fluxzy.Misc;

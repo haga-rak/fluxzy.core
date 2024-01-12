@@ -26,6 +26,8 @@ namespace Fluxzy.Tests
 
             ExtractDirectory(StorageContext.static_ws, DirectoryName);
             ExtractDirectory(File.ReadAllBytes("_Files/Archives/pink-floyd.fxzy"), ".artefacts/tests/pink-floyd");
+
+            CertificateContext.InstallDefaultCertificate();
         }
 
         private static void ExtractDirectory(byte [] binary, string directoryName)
@@ -57,5 +59,6 @@ namespace Fluxzy.Tests
 
             return directoryName;
         }
+
     }
 }

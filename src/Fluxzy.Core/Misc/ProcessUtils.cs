@@ -124,30 +124,30 @@ namespace Fluxzy.Misc
             return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
         }
 
-        public static Task<ProcessRunResult> QuickRunAsync(string fullCommand, Stream? stdInStream = null)
+        public static Task<ProcessRunResult> QuickRunAsync(string fullCommand, Stream? stdInStream = null, bool throwOnFail = false)
         {
             var commandTab = fullCommand.Split(' ');
 
             if (commandTab.Length == 1)
-                return QuickRunAsync(fullCommand, string.Empty);
+                return QuickRunAsync(fullCommand, string.Empty, throwOnFail: throwOnFail);
 
             var commandName = fullCommand.Split(' ')[0];
             var args = fullCommand.Substring(commandName.Length + 1);
 
-            return QuickRunAsync(commandName, args, stdInStream);
+            return QuickRunAsync(commandName, args, stdInStream, throwOnFail);
         }
 
-        public static ProcessRunResult QuickRun(string fullCommand, Stream? stdInStream = null)
+        public static ProcessRunResult QuickRun(string fullCommand, Stream? stdInStream = null, bool throwOnFail = false)
         {
             var commandTab = fullCommand.Split(' ');
 
             if (commandTab.Length == 1)
-                return QuickRun(fullCommand, string.Empty);
+                return QuickRun(fullCommand, string.Empty, throwOnFail: throwOnFail);
 
             var commandName = fullCommand.Split(' ')[0];
             var args = fullCommand.Substring(commandName.Length + 1);
 
-            return QuickRun(commandName, args, stdInStream);
+            return QuickRun(commandName, args, stdInStream, throwOnFail: throwOnFail);
         }
 
         public static bool IsCommandAvailable(string commandName)

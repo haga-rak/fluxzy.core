@@ -44,6 +44,9 @@ namespace Fluxzy.Core
 
         public override int GetHashCode()
         {
+            if (HostName == null)
+                return 0; 
+
             Span<char> destBuffer = stackalloc char[HostName.Length];
 
             return HashCode.Combine(HostName.AsSpan().ToLowerInvariant(destBuffer), Port, Secure);
