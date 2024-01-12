@@ -1,8 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Linq;
+using Fluxzy.Formatters.Metrics;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
+using Fluxzy.Utils;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Archiving
@@ -53,7 +55,10 @@ namespace Fluxzy.Tests.UnitTests.Archiving
 
             foreach (var exchange in exchanges) {
                 var result = _archiveReader.ReadExchange(exchange.Id);
+
                 Assert.NotNull(result);
+                Assert.NotNull(ExchangeUtility.GetRequestBodyFileNameSuggestion(exchange));
+                Assert.NotNull(ExchangeUtility.GetResponseBodyFileNameSuggestion(exchange));
             }
         }
 
@@ -92,13 +97,28 @@ namespace Fluxzy.Tests.UnitTests.Archiving
                 }
             }
         }
-    }
 
-    public class FluxzyArchiveReaderTests : ArchiveReaderTests
-    {
-        public FluxzyArchiveReaderTests()
-            : base(new FluxzyArchiveReader("_Files/Archives/with-request-payload.fxzy"))
+        [Fact]
+        public void Validate_Metric_Builder()
         {
+            var exchange = _archiveReader.ReadAllExchanges()?.First()!;
+            var metricBuilder = new ExchangeMetricBuilder();
+
+            var metricInfo = metricBuilder.Get(exchange.Id, _archiveReader);
+
+            Assert.NotNull(metricInfo);
+            Assert.True(metricInfo.Available);
+            Assert.NotNull(metricInfo.RequestBody);
+            Assert.NotNull(metricInfo.Dns);
+            Assert.NotNull(metricInfo.OverAllDuration);
+            Assert.NotNull(metricInfo.Waiting);
+            Assert.NotNull(metricInfo.RequestHeader);
+            Assert.NotNull(metricInfo.ReceivingHeader);
+            Assert.NotNull(metricInfo.ReceivingBody);
+            Assert.NotNull(metricInfo.Queued);
+            Assert.NotNull(metricInfo.RawMetrics);
+            Assert.NotNull(metricInfo.TcpHandShake);
+            Assert.NotNull(metricInfo.SslHandShake);
         }
     }
 }
