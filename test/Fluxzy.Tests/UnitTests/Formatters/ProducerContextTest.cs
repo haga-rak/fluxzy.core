@@ -24,9 +24,13 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             var producerFactory = new ProducerFactory(archiveReaderProvider, FormatSettings.Default);
             var firstExchange = archiveReader.ReadAllExchanges().First();
 
-            var context = await producerFactory.GetProducerContext(firstExchange.Id);
+            using var context = await producerFactory.GetProducerContext(firstExchange.Id);
             
             Assert.NotNull(context);
+            Assert.NotNull(context.GetContextInfo());
+            Assert.NotNull(context.GetContextInfo().ResponseBodyLength);
+            Assert.NotNull(context.GetContextInfo().ResponseBodyText);
+            Assert.True(context.GetContextInfo().IsTextContent);
             
             _ = producerFactory.GetRequestFormattedResults(firstExchange.Id, context).ToList();
             var responses = producerFactory.GetResponseFormattedResults(firstExchange.Id, context).ToList();

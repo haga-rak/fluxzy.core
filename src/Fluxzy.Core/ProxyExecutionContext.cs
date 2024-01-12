@@ -8,20 +8,13 @@ namespace Fluxzy
 {
     internal class ProxyExecutionContext
     {
-        public ProxyExecutionContext(string sessionId, FluxzySetting startupSetting)
+        public ProxyExecutionContext(FluxzySetting startupSetting)
         {
-            SessionId = sessionId;
-            StartupSetting = startupSetting;
-
             BreakPointManager = new BreakPointManager(startupSetting
                                                       .AlterationRules.Where(r => r.Action is BreakPointAction)
                                                       .Select(a => a.Filter));
         }
-
-        public string SessionId { get; }
-
-        public FluxzySetting StartupSetting { get; }
-
+        
         public BreakPointManager BreakPointManager { get; }
     }
 }
