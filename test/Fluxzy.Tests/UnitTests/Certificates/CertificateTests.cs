@@ -1,12 +1,16 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Certificates;
+using Fluxzy.Tests._Files;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Certificates
 {
-    public class CertificateTests
+    public class CertificateTests : ProduceDeletableItem
     {
         [Fact]
         public void LoadFromUserStoreBySerialNumber()
@@ -24,8 +28,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
         [Fact]
         public void LoadFromUserStoreBySerialNumber_Fail()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 return;
             }
 
@@ -53,7 +56,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 return;
             }
-            
+
             Assert.Throws<FluxzyException>(() => {
                 Certificate.LoadFromUserStoreByThumbprint("invalid_thumb_print").GetX509Certificate();
             });
@@ -70,6 +73,21 @@ namespace Fluxzy.Tests.UnitTests.Certificates
 
             Assert.NotNull(cert);
             Assert.NotNull(cert.GetX509Certificate());
+        }
+
+        [Fact]
+        public void ExportToPem()
+        {
+            var certificate = new X509Certificate2(
+                StorageContext.client_cert,
+                "Multipass85/"
+            );
+
+            var fileName = GetRegisteredRandomFile();
+
+            certificate.ExportToPem(fileName);
+
+            Assert.True(File.Exists(fileName));
         }
     }
 }
