@@ -28,7 +28,7 @@ namespace Fluxzy.Tests.Cli
 
             File.WriteAllBytes($"cc.pfx", StorageContext.client_cert);
 
-            var yamlContent = """
+            var yamlContent = $"""
                               rules:
                                 - filter:
                                     typeKind: AnyFilter
@@ -36,11 +36,11 @@ namespace Fluxzy.Tests.Cli
                                     typeKind: SetClientCertificateAction
                                     clientCertificate:
                                       pkcs12File: cc.pfx
-                                      pkcs12Password: Multipass85/
+                                      pkcs12Password: {CertificateContext.DefaultPassword}
                                       retrieveMode: FromPkcs12
                               """;
 
-            var yamlContentForceHttp11 = """
+            var yamlContentForceHttp11 = $"""
                                          rules:
                                            - filter:
                                                typeKind: AnyFilter
@@ -48,7 +48,7 @@ namespace Fluxzy.Tests.Cli
                                                typeKind: SetClientCertificateAction
                                                clientCertificate:
                                                  pkcs12File: cc.pfx
-                                                 pkcs12Password: Multipass85/
+                                                 pkcs12Password: {CertificateContext.DefaultPassword}
                                                  retrieveMode: FromPkcs12
                                            - filter:
                                                typeKind: AnyFilter
@@ -81,7 +81,7 @@ namespace Fluxzy.Tests.Cli
             File.WriteAllBytes("cc2.pfx", StorageContext.client_cert);
             File.WriteAllBytes("cc.pfx", StorageContext.client_cert);
 
-            var yamlContent = """
+            var yamlContent = $"""
                               rules:
                                 - filter:
                                     typeKind: AnyFilter
@@ -89,11 +89,11 @@ namespace Fluxzy.Tests.Cli
                                     typeKind: SetClientCertificateAction
                                     clientCertificate:
                                       pkcs12File: cc2.pfx
-                                      pkcs12Password: Multipass85/
+                                      pkcs12Password: {CertificateContext.DefaultPassword}
                                       retrieveMode: FromPkcs12
                               """;
 
-            var yamlContentForceHttp11 = """
+            var yamlContentForceHttp11 = $"""
                                          rules:
                                            - filter:
                                                typeKind: AnyFilter
@@ -101,7 +101,7 @@ namespace Fluxzy.Tests.Cli
                                                typeKind: SetClientCertificateAction
                                                clientCertificate:
                                                  pkcs12File: cc.pfx
-                                                 pkcs12Password: Multipass85/
+                                                 pkcs12Password: {CertificateContext.DefaultPassword}
                                                  retrieveMode: FromPkcs12
                                            - filter:
                                                typeKind: AnyFilter

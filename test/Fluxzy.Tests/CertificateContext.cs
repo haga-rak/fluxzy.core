@@ -37,5 +37,7 @@ namespace Fluxzy.Tests
         public static string SerialNumber { get; set; } = null!;
 
         public static string ThumbPrint { get; private set; } = null!;
+
+        public static string DefaultPassword = "Multipass85/";
     }
 }

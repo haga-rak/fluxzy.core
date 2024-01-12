@@ -69,7 +69,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
                 return;
             }
 
-            var cert = Certificate.LoadFromPkcs12("_Files/Certificates/client-cert.pifix", "Multipass85/");
+            var cert = Certificate.LoadFromPkcs12("_Files/Certificates/client-cert.pifix", CertificateContext.DefaultPassword);
 
             Assert.NotNull(cert);
             Assert.NotNull(cert.GetX509Certificate());
@@ -80,7 +80,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
         {
             var certificate = new X509Certificate2(
                 StorageContext.client_cert,
-                "Multipass85/"
+                CertificateContext.DefaultPassword
             );
 
             var fileName = GetRegisteredRandomFile();
