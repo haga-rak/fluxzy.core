@@ -5,6 +5,7 @@ changelog:
     labels:
       - ignore-for-release
       - ci
+      - documentation
   categories:
     - title: Breaking Changes
       labels:
