@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Reflection;
 using Fluxzy.Utils;
 
 namespace Fluxzy
@@ -53,5 +54,11 @@ namespace Fluxzy
         ///   Can bet set by environment variable FLUXZY_STACK_ALLOC_THRESHOLD
         /// </summary>
         public static int StackAllocThreshold { get; set; } = EnvironmentUtility.GetInt32("FLUXZY_STACK_ALLOC_THRESHOLD", 1024);
+
+
+        /// <summary>
+        ///   The running version of Fluxzy
+        /// </summary>
+        public static string RunningVersion { get; } = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
     }
 }

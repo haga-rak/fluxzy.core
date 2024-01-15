@@ -11,11 +11,13 @@ namespace Fluxzy.Core.Pcap
     {
         private ConcurrentDictionary<long, IRawCaptureWriter> _writers = new();
 
+        private static readonly string ApplicationName = $"fluxzy {FluxzySharedSetting.RunningVersion} - https://www.fluxzy.io";
+
         public IRawCaptureWriter GetOrAdd(long key)
         {
             lock (this) {
                 return _writers.GetOrAdd(key,
-                    (k) => new PcapngWriter(k, "fluxzy v0.15.9 - https://www.fluxzy.io")); ;
+                    (k) => new PcapngWriter(k, ApplicationName)); ;
             }
         }
 
