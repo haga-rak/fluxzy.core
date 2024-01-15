@@ -3,7 +3,6 @@
 using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using SimpleExec;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
@@ -11,36 +10,17 @@ using static SimpleExec.Command;
 namespace Fluxzy.Build
 {
     /// <summary>
-    ///     This program contains the main pipelines for buliding the project.
+    ///     This program contains the main pipelines for building the project.
     /// </summary>
     internal class Program
     {
-        private static readonly bool SkipSigning =
-            string.Equals(Environment.GetEnvironmentVariable("NO_SIGN"), "1");
-
-        private static readonly int ConcurrentSignCount =
-            int.Parse(Environment.GetEnvironmentVariable("CONCURRENT_SIGN")?.Trim() ?? "6");
-
         private static readonly HttpClient Client = new(new HttpClientHandler());
-
-        private static readonly SemaphoreSlim SemaphoreSlim = new(ConcurrentSignCount);
 
         public static Dictionary<OSPlatform, string[]> TargetRuntimeIdentifiers { get; } = new() {
             [OSPlatform.Windows] = new[] { "win-x64", "win-x86", "win-arm64" },
             [OSPlatform.Linux] = new[] { "linux-x64", "linux-arm64" },
             [OSPlatform.OSX] = new[] { "osx-x64", "osx-arm64" }
         };
-
-        /// <summary>
-        ///     Obtains GetEvOrFail or throw exception if not found.
-        /// </summary>
-        /// <param name="variableName"></param>
-        /// <returns></returns>
-        private static string GetEvOrFail(string variableName)
-        {
-            return Environment.GetEnvironmentVariable(variableName) ??
-                   throw new Exception($"Environment variable \"{variableName}\" must be SET");
-        }
 
         private static async Task<string> GetRunningVersion()
         {
@@ -55,77 +35,12 @@ namespace Fluxzy.Build
             return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
         }
 
-        private static async Task SignCli(string workingDirectory, IEnumerable<FileInfo> signableFiles)
-        {
-            var azureVaultDescriptionUrl = GetEvOrFail("AZURE_VAULT_DESCRIPTION_URL");
-            var azureVaultUrl = GetEvOrFail("AZURE_VAULT_URL");
-            var azureVaultCertificate = GetEvOrFail("AZURE_VAULT_CERTIFICATE");
-            var azureVaultClientId = GetEvOrFail("AZURE_VAULT_CLIENT_ID");
-            var azureVaultClientSecret = GetEvOrFail("AZURE_VAULT_CLIENT_SECRET");
-            var azureVaultTenantId = GetEvOrFail("AZURE_VAULT_TENANT_ID");
-
-            foreach (var file in signableFiles) {
-                try {
-                    await SemaphoreSlim.WaitAsync();
-
-                    await RunAsync("sign",
-                        $"code azure-key-vault \"{file.FullName}\" " +
-                        "  --publisher-name \"Fluxzy SAS\"" +
-                        " --description \"Fluxzy Signed\"" +
-                        $" --description-url {azureVaultDescriptionUrl}" +
-                        $" --azure-key-vault-url {azureVaultUrl}" +
-                        $" --azure-key-vault-certificate {azureVaultCertificate}" +
-                        $" --azure-key-vault-client-id {azureVaultClientId}" +
-                        $" --azure-key-vault-client-secret {azureVaultClientSecret}" +
-                        $" --azure-key-vault-tenant-id {azureVaultTenantId}"
-                        , noEcho: true,
-                        workingDirectory: workingDirectory
-                    );
-                }
-                finally {
-                    SemaphoreSlim.Release();
-                }
-            }
-        }
-
-        private static async Task SignPackages(string workingDirectory)
-        {
-            var azureVaultDescriptionUrl = GetEvOrFail("AZURE_VAULT_DESCRIPTION_URL");
-            var azureVaultUrl = GetEvOrFail("AZURE_VAULT_URL");
-            var azureVaultCertificate = "FluxzyCodeSigningGS"; // GetEvOrFail("AZURE_VAULT_CERTIFICATE");
-            var azureVaultClientId = GetEvOrFail("AZURE_VAULT_CLIENT_ID");
-            var azureVaultClientSecret = GetEvOrFail("AZURE_VAULT_CLIENT_SECRET");
-            var azureVaultTenantId = GetEvOrFail("AZURE_VAULT_TENANT_ID");
-
-            await RunAsync("sign",
-                "code azure-key-vault *.nupkg " +
-                "  --publisher-name \"Fluxzy SAS\"" +
-                " --description \"Fluxzy Signed\"" +
-                $" --description-url {azureVaultDescriptionUrl}" +
-                $" --azure-key-vault-url {azureVaultUrl}" +
-                $" --azure-key-vault-certificate {azureVaultCertificate}" +
-                $" --azure-key-vault-client-id {azureVaultClientId}" +
-                $" --azure-key-vault-client-secret {azureVaultClientSecret}" +
-                $" --azure-key-vault-tenant-id {azureVaultTenantId}"
-                , noEcho: true,
-                workingDirectory: workingDirectory
-            );
-        }
-
-        private static string GetSha512Hash(FileInfo file)
-        {
-            using var sha512 = SHA512.Create();
-            using var stream = file.OpenRead();
-            var hash = sha512.ComputeHash(stream);
-
-            return Convert.ToHexString(hash).ToLower();
-        }
 
         private static async Task Upload(FileInfo fullFile)
         {
-            var uploadReleaseToken = GetEvOrFail("UPLOAD_RELEASE_TOKEN");
+            var uploadReleaseToken = EnvironmentHelper.GetEvOrFail("UPLOAD_RELEASE_TOKEN");
 
-            var hashValue = GetSha512Hash(fullFile);
+            var hashValue = HashHelper.GetSha512Hash(fullFile);
             var fileName = fullFile.Name;
             var finalUrl = "https://upload.fluxzy.io:4300/release/upload";
 
@@ -219,8 +134,8 @@ namespace Fluxzy.Build
             var (stdOut, _) = await ReadAsync("git", "branch --show-current");
             var currentBranch = stdOut.Trim();
 
-            var privateNugetToken = GetEvOrFail("TOKEN_FOR_NUGET");
-            var partnerNugetToken = GetEvOrFail("PARTNER_SECRET");
+            var privateNugetToken = EnvironmentHelper.GetEvOrFail("TOKEN_FOR_NUGET");
+            var partnerNugetToken = EnvironmentHelper.GetEvOrFail("PARTNER_SECRET");
 
             // Why there's no better way to do it?
             var current = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OSPlatform.OSX :
@@ -273,7 +188,7 @@ namespace Fluxzy.Build
 
             Target("fluxzy-package-sign",
                 DependsOn("fluxzy-core-pcap-create-package"),
-                async () => { await SignPackages("_npkgout"); });
+                async () => { await SignHelper.SignPackages("_npkgout"); });
 
             Target("fluxzy-package-push-github",
                 DependsOn("fluxzy-package-sign"),
@@ -296,7 +211,7 @@ namespace Fluxzy.Build
             Target("fluxzy-package-push-public-internal",
                 DependsOn("fluxzy-package-sign"),
                 async () => {
-                    var nugetOrgApiKey = GetEvOrFail("NUGET_ORG_API_KEY");
+                    var nugetOrgApiKey = EnvironmentHelper.GetEvOrFail("NUGET_ORG_API_KEY");
 
                     await RunAsync("dotnet",
                         $"nuget push *.nupkg --skip-duplicate --api-key {nugetOrgApiKey} " +
@@ -360,7 +275,7 @@ namespace Fluxzy.Build
                         return;
                     }
 
-                    if (SkipSigning) {
+                    if (BuildSettings.SkipSigning) {
                         return;
                     }
 
@@ -389,7 +304,7 @@ namespace Fluxzy.Build
 
                         // SIGN dll and exe in this directory
 
-                        signTasks.Add(SignCli(outDirectory, candidates));
+                        signTasks.Add(SignHelper.SignCli(outDirectory, candidates));
                     }
 
                     await Task.WhenAll(signTasks);
@@ -397,7 +312,7 @@ namespace Fluxzy.Build
 
 
             Target("docs", async () => {
-                var docOutputPath = GetEvOrFail("DOCS_OUTPUT_PATH");
+                var docOutputPath = EnvironmentHelper.GetEvOrFail("DOCS_OUTPUT_PATH");
 
                 await RunAsync("dotnet",
                     $"run --project src/Fluxzy.Tools.DocGen",
@@ -422,11 +337,37 @@ namespace Fluxzy.Build
                 DependsOn("install-tools", "must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal"),
                 async () => await CreateAndPushVersionedTag(""));
 
+            Target("fluxzy-publish-nuget-public-with-note",
+                DependsOn("fluxzy-publish-nuget-public"),
+                async () => {
+                    var publishHelper = await
+                        GhPublishHelper.Create(EnvironmentHelper.GetEvOrFail("GH_RELEASE_TOKEN"),
+                            EnvironmentHelper.GetEvOrFail("REPOSITORY_OWNER"), EnvironmentHelper.GetEvOrFail("REPOSITORY_NAME"));
+
+                    var tag = "v" + await GetRunningVersion();
+                    await publishHelper.Publish(tag); 
+                });
+
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
 
             // Build local CLI packages signed 
             Target("fluxzy-cli-publish", DependsOn("install-tools", "fluxzy-cli-publish-internal"),
                 async () => await CreateAndPushVersionedTag("-cli"));
+
+            // Build local CLI packages signed 
+            Target("fluxzy-cli-publish-with-note", DependsOn("fluxzy-cli-publish"),
+                async () => {
+                    var publishHelper = await
+                        GhPublishHelper.Create(EnvironmentHelper.GetEvOrFail("GH_RELEASE_TOKEN"),
+                         EnvironmentHelper.GetEvOrFail("REPOSITORY_OWNER"),
+                         EnvironmentHelper.GetEvOrFail("REPOSITORY_NAME"));
+
+                    var assets = new DirectoryInfo(".artefacts/final/").EnumerateFiles("*.zip");
+
+                    var tag = "v" + await GetRunningVersion();
+
+                    await publishHelper.AddAssets(tag, assets);
+                });
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
         }

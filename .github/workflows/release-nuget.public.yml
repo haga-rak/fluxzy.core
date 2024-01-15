@@ -24,6 +24,9 @@ jobs:
       shell: bash
       env:
         TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
+        GH_RELEASE_TOKEN : ${{ secrets.GH_RELEASE_TOKEN }}
+        REPOSITORY_OWNER : ${{ github.repository_owner }}
+        REPOSITORY_NAME : ${{ github.event.repository.name }}
         PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
         NUGET_ORG_API_KEY : ${{ secrets.NUGET_ORG_API_KEY }}
         
@@ -34,4 +37,4 @@ jobs:
         AZURE_VAULT_CLIENT_SECRET : ${{ secrets.AZURE_VAULT_CLIENT_SECRET }}
         AZURE_VAULT_TENANT_ID : ${{ secrets.AZURE_VAULT_TENANT_ID }}
 
-      run: bash build.sh fluxzy-publish-nuget-public
+      run: bash build.sh fluxzy-publish-nuget-public-with-note
