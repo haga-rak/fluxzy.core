@@ -17,9 +17,6 @@ namespace Fluxzy
             Stream input,
             DirectoryInfo directoryInfo)
         {
-            if (directoryInfo.Exists)
-                Directory.CreateDirectory(directoryInfo.FullName);
-
             new FastZip().ExtractZip(input, directoryInfo.FullName, FastZip.Overwrite.Always,
                 s => true, ".*", ".*", true, true);
 
@@ -30,9 +27,6 @@ namespace Fluxzy
             Stream input,
             DirectoryInfo directoryInfo)
         {
-            if (directoryInfo.Exists)
-                Directory.CreateDirectory(directoryInfo.FullName);
-
             new FastZip().ExtractZip(input, directoryInfo.FullName, FastZip.Overwrite.Always,
                 s => true, ".*", ".*", true, true);
         }
