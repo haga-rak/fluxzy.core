@@ -14,8 +14,6 @@ changelog:
       labels:
         - Semver-Minor
         - enhancement
-        - new-action
-        - new-filter
     - title: Other Changes
       labels:
         - "*"
