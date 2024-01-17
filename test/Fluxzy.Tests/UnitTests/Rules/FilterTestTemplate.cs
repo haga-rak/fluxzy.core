@@ -18,7 +18,8 @@ namespace Fluxzy.Tests.UnitTests.Rules
     /// </summary>
     public abstract class FilterTestTemplate
     {
-        protected async Task<bool> CheckPass(HttpRequestMessage requestMessage, Filter filter)
+        protected async Task<bool> CheckPass(HttpRequestMessage requestMessage, Filter filter,
+            Action<FluxzySetting>?  configure = null)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
@@ -28,6 +29,8 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new ApplyCommentAction(witnessComment),
                     filter));
+
+            configure?.Invoke(proxy.StartupSetting);
 
             var endPoint = proxy.Run().First();
 
