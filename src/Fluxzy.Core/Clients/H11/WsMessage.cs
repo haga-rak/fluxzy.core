@@ -55,19 +55,6 @@ namespace Fluxzy.Clients.H11
         [Key(10)]
         public int FrameCount { get; set; }
 
-        internal void ApplyXorSlow(Span<byte> data, int mask, int countIndex)
-        {
-            if (mask == 0)
-                return;
-
-            Span<byte> maskData = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32BigEndian(maskData, mask);
-
-            for (var i = 0; i < data.Length; i++) {
-                data[i] ^= maskData[i % 4];
-            }
-        }
-
         internal void ApplyXor(Span<byte> data, uint mask, int countIndex)
         {
             if (mask == 0)

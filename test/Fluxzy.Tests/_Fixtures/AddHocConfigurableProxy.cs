@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
+using Fluxzy.Extensions;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Tests._Fixtures
@@ -33,7 +34,7 @@ namespace Fluxzy.Tests._Fixtures
 
             InternalProxy = new Proxy(StartupSetting,
                 new CertificateProvider(StartupSetting.CaCertificate, new InMemoryCertificateCache()),
-                new DefaultCertificateAuthorityManager());
+                new DefaultCertificateAuthorityManager(), userAgentProvider: new UaParserUserAgentInfoProvider());
 
             InternalProxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 

@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Linq;
+using Fluxzy.Clients.H11;
 using Fluxzy.Formatters.Metrics;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
@@ -56,9 +57,44 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             foreach (var exchange in exchanges) {
                 var result = _archiveReader.ReadExchange(exchange.Id);
 
+                _ = _archiveReader.HasResponseBody(exchange.Id);
+                var hasRequestBody = _archiveReader.HasRequestBody(exchange.Id);
+                
+                var decodedRequestBody =
+                    _archiveReader.GetDecodedRequestBody(exchange.Id)?.Drain() ?? -1;
+
+                var isWebSocket = exchange.IsWebSocket; 
+
+
                 Assert.NotNull(result);
+                Assert.True(result.Done);
+                Assert.True(result.Sent > 0);
+                Assert.True(result.Received > 0);
                 Assert.NotNull(ExchangeUtility.GetRequestBodyFileNameSuggestion(exchange));
                 Assert.NotNull(ExchangeUtility.GetResponseBodyFileNameSuggestion(exchange));
+
+                if (hasRequestBody) {
+                    Assert.True(decodedRequestBody > 0);
+                }
+                else {
+                    Assert.Equal(-1, decodedRequestBody);
+                }
+
+                if (isWebSocket) {
+                    Assert.NotNull(exchange.WebSocketMessages!);
+                    foreach (var message in exchange.WebSocketMessages) {
+                        var sendLength = _archiveReader.GetRequestWebsocketContent(exchange.Id,
+                            message.Id)?.Drain() ?? -1;
+
+                        var receiveLength = _archiveReader.GetResponseWebsocketContent(exchange.Id,
+                            message.Id)?.Drain() ?? -1;
+
+                        Assert.NotNull(message.Data);
+
+                        Assert.Equal(-1, receiveLength);
+                        Assert.Equal(-1, sendLength);
+                    }
+                }
             }
         }
 
@@ -73,9 +109,6 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             foreach (var connection in connections) {
                 var result = _archiveReader.ReadConnection(connection.Id);
                 Assert.NotNull(result);
-
-                _ = _archiveReader.HasResponseBody(connection.Id);
-                _ = _archiveReader.HasRequestBody(connection.Id);
 
                 Assert.True(_archiveReader.HasCapture(connection.Id));
 

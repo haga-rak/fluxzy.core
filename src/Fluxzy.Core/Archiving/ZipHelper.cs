@@ -39,7 +39,9 @@ namespace Fluxzy
             if (!directoryInfo.Exists)
                 throw new ArgumentException($"Directory {directoryInfo.FullName} does not exists");
 
-            await using var zipStream = new ZipOutputStream(output);
+            await using var zipStream = new ZipOutputStream(output) {
+                IsStreamOwner = false
+            };
 
             zipStream.SetLevel(3);
 

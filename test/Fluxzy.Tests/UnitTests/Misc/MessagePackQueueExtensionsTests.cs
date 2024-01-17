@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using Fluxzy.Misc;
 using Xunit;
 using Fluxzy.Tests._Fixtures;
@@ -22,7 +23,8 @@ namespace Fluxzy.Tests.UnitTests.Misc
             var payload2 = new TestPayload()
             {
                 Key = 494949,
-                Value = new string('a', 1000)
+                Value = new string('a', 1000),
+                Address = IPAddress.Parse("192.168.1.15")
             };
 
             MessagePackQueueExtensions.AppendMultiple(filename, payload1, GlobalArchiveOption.MessagePackSerializerOptions);
@@ -65,7 +67,6 @@ namespace Fluxzy.Tests.UnitTests.Misc
                 MessagePackQueueExtensions.DeserializeMultiple<TestPayload>(filename,
                     GlobalArchiveOption.MessagePackSerializerOptions).ToList();
 
-
             Assert.Equal(4, result.Count);
             Assert.Equal(payload1, result[0]);
             Assert.Equal(payload2, result[1]);
@@ -80,26 +81,29 @@ namespace Fluxzy.Tests.UnitTests.Misc
     {
         protected bool Equals(TestPayload other)
         {
-            return Key == other.Key && Value == other.Value;
+            return Key == other.Key && Value == other.Value && Address.Equals(other.Address);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (ReferenceEquals(null, obj)) {
                 return false;
+            }
 
-            if (ReferenceEquals(this, obj))
+            if (ReferenceEquals(this, obj)) {
                 return true;
+            }
 
-            if (obj.GetType() != GetType())
+            if (obj.GetType() != this.GetType()) {
                 return false;
+            }
 
-            return Equals((TestPayload)obj);
+            return Equals((TestPayload) obj);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Key, Value);
+            return HashCode.Combine(Key, Value, Address);
         }
 
         [Key(0)]
@@ -107,5 +111,8 @@ namespace Fluxzy.Tests.UnitTests.Misc
 
         [Key(1)]
         public string Value { get; set; } = "Cocobelou";
+
+        [Key(3)]
+        public IPAddress Address { get; set; } = IPAddress.Loopback;
     }
 }
