@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Fluxzy.Core;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
@@ -11,6 +12,12 @@ namespace Fluxzy.Rules.Filters.RequestFilters
     )]
     public class AgentLabelFilter : StringFilter
     {
+        [JsonConstructor]
+        public AgentLabelFilter()
+            : this(string.Empty)
+        {
+        }
+
         public AgentLabelFilter(string pattern)
             : base(pattern, StringSelectorOperation.Contains)
         {
