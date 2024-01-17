@@ -32,8 +32,8 @@ namespace Fluxzy.Tests.Cli.Dissects
                 StringSplitOptions.RemoveEmptyEntries);
 
             Assert.Equal(0, runResult.ExitCode);
-            Assert.Equal(16, stdOutLines.Length);
-            Assert.Equal("99 - https://en.wikipedia.org/static/favicon/wikipedia.ico - 200", stdOutLines.Last());
+            Assert.Equal(18, stdOutLines.Length);
+            Assert.Equal("186 - https://demo.piesocket.com/v3/channel_123?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self - 101", stdOutLines.Last());
         }
 
         [Fact]
