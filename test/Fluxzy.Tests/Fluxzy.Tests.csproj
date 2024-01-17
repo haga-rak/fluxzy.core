@@ -27,6 +27,9 @@
     <None Update="_Files\Archives\pink-floyd.fxzy">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="_Files\Archives\test.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Archives\testarchive.saz">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
