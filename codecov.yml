@@ -2,6 +2,7 @@ comment:
   layout: "header, diff, flags, components"
 
 coverage:
+  range: 60..73
   status:
     project:
       default:
