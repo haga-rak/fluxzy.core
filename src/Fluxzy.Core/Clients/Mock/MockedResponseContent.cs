@@ -67,6 +67,12 @@ namespace Fluxzy.Clients.Mock
         {
             return Body == null ? Stream.Null : Body.GetStream();
         }
+
+        public string? GetHeaderValueOrDefault(string headerName, string? defaultValue = default)
+        {
+            return Headers
+                   .FirstOrDefault(k => k.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase))?.Value ?? defaultValue;
+        }
     }
 
     public class MockedResponseHeader
