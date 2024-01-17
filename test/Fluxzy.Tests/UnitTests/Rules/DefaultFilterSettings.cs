@@ -7,6 +7,8 @@ using System.Reflection;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
+using Fluxzy.Rules.Filters.ResponseFilters;
+using Fluxzy.Rules.Filters.ViewOnlyFilters;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Rules
@@ -17,7 +19,31 @@ namespace Fluxzy.Tests.UnitTests.Rules
             FilterFactory = new() {
                 [typeof(AuthorityFilter)] = () => new AuthorityFilter(
                     443, "google.com", StringSelectorOperation.EndsWith),
-            }; 
+                [typeof(ConnectionFilter)] = () => new ConnectionFilter(1),
+                [typeof(TagContainsFilter)] = () => new TagContainsFilter(new Tag("s")),
+            };
+
+        static DefaultFilterSettings()
+        {
+            void AddFilter(Filter t)
+            {
+                FilterFactory.Add(t.GetType(), () => t);
+            }
+
+            AddFilter(new ExecFilter("true", ""));
+            AddFilter(new PathFilter("/yes"));
+            AddFilter(new AbsoluteUriFilter("/yes"));
+            AddFilter(new QueryStringFilter("name", "value"));
+            AddFilter(new AgentFilter(new (1, "a")));
+            AddFilter(new MethodFilter("POST"));
+            AddFilter(new SearchTextFilter("pattern"));
+            AddFilter(new HostFilter("google.com"));
+            AddFilter(new RequestHeaderFilter("name", "value"));
+            AddFilter(new ResponseHeaderFilter("name", "value"));
+            AddFilter(new HasSetCookieOnResponseFilter("name"));
+            AddFilter(new HasCookieOnRequestFilter("name", "value"));
+        }
+
 
         public static IEnumerable<object[]> GetFilterTypes()
         {
