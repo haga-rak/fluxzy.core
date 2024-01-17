@@ -155,6 +155,7 @@ namespace Fluxzy.Clients
 
                 if (dnsResolutionResult.Item2 != null)
                 {
+                    dnsResolutionResult.Item2.Init();
                     return dnsResolutionResult.Item2;
                 }
 
