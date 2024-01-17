@@ -36,6 +36,8 @@ namespace Fluxzy.Tests.UnitTests.Equality
                 Assert.Equal(Item, (object?) equal);
                 Assert.True(Item!.Equals((object?)equal));
                 Assert.True(Item!.Equals((T?) equal));
+
+                Assert.True(Item!.Equals(Item));
             }
         }
 
