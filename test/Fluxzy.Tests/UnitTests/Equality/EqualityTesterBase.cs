@@ -35,6 +35,7 @@ namespace Fluxzy.Tests.UnitTests.Equality
                 Assert.Equal((object?) equal, Item);
                 Assert.Equal(Item, (object?) equal);
                 Assert.True(Item!.Equals((object?)equal));
+                Assert.True(Item!.Equals((T?) equal));
             }
         }
 
@@ -54,6 +55,7 @@ namespace Fluxzy.Tests.UnitTests.Equality
                 Assert.False(Item!.Equals((object?)notEqual));
                 Assert.False(Item!.Equals("notobj"));
                 Assert.False(Item!.Equals(null));
+                Assert.False(Item!.Equals(default(T)));
             }
         }
     }
