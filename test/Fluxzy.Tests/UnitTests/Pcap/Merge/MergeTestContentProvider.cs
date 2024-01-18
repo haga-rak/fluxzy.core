@@ -44,7 +44,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
 0006,0007
 ";
 
-        public static string GetTestData(int elementCount, int seed = 9)
+        public static string GetTestData(int elementCount, int seed = 9, string format = "0000")
         {
             var random = new Random(seed);
             var totalNumberCount = elementCount;
@@ -75,7 +75,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
 
                 currentIndex += nextSlice;
 
-                result.AppendLine(string.Join(",", slice.Select(t => t.ToString("0000"))));
+                result.AppendLine(string.Join(",", slice.Select(t => t.ToString(format))));
             }
 
             return result.ToString(); 

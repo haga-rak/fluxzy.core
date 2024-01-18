@@ -5,7 +5,12 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Core.Pcap.Pcapng
 {
-    internal class PcapMerger<T, TArgs> where TArgs : notnull
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TArgs"></typeparam>
+    internal class BlockMerger<T, TArgs> where TArgs : notnull
     {
         public void Merge(IBlockWriter<T> writer,
             Func<TArgs, IBlockReader<T>> blockFactory,
@@ -61,7 +66,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         }
     }
 
-    internal interface IBlockReader<out T>
+    internal interface IBlockReader<out T> : IDisposable
     {
         int ? NextTimeStamp { get; }
 
@@ -70,9 +75,9 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
     internal class PendingPcapFile
     {
-        private readonly DormantReadStream _dormantStream;
+        private readonly SleepyStream _dormantStream;
 
-        public PendingPcapFile(DormantReadStream dormantStream)
+        public PendingPcapFile(SleepyStream dormantStream)
         {
             _dormantStream = dormantStream;
         }
@@ -92,7 +97,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
     internal static class PcapBlocReadingHelper
     {
-        public static uint GetNextBlockType(DormantReadStream stream)
+        public static uint GetNextBlockType(SleepyStream stream)
         {
             var nextFourBytes = new byte[4];
 
@@ -107,7 +112,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static SectionHeaderBlock ReadNextBlock(DormantReadStream stream)
+        public static SectionHeaderBlock ReadNextBlock(SleepyStream stream)
         {
             var sectionHeaderBlock = new SectionHeaderBlock();
 

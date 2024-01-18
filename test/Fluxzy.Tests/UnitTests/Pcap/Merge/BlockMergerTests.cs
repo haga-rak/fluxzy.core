@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Fluxzy.Core.Pcap.Pcapng;
@@ -6,28 +7,60 @@ using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Pcap.Merge
 {
-    public class PcapMergerTests
+    public class BlockMergerTests
     {
         [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
         [InlineData(20)]
         [InlineData(200)]
+        [InlineData(381)]
         public void Validate_Merge(int testCount)
         {
-            var rawInput = MergeTestContentProvider.GetTestData(testCount); 
+            var format = "00000";
+            var rawInput = MergeTestContentProvider.GetTestData(testCount, format: format); 
 
             var allLines = rawInput.Split(new[] { "\r\n", "\n" },
                                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                                    .ToList();
 
-            var merger = new PcapMerger<DummyBlock, string>();
+            var merger = new BlockMerger<DummyBlock, string>();
             var writer = new DummyBlockWriter(); 
 
-            merger.Merge(writer, (s) => new DummyBlockReader(s), allLines.ToArray());
+            merger.Merge(writer, s => new DummyBlockReader(s), allLines.ToArray());
 
             var result = writer.GetRawLine();
 
             var expectedResult = string.Join(",", 
-                Enumerable.Range(0, testCount).Select(i => i.ToString("0000")));
+                Enumerable.Range(0, testCount).Select(i => i.ToString(format)));
+
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(20)]
+        [InlineData(200)]
+        [InlineData(381)]
+        public void Validate_Sleepy_Merge(int testCount)
+        {
+            var format = "00000";
+            var rawInput = MergeTestContentProvider.GetTestData(testCount, format: format); 
+
+            var allLines = rawInput.Split(new[] { "\r\n", "\n" },
+                                       StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                   .ToList();
+
+            var merger = new BlockMerger<DummyBlock, string>();
+            var writer = new DummyBlockWriter(); 
+
+            merger.Merge(writer, s => new SleepyDummyBlockReader(s, format.Length), allLines.ToArray());
+
+            var result = writer.GetRawLine();
+
+            var expectedResult = string.Join(",", 
+                Enumerable.Range(0, testCount).Select(i => i.ToString(format)));
 
             Assert.Equal(expectedResult, result);
         }
@@ -110,6 +143,40 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             offset++;
 
             return new DummyBlock(nextLine);
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    internal class SleepyDummyBlockReader : SleepyStreamBlockReader<DummyBlock>
+    {
+        private readonly int _charCount;
+
+        public SleepyDummyBlockReader(string rawLine, int charCount)
+            : base(() => 
+                new MemoryStream(Encoding.UTF8.GetBytes(rawLine.Replace(",", string.Empty))))
+        {
+            _charCount = charCount;
+        }
+
+        protected override DummyBlock? ReadNextBlock(SleepyStream stream)
+        {
+            Span<byte> buffer = stackalloc byte[_charCount];
+
+            var res = stream.ReadExact(buffer);
+
+            if (!res) {
+                return null;
+            }
+
+            return new DummyBlock(Encoding.UTF8.GetString(buffer));
+        }
+
+        protected override int ReadTimeStamp(DummyBlock block)
+        {
+            return block.Value; 
         }
     }
 }

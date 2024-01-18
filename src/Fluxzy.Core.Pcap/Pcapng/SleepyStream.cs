@@ -7,14 +7,14 @@ namespace Fluxzy.Core.Pcap.Pcapng
     ///  It saves the last offset read and allows closing the file descriptor
     ///  in between reads.
     /// </summary>
-    internal class DormantReadStream
+    internal class SleepyStream : IDisposable, IAsyncDisposable
     {
         private readonly Func<Stream> _streamFactory;
         private long _offset;
         private Stream? _pendingStream;
         private bool _eof; 
 
-        public DormantReadStream(Func<Stream> streamFactory)
+        public SleepyStream(Func<Stream> streamFactory)
         {
             _streamFactory = streamFactory;
         }
@@ -81,6 +81,18 @@ namespace Fluxzy.Core.Pcap.Pcapng
             _pendingStream.Seek(_offset, SeekOrigin.Begin);
 
             return _pendingStream;
+        }
+
+        public void Dispose()
+        {
+            _pendingStream?.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_pendingStream != null) {
+                await _pendingStream.DisposeAsync();
+            }
         }
     }
 }
