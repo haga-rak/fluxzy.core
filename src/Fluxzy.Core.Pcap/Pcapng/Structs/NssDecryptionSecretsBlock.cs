@@ -37,7 +37,6 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice((int) offset), BlockTotalLength);
 
             return BlockTotalLength;
-
         }
     }
 }
