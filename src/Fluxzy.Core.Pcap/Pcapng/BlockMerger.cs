@@ -22,21 +22,43 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
             if (array.Any())
             {
+                Array.Sort(array, PendingPcapComparer<T>.Instance);
+
                 while (true)
                 {
-                    Array.Sort(array, PendingPcapComparer<T>.Instance);
-
                     var nextTimeStamp = array[0].Dequeue(); 
 
                     if (nextTimeStamp == null)
                         break; // No more block to read
                     
                     writer.Write(nextTimeStamp);
+
+                    ArrayUtilities.Replace(array,
+                        array[0], PendingPcapComparer<T>.Instance);
+                }
+
+                foreach (var resource in array)
+                {
+                    resource.Dispose();
                 }
             }
 
-            foreach (var resource in array) {
-                resource.Dispose();
+        }
+    }
+
+    internal static class ArrayUtilities
+    {
+        public static void Replace<T>(T[] array, T firstElement, 
+            IComparer<T> comparer)
+        {
+            for (int i = 1; i < array.Length; i++) {
+                var current = array[i];
+
+                if (comparer.Compare(current, firstElement) < 0) {
+                    array[i] = firstElement;
+                    array[0] = current;
+                    firstElement = current;
+                }
             }
         }
     }
