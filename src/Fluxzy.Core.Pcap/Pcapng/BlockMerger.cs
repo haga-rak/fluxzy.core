@@ -29,8 +29,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 
                 writer.Write(nextTimeStamp);
 
-                ArrayUtilities.Reposition(array,
-                    array[0], BlockComparer<T>.Instance);
+                ArrayUtilities.Reposition(array, array[0], BlockComparer<T>.Instance);
             }
 
             foreach (var resource in array)
@@ -43,14 +42,15 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
     internal static class ArrayUtilities
     {
-        public static void Reposition<T>(T[] sortedArrayAtIndex1, T firstElement, 
+        public static void Reposition<T>(T[] sortedArrayAtIndex1, T firstElement,
             IComparer<T> comparer)
         {
-            for (int i = 1; i < sortedArrayAtIndex1.Length; i++) {
+            for (int i = 1; i < sortedArrayAtIndex1.Length; i++)
+            {
                 var current = sortedArrayAtIndex1[i];
 
                 if (comparer.Compare(firstElement, current) <= 0) {
-                    break;
+                    return;
                 }
 
                 sortedArrayAtIndex1[i - 1] = current;
@@ -76,11 +76,13 @@ namespace Fluxzy.Core.Pcap.Pcapng
         public int Compare(IBlockReader<T>? x, IBlockReader<T>? y)
         {
             var xTimeStamp = x!.NextTimeStamp;
-            var yTimeStamp = y!.NextTimeStamp; 
 
-            if (xTimeStamp == null) {
+            if (xTimeStamp == null)
+            {
                 return 1;
             }
+
+            var yTimeStamp = y!.NextTimeStamp; 
 
             if (yTimeStamp == null) {
                 return -1;

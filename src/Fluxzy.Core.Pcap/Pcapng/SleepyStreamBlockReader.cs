@@ -9,6 +9,8 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         private bool _eof;
 
+        private int? _pendingTimeStamp = null; 
+
         protected SleepyStreamBlockReader(
             StreamLimiter streamLimiter, 
             Func<Stream> streamFactory)
@@ -37,7 +39,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
             _nextBlock = ReadNextBlock(_sleepyStream);
 
             _eof = _nextBlock == null;
-
+            
             return _nextBlock; 
         }
 
@@ -45,13 +47,18 @@ namespace Fluxzy.Core.Pcap.Pcapng
             get
             {
                 if (_eof) {
-                    return null; 
+                    return null;
+                }
+
+                if (_pendingTimeStamp != null)
+                {
+                    return _pendingTimeStamp;
                 }
 
                 var block = InternalReadNextBlock();
 
                 if (block != null) {
-                    return ReadTimeStamp(block);
+                    return _pendingTimeStamp = ReadTimeStamp(block);
                 }
 
                 return null;
@@ -62,7 +69,9 @@ namespace Fluxzy.Core.Pcap.Pcapng
         {
             var result = InternalReadNextBlock();
 
-            _nextBlock = default; 
+            _nextBlock = default;
+            _pendingTimeStamp = null;
+
             return result; 
         }
 

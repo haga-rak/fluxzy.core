@@ -42,24 +42,25 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         [MemberData(nameof(GetTestData))]
         public void Validate_Sleepy_Merge(int testCount, int concurrentCount)
         {
-            var format = "00000";
-            var rawInput = MergeTestContentProvider.GetTestData(testCount, format: format); 
+            var format = "000";
+            var rawInput = MergeTestContentProvider.GetTestData(testCount, format: format);
 
             var allLines = rawInput.Split(new[] { "\r\n", "\n" },
                                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                                   .ToList();
+                                   .Select(s => Encoding.UTF8.GetBytes(s.Replace(",", string.Empty)))
+                                   .ToArray();
 
-            var merger = new BlockMerger<DummyBlock, string>();
-            var writer = new DummyBlockWriter(); 
+            var merger = new BlockMerger<DummyBlock, byte[]>();
+            var writer = new DummyBlockWriter();
 
             var streamLimiter = new StreamLimiter(concurrentCount);
 
             merger.Merge(writer, s => new SleepyDummyBlockReader(streamLimiter,
-                Encoding.UTF8.GetBytes(s.Replace(",", string.Empty)), format.Length), allLines.ToArray());
+                    s, format.Length), allLines);
 
             var result = writer.GetRawLine();
 
-            var expectedResult = string.Join(",", 
+            var expectedResult = string.Join(",",
                 Enumerable.Range(0, testCount).Select(i => i.ToString(format)));
 
             Assert.Equal(expectedResult, result);
