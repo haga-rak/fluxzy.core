@@ -1,8 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using Fluxzy.Core.Pcap.Pcapng.Structs;
-using System.Buffers.Binary;
-
 namespace Fluxzy.Core.Pcap.Pcapng
 {
     /// <summary>
@@ -16,7 +13,12 @@ namespace Fluxzy.Core.Pcap.Pcapng
             Func<TArgs, IBlockReader<T>> blockFactory,
             params TArgs[] items)
         {
-            var array = items.Select(blockFactory).ToArray();
+            var array = items.Select(b => {
+                // new stream open here 
+                var result = blockFactory(b);
+                
+                return result;
+            }).ToArray();
 
             if (array.Any())
             {
@@ -28,9 +30,13 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
                     if (nextTimeStamp == null)
                         break; // No more block to read
-
+                    
                     writer.Write(nextTimeStamp);
                 }
+            }
+
+            foreach (var resource in array) {
+                resource.Dispose();
             }
         }
     }
@@ -66,58 +72,19 @@ namespace Fluxzy.Core.Pcap.Pcapng
         }
     }
 
-    internal interface IBlockReader<out T> : IDisposable
+    internal interface IBlockReader<out T> : IDisposable, IBlockReader
     {
         int ? NextTimeStamp { get; }
 
         T? Dequeue();
     }
 
-    internal class PendingPcapFile
+    internal interface IBlockReader
     {
-        private readonly SleepyStream _dormantStream;
-
-        public PendingPcapFile(SleepyStream dormantStream)
-        {
-            _dormantStream = dormantStream;
-        }
-        
-        public int? NextPacketBlockTimeStamp()
-        {
-            return null; 
-        }
-
-        public bool ReadNextPacketBlock(EnhancedPacketBlock result)
-        {
-            // Must advance 
-            return false; 
-        }
-    }
-
-
-    internal static class PcapBlocReadingHelper
-    {
-        public static uint GetNextBlockType(SleepyStream stream)
-        {
-            var nextFourBytes = new byte[4];
-
-            if (!stream.ReadExact(nextFourBytes))
-                return 0; // No more readable block 
-
-            return BinaryPrimitives.ReadUInt32LittleEndian(nextFourBytes);
-        }
-
         /// <summary>
-        ///  This method assume that block type is already parsed 
+        ///  Release temporary resources if any 
         /// </summary>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public static SectionHeaderBlock ReadNextBlock(SleepyStream stream)
-        {
-            var sectionHeaderBlock = new SectionHeaderBlock();
-
-            return default;
-
-        }
+        void Sleep();
     }
+
 }

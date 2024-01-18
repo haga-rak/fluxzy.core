@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -38,12 +39,8 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(20)]
-        [InlineData(200)]
-        [InlineData(381)]
-        public void Validate_Sleepy_Merge(int testCount)
+        [MemberData(nameof(GetTestData))]
+        public void Validate_Sleepy_Merge(int testCount, int concurrentCount)
         {
             var format = "00000";
             var rawInput = MergeTestContentProvider.GetTestData(testCount, format: format); 
@@ -55,7 +52,10 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             var merger = new BlockMerger<DummyBlock, string>();
             var writer = new DummyBlockWriter(); 
 
-            merger.Merge(writer, s => new SleepyDummyBlockReader(s, format.Length), allLines.ToArray());
+            var streamLimiter = new StreamLimiter(concurrentCount);
+
+            merger.Merge(writer, s => new SleepyDummyBlockReader(streamLimiter, 
+                s, format.Length), allLines.ToArray());
 
             var result = writer.GetRawLine();
 
@@ -63,6 +63,18 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
                 Enumerable.Range(0, testCount).Select(i => i.ToString(format)));
 
             Assert.Equal(expectedResult, result);
+        }
+
+        public static IEnumerable<object[]> GetTestData()
+        {
+            var testCounts = new[] { 0, 1, 20, 200, 381 };
+            var concurrentCount = new[] { 1, 2, 3, 9 };
+
+            foreach (var testCount in testCounts) {
+                foreach (var count in concurrentCount) {
+                    yield return new object[] { testCount, count };
+                }
+            }
         }
     }
 
@@ -105,9 +117,9 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
     internal class DummyBlockReader : IBlockReader<DummyBlock>
     {
         private readonly string[] _fullLines;
-        private int offset = 0; 
+        private int _offset; 
 
-        private int ? _nextTimeStamp = null;
+        private int ? _nextTimeStamp;
 
         public DummyBlockReader(string rawLine)
         {
@@ -121,8 +133,8 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
                     return _nextTimeStamp;
                 }
 
-                if (offset < _fullLines.Length) {
-                    _nextTimeStamp = int.Parse(_fullLines[offset]);
+                if (_offset < _fullLines.Length) {
+                    _nextTimeStamp = int.Parse(_fullLines[_offset]);
                     return _nextTimeStamp;
                 }
 
@@ -134,15 +146,20 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         {
             _nextTimeStamp = null;
 
-            if (offset >= _fullLines.Length) {
+            if (_offset >= _fullLines.Length) {
                 return null;  // EOF 
             }
 
-            var nextLine = _fullLines[offset];
+            var nextLine = _fullLines[_offset];
 
-            offset++;
+            _offset++;
 
             return new DummyBlock(nextLine);
+        }
+
+        public void Sleep()
+        {
+
         }
 
         public void Dispose()
@@ -154,9 +171,8 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
     {
         private readonly int _charCount;
 
-        public SleepyDummyBlockReader(string rawLine, int charCount)
-            : base(() => 
-                new MemoryStream(Encoding.UTF8.GetBytes(rawLine.Replace(",", string.Empty))))
+        public SleepyDummyBlockReader(StreamLimiter streamLimiter, string rawLine, int charCount)
+            : base(streamLimiter, () => new MemoryStream(Encoding.UTF8.GetBytes(rawLine.Replace(",", string.Empty))))
         {
             _charCount = charCount;
         }
@@ -179,4 +195,5 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             return block.Value; 
         }
     }
+
 }

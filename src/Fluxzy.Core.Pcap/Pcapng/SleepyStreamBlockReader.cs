@@ -9,9 +9,16 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         private bool _eof;
 
-        protected SleepyStreamBlockReader(Func<Stream> streamFactory)
+        protected SleepyStreamBlockReader(
+            StreamLimiter streamLimiter, 
+            Func<Stream> streamFactory)
         {
-            _sleepyStream = new SleepyStream(streamFactory);
+            _sleepyStream = new SleepyStream(() => {
+                var res = streamFactory();
+                streamLimiter.NotifyOpen(this);
+                return res;
+
+            });
         }
 
         protected abstract T? ReadNextBlock(SleepyStream stream);
@@ -59,6 +66,11 @@ namespace Fluxzy.Core.Pcap.Pcapng
             return result; 
         }
 
+        public void Sleep()
+        {
+            _sleepyStream.Sleep();
+        }
+
         public void Dispose()
         {
             _sleepyStream.Dispose();
@@ -67,6 +79,34 @@ namespace Fluxzy.Core.Pcap.Pcapng
         public async ValueTask DisposeAsync()
         {
             await _sleepyStream.DisposeAsync();
+        }
+    }
+
+
+    internal class StreamLimiter
+    {
+        private readonly int _concurrentCount;
+        private readonly Queue<IBlockReader> _currentQueue = new(4);
+
+        public StreamLimiter(int concurrentCount)
+        {
+            _concurrentCount = concurrentCount;
+        }
+
+        public void NotifyOpen(IBlockReader reader)
+        {
+            _currentQueue.Enqueue(reader);
+
+            while (_currentQueue.Count > _concurrentCount)
+            {
+                var toSleep = _currentQueue.Dequeue();
+
+                if (toSleep == reader)
+                    continue;
+
+                toSleep.Sleep();
+            }
+
         }
     }
 }
