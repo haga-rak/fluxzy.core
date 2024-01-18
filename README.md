@@ -1,52 +1,36 @@
 ![alt text](assets/full-logo.png "Title")
 
-# fluxzy
+<hr/>
 
+<div align="center">
+
+[![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)
+[![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core.Pcap&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)
 [![build](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml/badge.svg)](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml)
 [![gitter](https://badges.gitter.im/Fluxzy.svg)](https://app.gitter.im/#/room/!LRKtrkBMuIBYYNvHdA:gitter.im)
 [![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
 [![codecov](https://codecov.io/gh/haga-rak/fluxzy.core/graph/badge.svg?token=AD5R7Q1FHJ)](https://codecov.io/gh/haga-rak/fluxzy.core)
 
+</div>
+
 fluxzy is a *fully managed* and *fully streamed* MITM engine and a CLI app to intercept, record and alter HTTP/1.1, H2, websocket traffic over plain or secure channels.
 
 This repository contains the source code of [Fluxzy CLI](https://www.fluxzy.io/download#cli) which is a standalone command line application for Windows, macOS, and Linux and  the .NET packages that are used by [Fluxzy Desktop](https://www.fluxzy.io/download). 
-
-## Stable version
-
-### .NET packages
-
-.NET packages target .NET Standard 2.1, .NET 6.0 and .NET 8.0.
-
-
-| .NET Package | Description | Version |
-| --- | --- | --- |
-| Fluxzy Core | Core library | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=NuGet&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core) |
-| Fluxzy.Core.Pcap | Extensions for raw packet capture | [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=NuGet&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap) |
-
-### Fluxzy CLI
-
-| Fluxzy CLI | Version |
-| --- | --- |
-| Windows |   [![win32](https://fluxzy.io/misc/badge/cli/Windows32)  ![win64](https://fluxzy.io/misc/badge/cli/Windows64)      ![winArm64](https://fluxzy.io/misc/badge/cli/WindowsArm64)](https://www.fluxzy.io/download#cli)     | 
-|macOS |  [![osx64](https://fluxzy.io/misc/badge/cli/Osx64)  ![osxArm64](https://fluxzy.io/misc/badge/cli/OsxArm64)](https://www.fluxzy.io/download#cli)   | 
-| Linux |  [![linux64](https://fluxzy.io/misc/badge/cli/Linux64)  ![linuxArm64](https://fluxzy.io/misc/badge/cli/LinuxArm64)](https://www.fluxzy.io/download#cli)   |
-
-
 
 ## 1. Features
 
 ### 1.1 Core features 
 
 - [x] Intercept HTTP/1.1, H2, WebSocket traffic over plain or secure channels
-- [x] Fully streamed intermediate as proxy or reverse proxy
-- [x] Deflect operating system traffic (act as system proxy)
+- [x] Fully streamed intermediate as proxy or transparent proxy
+- [x] [Deflect operating system traffic (act as system proxy)](https://docs.fluxzy.io/documentation/core/06-capturing-os-trafic.html)
 - [x] Automatic root certificate installation (with elevation on Windows, macOS, and several Linux distributions) 
 - [x] Certificate management: built-in feature to create CA compatible certificates 
-- [x] Export as HTTP Archive (experimental)
-- [x] Use a custom root certificate authority
-- [x] Choice between default .NET SSL provider and BouncyCastle
+- [x] [Export as HTTP Archive (experimental)](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
+- [x] [Use a custom root certificate authority](https://docs.fluxzy.io/documentation/core/short-examples/use-custom-root-certificate.html)
+- [x] [Choice between default .NET SSL provider and BouncyCastle](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
 - [x] [Raw packet capture](https://docs.fluxzy.io/documentation/core/04-capture-raw-packets.html) (with the extension `Fluxzy.Core.Pcap`)
-- [x] NSS Key log extraction (when using Bouncy Castle)
+- [x] [NSS Key log extraction (when using Bouncy Castle)](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
 - [x]  [Optional configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) 
 
 ### 1.2 Alteration and traffic management features 
@@ -55,12 +39,12 @@ Alteration and traffic management features are available as [fluxzy actions](htt
 
 - [x] Add, remove, modify request and response headers
 - [x] [Mock or substitute request and response body](https://docs.fluxzy.io/documentation/core/short-examples/mock-response.html)
-- [x] Forward, redirect, spoof DNS, abort connections 
+- [x] [Forward](https://www.fluxzy.io/rule/item/forwardAction), redirect, [spoof DNS](https://www.fluxzy.io/rule/item/spoofDnsAction), [abort connections](https://www.fluxzy.io/rule/item/abortAction) 
 - [x] [Inject html snippet on intercepted request and response bodies](https://docs.fluxzy.io/documentation/core/short-examples/inject-code-in-html-pages.html)
 - [x] [Remove cache directives](https://www.fluxzy.io/rule/item/removeCacheAction), add request and response cookies
 - [x] [Serve static directory](https://www.fluxzy.io/rule/item/serveDirectoryAction) 
 - [x] Add metadata to HTTP exchanges (tags and comments)
-- [x] Provide a specific certificate for a host 
+- [x] [Provide a specific certificate for a host](https://www.fluxzy.io/rule/item/useCertificateAction)
   
 
 ## 2. Basic Usage
@@ -135,6 +119,17 @@ Visit [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.ht
 
 
 ### 2.2 Fluxzy CLI
+
+
+### Download CLI
+
+| Fluxzy CLI | Version |
+| --- | --- |
+| Windows |   [![win32](https://fluxzy.io/misc/badge/cli/Windows32)  ![win64](https://fluxzy.io/misc/badge/cli/Windows64)      ![winArm64](https://fluxzy.io/misc/badge/cli/WindowsArm64)](https://www.fluxzy.io/download#cli)     | 
+|macOS |  [![osx64](https://fluxzy.io/misc/badge/cli/Osx64)  ![osxArm64](https://fluxzy.io/misc/badge/cli/OsxArm64)](https://www.fluxzy.io/download#cli)   | 
+| Linux |  [![linux64](https://fluxzy.io/misc/badge/cli/Linux64)  ![linuxArm64](https://fluxzy.io/misc/badge/cli/LinuxArm64)](https://www.fluxzy.io/download#cli)   |
+
+### Sample usage
 
 The following highlights the basic way to use fluxzy with a simple rule file.
 
