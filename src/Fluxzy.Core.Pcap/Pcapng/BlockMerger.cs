@@ -42,23 +42,23 @@ namespace Fluxzy.Core.Pcap.Pcapng
                     resource.Dispose();
                 }
             }
-
         }
     }
 
     internal static class ArrayUtilities
     {
-        public static void Replace<T>(T[] array, T firstElement, 
+        public static void Replace<T>(T[] sortedArrayAtIndex1, T firstElement, 
             IComparer<T> comparer)
         {
-            for (int i = 1; i < array.Length; i++) {
-                var current = array[i];
+            for (int i = 1; i < sortedArrayAtIndex1.Length; i++) {
+                var current = sortedArrayAtIndex1[i];
 
-                if (comparer.Compare(current, firstElement) < 0) {
-                    array[i] = firstElement;
-                    array[0] = current;
-                    firstElement = current;
+                if (comparer.Compare(firstElement, current) <= 0) {
+                    break;
                 }
+
+                sortedArrayAtIndex1[i - 1] = current;
+                sortedArrayAtIndex1[i] = firstElement;
             }
         }
     }
