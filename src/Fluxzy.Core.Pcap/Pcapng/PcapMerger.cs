@@ -5,25 +5,67 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Core.Pcap.Pcapng
 {
-    internal class PcapMerger
+    internal class PcapMerger<T, TArgs> where TArgs : notnull
     {
-        public async Task Merge(Stream outputStream, params string [] files)
+        public void Merge(IBlockWriter<T> writer,
+            Func<TArgs, IBlockReader<T>> blockFactory,
+            params TArgs[] items)
         {
-            var pendingPcapFiles =
-                new Queue<PendingPcapFile>(files.Select(s => new PendingPcapFile(null));
+            var array = items.Select(blockFactory).ToArray();
 
+            if (array.Any())
+            {
+                while (true)
+                {
+                    Array.Sort(array, PendingPcapComparer<T>.Instance);
 
+                    var nextTimeStamp = array[0].Dequeue(); 
 
+                    if (nextTimeStamp == null)
+                        break; // No more block to read
 
-            while ()
+                    writer.Write(nextTimeStamp);
+                }
+            }
         }
     }
 
-    internal interface IBlock
+    internal interface IBlockWriter<in T>
     {
-        int TimeStamp { get; }
+        public void Write(T content); 
+    }
 
-        int Length { get; }
+    internal class PendingPcapComparer<T> : IComparer<IBlockReader<T>>
+    {
+        public static readonly PendingPcapComparer<T> Instance = new();
+
+        private PendingPcapComparer()
+        {
+
+        }
+
+        public int Compare(IBlockReader<T>? x, IBlockReader<T>? y)
+        {
+            var xTimeStamp = x!.NextTimeStamp;
+            var yTimeStamp = y!.NextTimeStamp; 
+
+            if (xTimeStamp == null) {
+                return 1;
+            }
+
+            if (yTimeStamp == null) {
+                return -1;
+            }
+
+            return xTimeStamp.Value.CompareTo(yTimeStamp.Value);
+        }
+    }
+
+    internal interface IBlockReader<out T>
+    {
+        int ? NextTimeStamp { get; }
+
+        T? Dequeue();
     }
 
     internal class PendingPcapFile
@@ -37,18 +79,13 @@ namespace Fluxzy.Core.Pcap.Pcapng
         
         public int? NextPacketBlockTimeStamp()
         {
-
+            return null; 
         }
 
         public bool ReadNextPacketBlock(EnhancedPacketBlock result)
         {
             // Must advance 
-
-            while (PcapBlocReadingHelper.GetNextBlockType())
-
-
-
-
+            return false; 
         }
     }
 
@@ -64,7 +101,6 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
             return BinaryPrimitives.ReadUInt32LittleEndian(nextFourBytes);
         }
-        
 
         /// <summary>
         ///  This method assume that block type is already parsed 
@@ -73,9 +109,9 @@ namespace Fluxzy.Core.Pcap.Pcapng
         /// <returns></returns>
         public static SectionHeaderBlock ReadNextBlock(DormantReadStream stream)
         {
-            var sectionHeaderBlock = new SectionHeaderBlock(); 
+            var sectionHeaderBlock = new SectionHeaderBlock();
 
-            var totalBlockLength = 
+            return default;
 
         }
     }
