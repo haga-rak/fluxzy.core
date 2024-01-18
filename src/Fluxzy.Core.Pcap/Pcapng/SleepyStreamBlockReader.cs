@@ -3,13 +3,14 @@
 namespace Fluxzy.Core.Pcap.Pcapng
 {
     internal abstract class SleepyStreamBlockReader<T> : IBlockReader<T>, IAsyncDisposable
+            where T : struct
     {
         private readonly SleepyStream _sleepyStream;
-        private T ? _nextBlock = default;
+        private T _nextBlock = default;
 
         private bool _eof;
 
-        private int? _pendingTimeStamp = null; 
+        private int _pendingTimeStamp = -1; 
 
         protected SleepyStreamBlockReader(
             StreamLimiter streamLimiter, 
@@ -23,57 +24,64 @@ namespace Fluxzy.Core.Pcap.Pcapng
             });
         }
 
-        protected abstract T? ReadNextBlock(SleepyStream stream);
+        protected abstract bool ReadNextBlock(SleepyStream stream, out T result);
 
         protected abstract int ReadTimeStamp(T block);
 
-        private T? InternalReadNextBlock()
+        private bool InternalReadNextBlock(out T result)
         {
-            if (_nextBlock != null) {
-                return _nextBlock;
+            if (!_nextBlock.Equals(default)) {
+                result = _nextBlock;
+                return true; 
             }
 
+            result = default; 
+
             if (_eof)
-                return default; 
+                return false;
 
-            _nextBlock = ReadNextBlock(_sleepyStream);
+            if (!ReadNextBlock(_sleepyStream, out _nextBlock)) {
+                _eof = true; 
+                return false; 
+            }
 
-            _eof = _nextBlock == null;
+            result = _nextBlock;
             
-            return _nextBlock; 
+            return true; 
         }
 
-        public int? NextTimeStamp {
+        public int NextTimeStamp {
             get
             {
                 if (_eof) {
-                    return null;
+                    return -1;
                 }
 
-                if (_pendingTimeStamp != null)
+                if (_pendingTimeStamp != -1)
                 {
                     return _pendingTimeStamp;
                 }
 
-                var block = InternalReadNextBlock();
+                var res = InternalReadNextBlock(out var block);
 
-                if (block != null) {
+                if (res) {
                     return _pendingTimeStamp = ReadTimeStamp(block);
                 }
 
-                return null;
+                return -1;
             }
         }
 
-        public T? Dequeue()
+        public bool Dequeue(out T result)
         {
-            var result = InternalReadNextBlock();
+            var res = InternalReadNextBlock(out result);
 
             _nextBlock = default;
-            _pendingTimeStamp = null;
+            _pendingTimeStamp = -1;
 
-            return result; 
+            return res; 
         }
+
 
         public void Sleep()
         {
@@ -95,11 +103,12 @@ namespace Fluxzy.Core.Pcap.Pcapng
     internal class StreamLimiter
     {
         private readonly int _concurrentCount;
-        private readonly Queue<IBlockReader> _currentQueue = new(4);
+        private readonly Queue<IBlockReader> _currentQueue;
 
         public StreamLimiter(int concurrentCount)
         {
             _concurrentCount = concurrentCount;
+            _currentQueue = new(concurrentCount + 32);
         }
 
         public void NotifyOpen(IBlockReader reader)

@@ -26,7 +26,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
                                    .ToList();
 
             var merger = new BlockMerger<DummyBlock, string>();
-            var writer = new DummyBlockWriter(); 
+            var writer = new DummyBlockWriter(format); 
 
             merger.Merge(writer, s => new DummyBlockReader(s), allLines.ToArray());
 
@@ -51,7 +51,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
                                    .ToArray();
 
             var merger = new BlockMerger<DummyBlock, byte[]>();
-            var writer = new DummyBlockWriter();
+            var writer = new DummyBlockWriter(format);
 
             var streamLimiter = new StreamLimiter(concurrentCount);
 
@@ -79,34 +79,37 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         }
     }
 
-    internal class DummyBlock
+    internal struct DummyBlock
     {
-        public DummyBlock(string rawValue)
+        public DummyBlock(ReadOnlySpan<char> rawValue)
         {
             Value = int.Parse(rawValue);
-            RawValue = rawValue;
         }
 
         public int Value { get;  }
 
-        public string RawValue { get; }
-
         public override string ToString()
         {
-            return RawValue;
+            return Value.ToString();
         }
     }
 
     internal class DummyBlockWriter : IBlockWriter<DummyBlock>
     {
+        private readonly string _format;
         private readonly StringBuilder _builder = new();
+
+        public DummyBlockWriter(string format)
+        {
+            _format = format;
+        }
 
         public void Write(DummyBlock content)
         {
             if (_builder.Length != 0)
                 _builder.Append(',');
 
-            _builder.Append(content.RawValue);
+            _builder.Append(content.Value.ToString(_format));
         }
 
         public string GetRawLine()
@@ -120,17 +123,17 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         private readonly string[] _fullLines;
         private int _offset; 
 
-        private int ? _nextTimeStamp;
+        private int  _nextTimeStamp = -1;
 
         public DummyBlockReader(string rawLine)
         {
             _fullLines = rawLine.Split(",", StringSplitOptions.RemoveEmptyEntries); 
         }
 
-        public int? NextTimeStamp {
+        public int NextTimeStamp {
             get
             {
-                if (_nextTimeStamp != null) {
+                if (_nextTimeStamp != -1) {
                     return _nextTimeStamp;
                 }
 
@@ -139,23 +142,26 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
                     return _nextTimeStamp;
                 }
 
-                return null;
+                return -1;
             }
         }
 
-        public DummyBlock? Dequeue()
+        public bool Dequeue(out DummyBlock result)
         {
-            _nextTimeStamp = null;
+            _nextTimeStamp = -1;
+            result = default!; 
 
             if (_offset >= _fullLines.Length) {
-                return null;  // EOF 
+                return false;  // EOF 
             }
 
             var nextLine = _fullLines[_offset];
 
             _offset++;
 
-            return new DummyBlock(nextLine);
+            result = new DummyBlock(nextLine);
+
+            return true; 
         }
 
         public void Sleep()
@@ -178,17 +184,23 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             _charCount = charCount;
         }
 
-        protected override DummyBlock? ReadNextBlock(SleepyStream stream)
+        protected override bool ReadNextBlock(SleepyStream stream, out DummyBlock result)
         {
             Span<byte> buffer = stackalloc byte[_charCount];
 
             var res = stream.ReadExact(buffer);
 
             if (!res) {
-                return null;
+                result = default; 
+                return false;
             }
+            
+            Span<char> charBuffer = stackalloc char[_charCount];
+            
+            Encoding.UTF8.GetChars(buffer, charBuffer);
 
-            return new DummyBlock(Encoding.UTF8.GetString(buffer));
+            result = new DummyBlock(charBuffer);
+            return true;
         }
 
         protected override int ReadTimeStamp(DummyBlock block)
@@ -196,5 +208,4 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             return block.Value; 
         }
     }
-
 }

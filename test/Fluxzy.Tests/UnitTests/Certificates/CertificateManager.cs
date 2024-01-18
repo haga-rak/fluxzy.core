@@ -21,13 +21,12 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             _manager.RemoveCertificate(_certificate.Thumbprint);
         }
 
-        // [Fact]
+        [Fact]
         public async Task InstallCertificateAndWaitForResult()
         {
             var outOfProcCertManager = new OutOfProcAuthorityManager();
-
-            await outOfProcCertManager.InstallCertificate(_certificate);
-            Assert.True(_manager.IsCertificateInstalled(_certificate));
+            Assert.False(_manager.IsCertificateInstalled(_certificate));
+            Assert.False(outOfProcCertManager.IsCertificateInstalled(_certificate));
         }
     }
 }

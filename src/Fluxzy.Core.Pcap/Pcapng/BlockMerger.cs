@@ -8,6 +8,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TArgs"></typeparam>
     internal class BlockMerger<T, TArgs> where TArgs : notnull
+        where T : struct
     {
         public void Merge(IBlockWriter<T> writer,
             Func<TArgs, IBlockReader<T>> blockFactory,
@@ -22,12 +23,10 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
             while (true)
             {
-                var nextTimeStamp = array[0].Dequeue(); 
-
-                if (nextTimeStamp == null)
+                if (!array[0].Dequeue(out var block))
                     break; // No more block to read
                 
-                writer.Write(nextTimeStamp);
+                writer.Write(block);
 
                 ArrayUtilities.Reposition(array, array[0], BlockComparer<T>.Instance);
             }
@@ -65,6 +64,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
     }
 
     internal class BlockComparer<T> : IComparer<IBlockReader<T>>
+        where T : struct
     {
         public static readonly BlockComparer<T> Instance = new();
 
@@ -77,26 +77,27 @@ namespace Fluxzy.Core.Pcap.Pcapng
         {
             var xTimeStamp = x!.NextTimeStamp;
 
-            if (xTimeStamp == null)
+            if (xTimeStamp == -1)
             {
                 return 1;
             }
 
             var yTimeStamp = y!.NextTimeStamp; 
 
-            if (yTimeStamp == null) {
+            if (yTimeStamp == -1) {
                 return -1;
             }
 
-            return xTimeStamp.Value.CompareTo(yTimeStamp.Value);
+            return xTimeStamp.CompareTo(yTimeStamp);
         }
     }
 
-    internal interface IBlockReader<out T> : IDisposable, IBlockReader
+    internal interface IBlockReader<T> : IDisposable, IBlockReader 
+      where T : struct
     {
-        int ? NextTimeStamp { get; }
+        int NextTimeStamp { get; }
 
-        T? Dequeue();
+        bool Dequeue(out T result);
     }
 
     internal interface IBlockReader
