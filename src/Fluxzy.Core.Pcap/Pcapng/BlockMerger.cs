@@ -33,7 +33,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                     
                     writer.Write(nextTimeStamp);
 
-                    ArrayUtilities.Replace(array,
+                    ArrayUtilities.Reposition(array,
                         array[0], PendingPcapComparer<T>.Instance);
                 }
 
@@ -47,7 +47,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
     internal static class ArrayUtilities
     {
-        public static void Replace<T>(T[] sortedArrayAtIndex1, T firstElement, 
+        public static void Reposition<T>(T[] sortedArrayAtIndex1, T firstElement, 
             IComparer<T> comparer)
         {
             for (int i = 1; i < sortedArrayAtIndex1.Length; i++) {
