@@ -54,8 +54,8 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
 
             var streamLimiter = new StreamLimiter(concurrentCount);
 
-            merger.Merge(writer, s => new SleepyDummyBlockReader(streamLimiter, 
-                s, format.Length), allLines.ToArray());
+            merger.Merge(writer, s => new SleepyDummyBlockReader(streamLimiter,
+                Encoding.UTF8.GetBytes(s.Replace(",", string.Empty)), format.Length), allLines.ToArray());
 
             var result = writer.GetRawLine();
 
@@ -171,8 +171,8 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
     {
         private readonly int _charCount;
 
-        public SleepyDummyBlockReader(StreamLimiter streamLimiter, string rawLine, int charCount)
-            : base(streamLimiter, () => new MemoryStream(Encoding.UTF8.GetBytes(rawLine.Replace(",", string.Empty))))
+        public SleepyDummyBlockReader(StreamLimiter streamLimiter, byte[] data, int charCount)
+            : base(streamLimiter, () => new MemoryStream(data))
         {
             _charCount = charCount;
         }

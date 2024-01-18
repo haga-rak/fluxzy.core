@@ -13,35 +13,31 @@ namespace Fluxzy.Core.Pcap.Pcapng
             Func<TArgs, IBlockReader<T>> blockFactory,
             params TArgs[] items)
         {
-            var array = items.Select(b => {
-                // new stream open here 
-                var result = blockFactory(b);
-                
-                return result;
-            }).ToArray();
+            if (!items.Any())
+                return;
 
-            if (array.Any())
+            var array = items.Select(blockFactory).ToArray();
+
+            Array.Sort(array, BlockComparer<T>.Instance);
+
+            while (true)
             {
-                Array.Sort(array, PendingPcapComparer<T>.Instance);
+                var nextTimeStamp = array[0].Dequeue(); 
 
-                while (true)
-                {
-                    var nextTimeStamp = array[0].Dequeue(); 
+                if (nextTimeStamp == null)
+                    break; // No more block to read
+                
+                writer.Write(nextTimeStamp);
 
-                    if (nextTimeStamp == null)
-                        break; // No more block to read
-                    
-                    writer.Write(nextTimeStamp);
-
-                    ArrayUtilities.Reposition(array,
-                        array[0], PendingPcapComparer<T>.Instance);
-                }
-
-                foreach (var resource in array)
-                {
-                    resource.Dispose();
-                }
+                ArrayUtilities.Reposition(array,
+                    array[0], BlockComparer<T>.Instance);
             }
+
+            foreach (var resource in array)
+            {
+                resource.Dispose();
+            }
+            
         }
     }
 
@@ -68,11 +64,11 @@ namespace Fluxzy.Core.Pcap.Pcapng
         public void Write(T content); 
     }
 
-    internal class PendingPcapComparer<T> : IComparer<IBlockReader<T>>
+    internal class BlockComparer<T> : IComparer<IBlockReader<T>>
     {
-        public static readonly PendingPcapComparer<T> Instance = new();
+        public static readonly BlockComparer<T> Instance = new();
 
-        private PendingPcapComparer()
+        private BlockComparer()
         {
 
         }
