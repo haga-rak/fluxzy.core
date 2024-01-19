@@ -5,39 +5,21 @@ using System.Buffers.Binary;
 
 namespace Fluxzy.Core.Pcap.Pcapng
 {
-    internal readonly struct EnhancedBlock
-    {
-        public EnhancedBlock(int timeStamp, byte[] data)
-        {
-            TimeStamp = timeStamp;
-            Data = data;
-        }
-
-        public int TimeStamp { get; }
-
-        public byte[] Data { get; }
-    }
-
-    public interface IInt<T> where T : struct
-    {
-        T Value { get; }
-    }
-
     internal class EnhancedBlockReader : SleepyStreamBlockReader
     {
-        public EnhancedBlockReader(
+        private readonly GenericBlockHandler _blockHandler;
+        private readonly byte[] _defaultBuffer = new byte[1024 * 2]; 
+
+        public EnhancedBlockReader(GenericBlockHandler blockHandler,
             StreamLimiter streamLimiter, Func<Stream> streamFactory)
             : base(streamLimiter, streamFactory)
         {
-
+            _blockHandler = blockHandler;
         }
 
         protected override bool ReadNextBlock(SleepyStream stream, out DataBlock result)
         {
-            // BinaryPrimitives.WriteUInt32LittleEndian(buffer, BlockType);
-            // BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(4), BlockTotalLength);
-
-            Span<byte> buffer = stackalloc byte[8];
+            Span<byte> buffer = _defaultBuffer.AsSpan().Slice(0,8);
 
             for (;;)
             {
@@ -51,26 +33,50 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 var blockType = BinaryPrimitives.ReadUInt32LittleEndian(buffer);
                 var blockTotalLength = BinaryPrimitives.ReadInt32LittleEndian(buffer.Slice(4));
 
+                var compare = SectionHeaderBlock.BlockTypeValue == blockType;
+
                 if (blockType != EnhancedPacketBlock.BlockTypeValue)
                 {
                     // DO something with other block type 
+
+                    if (blockTotalLength > _defaultBuffer.Length) {
+                        throw new InvalidOperationException(
+                            $"Block length exceed default buffer length {blockTotalLength} > {_defaultBuffer.Length}");
+                    }
+
+                    if (!stream.ReadExact(_defaultBuffer.AsSpan(8, blockTotalLength - 8)))
+                    {
+                        result = default;
+                        return false; // Unable to read
+                    } 
+
+                    if (!_blockHandler.NotifyNewBlock(blockType, _defaultBuffer.AsSpan(0, blockTotalLength))) {
+                        result = default;
+                        return false;  // EARLY EOF
+                    }
+
                     continue;
                 }
 
-                var data = new byte[blockTotalLength];
+                // This allocation is not ideal but we can't use a
+                // fixed buffer because the block length is variable
 
-                var readData = stream.ReadExact(data);
+                Span<byte> data = new byte[blockTotalLength];
+
+                var readData = stream.ReadExact(data.Slice(8));
 
                 if (!readData) {
                     result = default;
                     return false; 
                 }
-            }
-        }
 
-        protected override uint ReadTimeStamp(ref DataBlock block)
-        {
-            throw new NotImplementedException();
+                var timeStamp = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(4));
+
+                BinaryPrimitives.WriteUInt32LittleEndian(data, blockType);
+                BinaryPrimitives.WriteInt32LittleEndian(data.Slice(4), blockTotalLength);
+
+                result = new DataBlock(timeStamp, data.ToArray());
+            }
         }
     }
 }

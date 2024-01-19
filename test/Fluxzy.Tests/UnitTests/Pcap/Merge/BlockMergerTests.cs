@@ -221,10 +221,5 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             result = new DataBlock(uint.Parse(charBuffer), buffer.ToArray());
             return true;
         }
-
-        protected override uint ReadTimeStamp(ref DataBlock block)
-        {
-            return block.TimeStamp; 
-        }
     }
 }

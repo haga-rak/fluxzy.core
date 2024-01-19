@@ -37,6 +37,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 throw new InvalidOperationException("Section header block is too big");
 
             var block = new NssDecryptionSecretsBlock(nssKey);
+
             Span<byte> nssKeyBlockBuffer = stackalloc byte[block.BlockTotalLength];
 
             block.Write(nssKeyBlockBuffer, nssKey);

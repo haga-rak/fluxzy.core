@@ -37,15 +37,11 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 var res = streamFactory();
                 streamLimiter.NotifyOpen(this);
                 return res;
-
             });
         }
 
         protected abstract bool ReadNextBlock(SleepyStream stream, out DataBlock result);
-
-        protected abstract uint ReadTimeStamp(ref DataBlock block);
-
-
+        
         private bool InternalReadNextBlock(out DataBlock result)
         {
             if (_nextBlockOption.HasValue) {
@@ -86,7 +82,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 var res = InternalReadNextBlock(out var block);
 
                 if (res) {
-                    return _pendingTimeStamp = ReadTimeStamp(ref block);
+                    return _pendingTimeStamp = block.TimeStamp;
                 }
 
                 return uint.MaxValue;

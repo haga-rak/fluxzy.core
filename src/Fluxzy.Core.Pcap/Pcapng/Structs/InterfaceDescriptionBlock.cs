@@ -4,6 +4,8 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
 {
     internal readonly struct InterfaceDescriptionBlock
     {
+        public const uint BlockTypeValue = 0x00000001;
+
         private readonly InterfaceDescription _interfaceDescription;
         private readonly List<IOptionBlock> _options = new(); 
 
@@ -28,7 +30,6 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
                 _options.Add(new IfMacAddressOption(interfaceDescription.MacAddress));
             }
 
-
             if (_options.Any()) {
                 _options.Add(new EndOfOption());
             }
@@ -36,10 +37,9 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             BlockTotalLength += _options.Sum(o => o.OnWireLength); 
 
             LinkType = interfaceDescription.LinkType;
-
         }
 
-        public uint BlockType => 0x00000001;
+        public uint BlockType => BlockTypeValue;
 
         public int BlockTotalLength { get; }
 
@@ -68,5 +68,61 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
 
             return BlockTotalLength; 
         }
+
+        public static InterfaceDescription Parse(ReadOnlySpan<byte> buffer)
+        {
+            // We ignore the first 8 bytes, as they are the block type and block total length
+
+            var linkType = BinaryPrimitives.ReadUInt16LittleEndian(buffer.Slice(0));
+            var reserved = BinaryPrimitives.ReadUInt16LittleEndian(buffer.Slice(2));
+            var snapLen = BinaryPrimitives.ReadInt32LittleEndian(buffer.Slice(4));
+            
+            var offset = 8;
+
+            string description = "NO_DESCRIPTION";
+            string name = "NO_NAME";
+            byte[]? macAddress = null; 
+
+            while (offset < buffer.Length) {
+                var (success, read) = OptionBlockFactory.TryParse(buffer.Slice(offset), out var option);
+
+                if (!success) {
+                    throw new InvalidOperationException("Invalid block size");
+                }
+
+                offset += read;
+
+                if (option == null) {
+                    // Ignored option 
+                    continue;
+                }
+
+                if (option is EndOfOption)
+                    break;
+
+                if (option is IfMacAddressOption macOption) {
+                    macAddress = macOption.MacAddress;
+                }
+
+                if (option is StringOptionBlock sb) {
+                    if (sb.OptionCode == (int) OptionBlockCode.If_Description) {
+                        description = sb.OptionValue; 
+                    }
+
+                    if (sb.OptionCode == (int) OptionBlockCode.If_Name) {
+                        name = sb.OptionValue;
+                    }
+                }
+            }
+
+            var interfaceDescription = new InterfaceDescription(linkType, 0) {
+                Description = description,
+                Name = name,
+                MacAddress = macAddress
+            }; 
+
+            return interfaceDescription;
+        }
+
     }
 }
