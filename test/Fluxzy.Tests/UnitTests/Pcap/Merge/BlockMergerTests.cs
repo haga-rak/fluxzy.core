@@ -79,7 +79,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         }
     }
 
-    internal struct DummyBlock
+    internal readonly struct DummyBlock : IEquatable<DummyBlock>
     {
         public DummyBlock(ReadOnlySpan<char> rawValue)
         {
@@ -91,6 +91,20 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         public override string ToString()
         {
             return Value.ToString();
+        }
+        public bool Equals(DummyBlock other)
+        {
+            return Value == other.Value;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is DummyBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value;
         }
     }
 
@@ -104,7 +118,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             _format = format;
         }
 
-        public void Write(DummyBlock content)
+        public void Write(ref DummyBlock content)
         {
             if (_builder.Length != 0)
                 _builder.Append(',');
@@ -203,7 +217,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             return true;
         }
 
-        protected override int ReadTimeStamp(DummyBlock block)
+        protected override int ReadTimeStamp(ref DummyBlock block)
         {
             return block.Value; 
         }
