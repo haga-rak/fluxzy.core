@@ -36,21 +36,4 @@ namespace Fluxzy.Core.Pcap.Pcapng
             }
         }
     }
-
-
-    public static class PcapMerge
-    {
-        public static void Merge(
-            IEnumerable<FileInfo> pcapFiles,
-            IEnumerable<FileInfo> nssKeyLogs, Stream outStream, 
-            int maxConcurrentOpenFile = 20)
-        {
-            var merger = new BlockMerger<FileInfo>();
-
-            var blockHandler = new PcapBlockWriter(outStream, nssKeyLogs);
-            var streamLimiter = new StreamLimiter(maxConcurrentOpenFile);
-
-            merger.Merge(blockHandler, f => new EnhancedBlockReader(blockHandler, streamLimiter, f.OpenRead), pcapFiles.ToArray());
-        }
-    }
 }

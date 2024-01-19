@@ -7,7 +7,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
     internal class PcapBlockWriter : IBlockWriter
     {
         private readonly Stream _outStream;
-        private readonly IEnumerable<FileInfo> _nssKeyFileInfos;
+        private readonly IEnumerable<IStreamSource> _nssKeyFileInfos;
 
         private readonly HashSet<string> _shbUserApplSet = new(StringComparer.OrdinalIgnoreCase); 
         private readonly HashSet<string> _shbOsSet = new(StringComparer.OrdinalIgnoreCase); 
@@ -15,7 +15,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         private PcapngStreamWriter? _writer;
 
-        public PcapBlockWriter(Stream outStream, IEnumerable<FileInfo> nssKeyFileInfos)
+        public PcapBlockWriter(Stream outStream, IEnumerable<IStreamSource> nssKeyFileInfos)
         {
             _outStream = outStream;
             _nssKeyFileInfos = nssKeyFileInfos;
@@ -33,7 +33,9 @@ namespace Fluxzy.Core.Pcap.Pcapng
             result.WriteSectionHeaderBlock(_outStream);
 
             foreach (var nssKeyInfoFile in _nssKeyFileInfos) {
-                result.WriteNssKey(_outStream, File.ReadAllText(nssKeyInfoFile.FullName));
+
+                using var stream = nssKeyInfoFile.Open();
+                result.WriteNssKey(_outStream, stream);
             }
 
             return result; 
