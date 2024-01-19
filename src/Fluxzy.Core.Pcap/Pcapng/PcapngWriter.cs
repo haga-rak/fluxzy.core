@@ -85,7 +85,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
             }
         }
 
-        public void Write(PacketCapture packetCapture)
+        public void Write(ref PacketCapture packetCapture)
         {
             try
             {
@@ -93,7 +93,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                     return;
 
                 lock (_pcapngStreamWriter)
-                    _pcapngStreamWriter.Write(_workStream, packetCapture);
+                    _pcapngStreamWriter.Write(_workStream, ref packetCapture);
 
             }
             catch (Exception)

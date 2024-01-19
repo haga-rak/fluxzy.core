@@ -2,14 +2,14 @@
 
 namespace Fluxzy.Core.Pcap.Pcapng
 {
-    internal readonly struct Option<T> where T : struct
+    internal readonly struct Option
     {
         public Option()
         {
             HasValue = false;
         }
 
-        public Option(T value)
+        public Option(DataBlock value)
         {
             HasValue = true;
             Value = value;
@@ -17,18 +17,17 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         public bool HasValue { get;  }
 
-        public T Value { get; }
+        public DataBlock Value { get; }
     }
 
-    internal abstract class SleepyStreamBlockReader<T> : IBlockReader<T>, IAsyncDisposable
-            where T : struct
+    internal abstract class SleepyStreamBlockReader : IBlockReader, IAsyncDisposable
     {
         private readonly SleepyStream _sleepyStream;
-        private Option<T> _nextBlockOption = new ();
+        private Option _nextBlockOption = new ();
 
         private bool _eof;
 
-        private int _pendingTimeStamp = -1; 
+        private uint _pendingTimeStamp = uint.MaxValue; 
 
         protected SleepyStreamBlockReader(
             StreamLimiter streamLimiter, 
@@ -42,12 +41,12 @@ namespace Fluxzy.Core.Pcap.Pcapng
             });
         }
 
-        protected abstract bool ReadNextBlock(SleepyStream stream, out T result);
+        protected abstract bool ReadNextBlock(SleepyStream stream, out DataBlock result);
 
-        protected abstract int ReadTimeStamp(ref T block);
+        protected abstract uint ReadTimeStamp(ref DataBlock block);
 
 
-        private bool InternalReadNextBlock(out T result)
+        private bool InternalReadNextBlock(out DataBlock result)
         {
             if (_nextBlockOption.HasValue) {
                 result = _nextBlockOption.Value;
@@ -65,21 +64,21 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 return false; 
             }
 
-            _nextBlockOption = new Option<T>(nextBlock);
+            _nextBlockOption = new Option(nextBlock);
 
             result = _nextBlockOption.Value;
             
             return true; 
         }
 
-        public int NextTimeStamp {
+        public uint NextTimeStamp {
             get
             {
                 if (_eof) {
-                    return -1;
+                    return uint.MaxValue;
                 }
 
-                if (_pendingTimeStamp != -1)
+                if (_pendingTimeStamp != uint.MaxValue)
                 {
                     return _pendingTimeStamp;
                 }
@@ -90,21 +89,20 @@ namespace Fluxzy.Core.Pcap.Pcapng
                     return _pendingTimeStamp = ReadTimeStamp(ref block);
                 }
 
-                return -1;
+                return uint.MaxValue;
             }
         }
 
-        public bool Dequeue(out T result)
+        public bool Dequeue(out DataBlock result)
         {
             var res = InternalReadNextBlock(out result);
 
             _nextBlockOption = default;
-            _pendingTimeStamp = -1;
+            _pendingTimeStamp = uint.MaxValue;
 
             return res; 
         }
-
-
+        
         public void Sleep()
         {
             _sleepyStream.Sleep();
@@ -130,7 +128,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         public StreamLimiter(int concurrentCount)
         {
             _concurrentCount = concurrentCount;
-            _currentQueue = new(concurrentCount + 32);
+            _currentQueue = new(concurrentCount + 4);
         }
 
         public void NotifyOpen(IBlockReader reader)
@@ -146,7 +144,6 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
                 toSleep.Sleep();
             }
-
         }
     }
 }

@@ -7,11 +7,10 @@ namespace Fluxzy.Core.Pcap.Pcapng
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TArgs"></typeparam>
-    internal class BlockMerger<T, TArgs> where TArgs : notnull
-        where T : struct
+    internal class BlockMerger<TArgs> where TArgs : notnull
     {
-        public void Merge(IBlockWriter<T> writer,
-            Func<TArgs, IBlockReader<T>> blockFactory,
+        public void Merge(IBlockWriter writer,
+            Func<TArgs, IBlockReader> blockFactory,
             params TArgs[] items)
         {
             if (!items.Any())
@@ -19,7 +18,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
             var array = items.Select(blockFactory).ToArray();
 
-            Array.Sort(array, BlockComparer<T>.Instance);
+            Array.Sort(array, BlockComparer.Instance);
 
             while (true)
             {
@@ -28,7 +27,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 
                 writer.Write(ref block);
 
-                ArrayUtilities.Reposition(array, array[0], BlockComparer<T>.Instance);
+                ArrayUtilities.Reposition(array, array[0], BlockComparer.Instance);
             }
 
             foreach (var resource in array)

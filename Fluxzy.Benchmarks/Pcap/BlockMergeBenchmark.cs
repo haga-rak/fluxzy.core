@@ -13,7 +13,7 @@ namespace Fluxzy.Benchmarks.Pcap
         private static readonly string Format = "0000";
         private readonly int _formatLength = Format.Length;
         private readonly int _concurrentCount = 50;
-        private BlockMerger<DummyBlock,byte[]> _merger = null!;
+        private BlockMerger<byte[]> _merger = null!;
         private DoNothingWritter _writer = null!;
         private byte[][] _allLines = null!;
         private StreamLimiter _streamLimiter = null!;
@@ -29,7 +29,7 @@ namespace Fluxzy.Benchmarks.Pcap
                                    .Select(s => Encoding.UTF8.GetBytes(s.Replace(",", string.Empty)))
                                    .ToArray();
 
-            _merger = new BlockMerger<DummyBlock, byte[]>();
+            _merger = new BlockMerger<byte[]>();
             _writer = new DoNothingWritter();
         }
 
@@ -45,15 +45,15 @@ namespace Fluxzy.Benchmarks.Pcap
             _merger.Merge(_writer, BlockFactory, _allLines);
         }
 
-        private IBlockReader<DummyBlock> BlockFactory(byte[] s)
+        private IBlockReader BlockFactory(byte[] s)
         {
             return new SleepyDummyBlockReader(_streamLimiter, s, _formatLength);
         }
     }
 
-    internal class DoNothingWritter : IBlockWriter<DummyBlock>
+    internal class DoNothingWritter : IBlockWriter
     {
-        public void Write(ref DummyBlock content)
+        public void Write(ref DataBlock content)
         {
         }
     }

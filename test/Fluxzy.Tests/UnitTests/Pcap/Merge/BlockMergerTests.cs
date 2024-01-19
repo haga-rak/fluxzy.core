@@ -25,7 +25,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
                                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                                    .ToList();
 
-            var merger = new BlockMerger<DummyBlock, string>();
+            var merger = new BlockMerger<string>();
             var writer = new DummyBlockWriter(format); 
 
             merger.Merge(writer, s => new DummyBlockReader(s), allLines.ToArray());
@@ -50,7 +50,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
                                    .Select(s => Encoding.UTF8.GetBytes(s.Replace(",", string.Empty)))
                                    .ToArray();
 
-            var merger = new BlockMerger<DummyBlock, byte[]>();
+            var merger = new BlockMerger<byte[]>();
             var writer = new DummyBlockWriter(format);
 
             var streamLimiter = new StreamLimiter(concurrentCount);
@@ -79,36 +79,37 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         }
     }
 
-    internal readonly struct DummyBlock : IEquatable<DummyBlock>
-    {
-        public DummyBlock(ReadOnlySpan<char> rawValue)
-        {
-            Value = int.Parse(rawValue);
-        }
+    //internal readonly struct DummyBlock : IEquatable<DummyBlock>
+    //{
+    //    public DummyBlock(ReadOnlySpan<char> rawValue)
+    //    {
+    //        Value = int.Parse(rawValue);
+    //    }
 
-        public int Value { get;  }
+    //    public int Value { get;  }
 
-        public override string ToString()
-        {
-            return Value.ToString();
-        }
-        public bool Equals(DummyBlock other)
-        {
-            return Value == other.Value;
-        }
+    //    public override string ToString()
+    //    {
+    //        return Value.ToString();
+    //    }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is DummyBlock other && Equals(other);
-        }
+    //    public bool Equals(DummyBlock other)
+    //    {
+    //        return Value == other.Value;
+    //    }
 
-        public override int GetHashCode()
-        {
-            return Value;
-        }
-    }
+    //    public override bool Equals(object? obj)
+    //    {
+    //        return obj is DummyBlock other && Equals(other);
+    //    }
 
-    internal class DummyBlockWriter : IBlockWriter<DummyBlock>
+    //    public override int GetHashCode()
+    //    {
+    //        return Value;
+    //    }
+    //}
+
+    internal class DummyBlockWriter : IBlockWriter
     {
         private readonly string _format;
         private readonly StringBuilder _builder = new();
@@ -118,12 +119,16 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             _format = format;
         }
 
-        public void Write(ref DummyBlock content)
+        public void Write(ref DataBlock content)
         {
             if (_builder.Length != 0)
                 _builder.Append(',');
 
-            _builder.Append(content.Value.ToString(_format));
+
+            Span<char> buffer = stackalloc char[_format.Length];
+
+            content.TimeStamp.TryFormat(buffer, out _, _format); 
+            _builder.Append(buffer);
         }
 
         public string GetRawLine()
@@ -132,37 +137,37 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         }
     }
 
-    internal class DummyBlockReader : IBlockReader<DummyBlock>
+    internal class DummyBlockReader : IBlockReader
     {
         private readonly string[] _fullLines;
         private int _offset; 
 
-        private int  _nextTimeStamp = -1;
+        private uint  _nextTimeStamp = UInt32.MaxValue;
 
         public DummyBlockReader(string rawLine)
         {
             _fullLines = rawLine.Split(",", StringSplitOptions.RemoveEmptyEntries); 
         }
 
-        public int NextTimeStamp {
+        public uint NextTimeStamp {
             get
             {
-                if (_nextTimeStamp != -1) {
+                if (_nextTimeStamp != uint.MaxValue) {
                     return _nextTimeStamp;
                 }
 
                 if (_offset < _fullLines.Length) {
-                    _nextTimeStamp = int.Parse(_fullLines[_offset]);
+                    _nextTimeStamp = uint.Parse(_fullLines[_offset]);
                     return _nextTimeStamp;
                 }
 
-                return -1;
+                return uint.MaxValue;
             }
         }
 
-        public bool Dequeue(out DummyBlock result)
+        public bool Dequeue(out DataBlock result)
         {
-            _nextTimeStamp = -1;
+            _nextTimeStamp = uint.MaxValue;
             result = default!; 
 
             if (_offset >= _fullLines.Length) {
@@ -173,7 +178,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
 
             _offset++;
 
-            result = new DummyBlock(nextLine);
+            result = new DataBlock(uint.Parse(nextLine), Encoding.UTF8.GetBytes(nextLine));
 
             return true; 
         }
@@ -188,7 +193,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         }
     }
 
-    internal class SleepyDummyBlockReader : SleepyStreamBlockReader<DummyBlock>
+    internal class SleepyDummyBlockReader : SleepyStreamBlockReader
     {
         private readonly int _charCount;
 
@@ -198,7 +203,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             _charCount = charCount;
         }
 
-        protected override bool ReadNextBlock(SleepyStream stream, out DummyBlock result)
+        protected override bool ReadNextBlock(SleepyStream stream, out DataBlock result)
         {
             Span<byte> buffer = stackalloc byte[_charCount];
 
@@ -213,13 +218,13 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             
             Encoding.UTF8.GetChars(buffer, charBuffer);
 
-            result = new DummyBlock(charBuffer);
+            result = new DataBlock(uint.Parse(charBuffer), buffer.ToArray());
             return true;
         }
 
-        protected override int ReadTimeStamp(ref DummyBlock block)
+        protected override uint ReadTimeStamp(ref DataBlock block)
         {
-            return block.Value; 
+            return block.TimeStamp; 
         }
     }
 }

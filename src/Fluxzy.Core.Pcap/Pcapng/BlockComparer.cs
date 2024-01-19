@@ -1,27 +1,26 @@
 namespace Fluxzy.Core.Pcap.Pcapng
 {
-    internal class BlockComparer<T> : IComparer<IBlockReader<T>>
-        where T : struct
+    internal class BlockComparer : IComparer<IBlockReader>
     {
-        public static readonly BlockComparer<T> Instance = new();
+        public static readonly BlockComparer Instance = new();
 
         private BlockComparer()
         {
 
         }
 
-        public int Compare(IBlockReader<T>? x, IBlockReader<T>? y)
+        public int Compare(IBlockReader? x, IBlockReader? y)
         {
             var xTimeStamp = x!.NextTimeStamp;
 
-            if (xTimeStamp == -1)
+            if (xTimeStamp == uint.MaxValue)
             {
                 return 1;
             }
 
             var yTimeStamp = y!.NextTimeStamp; 
 
-            if (yTimeStamp == -1) {
+            if (yTimeStamp == uint.MaxValue) {
                 return -1;
             }
 

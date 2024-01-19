@@ -60,7 +60,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             "zozozy45", true, false, false, false)]
         [InlineData(false,
             "zozoz45", false, true, true, true)]
-        public async Task CheckPass_SearchTextFilter_Request_Body(
+        public void CheckPass_SearchTextFilter_Request_Body(
             bool expectedResult, string pattern,
             bool searchInRequestBody, bool searchInRequestHeader,
             bool searchInResponseBody, bool searchInResponseHeader)
