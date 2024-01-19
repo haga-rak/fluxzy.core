@@ -57,11 +57,7 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
 
             var result = new Dictionary<OptionBlockCode, string>();
 
-            while (true) {
-
-                if (optionBlocks.Length < 4)
-                    break;  // No more option 
-
+            while (optionBlocks.Length >= 4) {
                 var optionCode = (OptionBlockCode) BinaryPrimitives.ReadUInt16LittleEndian(optionBlocks);
 
                 if (optionCode == OptionBlockCode.Opt_EndOfOpt)
@@ -75,7 +71,9 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
                 var str = Encoding.UTF8.GetString(optionBlocks.Slice(4, optionLength));
                 result[optionCode] = str;
 
-                optionBlocks = optionBlocks.Slice(4 + optionLength);
+                var paddingLength = optionLength % 4; 
+
+                optionBlocks = optionBlocks.Slice(4 + optionLength + paddingLength);
             }
 
             return result;
