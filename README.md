@@ -1,8 +1,8 @@
+<div align="center">
+    
 ![alt text](assets/full-logo.png "Title")
 
 <hr/>
-
-<div align="center">
 
 [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)
 [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core.Pcap&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)
