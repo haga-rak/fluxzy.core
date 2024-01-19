@@ -10,11 +10,11 @@ namespace Fluxzy.Benchmarks.Pcap
     [MemoryDiagnoser(true)]
     public class BlockMergeBenchmark
     {
+        private static readonly string Format = "0000";
+        private readonly int _formatLength = Format.Length;
         private readonly int _concurrentCount = 50;
         private BlockMerger<DummyBlock,byte[]> _merger = null!;
         private DoNothingWritter _writer = null!;
-        private static readonly string Format = "000";
-        private int _formatLength = Format.Length;
         private byte[][] _allLines = null!;
         private StreamLimiter _streamLimiter = null!;
 
@@ -22,7 +22,7 @@ namespace Fluxzy.Benchmarks.Pcap
         public void Setup()
         {
             var rawInput = MergeTestContentProvider
-                .GetTestData(150, format: Format);
+                .GetTestData(2000, format: Format);
 
             _allLines = rawInput.Split(new[] { "\r\n", "\n" },
                                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -53,7 +53,7 @@ namespace Fluxzy.Benchmarks.Pcap
 
     internal class DoNothingWritter : IBlockWriter<DummyBlock>
     {
-        public void Write(DummyBlock content)
+        public void Write(ref DummyBlock content)
         {
         }
     }
