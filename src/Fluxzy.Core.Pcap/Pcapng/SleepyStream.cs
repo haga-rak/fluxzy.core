@@ -56,15 +56,13 @@ namespace Fluxzy.Core.Pcap.Pcapng
             var slidingBuffer = buffer; 
 
             while (totalRead < buffer.Length) {
-                var read = Read(slidingBuffer);
+                var read = Read(slidingBuffer.Slice(totalRead));
 
                 if (read == 0) {
                     return false; 
                 }
 
                 totalRead += read;
-
-                slidingBuffer = slidingBuffer.Slice(read);
             }
 
             return true; 
