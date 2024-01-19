@@ -4,7 +4,7 @@ using Fluxzy.Core.Pcap.Pcapng.Structs;
 
 namespace Fluxzy.Core.Pcap.Pcapng
 {
-    internal class GenericBlockHandler : IBlockWriter
+    internal class PcapBlockWriter : IBlockWriter
     {
         private readonly Stream _outStream;
         private readonly IEnumerable<FileInfo> _nssKeyFileInfos;
@@ -15,13 +15,13 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         private PcapngStreamWriter? _writer;
 
-        public GenericBlockHandler(Stream outStream, IEnumerable<FileInfo> nssKeyFileInfos)
+        public PcapBlockWriter(Stream outStream, IEnumerable<FileInfo> nssKeyFileInfos)
         {
             _outStream = outStream;
             _nssKeyFileInfos = nssKeyFileInfos;
         }
 
-        private PcapngStreamWriter CreateWriter()
+        private PcapngStreamWriter InternalCreateWriter()
         {
             var info = new PcapngGlobalInfo(
                 string.Join(", ", _shbUserApplSet),
@@ -42,7 +42,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         public void Write(ref DataBlock content)
         {
             if (_writer == null) {
-                _writer = CreateWriter();
+                _writer = InternalCreateWriter();
             }
 
             _outStream.Write(content.Data.Span);
@@ -76,7 +76,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
             {
                 if (_writer == null)
                 {
-                    _writer = CreateWriter();
+                    _writer = InternalCreateWriter();
                 }
 
                 _outStream.Write(buffer);
