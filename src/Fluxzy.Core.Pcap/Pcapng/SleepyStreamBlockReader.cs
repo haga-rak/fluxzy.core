@@ -2,11 +2,29 @@
 
 namespace Fluxzy.Core.Pcap.Pcapng
 {
+    internal readonly struct Option<T> where T : struct
+    {
+        public Option()
+        {
+            HasValue = false;
+        }
+
+        public Option(T value)
+        {
+            HasValue = true;
+            Value = value;
+        }
+
+        public bool HasValue { get;  }
+
+        public T Value { get; }
+    }
+
     internal abstract class SleepyStreamBlockReader<T> : IBlockReader<T>, IAsyncDisposable
             where T : struct
     {
         private readonly SleepyStream _sleepyStream;
-        private T _nextBlock = default;
+        private Option<T> _nextBlockOption = new ();
 
         private bool _eof;
 
@@ -26,12 +44,13 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         protected abstract bool ReadNextBlock(SleepyStream stream, out T result);
 
-        protected abstract int ReadTimeStamp(T block);
+        protected abstract int ReadTimeStamp(ref T block);
+
 
         private bool InternalReadNextBlock(out T result)
         {
-            if (!_nextBlock.Equals(default)) {
-                result = _nextBlock;
+            if (_nextBlockOption.HasValue) {
+                result = _nextBlockOption.Value;
                 return true; 
             }
 
@@ -40,12 +59,15 @@ namespace Fluxzy.Core.Pcap.Pcapng
             if (_eof)
                 return false;
 
-            if (!ReadNextBlock(_sleepyStream, out _nextBlock)) {
-                _eof = true; 
+            if (!ReadNextBlock(_sleepyStream, out var nextBlock)) {
+                _eof = true;
+                _nextBlockOption = default;
                 return false; 
             }
 
-            result = _nextBlock;
+            _nextBlockOption = new Option<T>(nextBlock);
+
+            result = _nextBlockOption.Value;
             
             return true; 
         }
@@ -65,7 +87,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 var res = InternalReadNextBlock(out var block);
 
                 if (res) {
-                    return _pendingTimeStamp = ReadTimeStamp(block);
+                    return _pendingTimeStamp = ReadTimeStamp(ref block);
                 }
 
                 return -1;
@@ -76,7 +98,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         {
             var res = InternalReadNextBlock(out result);
 
-            _nextBlock = default;
+            _nextBlockOption = default;
             _pendingTimeStamp = -1;
 
             return res; 
