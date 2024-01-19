@@ -72,7 +72,13 @@ namespace Fluxzy.Core.Pcap.Pcapng
             if (
                 blockType == NssDecryptionSecretsBlock.BlockTypeValue
                 || blockType == InterfaceDescriptionBlock.BlockTypeValue
-                ) {
+                )
+            {
+                if (_writer == null)
+                {
+                    _writer = CreateWriter();
+                }
+
                 _outStream.Write(buffer);
             }
 
