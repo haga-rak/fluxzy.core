@@ -76,6 +76,8 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 BinaryPrimitives.WriteInt32LittleEndian(data.Slice(4), blockTotalLength);
 
                 result = new DataBlock(timeStamp, data.ToArray());
+
+                return true; 
             }
         }
     }

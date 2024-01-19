@@ -76,7 +76,6 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
                 result[optionCode] = str;
 
                 optionBlocks = optionBlocks.Slice(4 + optionLength);
-
             }
 
             return result;
