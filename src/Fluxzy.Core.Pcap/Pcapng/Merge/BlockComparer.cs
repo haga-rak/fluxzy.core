@@ -1,4 +1,4 @@
-namespace Fluxzy.Core.Pcap.Pcapng
+namespace Fluxzy.Core.Pcap.Pcapng.Merge
 {
     internal class BlockComparer : IComparer<IBlockReader>
     {
@@ -18,9 +18,10 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 return 1;
             }
 
-            var yTimeStamp = y!.NextTimeStamp; 
+            var yTimeStamp = y!.NextTimeStamp;
 
-            if (yTimeStamp == long.MaxValue) {
+            if (yTimeStamp == long.MaxValue)
+            {
                 return -1;
             }
 

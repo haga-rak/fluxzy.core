@@ -2,15 +2,15 @@
 
 using Fluxzy.Core.Pcap.Pcapng.Structs;
 
-namespace Fluxzy.Core.Pcap.Pcapng
+namespace Fluxzy.Core.Pcap.Pcapng.Merge
 {
     internal class PcapBlockWriter : IBlockWriter
     {
         private readonly Stream _outStream;
         private readonly IEnumerable<IStreamSource> _nssKeyFileInfos;
 
-        private readonly HashSet<string> _shbUserApplSet = new(StringComparer.OrdinalIgnoreCase); 
-        private readonly HashSet<string> _shbOsSet = new(StringComparer.OrdinalIgnoreCase); 
+        private readonly HashSet<string> _shbUserApplSet = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _shbOsSet = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _shbHardware = new(StringComparer.OrdinalIgnoreCase);
 
         private PcapngStreamWriter? _writer;
@@ -32,18 +32,20 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
             result.WriteSectionHeaderBlock(_outStream);
 
-            foreach (var nssKeyInfoFile in _nssKeyFileInfos) {
+            foreach (var nssKeyInfoFile in _nssKeyFileInfos)
+            {
 
                 using var stream = nssKeyInfoFile.Open();
                 result.WriteNssKey(_outStream, stream);
             }
 
-            return result; 
+            return result;
         }
 
         public void Write(ref DataBlock content)
         {
-            if (_writer == null) {
+            if (_writer == null)
+            {
                 _writer = InternalCreateWriter();
             }
 
@@ -52,13 +54,16 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         public bool NotifyNewBlock(uint blockType, ReadOnlySpan<byte> buffer)
         {
-            if (blockType == SectionHeaderBlock.BlockTypeValue) {
+            if (blockType == SectionHeaderBlock.BlockTypeValue)
+            {
                 // Section block 
-                
+
                 var stringOp = SectionHeaderBlock.Parse(buffer);
 
-                foreach (var (op, value) in stringOp) {
-                    switch (op) {
+                foreach (var (op, value) in stringOp)
+                {
+                    switch (op)
+                    {
                         case OptionBlockCode.Shb_Hardware:
                             _shbHardware.Add(value);
                             break;

@@ -1,6 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-namespace Fluxzy.Core.Pcap.Pcapng
+namespace Fluxzy.Core.Pcap.Pcapng.Merge
 {
     /// <summary>
     ///  Hey! This is a stream-like object but accepting read-only operation.
@@ -12,7 +12,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         private readonly Func<Stream> _streamFactory;
         private long _offset;
         private Stream? _pendingStream;
-        private bool _eof; 
+        private bool _eof;
 
         public SleepyStream(Func<Stream> streamFactory)
         {
@@ -21,7 +21,8 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         public void Sleep()
         {
-            if (_pendingStream != null) {
+            if (_pendingStream != null)
+            {
                 _pendingStream.Dispose();
                 _pendingStream = null;
             }
@@ -37,8 +38,9 @@ namespace Fluxzy.Core.Pcap.Pcapng
             var read = stream.Read(buffer);
             _offset += read;
 
-            if (read == 0) {
-                _eof = true; 
+            if (read == 0)
+            {
+                _eof = true;
             }
 
             return read;
@@ -53,19 +55,21 @@ namespace Fluxzy.Core.Pcap.Pcapng
         {
             var totalRead = 0;
 
-            var slidingBuffer = buffer; 
+            var slidingBuffer = buffer;
 
-            while (totalRead < buffer.Length) {
+            while (totalRead < buffer.Length)
+            {
                 var read = Read(slidingBuffer.Slice(totalRead));
 
-                if (read == 0) {
-                    return false; 
+                if (read == 0)
+                {
+                    return false;
                 }
 
                 totalRead += read;
             }
 
-            return true; 
+            return true;
         }
 
         private Stream GetStream()
@@ -88,7 +92,8 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         public async ValueTask DisposeAsync()
         {
-            if (_pendingStream != null) {
+            if (_pendingStream != null)
+            {
                 await _pendingStream.DisposeAsync();
             }
         }

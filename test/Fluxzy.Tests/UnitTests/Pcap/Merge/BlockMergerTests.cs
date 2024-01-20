@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Fluxzy.Core.Pcap.Pcapng;
+using Fluxzy.Core.Pcap.Pcapng.Merge;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Pcap.Merge

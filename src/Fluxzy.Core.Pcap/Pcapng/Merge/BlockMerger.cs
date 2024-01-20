@@ -1,6 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-namespace Fluxzy.Core.Pcap.Pcapng
+namespace Fluxzy.Core.Pcap.Pcapng.Merge
 {
     /// <summary>
     /// 
@@ -24,7 +24,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
             {
                 if (!array[0].Dequeue(out var block))
                     break; // No more block to read
-                
+
                 writer.Write(ref block);
 
                 ArrayUtilities.Reposition(array, array[0], BlockComparer.Instance);

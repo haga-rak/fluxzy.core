@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using Fluxzy.Core.Pcap.Pcapng;
+using Fluxzy.Core.Pcap.Pcapng.Merge;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
 

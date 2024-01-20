@@ -1,12 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-namespace Fluxzy.Core.Pcap.Pcapng
+namespace Fluxzy.Core.Pcap.Pcapng.Merge
 {
     internal static class PcapMerge
     {
         public static void Merge(
             IEnumerable<FileInfo> pcapFiles,
-            IEnumerable<FileInfo> nssKeyLogs, Stream outStream, 
+            IEnumerable<FileInfo> nssKeyLogs, Stream outStream,
             int maxConcurrentOpenFile = 20)
         {
             Merge(pcapFiles.Select(f => new FileStreamSource(f.FullName)),
@@ -16,7 +16,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         public static void Merge(
             IEnumerable<IStreamSource> pcapFiles,
-            IEnumerable<IStreamSource> nssKeyLogs, Stream outStream, 
+            IEnumerable<IStreamSource> nssKeyLogs, Stream outStream,
             int maxConcurrentOpenFile = 20)
         {
             var merger = new BlockMerger<IStreamSource>();
@@ -31,7 +31,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
     internal interface IStreamSource
     {
-        Stream Open(); 
+        Stream Open();
     }
 
     internal class FileStreamSource : IStreamSource
