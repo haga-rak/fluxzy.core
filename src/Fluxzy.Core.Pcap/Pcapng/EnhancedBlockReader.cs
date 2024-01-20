@@ -8,7 +8,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
     internal class EnhancedBlockReader : SleepyStreamBlockReader
     {
         private readonly PcapBlockWriter _blockWriter;
-        private readonly byte[] _defaultBuffer = new byte[1024 * 2]; 
+        private readonly byte[] _defaultBuffer = new byte[1024 * 4]; 
 
         public EnhancedBlockReader(PcapBlockWriter blockWriter,
             StreamLimiter streamLimiter, Func<Stream> streamFactory)
@@ -60,9 +60,15 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 // fixed buffer because the block length is variable
                 // Reading EnhancedPacket block
 
-                byte [] data = new byte[blockTotalLength];
+                if (blockTotalLength > _defaultBuffer.Length) {
+                    throw new InvalidOperationException($"Block exceeds default buffer " +
+                                                        $"{blockTotalLength} > {_defaultBuffer.Length}");
 
-                var readData = stream.ReadExact(data.AsSpan(8));
+                }
+
+                byte [] data = _defaultBuffer;
+
+                var readData = stream.ReadExact(data.AsSpan(8, blockTotalLength - 8));
 
                 if (!readData) {
                     result = default;
@@ -80,7 +86,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 BinaryPrimitives.WriteUInt32LittleEndian(data, blockType);
                 BinaryPrimitives.WriteInt32LittleEndian(data.AsSpan(4), blockTotalLength);
 
-                result = new DataBlock(fullTimeStamp, data.ToArray());
+                result = new DataBlock(fullTimeStamp, data.AsMemory(0, blockTotalLength));
 
                 return true; 
             }
