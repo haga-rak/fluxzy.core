@@ -13,6 +13,19 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
     public class PcapMergeTests : ProduceDeletableItem
     {
         [Fact]
+        public void Validate_0()
+        {
+            var outFile = GetRegisteredRandomFile();
+            
+            using (var outStream = File.Create(outFile)) {
+                PcapMerge.Merge(Array.Empty<FileInfo>(), Array.Empty<FileInfo>(), outStream);
+            }
+
+            Assert.True(File.Exists(outFile));
+            Assert.Equal(0, new FileInfo(outFile).Length);
+        }
+
+        [Fact]
         public void Validate_3()
         {
             var directory = ".artefacts/tests/pink-floyd/captures";
