@@ -17,12 +17,20 @@ namespace Fluxzy.Tests
     {
         public static string DirectoryName { get; set; } = string.Empty;
 
+        public static string DefaultMergeArchivePcapHash { get; } =
+            "5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8";
+
+        public static string DefaultArchiveHash { get; } =
+            "b74d2bb7de2579a46bd782d3133c7acce8353352fd22fb14067e264f6ba93540";
+
         public Startup(IMessageSink messageSink)
             : base(messageSink)
         {
             InstallCertificate();
 
             DirectoryName = EmptyDirectory("static_website_dir");
+
+            Directory.CreateDirectory("Drop");
 
             ExtractDirectory(StorageContext.static_ws, DirectoryName);
             ExtractDirectory(File.ReadAllBytes("_Files/Archives/pink-floyd.fxzy"), ".artefacts/tests/pink-floyd");

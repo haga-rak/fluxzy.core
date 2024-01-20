@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using Fluxzy.Core.Pcap.Pcapng.Merge;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
@@ -29,7 +28,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         public void Validate_3()
         {
             var directory = ".artefacts/tests/pink-floyd/captures";
-            var outFile = ".artefacts/tests/__full3.pcapng";
+            var outFile = GetRegisteredRandomFile();
 
             var pcapngFiles = new DirectoryInfo(directory).EnumerateFiles("3*.pcapng").ToList();
             var nssKeys = new DirectoryInfo(directory).EnumerateFiles("*.nsskeylog").ToList();
@@ -59,8 +58,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(572384, new FileInfo(outFile).Length); 
-            Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
+            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
         }
 
         [Fact]
@@ -74,8 +72,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(572384, new FileInfo(outFile).Length); 
-            Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
+            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
         }
 
         [Fact]
@@ -89,8 +86,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(572384, new FileInfo(outFile).Length); 
-            Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
+            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
         }
 
         [Fact]
@@ -120,8 +116,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(572384, new FileInfo(outFile).Length); 
-            Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
+            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
         }
 
         [Theory]
@@ -141,17 +136,6 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
 
             Assert.True(File.Exists(outFile));
             Assert.True(new FileInfo(outFile).Length > 0);
-        }
-    }
-
-    internal static class HashHelper
-    {
-        public static string MakeWinGetHash(string fileName)
-        {
-            using var sha256 = SHA256.Create();
-            using var stream = File.OpenRead(fileName); 
-            var hash = sha256.ComputeHash(stream);
-            return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
         }
     }
 }
