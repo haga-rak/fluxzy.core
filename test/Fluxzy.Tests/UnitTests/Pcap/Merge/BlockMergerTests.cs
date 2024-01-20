@@ -79,36 +79,6 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         }
     }
 
-    //internal readonly struct DummyBlock : IEquatable<DummyBlock>
-    //{
-    //    public DummyBlock(ReadOnlySpan<char> rawValue)
-    //    {
-    //        Value = int.Parse(rawValue);
-    //    }
-
-    //    public int Value { get;  }
-
-    //    public override string ToString()
-    //    {
-    //        return Value.ToString();
-    //    }
-
-    //    public bool Equals(DummyBlock other)
-    //    {
-    //        return Value == other.Value;
-    //    }
-
-    //    public override bool Equals(object? obj)
-    //    {
-    //        return obj is DummyBlock other && Equals(other);
-    //    }
-
-    //    public override int GetHashCode()
-    //    {
-    //        return Value;
-    //    }
-    //}
-
     internal class DummyBlockWriter : IBlockWriter
     {
         private readonly string _format;

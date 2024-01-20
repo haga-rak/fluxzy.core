@@ -28,8 +28,11 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             Assert.True(File.Exists(outFile));
         }
 
-        [Fact]
-        public void Validate_With_Fix_Hash()
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(10)]
+        public void Validate_With_Fix_Hash(int concurrentFileOpen)
         {
             var directory = ".artefacts/tests/pink-floyd/captures";
             var outFile = ".artefacts/tests/__full.pcapng";
@@ -38,14 +41,29 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             var nssKeys = new DirectoryInfo(directory).EnumerateFiles("*.nsskeylog").ToList();
 
             using (var outStream = File.Create(outFile)) {
-                PcapMerge.Merge(pcapngFiles, nssKeys, outStream);
+                PcapMerge.Merge(pcapngFiles, nssKeys, outStream,
+                    maxConcurrentOpenFile: concurrentFileOpen);
             }
 
             Assert.True(File.Exists(outFile));
             Assert.Equal(572384, new FileInfo(outFile).Length); 
             Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
         }
-        
+
+        [Fact]
+        public void Validate_With_Dump_Directory()
+        {
+            var directory = ".artefacts/tests/pink-floyd";
+            var outFile = ".artefacts/tests/__full.pcapng";
+
+            using (var outStream = File.Create(outFile)) {
+                PcapMerge.Merge(directory, outStream);
+            }
+
+            Assert.True(File.Exists(outFile));
+            Assert.Equal(572384, new FileInfo(outFile).Length); 
+            Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
+        }
 
         [Theory]
         [InlineData("14.pcapng", "*.nsskeylog")]
