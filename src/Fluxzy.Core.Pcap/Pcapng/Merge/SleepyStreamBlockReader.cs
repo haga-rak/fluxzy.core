@@ -2,7 +2,7 @@
 
 namespace Fluxzy.Core.Pcap.Pcapng.Merge
 {
-    internal abstract class SleepyStreamBlockReader : IBlockReader, IAsyncDisposable
+    internal abstract class SleepyStreamBlockReader : IBlockReader
     {
         private readonly SleepyStream _sleepyStream;
         private Option _nextBlockOption = new();
@@ -95,11 +95,6 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
         public void Dispose()
         {
             _sleepyStream.Dispose();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _sleepyStream.DisposeAsync();
         }
     }
 

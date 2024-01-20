@@ -51,14 +51,5 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
 
             return OnWireLength;
         }
-
-        public static StringOptionBlock Parse(ReadOnlySpan<byte> buffer)
-        {
-            var optionLength = BinaryPrimitives.ReadUInt16LittleEndian(buffer.Slice(2));
-            var valueBuffer = buffer.Slice(4, optionLength);
-            string value = Encoding.UTF8.GetString(valueBuffer);
-
-            return new StringOptionBlock(BinaryPrimitives.ReadUInt16LittleEndian(buffer), value);
-        }
     }
 }

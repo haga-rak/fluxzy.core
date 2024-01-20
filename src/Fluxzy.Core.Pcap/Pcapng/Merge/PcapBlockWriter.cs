@@ -42,14 +42,15 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
             return result;
         }
 
+        private void InternalWrite(ReadOnlySpan<byte> data)
+        {
+            _writer ??= InternalCreateWriter();
+            _outStream.Write(data);
+        }
+
         public void Write(ref DataBlock content)
         {
-            if (_writer == null)
-            {
-                _writer = InternalCreateWriter();
-            }
-
-            _outStream.Write(content.Data.Span);
+            InternalWrite(content.Data.Span);
         }
 
         public bool NotifyNewBlock(uint blockType, ReadOnlySpan<byte> buffer)
@@ -81,12 +82,7 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
                 || blockType == InterfaceDescriptionBlock.BlockTypeValue
                 )
             {
-                if (_writer == null)
-                {
-                    _writer = InternalCreateWriter();
-                }
-
-                _outStream.Write(buffer);
+                InternalWrite(buffer);
             }
 
             return true;

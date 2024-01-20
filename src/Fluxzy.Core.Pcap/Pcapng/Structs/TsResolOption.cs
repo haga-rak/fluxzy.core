@@ -30,15 +30,5 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             
             return 8;
         }
-
-        public static TsResolOption Parse(ReadOnlySpan<byte> buffer)
-        {
-            return new TsResolOption(buffer[4]);
-        }
-
-        public static int DirectWrite(Span<byte> buffer)
-        {
-            return new TsResolOption().Write(buffer);
-        }
     }
 }
