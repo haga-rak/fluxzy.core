@@ -1,5 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Fluxzy.Misc.Streams;
+
 namespace Fluxzy.Core.Pcap.Pcapng.Merge
 {
     /// <summary>
@@ -80,9 +82,21 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
             }
 
             _pendingStream = _streamFactory();
-            _pendingStream.Seek(_offset, SeekOrigin.Begin);
 
+            if (_offset > 0)
+            {
+                if (_pendingStream.CanSeek)
+                    _pendingStream.Seek(_offset, SeekOrigin.Begin);
+                else
+                    SlowSeek(_offset, _pendingStream);
+            }
             return _pendingStream;
+        }
+
+        private void SlowSeek(long offset, Stream stream)
+        {
+            if (!stream.DrainUntil(offset))
+                throw new InvalidOperationException("Offset reach before Stream complete");
         }
 
         public void Dispose()

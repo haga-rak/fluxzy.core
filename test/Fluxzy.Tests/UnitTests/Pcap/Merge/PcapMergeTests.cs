@@ -57,7 +57,22 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             var outFile = GetRegisteredRandomFile();
 
             using (var outStream = File.Create(outFile)) {
-                PcapMerge.Merge(directory, outStream);
+                PcapMerge.MergeDumpDirectory(directory, outStream);
+            }
+
+            Assert.True(File.Exists(outFile));
+            Assert.Equal(572384, new FileInfo(outFile).Length); 
+            Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
+        }
+
+        [Fact]
+        public void Validate_With_Archive()
+        {
+            var archiveFile = "_Files/Archives/pink-floyd.fxzy";
+            var outFile = GetRegisteredRandomFile();
+
+            using (var outStream = File.Create(outFile)) {
+                PcapMerge.MergeArchive(archiveFile, outStream);
             }
 
             Assert.True(File.Exists(outFile));
@@ -73,7 +88,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             var outFile = GetRegisteredRandomFile();
 
             using (var outStream = File.Create(outFile)) {
-                PcapMerge.Merge(directory, outStream, connectionIds: new () { 31 });
+                PcapMerge.MergeDumpDirectory(directory, outStream, connectionIds: new () { 31 });
             }
 
             Assert.True(File.Exists(outFile));
@@ -88,7 +103,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             var outFile = GetRegisteredRandomFile();
 
             using (var outStream = File.Create(outFile)) {
-                PcapMerge.Merge(directory, outStream);
+                PcapMerge.MergeDumpDirectory(directory, outStream);
             }
 
             Assert.True(File.Exists(outFile));

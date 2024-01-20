@@ -107,7 +107,9 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
         public StreamLimiter(int concurrentCount)
         {
             _concurrentCount = concurrentCount;
-            _currentQueue = new(concurrentCount + 4);
+
+            _currentQueue = concurrentCount > 100 ?
+                new () : new(concurrentCount + 4);
         }
 
         public void NotifyOpen(IBlockReader reader)
