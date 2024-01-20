@@ -48,7 +48,10 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
         /// <param name="dumpDirectory"></param>
         /// <param name="outStream"></param>
         /// <param name="maxConcurrentOpenFile"></param>
-        public static void Merge(string dumpDirectory, Stream outStream, int maxConcurrentOpenFile = 20)
+        /// <param name="connectionIds"></param>
+        public static void Merge(string dumpDirectory, Stream outStream, 
+            int maxConcurrentOpenFile = 20,
+            HashSet<int>? connectionIds = null)
         {
             var captureDirectory = Path.Combine(dumpDirectory, "captures");
 
@@ -56,12 +59,39 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
                 return; 
 
             var pcapFiles = new DirectoryInfo(captureDirectory)
-                .EnumerateFiles("*.pcapng"); 
+                .EnumerateFiles("*.pcapng");
+
+            if (connectionIds != null) {
+                pcapFiles =
+                    pcapFiles.Where(p => FilterConnectionHelper.CheckInList(p.Name,
+                        connectionIds)); 
+            }
 
             var nssKeys = new DirectoryInfo(captureDirectory)
                 .EnumerateFiles("*.nsskeylog");
 
+            if (connectionIds != null)
+            {
+                nssKeys =
+                    nssKeys.Where(p => FilterConnectionHelper.CheckInList(p.Name,
+                        connectionIds));
+            }
+
             Merge(pcapFiles, nssKeys, outStream, maxConcurrentOpenFile);
+        }
+    }
+
+    internal static class FilterConnectionHelper
+    {
+        public static bool CheckInList(string fileName, HashSet<int> connectionIds)
+        {
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+
+            if (!int.TryParse(fileNameWithoutExtension, out var connectionId)) {
+                return false; 
+            }
+
+            return connectionIds.Contains(connectionId);
         }
     }
 

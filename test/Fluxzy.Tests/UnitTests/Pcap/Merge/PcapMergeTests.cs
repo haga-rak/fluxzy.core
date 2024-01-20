@@ -35,7 +35,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         public void Validate_With_Fix_Hash(int concurrentFileOpen)
         {
             var directory = ".artefacts/tests/pink-floyd/captures";
-            var outFile = ".artefacts/tests/__full.pcapng";
+            var outFile = GetRegisteredRandomFile();
 
             var pcapngFiles = new DirectoryInfo(directory).EnumerateFiles("*.pcapng").ToList();
             var nssKeys = new DirectoryInfo(directory).EnumerateFiles("*.nsskeylog").ToList();
@@ -54,7 +54,38 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         public void Validate_With_Dump_Directory()
         {
             var directory = ".artefacts/tests/pink-floyd";
-            var outFile = ".artefacts/tests/__full.pcapng";
+            var outFile = GetRegisteredRandomFile();
+
+            using (var outStream = File.Create(outFile)) {
+                PcapMerge.Merge(directory, outStream);
+            }
+
+            Assert.True(File.Exists(outFile));
+            Assert.Equal(572384, new FileInfo(outFile).Length); 
+            Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
+        }
+
+        [Fact]
+        public void Validate_With_Dump_Directory_31_Only()
+        {
+            var hash = "5aedc27fc85ada8b5c224679eeb83d2f3ad75dcac4caa98aae6a927d49d96ab8";
+            var directory = ".artefacts/tests/pink-floyd";
+            var outFile = GetRegisteredRandomFile();
+
+            using (var outStream = File.Create(outFile)) {
+                PcapMerge.Merge(directory, outStream, connectionIds: new () { 31 });
+            }
+
+            Assert.True(File.Exists(outFile));
+            Assert.Equal(hash, 
+                HashHelper.MakeWinGetHash(outFile));
+        }
+
+        [Fact]
+        public void Validate_With_Dump_Directory_Filtered_Connection()
+        {
+            var directory = ".artefacts/tests/pink-floyd";
+            var outFile = GetRegisteredRandomFile();
 
             using (var outStream = File.Create(outFile)) {
                 PcapMerge.Merge(directory, outStream);
