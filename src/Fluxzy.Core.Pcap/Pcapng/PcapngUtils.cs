@@ -66,18 +66,5 @@ namespace Fluxzy.Core.Pcap.Pcapng
             await using var tempStream = PcapngUtils.GetPcapngFileWithKeyStream(pcapStream, nssKey);
             await tempStream.CopyToAsync(outFileStream);
         }
-
-        /// <summary>
-        /// Create a PCAPNG file from an existing file with included NSS key
-        /// </summary>
-        /// <param name="nssKey"></param>
-        /// <param name="inRawCaptureStream"></param>
-        /// <param name="outFileStream"></param>
-        public static void CreatePcapngFileWithKeys(string nssKey, Stream inRawCaptureStream, Stream outFileStream)
-        {
-            var pcapStream = inRawCaptureStream;
-            using var tempStream = PcapngUtils.GetPcapngFileWithKeyStream(pcapStream, nssKey);
-            tempStream.CopyTo(outFileStream);
-        }
     }
 }
