@@ -13,14 +13,14 @@ namespace Fluxzy.Core.Pcap.Pcapng
         {
             var xTimeStamp = x!.NextTimeStamp;
 
-            if (xTimeStamp == uint.MaxValue)
+            if (xTimeStamp == long.MaxValue)
             {
                 return 1;
             }
 
             var yTimeStamp = y!.NextTimeStamp; 
 
-            if (yTimeStamp == uint.MaxValue) {
+            if (yTimeStamp == long.MaxValue) {
                 return -1;
             }
 

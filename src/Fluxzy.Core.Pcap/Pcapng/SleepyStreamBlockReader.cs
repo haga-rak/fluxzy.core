@@ -27,7 +27,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         private bool _eof;
 
-        private uint _pendingTimeStamp = uint.MaxValue; 
+        private long _pendingTimeStamp = long.MaxValue; 
 
         protected SleepyStreamBlockReader(
             StreamLimiter streamLimiter, 
@@ -67,14 +67,14 @@ namespace Fluxzy.Core.Pcap.Pcapng
             return true; 
         }
 
-        public uint NextTimeStamp {
+        public long NextTimeStamp {
             get
             {
                 if (_eof) {
-                    return uint.MaxValue;
+                    return long.MaxValue;
                 }
 
-                if (_pendingTimeStamp != uint.MaxValue)
+                if (_pendingTimeStamp != long.MaxValue)
                 {
                     return _pendingTimeStamp;
                 }
@@ -85,7 +85,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                     return _pendingTimeStamp = block.TimeStamp;
                 }
 
-                return uint.MaxValue;
+                return long.MaxValue;
             }
         }
 
@@ -94,7 +94,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
             var res = InternalReadNextBlock(out result);
 
             _nextBlockOption = default;
-            _pendingTimeStamp = uint.MaxValue;
+            _pendingTimeStamp = long.MaxValue;
 
             return res; 
         }

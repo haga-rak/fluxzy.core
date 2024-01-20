@@ -5,7 +5,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         /// <summary>
         ///  Next timestamp
         /// </summary>
-        uint NextTimeStamp { get; }
+        long NextTimeStamp { get; }
 
         /// <summary>
         ///  
@@ -23,13 +23,13 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
     internal struct DataBlock
     {
-        public DataBlock(uint timeStamp, ReadOnlyMemory<byte> data)
+        public DataBlock(long timeStamp, ReadOnlyMemory<byte> data)
         {
             TimeStamp = timeStamp;
             Data = data;
         }
 
-        public uint TimeStamp { get;  }
+        public long TimeStamp { get;  }
 
         public ReadOnlyMemory<byte> Data { get; }
     }

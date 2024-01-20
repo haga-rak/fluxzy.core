@@ -142,32 +142,32 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         private readonly string[] _fullLines;
         private int _offset; 
 
-        private uint  _nextTimeStamp = UInt32.MaxValue;
+        private long _nextTimeStamp = long.MaxValue;
 
         public DummyBlockReader(string rawLine)
         {
             _fullLines = rawLine.Split(",", StringSplitOptions.RemoveEmptyEntries); 
         }
 
-        public uint NextTimeStamp {
+        public long NextTimeStamp {
             get
             {
-                if (_nextTimeStamp != uint.MaxValue) {
+                if (_nextTimeStamp != long.MaxValue) {
                     return _nextTimeStamp;
                 }
 
                 if (_offset < _fullLines.Length) {
-                    _nextTimeStamp = uint.Parse(_fullLines[_offset]);
+                    _nextTimeStamp = long.Parse(_fullLines[_offset]);
                     return _nextTimeStamp;
                 }
 
-                return uint.MaxValue;
+                return long.MaxValue;
             }
         }
 
         public bool Dequeue(out DataBlock result)
         {
-            _nextTimeStamp = uint.MaxValue;
+            _nextTimeStamp = long.MaxValue;
             result = default!; 
 
             if (_offset >= _fullLines.Length) {
@@ -178,7 +178,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
 
             _offset++;
 
-            result = new DataBlock(uint.Parse(nextLine), Encoding.UTF8.GetBytes(nextLine));
+            result = new DataBlock(long.Parse(nextLine), Encoding.UTF8.GetBytes(nextLine));
 
             return true; 
         }
@@ -218,7 +218,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             
             Encoding.UTF8.GetChars(buffer, charBuffer);
 
-            result = new DataBlock(uint.Parse(charBuffer), buffer.ToArray());
+            result = new DataBlock(long.Parse(charBuffer), buffer.ToArray());
             return true;
         }
     }

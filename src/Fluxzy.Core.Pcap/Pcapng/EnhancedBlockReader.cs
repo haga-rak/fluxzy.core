@@ -58,6 +58,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
                 // This allocation is not ideal but we can't use a
                 // fixed buffer because the block length is variable
+                // Reading EnhancedPacket block
 
                 byte [] data = new byte[blockTotalLength];
 
@@ -68,12 +69,18 @@ namespace Fluxzy.Core.Pcap.Pcapng
                     return false; 
                 }
 
-                var timeStamp = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(4));
+                var timeStampHigh = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(12));
+                var timeStampLow = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(16));
 
+                long fullTimeStamp = timeStampLow;
+
+                fullTimeStamp = ((long) timeStampHigh) << 32 | fullTimeStamp;
+
+                // Restore value OK
                 BinaryPrimitives.WriteUInt32LittleEndian(data, blockType);
                 BinaryPrimitives.WriteInt32LittleEndian(data.AsSpan(4), blockTotalLength);
 
-                result = new DataBlock(timeStamp, data.ToArray());
+                result = new DataBlock(fullTimeStamp, data.ToArray());
 
                 return true; 
             }

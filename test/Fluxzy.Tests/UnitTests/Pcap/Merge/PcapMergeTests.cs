@@ -42,9 +42,10 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(572384, new FileInfo(outFile).Length);
-            Assert.Equal("f208adf9a27f2cc2d4b88a19d89658f1ef6b3c6acaa96c3206db2b74bfb8a080", HashHelper.MakeWinGetHash(outFile));
+            Assert.Equal(572384, new FileInfo(outFile).Length); 
+            Assert.Equal("5cf21b2c48ae241f46ddebf30fca6de2f757df52d00d9cf939b750f0296d33b8", HashHelper.MakeWinGetHash(outFile));
         }
+        
 
         [Theory]
         [InlineData("14.pcapng", "*.nsskeylog")]
