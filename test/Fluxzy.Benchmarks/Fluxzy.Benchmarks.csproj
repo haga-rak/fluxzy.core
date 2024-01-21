@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
@@ -9,6 +9,6 @@
       <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\test\Fluxzy.Tests\Fluxzy.Tests.csproj" />
+      <ProjectReference Include="..\Fluxzy.Tests\Fluxzy.Tests.csproj" />
     </ItemGroup>
 </Project>
