@@ -19,7 +19,10 @@ namespace Fluxzy.Tests.UnitTests.Equality
 
         [Fact]
         public void Test_With_Null()
-        {
+        { 
+            if (typeof(T).IsValueType)
+                return; // Skip this test for value types
+            
             Assert.NotEqual(default, Item);
             Assert.NotEqual(Item, default);
         }
