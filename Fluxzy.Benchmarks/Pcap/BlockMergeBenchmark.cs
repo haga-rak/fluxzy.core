@@ -2,7 +2,7 @@
 
 using System.Text;
 using BenchmarkDotNet.Attributes;
-using Fluxzy.Core.Pcap.Pcapng;
+using Fluxzy.Core.Pcap.Pcapng.Merge;
 using Fluxzy.Tests.UnitTests.Pcap.Merge;
 
 namespace Fluxzy.Benchmarks.Pcap
