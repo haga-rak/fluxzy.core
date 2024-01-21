@@ -17,6 +17,18 @@ namespace Fluxzy.Tests
                 }
             }
         }
+        
+        public static int Short {
+            get
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                    return 15;
+                }
+                else {
+                    return 10;
+                }
+            }
+        }
 
         public static int Extended {
             get
