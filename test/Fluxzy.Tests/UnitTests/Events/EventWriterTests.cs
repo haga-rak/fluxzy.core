@@ -113,6 +113,7 @@ namespace Fluxzy.Tests.UnitTests.Events
                 
                 Assert.False(delayTask.IsCompletedSuccessfully);
                 Assert.NotNull(connectionInfo); 
+                Assert.Equal(1, proxy.Writer.TotalProcessedExchanges); 
             }
         }
     }
