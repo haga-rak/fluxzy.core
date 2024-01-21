@@ -37,6 +37,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                 throw new InvalidOperationException("Section header block is too big");
 
             var block = new NssDecryptionSecretsBlock(nssKey);
+
             Span<byte> nssKeyBlockBuffer = stackalloc byte[block.BlockTotalLength];
 
             block.Write(nssKeyBlockBuffer, nssKey);
@@ -64,19 +65,6 @@ namespace Fluxzy.Core.Pcap.Pcapng
             var pcapStream = inRawCaptureStream;
             await using var tempStream = PcapngUtils.GetPcapngFileWithKeyStream(pcapStream, nssKey);
             await tempStream.CopyToAsync(outFileStream);
-        }
-
-        /// <summary>
-        /// Create a PCAPNG file from an existing file with included NSS key
-        /// </summary>
-        /// <param name="nssKey"></param>
-        /// <param name="inRawCaptureStream"></param>
-        /// <param name="outFileStream"></param>
-        public static void CreatePcapngFileWithKeys(string nssKey, Stream inRawCaptureStream, Stream outFileStream)
-        {
-            var pcapStream = inRawCaptureStream;
-            using var tempStream = PcapngUtils.GetPcapngFileWithKeyStream(pcapStream, nssKey);
-            tempStream.CopyTo(outFileStream);
         }
     }
 }

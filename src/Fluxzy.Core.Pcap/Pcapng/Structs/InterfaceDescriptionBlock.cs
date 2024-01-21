@@ -4,6 +4,8 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
 {
     internal readonly struct InterfaceDescriptionBlock
     {
+        public const uint BlockTypeValue = 0x00000001;
+
         private readonly InterfaceDescription _interfaceDescription;
         private readonly List<IOptionBlock> _options = new(); 
 
@@ -28,7 +30,6 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
                 _options.Add(new IfMacAddressOption(interfaceDescription.MacAddress));
             }
 
-
             if (_options.Any()) {
                 _options.Add(new EndOfOption());
             }
@@ -36,10 +37,9 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             BlockTotalLength += _options.Sum(o => o.OnWireLength); 
 
             LinkType = interfaceDescription.LinkType;
-
         }
 
-        public uint BlockType => 0x00000001;
+        public uint BlockType => BlockTypeValue;
 
         public int BlockTotalLength { get; }
 

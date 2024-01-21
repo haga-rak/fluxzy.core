@@ -4,9 +4,6 @@ namespace Fluxzy.Core.Pcap.Reading
     {
         public static long MacToLong(ReadOnlySpan<byte> macAddress)
         {
-            if (macAddress.Length != 6)
-                throw new ArgumentException("Must be 6 byte length", nameof(macAddress));
-
             Span<byte> destination = stackalloc byte[8];
 
             macAddress.CopyTo(destination.Slice(2));

@@ -1,8 +1,6 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
 using System.Net;
-using System.Net.NetworkInformation;
-using PacketDotNet;
 
 namespace Fluxzy.Core.Pcap
 {
@@ -17,19 +15,6 @@ namespace Fluxzy.Core.Pcap
             var addressHash = remoteAddress.GetHashCode(); // TODO : Upgrade to 64 bits hash
 
             return ((long) portCombination << 32) | (uint) addressHash.GetHashCode();
-        }
-
-        public static long GetConnectionKey(TcpPacket tcpPacket, PhysicalAddress physicalAddress)
-        {
-            var ipPacket = (IPPacket) tcpPacket.ParentPacket;
-            var ethernetPacket = (EthernetPacket) ipPacket.ParentPacket;
-
-            var sendPacket = ethernetPacket.SourceHardwareAddress.Equals(physicalAddress);
-            var localPort = sendPacket ? tcpPacket.SourcePort : tcpPacket.DestinationPort;
-            var remotePort = !sendPacket ? tcpPacket.SourcePort : tcpPacket.DestinationPort;
-            var remoteAddress = sendPacket ? ipPacket.DestinationAddress : ipPacket.SourceAddress;
-
-            return GetConnectionKey(localPort, remotePort, remoteAddress);
         }
 
         public static long GetAuthorityKey(IPAddress address, int port)

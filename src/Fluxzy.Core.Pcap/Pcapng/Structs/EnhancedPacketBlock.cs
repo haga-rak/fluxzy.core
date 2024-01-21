@@ -6,6 +6,8 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
 {
     internal readonly ref struct EnhancedPacketBlock
     {
+        public const uint BlockTypeValue = 0x00000006;
+
         private readonly string? _comment;
 
         public EnhancedPacketBlock(
@@ -31,7 +33,7 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             }
         }
 
-        public uint BlockType => 0x00000006;
+        public uint BlockType => BlockTypeValue;
 
         public int BlockTotalLength { get; }
 

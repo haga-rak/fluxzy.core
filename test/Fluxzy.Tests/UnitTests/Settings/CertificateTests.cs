@@ -21,6 +21,11 @@ namespace Fluxzy.Tests.UnitTests.Settings
             var rootCerts = defaultAuthorityManager.EnumerateRootCertificates().ToList();
 
             Assert.NotEmpty(rootCerts);
+
+            foreach (var rootCert in rootCerts) {
+                Assert.NotNull(rootCert.Subject); 
+                Assert.NotNull(rootCert.ThumbPrint); 
+            }
         }
 
         [Fact]

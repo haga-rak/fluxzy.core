@@ -1,10 +1,12 @@
 using System.Buffers.Binary;
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace Fluxzy.Core.Pcap.Reading
 {
     internal static class RawPacketParser
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryParseEthernet(
             ref EthernetPacketInfo info,
             ReadOnlySpan<byte> data, out int length)

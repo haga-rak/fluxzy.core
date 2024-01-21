@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Cli.Commands.Dissects;
 using Fluxzy.Cli.Commands.Dissects.Formatters;
+using Fluxzy.Core.Pcap.Pcapng.Merge;
 using Fluxzy.Readers;
 
 namespace Fluxzy.Cli.Commands
@@ -24,6 +25,8 @@ namespace Fluxzy.Cli.Commands
             
             var archiveReaderArgument = CreateInputFileOrDirectoryArgument(); 
 
+            command.AddCommand(BuildExportPcapCommand());
+
             command.AddOption(CreateExchangeIdsOption());
             command.AddOption(CreateFormatOption());
             command.AddOption(CreateOutputFileOption());
@@ -34,6 +37,59 @@ namespace Fluxzy.Cli.Commands
 
             return command;
         }
+
+        private static Command BuildExportPcapCommand()
+        {
+            var exportCommand = new Command("pcap", "Export pcapng files from an archive or dump directory.");
+
+            var inputFileOrDirectory = new Argument<string>(
+                "input-file-or-directory",
+                description: "Input file or directory",
+                parse: a => a.Tokens.First().Value)
+            {
+                Arity = ArgumentArity.ExactlyOne
+            };
+            
+            var outFileOption = new Option<FileInfo>(
+                "output-file",
+                description: "Input file or directory",
+                parseArgument: a => new FileInfo(a.Tokens.First().Value))
+            {
+                Arity = ArgumentArity.ExactlyOne,
+                IsRequired = true,
+            };
+
+            outFileOption.AddAlias("-o");
+
+            exportCommand.AddArgument(inputFileOrDirectory);
+            exportCommand.AddOption(outFileOption);
+
+            exportCommand.SetHandler((fileOrDirectory, outFile) => {
+
+                if (File.Exists(fileOrDirectory)) {
+                    using var outStream = File.Create(outFile.FullName);
+
+                    PcapMerge.MergeArchive(fileOrDirectory,
+                        outStream);
+
+                    return Task.CompletedTask; 
+                }
+
+                if (Directory.Exists(fileOrDirectory)) {
+                    using var outStream = File.Create(outFile.FullName);
+
+                    PcapMerge.MergeDumpDirectory(fileOrDirectory,
+                        outStream);
+
+                    return Task.CompletedTask; 
+                }
+
+                throw new InvalidOperationException($"{fileOrDirectory} is neither a file or a directory");
+            }, inputFileOrDirectory, outFileOption);
+
+            return exportCommand;
+        }
+
 
         private async Task Run(InvocationContext context, Argument<IArchiveReader> archiveReaderArgument)
         {

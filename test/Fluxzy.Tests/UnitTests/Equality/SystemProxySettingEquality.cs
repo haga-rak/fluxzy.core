@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Fluxzy.Core.Proxy;
 
 namespace Fluxzy.Tests.UnitTests.Equality

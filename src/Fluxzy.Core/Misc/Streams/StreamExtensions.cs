@@ -52,7 +52,7 @@ namespace Fluxzy.Misc.Streams
         }
 
         public static bool DrainUntil(
-            this Stream stream, int byteCount, int bufferSize = 16 * 1024, bool disposeStream = false)
+            this Stream stream, long byteCount, int bufferSize = 16 * 1024, bool disposeStream = false)
         {
             // TODO improve perf with stackalloc when bufferSize is small than an arbitrary threshold
 
@@ -64,7 +64,7 @@ namespace Fluxzy.Misc.Streams
 
                 var remaining = byteCount;
 
-                while ((read = stream.Read(buffer, 0, Math.Min(remaining, buffer.Length))) > 0) {
+                while ((read = stream.Read(buffer, 0, (int) Math.Min(remaining, buffer.Length))) > 0) {
                     total += read;
                     remaining -= read;
 

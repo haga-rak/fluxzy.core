@@ -5,6 +5,11 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>fluxzynetcap</AssemblyName>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="Logging\**" />
+	  <EmbeddedResource Remove="Logging\**" />
+	  <None Remove="Logging\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Fluxzy.Core.Pcap\Fluxzy.Core.Pcap.csproj" />
@@ -12,10 +17,6 @@
 
 	<ItemGroup>
 		<PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Logging\" />
 	</ItemGroup>
 
 </Project>

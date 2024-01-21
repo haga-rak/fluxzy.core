@@ -8,6 +8,8 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
 {
     internal readonly ref struct NssDecryptionSecretsBlock
     {
+        public const int BlockTypeValue = 0x0000000A;
+
         public NssDecryptionSecretsBlock(string nssKey)
         {
             BlockTotalLength = 20;
@@ -15,7 +17,7 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             BlockTotalLength += (int) (SecretsLength + (((4 - SecretsLength % 4) % 4)));
         }
 
-        public uint BlockType => 0x0000000A;
+        public uint BlockType => BlockTypeValue;
 
         public int BlockTotalLength { get; }
 
@@ -37,7 +39,6 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice((int) offset), BlockTotalLength);
 
             return BlockTotalLength;
-
         }
     }
 }

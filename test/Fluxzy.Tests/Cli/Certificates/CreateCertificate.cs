@@ -45,6 +45,5 @@ namespace Fluxzy.Tests.Cli.Certificates
             Assert.Equal(5 * 365D, (certificate.NotAfter - DateTime.Now).TotalDays, 1);
             Assert.Equal("CN=TestCN, L=PARIS, C=FR, O=Fluxzy_ORG, O=IDF, OU=Fluxzy_OU", certificate.Subject);
         }
-
     }
 }
