@@ -128,7 +128,10 @@ namespace Fluxzy
 
         internal ProxyExecutionContext ExecutionContext { get; }
 
-        internal RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
+        /// <summary>
+        ///  Get the writer that is used by this proxy.
+        /// </summary>
+        public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
 
         internal FromIndexIdProvider IdProvider { get; }
 
