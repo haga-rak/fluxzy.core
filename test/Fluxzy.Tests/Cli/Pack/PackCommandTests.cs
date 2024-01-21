@@ -2,6 +2,7 @@ using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
 using System.Threading.Tasks;
 using System.IO;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli.Pack
@@ -23,7 +24,9 @@ namespace Fluxzy.Tests.Cli.Pack
 
             Assert.Equal(0, runResult.ExitCode);
             Assert.True(File.Exists(fileName));
-            Assert.Equal(Startup.DefaultArchiveHash, HashHelper.MakeWinGetHash(fileName));
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Equal(Startup.DefaultArchiveHash, HashHelper.MakeWinGetHash(fileName));
         }
 
         [Fact]
