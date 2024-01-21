@@ -31,10 +31,5 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
 
             return OnWireLength;
         }
-
-        public static int DirectWrite(Span<byte> buffer)
-        {
-            return new IfMacAddressOption().Write(buffer);
-        }
     }
 }

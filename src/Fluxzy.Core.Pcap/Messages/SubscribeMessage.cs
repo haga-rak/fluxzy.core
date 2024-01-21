@@ -55,6 +55,5 @@ namespace Fluxzy.Core.Pcap.Messages
         {
             return HashCode.Combine(RemoteAddress, RemotePort, LocalPort, OutFileName);
         }
-
     }
 }

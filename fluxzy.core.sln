@@ -68,6 +68,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Core.Pcap", "src\Flu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Core.Pcap.Cli", "src\Fluxzy.Core.Pcap.Cli\Fluxzy.Core.Pcap.Cli.csproj", "{680F1967-AC85-47B7-8420-08290D9F2D03}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fluxzy.Benchmarks", "Fluxzy.Benchmarks\Fluxzy.Benchmarks.csproj", "{40E33F06-755D-4055-9443-2D193A7C8C92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -130,6 +132,10 @@ Global
 		{680F1967-AC85-47B7-8420-08290D9F2D03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{680F1967-AC85-47B7-8420-08290D9F2D03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{680F1967-AC85-47B7-8420-08290D9F2D03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40E33F06-755D-4055-9443-2D193A7C8C92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40E33F06-755D-4055-9443-2D193A7C8C92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40E33F06-755D-4055-9443-2D193A7C8C92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40E33F06-755D-4055-9443-2D193A7C8C92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -146,6 +152,7 @@ Global
 		{B591162B-5B2B-4E69-9CB6-367C7BB1FC46} = {3A06E788-DEFD-4463-8E7B-48404C45D3B0}
 		{B650DAE5-17D9-459E-840D-A1DE637D27FF} = {AA4E8234-B9D8-4327-8E98-471CE95CEB2C}
 		{680F1967-AC85-47B7-8420-08290D9F2D03} = {AA4E8234-B9D8-4327-8E98-471CE95CEB2C}
+		{40E33F06-755D-4055-9443-2D193A7C8C92} = {CAD5F2E1-227B-43AD-AFF9-1311097038D6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}

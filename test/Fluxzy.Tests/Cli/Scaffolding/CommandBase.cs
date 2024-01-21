@@ -26,7 +26,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             _outputConsole = new OutputConsole(standardOutput, standardError, "");
         }
 
-        protected async Task<RunResult> InternalRun( params string[] options)
+        protected async Task<RunResult> InternalRun(params string[] options)
         {
             var args = new[] { _commandName}.Concat(options).ToArray();
             var exitCode = await FluxzyStartup.Run(args, _outputConsole, CancellationToken.None);

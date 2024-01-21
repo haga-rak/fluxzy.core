@@ -39,8 +39,9 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             BinaryPrimitives.WriteUInt16LittleEndian(buffer, OptionCode);
             BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(2), OptionLength);
 
-            // TODO control overflow here if caller provider a very long string 
-            Span<byte> stringBuffer = stackalloc byte[(int) OptionLength];
+            Span<byte> stringBuffer = 
+                OptionLength < FluxzySharedSetting.StackAllocThreshold ?
+                    stackalloc byte[(int) OptionLength] : new byte[OptionLength];
 
             Encoding.UTF8.GetBytes(OptionValue, stringBuffer);
 

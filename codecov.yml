@@ -21,14 +21,16 @@ component_management:
       name: Fluxzy.Core
       paths:
         - src/Fluxzy.Core/**
+    - component_id: Fluxzy.Core.Pcap
+      name: Fluxzy.Core.Pcap
+      paths:
+        - src/Fluxzy.Core.Pcap/**
     - component_id: Fluxzy
       name: Fluxzy
       paths:
         - src/Fluxzy/**
 ignore:
-  - "src/Fluxzy.Core.Pcap/**"
   - "src/Fluxzy.Core.Pcap.Cli/**"
-  - "src/Fluxzy.Core.Pcap/**"
   - "src/Fluxzy.Extensions/**"
   - "src/Fluxzy.Tools.DocGen/**"
 

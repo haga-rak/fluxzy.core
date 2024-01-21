@@ -30,10 +30,5 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             
             return 8;
         }
-
-        public static int DirectWrite(Span<byte> buffer)
-        {
-            return new TsResolOption().Write(buffer);
-        }
     }
 }

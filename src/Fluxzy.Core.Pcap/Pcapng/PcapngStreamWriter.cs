@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Fluxzy.Core.Pcap.Pcapng.Structs;
+using Fluxzy.Misc.Streams;
 using SharpPcap;
 
 namespace Fluxzy.Core.Pcap.Pcapng
@@ -74,7 +75,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
             // Write things about interface description
         }
 
-        public void Write(Stream stream, PacketCapture capture)
+        public void Write(Stream stream, ref PacketCapture capture)
         {
             var interfaceKey = capture.Device.MacAddress.GetHashCode();
 
@@ -115,6 +116,12 @@ namespace Fluxzy.Core.Pcap.Pcapng
             var offset = decryptionBlock.Write(decryptionBlockBuffer, nssKeys);
 
             stream.Write(decryptionBlockBuffer);
+        }
+
+        public void WriteNssKey(Stream stream, Stream source)
+        {
+            var nssKey = source.ReadToEndGreedy();
+            WriteNssKey(stream, nssKey);
         }
     }
 }

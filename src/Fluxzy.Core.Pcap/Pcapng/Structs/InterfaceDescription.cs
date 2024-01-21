@@ -7,6 +7,7 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
             LinkType = linkType;
             InterfaceId = interfaceId;
         }
+
         public int InterfaceId { get; }
         
         public string? Name { get; set; }

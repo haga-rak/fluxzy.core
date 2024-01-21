@@ -15,7 +15,7 @@ namespace Fluxzy.Core.Pcap.Writing
 
         void Register(string outFileName);
 
-        void Write(PacketCapture packetCapture);
+        void Write(ref PacketCapture packetCapture);
 
         void StoreKey(string nssKey);
     }

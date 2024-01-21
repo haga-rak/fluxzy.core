@@ -217,7 +217,7 @@ namespace Fluxzy.Core.Pcap
                 return;
 
             try {
-                writer.Write(capture);
+                writer.Write(ref capture);
             }
             catch {
                 // We ignore any write error here to not break the capture thread
