@@ -125,7 +125,7 @@ namespace Fluxzy.Writers
         public event EventHandler<ExchangeUpdateEventArgs>? ExchangeUpdated;
 
         /// <summary>
-        /// Represents an event that is raised when a connection is updated.
+        /// Represents an event that is raised when a connection is created or updated.
         /// </summary>
         public event EventHandler<ConnectionUpdateEventArgs>? ConnectionUpdated;
 

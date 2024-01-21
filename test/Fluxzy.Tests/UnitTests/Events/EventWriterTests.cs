@@ -1,9 +1,11 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fluxzy.Rules;
 using Fluxzy.Writers;
 using Xunit;
 
@@ -82,19 +84,55 @@ namespace Fluxzy.Tests.UnitTests.Events
                 Assert.Equal(url, exchangeInfo.FullUrl); 
             }
         }
+
+        [Fact]
+        public async Task ConnectionUpdated_Control_Content()
+        {
+            var maxTimeoutSeconds = TimeoutConstants.Short; 
+            var fluxzySetting = FluxzySetting.CreateDefault(IPAddress.Loopback, 0);
+            var url = "https://sandbox.smartizy.com/global-health-check"; 
+
+            await using (var proxy = new Proxy(fluxzySetting)) {
+                var taskCompletionSource = new TaskCompletionSource();
+                ConnectionInfo? connectionInfo = null; 
+
+                proxy.Writer.ConnectionUpdated += (_, args) => {
+                   connectionInfo = args.Connection;
+                   taskCompletionSource.SetResult();
+                };
+
+                var endPoint = proxy.Run().First();
+
+                using var client = HttpClientHelper.Create(endPoint);
+
+                await client.GetAsync(url);
+
+                var delayTask = Task.Delay(maxTimeoutSeconds * 1000);
+
+                await Task.WhenAny(taskCompletionSource.Task, delayTask);
+                
+                Assert.False(delayTask.IsCompletedSuccessfully);
+                Assert.NotNull(connectionInfo); 
+            }
+        }
     }
 
 
 
     internal static class HttpClientHelper
     {
-        public static HttpClient Create(IPEndPoint proxyEndPoint)
+        public static HttpClient Create(IPEndPoint proxyEndPoint, Action<HttpClientHandler> ? configureHandler = null)
         {
             var httpClientHandler = new HttpClientHandler {
                 Proxy = new WebProxy(proxyEndPoint.Address.ToString(), proxyEndPoint.Port),
                 UseProxy = true
             };
 
+            if (configureHandler != null) {
+
+                configureHandler(httpClientHandler);
+            }
+            
             return new HttpClient(httpClientHandler);
         }
     }
