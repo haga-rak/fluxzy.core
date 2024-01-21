@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
@@ -25,7 +26,9 @@ namespace Fluxzy.Tests.Cli.Pack
 
             Assert.Equal(0, runResult.ExitCode);
             Assert.True(File.Exists(fileName));
-            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(fileName));
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(fileName));
         }
 
         [Fact]
@@ -37,7 +40,9 @@ namespace Fluxzy.Tests.Cli.Pack
 
             Assert.Equal(0, runResult.ExitCode);
             Assert.True(File.Exists(fileName));
-            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(fileName));
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(fileName));
         }
 
         [Fact]

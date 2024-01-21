@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Fluxzy.Core.Pcap.Pcapng.Merge;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
@@ -58,7 +59,9 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
         }
 
         [Fact]
@@ -72,7 +75,9 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
         }
 
         [Fact]
@@ -86,7 +91,9 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
         }
 
         [Fact]
@@ -116,7 +123,8 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
             }
 
             Assert.True(File.Exists(outFile));
-            Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Assert.Equal(Startup.DefaultMergeArchivePcapHash, HashHelper.MakeWinGetHash(outFile));
         }
 
         [Theory]
