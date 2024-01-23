@@ -47,7 +47,7 @@ Alteration and traffic management features are available as [fluxzy actions](htt
 - [x] [Provide a specific certificate for a host](https://www.fluxzy.io/rule/item/useCertificateAction)
   
 
-## 2. Basic Usage
+## 2. Quick Usage
 
 ### 2.1 .NET library
 
@@ -67,51 +67,60 @@ Create a top-level statement console app, with .NET 6.0 or above:
 ```csharp	
 using System.Net;
 using Fluxzy;
+using Fluxzy.Core;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
+using Fluxzy.Rules.Filters.ResponseFilters;
 
 // Create a new setting 
+
 var fluxzySetting = FluxzySetting
-    .CreateDefault(IPAddress.Loopback, 44344) // Listen on localhost:44344
-    .SetOutDirectory("dump_directory"); // Save traffic to dump_directory
+    // Listen on localhost:44344
+    .CreateDefault(IPAddress.Loopback, 8080) 
+    // Save traffic to dump_directory
+    .SetOutDirectory("dump_directory");
 
 fluxzySetting
-    .ConfigureRule() 
-        // Forward request
-        .WhenHostMatch("twitter.com", StringSelectorOperation.EndsWith) 
-        .Forward("https://www.google.com/") 
+    .ConfigureRule()
 
-        // Mock any POST request to /api/auth/token
-        .WhenAll(new PostFilter(), new PathFilter("/api/auth/token"))
-        .ReplyText("I lock the door and throw away the key", 403);
+    // Forward request
+    .WhenHostMatch("twitter.com")
+    .Forward("https://www.google.com/")
 
-await using (var proxy = new Proxy(fluxzySetting))
-{
-    var endPoints = proxy.Run();
+    // Mock any POST request to /api/auth/token
+    .WhenAll(
+        new GetFilter(), 
+        new PathFilter("/api/auth/token", StringSelectorOperation.Contains))
+    .ReplyText("I lock the door and throw away the key", 201)
 
-    var firstEndPoint = endPoints.First(); 
-
-    Console.WriteLine($"Fluxzy is listen on the following endpoints: " +
-                     $"{string.Join(" ", endPoints.Select(t => t.ToString()))}");
-
-    // Create a test http sample matching fluxzy setting
-
-    var httpClient = new HttpClient(new HttpClientHandler()
+    // Select wikipedia domains that produces text/html content-type
+    .WhenAll(
+        new HostFilter("wikipedia.[a-z]+$", StringSelectorOperation.Regex),
+        new HtmlResponseFilter()
+    )
+    .Do(new InjectHtmlTagAction() // Inject a CSS after opening head tag
     {
-        Proxy = new WebProxy(firstEndPoint.Address.ToString(), firstEndPoint.Port),
-        ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-    }); 
+        Tag = "head",
+        // Make all pages purple
+        HtmlContent = "<style>* { background-color: #7155ab !important; }</style>",
+    });
 
-    using var response = await httpClient.PostAsync("https://lunatic-on-the-grass.com/api/auth/token", null); 
-    var responseText = await response.Content.ReadAsStringAsync();
+await using var proxy = new Proxy(fluxzySetting);
 
-    Console.WriteLine($"Final answer: {responseText}");
+var endPoints = proxy.Run();
 
-    Console.WriteLine("Press any key to exit...");
-    Console.ReadLine();
-}
+await using var _ = await SystemProxyRegistrationHelper.Create(endPoints.First());
+
+var httpClient = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
+
+var responseText = await httpClient.GetStringAsync("https://baddomain.com/api/auth/token");
+
+Console.WriteLine($"Final answer: {responseText}");
+Console.WriteLine("Press enter to halt this program and restore system proxy setting...");
+
+Console.ReadLine();
 ```
 
 
