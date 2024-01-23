@@ -85,9 +85,9 @@ fluxzySetting
 
     // Mock any POST request to /api/auth/token
     .WhenAll(
-        new PostFilter(),
+        new GetFilter(),
         new PathFilter("/api/auth/token", StringSelectorOperation.Contains))
-    .ReplyJson("{ token: \"your fake key\"")
+    .ReplyJson("{ token: \"your fake key\" }")
 
     // Select wikipedia domains that produces text/html content-type
     .WhenAll(
