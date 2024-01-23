@@ -21,33 +21,33 @@ This repository contains the source code of [Fluxzy CLI](https://www.fluxzy.io/d
 
 ### 1.1 Core features 
 
-- [x] Intercept HTTP/1.1, H2, WebSocket traffic over plain or secure channels
-- [x] Fully streamed intermediate as proxy or transparent proxy
-- [x] [Deflect operating system traffic (act as system proxy)](https://docs.fluxzy.io/documentation/core/06-capturing-os-trafic.html)
-- [x] Automatic root certificate installation (with elevation on Windows, macOS, and several Linux distributions) 
-- [x] Certificate management: built-in feature to create CA compatible certificates 
-- [x] [Export as HTTP Archive (experimental)](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
-- [x] [Use a custom root certificate authority](https://docs.fluxzy.io/documentation/core/short-examples/use-custom-root-certificate.html)
-- [x] [Choice between default .NET SSL provider and BouncyCastle](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
-- [x] [Raw packet capture](https://docs.fluxzy.io/documentation/core/04-capture-raw-packets.html) (with the extension `Fluxzy.Core.Pcap`)
-- [x] [NSS Key log extraction (when using Bouncy Castle)](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
-- [x]  [Optional configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) 
+- Intercept HTTP/1.1, H2, WebSocket traffic over plain or secure channels
+- Fully streamed intermediate as proxy or transparent proxy
+- [Deflect operating system traffic (act as system proxy)](https://docs.fluxzy.io/documentation/core/06-capturing-os-trafic.html)
+- [Automatic root certificate installation](https://docs.fluxzy.io/api/Fluxzy.FluxzySetting.html#Fluxzy_FluxzySetting_SetAutoInstallCertificate_System_Boolean_) (with elevation on Windows, macOS, and several Linux distributions) 
+- [Certificate management](https://www.fluxzy.io/resources/cli/command-cert): built-in feature to create CA compatible certificates 
+- [Export as HTTP Archive](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
+- [Use a custom root certificate authority](https://docs.fluxzy.io/documentation/core/short-examples/use-custom-root-certificate.html)
+- [Choice between default .NET SSL provider and BouncyCastle](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
+- [Raw packet capture](https://docs.fluxzy.io/documentation/core/04-capture-raw-packets.html) (with the extension `Fluxzy.Core.Pcap`)
+- [NSS Key log extraction (when using Bouncy Castle)](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
+-  [Optional configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) 
 
 ### 1.2 Alteration and traffic management features 
 
 Alteration and traffic management features are available as [fluxzy actions](https://www.fluxzy.io/resources/documentation/core-concepts). You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to see built-in actions on the latest stable version. Here are a few examples:
 
-- [x] Add, remove, modify request and response headers
-- [x] [Mock or substitute request and response body](https://docs.fluxzy.io/documentation/core/short-examples/mock-response.html)
-- [x] [Forward](https://www.fluxzy.io/rule/item/forwardAction), redirect, [spoof DNS](https://www.fluxzy.io/rule/item/spoofDnsAction), [abort connections](https://www.fluxzy.io/rule/item/abortAction) 
-- [x] [Inject html snippet on intercepted request and response bodies](https://docs.fluxzy.io/documentation/core/short-examples/inject-code-in-html-pages.html)
-- [x] [Remove cache directives](https://www.fluxzy.io/rule/item/removeCacheAction), add request and response cookies
-- [x] [Serve static directory](https://www.fluxzy.io/rule/item/serveDirectoryAction) 
-- [x] Add metadata to HTTP exchanges (tags and comments)
-- [x] [Provide a specific certificate for a host](https://www.fluxzy.io/rule/item/useCertificateAction)
+- Add, remove, modify request and response headers
+- [Mock or substitute request and response body](https://docs.fluxzy.io/documentation/core/short-examples/mock-response.html)
+- [Forward](https://www.fluxzy.io/rule/item/forwardAction), redirect, [spoof DNS](https://www.fluxzy.io/rule/item/spoofDnsAction), [abort connections](https://www.fluxzy.io/rule/item/abortAction) 
+- [Inject html snippet on intercepted request and response bodies](https://docs.fluxzy.io/documentation/core/short-examples/inject-code-in-html-pages.html)
+- [Remove cache directives](https://www.fluxzy.io/rule/item/removeCacheAction), add request and response cookies
+- [Serve static directory](https://www.fluxzy.io/rule/item/serveDirectoryAction) 
+- Add metadata to HTTP exchanges (tags and comments)
+- [Provide a specific certificate for a host](https://www.fluxzy.io/rule/item/useCertificateAction)
   
 
-## 2. Basic Usage
+## 2. Quick Usage
 
 ### 2.1 .NET library
 
@@ -67,55 +67,64 @@ Create a top-level statement console app, with .NET 6.0 or above:
 ```csharp	
 using System.Net;
 using Fluxzy;
+using Fluxzy.Core;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
+using Fluxzy.Rules.Filters.ResponseFilters;
 
 // Create a new setting 
-var fluxzySetting = FluxzySetting
-    .CreateDefault(IPAddress.Loopback, 44344) // Listen on localhost:44344
-    .SetOutDirectory("dump_directory"); // Save traffic to dump_directory
+var fluxzySetting = FluxzySetting.CreateDefault(IPAddress.Loopback, 8080);
 
 fluxzySetting
-    .ConfigureRule() 
-        // Forward request
-        .WhenHostMatch("twitter.com", StringSelectorOperation.EndsWith) 
-        .Forward("https://www.google.com/") 
+    .ConfigureRule()
+    // Forward request
+    .WhenHostMatch("twitter.com")
+    .Forward("https://www.google.com/")
 
-        // Mock any POST request to /api/auth/token
-        .WhenAll(new PostFilter(), new PathFilter("/api/auth/token"))
-        .ReplyText("I lock the door and throw away the key", 403);
+    // Mock any POST request to /api/auth/token
+    .WhenAll(
+        new PostFilter(),
+        new PathFilter("/api/auth/token", StringSelectorOperation.Contains))
+    .ReplyJson("{ token: \"your fake key\"")
 
-await using (var proxy = new Proxy(fluxzySetting))
-{
-    var endPoints = proxy.Run();
+    // Select wikipedia domains that produces text/html content-type
+    .WhenAll(
+        new HostFilter("wikipedia.[a-z]+$", StringSelectorOperation.Regex),
+        new HtmlResponseFilter()
+    )
+    // Inject a CSS after opening head tag
+    .Do(
+        // Remove CSP to allow injecting CSS and scripts
+        new DeleteResponseHeaderAction("Content-Security-Policy"),
+        new InjectHtmlTagAction
+        {
+            Tag = "head",
+            // Make all pages purple
+            HtmlContent = "<style>* { background-color: #7155ab !important; }</style>"
+        }
+    );
 
-    var firstEndPoint = endPoints.First(); 
+await using var proxy = new Proxy(fluxzySetting);
+var endPoints = proxy.Run();
 
-    Console.WriteLine($"Fluxzy is listen on the following endpoints: " +
-                     $"{string.Join(" ", endPoints.Select(t => t.ToString()))}");
+// Register as system proxy, the proxy is restore when the IAsyncDisposable is disposed
+await using var _ = await SystemProxyRegistrationHelper.Create(endPoints.First());
 
-    // Create a test http sample matching fluxzy setting
+// Create a new HttpClient that uses the proxy 
+var httpClient = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
 
-    var httpClient = new HttpClient(new HttpClientHandler()
-    {
-        Proxy = new WebProxy(firstEndPoint.Address.ToString(), firstEndPoint.Port),
-        ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-    }); 
+var responseText = await httpClient.GetStringAsync("https://baddomain.com/api/auth/token");
 
-    using var response = await httpClient.PostAsync("https://lunatic-on-the-grass.com/api/auth/token", null); 
-    var responseText = await response.Content.ReadAsStringAsync();
+Console.WriteLine($"Final answer: {responseText}");
+Console.WriteLine("Press enter to halt this program and restore system proxy setting...");
 
-    Console.WriteLine($"Final answer: {responseText}");
-
-    Console.WriteLine("Press any key to exit...");
-    Console.ReadLine();
-}
+Console.ReadLine();
 ```
 
 
-Visit [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.html) to view detailed documentation and ready to use examples. 
+More examples are available at [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.html).
 
 
 ### 2.2 Fluxzy CLI
@@ -201,7 +210,7 @@ By default, fluxzy will bind to `127.0.0.1:44344`.
 ### 3.1 Requirements
 
 - .NET 8.0 SDK
-- Git bash for Windows
+- Git bash if Windows
 - `libpcap` or any equivalent library
 - tests collecting pcap files and installing certificates requires elevation. 
 - An IDE is not necessary to build the app. For information, this project was developed using both Visual Studio 2022 and JetBrains Rider on Windows, macOS and Linux.
