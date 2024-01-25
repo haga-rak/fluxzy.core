@@ -223,10 +223,9 @@ namespace Fluxzy
         /// <returns></returns>
         public static FluxzySetting CreateDefault()
         {
-            return new FluxzySetting
-            {
+            return new FluxzySetting {
                 ConnectionPerHost = 16
-            }.SetBoundAddress("127.0.0.1", 44344);
+            }.SetBoundAddress(IPAddress.Loopback, 44344);
         }
 
         /// <summary>
@@ -241,6 +240,25 @@ namespace Fluxzy
             {
                 ConnectionPerHost = 16
             }.SetBoundAddress(address, port);
+        }
+
+        /// <summary>
+        ///  Create a default instance and listen on IPv4 loopback address
+        /// </summary>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        public static FluxzySetting CreateLocal(int port = 44344)
+        {
+            return CreateDefault(IPAddress.Loopback, port); 
+        }
+
+        /// <summary>
+        /// Creates a FluxzySetting object with a randomly generated local port number.
+        /// </summary>
+        /// <returns>A FluxzySetting object with the local port number set to a random value.</returns>
+        public static FluxzySetting CreateLocalRandomPort()
+        {
+            return CreateLocal(0); 
         }
     }
 }
