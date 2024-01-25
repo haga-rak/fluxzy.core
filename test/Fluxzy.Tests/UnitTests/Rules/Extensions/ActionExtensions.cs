@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Actions.HighLevelActions;
+using Fluxzy.Rules.Extensions;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Xunit;
 
@@ -127,6 +126,57 @@ namespace Fluxzy.Tests.UnitTests.Rules.Extensions
             Assert.NotNull(action);
             Assert.NotNull(action.Response.Body);
             Assert.Equal(BodyContentLoadingType.FromFile, action.Response.Body.Origin);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetValidateParams))]
+        public void Validate(string typeName, 
+            Func<IConfigureActionBuilder, IConfigureFilterBuilder> validation)
+        {
+            validation(_setting.ConfigureRule()
+                              .WhenHostMatch("fakehost.com"));
+
+            Assert.Single(_setting.AlterationRules);
+            Assert.Equal(typeName, _setting.AlterationRules.First().Action.GetType().FullName);
+        }
+
+        public static IEnumerable<object[]> GetValidateParams()
+        {
+            yield return new object[] {
+                typeof(DeleteRequestHeaderAction).FullName!,
+                new Func<IConfigureActionBuilder, IConfigureFilterBuilder>
+                    (builder => builder.DeleteRequestHeader("a"))
+            };
+
+            yield return new object[] {
+                typeof(DeleteResponseHeaderAction).FullName!,
+                new Func<IConfigureActionBuilder, IConfigureFilterBuilder>
+                    (builder => builder.DeleteResponseHeader("a"))
+            };
+
+            yield return new object[] {
+                typeof(AddRequestHeaderAction).FullName!,
+                new Func<IConfigureActionBuilder, IConfigureFilterBuilder>
+                    (builder => builder.AddRequestHeader("a", "b"))
+            };
+
+            yield return new object[] {
+                typeof(AddResponseHeaderAction).FullName!,
+                new Func<IConfigureActionBuilder, IConfigureFilterBuilder>
+                    (builder => builder.AddResponseHeader("a", "b"))
+            };
+
+            yield return new object[] {
+                typeof(UpdateRequestHeaderAction).FullName!,
+                new Func<IConfigureActionBuilder, IConfigureFilterBuilder>
+                    (builder => builder.UpdateRequestHeader("a", "b"))
+            };
+
+            yield return new object[] {
+                typeof(UpdateResponseHeaderAction).FullName!,
+                new Func<IConfigureActionBuilder, IConfigureFilterBuilder>
+                    (builder => builder.UpdateResponseHeader("a", "b"))
+            };
         }
     }
 }
