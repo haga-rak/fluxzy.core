@@ -84,9 +84,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             this
                 IConfigureFilterBuilder filterBuilder, params string[] hosts)
         {
-            if (!hosts.Any())
-                return filterBuilder.WhenAny(); 
-
             if (hosts.Length == 1)
                 return filterBuilder.WhenHostMatch(hosts[0], StringSelectorOperation.EndsWith);
 
@@ -103,9 +100,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             this
                 IConfigureFilterBuilder filterBuilder, params string[] hosts)
         {
-            if (!hosts.Any())
-                return filterBuilder.WhenAny(); 
-
             if (hosts.Length == 1)
                 return filterBuilder.WhenHostMatch(hosts[0], StringSelectorOperation.Exact);
 
@@ -122,9 +116,6 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             this
                 IConfigureFilterBuilder filterBuilder, params string[] hosts)
         {
-            if (!hosts.Any())
-                return filterBuilder.WhenAny(); 
-
             if (hosts.Length == 1)
                 return filterBuilder.WhenHostMatch(hosts[0], StringSelectorOperation.Contains);
 
