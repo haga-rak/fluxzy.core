@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
 using Fluxzy.Rules.Extensions;
@@ -68,7 +69,66 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         /// <param name="pattern"></param>
         /// <param name="operation"></param>
         /// <returns></returns>
-        public static IConfigureActionBuilder WhenHostMatch(this IConfigureFilterBuilder filterBuilder, string pattern, StringSelectorOperation operation = StringSelectorOperation.EndsWith)
+        public static IConfigureActionBuilder WhenHostMatch(this IConfigureFilterBuilder filterBuilder, string pattern, StringSelectorOperation operation = StringSelectorOperation.Regex)
             => filterBuilder.When(new HostFilter(pattern, operation));
+
+        /// <summary>
+        /// Adds a filter that matches the request when the host ends with any of the specified host suffixes.
+        /// </summary>
+        /// <param name="filterBuilder">The filter builder.</param>
+        /// <param name="hosts">The host suffixes to match against.</param>
+        /// <returns>
+        /// An instance of <see cref="IConfigureActionBuilder"/> with the filter added.
+        /// </returns>
+        public static IConfigureActionBuilder WhenHostEndsWith(
+            this
+                IConfigureFilterBuilder filterBuilder, params string[] hosts)
+        {
+            if (!hosts.Any())
+                return filterBuilder.WhenAny(); 
+
+            if (hosts.Length == 1)
+                return filterBuilder.WhenHostMatch(hosts[0], StringSelectorOperation.EndsWith);
+
+            return filterBuilder.WhenAny(hosts.Select(h => new HostFilter(h, StringSelectorOperation.EndsWith)).OfType<Filter>().ToArray());
+        }
+
+        /// <summary>
+        /// Filters requests based on the specified hosts.
+        /// </summary>
+        /// <param name="filterBuilder">The filter builder instance.</param>
+        /// <param name="hosts">The array of host patterns to match.</param>
+        /// <returns>A configured action builder for further configuration.</returns>
+        public static IConfigureActionBuilder WhenHostIn(
+            this
+                IConfigureFilterBuilder filterBuilder, params string[] hosts)
+        {
+            if (!hosts.Any())
+                return filterBuilder.WhenAny(); 
+
+            if (hosts.Length == 1)
+                return filterBuilder.WhenHostMatch(hosts[0], StringSelectorOperation.Exact);
+
+            return filterBuilder.WhenAny(hosts.Select(h => new HostFilter(h, StringSelectorOperation.Exact)).OfType<Filter>().ToArray());
+        }
+
+        /// <summary>
+        /// Adds a filter to the filter builder that is only applied when the hosts contain any of the specified values.
+        /// </summary>
+        /// <param name="filterBuilder">The filter builder.</param>
+        /// <param name="hosts">The list of hosts to check.</param>
+        /// <returns>The configure action builder.</returns>
+        public static IConfigureActionBuilder WhenHostContain(
+            this
+                IConfigureFilterBuilder filterBuilder, params string[] hosts)
+        {
+            if (!hosts.Any())
+                return filterBuilder.WhenAny(); 
+
+            if (hosts.Length == 1)
+                return filterBuilder.WhenHostMatch(hosts[0], StringSelectorOperation.Contains);
+
+            return filterBuilder.WhenAny(hosts.Select(h => new HostFilter(h, StringSelectorOperation.Contains)).OfType<Filter>().ToArray());
+        }
     }
 }
