@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -9,6 +10,9 @@ using Fluxzy.Core.Breakpoints;
 
 namespace Fluxzy.Rules.Actions
 {
+    /// <summary>
+    /// Apply a throttle policy on the selected exchanges. 
+    /// </summary>
     public class ThrottleAction : Action
     {
         public ThrottleChannel ThrottleChannel { get; set; } = ThrottleChannel.All;
@@ -42,32 +46,94 @@ namespace Fluxzy.Rules.Actions
         }
     }
 
-
-    public class Throttler
+    public class ThrottlePolicy
     {
-        private readonly int _throttleIntervalMillis;
-
-        private Stopwatch? _watch;
-        private long _totalSize; 
-
-        public Throttler(int throttleIntervalMillis)
+        public ThrottlePolicy(TimeSpan interval, int layer7BandwithBytes)
         {
-            _throttleIntervalMillis = throttleIntervalMillis;
+            Interval = interval;
+            Layer7BandwithBytes = layer7BandwithBytes;
         }
 
-        public int GetThrottleDelay(int nextSize)
+        /// <summary>
+        /// The window interval where the maximum is evalueated 
+        /// </summary>
+        public TimeSpan Interval { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Layer7BandwithBytesPerSeconds { get; }
+    }
+    
+
+    internal class Throttler
+    {
+        private readonly ThrottlePolicy _proThrottlePolicy;
+        private readonly IInstantProvider _instantProvider;
+        private ReceiveInstant[] _instants = new ReceiveInstant[1024];
+        private int _offset = -1;
+        private readonly long _checkInterval;
+        private readonly long _bandwidthBytesPerMillis;
+
+        public Throttler(ThrottlePolicy proThrottlePolicy, IInstantProvider instantProvider)
         {
-            _watch ??= Stopwatch.StartNew();
+            _proThrottlePolicy = proThrottlePolicy;
+            _instantProvider = instantProvider;
+            _checkInterval = (long) proThrottlePolicy.Interval.TotalMilliseconds;
+            _bandwidthBytesPerMillis = (proThrottlePolicy.Layer7BandwithBytesPerSeconds * 1000L);
+        }
 
-            var elapsed = _watch.ElapsedMilliseconds;
+        private void GrowBuffer()
+        {
+            var newBuffer = new ReceiveInstant[(int) (_instants.Length * 1.5)];            
+            Array.Copy(_instants, newBuffer, _instants.Length);
+        }
 
-            if (elapsed > 1000) {
-                _watch.Restart();
-                _totalSize = 0;
+        public int ComputeThrottleDelay(int currentReadSize)
+        {
+            var now = _instantProvider.ElapsedMillis;
+
+            var inInterval = 0L;
+            int index; 
+
+            for (index = _offset; index >= 0; index--) {
+                var existing = _instants[index];
+
+                if ((now - _checkInterval) < existing.InstantMillis) {
+                    inInterval += existing.ReceivedBuffer; 
+                }
+                else {
+                    break;
+                }
             }
 
+            // Remove the old instants
 
+            if (index >= 0) {
+                var newOffset = index + 1;
+                var newLength = _offset - newOffset + 1;
+                Array.Copy(_instants, newOffset, _instants, 0, newLength);
+                _offset = newOffset;
+            }
+
+            var forecast = inInterval + currentReadSize;
+            var result = (forecast / (double) _bandwidthBytesPerMillis) - _checkInterval; 
+
+            return result < 0 ? 0 : (int) result;
         }
+    }
+
+    internal interface IInstantProvider
+    {
+        long ElapsedMillis { get;  }
+    }
+
+
+    internal readonly struct ReceiveInstant
+    {
+        public long InstantMillis { get;  }
+
+        public int ReceivedBuffer { get; }
     }
 
     
