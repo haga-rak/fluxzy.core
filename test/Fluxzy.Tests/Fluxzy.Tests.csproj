@@ -21,6 +21,9 @@
   <ItemGroup>
     <None Remove="_Files\Headers\Req001.txt.bin" />
     <None Remove="_Files\Headers\Resp001.txt.bin" />
+    <None Update="_Files\Archives\fail-merge.fxzy">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Archives\minimal.saz">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

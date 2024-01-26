@@ -71,7 +71,8 @@ namespace Fluxzy.Core.Pcap.Pcapng.Structs
                 var str = Encoding.UTF8.GetString(optionBlocks.Slice(4, optionLength));
                 result[optionCode] = str;
 
-                var paddingLength = optionLength % 4; 
+                // pad option length to 4 bytes boundary
+                var paddingLength = optionLength % 4 == 0 ? 0 : 4 - (optionLength % 4);
 
                 optionBlocks = optionBlocks.Slice(4 + optionLength + paddingLength);
             }
