@@ -11,7 +11,7 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
         private readonly byte[] _defaultBuffer = new byte[1024 * 4];
 
         public EnhancedBlockReader(PcapBlockWriter blockWriter,
-            StreamLimiter streamLimiter, Func<Stream> streamFactory)
+            StreamLimiter streamLimiter, IStreamSource streamFactory)
             : base(streamLimiter, streamFactory)
         {
             _blockWriter = blockWriter;
