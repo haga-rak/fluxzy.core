@@ -13,11 +13,11 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
 
         protected SleepyStreamBlockReader(
             StreamLimiter streamLimiter,
-            Func<Stream> streamFactory)
+            IStreamSource streamFactory)
         {
             _sleepyStream = new SleepyStream(() =>
             {
-                var res = streamFactory();
+                var res = streamFactory.Open();
                 streamLimiter.NotifyOpen(this);
                 return res;
             });

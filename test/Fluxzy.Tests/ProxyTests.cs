@@ -300,6 +300,20 @@ namespace Fluxzy.Tests
         }
 
         [Fact]
+        public async Task Test_Random_Port()
+        {
+            var startupSetting = FluxzySetting
+                                 .CreateLocalRandomPort();
+
+            await using var proxy = new Proxy(startupSetting);
+            var endPoints = proxy.Run();
+
+            Assert.Single(endPoints);
+            Assert.True(endPoints.First().Port >= 1000);
+            Assert.True(endPoints.First().Port < 65535);
+        }
+
+        [Fact]
         public async Task Test_GetThrough_H1_Plain()
         {
             var bindHost = "127.0.0.1";
@@ -525,5 +539,6 @@ namespace Fluxzy.Tests
                 await proxy.DisposeAsync();
             }
         }
+
     }
 }

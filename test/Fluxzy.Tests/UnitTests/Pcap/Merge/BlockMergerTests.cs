@@ -168,7 +168,7 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         private readonly int _charCount;
 
         public SleepyDummyBlockReader(StreamLimiter streamLimiter, byte[] data, int charCount)
-            : base(streamLimiter, () => new MemoryStream(data))
+            : base(streamLimiter, new FromByteArrayStreamSource(data))
         {
             _charCount = charCount;
         }
@@ -190,6 +190,21 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
 
             result = new DataBlock(long.Parse(charBuffer), buffer.ToArray());
             return true;
+        }
+    }
+
+    internal class FromByteArrayStreamSource : IStreamSource
+    {
+        private readonly byte[] _data;
+
+        public FromByteArrayStreamSource(byte[] data)
+        {
+            _data = data;
+        }
+
+        public Stream Open()
+        {
+            return new MemoryStream(_data);
         }
     }
 }

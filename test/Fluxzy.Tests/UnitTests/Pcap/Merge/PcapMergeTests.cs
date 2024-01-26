@@ -97,6 +97,20 @@ namespace Fluxzy.Tests.UnitTests.Pcap.Merge
         }
 
         [Fact]
+        public void Validate_With_Archive_2()
+        {
+            var archiveFile = "_Files/Archives/fail-merge.fxzy";
+            var outFile = GetRegisteredRandomFile();
+
+            using (var outStream = File.Create(outFile)) {
+                PcapMerge.MergeArchive(archiveFile, outStream);
+            }
+
+            Assert.True(File.Exists(outFile));
+            
+        }
+
+        [Fact]
         public void Validate_With_Dump_Directory_31_Only()
         {
             var hash = "5aedc27fc85ada8b5c224679eeb83d2f3ad75dcac4caa98aae6a927d49d96ab8";
