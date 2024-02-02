@@ -125,7 +125,10 @@ namespace Fluxzy.Clients
             try
             {
                 if (!semaphorePerAuthority.Wait(0))
+                {
+                    // Console.WriteLine("Semaphore full");
                     await semaphorePerAuthority.WaitAsync(cancellationToken);
+                }
 
                 // Looking for existing HttpPool
 

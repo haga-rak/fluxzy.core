@@ -187,8 +187,8 @@ namespace Fluxzy
 
         public FluxzySetting SetConnectionPerHost(int connectionPerHost)
         {
-            if (connectionPerHost < 1 || connectionPerHost >= 64)
-                throw new ArgumentOutOfRangeException(nameof(connectionPerHost), "value should be between 1 and 64");
+            if (connectionPerHost < 1 || connectionPerHost >= 128)
+                throw new ArgumentOutOfRangeException(nameof(connectionPerHost), "value should be between 1 and 128");
 
             ConnectionPerHost = connectionPerHost;
 

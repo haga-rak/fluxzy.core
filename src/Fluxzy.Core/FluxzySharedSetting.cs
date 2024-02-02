@@ -43,6 +43,10 @@ namespace Fluxzy
         public static bool SkipCollectingEnvironmentInformation { get; set; }
 
 
+        public static int H11DefaultConnectionPerHost { get; set; }
+            = EnvironmentUtility.GetInt32("FLUXZY_DEFAULT_H11_CONCURRENT_CONNECTION_PER_HOST", 16);
+
+
         /// <summary>
         ///  
         /// </summary>

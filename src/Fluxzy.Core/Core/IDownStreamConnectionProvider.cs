@@ -20,6 +20,9 @@ namespace Fluxzy.Core
         IReadOnlyCollection<IPEndPoint> Init(CancellationToken token);
 
 
+        bool TryGetNextPendingConnection(out TcpClient client);
+
+
         ValueTask<TcpClient?> GetNextPendingConnection();
     }
 }

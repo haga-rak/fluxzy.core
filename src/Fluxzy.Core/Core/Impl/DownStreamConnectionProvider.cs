@@ -8,7 +8,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Fluxzy.Utils;
 
 namespace Fluxzy.Core
 {
@@ -16,8 +15,14 @@ namespace Fluxzy.Core
     {
         private readonly List<TcpListener> _listeners;
 
-        private readonly Channel<IAsyncResult> _pendingClientConnections =
-            Channel.CreateUnbounded<IAsyncResult>(new UnboundedChannelOptions {
+        //private readonly Channel<IAsyncResult> _pendingClientConnections =
+        //    Channel.CreateUnbounded<IAsyncResult>(new UnboundedChannelOptions {
+        //        SingleWriter = true,
+        //        SingleReader = true
+        //    });
+
+        private readonly Channel<TcpClient> _pendingClientConnections =
+            Channel.CreateUnbounded<TcpClient>(new UnboundedChannelOptions {
                 SingleWriter = true,
                 SingleReader = true
             });
@@ -33,29 +38,47 @@ namespace Fluxzy.Core
             _token = _tokenSource.Token;
         }
 
+        public bool TryGetNextPendingConnection(out TcpClient client)
+        {
+            if (_pendingClientConnections.Reader.TryRead(out var tcpClient)) {
+                client = tcpClient;
+                return true;
+            }
+
+            client = null!;
+            return false;
+        }
+
         public async ValueTask<TcpClient?> GetNextPendingConnection()
         {
             if (!_listeners.Any())
                 return null;
 
             try {
-                var asyncState = await
+
+                if (_pendingClientConnections.Reader.TryRead(out var client)) {
+                    return client;
+                }
+
+                var tcpClient = await
                     _pendingClientConnections.Reader.ReadAsync(_token);
 
-                var listener = (TcpListener?) asyncState.AsyncState;
+                tcpClient.NoDelay = true;
 
-                if (listener != null) {
-                    var tcpClient = listener.EndAcceptTcpClient(asyncState);
-
-                    tcpClient.NoDelay = true;
-
-                    if (FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds >= 0)
-                    {
-                        tcpClient.ReceiveTimeout = FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds;
-                    }
-
-                    return tcpClient;
+                if (FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds >= 0)
+                {
+                    tcpClient.ReceiveTimeout = FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds;
                 }
+
+                return tcpClient;
+
+                //var listener = (TcpListener?) asyncState.AsyncState;
+
+                //if (listener != null) {
+
+                //    var tcpClient = listener.EndAcceptTcpClient(asyncState);
+
+                //}
             }
             catch (Exception) {
                 // Listener Stop was probably called 
@@ -74,16 +97,21 @@ namespace Fluxzy.Core
 
             foreach (var listener in _listeners) {
                 try {
-                    listener.Start();
+                    listener.Start(1000);
 
                     boundEndPoints.Add((IPEndPoint) listener.LocalEndpoint);
 
-                    var listenerCopy = listener;
+                    _ = Task.Run(() => { LoopAccept(token, listener); }, token);
 
-                    new Thread(a => HandleAcceptConnection((TcpListener) a!)) {
-                        IsBackground = true,
-                        Priority = ThreadPriority.Normal
-                    }.Start(listenerCopy);
+                    //var listenerCopy = listener;
+
+
+
+
+                    //new Thread(a => HandleAcceptConnection((TcpListener) a!)) {
+                    //    IsBackground = true,
+                    //    Priority = ThreadPriority.Normal
+                    //}.Start(listenerCopy);
                 }
                 catch (SocketException sex) {
                     throw new Exception(
@@ -101,6 +129,20 @@ namespace Fluxzy.Core
             ListenEndpoints = boundEndPoints;
 
             return ListenEndpoints;
+        }
+
+        private void LoopAccept(CancellationToken token, TcpListener listener)
+        {
+            try
+            {
+                while (!token.IsCancellationRequested) {
+                    var client = listener.AcceptTcpClient();
+                    _pendingClientConnections.Writer.TryWrite(client);
+                }
+            }
+            catch (Exception) {
+                // ignored
+            }
         }
 
         public void Dispose()
@@ -132,9 +174,8 @@ namespace Fluxzy.Core
             try {
                 var listener = (TcpListener?) ar.AsyncState;
 
-                _pendingClientConnections.Writer.TryWrite(ar);
-
-                listener?.BeginAcceptTcpClient(Callback, listener);
+                //_pendingClientConnections.Writer.TryWrite(ar);
+                //listener?.BeginAcceptTcpClient(Callback, listener); 
             }
             catch (Exception) {
                 // ignored

@@ -61,7 +61,7 @@ namespace Fluxzy
         ///     value is 16.
         /// </summary>
         [JsonInclude]
-        public int ConnectionPerHost { get; internal set; } = 16;
+        public int ConnectionPerHost { get; internal set; } = FluxzySharedSetting.H11DefaultConnectionPerHost;
 
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace Fluxzy
         public static FluxzySetting CreateDefault()
         {
             return new FluxzySetting {
-                ConnectionPerHost = 16
+                ConnectionPerHost = FluxzySharedSetting.H11DefaultConnectionPerHost
             }.SetBoundAddress(IPAddress.Loopback, 44344);
         }
 
@@ -238,7 +238,7 @@ namespace Fluxzy
         {
             return new FluxzySetting
             {
-                ConnectionPerHost = 16
+                ConnectionPerHost = FluxzySharedSetting.H11DefaultConnectionPerHost
             }.SetBoundAddress(address, port);
         }
 

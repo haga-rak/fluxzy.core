@@ -181,8 +181,9 @@ namespace Fluxzy
             }
 
             while (true) {
-                var client =
-                    await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
+                if (!_downStreamConnectionProvider.TryGetNextPendingConnection(out var client)) {
+                    client = await _downStreamConnectionProvider.GetNextPendingConnection();
+                }
 
                 if (client == null)
                     break;
