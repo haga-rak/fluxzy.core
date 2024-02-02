@@ -25,7 +25,7 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.RegisterRequestBodySubstitution();
+            return default; 
         }
     }
 
@@ -42,20 +42,20 @@ namespace Fluxzy.Rules.Actions
     {
         public ValueTask<Stream> Substitute(Stream originalStream)
         {
-
+            return default;
         }
     }
 
     public class ThrottlePolicy
     {
-        public ThrottlePolicy(TimeSpan interval, int layer7BandwithBytes)
+        public ThrottlePolicy(TimeSpan interval, int layer7BandwithBytesPerSeconds)
         {
             Interval = interval;
-            Layer7BandwithBytes = layer7BandwithBytes;
+            Layer7BandwithBytesPerSeconds = layer7BandwithBytesPerSeconds;
         }
 
         /// <summary>
-        /// The window interval where the maximum is evalueated 
+        /// The window interval where the maximum is evaluated 
         /// </summary>
         public TimeSpan Interval { get; }
 
@@ -64,11 +64,10 @@ namespace Fluxzy.Rules.Actions
         /// </summary>
         public int Layer7BandwithBytesPerSeconds { get; }
     }
-    
+
 
     internal class Throttler
     {
-        private readonly ThrottlePolicy _proThrottlePolicy;
         private readonly IInstantProvider _instantProvider;
         private ReceiveInstant[] _instants = new ReceiveInstant[1024];
         private int _offset = -1;
@@ -77,7 +76,6 @@ namespace Fluxzy.Rules.Actions
 
         public Throttler(ThrottlePolicy proThrottlePolicy, IInstantProvider instantProvider)
         {
-            _proThrottlePolicy = proThrottlePolicy;
             _instantProvider = instantProvider;
             _checkInterval = (long) proThrottlePolicy.Interval.TotalMilliseconds;
             _bandwidthBytesPerMillis = (proThrottlePolicy.Layer7BandwithBytesPerSeconds * 1000L);
