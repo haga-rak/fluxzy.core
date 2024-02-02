@@ -87,7 +87,7 @@ namespace Fluxzy.Misc.Streams
             byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
-                .ConfigureAwait(false);
+                ;
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
@@ -99,7 +99,7 @@ namespace Fluxzy.Misc.Streams
             }
 
             var res = await InnerStream.ReadAsync(buffer.Slice(0, minCount), cancellationToken)
-                                       .ConfigureAwait(false);
+                                       ;
 
             TotalRead += res;
 
@@ -114,14 +114,14 @@ namespace Fluxzy.Misc.Streams
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await InnerStream.WriteAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
+            await InnerStream.WriteAsync(buffer, offset, count, cancellationToken);
             TotalWritten += count;
         }
 
         public override async ValueTask WriteAsync(
             ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            await InnerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+            await InnerStream.WriteAsync(buffer, cancellationToken);
             TotalWritten += buffer.Length;
         }
 

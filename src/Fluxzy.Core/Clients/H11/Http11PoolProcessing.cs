@@ -67,7 +67,7 @@ namespace Fluxzy.Clients.H11
 
                 var totalBodySize = await
                     exchange.Request.Body.CopyDetailed(writeStream, 1024 * 16,
-                        _ => { }, cancellationToken).ConfigureAwait(false);
+                        _ => { }, cancellationToken);
 
                 exchange.Metrics.TotalSent += totalBodySize;
 

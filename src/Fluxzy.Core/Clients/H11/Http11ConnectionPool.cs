@@ -127,7 +127,7 @@ namespace Fluxzy.Clients.H11
 
                 try {
                     await poolProcessing.Process(exchange, buffer, cancellationToken)
-                                        .ConfigureAwait(false);
+                                        ;
 
                     if (exchange.Response.Header != null)
                         exchange.Connection.TimeoutIdleSeconds = exchange.Response.Header.TimeoutIdleSeconds; 

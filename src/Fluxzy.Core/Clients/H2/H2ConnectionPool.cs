@@ -198,10 +198,10 @@ namespace Fluxzy.Clients.H2
             _writeSemaphore = null;
 
             if (_innerReadTask != null)
-                await _innerReadTask.ConfigureAwait(false);
+                await _innerReadTask;
 
             if (_innerWriteRun != null)
-                await _innerWriteRun.ConfigureAwait(false);
+                await _innerWriteRun;
 
             try {
 
@@ -372,7 +372,7 @@ namespace Fluxzy.Clients.H2
                                 ArrayPool<byte>.Shared.Return(heapBuffer);
                             }
 
-                            await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
+                            await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token);
                         }
 
                         var count = 0;
@@ -392,7 +392,7 @@ namespace Fluxzy.Clients.H2
 
                                 await _baseStream
                                       .WriteAsync(writeTask.BufferBytes, token)
-                                      .ConfigureAwait(false);
+                                      ;
 
                                 _logger.OutgoingFrame(writeTask.BufferBytes);
 
@@ -448,7 +448,7 @@ namespace Fluxzy.Clients.H2
 
                     var frame =
                         await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
-                            token).ConfigureAwait(false);
+                            token);
 
                     if (ProcessNewFrame(frame))
                         break;
@@ -638,7 +638,7 @@ namespace Fluxzy.Clients.H2
                         await _streamPool.CreateNewStreamProcessing(
                                              exchange, streamCancellationToken, _streamCreationLock,
                                              streamCancellationTokenSource)
-                                         .ConfigureAwait(false);
+                                         ;
 
                     // activeStream.OR
 
@@ -659,7 +659,7 @@ namespace Fluxzy.Clients.H2
                 exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 
                 await activeStream.ProcessResponse(streamCancellationToken, this)
-                                  .ConfigureAwait(false);
+                                  ;
             }
             catch (OperationCanceledException opex) {
                 if (activeStream != null &&

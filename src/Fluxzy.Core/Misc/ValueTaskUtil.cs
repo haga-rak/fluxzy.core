@@ -19,7 +19,7 @@ namespace Fluxzy.Misc
 
             for (var i = 0; i < tasks.Count; i++) {
                 try {
-                    results[i] = await tasks[i].ConfigureAwait(false);
+                    results[i] = await tasks[i];
                 }
                 catch (Exception ex) {
                     exceptions ??= new List<Exception>(tasks.Count);

@@ -30,7 +30,7 @@ namespace Fluxzy.Core
         public async Task WriteLineAsync(string str)
         {
             if (_writer != null)
-                await _writer.WriteLineAsync(str).ConfigureAwait(false);
+                await _writer.WriteLineAsync(str);
         }
     }
 }

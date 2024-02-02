@@ -124,7 +124,7 @@ namespace Fluxzy.Clients.H11
                 exchange, _dnsResolutionResult,
                 new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
                 _creationSetting,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
             exchange.Connection = openingResult.Connection;
 

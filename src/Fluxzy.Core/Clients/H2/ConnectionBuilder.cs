@@ -28,7 +28,7 @@ namespace Fluxzy.Clients.H2
 
             tcpClient.ReceiveBufferSize = 1024 * 128;
 
-            await tcpClient.ConnectAsync(hostName, port).ConfigureAwait(false);
+            await tcpClient.ConnectAsync(hostName, port);
 
             var sslStream = new SslStream(tcpClient.GetStream());
 
@@ -40,7 +40,7 @@ namespace Fluxzy.Clients.H2
             };
 
             await sslStream.AuthenticateAsClientAsync(sslAuthenticationOption,
-                token).ConfigureAwait(false);
+                token);
 
             if (sslStream.NegotiatedApplicationProtocol != SslApplicationProtocol.Http2)
                 throw new NotSupportedException($"Remote ({hostName}:{port}) cannot talk HTTP2");

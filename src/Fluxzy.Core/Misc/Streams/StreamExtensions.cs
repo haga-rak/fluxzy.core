@@ -162,7 +162,7 @@ namespace Fluxzy.Misc.Streams
             int read;
 
             while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0) {
-                await destination.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
+                await destination.WriteAsync(buffer, 0, read, cancellationToken);
                 onContentCopied(read);
 
                 await destination.FlushAsync(cancellationToken);
@@ -254,7 +254,7 @@ namespace Fluxzy.Misc.Streams
                 }
 
                 var currentRead = await origin.ReadAsync(buffer.Slice(currentIndex, remain), cancellationToken)
-                                              .ConfigureAwait(false);
+                                              ;
 
                 if (currentRead <= 0) {
                     return false;

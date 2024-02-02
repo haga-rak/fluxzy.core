@@ -108,7 +108,7 @@ namespace Fluxzy.Misc.Streams
             CancellationToken cancellationToken)
         {
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
-                .ConfigureAwait(false);
+                ;
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
@@ -118,7 +118,7 @@ namespace Fluxzy.Misc.Streams
                     CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
 
                 var read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
-                                            .ConfigureAwait(false);
+                                            ;
 
                 if (TotalRead == 0 && _firstBytesReaden != null) {
                     _firstBytesReaden();

@@ -92,14 +92,14 @@ namespace Fluxzy.Clients.H2
                 return 0;
 
             var streamWindow = await RemoteWindowSize.BookWindowSize(requestedBodyLength, cancellationToken)
-                                                     .ConfigureAwait(false);
+                                                     ;
 
             if (streamWindow == 0)
                 return 0;
 
             var overallWindow = await Parent.Context.OverallWindowSizeHolder
                                             .BookWindowSize(streamWindow, cancellationToken)
-                                            .ConfigureAwait(false);
+                                            ;
 
             return overallWindow;
         }
@@ -198,7 +198,7 @@ namespace Fluxzy.Clients.H2
 
                     // We check wait for available Window Size from remote
                     bookedSize = await BookWindowSize(bookedSize, token)
-                        .ConfigureAwait(false);
+                        ;
 
                     if (bookedSize == 0)
                         throw new TaskCanceledException("Stream cancellation request");
@@ -206,7 +206,7 @@ namespace Fluxzy.Clients.H2
                     var dataFramePayloadLength = await requestBodyStream
                                                        .ReadAsync(localBuffer.Slice(9, bookedSize),
                                                            token)
-                                                       .ConfigureAwait(false);
+                                                       ;
 
                     if (dataFramePayloadLength < bookedSize) {
                         // window size refund 
@@ -238,7 +238,7 @@ namespace Fluxzy.Clients.H2
                         return;
 
                     // This is for back pressure 
-                    await writeTaskBody.DoneTask.ConfigureAwait(false);
+                    await writeTaskBody.DoneTask;
                 }
             }
         }

@@ -155,7 +155,7 @@ namespace Fluxzy
 
             try {
                 if (_loopTask != null)
-                    await _loopTask.ConfigureAwait(false); // Wait for main loop to end
+                    await _loopTask; // Wait for main loop to end
 
                 var n = 100;
 
@@ -182,7 +182,7 @@ namespace Fluxzy
 
             while (true) {
                 var client =
-                    await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
+                    await _downStreamConnectionProvider.GetNextPendingConnection();
 
                 if (client == null)
                     break;
@@ -210,7 +210,7 @@ namespace Fluxzy
                                               currentCount;
 
                         await _proxyOrchestrator!.Operate(client, buffer, closeImmediately, _proxyHaltTokenSource.Token)
-                                                 .ConfigureAwait(false);
+                                                 ;
                     }
                     finally {
                         client.Close();
