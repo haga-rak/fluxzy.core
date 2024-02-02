@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Cases
         public async Task Run_Until_Close_Notify(string sslEngine)
         {
             var count = 3;
-            var url = "https://sandbox.smartizy.com/swagger/index.html"; 
+            var url = "https://www.example.com/"; 
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
