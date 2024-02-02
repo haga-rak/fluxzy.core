@@ -45,6 +45,21 @@ namespace Fluxzy.Writers
         public abstract void UpdateTags(IEnumerable<Tag> tags);
 
         /// <summary>
+        ///  Check whether calling Update(ExchangeInfo, CancellationToken) is necessary
+        /// </summary>
+        /// <param name="exchange"></param>
+        /// <returns></returns>
+        protected abstract bool ExchangeUpdateRequired(Exchange exchange);
+
+        /// <summary>
+        ///  Check whether calling Update(ConnectionInfo, CancellationToken) is necessary
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+
+        protected abstract bool ConnectionUpdateRequired(Connection connection);
+
+        /// <summary>
         /// Updates the exchange information.
         /// </summary>
         /// <param name="exchangeInfo">The exchange information to update.</param>
@@ -152,6 +167,7 @@ namespace Fluxzy.Writers
                 ErrorUpdated(this, new DownstreamErrorEventArgs(currentCount));
         }
 
+
         /// <summary>
         /// Updates the specified connection.
         /// </summary>
@@ -159,13 +175,20 @@ namespace Fluxzy.Writers
         /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
         public virtual void Update(Connection connection, CancellationToken cancellationToken)
         {
-            var connectionInfo = new ConnectionInfo(connection);
+            ConnectionInfo ? connectionInfo = null;
 
-            Update(connectionInfo, cancellationToken);
+            if (ConnectionUpdateRequired(connection))
+            {
+                connectionInfo = new ConnectionInfo(connection);
+                Update(connectionInfo, cancellationToken);
+            }
 
             // fire event 
             if (ConnectionUpdated != null)
+            {
+                connectionInfo ??= new ConnectionInfo(connection);
                 ConnectionUpdated(this, new ConnectionUpdateEventArgs(connectionInfo));
+            }
         }
 
         /// <summary>
@@ -178,21 +201,29 @@ namespace Fluxzy.Writers
             Exchange exchange, ArchiveUpdateType updateType,
             CancellationToken cancellationToken)
         {
-            var exchangeInfo = new ExchangeInfo(exchange);
-
-            if (updateType == ArchiveUpdateType.AfterResponse) {
+            if (updateType == ArchiveUpdateType.AfterResponse)
+            {
                 var total = Interlocked.Increment(ref InternalTotalProcessedExchanges);
 
                 if (total == _maxExchangeCount)
                     _onMaxExchangeCountReached?.Invoke();
             }
 
-            if (!Update(exchangeInfo, cancellationToken))
-                return; // DO NOT  fire update event when save filter is on
+            ExchangeInfo ? exchangeInfo = null;
+
+            if (ExchangeUpdateRequired(exchange)) {
+                exchangeInfo = new ExchangeInfo(exchange);
+
+                if (!Update(exchangeInfo, cancellationToken))
+                    return; // DO NOT  fire update event when save filter is on
+            }
 
             // fire event 
             if (ExchangeUpdated != null)
+            {
+                exchangeInfo ??= new ExchangeInfo(exchange);
                 ExchangeUpdated(this, new ExchangeUpdateEventArgs(exchangeInfo, exchange, updateType));
+            }
         }
 
         protected virtual void Dispose(bool disposing)

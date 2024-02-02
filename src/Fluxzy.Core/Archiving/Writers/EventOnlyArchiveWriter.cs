@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Fluxzy.Core;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Writers
@@ -13,6 +14,11 @@ namespace Fluxzy.Writers
         {
         }
 
+        protected override bool ExchangeUpdateRequired(Exchange exchange)
+        {
+            return false;
+        }
+
         public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
         {
             return true;
@@ -20,6 +26,11 @@ namespace Fluxzy.Writers
 
         public override void Update(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
         {
+        }
+
+        protected override bool ConnectionUpdateRequired(Connection connection)
+        {
+            return false; 
         }
 
         protected override void InternalUpdate(DownstreamErrorInfo connectionInfo, CancellationToken cancellationToken)
