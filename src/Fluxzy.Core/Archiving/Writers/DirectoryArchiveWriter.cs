@@ -84,15 +84,24 @@ namespace Fluxzy.Writers
             UpdateMeta(true);
         }
 
-        public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        protected override bool ExchangeUpdateRequired(Exchange exchange)
         {
-            if (_saveFilter != null && !_saveFilter.Apply(
-                    null,
-                    new Authority(exchangeInfo.KnownAuthority,
-                        exchangeInfo.KnownPort,
-                        exchangeInfo.Secure), exchangeInfo, null))
+            if (_saveFilter != null && !_saveFilter.Apply(null, exchange.Authority, exchange, null))
                 return false;
 
+            return true;
+        }
+
+        protected override bool ConnectionUpdateRequired(Connection connection)
+        {
+            //if (_saveFilter != null && !_saveFilter.Apply(null, connection.Authority, null, null))
+            //    return false;
+
+            return true; 
+        }
+
+        public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
+        {
             var exchangePath = DirectoryArchiveHelper.GetExchangePath(_baseDirectory, exchangeInfo);
 
             DirectoryArchiveHelper.CreateDirectory(exchangePath);
