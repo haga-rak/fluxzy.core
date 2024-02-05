@@ -22,6 +22,13 @@ namespace Fluxzy.Clients.H11
                 "FLUXZY_CONNECTION_DISPOSE_DETECTION_THRESHOLD_TICKS",
                 TimeSpan.FromMilliseconds(1.5).Ticks);
 
+        /// <summary>
+        /// Keep this buffer length margin above the header size to avoid resizing the buffer
+        /// when adding control headers to the client 
+        /// </summary>
+        private static readonly int BufferMargin =
+            EnvironmentUtility.GetInt32("FLUXZY_RS_BUFFER_MARGIN", 128);
+
         private static readonly byte[] CrLf = { 0x0D, 0x0A, 0x0D, 0x0A };
 
         /// <summary>
@@ -124,6 +131,11 @@ namespace Fluxzy.Clients.H11
             }
 
             headerBlockReceived?.Invoke();
+
+            if ((totalRead + BufferMargin) > buffer.Buffer.Length)
+            {
+                buffer.Multiply(2);
+            }
 
             return new HeaderBlockReadResult(indexFound, totalRead, false);
         }
