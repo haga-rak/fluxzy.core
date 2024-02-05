@@ -2,11 +2,13 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Clients.Headers;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
@@ -175,6 +177,8 @@ namespace Fluxzy.Core
                                         exchange.Request.Body = await
                                             exchange.Context.GetSubstitutedRequestBody(exchange.Request.Body!, 
                                                 exchange);
+
+                                        exchange.Request.Header.ForceTransferChunked();
                                     }
 
                                     if (exchange.Request.Body != null &&
@@ -192,13 +196,11 @@ namespace Fluxzy.Core
 
                                     connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
 
-
                                     if (D.EnableTracing)
                                     {
                                         var message = $"[#{exchange.Id}] Pool received";
                                         D.TraceInfo(message);
                                     }
-
 
                                     // Actual request send 
 
