@@ -169,16 +169,20 @@ namespace Fluxzy.Core
                                         CancellationToken.None
                                     );
 
-                                    if (hasRequestBody) {
+                                    if (exchange.Context.HasRequestBodySubstitution)
+                                    {
+                                        originalRequestBodyStream = hasRequestBody? exchange.Request.Body : Stream.Null;
+                                        exchange.Request.Body = await
+                                            exchange.Context.GetSubstitutedRequestBody(exchange.Request.Body!, 
+                                                exchange);
 
-                                        // here we have a chance substitute the requestBodyStream
+                                        exchange.Request.Header.ForceTransferChunked();
+                                    }
 
-                                        if (exchange.Context.HasRequestBodySubstitution) {
-                                            originalRequestBodyStream = exchange.Request.Body;
-                                            exchange.Request.Body = await
-                                                exchange.Context.GetSubstitutedRequestBody(exchange.Request.Body!, exchange);
-                                        }
-
+                                    if (exchange.Request.Body != null &&
+                                        (!exchange.Request.Body.CanSeek ||
+                                         exchange.Request.Body.Length > 0))
+                                    {
                                         exchange.Request.Body = new DispatchStream(exchange.Request.Body!,
                                             true,
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
@@ -190,13 +194,11 @@ namespace Fluxzy.Core
 
                                     connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token);
 
-
                                     if (D.EnableTracing)
                                     {
                                         var message = $"[#{exchange.Id}] Pool received";
                                         D.TraceInfo(message);
                                     }
-
 
                                     // Actual request send 
 
