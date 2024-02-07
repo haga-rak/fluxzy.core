@@ -77,6 +77,7 @@ namespace Fluxzy.Tests.UnitTests.Substitutions
             BreakPointManager breakPointManager)
         {
             context.RequestHeaderAlterations.Add(new HeaderAlterationReplace("Content-type", "text/plain", true));
+            context.RequestHeaderAlterations.Add(new HeaderAlterationDelete("Content-length"));
 
             if (_withContentLength) {
                 context.RequestHeaderAlterations.Add(new HeaderAlterationReplace("Content-length",
