@@ -86,6 +86,9 @@ namespace Fluxzy.Core
                     if (exchangeSourceInitResult == null)
                         return;
 
+                    using var _ = exchangeSourceInitResult;
+
+
                     var exchange =
                         exchangeSourceInitResult.ProvisionalExchange;
 
