@@ -89,6 +89,14 @@ namespace Fluxzy.Rules.Filters
 
         protected override string Suffix { get; } = nameof(Filter);
 
+        /// <summary>
+        /// Called once by the engine to initialize the filter
+        /// </summary>
+        public virtual void Init()
+        {
+
+        }
+
         protected abstract bool InternalApply(
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext);

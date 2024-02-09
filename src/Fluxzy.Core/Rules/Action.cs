@@ -45,6 +45,14 @@ namespace Fluxzy.Rules
             }
         }
 
+        /// <summary>
+        /// Called once by the engine to initialize the action
+        /// </summary>
+        public virtual void Init()
+        {
+
+        }
+
         public ValueTask Alter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)

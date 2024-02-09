@@ -78,22 +78,31 @@ namespace Fluxzy.Core
 
         public int ProxyListenPort { get; set; }
 
+        public void Init()
+        {
+            var activeRules = StartupSetting.FixedRules()
+                                            .Concat(StartupSetting.AlterationRules).ToList(); 
+
+            foreach (var rule in activeRules) {
+                rule.Action.Init();
+                rule.Filter.Init();
+            }
+
+            _effectiveRules ??= activeRules;
+        }
+
         public async ValueTask<ExchangeContext> EnforceRules(
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
-            _effectiveRules ??= StartupSetting.FixedRules()
-                                               .Concat(StartupSetting.AlterationRules)
-                                               .ToList();
-
-            foreach (var rule in _effectiveRules.Where(a => 
+            foreach (var rule in _effectiveRules!.Where(a => 
                          a.Action.ActionScope == filterScope
                          || a.Action.ActionScope == FilterScope.OutOfScope 
                          || (a.Action.ActionScope == FilterScope.CopySibling 
                              && a.Action is MultipleScopeAction multipleScopeAction
                              && multipleScopeAction .RunScope == filterScope
-                            )
-                         ))
+                         )
+                     ))
             {
                 await rule.Enforce(
                     context, exchange, connection, filterScope,
