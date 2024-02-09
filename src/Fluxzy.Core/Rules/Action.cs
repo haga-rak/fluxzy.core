@@ -45,6 +45,15 @@ namespace Fluxzy.Rules
             }
         }
 
+        /// <summary>
+        /// Called once by the engine to initialize this directive
+        /// </summary>
+        /// <param name="startupContext"></param>
+        public virtual void Init(StartupContext startupContext)
+        {
+
+        }
+
         public ValueTask Alter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)

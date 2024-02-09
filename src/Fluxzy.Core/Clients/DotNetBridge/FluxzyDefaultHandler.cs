@@ -51,6 +51,8 @@ namespace Fluxzy.Clients.DotNetBridge
 
             if (writer != null)
                 _runtimeSetting.ArchiveWriter = writer;
+
+            _runtimeSetting.Init();
         }
 
         public List<SslApplicationProtocol>? Protocols { get; set; }
