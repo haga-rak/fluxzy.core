@@ -10,7 +10,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 {.alert .alert-info}
 :::
-**onAuthorityReceived** This scope denotes the moment fluxzy is aware the destination authority. In a regular proxy connection, it will occur the moment where fluxzy parsed the CONNECT request.
+**requestHeaderReceivedFromClient** This scope occurs the moment fluxzy parsed the request header receiveid from client
 :::
 
 ### YAML configuration name
