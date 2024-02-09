@@ -245,6 +245,10 @@ namespace Fluxzy
             if (_started)
                 throw new InvalidOperationException("Proxy was already started");
 
+            // Init rules 
+
+            _runTimeSetting.Init();
+
             _started = true;
 
             var endPoints = _downStreamConnectionProvider.Init(_proxyHaltTokenSource!.Token);
