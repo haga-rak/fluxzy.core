@@ -41,7 +41,6 @@ namespace Fluxzy.Rules
                 return 
                     GetType().GetProperties()
                              .Count(p => p.GetCustomAttribute<ActionDistinctiveAttribute>() != null) == 0;
-
             }
         }
 
