@@ -552,6 +552,7 @@ namespace Fluxzy.Core
                 }
                 catch
                 {
+                    // ignore errors when closing pipe 
                 }
             }
             return default;
