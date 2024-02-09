@@ -46,9 +46,10 @@ namespace Fluxzy.Rules
         }
 
         /// <summary>
-        /// Called once by the engine to initialize the action
+        /// Called once by the engine to initialize this directive
         /// </summary>
-        public virtual void Init()
+        /// <param name="startupContext"></param>
+        public virtual void Init(StartupContext startupContext)
         {
 
         }

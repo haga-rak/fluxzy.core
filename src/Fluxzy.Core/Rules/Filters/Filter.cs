@@ -90,9 +90,10 @@ namespace Fluxzy.Rules.Filters
         protected override string Suffix { get; } = nameof(Filter);
 
         /// <summary>
-        /// Called once by the engine to initialize the filter
+        /// Called once by the engine to initialize this directive
         /// </summary>
-        public virtual void Init()
+        /// <param name="startupContext"></param>
+        public virtual void Init(StartupContext startupContext)
         {
 
         }

@@ -83,9 +83,11 @@ namespace Fluxzy.Core
             var activeRules = StartupSetting.FixedRules()
                                             .Concat(StartupSetting.AlterationRules).ToList(); 
 
+            var startupContext = new StartupContext(StartupSetting, VariableContext, ArchiveWriter);
+
             foreach (var rule in activeRules) {
-                rule.Action.Init();
-                rule.Filter.Init();
+                rule.Action.Init(startupContext);
+                rule.Filter.Init(startupContext);
             }
 
             _effectiveRules ??= activeRules;
