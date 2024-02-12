@@ -115,6 +115,17 @@ namespace Fluxzy.Core
             return StatusCode != 304 && StatusCode >= 200 && StatusCode != 204 && StatusCode != 205;
         }
 
+<<<<<<< HEAD
+=======
+        protected override bool CanHaveBody()
+        {
+            if (StatusCode == 204 || StatusCode == 205 || StatusCode == 304)
+                return false;
+
+            return true; 
+        }
+
+>>>>>>> origin/main
         protected override int WriteHeaderLine(Span<byte> buffer)
         {
             var totalLength = 0;

@@ -307,8 +307,24 @@ namespace Fluxzy.Core
             return totalLength;
         }
 
+<<<<<<< HEAD
         internal void ForceTransferChunked()
         {
+=======
+        protected virtual bool CanHaveBody()
+        {
+            return true; 
+        }
+
+        internal void ForceTransferChunked()
+        {
+            // Allow chunked body f
+
+            if (!CanHaveBody()) {
+                return;
+            }
+
+>>>>>>> origin/main
             _rawHeaderFields.Add(new HeaderField("Transfer-Encoding", "chunked"));
             ChunkedBody = true;
         }

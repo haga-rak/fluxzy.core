@@ -6,6 +6,15 @@
             },
             "commandLineArgs": "start --llo -sp"
         },
+<<<<<<< HEAD
+=======
+        "launch (remote)": {
+            "commandName": "Project",
+            "environmentVariables": {
+            },
+            "commandLineArgs": "start -l 0.0.0.0:8877 -ss -t"
+        },
+>>>>>>> origin/main
         "launch (normal)": {
             "commandName": "Project",
             "environmentVariables": {
@@ -13,4 +22,8 @@
             "commandLineArgs": "start --no-cert-cache --trace"
         }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/main

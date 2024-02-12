@@ -1,0 +1,5 @@
+EnableDumpStackTraceOn502=true
+InsertFluxzyMetricsOnResponseHeader=true
+EnableH2Tracing=true
+EnableH1Tracing=true
+EnableH2TracingFilterHosts=host1;host2;....
