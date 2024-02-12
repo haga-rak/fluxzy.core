@@ -10,7 +10,7 @@
             "commandName": "Project",
             "environmentVariables": {
             },
-            "commandLineArgs": "start -l 0.0.0.0:8877 -ss -t --cert-file=e:\\cert\\a.pfx --cert-password=LLLLLLL"
+            "commandLineArgs": "start -l 0.0.0.0:8877 -ss -t"
         },
         "launch (normal)": {
             "commandName": "Project",
