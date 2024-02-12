@@ -6,6 +6,12 @@
             },
             "commandLineArgs": "start --llo -sp"
         },
+        "launch (remote)": {
+            "commandName": "Project",
+            "environmentVariables": {
+            },
+            "commandLineArgs": "start -l 0.0.0.0:8877 -ss -t --cert-file=e:\\cert\\a.pfx --cert-password=LLLLLLL"
+        },
         "launch (normal)": {
             "commandName": "Project",
             "environmentVariables": {
