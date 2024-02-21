@@ -77,7 +77,7 @@ namespace Fluxzy.Formatters.Producers.Responses
             if (!mainList.Any())
                 return false;
 
-            var nameValueTab = mainList.First().Split(new[] { "=" }, StringSplitOptions.RemoveEmptyEntries);
+            var nameValueTab = mainList.First().Split(new[] { "=" }, StringSplitOptions.None);
 
             if (nameValueTab.Length < 2)
                 return false;
