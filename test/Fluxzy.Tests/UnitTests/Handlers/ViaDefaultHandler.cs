@@ -64,7 +64,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ"
+                "https://extranet.2befficient.fr/Content/themetr/assets/global/plugins/icheck/skins/all.css"
             );
 
             var response = await httpClient.SendAsync(requestMessage);
