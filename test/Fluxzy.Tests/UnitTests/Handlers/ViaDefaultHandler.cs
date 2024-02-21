@@ -36,7 +36,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -67,7 +67,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 "https://extranet.2befficient.fr/Content/themetr/assets/global/plugins/icheck/skins/all.css"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -92,7 +92,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 "https://sandbox.smartizy.com:5001/content-produce/1000/1000"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -110,7 +110,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 "https://sandbox.smartizy.com/ip"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -137,7 +137,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                     urls[i % urls.Length]
                 );
 
-                var response = httpClient.SendAsync(requestMessage);
+                var response = httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
                 result.Add(response.ContinueWith(t => t.Result.IsSuccessStatusCode));
             }
 

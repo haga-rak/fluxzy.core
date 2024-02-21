@@ -26,7 +26,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 "https://extranet.2befficient.fr/Scripts/Core?v=RG4zfPZTCmDTC0sCJZC1Fx9GEJ_Edk7FLfh_lQ"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -43,7 +43,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 $"https://{TestConstants.HttpBinHost}/get"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
@@ -61,7 +61,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 $"https://{TestConstants.HttpBinHost}/ip"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
@@ -79,7 +79,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 $"https://{TestConstants.HttpBinHost}/status/204"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
@@ -97,7 +97,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 "https://sandbox.smartizy.com/content-produce-unpredictable/130000/130000"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentLength = await (await response.Content.ReadAsStreamAsync()).DrainAsync();
 
             var actualLength =
@@ -118,7 +118,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
                 $"{TestConstants.Http2Host}/content-produce-unpredictable/2300000/2300000"
             );
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var array = await response.Content.ReadAsByteArrayAsync();
 
             var actualLength =
@@ -142,7 +142,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             requestMessage.Headers.Add("x-favorite-header", "1");
             requestMessage.Headers.Add("X-fAVorite-header", "2");
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
@@ -167,7 +167,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             requestMessage.Content = content;
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
@@ -194,7 +194,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             requestMessage.ToHttp11String();
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
@@ -217,7 +217,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             requestMessage.Content = content;
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
@@ -240,7 +240,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             requestMessage.Headers.Add("Connection", "Keep-alive");
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode);
@@ -259,7 +259,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             requestMessage.Headers.Add("x-Header-a", "ads");
 
-            var response = await httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 
             var contentText = await response.Content.ReadAsStringAsync();
 
@@ -282,7 +282,8 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             await Assert.ThrowsAsync<TaskCanceledException>(async () =>
             {
-                var responsePromise = httpClient.SendAsync(requestMessage, source.Token);
+                var responsePromise = httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead
+                    , source.Token);
                 source.Cancel();
                 await responsePromise;
             });
