@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace Fluxzy.Core
@@ -18,8 +19,7 @@ namespace Fluxzy.Core
 
         public override ProxyAuthenticationType AuthenticationType => ProxyAuthenticationType.Basic;
 
-        public override bool ValidateAuthentication(
-            RequestHeader requestHeader)
+        public override bool ValidateAuthentication(IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, RequestHeader requestHeader)
         {
             var authorizationHeader = requestHeader["Proxy-Authorization"]?.FirstOrDefault();
 
@@ -34,7 +34,7 @@ namespace Fluxzy.Core
             return base64.Equals(_base64Header, StringComparison.Ordinal);
         }
 
-        public override byte[] GetUnauthorizedResponse(RequestHeader requestHeader)
+        public override byte[] GetUnauthorizedResponse(IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, RequestHeader requestHeader)
         {
             return ProxyAuthenticationRequiredRawData;
         }

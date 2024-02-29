@@ -51,7 +51,7 @@ namespace Fluxzy.Core
 
             while (count-- > 0)
             {
-                var result = await InternalInitClientConnection(stream, buffer, contextBuilder, token);
+                var result = await InternalInitClientConnection(stream, buffer, contextBuilder, localEndpoint, remoteEndPoint, token);
 
                 if (result.Retry)
                     continue;
@@ -63,7 +63,8 @@ namespace Fluxzy.Core
         }
 
         private async Task<InternalInitClientConnectionResult> InternalInitClientConnection(
-            Stream stream, RsBuffer buffer, IExchangeContextBuilder contextBuilder, CancellationToken token)
+            Stream stream, RsBuffer buffer, IExchangeContextBuilder contextBuilder,
+            IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, CancellationToken token)
         {
             var readBlockResult = await ReadNextBlock(stream, buffer, token);
 
@@ -83,8 +84,8 @@ namespace Fluxzy.Core
 
                 var authority = new Authority(authorityArray[0],  int.Parse(authorityArray[1]), true);
 
-                if (!_proxyAuthenticationMethod.ValidateAuthentication(plainHeader)) {
-                    var rawResponse = _proxyAuthenticationMethod.GetUnauthorizedResponse(plainHeader);
+                if (!_proxyAuthenticationMethod.ValidateAuthentication(localEndPoint, remoteEndPoint, plainHeader)) {
+                    var rawResponse = _proxyAuthenticationMethod.GetUnauthorizedResponse(localEndPoint, remoteEndPoint, plainHeader);
 
                     await stream.WriteAsync(rawResponse, token);
 

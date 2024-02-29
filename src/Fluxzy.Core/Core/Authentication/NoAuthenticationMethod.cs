@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 
 namespace Fluxzy.Core
 {
@@ -13,13 +14,12 @@ namespace Fluxzy.Core
 
         public override ProxyAuthenticationType AuthenticationType => ProxyAuthenticationType.None;
 
-        public override bool ValidateAuthentication(
-            RequestHeader requestHeader)
+        public override bool ValidateAuthentication(IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, RequestHeader requestHeader)
         {
             return true;
         }
 
-        public override byte[] GetUnauthorizedResponse(RequestHeader requestHeader)
+        public override byte[] GetUnauthorizedResponse(IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, RequestHeader requestHeader)
         {
             throw new InvalidOperationException();
         }
