@@ -258,7 +258,7 @@ namespace Fluxzy
         }
 
         /// <summary>
-        /// Creates a FluxzySetting object with a randomly generated local port number.
+        /// Creates a FluxzySetting with a randomly generated local port number and bound to the IPv4 loopback address.
         /// </summary>
         /// <returns>A FluxzySetting object with the local port number set to a random value.</returns>
         public static FluxzySetting CreateLocalRandomPort()

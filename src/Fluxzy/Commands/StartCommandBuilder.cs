@@ -83,6 +83,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
             command.AddOption(StartCommandOptions.CreateReverseProxyMode());
             command.AddOption(StartCommandOptions.CreateReverseProxyModePortOption());
+            command.AddOption(StartCommandOptions.CreateProxyAuthenticationOption());
             command.AddOption(StartCommandOptions.CreateProxyBuffer());
             command.AddOption(StartCommandOptions.CreateCounterOption());
 
@@ -118,6 +119,7 @@ namespace Fluxzy.Cli.Commands
             var use502 = invocationContext.Value<bool>("use-502");
             var proxyMode = invocationContext.Value<ProxyMode>("mode");
             var modeReversePort = invocationContext.Value<int?>("mode-reverse-port");
+            var proxyBasicAuthCredential = invocationContext.Value<NetworkCredential?>("proxy-auth-basic");
 
             if (trace) {
                 D.EnableTracing = true;
@@ -169,6 +171,11 @@ namespace Fluxzy.Cli.Commands
                 {
                     proxyStartUpSetting.SetReverseModeForcedPort(modeReversePort.Value);
                 }
+            }
+
+            if (proxyBasicAuthCredential != null) {
+                proxyStartUpSetting.SetProxyAuthentication(
+                    ProxyAuthentication.Basic(proxyBasicAuthCredential.UserName, proxyBasicAuthCredential.Password));
             }
 
             var finalListenInterfaces = listenInterfaces.ToList();
