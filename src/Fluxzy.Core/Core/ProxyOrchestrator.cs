@@ -62,7 +62,7 @@ namespace Fluxzy.Core
                     try {
                         exchangeSourceInitResult = await _exchangeSourceProvider.InitClientConnection(
                             client.GetStream(), buffer,
-                            _exchangeContextBuilder, (IPEndPoint) client.Client.LocalEndPoint!, token);
+                            _exchangeContextBuilder, (IPEndPoint) client.Client.LocalEndPoint!, (IPEndPoint) client.Client.RemoteEndPoint!, token);
                     }
                     catch (Exception ex) {
                         // Failure from the local connection

@@ -37,7 +37,7 @@ namespace Fluxzy.Core
             Stream stream,
             RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
-            IPEndPoint ipEndPoint,
+            IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token)
         {
             var secureStream = new SslStream(stream, false);
@@ -62,7 +62,7 @@ namespace Fluxzy.Core
                 throw new FluxzyException("Unable to gather remote authority hostname");
             }
 
-            var destinationPort = _reverseModeForcedPort ?? ipEndPoint.Port; 
+            var destinationPort = _reverseModeForcedPort ?? localEndpoint.Port; 
 
             var authority = new Authority(authorityName, destinationPort, true);
 

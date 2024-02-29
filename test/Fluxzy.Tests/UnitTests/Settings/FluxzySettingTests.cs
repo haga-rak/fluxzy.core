@@ -35,6 +35,7 @@ namespace Fluxzy.Tests.UnitTests.Settings
             settings.SetVerbose(true);
             settings.UseBouncyCastleSslEngine();
             settings.SetCertificateCacheDirectory("/temp"); 
+            settings.SetProxyAuthentication(ProxyAuthentication.Basic("userName", "Password")); 
 
             var jsonString = JsonSerializer.Serialize(settings, GlobalArchiveOption.ConfigSerializerOptions);
 
