@@ -199,6 +199,11 @@ namespace Fluxzy
         [JsonInclude]
         public bool ReverseModePlainHttp { get; internal set; }
 
+        /// <summary>
+        ///     The current proxy authentication setting if any
+        /// </summary>
+        [JsonInclude]
+        public ProxyAuthentication? ProxyAuthentication { get; internal set; }
 
         internal IEnumerable<Rule> FixedRules()
         {

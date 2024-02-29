@@ -7,10 +7,14 @@ namespace Fluxzy.Core
     internal static class ExchangeSourceProviderHelper
     {
         public static ExchangeSourceProvider GetSourceProvider(FluxzySetting setting,
-            SecureConnectionUpdater secureConnectionUpdater, IIdProvider idProvider, ICertificateProvider certificateProvider)
+            SecureConnectionUpdater secureConnectionUpdater, 
+            IIdProvider idProvider, ICertificateProvider? certificateProvider, 
+            ProxyAuthenticationMethod proxyAuthenticationMethod)
         {
             if (!setting.ReverseMode)
-                return new FromProxyConnectSourceProvider(secureConnectionUpdater, idProvider);
+                return new FromProxyConnectSourceProvider(
+                    secureConnectionUpdater, idProvider,
+                    proxyAuthenticationMethod);
             
             if (setting.ReverseModePlainHttp)
                 return new ReverseProxyPlainExchangeSourceProvider(idProvider, setting.ReverseModeForcedPort);

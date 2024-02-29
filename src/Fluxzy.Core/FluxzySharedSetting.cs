@@ -41,24 +41,27 @@ namespace Fluxzy
         /// When set to true, the proxy will not collect environment information on the archive file
         /// </summary>
         public static bool SkipCollectingEnvironmentInformation { get; set; }
-
-
+        
         /// <summary>
         ///  
         /// </summary>
-        public static readonly int DownStreamProviderReceiveTimeoutMilliseconds
-            = EnvironmentUtility.GetInt32("FLUXZY_DOWNSTREAM_CONNECTION_RECEIVE_TIMEOUT_MILLISECONDS", -1);
+        public static int DownStreamProviderReceiveTimeoutMilliseconds { get; } =
+             EnvironmentUtility.GetInt32("FLUXZY_DOWNSTREAM_CONNECTION_RECEIVE_TIMEOUT_MILLISECONDS", -1);
         
         /// <summary>
         ///   Fluxzy will use stackalloc for buffer allocation if the buffer size is less than this value.
         ///   Can bet set by environment variable FLUXZY_STACK_ALLOC_THRESHOLD
         /// </summary>
         public static int StackAllocThreshold { get; set; } = EnvironmentUtility.GetInt32("FLUXZY_STACK_ALLOC_THRESHOLD", 1024);
-
-
+        
         /// <summary>
         ///   The running version of Fluxzy
         /// </summary>
         public static string RunningVersion { get; } = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+
+        /// <summary>
+        /// Number of maximum attempt for proxy authentication before closing the connection
+        /// </summary>
+        public static int ProxyAuthenticationMaxAttempt { get; set; } = EnvironmentUtility.GetInt32("FLUXZY_PROXY_AUTHENTICATION_MAX_ATTEMPT", 3);
     }
 }
