@@ -52,7 +52,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 
-            var bodySize = 1024 * 16 * delaySeconds;
+            var bodySize = 1024 * 16 * delaySeconds + 1024;
 
             var url = $"https://sandbox.smartizy.com/content-produce/{bodySize}/{bodySize}";
 
@@ -64,7 +64,8 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             watch.Stop();
 
-            Assert.True(watch.ElapsedMilliseconds > delaySeconds * 1000);
+            Assert.True(watch.ElapsedMilliseconds > delaySeconds * 1000, 
+                $"{watch.ElapsedMilliseconds} > {delaySeconds * 1000}");
         }
     }
 }
