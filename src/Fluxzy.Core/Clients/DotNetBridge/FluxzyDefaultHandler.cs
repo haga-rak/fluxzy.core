@@ -22,18 +22,14 @@ namespace Fluxzy.Clients.DotNetBridge
     /// </summary>
     public class FluxzyDefaultHandler : HttpMessageHandler
     {
-        private readonly ITcpConnectionProvider? _connectionProvider;
         private readonly IIdProvider _idProvider;
         private readonly PoolBuilder _poolBuilder;
         private readonly ProxyRuntimeSetting _runtimeSetting;
-        private readonly SemaphoreSlim _semaphore = new(1);
 
         public FluxzyDefaultHandler(
             SslProvider sslProvider,
             ITcpConnectionProvider? connectionProvider = null, RealtimeArchiveWriter? writer = null)
         {
-            _connectionProvider = connectionProvider;
-
             var provider = sslProvider == SslProvider.BouncyCastle
                 ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
                 : new SChannelConnectionBuilder();
@@ -44,7 +40,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
             _idProvider = IIdProvider.FromZero;
 
-            _runtimeSetting = ProxyRuntimeSetting.Default;
+            _runtimeSetting = ProxyRuntimeSetting.CreateDefault;
 
             if (connectionProvider != null)
                 _runtimeSetting.TcpConnectionProvider = connectionProvider;
@@ -76,13 +72,6 @@ namespace Fluxzy.Clients.DotNetBridge
                 cancellationToken).ConfigureAwait(false);
 
             return new FluxzyHttpResponseMessage(exchange);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            _semaphore.Dispose();
         }
     }
 }
