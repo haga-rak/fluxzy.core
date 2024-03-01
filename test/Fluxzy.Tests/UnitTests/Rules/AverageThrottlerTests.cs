@@ -64,7 +64,8 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             watch.Stop();
 
-            Assert.True(watch.ElapsedMilliseconds > delaySeconds * 1000);
+            Assert.True(watch.ElapsedMilliseconds > delaySeconds * 1000, 
+                $"{watch.ElapsedMilliseconds} > {delaySeconds * 1000}");
         }
     }
 }
