@@ -63,5 +63,10 @@ namespace Fluxzy
         /// Number of maximum attempt for proxy authentication before closing the connection
         /// </summary>
         public static int ProxyAuthenticationMaxAttempt { get; set; } = EnvironmentUtility.GetInt32("FLUXZY_PROXY_AUTHENTICATION_MAX_ATTEMPT", 3);
+
+        /// <summary>
+        ///  The maximum buffer size for request processing, above this value the connection will be abandoned
+        /// </summary>
+        public static int MaxProcessingBuffer { get;  } = EnvironmentUtility.GetInt32("FLUXZY_MAX_PROCESSING_BUFFER", 1024 * 512);
     }
 }
