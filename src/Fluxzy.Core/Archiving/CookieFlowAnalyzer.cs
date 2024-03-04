@@ -8,7 +8,7 @@ namespace Fluxzy
     public class CookieFlowAnalyzer
     {
         public CookieFlow Execute(string cookieName,
-            string host,
+            string domain,
             string? path,
             IReadOnlyCollection<ExchangeInfo> exchanges)
         {
@@ -21,23 +21,14 @@ namespace Fluxzy
 
             var events = new List<CookieTrackingEvent>();
 
-
-
             foreach (var exchange in exchanges)
             {
-
-                if (exchange.FullUrl.Contains("delete", StringComparison.OrdinalIgnoreCase))
-                {
-                    // updateType = CookieUpdateType.RemovedByServer;
-                }
-
-
                 if (!Uri.TryCreate(exchange.FullUrl, UriKind.Absolute, out var uri))
                     continue;
 
                 var previous = events.LastOrDefault();
 
-                if (!uri.Host.EndsWith(host))
+                if (!uri.Host.EndsWith(domain))
                 {
                     continue;
                 }
@@ -46,7 +37,6 @@ namespace Fluxzy
                 {
                     continue;
                 }
-
 
                 var foundInClient = false;
 
@@ -101,7 +91,7 @@ namespace Fluxzy
                 }
             }
 
-            return new CookieFlow(cookieName, host, events);
+            return new CookieFlow(cookieName, domain, events);
         }
     }
 }

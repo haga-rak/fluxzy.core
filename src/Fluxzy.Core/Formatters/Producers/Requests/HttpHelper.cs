@@ -52,9 +52,6 @@ namespace Fluxzy.Formatters.Producers.Requests
 
         public static IReadOnlyCollection<SetCookieItem> ReadResponseCookies(ExchangeInfo exchangeInfo)
         {
-            if (exchangeInfo.FullUrl.Contains("delete", StringComparison.OrdinalIgnoreCase)) {
-
-            }
             var headers = exchangeInfo.GetResponseHeaders()?.ToList();
 
             if (headers == null)
