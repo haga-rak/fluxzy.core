@@ -31,11 +31,13 @@ namespace Fluxzy.Core
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
         /// <param name="contextBuilder"></param>
-        /// <param name="requestedEndpoint"></param>
+        /// <param name="localEndpoint"></param>
         /// <param name="token"></param>
+        /// <param name="remoteEndPoint"></param>
         /// <returns></returns>
         public abstract ValueTask<ExchangeSourceInitResult?> InitClientConnection(
-            Stream stream, RsBuffer buffer, IExchangeContextBuilder contextBuilder, IPEndPoint requestedEndpoint,
+            Stream stream, RsBuffer buffer, IExchangeContextBuilder contextBuilder, 
+            IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token);
 
         /// <summary>

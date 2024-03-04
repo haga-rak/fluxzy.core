@@ -44,11 +44,12 @@ namespace Fluxzy.Core
             UserAgentProvider = userAgentProvider;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
         }
-
-        public static ProxyRuntimeSetting Default { get; } = new()
+        
+        internal static ProxyRuntimeSetting CreateDefault => new()
         {
             ArchiveWriter = new EventOnlyArchiveWriter()
         };
+
         public FluxzySetting StartupSetting { get; }
 
         public ProxyExecutionContext? ExecutionContext { get; }

@@ -30,7 +30,7 @@ namespace Fluxzy.Core
             Stream stream,
             RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
-            IPEndPoint ipEndPoint,
+            IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token)
         {
             var receivedFromProxy = ITimingProvider.Default.Instant();

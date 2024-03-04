@@ -85,6 +85,5 @@ namespace Fluxzy.Tests.Cli
             Assert.Equal("Relayed by fluxzy", headerValue);
 
         }
-
     }
 }

@@ -199,6 +199,11 @@ namespace Fluxzy
         [JsonInclude]
         public bool ReverseModePlainHttp { get; internal set; }
 
+        /// <summary>
+        ///     The current proxy authentication setting if any
+        /// </summary>
+        [JsonInclude]
+        public ProxyAuthentication? ProxyAuthentication { get; internal set; }
 
         internal IEnumerable<Rule> FixedRules()
         {
@@ -253,7 +258,7 @@ namespace Fluxzy
         }
 
         /// <summary>
-        /// Creates a FluxzySetting object with a randomly generated local port number.
+        /// Creates a FluxzySetting with a randomly generated local port number and bound to the IPv4 loopback address.
         /// </summary>
         /// <returns>A FluxzySetting object with the local port number set to a random value.</returns>
         public static FluxzySetting CreateLocalRandomPort()

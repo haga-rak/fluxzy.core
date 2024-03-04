@@ -68,7 +68,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
                 return new ProxyInstance(ExitCode, _standardOutput, _standardError, port, _cancellationTokenSource);
             }
             catch (FluxzyBadExitCodeException) {
-                throw new InvalidOperationException(
+                throw new FluxzyBadExitCodeException(
                     "Fluxzy exits with a non-zero status code.\r\n" +
                     $"Original args: {(string.Join(" ", _commandLineArgs))}\r\n" +
                     "Stderr:\r\n"

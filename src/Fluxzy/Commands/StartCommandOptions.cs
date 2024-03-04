@@ -290,6 +290,48 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
+        public static Option CreateProxyAuthenticationOption()
+        {
+            var option = new Option<NetworkCredential?>(
+                "--proxy-auth-basic",
+                parseArgument: result => {
+                    var value = result.Tokens.FirstOrDefault()?.Value;
+
+                    if (value == null)
+                    {
+                        result.ErrorMessage = "Credentials must be provided.";
+                        return default;
+                    }
+
+                    var arrayCredentials = value.Split(':');
+
+                    if (arrayCredentials.Length == 1) {
+                        result.ErrorMessage = "Username and password must be separated by with column.";
+                        return default;
+                    }
+
+                    if (arrayCredentials.Length > 2) {
+                        result.ErrorMessage = "Provided credentials contains multiple columns. Use %3A for column in username or password.";
+                        return default;
+                    }
+
+                    var username = WebUtility.UrlDecode(arrayCredentials[0]);
+                    var password = WebUtility.UrlDecode(arrayCredentials[1]);
+
+                    return new NetworkCredential(username, password);
+                }
+            );
+
+            option.Description =
+                "Require a basic authentication. Username and password shall be provided in this format: username:password." +
+                " Values can be provided in a percent encoded format.";
+
+            option.Arity = ArgumentArity.ExactlyOne;
+            option.SetDefaultValue(null);
+
+            return option;
+        }
+
         public static Option CreateRuleFileOption()
         {
             var option = new Option<FileInfo>(

@@ -8,11 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Fluxzy.Core\Fluxzy.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
+    <PackageReference Include="Fluxzy.Core" Version="1.21.3" />
   </ItemGroup>
 
 </Project>

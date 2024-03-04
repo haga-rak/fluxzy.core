@@ -422,5 +422,11 @@ namespace Fluxzy
             var addFilter = new ConfigureFilterBuilderBuilder(this);
             return addFilter;
         }
+
+        public FluxzySetting SetProxyAuthentication(ProxyAuthentication proxyAuthentication)
+        {
+            ProxyAuthentication = proxyAuthentication;
+            return this;
+        }
     }
 }
