@@ -18,5 +18,10 @@ namespace Fluxzy
         public ExchangeInfo ExchangeInfo { get; }
 
         public SetCookieItem? SetCookieItem { get; set; }
+
+        public override string ToString()
+        {
+            return $"{UpdateType} {Value} {ExchangeInfo.Method} {ExchangeInfo.FullUrl}";
+        }
     }
 }

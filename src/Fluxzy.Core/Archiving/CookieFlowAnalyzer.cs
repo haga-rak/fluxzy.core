@@ -67,7 +67,8 @@ namespace Fluxzy
                     events.Add(tracingEvent);
                 }
 
-                if (!foundInClient && previous != null && previous.UpdateType != CookieUpdateType.RemovedByClient)
+                if (!foundInClient && previous != null && previous.UpdateType != CookieUpdateType.RemovedByClient
+                    && previous.UpdateType != CookieUpdateType.RemovedByServer)
                 {
                     events.Add(new CookieTrackingEvent(CookieUpdateType.RemovedByClient,
                         string.Empty, exchange));
