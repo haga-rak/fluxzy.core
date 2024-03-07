@@ -27,7 +27,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
 
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
-                new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
+                new EventOnlyArchiveWriter());
 
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
@@ -42,9 +42,8 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         }
 
         [Theory]
-        [InlineData(SslProvider.BouncyCastle)]
-        [InlineData(SslProvider.OsDefault)]
-        public async Task Get_H11_IIS(SslProvider sslProvider)
+        [MemberData(nameof(Get_H11_IIS_Args))]
+        public async Task Get_H11_IIS(SslProvider sslProvider, int _)
         {
             var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
@@ -52,8 +51,8 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
 
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
-                new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null))
-            {
+                new EventOnlyArchiveWriter())
+               {
                 Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 }
             };
 
@@ -83,7 +82,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
 
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
-                new DirectoryArchiveWriter(nameof(ViaDefaultHandler), null));
+                new EventOnlyArchiveWriter());
 
             using var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(TimeoutConstants.Regular) };
 
@@ -146,6 +145,15 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             foreach (var b in allResult)
             {
                 Assert.True(b);
+            }
+        }
+
+        public static IEnumerable<object[]> Get_H11_IIS_Args()
+        {
+            yield return new object[] { SslProvider.BouncyCastle, 0 };
+
+            for (int i = 0; i < 20; i++) {
+                yield return new object[] { SslProvider.OsDefault, i };
             }
         }
     }
