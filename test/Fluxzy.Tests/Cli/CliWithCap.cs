@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
+    [Collection("RUNS_RAW_CAPTURE")]
     public class CliWithCap : CliTestBase
     {
         public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt {

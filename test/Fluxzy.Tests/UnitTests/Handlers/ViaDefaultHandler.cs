@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Handlers
 {
+    [Collection("RUNS_RAW_CAPTURE")]
     public class ViaDefaultHandler
     {
         [Theory]
