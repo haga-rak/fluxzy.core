@@ -117,11 +117,6 @@ namespace Fluxzy.Clients
             var semaphorePerAuthority = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
             var released = false;
 
-           
-
-            //exchange.Connection.RemoteAddress = ipAddress;
-            //exchange.Connection.DnsSolveEnd = _timeProvider.Instant();
-
             try
             {
                 if (!semaphorePerAuthority.Wait(0))

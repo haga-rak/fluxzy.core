@@ -97,9 +97,10 @@ namespace Fluxzy.Clients.H11
                 {
                     throw new ConnectionCloseException("Relaunch");
                 }
-
-                throw new ClientErrorException(0, $"The connection was close while trying to read the response header",
-                    ex.Message);
+                
+                throw new ClientErrorException(0, 
+                    $"The connection was close while trying to read the response header",
+                    ex.Message, innerException: ex) {};
             }
 
             if (headerBlockDetectResult.CloseNotify)

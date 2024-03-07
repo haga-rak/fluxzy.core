@@ -64,8 +64,9 @@ namespace Fluxzy.Clients
             exchange.Connection.RemoteAddress = resolutionResult.EndPoint.Address;
 
             var tcpConnection = setting.TcpConnectionProvider
-                                       .Create(setting.ArchiveWriter != null
-                                           ? setting.ArchiveWriter?.GetDumpfilePath(exchange.Connection.Id)!
+                                       .Create(
+                                           setting.ArchiveWriter != null!
+                                           ? setting.ArchiveWriter.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
 
             var localEndpoint = await tcpConnection.ConnectAsync(resolutionResult.EndPoint.Address,
