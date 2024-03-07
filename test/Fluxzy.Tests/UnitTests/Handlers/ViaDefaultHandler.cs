@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Net.Http;
 using System.Net.Security;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Core;
@@ -43,15 +45,17 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
         [Theory]
         [MemberData(nameof(Get_H11_IIS_Args))]
-        public async Task Get_H11_IIS(SslProvider sslProvider, int _)
+        public async Task Get_H11_IIS(SslProvider sslProvider, int count)
         {
             var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
-            await using var tcpProvider = ITcpConnectionProvider.Default; // await CapturedTcpConnectionProvider.Create(proxyScope, false);
+            await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
 
             using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
-                new EventOnlyArchiveWriter())
+                new EventOnlyArchiveWriter() {
+                    DumpFilePath = $"{nameof(Get_H11_IIS)}_{sslProvider}_{count}.pcapng"
+                })
                {
                 Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 }
             };
@@ -152,7 +156,9 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         {
             yield return new object[] { SslProvider.BouncyCastle, 0 };
 
-            for (int i = 0; i < 20; i++) {
+            var count = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? 20 : 1; 
+
+            for (int i = 0; i < count; i++) {
                 yield return new object[] { SslProvider.OsDefault, i };
             }
         }

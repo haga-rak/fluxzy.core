@@ -62,5 +62,15 @@ namespace Fluxzy.Writers
         {
 
         }
+
+        internal string? DumpFilePath { get; set; }
+
+        public override string GetDumpfilePath(int connectionId)
+        {
+            if (DumpFilePath == null)
+                return base.GetDumpfilePath(connectionId);
+
+            return DumpFilePath;
+        }
     }
 }
