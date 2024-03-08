@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc.Streams
 {
-    public delegate Task DisposeFunc(object sender, StreamDisposeEventArgs args);
+    public delegate ValueTask DisposeFunc(object sender, StreamDisposeEventArgs args);
 
     public class DisposeEventNotifierStream : Stream
     {
@@ -57,8 +57,6 @@ namespace Fluxzy.Misc.Streams
                 Faulted = true;
 
                 throw;
-
-                //return 0; // JUST RETURN EOF when fail
             }
         }
 
@@ -93,10 +91,10 @@ namespace Fluxzy.Misc.Streams
             InnerStream.Write(buffer, offset, count);
         }
 
-        public override async ValueTask WriteAsync(
+        public override ValueTask WriteAsync(
             ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            await InnerStream.WriteAsync(buffer, cancellationToken);
+            return InnerStream.WriteAsync(buffer, cancellationToken);
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
