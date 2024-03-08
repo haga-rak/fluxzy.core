@@ -46,7 +46,7 @@ namespace Fluxzy.Core.Pcap
 
         public async Task Start()
         {
-            await _client.ConnectAsync(IPAddress.Loopback, _port);
+            await _client.ConnectAsync(IPAddress.Loopback, _port).ConfigureAwait(false);
 
             var stream = _client.GetStream();
             _writer = new BinaryWriter(stream);
