@@ -147,7 +147,7 @@ namespace Fluxzy.Misc.Streams
                 return 0;
             }
 
-            var read = await _innerStream.ReadAsync(buffer, cancellationToken);
+            var read = await _innerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
 
             if (read > 0) {
                 Result = AddNewSequence(buffer.Slice(0, read));

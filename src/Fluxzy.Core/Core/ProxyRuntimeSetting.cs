@@ -109,7 +109,7 @@ namespace Fluxzy.Core
             {
                 await rule.Enforce(
                     context, exchange, connection, filterScope,
-                    ExecutionContext?.BreakPointManager!);
+                    ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
             }
 
             if (exchange?.RunInLiveEdit ?? false)
@@ -118,7 +118,7 @@ namespace Fluxzy.Core
                 var rule = new Rule(breakPointAction, AnyFilter.Default);
 
                 await rule.Enforce(context, exchange, connection, filterScope,
-                    ExecutionContext?.BreakPointManager!);
+                    ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
             }
 
             return context;

@@ -62,13 +62,13 @@ namespace Fluxzy.Misc.Streams
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            return await InnerStream.ReadAsync(buffer, cancellationToken);
+            return await InnerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
         }
 
         public override async Task<int> ReadAsync(
             byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken).ConfigureAwait(false);
         }
 
         public override int Read(Span<byte> buffer)
@@ -99,7 +99,7 @@ namespace Fluxzy.Misc.Streams
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken);
+            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken).ConfigureAwait(false);
         }
 
         public override void Close()
@@ -127,10 +127,10 @@ namespace Fluxzy.Misc.Streams
             _fromAsyncDispose = true;
             Faulted = true;
 
-            await InnerStream.DisposeAsync();
+            await InnerStream.DisposeAsync().ConfigureAwait(false);
 
             if (OnStreamDisposed != null) {
-                await OnStreamDisposed(this, new StreamDisposeEventArgs());
+                await OnStreamDisposed(this, new StreamDisposeEventArgs()).ConfigureAwait(false);
             }
         }
     }

@@ -170,7 +170,7 @@ namespace Fluxzy
                 var n = 100;
 
                 while (_currentConcurrentCount > 0 && n-- > 0) {
-                    await Task.Delay(5);
+                    await Task.Delay(5).ConfigureAwait(false);
                 }
             }
             catch (Exception) {

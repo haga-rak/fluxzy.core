@@ -246,7 +246,7 @@ namespace Fluxzy.Core
             var finalStream = originalStream;
 
             foreach (var substitution in substitutions) {
-                finalStream = await substitution.Substitute(finalStream);
+                finalStream = await substitution.Substitute(finalStream).ConfigureAwait(false);
             }
 
             return finalStream;

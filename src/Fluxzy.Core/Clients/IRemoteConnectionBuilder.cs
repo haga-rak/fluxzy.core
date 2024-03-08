@@ -70,7 +70,7 @@ namespace Fluxzy.Clients
                                            : string.Empty);
 
             var localEndpoint = await tcpConnection.ConnectAsync(resolutionResult.EndPoint.Address,
-                                                       resolutionResult.EndPoint.Port);
+                                                       resolutionResult.EndPoint.Port).ConfigureAwait(false);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
             exchange.Connection.LocalPort = localEndpoint.Port;
@@ -100,7 +100,7 @@ namespace Fluxzy.Clients
 
             var sslConnectionInfo =
                 await _sslConnectionBuilder.AuthenticateAsClient(
-                    newlyOpenedStream, builderOptions, tcpConnection.OnKeyReceived, token);
+                    newlyOpenedStream, builderOptions, tcpConnection.OnKeyReceived, token).ConfigureAwait(false);
 
             exchange.Connection.SslInfo = sslConnectionInfo.SslInfo;
 

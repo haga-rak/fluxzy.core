@@ -54,7 +54,8 @@ namespace Fluxzy.Core
         { // Every next request after the first one is read from the stream
 
             var blockReadResult = await
-                Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, throwOnError: false, token);
+                Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, throwOnError: false, token)
+                                       .ConfigureAwait(false);
 
             if (blockReadResult.TotalReadLength == 0)
                 return null;
@@ -79,7 +80,7 @@ namespace Fluxzy.Core
                     inStream);
             }
 
-            var exchangeContext = await contextBuilder.Create(authority, authority.Secure);
+            var exchangeContext = await contextBuilder.Create(authority, authority.Secure).ConfigureAwait(false);
 
             var bodyStream = SetChunkedBody(secureHeader, inStream);
 

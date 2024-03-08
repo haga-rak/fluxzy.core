@@ -92,7 +92,7 @@ namespace Fluxzy.Clients.H2
                 _windowSizeAWaiters.Enqueue(onJobReady);
             }
 
-            await onJobReady.Task;
+            await onJobReady.Task.ConfigureAwait(false);
 
             return await BookWindowSize(requestedLength, cancellationToken).ConfigureAwait(false);
         }

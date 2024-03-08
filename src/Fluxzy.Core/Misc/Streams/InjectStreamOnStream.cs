@@ -168,7 +168,7 @@ namespace Fluxzy.Misc.Streams
                 {
                     // drain injected stream to the reader 
 
-                    var injectRead = await _injectedStream.ReadAsync(buffer, cancellationToken);
+                    var injectRead = await _injectedStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
                     _continueInjecting = injectRead > 0;
 
                     if (injectRead > 0)
@@ -188,7 +188,7 @@ namespace Fluxzy.Misc.Streams
                 {
                     // Avoid seeking index when buffering is done 
 
-                    var directRead = await _innerStream.ReadAsync(buffer, cancellationToken);
+                    var directRead = await _innerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
 
                     return directRead;
                 }
@@ -199,7 +199,7 @@ namespace Fluxzy.Misc.Streams
                 var maxRead = Math.Min(buffer.Length, canBeStored); // MAYBE not usefull ? 
 
                 var read = await _innerStream.ReadAsync(_pendingUnvalidatedBuffer,
-                    _pendingUnvalidatedBufferLength, maxRead, cancellationToken);
+                    _pendingUnvalidatedBufferLength, maxRead, cancellationToken).ConfigureAwait(false);
 
                 _pendingUnvalidatedBufferLength += read;
 
