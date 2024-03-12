@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers;
@@ -56,7 +56,7 @@ namespace Fluxzy.Clients.H11
         {
             while (true) {
                 if (!_pipe.Reader.TryRead(out var readResult))
-                    readResult = await _pipe.Reader.ReadAsync(_token);
+                    readResult = await _pipe.Reader.ReadAsync(_token).ConfigureAwait(false);
 
                 if (readResult.IsCompleted || readResult.IsCanceled)
                     return;
@@ -81,7 +81,9 @@ namespace Fluxzy.Clients.H11
 
                     var immediateMessage = new WsMessage(++_messageCounter);
                     wsFrame.FinalFragment = true;
-                    await immediateMessage.AddFrame(wsFrame, _maxBufferedWsMessage, _pipe.Reader, _outStream, _token);
+
+                    await immediateMessage.AddFrame(wsFrame, _maxBufferedWsMessage, _pipe.Reader, _outStream, _token)
+                                          .ConfigureAwait(false);
                     immediateMessage.MessageEnd = _timingProvider.Instant();
                     _onMessage(immediateMessage);
 
@@ -94,7 +96,7 @@ namespace Fluxzy.Clients.H11
 
                 await _current
                     .AddFrame(wsFrame, _maxBufferedWsMessage,
-                        _pipe.Reader, _outStream, _token);
+                        _pipe.Reader, _outStream, _token).ConfigureAwait(false);
 
                 if (wsFrame.FinalFragment) {
                     _current.MessageEnd = _timingProvider.Instant();
@@ -173,10 +175,10 @@ namespace Fluxzy.Clients.H11
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            var read = await _innerStream.ReadAsync(buffer, cancellationToken);
+            var read = await _innerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
 
             _pipe.Writer.Write(buffer.Span.Slice(0, read));
-            await _pipe.Writer.FlushAsync(cancellationToken);
+            await _pipe.Writer.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             return read;
         }
@@ -185,7 +187,7 @@ namespace Fluxzy.Clients.H11
             byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
-            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken).ConfigureAwait(false);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -211,9 +213,9 @@ namespace Fluxzy.Clients.H11
 
         public override async ValueTask DisposeAsync()
         {
-            await _innerStream.DisposeAsync();
+            await _innerStream.DisposeAsync().ConfigureAwait(false);
             Dispose(true);
-            await _runningTask;
+            await _runningTask.ConfigureAwait(false);
         }
     }
 }

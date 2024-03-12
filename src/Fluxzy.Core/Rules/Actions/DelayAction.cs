@@ -28,7 +28,7 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            await Task.Delay(Duration);
+            await Task.Delay(Duration).ConfigureAwait(false);
         }
     }
 }

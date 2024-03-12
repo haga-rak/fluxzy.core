@@ -86,32 +86,33 @@ namespace Fluxzy.Misc.Streams
             byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
-            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken).ConfigureAwait(false);
         }
 
         public override async ValueTask<int> ReadAsync(
             Memory<byte> buffer,
             CancellationToken cancellationToken = new())
         {
-            var read = await _baseStream.ReadAsync(buffer, cancellationToken);
+            var read = await _baseStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
 
             if (read == 0 && _closeOnDone) {
                 if (_destinations != null) {
                     await Task.WhenAll(
-                        _destinations.Select(t => t.DisposeAsync().AsTask()));
+                        _destinations.Select(t => t.DisposeAsync().AsTask())).ConfigureAwait(false);
                 }
 
                 _destinations = null;
 
                 if (OnDisposeDoneTask != null) {
-                    await OnDisposeDoneTask();
+                    await OnDisposeDoneTask().ConfigureAwait(false);
                     OnDisposeDoneTask = null;
                 }
             }
             else {
                 if (_destinations != null) {
                     await Task.WhenAll(
-                        _destinations.Select(t => t.WriteAsync(buffer.Slice(0, read), cancellationToken).AsTask()));
+                        _destinations.Select(t => t.WriteAsync(buffer.Slice(0, read), cancellationToken).AsTask()))
+                              .ConfigureAwait(false);
                 }
             }
 
@@ -139,13 +140,13 @@ namespace Fluxzy.Misc.Streams
 
             if (_destinations != null && _closeOnDone) {
                 foreach (var dest in _destinations) {
-                    await dest.DisposeAsync();
+                    await dest.DisposeAsync().ConfigureAwait(false);
                 }
 
                 _destinations = null;
             }
 
-            await base.DisposeAsync();
+            await base.DisposeAsync().ConfigureAwait(false);
         }
 
         protected override void Dispose(bool disposing)

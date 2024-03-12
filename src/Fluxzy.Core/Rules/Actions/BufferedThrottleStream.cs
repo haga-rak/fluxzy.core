@@ -49,12 +49,12 @@ namespace Fluxzy.Rules.Actions
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
         {
-            var read = await _innerStream.ReadAsync(buffer, cancellationToken);
+            var read = await _innerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
 
             var readSize = _averageThrottler.ComputeThrottleDelay(read);
 
             if (readSize > 0) {
-                await Task.Delay(readSize, cancellationToken);
+                await Task.Delay(readSize, cancellationToken).ConfigureAwait(false);
             }
 
             return read; 

@@ -45,7 +45,7 @@ namespace Fluxzy.Core
         /// <returns></returns>
         public async Task<SystemProxySetting> Register(IPEndPoint endPoint, params string[] byPassHosts)
         {
-            var existingSetting = await GetSystemProxySetting();
+            var existingSetting = await GetSystemProxySetting().ConfigureAwait(false);
 
             if (_oldSetting != null && !existingSetting.Equals(_oldSetting))
                 _oldSetting = existingSetting;
@@ -62,7 +62,7 @@ namespace Fluxzy.Core
                 endPoint.Port,
                 byPassHosts);
 
-            await _systemProxySetter.ApplySetting(_currentSetting);
+            await _systemProxySetter.ApplySetting(_currentSetting).ConfigureAwait(false);
 
             return _currentSetting;
         }
@@ -85,7 +85,7 @@ namespace Fluxzy.Core
         public async Task UnRegister()
         {
             if (_oldSetting != null) {
-                await _systemProxySetter.ApplySetting(_oldSetting);
+                await _systemProxySetter.ApplySetting(_oldSetting).ConfigureAwait(false);
                 _oldSetting = null;
 
                 return;
@@ -93,17 +93,17 @@ namespace Fluxzy.Core
 
             if (_currentSetting != null) {
                 _currentSetting.Enabled = false;
-                await _systemProxySetter.ApplySetting(_currentSetting);
+                await _systemProxySetter.ApplySetting(_currentSetting).ConfigureAwait(false);
                 _currentSetting = null;
 
                 return;
             }
 
-            var existingSetting = await GetSystemProxySetting();
+            var existingSetting = await GetSystemProxySetting().ConfigureAwait(false);
 
             if (existingSetting.Enabled) {
                 existingSetting.Enabled = false;
-                await _systemProxySetter.ApplySetting(existingSetting);
+                await _systemProxySetter.ApplySetting(existingSetting).ConfigureAwait(false);
             }
         }
         

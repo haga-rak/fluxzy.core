@@ -39,24 +39,24 @@ namespace Fluxzy.Core.Breakpoints
 
             var originalValue = new T();
 
-            await originalValue.Init(_exchange);
+            await originalValue.Init(_exchange).ConfigureAwait(false);
 
             _updateReceiver(originalValue, Location, false);
 
             try {
                 // We init the value of location 
 
-                var updatedValue = await _waitForValueCompletionSource.Task;
+                var updatedValue = await _waitForValueCompletionSource.Task.ConfigureAwait(false);
 
                 if (updatedValue != null) {
                     originalValue = updatedValue;
                     
-                    await updatedValue.Alter(_exchange);
+                    await updatedValue.Alter(_exchange).ConfigureAwait(false);
                 }
                 else {
                     // undo 
                     // Set back content body 
-                    await originalValue.Alter(_exchange);
+                    await originalValue.Alter(_exchange).ConfigureAwait(false);
                 }
             }
             finally {

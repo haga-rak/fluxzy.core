@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +47,9 @@ namespace Fluxzy.Clients.H11
 
             // Sending request header 
             
-            await exchange.Connection.WriteStream!.WriteAsync(buffer.Memory.Slice(0, headerLength), cancellationToken);
+            await exchange.Connection.WriteStream!
+                          .WriteAsync(buffer.Memory.Slice(0, headerLength), cancellationToken)
+                          .ConfigureAwait(false);
 
             _logger.Trace(exchange.Id, () => "Header sent");
 
@@ -72,7 +73,7 @@ namespace Fluxzy.Clients.H11
                 exchange.Metrics.TotalSent += totalBodySize;
 
                 if (chunkedStream != null)
-                    await chunkedStream.WriteEof();
+                    await chunkedStream.WriteEof().ConfigureAwait(false);
             }
 
             exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
@@ -89,7 +90,7 @@ namespace Fluxzy.Clients.H11
                     () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
                     throwOnError: true,
                     cancellationToken,
-                    dontThrowIfEarlyClosed: true);
+                    dontThrowIfEarlyClosed: true).ConfigureAwait(false);
             }
             catch (Exception ex) {
 

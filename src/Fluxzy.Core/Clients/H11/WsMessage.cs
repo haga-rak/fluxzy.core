@@ -96,7 +96,7 @@ namespace Fluxzy.Clients.H11
             if (wsFrame.FinalFragment && Length == 0 && wsFrame.PayloadLength < maxWsMessageLengthBuffered) {
                 // Build direct buffer for message 
 
-                var readResult = await pipeReader.ReadAtLeastAsync((int) wsFrame.PayloadLength, token);
+                var readResult = await pipeReader.ReadAtLeastAsync((int) wsFrame.PayloadLength, token).ConfigureAwait(false);
 
                 // TODO optimize with stackalloc on sequence
 
@@ -116,7 +116,7 @@ namespace Fluxzy.Clients.H11
                     // Write into file 
 
                     if (!pipeReader.TryRead(out var readResult))
-                        readResult = await pipeReader.ReadAsync();
+                        readResult = await pipeReader.ReadAsync().ConfigureAwait(false);
 
                     // readResult.Buffer.Slice()
 

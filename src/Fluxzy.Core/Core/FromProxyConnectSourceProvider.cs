@@ -51,7 +51,8 @@ namespace Fluxzy.Core
 
             while (count-- > 0)
             {
-                var result = await InternalInitClientConnection(stream, buffer, contextBuilder, localEndpoint, remoteEndPoint, token);
+                var result = await InternalInitClientConnection(stream, buffer, contextBuilder, localEndpoint, remoteEndPoint, token)
+                    .ConfigureAwait(false);
 
                 if (result.Retry)
                     continue;
@@ -66,7 +67,7 @@ namespace Fluxzy.Core
             Stream stream, RsBuffer buffer, IExchangeContextBuilder contextBuilder,
             IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, CancellationToken token)
         {
-            var readBlockResult = await ReadNextBlock(stream, buffer, token);
+            var readBlockResult = await ReadNextBlock(stream, buffer, token).ConfigureAwait(false);
 
             if (readBlockResult == null)
                 return new (false, null);
@@ -87,7 +88,7 @@ namespace Fluxzy.Core
                 if (!_proxyAuthenticationMethod.ValidateAuthentication(localEndPoint, remoteEndPoint, plainHeader)) {
                     var rawResponse = _proxyAuthenticationMethod.GetUnauthorizedResponse(localEndPoint, remoteEndPoint, plainHeader);
 
-                    await stream.WriteAsync(rawResponse, token);
+                    await stream.WriteAsync(rawResponse, token).ConfigureAwait(false);
 
                     return new(true, null); 
                 }
@@ -95,7 +96,7 @@ namespace Fluxzy.Core
 
 
                 await stream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
-                var exchangeContext = await contextBuilder.Create(authority, true);
+                var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
 
                 if (exchangeContext.BlindMode) {
                     return
@@ -113,7 +114,7 @@ namespace Fluxzy.Core
                 var certEnd = ITimingProvider.Default.Instant();
 
                 var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
-                    stream, authority.HostName, exchangeContext, token);
+                    stream, authority.HostName, exchangeContext, token).ConfigureAwait(false);
 
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, StreamUtils.EmptyStream,
@@ -167,7 +168,7 @@ namespace Fluxzy.Core
             }
 
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
-            var plainExchangeContext = await contextBuilder.Create(plainAuthority, false);
+            var plainExchangeContext = await contextBuilder.Create(plainAuthority, false).ConfigureAwait(false);
 
             var bodyStream = SetChunkedBody(plainHeader, stream);
 
@@ -194,7 +195,8 @@ namespace Fluxzy.Core
                 CancellationToken token)
         {
             HeaderBlockReadResult blockReadResult = await
-                Http11HeaderBlockReader.GetNext(stream, buffer, null, null, throwOnError: false, token);
+                Http11HeaderBlockReader.GetNext(stream, buffer, null, null, throwOnError: false, token)
+                                       .ConfigureAwait(false);
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
 

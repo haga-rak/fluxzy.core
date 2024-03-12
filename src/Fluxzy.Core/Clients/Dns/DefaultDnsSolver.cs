@@ -20,7 +20,7 @@ namespace Fluxzy.Clients.Dns
                 return cached;
 
             try {
-                var entry = await System.Net.Dns.GetHostAddressesAsync(hostName);
+                var entry = await System.Net.Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
 
                 return _cache[hostName] = entry.OrderBy(a => a.AddressFamily == AddressFamily.InterNetworkV6)
                                                .First();
@@ -41,7 +41,7 @@ namespace Fluxzy.Clients.Dns
         public async Task<IPAddress?> SolveDnsQuietly(string hostName)
         {
             try {
-                return await SolveDns(hostName);
+                return await SolveDns(hostName).ConfigureAwait(false);
             }
             catch {
                 // it's quiet solving 

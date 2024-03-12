@@ -41,7 +41,7 @@ namespace Fluxzy.Core
                 networkStream.ReadExact(buffer);
             }
             else {
-                await stream.ReadExactAsync(buffer, token);
+                await stream.ReadExactAsync(buffer, token).ConfigureAwait(false);
             }
 
             if (StartWithKeyWord(buffer)) {
@@ -71,7 +71,7 @@ namespace Fluxzy.Core
 
             try {
                 await secureStream
-                    .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false);
+                    .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false).ConfigureAwait(false);
             }
             catch (Exception ex) {
                 throw new FluxzyException(

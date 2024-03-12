@@ -327,7 +327,7 @@ namespace Fluxzy.Clients.H2
                 _logger.Trace(StreamIdentifier, "Before semaphore ");
 
                 if (!cancellationToken.IsCancellationRequested)
-                    await _headerReceivedSemaphore.WaitAsync(cancellationToken);
+                    await _headerReceivedSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.Trace(StreamIdentifier, "Acquire semaphore ");
             }
@@ -347,7 +347,7 @@ namespace Fluxzy.Clients.H2
 
             if (_noBodyStream) {
                 // This stream as no more body 
-                await _pipeResponseBody.Writer.CompleteAsync();
+                await _pipeResponseBody.Writer.CompleteAsync().ConfigureAwait(false);
 
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
 

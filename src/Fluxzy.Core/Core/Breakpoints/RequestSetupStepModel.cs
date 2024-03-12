@@ -60,7 +60,7 @@ namespace Fluxzy.Core.Breakpoints
                 var tempFileName = ExtendedPathHelper.GetTempFileName();
 
                 await using (var fileStream = File.Create(tempFileName)) {
-                    await exchange.Request.Body.CopyToAsync(fileStream);
+                    await exchange.Request.Body.CopyToAsync(fileStream).ConfigureAwait(false);
                 }
 
                 var tempFileInfo = new FileInfo(tempFileName);
@@ -75,7 +75,7 @@ namespace Fluxzy.Core.Breakpoints
 
                     if (isText) {
                         FromFile = false;
-                        ContentBody = await File.ReadAllTextAsync(tempFileName);
+                        ContentBody = await File.ReadAllTextAsync(tempFileName).ConfigureAwait(false);
                     }
                 }
 

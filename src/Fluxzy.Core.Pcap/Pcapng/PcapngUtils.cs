@@ -64,7 +64,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         {
             var pcapStream = inRawCaptureStream;
             await using var tempStream = PcapngUtils.GetPcapngFileWithKeyStream(pcapStream, nssKey);
-            await tempStream.CopyToAsync(outFileStream);
+            await tempStream.CopyToAsync(outFileStream).ConfigureAwait(false);
         }
     }
 }

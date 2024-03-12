@@ -46,18 +46,17 @@ namespace Fluxzy.Core
             // Ignore
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             _client?.Dispose();
-            await Task.CompletedTask;
+            return default;
         }
 
-        private async Task ResultStreamOnOnStreamDisposed(object sender, StreamDisposeEventArgs args)
+        private ValueTask ResultStreamOnOnStreamDisposed(object sender, StreamDisposeEventArgs args)
         {
             var stream = (DisposeEventNotifierStream) sender;
             stream.OnStreamDisposed -= ResultStreamOnOnStreamDisposed;
-
-            await DisposeAsync();
+            return DisposeAsync();
         }
     }
 }

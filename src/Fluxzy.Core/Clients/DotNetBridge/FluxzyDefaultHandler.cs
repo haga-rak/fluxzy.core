@@ -66,7 +66,7 @@ namespace Fluxzy.Clients.DotNetBridge
             if (Protocols != null)
                 exchange.Context.SslApplicationProtocols = Protocols;
 
-            var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken);
+            var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken).ConfigureAwait(false);
 
             await connection.Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);

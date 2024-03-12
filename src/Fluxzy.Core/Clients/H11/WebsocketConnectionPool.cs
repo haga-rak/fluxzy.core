@@ -55,14 +55,14 @@ namespace Fluxzy.Clients.H11
             CancellationToken cancellationToken = default)
         {
             try {
-                await _semaphoreSlim.WaitAsync(cancellationToken);
+                await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 await using var ex = new WebSocketProcessing(
                     Authority, _timingProvider,
                     _connectionBuilder,
                     _proxyRuntimeSetting, _proxyRuntimeSetting.ArchiveWriter, _dnsResolutionResult);
 
-                await ex.Process(exchange, localLink, buffer.Buffer, cancellationToken);
+                await ex.Process(exchange, localLink, buffer.Buffer, cancellationToken).ConfigureAwait(false);
             }
             finally {
                 _semaphoreSlim.Release();
@@ -128,7 +128,7 @@ namespace Fluxzy.Clients.H11
 
             // Writing 
             var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
-            await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken);
+            await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken).ConfigureAwait(false);
 
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
@@ -148,7 +148,7 @@ namespace Fluxzy.Clients.H11
             exchange.Response.Header = new ResponseHeader(
                 headerContent, exchange.Authority.Secure, true);
 
-            await localLink.WriteStream!.WriteAsync(rsBuffer.Buffer, 0, headerBlock.HeaderLength, cancellationToken);
+            await localLink.WriteStream!.WriteAsync(rsBuffer.Buffer, 0, headerBlock.HeaderLength, cancellationToken).ConfigureAwait(false);
 
             var concatedReadStream = exchange.Connection.ReadStream!;
 
@@ -210,7 +210,7 @@ namespace Fluxzy.Clients.H11
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken).AsTask());
 
-                await copyTask;
+                await copyTask.ConfigureAwait(false);
             }
             catch (Exception ex) {
                 if (ex is IOException || ex is SocketException) {
