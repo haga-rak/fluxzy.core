@@ -16,6 +16,7 @@ namespace Samples.No007.UsingClientCertificate
         {
             var fluxzySetting = FluxzySetting.CreateDefault();
 
+            // Load from a PKCS12 file (pfx and p12)
             var certificate = Certificate.LoadFromPkcs12("clientCertificiate.p12", "password");
 
             // Load from user store with serial number
@@ -24,10 +25,11 @@ namespace Samples.No007.UsingClientCertificate
             // Load from user store with thumbprint
             // var certificate = Certificate.LoadFromUserStoreByThumbprint("xxxxx");
 
-            fluxzySetting.ConfigureRule().WhenHostEndsWith("mtls-mandatory.com")
+            fluxzySetting.ConfigureRule()
+                         .WhenHostEndsWith("mtls-mandatory.com")
                          .Do(new SetClientCertificateAction(certificate)); 
 
-                          // Create a new proxy instance 
+            // Create a new proxy instance 
             await using var proxy = new Proxy(fluxzySetting);
 
             Console.WriteLine("Press any key to exit");
