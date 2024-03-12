@@ -23,7 +23,7 @@ namespace Samples.No008.InjectCodeSnippet
                          .Do(new InjectHtmlTagAction()
                          {
                              HtmlContent = "<style>body { background-color: red !important; }</style>",
-                             Tag = "head",
+                             Tag = "head", // we insert on tag header to execute the snippet early
                          });
 
             await using var proxy = new Proxy(fluxzySetting);
