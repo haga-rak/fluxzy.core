@@ -2,7 +2,7 @@ using Fluxzy;
 using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters.RequestFilters;
 
-namespace Samples.No008.InjectCodeSnippet
+namespace Samples.No009.InjectCodeSnippet
 {
     internal class Program
     {
