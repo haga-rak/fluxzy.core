@@ -32,6 +32,8 @@ namespace Samples.No007.UsingClientCertificate
             // Create a new proxy instance 
             await using var proxy = new Proxy(fluxzySetting);
 
+            proxy.Run();
+
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();
         }

@@ -19,7 +19,7 @@ namespace Samples.No006.CaptureOsTraffic
             var endpoints = proxy.Run();
 
             await using var proxyRegistration = await SystemProxyRegistrationHelper.Create(endpoints.First());
-
+            
             // Fluxzy is now registered as the system proxy, the proxy will revert
             // back to the original settings when proxyRegistration is disposed.
 

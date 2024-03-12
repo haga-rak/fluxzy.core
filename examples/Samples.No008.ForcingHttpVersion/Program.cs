@@ -23,6 +23,7 @@ namespace Samples.No008.ForcingHttpVersion
 
             // Create a new proxy instance 
             await using var proxy = new Proxy(fluxzySetting);
+            proxy.Run();
 
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();

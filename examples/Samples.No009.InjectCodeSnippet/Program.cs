@@ -28,6 +28,8 @@ namespace Samples.No009.InjectCodeSnippet
 
             await using var proxy = new Proxy(fluxzySetting);
 
+            proxy.Run();
+
             Console.WriteLine("Press any key to exit");
 
             Console.ReadKey();
