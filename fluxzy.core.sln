@@ -68,6 +68,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No004.BasicAlterati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No005.BasicAlterations_FromConfigurationFile", "examples\Samples.No005.BasicAlterations_FromConfigurationFile\Samples.No005.BasicAlterations_FromConfigurationFile.csproj", "{68111310-24F4-41FB-AE5F-FCF36B19DEC0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No006.CaptureOsTraffic", "examples\Samples.No006.CaptureOsTraffic\Samples.No006.CaptureOsTraffic.csproj", "{B1CCF34D-0743-45CE-A8AD-73BBB92830F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -130,6 +132,10 @@ Global
 		{68111310-24F4-41FB-AE5F-FCF36B19DEC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68111310-24F4-41FB-AE5F-FCF36B19DEC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68111310-24F4-41FB-AE5F-FCF36B19DEC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1CCF34D-0743-45CE-A8AD-73BBB92830F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1CCF34D-0743-45CE-A8AD-73BBB92830F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1CCF34D-0743-45CE-A8AD-73BBB92830F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1CCF34D-0743-45CE-A8AD-73BBB92830F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -146,6 +152,7 @@ Global
 		{69CC0B36-F646-46AA-8879-A1AE4EDBA4B7} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{A3D4E729-B4AA-47B1-AABF-8B478F839C81} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{68111310-24F4-41FB-AE5F-FCF36B19DEC0} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
+		{B1CCF34D-0743-45CE-A8AD-73BBB92830F0} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}
