@@ -36,7 +36,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             requestMessage.Content = new StreamContent(randomStream);
 
-            using var response = await httpClient.SendAsync(requestMessage);
+            using var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             var contentText = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode, response.ToString());

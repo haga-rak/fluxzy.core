@@ -19,9 +19,9 @@ namespace Fluxzy.Clients.Mock
             _preMadeResponse = preMadeResponse;
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
-            await Task.CompletedTask;
+            return default;
         }
 
         public Authority Authority { get; }
@@ -46,7 +46,7 @@ namespace Fluxzy.Clients.Mock
             exchange.Metrics.TotalSent = 0;
 
             if (exchange.Request.Body != null)
-                await exchange.Request.Body.DrainAsync(); // We empty request body stream 
+                await exchange.Request.Body.DrainAsync().ConfigureAwait(false); // We empty request body stream 
 
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 

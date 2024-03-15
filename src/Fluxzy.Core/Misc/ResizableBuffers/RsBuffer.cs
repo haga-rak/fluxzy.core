@@ -27,14 +27,31 @@ namespace Fluxzy.Misc.ResizableBuffers
 
         public void Multiply(int size)
         {
-            Extend(Buffer.Length * size);
+            if (size < 1)
+                throw new ArgumentOutOfRangeException(nameof(size)); 
+
+            Extend(Buffer.Length * size - Buffer.Length);
         }
 
         public void Extend(int extensionLength)
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(Buffer.Length + extensionLength);
+            if (extensionLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(extensionLength));
+
+            if (extensionLength == 0)
+                return;
+
+            var forecastLength = Buffer.Length + extensionLength;
+
+            if (forecastLength > FluxzySharedSetting.MaxProcessingBuffer)
+                throw new ArgumentOutOfRangeException(nameof(extensionLength), 
+                    $@"{nameof(FluxzySharedSetting.MaxProcessingBuffer)} was reached");
+
+            var newBuffer = ArrayPool<byte>.Shared.Rent(forecastLength);
+
             System.Buffer.BlockCopy(Buffer, 0, newBuffer, 0, Buffer.Length);
             ArrayPool<byte>.Shared.Return(Buffer);
+
             Buffer = newBuffer;
         }
 
@@ -42,6 +59,5 @@ namespace Fluxzy.Misc.ResizableBuffers
         {
             ArrayPool<byte>.Shared.Return(Buffer);
         }
-
     }
 }

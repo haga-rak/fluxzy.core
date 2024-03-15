@@ -64,7 +64,7 @@ namespace Fluxzy.Clients.H11
                 int currentRead; 
 
                 try {
-                    currentRead = await stream.ReadAsync(bufferIndex, token);
+                    currentRead = await stream.ReadAsync(bufferIndex, token).ConfigureAwait(false);
                 }
                 catch (Exception) {
 

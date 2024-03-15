@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
 using System.Threading.Tasks;
@@ -29,7 +29,7 @@ namespace Fluxzy.Core
 
         public async Task WriteLineAsync(string str)
         {
-            if (_writer != null)
+            if (_writer != null!)
                 await _writer.WriteLineAsync(str).ConfigureAwait(false);
         }
     }

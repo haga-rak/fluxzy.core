@@ -31,11 +31,13 @@ namespace Fluxzy.Core
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
         /// <param name="contextBuilder"></param>
-        /// <param name="requestedEndpoint"></param>
+        /// <param name="localEndpoint"></param>
         /// <param name="token"></param>
+        /// <param name="remoteEndPoint"></param>
         /// <returns></returns>
         public abstract ValueTask<ExchangeSourceInitResult?> InitClientConnection(
-            Stream stream, RsBuffer buffer, IExchangeContextBuilder contextBuilder, IPEndPoint requestedEndpoint,
+            Stream stream, RsBuffer buffer, IExchangeContextBuilder contextBuilder, 
+            IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token);
 
         /// <summary>
@@ -52,7 +54,8 @@ namespace Fluxzy.Core
         { // Every next request after the first one is read from the stream
 
             var blockReadResult = await
-                Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, throwOnError: false, token);
+                Http11HeaderBlockReader.GetNext(inStream, buffer, () => { }, () => { }, throwOnError: false, token)
+                                       .ConfigureAwait(false);
 
             if (blockReadResult.TotalReadLength == 0)
                 return null;
@@ -77,7 +80,7 @@ namespace Fluxzy.Core
                     inStream);
             }
 
-            var exchangeContext = await contextBuilder.Create(authority, authority.Secure);
+            var exchangeContext = await contextBuilder.Create(authority, authority.Secure).ConfigureAwait(false);
 
             var bodyStream = SetChunkedBody(secureHeader, inStream);
 

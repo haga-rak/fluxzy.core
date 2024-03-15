@@ -30,14 +30,14 @@ namespace Fluxzy.Core
             Stream stream,
             RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
-            IPEndPoint ipEndPoint,
+            IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token)
         {
             var receivedFromProxy = ITimingProvider.Default.Instant();
 
             var blockReadResult = await
                 Http11HeaderBlockReader.GetNext(stream, 
-                    buffer, null, null, throwOnError: true, token);
+                    buffer, null, null, throwOnError: true, token).ConfigureAwait(false);
 
             if (blockReadResult.TotalReadLength == 0)
                 return null; // NO read here 
@@ -85,7 +85,7 @@ namespace Fluxzy.Core
             }
 
             var plainAuthority = new Authority(uri.Host, _reverseModeForcedPort ?? uri.Port, false);
-            var plainExchangeContext = await contextBuilder.Create(plainAuthority, false);
+            var plainExchangeContext = await contextBuilder.Create(plainAuthority, false).ConfigureAwait(false);
 
             var bodyStream = SetChunkedBody(plainHeader, plainStream);
 

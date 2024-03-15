@@ -24,16 +24,16 @@ namespace Fluxzy.Tests.Cli
         {
             // Arrange
             var yamlContent = $"""
-                rules:
-                - filter: 
-                    typeKind: HostFilter  
-                    pattern: {TestConstants.HttpBinHostDomainOnly}
-                    operation: endsWith
-                  action : 
-                    typeKind: setRequestCookieAction
-                    name: "{name}"
-                    value: "{value}"
-                """;
+                               rules:
+                               - filter:
+                                   typeKind: HostFilter
+                                   pattern: {TestConstants.HttpBinHostDomainOnly}
+                                   operation: endsWith
+                                 action :
+                                   typeKind: setRequestCookieAction
+                                   name: "{name}"
+                                   value: "{value}"
+                               """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies");
@@ -48,7 +48,7 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             Assert.Equal(value, cookies[name]);
-            Assert.Single(cookies); 
+            Assert.Single(cookies);
         }
 
         [Fact]
@@ -56,16 +56,16 @@ namespace Fluxzy.Tests.Cli
         {
             // Arrange
             var yamlContent = $"""
-                rules:
-                - filter: 
-                    typeKind: HostFilter  
-                    pattern: {TestConstants.HttpBinHostDomainOnly}
-                    operation: endsWith
-                  action : 
-                    typeKind: setRequestCookieAction
-                    name: coco
-                    value: lolo
-                """;
+                               rules:
+                               - filter:
+                                   typeKind: HostFilter
+                                   pattern: {TestConstants.HttpBinHostDomainOnly}
+                                   operation: endsWith
+                                 action :
+                                   typeKind: setRequestCookieAction
+                                   name: coco
+                                   value: lolo
+                               """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies");
@@ -82,9 +82,9 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             Assert.Equal("lolo", cookies["coco"]);
-            Assert.Equal(2, cookies.Count); 
+            Assert.Equal(2, cookies.Count);
         }
-        
+
         [Theory]
         [InlineData("coco", "lolo")]
         [InlineData("validcookiename", "/*-/8è?=;78")]
@@ -92,16 +92,16 @@ namespace Fluxzy.Tests.Cli
         {
             // Arrange
             var yamlContent = $"""
-                rules:
-                - filter: 
-                    typeKind: HostFilter  
-                    pattern: {TestConstants.HttpBinHostDomainOnly}
-                    operation: endsWith
-                  action : 
-                    typeKind: setResponseCookieAction
-                    name: "{name}"
-                    value: "{value}"
-                """;
+                               rules:
+                               - filter:
+                                   typeKind: HostFilter
+                                   pattern: {TestConstants.HttpBinHostDomainOnly}
+                                   operation: endsWith
+                                 action :
+                                   typeKind: setResponseCookieAction
+                                   name: "{name}"
+                                   value: "{value}"
+                               """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies");
@@ -133,23 +133,23 @@ namespace Fluxzy.Tests.Cli
         {
             // Arrange
             var yamlContent = $"""
-                rules:
-                - filter: 
-                    typeKind: HostFilter  
-                    pattern: {TestConstants.HttpBinHostDomainOnly}
-                    operation: endsWith
-                  action : 
-                    typeKind: setResponseCookieAction
-                    name: "{name}"
-                    value: "{value}"
-                    path: "{path}"
-                    domain: "{domain}"
-                    expiresInSeconds: {expiresSeconds}
-                    maxAge: {maxAgeSeconds}
-                    secure: {secure}
-                    httpOnly: {httpOnly}
-                    sameSite: {sameSite}
-                """;
+                               rules:
+                               - filter:
+                                   typeKind: HostFilter
+                                   pattern: {TestConstants.HttpBinHostDomainOnly}
+                                   operation: endsWith
+                                 action :
+                                   typeKind: setResponseCookieAction
+                                   name: "{name}"
+                                   value: "{value}"
+                                   path: "{path}"
+                                   domain: "{domain}"
+                                   expiresInSeconds: {expiresSeconds}
+                                   maxAge: {maxAgeSeconds}
+                                   secure: {secure}
+                                   httpOnly: {httpOnly}
+                                   sameSite: {sameSite}
+                               """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies");
@@ -177,21 +177,21 @@ namespace Fluxzy.Tests.Cli
         public async Task Validate_HasSetCookieOnResponseFilter_Empty_Query()
         {
             // Arrange
-            var yamlContent = $"""
-                rules:
-                - filter: 
-                    typeKind: hasSetCookieOnResponseFilter
-                  action : 
-                    typeKind: addResponseHeaderAction
-                    headerName: Passed
-                    headerValue: true
-                """;
+            var yamlContent = """
+                              rules:
+                              - filter:
+                                  typeKind: hasSetCookieOnResponseFilter
+                                action :
+                                  typeKind: addResponseHeaderAction
+                                  headerName: Passed
+                                  headerValue: true
+                              """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies/set/coco/lolo");
 
             // Act
-            using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect:false);
+            using var response = await Exec(yamlContent, requestMessage, false);
             await response.Content.ReadAsStringAsync();
 
             // Assert
@@ -202,22 +202,22 @@ namespace Fluxzy.Tests.Cli
         public async Task Validate_HasSetCookieOnResponseFilter_Name_Only()
         {
             // Arrange
-            var yamlContent = $"""
-                rules:
-                - filter: 
-                    typeKind: hasSetCookieOnResponseFilter
-                    name: coco
-                  action : 
-                    typeKind: addResponseHeaderAction
-                    headerName: Passed
-                    headerValue: true
-                """;
+            var yamlContent = """
+                              rules:
+                              - filter:
+                                  typeKind: hasSetCookieOnResponseFilter
+                                  name: coco
+                                action :
+                                  typeKind: addResponseHeaderAction
+                                  headerName: Passed
+                                  headerValue: true
+                              """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies/set/coco/lolo");
 
             // Act
-            using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect:false);
+            using var response = await Exec(yamlContent, requestMessage, false);
             await response.Content.ReadAsStringAsync();
 
             // Assert
@@ -228,22 +228,22 @@ namespace Fluxzy.Tests.Cli
         public async Task Validate_HasSetCookieOnResponseFilter_Name_Only_Not_Pass()
         {
             // Arrange
-            var yamlContent = $"""
-                rules:
-                - filter: 
-                    typeKind: hasSetCookieOnResponseFilter
-                    name: roro
-                  action : 
-                    typeKind: addResponseHeaderAction
-                    headerName: Passed
-                    headerValue: true
-                """;
+            var yamlContent = """
+                              rules:
+                              - filter:
+                                  typeKind: hasSetCookieOnResponseFilter
+                                  name: roro
+                                action :
+                                  typeKind: addResponseHeaderAction
+                                  headerName: Passed
+                                  headerValue: true
+                              """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies/set/coco/lolo");
 
             // Act
-            using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect:false);
+            using var response = await Exec(yamlContent, requestMessage, false);
             await response.Content.ReadAsStringAsync();
 
             // Assert
@@ -263,40 +263,74 @@ namespace Fluxzy.Tests.Cli
         {
             // Arrange
             var yamlContent = $"""
-                rules:
-                - filter: 
-                    typeKind: hasSetCookieOnResponseFilter
-                    name: "{name}" 
-                    value: "{value}"
-                    operation: {operation}
-                  action : 
-                    typeKind: addResponseHeaderAction
-                    headerName: Passed
-                    headerValue: true
-                """;
+                               rules:
+                               - filter:
+                                   typeKind: hasSetCookieOnResponseFilter
+                                   name: "{name}"
+                                   value: "{value}"
+                                   operation: {operation}
+                                 action :
+                                   typeKind: addResponseHeaderAction
+                                   headerName: Passed
+                                   headerValue: true
+                               """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies/set/{expectedName}/{expectedValue}");
 
             // Act
-            using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect: false);
+            using var response = await Exec(yamlContent, requestMessage, false);
             await response.Content.ReadAsStringAsync();
 
             // Assert
             Assert.Equal(result, response.Headers.TryGetValues("Passed", out var values));
         }
 
-
-        public class HttpBinCookieResult
+        [Theory]
+        [InlineData("coco", "coco", true)]
+        [InlineData("coco", "banana", false)]
+        public async Task Validate_RemoveResponseCookie(string name, string setCookieName, bool success)
         {
-            [JsonPropertyName("cookies")]
-            public Dictionary<string, string> Cookies { get; set; } = new();
+            // Arrange
+            var yamlContent = $"""
+                               rules:
+                               - filter:
+                                   typeKind: HostFilter
+                                   pattern: {TestConstants.HttpBinHostDomainOnly}
+                                   operation: endsWith
+                                 action :
+                                   typeKind: removeResponseCookieAction
+                                   name: "{name}"
+                               """;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies/set/{setCookieName}/somevalue");
+
+            // Act 
+            using var response = await Exec(yamlContent, requestMessage);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            var cookies = GetCookies(responseBody)
+                .ToDictionary(t => HttpUtility.UrlDecode(t.Key), t => HttpUtility.UrlDecode(t.Value));
+
+            var allCookies = CookieContainer.GetAllCookies();
+
+            // Assert
+            Assert.Equal(success, allCookies.All(r => r.Name != setCookieName));
         }
 
         private static Dictionary<string, string> GetCookies(string responseBody)
         {
             var httpBinCookieResult = JsonSerializer.Deserialize<HttpBinCookieResult>(responseBody)!;
+
             return httpBinCookieResult.Cookies;
+        }
+
+        public class HttpBinCookieResult
+        {
+            [JsonPropertyName("cookies")]
+            public Dictionary<string, string> Cookies { get; set; } = new();
         }
     }
 }

@@ -46,6 +46,8 @@ namespace Fluxzy.Core
 
         public IEnumerable<HeaderField> this[ReadOnlyMemory<char> key] => _lookupFields[key];
 
+        public IEnumerable<HeaderField> this[string headerName] => _lookupFields[headerName.AsMemory()];
+
         /// <summary>
         ///     If transfer-encoding chunked is defined
         /// </summary>
@@ -307,8 +309,19 @@ namespace Fluxzy.Core
             return totalLength;
         }
 
+        protected virtual bool CanHaveBody()
+        {
+            return true; 
+        }
+
         internal void ForceTransferChunked()
         {
+            // Allow chunked body f
+
+            if (!CanHaveBody()) {
+                return;
+            }
+
             _rawHeaderFields.Add(new HeaderField("Transfer-Encoding", "chunked"));
             ChunkedBody = true;
         }

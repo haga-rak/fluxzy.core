@@ -12,7 +12,6 @@ using Fluxzy.Clients.H2;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
 using Fluxzy.Misc;
-using Fluxzy.Rules;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Clients
@@ -71,7 +70,7 @@ namespace Fluxzy.Clients
                 while (!token.IsCancellationRequested) {
                     // TODO put delay into config files or settings
 
-                    await Task.Delay(5000, token);
+                    await Task.Delay(5000, token).ConfigureAwait(false);
 
                     List<IHttpConnectionPool> activePools;
 
@@ -79,7 +78,7 @@ namespace Fluxzy.Clients
                         activePools = _connectionPools.Values.ToList();
                     }
 
-                    await ValueTaskUtil.WhenAll(activePools.Select(s => s.CheckAlive()).ToArray());
+                    await ValueTaskUtil.WhenAll(activePools.Select(s => s.CheckAlive()).ToArray()).ConfigureAwait(false);
                 }
             }
             catch (TaskCanceledException) {
@@ -117,15 +116,10 @@ namespace Fluxzy.Clients
             var semaphorePerAuthority = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
             var released = false;
 
-           
-
-            //exchange.Connection.RemoteAddress = ipAddress;
-            //exchange.Connection.DnsSolveEnd = _timeProvider.Instant();
-
             try
             {
                 if (!semaphorePerAuthority.Wait(0))
-                    await semaphorePerAuthority.WaitAsync(cancellationToken);
+                    await semaphorePerAuthority.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 // Looking for existing HttpPool
 
@@ -151,7 +145,7 @@ namespace Fluxzy.Clients
                 if (exchange.Metrics.RetrievingPool == default)
                     exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
-                var dnsResolutionResult = await computeDnsPromise;
+                var dnsResolutionResult = await computeDnsPromise.ConfigureAwait(false);
 
                 if (dnsResolutionResult.Item2 != null)
                 {
@@ -205,7 +199,7 @@ namespace Fluxzy.Clients
                         (await _remoteConnectionBuilder.OpenConnectionToRemote(
                             exchange, dnsResolutionResult.Item1,
                             exchange.Context.SslApplicationProtocols ?? AllProtocols, proxyRuntimeSetting,
-                            cancellationToken))!;
+                            cancellationToken).ConfigureAwait(false))!;
 
                     if (exchange.Context.PreMadeResponse != null)
                     {

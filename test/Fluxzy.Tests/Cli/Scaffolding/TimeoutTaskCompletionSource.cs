@@ -31,7 +31,7 @@ namespace Fluxzy.Tests.Cli.Scaffolding
     }
 
 
-    internal class FluxzyBadExitCodeException : Exception
+    public class FluxzyBadExitCodeException : Exception
     {
         public FluxzyBadExitCodeException(string message)
             : base(message)

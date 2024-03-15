@@ -56,14 +56,14 @@ namespace Fluxzy.Clients.H11
             CancellationToken cancellationToken = default)
         {
             try {
-                await _semaphoreSlim.WaitAsync(cancellationToken);
+                await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 await using var ex = new TunneledConnectionProcess(
                     Authority, _timingProvider,
                     _connectionBuilder,
                     _proxyRuntimeSetting, null, _resolutionResult);
 
-                await ex.Process(exchange, localLink, buffer.Buffer, CancellationToken.None);
+                await ex.Process(exchange, localLink, buffer.Buffer, CancellationToken.None).ConfigureAwait(false);
             }
             finally {
                 _semaphoreSlim.Release();
@@ -132,7 +132,7 @@ namespace Fluxzy.Clients.H11
 
             if (exchange.Request.Header.IsWebSocketRequest) {
                 var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
-                await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken);
+                await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken).ConfigureAwait(false);
             }
 
             try {
@@ -146,7 +146,7 @@ namespace Fluxzy.Clients.H11
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken).AsTask());
 
-                await copyTask;
+                await copyTask.ConfigureAwait(false);
             }
             catch (Exception ex) {
                 if (ex is IOException || ex is SocketException) {

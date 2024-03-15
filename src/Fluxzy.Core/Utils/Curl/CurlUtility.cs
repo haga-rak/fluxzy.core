@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Diagnostics;
 using System.IO;
@@ -27,7 +27,7 @@ namespace Fluxzy.Utils.Curl
 
             process.Start();
 
-            await process.WaitForExitAsync();
+            await process.WaitForExitAsync().ConfigureAwait(false);
 
             return process.ExitCode == 0
                    || process.ExitCode == 23; //curl exit 23 when  stdout close early even the command succeed

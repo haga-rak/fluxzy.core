@@ -37,7 +37,7 @@ namespace Fluxzy.Core
             Stream stream,
             RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
-            IPEndPoint ipEndPoint,
+            IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token)
         {
             var secureStream = new SslStream(stream, false);
@@ -56,17 +56,17 @@ namespace Fluxzy.Core
                 }
             };
 
-            await secureStream.AuthenticateAsServerAsync(sslServerAuthenticationOptions, token);
+            await secureStream.AuthenticateAsServerAsync(sslServerAuthenticationOptions, token).ConfigureAwait(false);
 
             if (authorityName is null) {
                 throw new FluxzyException("Unable to gather remote authority hostname");
             }
 
-            var destinationPort = _reverseModeForcedPort ?? ipEndPoint.Port; 
+            var destinationPort = _reverseModeForcedPort ?? localEndpoint.Port; 
 
             var authority = new Authority(authorityName, destinationPort, true);
 
-            var exchangeContext = await contextBuilder.Create(authority, true);
+            var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
             var certStart = receivedFromProxy;

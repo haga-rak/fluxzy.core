@@ -63,7 +63,7 @@ namespace Fluxzy.Core.Breakpoints
                     // TODO : we need to decode here 
                     
                     await CompressionHelper.GetDecodedResponseBodyStream(new ExchangeInfo(exchange),
-                        exchange.Response.Body, out _).CopyToAsync(fileStream);
+                        exchange.Response.Body, out _).CopyToAsync(fileStream).ConfigureAwait(false);
                 }
 
                 var tempFileInfo = new FileInfo(tempFileName);
@@ -78,7 +78,7 @@ namespace Fluxzy.Core.Breakpoints
 
                     if (isText) {
                         FromFile = false;
-                        ContentBody = await File.ReadAllTextAsync(tempFileName);
+                        ContentBody = await File.ReadAllTextAsync(tempFileName).ConfigureAwait(false);
                     }
                 }
 

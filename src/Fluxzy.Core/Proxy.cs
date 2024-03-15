@@ -40,16 +40,19 @@ namespace Fluxzy
         private bool _halted;
         private Task? _loopTask;
         private bool _started;
-        
+
         /// <summary>
         /// Create a new instance of Proxy with the provided setting.
         /// An InMemoryCertificateCache will be used as the certificate cache.
         /// </summary>
         /// <param name="startupSetting">The startup Setting</param>
         /// <param name="tcpConnectionProvider">The tcp connection provider, if null the default is used</param>
-        public Proxy(FluxzySetting startupSetting, ITcpConnectionProvider?  tcpConnectionProvider = null)
+        /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
+        public Proxy(
+            FluxzySetting startupSetting,
+            ITcpConnectionProvider?  tcpConnectionProvider = null, ProxyAuthenticationMethod? proxyAuthenticationMethod = null)
 			: this (startupSetting, new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()), 
-				new DefaultCertificateAuthorityManager(), tcpConnectionProvider: tcpConnectionProvider)
+				new DefaultCertificateAuthorityManager(), tcpConnectionProvider: tcpConnectionProvider, proxyAuthenticationMethod: proxyAuthenticationMethod)
         {
         }
 
@@ -65,6 +68,7 @@ namespace Fluxzy
         /// <param name="idProvider">An id provider</param>
         /// <param name="dnsSolver">Add a custom DNS solver</param>
         /// <param name="externalCancellationSource">An external cancellation token</param>
+        /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         /// <exception cref="ArgumentNullException"></exception>
         public Proxy(
             FluxzySetting startupSetting,
@@ -74,7 +78,8 @@ namespace Fluxzy
             IUserAgentInfoProvider? userAgentProvider = null,
             FromIndexIdProvider? idProvider = null,
             IDnsSolver? dnsSolver = null,
-            CancellationTokenSource? externalCancellationSource = null)
+            CancellationTokenSource? externalCancellationSource = null, 
+            ProxyAuthenticationMethod? proxyAuthenticationMethod = null)
         {
             _certificateProvider = certificateProvider;
             _externalCancellationSource = externalCancellationSource;
@@ -112,8 +117,13 @@ namespace Fluxzy
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
                 Writer, IdProvider, userAgentProvider);
 
-            _proxyOrchestrator = new ProxyOrchestrator(_runTimeSetting,
-                ExchangeSourceProviderHelper.GetSourceProvider(startupSetting, secureConnectionManager, IdProvider, certificateProvider),
+            proxyAuthenticationMethod ??= (ProxyAuthenticationMethodBuilder.Create(startupSetting.ProxyAuthentication));
+
+            _proxyOrchestrator = new ProxyOrchestrator(
+                _runTimeSetting,
+                ExchangeSourceProviderHelper.GetSourceProvider(
+                    startupSetting, secureConnectionManager, 
+                    IdProvider, certificateProvider, proxyAuthenticationMethod),
                 poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
@@ -160,7 +170,7 @@ namespace Fluxzy
                 var n = 100;
 
                 while (_currentConcurrentCount > 0 && n-- > 0) {
-                    await Task.Delay(5);
+                    await Task.Delay(5).ConfigureAwait(false);
                 }
             }
             catch (Exception) {
@@ -244,6 +254,10 @@ namespace Fluxzy
 
             if (_started)
                 throw new InvalidOperationException("Proxy was already started");
+
+            // Init rules 
+
+            _runTimeSetting.Init();
 
             _started = true;
 

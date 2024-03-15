@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,14 +18,26 @@ namespace Fluxzy.Readers
     public class DirectoryArchiveReader : IArchiveReader
     {
         private readonly string _captureDirectory;
+        private readonly ConcurrentDictionary<string, long> _lengthCaching = new();
 
-        public DirectoryArchiveReader(string baseDirectory)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseDirectory">The fluxzy directory to read</param>
+        /// <param name="enableFileBodyInfoCaching">Caches extended infos about request/response bodies</param>
+        public DirectoryArchiveReader(string baseDirectory, bool enableFileBodyInfoCaching = true)
         {
             BaseDirectory = baseDirectory;
+            EnableFileBodyInfoCaching = enableFileBodyInfoCaching;
             _captureDirectory = Path.Combine(baseDirectory, "captures");
         }
 
+        /// <summary>
+        /// Caches extended infos about request/response bodies
+        /// </summary>
         public string BaseDirectory { get; }
+
+        public bool EnableFileBodyInfoCaching { get; }
 
         public ArchiveMetaInformation ReadMetaInformation()
         {
@@ -156,10 +169,14 @@ namespace Fluxzy.Readers
 
             return File.Open(requestBodyPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
-
-
+        
         public long GetRequestBodyLength(int exchangeId)
         {
+            var cacheKey = $"{nameof(GetRequestBodyLength)}_{exchangeId}";
+
+            if (_lengthCaching.TryGetValue(cacheKey, out var length))
+                return length; 
+
             var requestBodyPath = DirectoryArchiveHelper.GetContentRequestPath(BaseDirectory, exchangeId);
             var fileInfo = new FileInfo(requestBodyPath);
 
@@ -167,11 +184,20 @@ namespace Fluxzy.Readers
                 return -1;
             }
 
-            return fileInfo.Length;
+            if (!EnableFileBodyInfoCaching) {
+                return fileInfo.Length;
+            }
+
+            return _lengthCaching[cacheKey] = fileInfo.Length;
         }
 
         public long GetResponseBodyLength(int exchangeId)
         {
+            var cacheKey = $"{nameof(GetResponseBodyLength)}_{exchangeId}";
+
+            if (EnableFileBodyInfoCaching && _lengthCaching.TryGetValue(cacheKey, out var length))
+                return length;
+
             var responseBodyPath = DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId);
             var fileInfo = new FileInfo(responseBodyPath);
 
@@ -179,7 +205,12 @@ namespace Fluxzy.Readers
                 return 0;
             }
 
-            return fileInfo.Length;
+            if (!EnableFileBodyInfoCaching)
+            {
+                return fileInfo.Length;
+            }
+
+            return _lengthCaching[cacheKey] = fileInfo.Length;
         }
 
         public Stream? GetRequestWebsocketContent(int exchangeId, int messageId)
@@ -271,8 +302,6 @@ namespace Fluxzy.Readers
         public void Dispose()
         {
         }
-
-        
 
         public string? GetRawCaptureFile(int connectionId)
         {

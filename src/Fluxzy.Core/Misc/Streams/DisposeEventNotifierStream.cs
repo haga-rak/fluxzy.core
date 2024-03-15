@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc.Streams
 {
-    public delegate Task DisposeFunc(object sender, StreamDisposeEventArgs args);
+    public delegate ValueTask DisposeFunc(object sender, StreamDisposeEventArgs args);
 
     public class DisposeEventNotifierStream : Stream
     {
@@ -57,20 +57,18 @@ namespace Fluxzy.Misc.Streams
                 Faulted = true;
 
                 throw;
-
-                //return 0; // JUST RETURN EOF when fail
             }
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            return await InnerStream.ReadAsync(buffer, cancellationToken);
+            return await InnerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
         }
 
         public override async Task<int> ReadAsync(
             byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken).ConfigureAwait(false);
         }
 
         public override int Read(Span<byte> buffer)
@@ -93,15 +91,15 @@ namespace Fluxzy.Misc.Streams
             InnerStream.Write(buffer, offset, count);
         }
 
-        public override async ValueTask WriteAsync(
+        public override ValueTask WriteAsync(
             ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            await InnerStream.WriteAsync(buffer, cancellationToken);
+            return InnerStream.WriteAsync(buffer, cancellationToken);
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken);
+            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken).ConfigureAwait(false);
         }
 
         public override void Close()
@@ -129,10 +127,10 @@ namespace Fluxzy.Misc.Streams
             _fromAsyncDispose = true;
             Faulted = true;
 
-            await InnerStream.DisposeAsync();
+            await InnerStream.DisposeAsync().ConfigureAwait(false);
 
             if (OnStreamDisposed != null) {
-                await OnStreamDisposed(this, new StreamDisposeEventArgs());
+                await OnStreamDisposed(this, new StreamDisposeEventArgs()).ConfigureAwait(false);
             }
         }
     }

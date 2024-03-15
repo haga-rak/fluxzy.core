@@ -24,40 +24,56 @@ namespace Fluxzy.Core
         private static byte[] AcceptTunnelResponse { get; } = Encoding.ASCII.GetBytes(ProxyConstants.AcceptTunnelResponseString);
         
         private readonly IIdProvider _idProvider;
+        private readonly ProxyAuthenticationMethod _proxyAuthenticationMethod;
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
+        private readonly int _attemptCount;
 
         public FromProxyConnectSourceProvider(
             SecureConnectionUpdater secureConnectionUpdater,
-            IIdProvider idProvider) :
+            IIdProvider idProvider, ProxyAuthenticationMethod proxyAuthenticationMethod) :
             base (idProvider)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
             _idProvider = idProvider;
+            _proxyAuthenticationMethod = proxyAuthenticationMethod;
+            _attemptCount = proxyAuthenticationMethod.AuthenticationType == ProxyAuthenticationType.None ? 
+                1 : FluxzySharedSetting.ProxyAuthenticationMaxAttempt;
         }
-
+        
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
             Stream stream,
             RsBuffer buffer,
             IExchangeContextBuilder contextBuilder,
-            IPEndPoint _,
+            IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token)
         {
-            var plainStream = stream;
+            var count = Math.Max(_attemptCount, 1);
 
-            var blockReadResult = await
-                Http11HeaderBlockReader.GetNext(plainStream, buffer, null, null, throwOnError: false, token);
+            while (count-- > 0)
+            {
+                var result = await InternalInitClientConnection(stream, buffer, contextBuilder, localEndpoint, remoteEndPoint, token)
+                    .ConfigureAwait(false);
 
-            var receivedFromProxy = ITimingProvider.Default.Instant();
+                if (result.Retry)
+                    continue;
 
-            if (blockReadResult.TotalReadLength == 0)
-                return null;
+                return result.ExchangeSourceInitResult; 
+            }
 
-            var plainHeaderChars = new char[blockReadResult.HeaderLength];
+            return null; // Max attempt was reached
+        }
 
-            Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
-                plainHeaderChars);
+        private async Task<InternalInitClientConnectionResult> InternalInitClientConnection(
+            Stream stream, RsBuffer buffer, IExchangeContextBuilder contextBuilder,
+            IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, CancellationToken token)
+        {
+            var readBlockResult = await ReadNextBlock(stream, buffer, token).ConfigureAwait(false);
 
-            var plainHeader = new RequestHeader(plainHeaderChars, true);
+            if (readBlockResult == null)
+                return new (false, null);
+
+            var (blockReadResult, receivedFromProxy, plainHeaderChars,
+                plainHeader) = readBlockResult;
 
             // Classic TLS Request 
 
@@ -67,33 +83,38 @@ namespace Fluxzy.Core
                 var authorityArray =
                     plainHeader.Path.ToString().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
-                var authority = new Authority
-                (authorityArray[0],
-                    int.Parse(authorityArray[1]),
-                    true);
+                var authority = new Authority(authorityArray[0],  int.Parse(authorityArray[1]), true);
 
-                await plainStream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
+                if (!_proxyAuthenticationMethod.ValidateAuthentication(localEndPoint, remoteEndPoint, plainHeader)) {
+                    var rawResponse = _proxyAuthenticationMethod.GetUnauthorizedResponse(localEndPoint, remoteEndPoint, plainHeader);
 
-                var exchangeContext  = await contextBuilder.Create(authority, true);
+                    await stream.WriteAsync(rawResponse, token).ConfigureAwait(false);
 
-                if (exchangeContext.BlindMode)
-                {
+                    return new(true, null); 
+                }
+                
+
+
+                await stream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
+                var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
+
+                if (exchangeContext.BlindMode) {
                     return
-                        new ExchangeSourceInitResult(
-                            authority, plainStream, plainStream,
+                        new (false, new ExchangeSourceInitResult(
+                            authority, stream, stream,
                             Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                                 authority, plainHeaderChars, StreamUtils.EmptyStream,
                                 ProxyConstants.AcceptTunnelResponseString.AsMemory(),
                                 StreamUtils.EmptyStream, false,
                                 "HTTP/1.1",
-                                receivedFromProxy), true);
+                                receivedFromProxy), true));
                 }
 
                 var certStart = ITimingProvider.Default.Instant();
                 var certEnd = ITimingProvider.Default.Instant();
 
                 var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
-                    plainStream, authority.HostName, exchangeContext, token);
+                    stream, authority.HostName, exchangeContext, token).ConfigureAwait(false);
 
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, StreamUtils.EmptyStream,
@@ -104,11 +125,13 @@ namespace Fluxzy.Core
                 exchange.Metrics.CreateCertEnd = certEnd;
 
                 return
+                    new (false, 
                     new ExchangeSourceInitResult
                     (authority,
                         authenticateResult.InStream,
-                        authenticateResult.OutStream, exchange, false);
+                        authenticateResult.OutStream, exchange, false));
             }
+
 
             var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
 
@@ -119,9 +142,9 @@ namespace Fluxzy.Core
                 buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder)
                       .CopyTo(extraBlock);
 
-                plainStream = new RecomposedStream(
-                    new CombinedReadonlyStream(true, new MemoryStream(extraBlock), plainStream),
-                    plainStream);
+                stream = new RecomposedStream(
+                    new CombinedReadonlyStream(true, new MemoryStream(extraBlock), stream),
+                    stream);
             }
 
             // Plain request 
@@ -141,22 +164,53 @@ namespace Fluxzy.Core
                 builder.Append(path);
 
                 if (!Uri.TryCreate(builder.ToString(), UriKind.Absolute, out uri))
-                    return null; // UNABLE TO READ URI FROM CLIENT
+                    return new (false, null); // UNABLE TO READ URI FROM CLIENT
             }
 
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
-            var plainExchangeContext = await contextBuilder.Create(plainAuthority, false);
+            var plainExchangeContext = await contextBuilder.Create(plainAuthority, false).ConfigureAwait(false);
 
-            var bodyStream = SetChunkedBody(plainHeader, plainStream);
+            var bodyStream = SetChunkedBody(plainHeader, stream);
 
-            return new ExchangeSourceInitResult(
+            return new (false, new ExchangeSourceInitResult(
                 plainAuthority,
-                plainStream,
-                plainStream,
+                stream,
+                stream,
                 new Exchange(_idProvider,
                     plainExchangeContext,
                     plainAuthority,
-                    plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy), false);
+                    plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy), false));
+        }
+
+        private record ReadNextBlockResult(
+            HeaderBlockReadResult HeaderBlockReadResult,
+            DateTime ReceivedFromProxy,
+            char[] PlainHeaderChars,
+            RequestHeader RequestHeader);
+
+        private record struct InternalInitClientConnectionResult(bool Retry, ExchangeSourceInitResult? ExchangeSourceInitResult);
+
+        private static async Task<ReadNextBlockResult?>
+            ReadNextBlock(Stream stream, RsBuffer buffer,
+                CancellationToken token)
+        {
+            HeaderBlockReadResult blockReadResult = await
+                Http11HeaderBlockReader.GetNext(stream, buffer, null, null, throwOnError: false, token)
+                                       .ConfigureAwait(false);
+
+            var receivedFromProxy = ITimingProvider.Default.Instant();
+
+            if (blockReadResult.TotalReadLength == 0)
+                return null;
+
+            var plainHeaderChars = new char[blockReadResult.HeaderLength];
+
+            Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
+                plainHeaderChars);
+
+            var plainHeader = new RequestHeader(plainHeaderChars, true);
+
+            return new(blockReadResult, receivedFromProxy, plainHeaderChars, plainHeader);
         }
     }
 
@@ -165,9 +219,6 @@ namespace Fluxzy.Core
         public static string AcceptTunnelResponseString { get; } =
             $"HTTP/1.1 200 OK\r\n" +
             $"x-fluxzy-message: enjoy your privacy!\r\n" +
-            $"Content-length: 0\r\n" +
-            $"Connection: keep-alive\r\n" +
-            $"Keep-alive: timeout=5\r\n" +
             $"\r\n";
     }
 

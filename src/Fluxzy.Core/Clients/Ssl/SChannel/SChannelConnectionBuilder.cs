@@ -18,7 +18,7 @@ namespace Fluxzy.Clients.Ssl.SChannel
 
             var sslOptions = builderOptions.GetSslClientAuthenticationOptions();
 
-            await sslStream.AuthenticateAsClientAsync(sslOptions, token);
+            await sslStream.AuthenticateAsClientAsync(sslOptions, token).ConfigureAwait(false);
 
             var sslInfo = new SslInfo(sslStream);
 

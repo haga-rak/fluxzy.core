@@ -77,7 +77,7 @@ namespace Fluxzy.Misc.Streams
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken);
+            await WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken).ConfigureAwait(false);
         }
 
         public override async ValueTask WriteAsync(
@@ -88,9 +88,9 @@ namespace Fluxzy.Misc.Streams
 
             try {
                 var cs = Encoding.ASCII.GetBytes($"{buffer.Length:X}\r\n", poolBuffer);
-                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(poolBuffer, 0, cs), cancellationToken);
-                await _innerStream.WriteAsync(buffer, cancellationToken);
-                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(LineTerminator), cancellationToken);
+                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(poolBuffer, 0, cs), cancellationToken).ConfigureAwait(false);
+                await _innerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(LineTerminator), cancellationToken).ConfigureAwait(false);
             }
             finally {
                 ArrayPool<byte>.Shared.Return(poolBuffer);

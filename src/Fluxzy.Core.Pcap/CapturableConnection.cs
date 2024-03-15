@@ -36,7 +36,7 @@ namespace Fluxzy.Core.Pcap
             context?.Include(remoteAddress, remotePort);
 
             try {
-                await _innerTcpClient.ConnectAsync(remoteAddress, remotePort);
+                await _innerTcpClient.ConnectAsync(remoteAddress, remotePort).ConfigureAwait(false);
 
                 _remoteAddress = remoteAddress;
                 _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
@@ -57,14 +57,14 @@ namespace Fluxzy.Core.Pcap
                 }
 
                 if (connectError)
-                    await Task.Delay(1000);
+                    await Task.Delay(1000).ConfigureAwait(false);
             }
 
             _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());
 
             _stream.OnStreamDisposed += async (_, _) => {
                 // TODO when stream disposed 
-                await DisposeAsync();
+                await DisposeAsync().ConfigureAwait(false);
             };
 
             return _localEndPoint;
@@ -102,7 +102,7 @@ namespace Fluxzy.Core.Pcap
                 var context = _proxyScope.CaptureContext;
 
                 if (context != null)
-                    await context.Unsubscribe(_subscription);
+                    await context.Unsubscribe(_subscription).ConfigureAwait(false);
 
                 // We should wait few instant before disposing the writer 
                 // to ensure that all packets are written to the file

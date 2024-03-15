@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -58,7 +58,7 @@ namespace Fluxzy.Misc.Streams
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            return await _readStream.ReadAsync(buffer, cancellationToken);
+            return await _readStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -92,7 +92,7 @@ namespace Fluxzy.Misc.Streams
                 return;
             }
 
-            await _writeStream.WriteAsync(buffer, cancellationToken);
+            await _writeStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
         }
 
         protected override void Dispose(bool disposing)

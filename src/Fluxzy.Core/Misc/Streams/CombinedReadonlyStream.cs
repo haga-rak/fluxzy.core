@@ -159,7 +159,7 @@ namespace Fluxzy.Misc.Streams
                 var currentReadCount =
                     stream is MemoryStream
                         ? stream.Read(buffer, offset, count)
-                        : await stream.ReadAsync(buffer, offset, count, token);
+                        : await stream.ReadAsync(buffer, offset, count, token).ConfigureAwait(false);
 
                 result += currentReadCount;
                 count -= currentReadCount;

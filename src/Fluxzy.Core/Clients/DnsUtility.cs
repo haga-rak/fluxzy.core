@@ -35,7 +35,7 @@ namespace Fluxzy.Clients
             var dnsSolveStart = timingProvider.Instant();
 
             var ipAddress = exchange.Context.RemoteHostIp ??
-                            await dnsSolver.SolveDns(exchange.Authority.HostName);
+                            await dnsSolver.SolveDns(exchange.Authority.HostName).ConfigureAwait(false);
 
             var dnsSolveEnd = timingProvider.Instant();
 
@@ -51,7 +51,7 @@ namespace Fluxzy.Clients
 
                 await runtimeSetting.EnforceRules(exchange.Context,
                     FilterScope.DnsSolveDone,
-                    exchange.Connection, exchange);
+                    exchange.Connection, exchange).ConfigureAwait(false);
 
                 if (exchange.Context.PreMadeResponse != null)
                     return (new(remoteEndPoint, dnsSolveStart, dnsSolveEnd), new MockedConnectionPool(
@@ -65,7 +65,7 @@ namespace Fluxzy.Clients
             ComputeDns(Authority authority, ITimingProvider timingProvider, IDnsSolver dnsSolver)
         {
             var dnsSolveStart = timingProvider.Instant();
-            var ipAddress = await dnsSolver.SolveDns(authority.HostName);
+            var ipAddress = await dnsSolver.SolveDns(authority.HostName).ConfigureAwait(false);
             var dnsSolveEnd = timingProvider.Instant();
             var remotePort = authority.Port;
             var remoteEndPoint = new IPEndPoint(ipAddress, remotePort);

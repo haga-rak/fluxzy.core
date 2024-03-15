@@ -33,10 +33,12 @@ namespace Fluxzy.Core
 
         public ICaptureContext? CaptureContext { get; set; }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             if (_currentCaptureHost != null)
-                await _currentCaptureHost.DisposeAsync();
+                return _currentCaptureHost.DisposeAsync();
+
+            return default;
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace Fluxzy.Core
 
                 var newHost = _captureHostBuilder!();
 
-                var res = await newHost.Start();
+                var res = await newHost.Start().ConfigureAwait(false);
 
                 if (!res) {
                     // C
@@ -58,7 +60,7 @@ namespace Fluxzy.Core
                 }
 
                 var captureContext = _captureContextBuilder(newHost);
-                await captureContext.Start();
+                await captureContext.Start().ConfigureAwait(false);
 
                 _currentCaptureHost = newHost;
             }
@@ -70,7 +72,7 @@ namespace Fluxzy.Core
 
         public async Task<ICaptureContext> GetOrCreateHostedCaptureContext()
         {
-            var host = await GetOrCreateHostedCaptureHost();
+            var host = await GetOrCreateHostedCaptureHost().ConfigureAwait(false);
 
             if (host == null)
                 throw new InvalidOperationException("Unable to create capture host");

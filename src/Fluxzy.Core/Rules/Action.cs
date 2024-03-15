@@ -41,8 +41,16 @@ namespace Fluxzy.Rules
                 return 
                     GetType().GetProperties()
                              .Count(p => p.GetCustomAttribute<ActionDistinctiveAttribute>() != null) == 0;
-
             }
+        }
+
+        /// <summary>
+        /// Called once by the engine to initialize this directive
+        /// </summary>
+        /// <param name="startupContext"></param>
+        public virtual void Init(StartupContext startupContext)
+        {
+
         }
 
         public ValueTask Alter(
