@@ -85,6 +85,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No012.AddResponseCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No013.ModifyHeaders", "examples\Samples.No013.ModifyHeaders\Samples.No013.ModifyHeaders.csproj", "{BABC5626-5E8F-4DDE-8649-6BE68BAA59E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No014.HttpClientWithPcap", "Samples.No014.HttpClientWithPcap\Samples.No014.HttpClientWithPcap.csproj", "{C6AB7E7B-F264-4EA8-8C02-A5D60AA77666}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +177,10 @@ Global
 		{BABC5626-5E8F-4DDE-8649-6BE68BAA59E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BABC5626-5E8F-4DDE-8649-6BE68BAA59E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BABC5626-5E8F-4DDE-8649-6BE68BAA59E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6AB7E7B-F264-4EA8-8C02-A5D60AA77666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6AB7E7B-F264-4EA8-8C02-A5D60AA77666}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6AB7E7B-F264-4EA8-8C02-A5D60AA77666}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6AB7E7B-F264-4EA8-8C02-A5D60AA77666}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -198,6 +204,7 @@ Global
 		{CC11470A-D196-43C1-AA86-C80B6FDA2176} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{0153056B-8EB0-45D0-86E7-E2AD08B2657A} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{BABC5626-5E8F-4DDE-8649-6BE68BAA59E5} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
+		{C6AB7E7B-F264-4EA8-8C02-A5D60AA77666} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
+using System.IO;
 using System.Net.Http;
 using System.Net.Security;
 using System.Runtime.InteropServices;
@@ -11,6 +12,7 @@ using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Core;
 using Fluxzy.Core.Pcap;
 using Fluxzy.Core.Pcap.Cli.Clients;
+using Fluxzy.Core.Pcap.Pcapng;
 using Fluxzy.Writers;
 using Xunit;
 
@@ -48,16 +50,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         [MemberData(nameof(Get_H11_IIS_Args))]
         public async Task Get_H11_IIS(SslProvider sslProvider, int count)
         {
-            var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
-                a => new OutOfProcessCaptureContext(a));
-
-            await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
-
-            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
-                new EventOnlyArchiveWriter() {
-                    DumpFilePath = $"{nameof(Get_H11_IIS)}_{sslProvider}_{count}.pcapng"
-                })
-               {
+            using var handler = new FluxzyDefaultHandler(sslProvider) {
                 Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 }
             };
 
@@ -162,6 +155,32 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             for (int i = 0; i < count; i++) {
                 yield return new object[] { SslProvider.OsDefault, i };
             }
+        }
+
+        [Theory]
+        [InlineData(SslProvider.BouncyCastle)]
+        [InlineData(SslProvider.OsDefault)]
+        public async Task PcapHandler_With_Pcap(SslProvider sslProvider)
+        {
+            var idRun = Guid.NewGuid();
+
+            var tempFile = $"Drop/{idRun}.raw.pcapng";
+            var decodedFile = $"Drop/{idRun}.decoded.pcapng";
+
+            {
+                using var handler = await PcapngUtils.CreateHttpHandler(tempFile, sslProvider: sslProvider);
+                using var httpClient = new HttpClient(handler);
+                using var _ = await httpClient.GetAsync("https://www.example.com");
+            }
+
+            await using (var outStream = File.Create(decodedFile))
+            {
+                // Utility to read the pcapng file with the included keys if available
+                await PcapngUtils.ReadWithKeysAsync(tempFile).CopyToAsync(outStream);
+            }
+
+            Assert.True(File.Exists(tempFile));
+            Assert.True(File.Exists(decodedFile));
         }
     }
 }
