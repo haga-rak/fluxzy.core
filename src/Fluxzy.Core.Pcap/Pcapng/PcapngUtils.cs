@@ -8,6 +8,12 @@ namespace Fluxzy.Core.Pcap.Pcapng
 {
     public static class PcapngUtils
     {
+        /// <summary>
+        ///    Create a HttpMessageHandler that will write the pcapng file to the specified location
+        /// </summary>
+        /// <param name="outPcapFileName"></param>
+        /// <param name="sslProvider"></param>
+        /// <returns></returns>
         public static async Task<HttpMessageHandler> CreateHttpHandler(string outPcapFileName,
             SslProvider sslProvider = SslProvider.BouncyCastle)
         {
@@ -37,7 +43,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         {
             var directory = new FileInfo(pcapngFile).DirectoryName;
 
-            var sslKeyLogFile =
+            var sslKeyLogFile = directory == null ? $"{Path.GetFileNameWithoutExtension(pcapngFile)}.nsskeylog" :
                 Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(pcapngFile)}.nsskeylog");
 
             if (!File.Exists(sslKeyLogFile))
