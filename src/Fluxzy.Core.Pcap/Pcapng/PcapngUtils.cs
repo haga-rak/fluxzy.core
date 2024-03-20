@@ -1,11 +1,52 @@
 using System.Buffers.Binary;
+using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Core.Pcap.Pcapng.Structs;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Writers;
 
 namespace Fluxzy.Core.Pcap.Pcapng
 {
     public static class PcapngUtils
     {
+        public static async Task<HttpMessageHandler> CreateHttpHandler(string outPcapFileName,
+            SslProvider sslProvider = SslProvider.BouncyCastle)
+        {
+            var proxyScope = new ProxyScope(() => null!,
+                a => new OutOfProcessCaptureContext(a));
+
+            var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
+
+            var disposables = new List<IAsyncDisposable> { tcpProvider, proxyScope };
+
+            var fluxzyDefaultHandler = new FluxzyDefaultHandler(
+                sslProvider, tcpProvider,
+                new PcapOnlyArchiveWriter(_ => outPcapFileName),
+                disposables: disposables);
+
+            return fluxzyDefaultHandler;
+        }
+
+        /// <summary>
+        ///    Read the pcapng file with the included keys if available.
+        ///    SslKeyLogFile must be in the same directory as the pcapng file,
+        ///    with the same name but with the extension .nsskeylog
+        /// </summary>
+        /// <param name="pcapngFile"></param>
+        /// <returns></returns>
+        public static Stream ReadWithKeysAsync(string pcapngFile)
+        {
+            var directory = new FileInfo(pcapngFile).DirectoryName;
+
+            var sslKeyLogFile =
+                Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(pcapngFile)}.nsskeylog");
+
+            if (!File.Exists(sslKeyLogFile))
+                return File.OpenRead(pcapngFile);
+
+            var nssKey = File.ReadAllText(sslKeyLogFile);
+            return GetPcapngFileWithKeyStream(File.OpenRead(pcapngFile), nssKey);
+        }
+
         /// <summary>
         ///     Get the pcapng stream if the nsskey included. Stream  must be seekable
         /// </summary>
