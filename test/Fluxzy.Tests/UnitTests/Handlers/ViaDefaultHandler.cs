@@ -48,16 +48,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         [MemberData(nameof(Get_H11_IIS_Args))]
         public async Task Get_H11_IIS(SslProvider sslProvider, int count)
         {
-            var proxyScope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
-                a => new OutOfProcessCaptureContext(a));
-
-            await using var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
-
-            using var handler = new FluxzyDefaultHandler(sslProvider, tcpProvider,
-                new EventOnlyArchiveWriter() {
-                    DumpFilePath = $"{nameof(Get_H11_IIS)}_{sslProvider}_{count}.pcapng"
-                })
-               {
+            using var handler = new FluxzyDefaultHandler(sslProvider) {
                 Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 }
             };
 
