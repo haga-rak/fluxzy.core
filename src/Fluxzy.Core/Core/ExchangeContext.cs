@@ -10,6 +10,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
+using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
@@ -159,6 +160,11 @@ namespace Fluxzy.Core
         ///  Information about the proxy port that has been used to retrieve the ongoing exchange
         /// </summary>
         public int ProxyListenPort { get; internal set; }
+
+        /// <summary>
+        ///  Upstream proxy configuration
+        /// </summary>
+        public ProxyConfiguration ? ProxyConfiguration { get; set; }
 
         internal NetworkStream? UnderlyingBcStream { get; set; }
 

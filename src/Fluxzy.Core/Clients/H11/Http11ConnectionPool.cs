@@ -107,7 +107,7 @@ namespace Fluxzy.Clients.H11
                     var openingResult =
                         await _remoteConnectionBuilder.OpenConnectionToRemote(
                             exchange, _resolutionResult , Http11Protocols,
-                            _proxyRuntimeSetting, cancellationToken);
+                            _proxyRuntimeSetting, exchange.Context.ProxyConfiguration, cancellationToken);
 
                     if (exchange.Context.PreMadeResponse != null) {
                         return; 

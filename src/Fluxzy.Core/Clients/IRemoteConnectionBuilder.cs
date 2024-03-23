@@ -51,6 +51,7 @@ namespace Fluxzy.Clients
             Exchange exchange, DnsResolutionResult resolutionResult,
             List<SslApplicationProtocol> httpProtocols,
             ProxyRuntimeSetting setting,
+            ProxyConfiguration? proxyConfiguration,
             CancellationToken token)
         {
             exchange.Connection = new Connection(exchange.Authority, setting.IdProvider) {
@@ -77,6 +78,14 @@ namespace Fluxzy.Clients
             exchange.Connection.LocalAddress = localEndpoint.Address.ToString();
 
             var newlyOpenedStream = tcpConnection.GetStream();
+
+            if (proxyConfiguration != null) {
+                var proxyOpenResult =
+                    await UpstreamProxyManager.Connect(proxyConfiguration, newlyOpenedStream, newlyOpenedStream); 
+
+                if (proxyOpenResult != UpstreamProxyConnectResult.Ok)
+                    throw new InvalidOperationException($"Failed to connect to upstream proxy {proxyOpenResult}");
+            }
 
             if (!exchange.Authority.Secure || exchange.Context.BlindMode) {
                 exchange.Connection.ReadStream = exchange.Connection.WriteStream = newlyOpenedStream;
