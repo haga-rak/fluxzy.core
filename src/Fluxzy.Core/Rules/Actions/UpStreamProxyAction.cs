@@ -37,7 +37,9 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            context.ProxyConfiguration = new ProxyConfiguration(Host, Port, ProxyAuthorizationHeader);
+            if (Host != null! && Port != 0)
+                context.ProxyConfiguration = new ProxyConfiguration(Host, Port, ProxyAuthorizationHeader);
+
             return default;
         }
 
