@@ -33,7 +33,6 @@ rules:
     typeKind: AnyFilter
   actions:
   - typeKind: ForceHttp11Action
-    noEditableSetting: true
 ```
 
 

@@ -34,7 +34,6 @@ rules:
   actions:
   - typeKind: NoOpAction
     description: No operation
-    noEditableSetting: true
 ```
 
 
