@@ -51,6 +51,7 @@ namespace Fluxzy.Clients
             Exchange exchange, DnsResolutionResult resolutionResult,
             List<SslApplicationProtocol> httpProtocols,
             ProxyRuntimeSetting setting,
+            ProxyConfiguration? proxyConfiguration,
             CancellationToken token)
         {
             exchange.Connection = new Connection(exchange.Authority, setting.IdProvider) {
@@ -69,14 +70,35 @@ namespace Fluxzy.Clients
                                            ? setting.ArchiveWriter.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
 
-            var localEndpoint = await tcpConnection.ConnectAsync(resolutionResult.EndPoint.Address,
-                                                       resolutionResult.EndPoint.Port).ConfigureAwait(false);
+            
+            var localEndpoint = await tcpConnection.ConnectAsync(
+                resolutionResult.EndPoint.Address,
+                resolutionResult.EndPoint.Port).ConfigureAwait(false);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
             exchange.Connection.LocalPort = localEndpoint.Port;
             exchange.Connection.LocalAddress = localEndpoint.Address.ToString();
 
             var newlyOpenedStream = tcpConnection.GetStream();
+
+            if (proxyConfiguration != null) {
+                exchange.Connection.ProxyConnectStart = _timeProvider.Instant();
+
+                if (exchange.Authority.Secure) {
+                    // Simulate CONNECT only when the connection is secure
+
+                    var connectConfiguration = new ConnectConfiguration(exchange.Authority.HostName,
+                        exchange.Authority.Port, proxyConfiguration.ProxyAuthorizationHeader);
+
+                    var proxyOpenResult =
+                        await UpstreamProxyManager.Connect(connectConfiguration, newlyOpenedStream, newlyOpenedStream);
+
+                    if (proxyOpenResult != UpstreamProxyConnectResult.Ok)
+                        throw new InvalidOperationException($"Failed to connect to upstream proxy {proxyOpenResult}");
+                }
+
+                exchange.Connection.ProxyConnectEnd = _timeProvider.Instant();
+            }
 
             if (!exchange.Authority.Secure || exchange.Context.BlindMode) {
                 exchange.Connection.ReadStream = exchange.Connection.WriteStream = newlyOpenedStream;

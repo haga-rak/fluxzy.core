@@ -34,7 +34,6 @@ rules:
   actions:
   - typeKind: AbortAction
     description: Abort
-    noEditableSetting: true
 ```
 
 

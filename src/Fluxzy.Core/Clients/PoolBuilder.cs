@@ -199,6 +199,7 @@ namespace Fluxzy.Clients
                         (await _remoteConnectionBuilder.OpenConnectionToRemote(
                             exchange, dnsResolutionResult.Item1,
                             exchange.Context.SslApplicationProtocols ?? AllProtocols, proxyRuntimeSetting,
+                            exchange.Context.ProxyConfiguration,
                             cancellationToken).ConfigureAwait(false))!;
 
                     if (exchange.Context.PreMadeResponse != null)

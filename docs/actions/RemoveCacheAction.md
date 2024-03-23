@@ -33,7 +33,6 @@ rules:
     typeKind: AnyFilter
   actions:
   - typeKind: RemoveCacheAction
-    noEditableSetting: true
 ```
 
 

@@ -33,14 +33,15 @@ namespace Fluxzy.Clients
                 ProxyRuntimeSetting? runtimeSetting)
         {
             var dnsSolveStart = timingProvider.Instant();
+            var connectHostName = exchange.Context.ProxyConfiguration?.Host ?? exchange.Authority.HostName; 
 
             var ipAddress = exchange.Context.RemoteHostIp ??
-                            await dnsSolver.SolveDns(exchange.Authority.HostName).ConfigureAwait(false);
+                            await dnsSolver.SolveDns(connectHostName).ConfigureAwait(false);
 
             var dnsSolveEnd = timingProvider.Instant();
 
-            var remotePort = exchange.Context.RemoteHostPort ??
-                             exchange.Authority.Port;
+            var remotePort = exchange.Context.ProxyConfiguration?.Port ?? exchange.Context.RemoteHostPort 
+                             ?? exchange.Authority.Port;
 
             exchange.Context.RemoteHostIp = ipAddress;
             exchange.Context.RemoteHostPort = remotePort;

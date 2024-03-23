@@ -56,6 +56,8 @@ namespace Fluxzy
             TcpConnectionOpened = tcpConnectionOpened;
             SslNegotiationStart = sslNegotiationStart;
             SslNegotiationEnd = sslNegotiationEnd;
+            ProxyConnectStart = ProxyConnectStart;
+            ProxyConnectEnd = ProxyConnectEnd;
             LocalPort = localPort;
             LocalAddress = localAddress;
             RemoteAddress = remoteAddress;
@@ -145,5 +147,17 @@ namespace Fluxzy
         /// </summary>
         [Key(13)]
         public string? RemoteAddress { get; private set; }
+
+        /// <summary>
+        /// Instant the proxy connection started
+        /// </summary>
+        [Key(14)]
+        public DateTime ProxyConnectStart { get; set; }
+
+        /// <summary>
+        ///  Instant the proxy connection ended
+        /// </summary>
+        [Key(15)]
+        public DateTime ProxyConnectEnd { get; set; }
     }
 }

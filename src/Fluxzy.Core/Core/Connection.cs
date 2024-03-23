@@ -44,6 +44,11 @@ namespace Fluxzy.Core
         public DateTime SslNegotiationStart { get; set; }
 
         public DateTime SslNegotiationEnd { get; set; }
+
+        public DateTime ProxyConnectStart { get; set; }
+
+        public DateTime ProxyConnectEnd { get; set; }
+
         
         public int LocalPort { get; set; }
 
