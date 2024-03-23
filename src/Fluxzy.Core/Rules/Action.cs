@@ -34,6 +34,7 @@ namespace Fluxzy.Rules
 
         protected override string Suffix { get; } = nameof(Action);
 
+        [YamlIgnore]
         public bool NoEditableSetting {
             get
             {
