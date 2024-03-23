@@ -16,7 +16,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         public void WriteConnectHeader(string host, int port, string ? authorizationHeader)
         {
             // Arrange
-            var config = new ProxyConfiguration(host, port, authorizationHeader);
+            var config = new ConnectConfiguration(host, port, authorizationHeader);
 
             var buffer = new byte[1024];
 
@@ -54,7 +54,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         public async Task ValidateConnect(string proxyResponse, UpstreamProxyConnectResult expectedResult)
         {
             // Arrange
-            var config = new ProxyConfiguration("example.com", 443);
+            var config = new ConnectConfiguration("example.com", 443);
             var rawResponse = Encoding.ASCII.GetBytes(proxyResponse);
 
             var buffer = new byte[1024];

@@ -25,7 +25,7 @@ namespace Fluxzy.Clients
         private static readonly byte[] ProxyAuthorizationHeader = "Proxy-Authorization: "u8.ToArray();
         private static readonly byte[] ProxyConnectionHeader = "Connection: keep-alive\r\n"u8.ToArray();
 
-        public static int WriteConnectHeader(Span<byte> bufferSpan, ProxyConfiguration config)
+        public static int WriteConnectHeader(Span<byte> bufferSpan, ConnectConfiguration config)
         {
             var totalWritten = 0;
 
@@ -60,7 +60,7 @@ namespace Fluxzy.Clients
         /// <param name="inStream"></param>
         /// <param name="outStream"></param>
         /// <returns></returns>
-        public static async ValueTask<UpstreamProxyConnectResult> Connect(ProxyConfiguration config, Stream inStream, Stream outStream)
+        public static async ValueTask<UpstreamProxyConnectResult> Connect(ConnectConfiguration config, Stream inStream, Stream outStream)
         {
             // CONNECT 
 
