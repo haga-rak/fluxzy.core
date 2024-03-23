@@ -70,8 +70,10 @@ namespace Fluxzy.Clients
                                            ? setting.ArchiveWriter.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
 
-            var localEndpoint = await tcpConnection.ConnectAsync(resolutionResult.EndPoint.Address,
-                                                       resolutionResult.EndPoint.Port).ConfigureAwait(false);
+            
+            var localEndpoint = await tcpConnection.ConnectAsync(
+                resolutionResult.EndPoint.Address,
+                resolutionResult.EndPoint.Port).ConfigureAwait(false);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
             exchange.Connection.LocalPort = localEndpoint.Port;
@@ -80,11 +82,22 @@ namespace Fluxzy.Clients
             var newlyOpenedStream = tcpConnection.GetStream();
 
             if (proxyConfiguration != null) {
-                var proxyOpenResult =
-                    await UpstreamProxyManager.Connect(proxyConfiguration, newlyOpenedStream, newlyOpenedStream); 
+                exchange.Connection.ProxyConnectStart = _timeProvider.Instant();
 
-                if (proxyOpenResult != UpstreamProxyConnectResult.Ok)
-                    throw new InvalidOperationException($"Failed to connect to upstream proxy {proxyOpenResult}");
+                if (exchange.Authority.Secure) {
+                    // Simulate CONNECT only when the connection is secure
+
+                    var connectConfiguration = new ConnectConfiguration(exchange.Authority.HostName,
+                        exchange.Authority.Port, proxyConfiguration.ProxyAuthorizationHeader);
+
+                    var proxyOpenResult =
+                        await UpstreamProxyManager.Connect(connectConfiguration, newlyOpenedStream, newlyOpenedStream);
+
+                    if (proxyOpenResult != UpstreamProxyConnectResult.Ok)
+                        throw new InvalidOperationException($"Failed to connect to upstream proxy {proxyOpenResult}");
+                }
+
+                exchange.Connection.ProxyConnectEnd = _timeProvider.Instant();
             }
 
             if (!exchange.Authority.Secure || exchange.Context.BlindMode) {
