@@ -6,10 +6,14 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Cli
 {
-    internal class Program
+    internal static class Program
     {
         internal static async Task<int> Main(string[] args)
         {
+            if (ContainerEnvironmentHelper.IsInContainer(args)) {
+                args = ContainerEnvironmentHelper.CreateArgsFromEnvironment(new SystemEnvironmentProvider());
+            }
+
             if (Environment.GetEnvironmentVariable("appdata") == null) {
                 Environment.SetEnvironmentVariable("appdata", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
             }
