@@ -19,7 +19,8 @@ namespace Fluxzy.Misc.Streams
             var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
             try {
-                return await source.CopyDetailed(destination, buffer, onContentCopied, cancellationToken);
+                return await source.CopyDetailed(destination, buffer, onContentCopied, cancellationToken)
+                                   .ConfigureAwait(false);
             }
             finally {
                 ArrayPool<byte>.Shared.Return(buffer);
@@ -94,12 +95,12 @@ namespace Fluxzy.Misc.Streams
                 int read;
                 var total = 0;
 
-                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
+                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0) {
                     total += read;
                 }
 
                 if (disposeStream) {
-                    await stream.DisposeAsync();
+                    await stream.DisposeAsync().ConfigureAwait(false);
                 }
 
                 return total;
@@ -120,7 +121,7 @@ namespace Fluxzy.Misc.Streams
         public static async Task<byte[]> ToArrayGreedyAsync(this Stream stream)
         {
             var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream);
+            await stream.CopyToAsync(memoryStream).ConfigureAwait(false);
 
             return memoryStream.ToArray();
         }
@@ -161,11 +162,11 @@ namespace Fluxzy.Misc.Streams
             long totalCopied = 0;
             int read;
 
-            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0) {
+            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) > 0) {
                 await destination.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
                 onContentCopied(read);
 
-                await destination.FlushAsync(cancellationToken);
+                await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
 
                 totalCopied += read;
             }
@@ -227,7 +228,7 @@ namespace Fluxzy.Misc.Streams
             var read = 0;
             var totalRead = 0;
 
-            while ((read = await origin.ReadAsync(buffer, cancellationToken)) > 0) {
+            while ((read = await origin.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0) {
                 buffer = buffer.Slice(read);
 
                 totalRead += read;
@@ -368,7 +369,7 @@ namespace Fluxzy.Misc.Streams
 
             int read;
 
-            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
+            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0) {
                 memoryStream.Write(buffer, 0, read);
             }
 

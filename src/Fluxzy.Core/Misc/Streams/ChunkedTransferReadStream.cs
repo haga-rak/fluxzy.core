@@ -52,7 +52,7 @@ namespace Fluxzy.Misc.Streams
             byte[] buffer, int offset, int count,
             CancellationToken cancellationToken)
         {
-            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken).ConfigureAwait(false);
         }
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
@@ -69,7 +69,7 @@ namespace Fluxzy.Misc.Streams
                 var chunkSizeNotDetected = true;
 
                 while (
-                    await _innerStream.ReadAsync(singleByte, cancellationToken) > 0
+                    await _innerStream.ReadAsync(singleByte, cancellationToken).ConfigureAwait(false) > 0
                     && (chunkSizeNotDetected = singleByte.Span[0] != 0XD)) {
                     if (textCount > 40) {
                         throw new IOException("Error while reading chunked stream : Chunk size is larger than 40.");
@@ -80,7 +80,7 @@ namespace Fluxzy.Misc.Streams
 
                 if (textCount == 0 && !chunkSizeNotDetected) {
                     // Natural End of stream . Read the last double cr lf 
-                    await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
+                    await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken).ConfigureAwait(false);
 
                     return 0;
                 }
@@ -101,14 +101,14 @@ namespace Fluxzy.Misc.Streams
 
                 if (chunkSize == 0) {
                     if (!_closeOnDone) {
-                        await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken);
+                        await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 3), cancellationToken).ConfigureAwait(false);
                     }
 
                     return 0;
                 }
 
                 // Skip the next CRLF 
-                if (!await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken)) {
+                if (!await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 1), cancellationToken).ConfigureAwait(false)) {
                     throw new EndOfStreamException("Unexpected EOF");
                 }
 
@@ -117,7 +117,7 @@ namespace Fluxzy.Misc.Streams
 
             var nextBlockToRead = (int) Math.Min(_nextChunkSize, buffer.Length);
 
-            var read = await _innerStream.ReadAsync(buffer.Slice(0, nextBlockToRead), cancellationToken);
+            var read = await _innerStream.ReadAsync(buffer.Slice(0, nextBlockToRead), cancellationToken).ConfigureAwait(false);
 
             if (read <= 0) {
                 throw new EndOfStreamException(
@@ -127,7 +127,7 @@ namespace Fluxzy.Misc.Streams
             _nextChunkSize -= read;
 
             if (_nextChunkSize == 0) {
-                await _innerStream.ReadExactAsync(new Memory<byte>(_lengthHolderBytes, 0, 2), cancellationToken);
+                await _innerStream.ReadExactAsync(new Memory<byte>(_lengthHolderBytes, 0, 2), cancellationToken).ConfigureAwait(false);
             }
 
             return read;

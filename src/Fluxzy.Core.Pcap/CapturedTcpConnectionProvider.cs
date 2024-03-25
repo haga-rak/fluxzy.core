@@ -22,10 +22,10 @@ namespace Fluxzy.Core.Pcap
         public async ValueTask DisposeAsync()
         {
             if (_createdContext != null)
-                await _createdContext.DisposeAsync();
+                await _createdContext.DisposeAsync().ConfigureAwait(false);
 
             if (_disposeProxyScope)
-                await _scope.DisposeAsync();
+                await _scope.DisposeAsync().ConfigureAwait(false);
         }
 
         public static async Task<ITcpConnectionProvider> Create(ProxyScope scope, bool outOfProcCapture)
@@ -34,11 +34,11 @@ namespace Fluxzy.Core.Pcap
 
             scope.CaptureContext =
                 outOfProcCapture
-                    ? await scope.GetOrCreateHostedCaptureContext()
+                    ? await scope.GetOrCreateHostedCaptureContext().ConfigureAwait(false)
                     : connectionProvider._createdContext = new DirectCaptureContext();
 
             if (connectionProvider._createdContext != null)
-                await connectionProvider._createdContext.Start();
+                await connectionProvider._createdContext.Start().ConfigureAwait(false);
 
             return connectionProvider;
         }
@@ -52,7 +52,7 @@ namespace Fluxzy.Core.Pcap
             scope.CaptureContext = connectionProvider._createdContext = new DirectCaptureContext();
 
             if (connectionProvider._createdContext != null)
-                await connectionProvider._createdContext.Start();
+                await connectionProvider._createdContext.Start().ConfigureAwait(false);
 
             return connectionProvider;
         }

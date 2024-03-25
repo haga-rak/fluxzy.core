@@ -11,6 +11,20 @@ namespace Fluxzy.Formatters.Producers.Requests
 {
     internal static class HttpHelper
     {
+        public static IReadOnlyCollection<RequestCookie> ReadRequestCookies(ExchangeInfo exchangeInfo)
+        {
+            var headers = exchangeInfo.GetRequestHeaders()?.ToList();
+
+            if (headers == null)
+                return Array.Empty<RequestCookie>();
+
+            var targetHeaders =
+                headers.Where(h =>
+                    h.Name.Span.Equals("Cookie".AsSpan(), System.StringComparison.OrdinalIgnoreCase));
+
+            return  ReadRequestCookies(targetHeaders.Select(h => (GenericHeaderField) h));
+        }
+
         public static List<RequestCookie> ReadRequestCookies(IEnumerable<GenericHeaderField> targetHeaders)
         {
             var requestCookies = new List<RequestCookie>();
@@ -34,6 +48,19 @@ namespace Fluxzy.Formatters.Producers.Requests
             }
 
             return requestCookies;
+        }
+
+        public static IReadOnlyCollection<SetCookieItem> ReadResponseCookies(ExchangeInfo exchangeInfo)
+        {
+            var headers = exchangeInfo.GetResponseHeaders()?.ToList();
+
+            if (headers == null)
+                return Array.Empty<SetCookieItem>();
+
+            var cookieHeaders = headers.Where(h =>
+                               h.Name.Span.Equals("Set-Cookie".AsSpan(), StringComparison.OrdinalIgnoreCase));
+
+            return ReadResponseCookies(cookieHeaders.Select(h => h));
         }
 
         public static List<SetCookieItem> ReadResponseCookies(IEnumerable<HeaderFieldInfo> cookieHeaders)

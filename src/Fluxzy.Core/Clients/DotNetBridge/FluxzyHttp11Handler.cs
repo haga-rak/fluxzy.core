@@ -42,7 +42,7 @@ namespace Fluxzy.Clients.DotNetBridge
                 await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection)) {
-                    connection = await ConnectionBuilder.CreateH11(authority, _sslProvider, cancellationToken);
+                    connection = await ConnectionBuilder.CreateH11(authority, _sslProvider, cancellationToken).ConfigureAwait(false);
 
                     _activeConnections[request.RequestUri.Authority] = connection;
                 }
@@ -56,7 +56,7 @@ namespace Fluxzy.Clients.DotNetBridge
             var exchange = new Exchange(_idProvider, authority, reqHttpString.AsMemory(), "HTTP/1.1", DateTime.Now);
 
             if (request.Content != null)
-                exchange.Request.Body = await request.Content.ReadAsStreamAsync();
+                exchange.Request.Body = await request.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
             await _activeConnections[request.RequestUri.Authority].Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);

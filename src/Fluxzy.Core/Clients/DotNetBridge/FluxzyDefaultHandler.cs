@@ -26,10 +26,16 @@ namespace Fluxzy.Clients.DotNetBridge
         private readonly PoolBuilder _poolBuilder;
         private readonly ProxyRuntimeSetting _runtimeSetting;
 
+        private readonly IReadOnlyCollection<IAsyncDisposable>? _disposables;
+
         public FluxzyDefaultHandler(
             SslProvider sslProvider,
-            ITcpConnectionProvider? connectionProvider = null, RealtimeArchiveWriter? writer = null)
+            ITcpConnectionProvider? connectionProvider = null, 
+            RealtimeArchiveWriter? writer = null,
+            IReadOnlyCollection<IAsyncDisposable>? disposables = null)
         {
+            _disposables = disposables;
+
             var provider = sslProvider == SslProvider.BouncyCastle
                 ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
                 : new SChannelConnectionBuilder();
@@ -66,12 +72,24 @@ namespace Fluxzy.Clients.DotNetBridge
             if (Protocols != null)
                 exchange.Context.SslApplicationProtocols = Protocols;
 
-            var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken);
+            var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken).ConfigureAwait(false);
 
             await connection.Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
                 cancellationToken).ConfigureAwait(false);
 
             return new FluxzyHttpResponseMessage(exchange);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) {
+                if (_disposables != null) {
+                    foreach (var disposable in _disposables)
+                        disposable.DisposeAsync(); // uhh
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

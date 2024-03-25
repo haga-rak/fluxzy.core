@@ -56,7 +56,7 @@ namespace Fluxzy.Core
                 }
             };
 
-            await secureStream.AuthenticateAsServerAsync(sslServerAuthenticationOptions, token);
+            await secureStream.AuthenticateAsServerAsync(sslServerAuthenticationOptions, token).ConfigureAwait(false);
 
             if (authorityName is null) {
                 throw new FluxzyException("Unable to gather remote authority hostname");
@@ -66,7 +66,7 @@ namespace Fluxzy.Core
 
             var authority = new Authority(authorityName, destinationPort, true);
 
-            var exchangeContext = await contextBuilder.Create(authority, true);
+            var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
             var certStart = receivedFromProxy;

@@ -60,7 +60,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             try
             {
-                await protocol.ConnectAsync(client);
+                await protocol.ConnectAsync(client).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

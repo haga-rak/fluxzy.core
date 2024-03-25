@@ -10,6 +10,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
+using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core.Breakpoints;
@@ -160,6 +161,11 @@ namespace Fluxzy.Core
         /// </summary>
         public int ProxyListenPort { get; internal set; }
 
+        /// <summary>
+        ///  Upstream proxy configuration
+        /// </summary>
+        public ProxyConfiguration ? ProxyConfiguration { get; set; }
+
         internal NetworkStream? UnderlyingBcStream { get; set; }
 
         internal DisposeEventNotifierStream? EventNotifierStream { get; set; }
@@ -246,7 +252,7 @@ namespace Fluxzy.Core
             var finalStream = originalStream;
 
             foreach (var substitution in substitutions) {
-                finalStream = await substitution.Substitute(finalStream);
+                finalStream = await substitution.Substitute(finalStream).ConfigureAwait(false);
             }
 
             return finalStream;

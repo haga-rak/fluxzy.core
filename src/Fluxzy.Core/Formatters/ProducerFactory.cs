@@ -43,7 +43,7 @@ namespace Fluxzy.Formatters
 
         public async Task<ProducerContext?> GetProducerContext(int exchangeId)
         {
-            var archiveReader = await _archiveReaderProvider.Get();
+            var archiveReader = await _archiveReaderProvider.Get().ConfigureAwait(false);
 
             if (archiveReader == null)
                 return null;

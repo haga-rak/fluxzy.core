@@ -23,7 +23,7 @@ namespace Fluxzy.Core
             var instance =
                 new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
-            await instance.Register(endPoint, byPassedHosts);
+            await instance.Register(endPoint, byPassedHosts).ConfigureAwait(false);
 
             return new SystemProxyRegistration(instance);
         }

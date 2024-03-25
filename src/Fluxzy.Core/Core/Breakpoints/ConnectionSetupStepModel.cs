@@ -56,7 +56,7 @@ namespace Fluxzy.Core.Breakpoints
                 exchange.Context.RemoteHostIp = ip;
             else {
                 exchange.Context.RemoteHostIp =
-                    (await new DefaultDnsSolver().SolveDnsQuietly(exchange.Authority.HostName));
+                    (await new DefaultDnsSolver().SolveDnsQuietly(exchange.Authority.HostName).ConfigureAwait(false));
 
                 if (exchange.Context.RemoteHostIp != null)
                     IpAddress = exchange.Context.RemoteHostIp.ToString();

@@ -155,7 +155,7 @@ namespace Fluxzy.Clients.H2
 
                 exchange.Connection = _connection;
 
-                await InternalSend(exchange, buffer, cancellationToken);
+                await InternalSend(exchange, buffer, cancellationToken).ConfigureAwait(false);
 
                 _logger.Trace(exchange, "Response header received");
             }
@@ -205,7 +205,7 @@ namespace Fluxzy.Clients.H2
 
             try {
 
-                await _baseStream.DisposeAsync();
+                await _baseStream.DisposeAsync().ConfigureAwait(false);
             }
             catch (Exception) {
                 // Ignore dispose errors
@@ -650,11 +650,11 @@ namespace Fluxzy.Clients.H2
                         _streamCreationLock.Release();
                 }
 
-                await waitForHeaderSentTask;
+                await waitForHeaderSentTask.ConfigureAwait(false);
 
                 exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
-                await activeStream.ProcessRequestBody(exchange, buffer, streamCancellationToken);
+                await activeStream.ProcessRequestBody(exchange, buffer, streamCancellationToken).ConfigureAwait(false);
 
                 exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
 

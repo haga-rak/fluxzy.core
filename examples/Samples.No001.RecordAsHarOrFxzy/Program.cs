@@ -53,7 +53,5 @@ namespace Samples.No001.SimpleCapture
             // Pack the files into a HAR file
             Packager.ExportAsHttpArchive(tempDirectory, "mycapture.har");
         }
-
-
     }
 }

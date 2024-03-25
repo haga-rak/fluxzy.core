@@ -25,7 +25,7 @@ namespace Fluxzy.Misc
 
             // First we check if we can already sudo 
 
-            var canElevated = await CanElevated();
+            var canElevated = await CanElevated().ConfigureAwait(false);
 
             if (canElevated)
             {
@@ -43,7 +43,7 @@ namespace Fluxzy.Misc
             for (int i = 0; i < numberTries; i++)
             {
                 var result =
-                    await AskForElevation(askPasswordPrompt);
+                    await AskForElevation(askPasswordPrompt).ConfigureAwait(false);
 
                 if (result == PasswordElevationRequestResult.OK)
                     return true;
@@ -70,9 +70,9 @@ namespace Fluxzy.Misc
 
             var osascriptProcess = Process.Start(osascript)!;
 
-            var buffer = await osascriptProcess.StandardOutput.BaseStream.ToArrayGreedyAsync();
+            var buffer = await osascriptProcess.StandardOutput.BaseStream.ToArrayGreedyAsync().ConfigureAwait(false);
 
-            await osascriptProcess.WaitForExitAsync();
+            await osascriptProcess.WaitForExitAsync().ConfigureAwait(false);
 
             if (osascriptProcess.ExitCode != 0)
             {
@@ -90,10 +90,10 @@ namespace Fluxzy.Misc
 
                 var checkStartProcess = Process.Start(checkStartInfo)!;
 
-                await checkStartProcess.StandardInput.BaseStream.WriteAsync(buffer);
-                await checkStartProcess.StandardInput.BaseStream.DisposeAsync();
+                await checkStartProcess.StandardInput.BaseStream.WriteAsync(buffer).ConfigureAwait(false);
+                await checkStartProcess.StandardInput.BaseStream.DisposeAsync().ConfigureAwait(false);
 
-                await checkStartProcess.WaitForExitAsync();
+                await checkStartProcess.WaitForExitAsync().ConfigureAwait(false);
 
                 return checkStartProcess.ExitCode == 0 ? PasswordElevationRequestResult.OK : PasswordElevationRequestResult.BadPassword;
             }
@@ -112,7 +112,7 @@ namespace Fluxzy.Misc
 
             var checkStart = Process.Start(checkStartInfo)!;
 
-            await checkStart.WaitForExitAsync();
+            await checkStart.WaitForExitAsync().ConfigureAwait(false);
             return checkStart.ExitCode == 0;
         }
 

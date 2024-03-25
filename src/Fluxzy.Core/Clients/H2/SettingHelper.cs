@@ -49,7 +49,7 @@ namespace Fluxzy.Clients.H2
 
             try {
                 var written = new SettingFrame(true).Write(settingBuffer);
-                await innerStream.WriteAsync(settingBuffer, 0, written);
+                await innerStream.WriteAsync(settingBuffer, 0, written).ConfigureAwait(false);
             }
             finally {
                 ArrayPool<byte>.Shared.Return(settingBuffer);

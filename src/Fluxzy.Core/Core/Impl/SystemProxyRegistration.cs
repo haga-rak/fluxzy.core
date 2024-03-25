@@ -15,7 +15,7 @@ namespace Fluxzy.Core
         
         public async ValueTask DisposeAsync()
         {
-            await _instance.UnRegister(); 
+            await _instance.UnRegister().ConfigureAwait(false); 
         }
     }
 }

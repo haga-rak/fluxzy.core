@@ -72,12 +72,12 @@ namespace Fluxzy.Misc
             var standardErrorReading = process.StandardError.ReadToEndAsync();
 
             if (copyTask != null)
-                await copyTask;
+                await copyTask.ConfigureAwait(false);
 
-            var standardOutput = await standardOutputReading;
-            var standardError = await standardErrorReading;
+            var standardOutput = await standardOutputReading.ConfigureAwait(false);
+            var standardError = await standardErrorReading.ConfigureAwait(false);
 
-            await process.WaitForExitAsync();
+            await process.WaitForExitAsync().ConfigureAwait(false);
 
             if (process.ExitCode != 0 && throwOnFail)
                 throw new InvalidOperationException(
@@ -199,7 +199,7 @@ namespace Fluxzy.Misc
                     || string.Equals(Environment.GetEnvironmentVariable("FluxzyGraphicalPrivilegePrompt"), "TRUE",
                         StringComparison.OrdinalIgnoreCase)) {
                     
-                    var acquired = await ProcessUtilsOsx.OsxTryAcquireElevation(askPasswordPrompt);
+                    var acquired = await ProcessUtilsOsx.OsxTryAcquireElevation(askPasswordPrompt).ConfigureAwait(false);
 
                     if (!acquired)
                         return null; 

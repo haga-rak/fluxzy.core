@@ -20,7 +20,7 @@ namespace Fluxzy.Utils.Curl
 
         public async Task<bool> Replay(IArchiveReader archiveReader, ExchangeInfo exchangeInfo, bool runInLiveEdit = false)
         {
-            var configuration = await _runningProxyProvider.GetConfiguration();
+            var configuration = await _runningProxyProvider.GetConfiguration().ConfigureAwait(false);
 
             var curlCommandResult =
                 _requestConverter.BuildCurlRequest(archiveReader, exchangeInfo, configuration, runInLiveEdit);
@@ -31,7 +31,7 @@ namespace Fluxzy.Utils.Curl
                 return false;
 
             try {
-                return await CurlUtility.RunCurl(args, null);
+                return await CurlUtility.RunCurl(args, null).ConfigureAwait(false);
             }
             catch {
                 // We just ignore all run errors 

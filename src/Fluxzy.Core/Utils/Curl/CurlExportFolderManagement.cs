@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -50,7 +50,7 @@ namespace Fluxzy.Utils.Curl
             await using var destinationStream = File.Open(destinationPath, FileMode.OpenOrCreate,
                 FileAccess.Write, FileShare.None);
 
-            await tempStream.CopyToAsync(destinationStream);
+            await tempStream.CopyToAsync(destinationStream).ConfigureAwait(false);
 
             return true;
         }
