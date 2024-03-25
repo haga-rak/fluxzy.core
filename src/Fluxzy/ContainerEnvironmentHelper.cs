@@ -75,10 +75,10 @@ namespace Fluxzy.Cli
                 }
             }
 
-            if (environmentProvider.TryGetEnvironmentVariable("FLUXZY_MODE_REVERSE_PORT",
+            if (environmentProvider.TryGetInt32EnvironmentVariable("FLUXZY_MODE_REVERSE_PORT",
                     out var modeReversePort)) {
                 finalArgs.Add("--mode-reverse-port");
-                finalArgs.Add(modeReversePort);
+                finalArgs.Add($"{modeReversePort}");
             }
 
             if (environmentProvider.TryGetEnvironmentVariable("FLUXZY_EXTRA_ARGS", out var extraArgs)) {
