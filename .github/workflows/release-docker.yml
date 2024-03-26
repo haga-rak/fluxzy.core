@@ -23,4 +23,8 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Build and publish docker image
+        env:
+          TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
+          REPOSITORY_OWNER : ${{ github.repository_owner }}
+          REPOSITORY_NAME : ${{ github.event.repository.name }}
         run: bash build.sh fluxzy-cli-publish-docker
