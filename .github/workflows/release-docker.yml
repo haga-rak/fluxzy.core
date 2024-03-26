@@ -27,4 +27,5 @@ jobs:
           TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
           REPOSITORY_OWNER : ${{ github.repository_owner }}
           REPOSITORY_NAME : ${{ github.event.repository.name }}
+          PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
         run: bash build.sh fluxzy-cli-publish-docker
