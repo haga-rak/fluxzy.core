@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Cli.Dockering;
 
 namespace Fluxzy.Cli
 {
