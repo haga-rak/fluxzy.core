@@ -1,0 +1,29 @@
+# Build binaries
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
+
+WORKDIR /src
+
+COPY ["", ""]
+
+FROM builder AS publish
+RUN dotnet publish "src/Fluxzy/fluxzy.csproj" -c Release --self-contained true --runtime linux-x64 /p:DebugType=None /p:DebugSymbols=false -o /app/output-bin
+
+# Creating APP image from the published output
+
+FROM alpine:3.19 AS base
+
+EXPOSE 44344
+
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 
+ENV FLUXZY_STDOUT_ARGS=1
+ENV FLUXZY_CONTAINERIZED=1
+
+RUN apk update && apk add libpcap-dev libc6-compat openssl libgcc libstdc++ ncurses-libs
+
+COPY --from=publish /app/output-bin /artefacts
+COPY "docker/entrypoint.sh" "/entrypoint.sh"
+
+CMD ["./artefacts/fluxzy"]
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -1,7 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using SimpleExec;
-using static Bullseye.Targets;
 using static SimpleExec.Command;
 
 namespace Fluxzy.Build
