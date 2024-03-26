@@ -8,15 +8,18 @@ namespace Fluxzy.Cli
 {
     internal static class ContainerEnvironmentHelper
     {
-        public static bool IsInContainer(string[] args)
+        public static bool IsInContainer(EnvironmentProvider environmentProvider)
         {
-            return args.Any(arg => arg.Equals("--container",
-                StringComparison.OrdinalIgnoreCase));
+            return environmentProvider.EnvironmentVariableActive("FLUXZY_CONTAINERIZED");
         }
 
-        public static string[] CreateArgsFromEnvironment(EnvironmentProvider environmentProvider)
+        public static string[] CreateArgsFromEnvironment(string [] originalArgs, EnvironmentProvider environmentProvider)
         {
-            var finalArgs = new List<string>();
+            var finalArgs = new List<string>() {
+                "start"
+            };
+
+            finalArgs.AddRange(originalArgs.Where(a => a != "start" && a != "--container"));
 
             var listenAddress = environmentProvider.GetEnvironmentVariable("FLUXZY_ADDRESS")
                                 ?? "0.0.0.0";

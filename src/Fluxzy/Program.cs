@@ -10,8 +10,10 @@ namespace Fluxzy.Cli
     {
         internal static async Task<int> Main(string[] args)
         {
-            if (ContainerEnvironmentHelper.IsInContainer(args)) {
-                args = ContainerEnvironmentHelper.CreateArgsFromEnvironment(new SystemEnvironmentProvider());
+            var environmentProvider = new SystemEnvironmentProvider();
+
+            if (ContainerEnvironmentHelper.IsInContainer(environmentProvider)) {
+                args = ContainerEnvironmentHelper.CreateArgsFromEnvironment(args, environmentProvider);
             }
 
             if (Environment.GetEnvironmentVariable("appdata") == null) {

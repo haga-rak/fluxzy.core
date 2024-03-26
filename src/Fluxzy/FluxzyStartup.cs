@@ -15,6 +15,10 @@ namespace Fluxzy.Cli
     {
         public static async Task<int> Run(string[] args, OutputConsole? outputConsole, CancellationToken token)
         {
+            if (Environment.GetEnvironmentVariable("FLUXZY_STDOUT_ARGS") == "1") {
+                Console.WriteLine(string.Join(" ", args));
+            }
+
             var rootCommand =
                 new RootCommand(
                     "CLI tool for recording, analyzing and altering HTTP/1.1, H2, WebSocket traffic over plain or secure channels. Visit https://fluxzy.io for more info.");

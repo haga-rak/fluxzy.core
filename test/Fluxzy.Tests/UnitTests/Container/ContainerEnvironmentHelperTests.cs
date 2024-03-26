@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Fluxzy.Cli;
 using Xunit;
@@ -7,15 +8,21 @@ namespace Fluxzy.Tests.UnitTests.Container
     public class ContainerEnvironmentHelperTests
     {
         [Theory]
-        [InlineData(new string[] { "--container" }, true)]
-        [InlineData(new string[] { "--Container" }, true)]
-        [InlineData(new string[] { "--CONTAINER" }, true)]
-        [InlineData(new string[] { "" }, false)]
-        public void IsInContainer(string[] args, bool expected)
+        [InlineData("FLUXZY_CONTAINERIZED", "1", true)]
+        [InlineData("FLUXZY_CONTAINERIZED", "true", true)]
+        [InlineData("FLUXZY_CONTAINERIZED", "", false)]
+        [InlineData("DUMMY_VAR", "", false)]
+        public void IsInContainer(string envName, string envValue, bool expected)
         {
             // Arrange
+            var dictionary = new Dictionary<string, string>() {
+                [envName] = envValue
+            };
+
+            var environmentProvider = new DictionaryEnvironmentProvider(dictionary);
+
             // Act
-            var result = ContainerEnvironmentHelper.IsInContainer(args);
+            var result = ContainerEnvironmentHelper.IsInContainer(environmentProvider);
 
             // Assert
             Assert.Equal(expected, result);
@@ -29,13 +36,14 @@ namespace Fluxzy.Tests.UnitTests.Container
             var environmentProvider = new DictionaryEnvironmentProvider(dictionary);
 
             // Act
-            var result = ContainerEnvironmentHelper.CreateArgsFromEnvironment(environmentProvider);
+            var result = ContainerEnvironmentHelper.CreateArgsFromEnvironment(Array.Empty<string>(), 
+                environmentProvider);
 
             var fullArgs = string.Join(" ", result); 
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("--listen-interface 0.0.0.0/44344", fullArgs);
+            Assert.Equal("start --listen-interface 0.0.0.0/44344", fullArgs);
         }
 
         [Theory]
@@ -58,7 +66,8 @@ namespace Fluxzy.Tests.UnitTests.Container
             var environmentProvider = new DictionaryEnvironmentProvider(dictionary);
 
             // Act
-            var result = ContainerEnvironmentHelper.CreateArgsFromEnvironment(environmentProvider);
+            var result = ContainerEnvironmentHelper.CreateArgsFromEnvironment(Array.Empty<string>(), 
+                environmentProvider);
 
             var fullArgs = string.Join(" ", result); 
 
