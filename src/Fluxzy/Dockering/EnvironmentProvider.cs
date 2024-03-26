@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 
 namespace Fluxzy.Cli.Dockering
@@ -8,8 +10,7 @@ namespace Fluxzy.Cli.Dockering
         {
             var variableValue = GetEnvironmentVariable(name);
 
-            if (variableValue == null)
-            {
+            if (variableValue == null) {
                 return false;
             }
 
@@ -30,8 +31,7 @@ namespace Fluxzy.Cli.Dockering
         {
             var rawValue = GetEnvironmentVariable(variable);
 
-            if (rawValue != null && int.TryParse(rawValue, out value))
-            {
+            if (rawValue != null && int.TryParse(rawValue, out value)) {
                 return true;
             }
 
@@ -44,8 +44,7 @@ namespace Fluxzy.Cli.Dockering
         {
             var rawValue = GetEnvironmentVariable(variable);
 
-            if (rawValue != null && int.TryParse(rawValue, out var value))
-            {
+            if (rawValue != null && int.TryParse(rawValue, out var value)) {
                 return value;
             }
 
