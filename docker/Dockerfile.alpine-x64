@@ -15,12 +15,15 @@ FROM alpine:3.19 AS base
 
 EXPOSE 44344
 
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 
 ENV FLUXZY_STDOUT_ARGS=1
 ENV FLUXZY_CONTAINERIZED=1
 
-RUN apk update  && apk add libpcap-dev libc6-compat openssl libgcc libstdc++ ncurses-libs
+RUN apk update && apk add libpcap-dev libc6-compat openssl libgcc libstdc++ ncurses-libs
 
-COPY --from=publish /app/output-bin /output
+COPY --from=publish /app/output-bin /artefacts
+COPY "docker/entrypoint.sh" "/entrypoint.sh"
 
-ENTRYPOINT  ["./output/fluxzy", "start"]
+CMD ["./artefacts/fluxzy"]
+
+ENTRYPOINT ["/entrypoint.sh"]

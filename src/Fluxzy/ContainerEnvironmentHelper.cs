@@ -15,25 +15,28 @@ namespace Fluxzy.Cli
 
         public static string[] CreateArgsFromEnvironment(string [] originalArgs, EnvironmentProvider environmentProvider)
         {
-            var finalArgs = new List<string>() {
-                "start"
-            };
+            var finalArgs = new List<string>();
 
-            finalArgs.AddRange(originalArgs.Where(a => a != "start" && a != "--container"));
+            // finalArgs.AddRange(originalArgs.Where(a => a != "start" && a != "--container"));
+            finalArgs.AddRange(originalArgs);
 
-            var listenAddress = environmentProvider.GetEnvironmentVariable("FLUXZY_ADDRESS")
-                                ?? "0.0.0.0";
+            if (originalArgs.FirstOrDefault() == "start")
+            {
+                var listenAddress = environmentProvider.GetEnvironmentVariable("FLUXZY_ADDRESS")
+                                    ?? "0.0.0.0";
 
-            var listenPort = environmentProvider.GetInt32EnvironmentVariable("FLUXZY_PORT")
-                             ?? 44344;
+                var listenPort = environmentProvider.GetInt32EnvironmentVariable("FLUXZY_PORT")
+                                 ?? 44344;
 
-            finalArgs.Add("--listen-interface");
-            finalArgs.Add($"{listenAddress}/{listenPort}");
+                finalArgs.Add("--listen-interface");
+                finalArgs.Add($"{listenAddress}/{listenPort}");
 
-            if (environmentProvider.EnvironmentVariableActive("FLUXZY_ENABLE_DUMP_FOLDER")) {
-                var dumpPath = "/var/fluxzy/dump";
-                finalArgs.Add("--dump-folder");
-                finalArgs.Add(dumpPath);
+                if (environmentProvider.EnvironmentVariableActive("FLUXZY_ENABLE_DUMP_FOLDER"))
+                {
+                    var dumpPath = "/var/fluxzy/dump";
+                    finalArgs.Add("--dump-folder");
+                    finalArgs.Add(dumpPath);
+                }
             }
 
             if (environmentProvider.EnvironmentVariableActive("FLUXZY_ENABLE_OUTPUT_FILE")) {

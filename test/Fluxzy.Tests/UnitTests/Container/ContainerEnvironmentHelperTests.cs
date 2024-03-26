@@ -36,7 +36,7 @@ namespace Fluxzy.Tests.UnitTests.Container
             var environmentProvider = new DictionaryEnvironmentProvider(dictionary);
 
             // Act
-            var result = ContainerEnvironmentHelper.CreateArgsFromEnvironment(Array.Empty<string>(), 
+            var result = ContainerEnvironmentHelper.CreateArgsFromEnvironment(new[] { "start" }, 
                 environmentProvider);
 
             var fullArgs = string.Join(" ", result); 
@@ -66,7 +66,7 @@ namespace Fluxzy.Tests.UnitTests.Container
             var environmentProvider = new DictionaryEnvironmentProvider(dictionary);
 
             // Act
-            var result = ContainerEnvironmentHelper.CreateArgsFromEnvironment(Array.Empty<string>(), 
+            var result = ContainerEnvironmentHelper.CreateArgsFromEnvironment(new[] { "start" }, 
                 environmentProvider);
 
             var fullArgs = string.Join(" ", result); 

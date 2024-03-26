@@ -27,7 +27,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "__global", "__global", "{00
 		codecov.yml = codecov.yml
 		.github\workflows\coverage.yml = .github\workflows\coverage.yml
 		Directory.Build.props = Directory.Build.props
-		Dockerfile = Dockerfile
 		global.json = global.json
 		LICENSE.md = LICENSE.md
 		.github\workflows\pull-request.yaml = .github\workflows\pull-request.yaml
@@ -87,6 +86,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No013.ModifyHeaders", "examples\Samples.No013.ModifyHeaders\Samples.No013.ModifyHeaders.csproj", "{BABC5626-5E8F-4DDE-8649-6BE68BAA59E5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No014.HttpClientWithPcap", "examples\Samples.No014.HttpClientWithPcap\Samples.No014.HttpClientWithPcap.csproj", "{5B29B355-BA5C-4ED5-AC79-49A58C4ECB07}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{BBFE3627-31E2-4BA2-8AD9-49FFD728B943}"
+	ProjectSection(SolutionItems) = preProject
+		docker\Dockerfile.alpine-x64 = docker\Dockerfile.alpine-x64
+		docker\entrypoint.sh = docker\entrypoint.sh
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
