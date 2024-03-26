@@ -23,6 +23,7 @@ RUN apk update && apk add libpcap-dev libc6-compat openssl libgcc libstdc++ ncur
 
 COPY --from=publish /app/output-bin /artefacts
 COPY "docker/entrypoint.sh" "/entrypoint.sh"
+RUN chmod +x /entrypoint.sh
 
 CMD ["./artefacts/fluxzy"]
 
