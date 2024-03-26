@@ -30,6 +30,13 @@ namespace Fluxzy.Build
             return stdOut.Trim();
         }
 
+        private static async Task<string> GetRunningVersionShort()
+        {
+            var runningVersion = await GetRunningVersion();
+            var version = new Version(runningVersion);
+            return $"{version.Major}.{version.Minor}.{version.Build}";
+        }
+
         private static string GetFileName(string runtimeIdentifier, string version)
         {
             return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
@@ -147,7 +154,8 @@ namespace Fluxzy.Build
 
             Target("must-be-release",
                 () => {
-                    if (!currentBranch.StartsWith("release/")) {
+                    if (!currentBranch.StartsWith("release/") && 
+                        Environment.GetEnvironmentVariable("SKIP_MANDATORY_RELEASE_BRANCH") != "1") {
                         throw new Exception($"Must be on release branch. Current branch is {currentBranch}");
                     }
                 });
@@ -311,6 +319,7 @@ namespace Fluxzy.Build
                 });
 
 
+
             Target("docs", async () => {
                 var docOutputPath = EnvironmentHelper.GetEvOrFail("DOCS_OUTPUT_PATH");
 
@@ -367,6 +376,15 @@ namespace Fluxzy.Build
                     var tag = "v" + await GetRunningVersion();
 
                     await publishHelper.AddAssets(tag, assets);
+                });
+
+            Target("fluxzy-cli-publish-docker",
+                DependsOn("install-tools", "must-be-release"),
+                async () => {
+
+                    var shortVersion = (await GetRunningVersionShort());
+                    await DockerHelper.BuildDockerImage(".", shortVersion); 
+                    await DockerHelper.PushDockerImage(".", shortVersion);
                 });
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);

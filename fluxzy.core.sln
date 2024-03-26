@@ -89,6 +89,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No014.HttpClientWit
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{BBFE3627-31E2-4BA2-8AD9-49FFD728B943}"
 	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
 		docker\Dockerfile.alpine-x64 = docker\Dockerfile.alpine-x64
 		docker\entrypoint.sh = docker\entrypoint.sh
 	EndProjectSection
