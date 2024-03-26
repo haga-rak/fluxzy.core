@@ -9,20 +9,18 @@ jobs:
       matrix:
         osversion: [Linux]
         ostype: ['self-hosted']
-      fail-fast: false
+      fail-fast: true
 
     runs-on: ${{ matrix.osversion }}
-    steps:
-      - uses: actions/checkout@v1
+    steps:      
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Login to DockerHub Registry
         run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 8.0.x
-    - name: Build and publish docker image
-      run: bash build.sh fluxzy-cli-publish-docker
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+      - name: Build and publish docker image
+        run: bash build.sh fluxzy-cli-publish-docker
