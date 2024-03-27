@@ -6,12 +6,13 @@
 
 [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)
 [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core.Pcap&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)
+[![Docker Image Version](https://img.shields.io/docker/v/fluxzy/fluxzy?label=docker&color=7155ab)](https://hub.docker.com/r/fluxzy/fluxzy)
 [![build](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml/badge.svg)](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/haga-rak/fluxzy.core/graph/badge.svg?token=AD5R7Q1FHJ)](https://codecov.io/gh/haga-rak/fluxzy.core)
 [![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
 
 
-[Features](#1-features) | [Quick usage (.NET)](#2-quick-usage) | [Quick usage (CLI)](#sample-usage) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#3-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
+[Features](#1-features) | [Quick usage (.NET)](#2-quick-usage) | [Quick usage (CLI)](#sample-usage)  | [Quick usage (Docker)](#run-with-docker) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#3-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
 
 </div>
 
@@ -131,9 +132,6 @@ More examples are available at [docs.fluxzy.io](https://docs.fluxzy.io/documenta
 
 ### 2.2 Fluxzy CLI
 
-
-### Download CLI
-
 | Fluxzy CLI | Version |
 | --- | --- |
 | Windows |   [![win32](https://fluxzy.io/misc/badge/cli/Windows32)  ![win64](https://fluxzy.io/misc/badge/cli/Windows64)      ![winArm64](https://fluxzy.io/misc/badge/cli/WindowsArm64)](https://www.fluxzy.io/download#cli)     | 
@@ -206,6 +204,19 @@ More command and options are available, including [exporting to HAR](https://www
 
 By default, fluxzy will bind to `127.0.0.1:44344`.
 
+### Run with docker
+
+The CLI can be run from a [docker image](https://hub.docker.com/r/fluxzy/fluxzy).
+
+```bash
+docker run -it -p 43444:43444 fluxzy/fluxzy:latest start
+```
+
+To test: 
+
+```bash
+curl -x 127.0.0.1:44344 https://www.fluxzy.io
+```
 
 ## 3. Build
 
