@@ -30,11 +30,18 @@ namespace Fluxzy.Build
             return stdOut.Trim();
         }
 
+        private static async Task<string> GetRunningVersionShort()
+        {
+            var runningVersion = await GetRunningVersion();
+            var version = new Version(runningVersion);
+
+            return $"{version.Major}.{version.Minor}.{version.Build}";
+        }
+
         private static string GetFileName(string runtimeIdentifier, string version)
         {
             return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
         }
-
 
         private static async Task Upload(FileInfo fullFile)
         {
@@ -117,15 +124,17 @@ namespace Fluxzy.Build
                         "test test/Fluxzy.Tests --collect:\"XPlat Code Coverage\"");
                 });
         }
-        
+
         private static async Task CreateAndPushVersionedTag(string suffix)
         {
-            var runningVersion = (await GetRunningVersion()) + suffix;
+            var runningVersion = await GetRunningVersion() + suffix;
 
-            await RunAsync("git", $"config --global user.email \"admin@fluxzy.io\"");
-            await RunAsync("git", $"config --global user.name \"fluxzy-ci\"");
+            await RunAsync("git", "config --global user.email \"admin@fluxzy.io\"");
+            await RunAsync("git", "config --global user.name \"fluxzy-ci\"");
 
-            await RunAsync("git", $"tag -a v{runningVersion} -m \"Release {runningVersion}\"", handleExitCode: i => true);
+            await RunAsync("git", $"tag -a v{runningVersion} -m \"Release {runningVersion}\"",
+                handleExitCode: i => true);
+
             await RunAsync("git", $"push origin v{runningVersion}", handleExitCode: i => true);
         }
 
@@ -147,7 +156,8 @@ namespace Fluxzy.Build
 
             Target("must-be-release",
                 () => {
-                    if (!currentBranch.StartsWith("release/")) {
+                    if (!currentBranch.StartsWith("release/") &&
+                        Environment.GetEnvironmentVariable("SKIP_MANDATORY_RELEASE_BRANCH") != "1") {
                         throw new Exception($"Must be on release branch. Current branch is {currentBranch}");
                     }
                 });
@@ -310,12 +320,11 @@ namespace Fluxzy.Build
                     await Task.WhenAll(signTasks);
                 });
 
-
             Target("docs", async () => {
                 var docOutputPath = EnvironmentHelper.GetEvOrFail("DOCS_OUTPUT_PATH");
 
                 await RunAsync("dotnet",
-                    $"run --project src/Fluxzy.Tools.DocGen",
+                    "run --project src/Fluxzy.Tools.DocGen",
                     configureEnvironment: env => env["DOCS_OUTPUT_PATH"] = docOutputPath,
                     noEcho: false);
             });
@@ -334,7 +343,8 @@ namespace Fluxzy.Build
                 async () => await CreateAndPushVersionedTag(""));
 
             Target("fluxzy-publish-nuget-public",
-                DependsOn("install-tools", "must-be-release", "fluxzy-publish-nuget", "fluxzy-package-push-public-internal"),
+                DependsOn("install-tools", "must-be-release", "fluxzy-publish-nuget",
+                    "fluxzy-package-push-public-internal"),
                 async () => await CreateAndPushVersionedTag(""));
 
             Target("fluxzy-publish-nuget-public-with-note",
@@ -342,10 +352,11 @@ namespace Fluxzy.Build
                 async () => {
                     var publishHelper = await
                         GhPublishHelper.Create(EnvironmentHelper.GetEvOrFail("GH_RELEASE_TOKEN"),
-                            EnvironmentHelper.GetEvOrFail("REPOSITORY_OWNER"), EnvironmentHelper.GetEvOrFail("REPOSITORY_NAME"));
+                            EnvironmentHelper.GetEvOrFail("REPOSITORY_OWNER"),
+                            EnvironmentHelper.GetEvOrFail("REPOSITORY_NAME"));
 
                     var tag = "v" + await GetRunningVersion();
-                    await publishHelper.Publish(tag); 
+                    await publishHelper.Publish(tag);
                 });
 
             Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
@@ -359,14 +370,22 @@ namespace Fluxzy.Build
                 async () => {
                     var publishHelper = await
                         GhPublishHelper.Create(EnvironmentHelper.GetEvOrFail("GH_RELEASE_TOKEN"),
-                         EnvironmentHelper.GetEvOrFail("REPOSITORY_OWNER"),
-                         EnvironmentHelper.GetEvOrFail("REPOSITORY_NAME"));
+                            EnvironmentHelper.GetEvOrFail("REPOSITORY_OWNER"),
+                            EnvironmentHelper.GetEvOrFail("REPOSITORY_NAME"));
 
                     var assets = new DirectoryInfo(".artefacts/final/").EnumerateFiles("*.zip");
 
                     var tag = "v" + await GetRunningVersion();
 
                     await publishHelper.AddAssets(tag, assets);
+                });
+
+            Target("fluxzy-cli-publish-docker",
+                DependsOn("install-tools", "must-be-release"),
+                async () => {
+                    var shortVersion = await GetRunningVersionShort();
+                    await DockerHelper.BuildDockerImage(".", shortVersion);
+                    await DockerHelper.PushDockerImage(".", shortVersion);
                 });
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);

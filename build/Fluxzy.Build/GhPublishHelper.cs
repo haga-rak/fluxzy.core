@@ -21,7 +21,8 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
 
 [![v{0}](https://img.shields.io/badge/Fluxzy.Core-{0}-blue)](https://www.nuget.org/packages/Fluxzy.Core/{1}) [![v{0}](https://img.shields.io/badge/Fluxzy.Core.Pcap-{0}-blue)](https://www.nuget.org/packages/Fluxzy.Core.Pcap/{1})
 
-CLI binaries are available as assets or downloadable via [this page](https://www.fluxzy.io/download#cli). 
+- CLI binaries are available as assets or downloadable via [this page](https://www.fluxzy.io/download#cli). 
+- Docker images are available at [Docker Hub](https://hub.docker.com/r/fluxzy/fluxzy).
 
 ";
 

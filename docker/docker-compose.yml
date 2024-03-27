@@ -1,0 +1,15 @@
+version: '3'
+services:
+  fluxzy:
+    environment:
+    # Uncomment the following lines as required 
+      # - FLUXZY_PORT=44344 # Port to listen on
+      # - FLUXZY_ENABLE_OUTPUT_FILE=output_path  # output_path will contain the final .fxzy file after the process is halted
+      # - FLUXZY_ENABLE_PCAP=1  # Enable PCAP capture
+      # - FLUXZY_USE_BOUNCY_CASTLE=1  # Use Bouncy Castle for SSL
+      # - FLUXZY_CUSTOM_CA_PATH=/var/fluxzy/cert.pfx  # Use PKCS12 file as custom CA
+      # - FLUXZY_CUSTOM_CA_PASSWORD=password  # PKCS12 password
+    image: fluxzy/fluxzy:latest        
+    command: start # append fluxzy start argument here 
+    ports:
+      - "44344:44344"

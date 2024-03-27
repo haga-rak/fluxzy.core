@@ -1,0 +1,31 @@
+name: Publish Docker image
+
+on: workflow_dispatch
+
+jobs:
+  publish-release:
+    name: "Publish release"
+    strategy:
+      matrix:
+        osversion: [Linux]
+        ostype: ['self-hosted']
+      fail-fast: true
+
+    runs-on: ${{ matrix.osversion }}
+    steps:      
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Login to DockerHub Registry
+        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+      - name: Build and publish docker image
+        env:
+          TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
+          REPOSITORY_OWNER : ${{ github.repository_owner }}
+          REPOSITORY_NAME : ${{ github.event.repository.name }}
+          PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
+        run: bash build.sh fluxzy-cli-publish-docker

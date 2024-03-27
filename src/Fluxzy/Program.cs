@@ -3,13 +3,20 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Cli.Dockering;
 
 namespace Fluxzy.Cli
 {
-    internal class Program
+    internal static class Program
     {
         internal static async Task<int> Main(string[] args)
         {
+            var environmentProvider = new SystemEnvironmentProvider();
+
+            if (ContainerEnvironmentHelper.IsInContainer(environmentProvider)) {
+                args = ContainerEnvironmentHelper.CreateArgsFromEnvironment(args, environmentProvider);
+            }
+
             if (Environment.GetEnvironmentVariable("appdata") == null) {
                 Environment.SetEnvironmentVariable("appdata", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
             }
