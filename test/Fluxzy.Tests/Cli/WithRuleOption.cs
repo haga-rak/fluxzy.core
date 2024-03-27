@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -27,7 +28,8 @@ namespace Fluxzy.Tests.Cli
             var yamlContent = """
                 rules:
                 - filter:
-                    typeKind: AnyFilter
+                    typeKind: absoluteUriFilter
+                    pattern: https://www.example.com/this-can-be-a-real-directory
                   actions:
                   - typeKind: MockedResponseAction
                     response:
@@ -45,7 +47,7 @@ namespace Fluxzy.Tests.Cli
             await using var fluxzyInstance = await commandLineHost.Run();
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://www.example.com");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://www.example.com/this-can-be-a-real-directory");
 
             requestMessage.Headers.Add("User-Agent", "Unit test");
 
@@ -59,7 +61,7 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal("OK computer", fullResponse);
             }
             else {
-                Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
+                Assert.NotEqual(HttpStatusCode.NotFound, response.StatusCode);
             }
         }
 
