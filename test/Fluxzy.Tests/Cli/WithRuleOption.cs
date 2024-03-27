@@ -14,6 +14,55 @@ namespace Fluxzy.Tests.Cli
 {
     public class WithRuleOption : WithRuleOptionBase
     {
+        [Theory]
+        [InlineData("fluxzy-rule.yml", true)]
+        [InlineData("fluxzy-rule.yaml", true)]
+        [InlineData("invalid.yaml", false)]
+        public async Task Validate_DefaultFileName(string filename, bool success)
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0";
+            var ruleFile = filename;
+
+            var yamlContent = """
+                rules:
+                - filter:
+                    typeKind: AnyFilter
+                  actions:
+                  - typeKind: MockedResponseAction
+                    response:
+                      statusCode: 202
+                      body:
+                        origin: FromString
+                        type: text
+                        text: 'OK computer'
+                """;
+
+            File.WriteAllText(ruleFile, yamlContent);
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://www.example.com");
+
+            requestMessage.Headers.Add("User-Agent", "Unit test");
+
+            // Act 
+            using var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+
+            var fullResponse = await response.Content.ReadAsStringAsync();
+
+            if (success) {
+                Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+                Assert.Equal("OK computer", fullResponse);
+            }
+            else {
+                Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
+            }
+        }
+
         [Fact]
         public async Task Validate_UpdateRequestHeaderAction()
         {
