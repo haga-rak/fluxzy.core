@@ -226,6 +226,11 @@ namespace Fluxzy.Cli.Commands
                     : await Console.In.ReadToEndAsync(cancellationToken)
                 : null;
 
+            if (ruleContent == null && ruleFile == null) {
+                // Try to find default rule file on current directory
+                ruleFile = DefaultRuleFileHelper.FindDefaultRuleFile();
+            }
+
             if (ruleContent == null && ruleFile != null) {
                 if (!ruleFile.Exists) {
                     throw new FileNotFoundException($"File not found : {ruleFile.FullName}");
@@ -343,6 +348,24 @@ namespace Fluxzy.Cli.Commands
 
             await using var outStream = File.Create(outFileName);
             await packager.Pack(dInfo.FullName, outStream, null);
+        }
+    }
+
+    internal static class DefaultRuleFileHelper
+    {
+        public static readonly string[] DefaultRuleFileNames = { "fluxzy-rule.yaml", "fluxzy-rule.yml" };
+
+        public static FileInfo? FindDefaultRuleFile()
+        {
+            foreach (var item in DefaultRuleFileNames) {
+                var file = new FileInfo(item);
+
+                if (file.Exists) {
+                    return file;
+                }
+            }
+
+            return null;
         }
     }
 }
