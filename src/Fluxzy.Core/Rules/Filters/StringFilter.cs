@@ -20,8 +20,17 @@ namespace Fluxzy.Rules.Filters
 
         protected StringFilter(string pattern, StringSelectorOperation operation)
         {
+            if (operation == 0) {
+                operation = StringSelectorOperation.Exact; // Hint to allow omitting default value
+            }
+
+            if (!Enum.IsDefined(typeof(StringSelectorOperation), operation))
+                throw new ArgumentException("operation field is invalid or missing",
+                    nameof(operation));
+
             Pattern = pattern;
             Operation = operation;
+
         }
 
         [FilterDistinctive(Description = "The string pattern to search")]
@@ -106,7 +115,7 @@ namespace Fluxzy.Rules.Filters
                         continue;
 
                     default:
-                        throw new InvalidOperationException($"Unimplemented string operation {Operation}");
+                        throw new RuleExecutionFailureException($"Unimplemented string operation {Operation}");
                 }
             }
 
