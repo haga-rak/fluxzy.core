@@ -14,14 +14,27 @@ namespace Fluxzy.Certificates
     ///
     ///  For the two first cases, if the PKCS12 file has a password, it must be specified in the environment variable FLUXZY_ROOT_CERTIFICATE_PASSWORD
     /// </summary>
-    internal static class FluxzySecurity
+    internal class FluxzySecurity
     {
-        static FluxzySecurity()
-        {
-            BuiltinCertificate = GetDefaultCertificate();
-        }
+        private static readonly string DefaultCertificatePath = "%appdata%/.fluxzy/rootca.pfx";
+        private readonly string _certificatePath;
+
+        public static readonly FluxzySecurity DefaultInstance = new FluxzySecurity();
         
-        private static X509Certificate2 GetDefaultCertificate()
+        public FluxzySecurity(string? defaultPath = null)
+        {
+            _certificatePath = defaultPath ?? DefaultCertificatePath;
+            BuiltinCertificate = GetDefaultCertificate();
+
+            if (!BuiltinCertificate.HasPrivateKey)
+            {
+                throw new ArgumentException("The built-in certificate must have a private key");
+            }
+        }
+
+        public X509Certificate2 BuiltinCertificate { get; }
+
+        private X509Certificate2 GetDefaultCertificate()
         {
             var certificatePath = Environment.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE");
             var certificatePassword = Environment.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE_PASSWORD");
@@ -33,7 +46,7 @@ namespace Fluxzy.Certificates
             }
             else
             {
-                var defaultPath = Environment.ExpandEnvironmentVariables("%appdata%/.fluxzy/rootca.pfx");
+                var defaultPath = Environment.ExpandEnvironmentVariables(_certificatePath);
 
                 if (File.Exists(defaultPath))
                 {
@@ -54,8 +67,9 @@ namespace Fluxzy.Certificates
             return new X509Certificate2(FileStore.Fluxzy, "youshallnotpass");
         }
 
-        public static X509Certificate2 BuiltinCertificate { get; }
-
-        public static string DefaultThumbPrint => BuiltinCertificate.Thumbprint!;
+        public void SetDefaultCertificateForUser(byte[] certificateContent)
+        {
+            File.WriteAllBytes(_certificatePath, certificateContent);
+        }
     }
 }

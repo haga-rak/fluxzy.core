@@ -16,7 +16,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
         [Fact]
         public void IsCa()
         {
-            Assert.True(FluxzySecurity.BuiltinCertificate.IsCa());
+            Assert.True(FluxzySecurity.DefaultInstance.BuiltinCertificate.IsCa());
         }
 
         [Fact]

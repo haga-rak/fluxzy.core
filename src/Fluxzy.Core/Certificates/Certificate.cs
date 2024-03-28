@@ -135,7 +135,7 @@ namespace Fluxzy.Certificates
 
             switch (RetrieveMode) {
                 case CertificateRetrieveMode.FluxzyDefault:
-                    return _cachedCertificate = FluxzySecurity.BuiltinCertificate;
+                    return _cachedCertificate = FluxzySecurity.DefaultInstance.BuiltinCertificate;
 
                 case CertificateRetrieveMode.FromUserStoreSerialNumber: {
                     using var store = new X509Store(StoreName.My,

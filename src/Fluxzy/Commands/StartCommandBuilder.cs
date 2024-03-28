@@ -46,7 +46,7 @@ namespace Fluxzy.Cli.Commands
         private DirectoryInfo TempDumpDirectory {
             get
             {
-                if (_tempDumpDirectory != null) {
+                if (_tempDumpDirectory != null!) {
                     return _tempDumpDirectory;
                 }
 
@@ -107,7 +107,7 @@ namespace Fluxzy.Cli.Commands
             var installCert = invocationContext.Value<bool>("install-cert");
             var noCertCache = invocationContext.Value<bool>("no-cert-cache");
             var certFile = invocationContext.Value<FileInfo?>("cert-file");
-            var certPassword = invocationContext.Value<string>("cert-password");
+            var certPassword = invocationContext.Value<string?>("cert-password");
             var ruleFile = invocationContext.Value<FileInfo?>("rule-file");
             var ruleStdin = invocationContext.Value<bool>("rule-stdin");
             var parseUserAgent = invocationContext.Value<bool>("parse-ua");

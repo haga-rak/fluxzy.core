@@ -117,7 +117,7 @@ namespace Fluxzy.Cli.Commands
             exportCommand.SetHandler(async (fileInfo, console) => {
                 var certificate = fileInfo != null ? 
                     new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName)) 
-                    : FluxzySecurity.BuiltinCertificate;
+                    : FluxzySecurity.DefaultInstance.BuiltinCertificate;
 
                 var certificateManager = new DefaultCertificateAuthorityManager();
 
