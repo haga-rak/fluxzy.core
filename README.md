@@ -12,7 +12,7 @@
 [![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
 
 
-[Features](#1-features) | [Quick usage (.NET)](#2-quick-usage) | [Quick usage (CLI)](#sample-usage)  | [Quick usage (Docker)](#run-with-docker) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#3-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
+[Features](#key-features) | [Quick usage (.NET)](#getting-started) | [Quick usage (CLI)](#sample-usage)  | [Quick usage (Docker)](#run-with-docker) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#3-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
 
 </div>
 
@@ -20,23 +20,21 @@ fluxzy is a *fully managed* and *fully streamed* MITM engine and a CLI app to in
 
 This repository contains the source code of [Fluxzy CLI](https://www.fluxzy.io/download#cli) which is a standalone command line application for Windows, macOS, and Linux and  the .NET packages that are used by [Fluxzy Desktop](https://www.fluxzy.io/download). 
 
-## 1. Features
+## Key features
 
-### 1.1 Core features 
+General features
 
-- Intercept HTTP/1.1, H2, WebSocket traffic over plain or secure channels
-- Fully streamed intermediate as proxy or transparent proxy
+- Intercept HTTP/1.1, H2, WebSocket traffic over plain or TLS
+- Multiple mode: HTTP proxy, reverse proxy or transparent proxy
+- [Record traffic as HTTP Archive or fxzy](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
+- [Output PCAP and PCAPNG files](https://docs.fluxzy.io/documentation/core/04-capture-raw-packets.html) (with the extension `Fluxzy.Core.Pcap`)
 - [Deflect operating system traffic (act as system proxy)](https://docs.fluxzy.io/documentation/core/06-capturing-os-trafic.html)
+- [Custom root certificate authority](https://docs.fluxzy.io/documentation/core/short-examples/use-custom-root-certificate.html)
 - [Automatic root certificate installation](https://docs.fluxzy.io/api/Fluxzy.FluxzySetting.html#Fluxzy_FluxzySetting_SetAutoInstallCertificate_System_Boolean_) (with elevation on Windows, macOS, and several Linux distributions) 
-- [Certificate management](https://www.fluxzy.io/resources/cli/command-cert): built-in feature to create CA compatible certificates 
-- [Export as HTTP Archive](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
-- [Use a custom root certificate authority](https://docs.fluxzy.io/documentation/core/short-examples/use-custom-root-certificate.html)
-- [Choice between default .NET SSL provider and BouncyCastle](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
-- [Raw packet capture](https://docs.fluxzy.io/documentation/core/04-capture-raw-packets.html) (with the extension `Fluxzy.Core.Pcap`)
+- [Certificate creation](https://www.fluxzy.io/resources/cli/command-cert): built-in feature to create CA compatible certificates 
+- [Multiple TLS provider SChannel/OpenSSL/SecureTransport or BouncyCastle](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
 - [NSS Key log extraction (when using Bouncy Castle)](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
--  [Optional configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) 
-
-### 1.2 Alteration and traffic management features 
+- [Optional declarative traffic transformation](https://www.fluxzy.io/resources/documentation/the-rule-file) 
 
 Alteration and traffic management features are available as [fluxzy actions](https://www.fluxzy.io/resources/documentation/core-concepts). You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to see built-in actions on the latest stable version. Here are a few examples:
 
@@ -50,11 +48,10 @@ Alteration and traffic management features are available as [fluxzy actions](htt
 - [Provide a specific certificate for a host](https://www.fluxzy.io/rule/item/useCertificateAction)
   
 
-## 2. Quick Usage
+## Getting started
 
-### 2.1 .NET library
+### With .NET
 
-### 2.1.1 Simple usage
 The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
 The following shows a very basic usage of the .NET packages.
 
@@ -130,7 +127,7 @@ Console.ReadLine();
 More examples are available at [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.html).
 
 
-### 2.2 Fluxzy CLI
+## As a command line tool
 
 | Fluxzy CLI | Version |
 | --- | --- |
@@ -218,9 +215,9 @@ To test:
 curl -x 127.0.0.1:44344 https://www.fluxzy.io
 ```
 
-## 3. Build
+## Build
 
-### 3.1 Requirements
+### Requirements
 
 - .NET 8.0 SDK
 - Git bash if Windows
@@ -228,18 +225,18 @@ curl -x 127.0.0.1:44344 https://www.fluxzy.io
 - tests collecting pcap files and installing certificates requires elevation. 
 - An IDE is not necessary to build the app. For information, this project was developed using both Visual Studio 2022 and JetBrains Rider on Windows, macOS and Linux.
 
-### 3.2 Build
+### Actual Build
 
 - Clone the repository
 - Run  `dotnet build src/Fluxzy.Core` for Fluxzy.Core 
 - Run  `dotnet build src/Fluxzy.Core.Pcap` for Fluxzy.Core.Pcap
 
-### 3.3 Test 
+### Testing 
 
 - Several tests are run against various private web servers (iis, nginx, kestrel, apache, ...) which is not currently available to the public.
 
 
-## 4 Contact 
+## Contact 
 
 - Use github issues for bug reports and feature requests
 - Mail to **project@fluxzy.io** for inquiries
