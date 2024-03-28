@@ -36,7 +36,7 @@ namespace Fluxzy.Cli
             rootCommand.Add(dissectCommandBuilder.Build());
 
             var final = new CommandLineBuilder(rootCommand)
-                        .UseVersionOption("-v")
+                        .UseVersionOption("-v", "--version")
                         .UseHelp()
                         .UseEnvironmentVariableDirective()
                         .UseParseDirective()
