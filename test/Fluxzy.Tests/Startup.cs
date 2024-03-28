@@ -1,7 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using Fluxzy.Certificates;
 using Fluxzy.Tests._Files;
@@ -26,6 +28,24 @@ namespace Fluxzy.Tests
         public Startup(IMessageSink messageSink)
             : base(messageSink)
         {
+            foreach (var fileSystemInfo in new DirectoryInfo(".").EnumerateFileSystemInfos().ToList())
+            {
+                if (fileSystemInfo is DirectoryInfo directory && Guid.TryParse(directory.Name, out _))
+                {
+                    directory.Delete(true);
+                }
+
+                if (fileSystemInfo is FileInfo file &&
+                    (file.Name.EndsWith(".yml")
+                     || file.Name.EndsWith(".yaml")
+                     || file.Name.EndsWith(".temp")
+
+                     ))
+                {
+                    file.Delete();
+                }
+            }
+
             InstallCertificate();
 
             DirectoryName = EmptyDirectory("static_website_dir");
