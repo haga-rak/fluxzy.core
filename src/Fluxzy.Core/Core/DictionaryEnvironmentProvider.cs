@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Fluxzy.Cli.Dockering
+namespace Fluxzy.Core
 {
     internal class DictionaryEnvironmentProvider : EnvironmentProvider
     {

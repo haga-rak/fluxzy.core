@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Fluxzy.Cli.Dockering
+namespace Fluxzy.Core
 {
     internal abstract class EnvironmentProvider
     {

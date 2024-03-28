@@ -1,6 +1,6 @@
 using System;
 
-namespace Fluxzy.Cli.Dockering
+namespace Fluxzy.Core
 {
     internal class SystemEnvironmentProvider : EnvironmentProvider
     {
