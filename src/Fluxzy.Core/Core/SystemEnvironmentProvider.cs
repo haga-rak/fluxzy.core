@@ -8,5 +8,10 @@ namespace Fluxzy.Core
         {
             return Environment.GetEnvironmentVariable(variable);
         }
+
+        public override string ExpandEnvironmentVariables(string original)
+        {
+            return Environment.ExpandEnvironmentVariables(original);
+        }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using Fluxzy.Core;
 
 namespace Fluxzy.Certificates
 {
@@ -18,12 +19,14 @@ namespace Fluxzy.Certificates
     {
         private static readonly string DefaultCertificatePath = "%appdata%/.fluxzy/rootca.pfx";
         private readonly string _certificatePath;
+        private readonly EnvironmentProvider _environmentProvider;
 
-        public static readonly FluxzySecurity DefaultInstance = new FluxzySecurity();
+        public static readonly FluxzySecurity DefaultInstance = new FluxzySecurity(DefaultCertificatePath, new SystemEnvironmentProvider());
         
-        public FluxzySecurity(string? defaultPath = null)
+        public FluxzySecurity(string certificatePath, EnvironmentProvider environmentProvider)
         {
-            _certificatePath = defaultPath ?? DefaultCertificatePath;
+            _certificatePath = certificatePath;
+            _environmentProvider = environmentProvider;
             BuiltinCertificate = GetDefaultCertificate();
 
             if (!BuiltinCertificate.HasPrivateKey)
@@ -36,8 +39,8 @@ namespace Fluxzy.Certificates
 
         private X509Certificate2 GetDefaultCertificate()
         {
-            var certificatePath = Environment.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE");
-            var certificatePassword = Environment.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE_PASSWORD");
+            var certificatePath = _environmentProvider.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE");
+            var certificatePassword = _environmentProvider.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE_PASSWORD");
 
             if (certificatePath != null) {
                 if (!File.Exists(certificatePath)) {
@@ -46,7 +49,7 @@ namespace Fluxzy.Certificates
             }
             else
             {
-                var defaultPath = Environment.ExpandEnvironmentVariables(_certificatePath);
+                var defaultPath = _environmentProvider.ExpandEnvironmentVariables(_certificatePath);
 
                 if (File.Exists(defaultPath))
                 {
@@ -69,7 +72,14 @@ namespace Fluxzy.Certificates
 
         public void SetDefaultCertificateForUser(byte[] certificateContent)
         {
-            File.WriteAllBytes(_certificatePath, certificateContent);
+            var certificateFileInfo = new FileInfo(_environmentProvider.ExpandEnvironmentVariables(_certificatePath));
+            var certificateDirectory = certificateFileInfo.Directory;
+
+            if (certificateDirectory != null) {
+                Directory.CreateDirectory(certificateDirectory.FullName);
+            }
+
+            File.WriteAllBytes(certificateFileInfo.FullName, certificateContent);
         }
     }
 }
