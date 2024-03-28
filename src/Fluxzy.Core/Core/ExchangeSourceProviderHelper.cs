@@ -8,7 +8,7 @@ namespace Fluxzy.Core
     {
         public static ExchangeSourceProvider GetSourceProvider(FluxzySetting setting,
             SecureConnectionUpdater secureConnectionUpdater, 
-            IIdProvider idProvider, ICertificateProvider? certificateProvider, 
+            IIdProvider idProvider, ICertificateProvider certificateProvider, 
             ProxyAuthenticationMethod proxyAuthenticationMethod)
         {
             if (!setting.ReverseMode)
