@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
+using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Cli.Commands
 {
@@ -114,17 +115,13 @@ namespace Fluxzy.Cli.Commands
             exportCommand.AddArgument(argumentFileInfo);
 
             exportCommand.SetHandler(async (fileInfo, console) => {
-                var certificate = FluxzySecurity.BuiltinCertificate;
+                var certificate = fileInfo != null ? 
+                    new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName)) 
+                    : FluxzySecurity.BuiltinCertificate;
+
                 var certificateManager = new DefaultCertificateAuthorityManager();
 
-                if (fileInfo != null) {
-                    certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
-                }
-
-                if (certificateManager.IsCertificateInstalled(certificate))
-
-                    // ReSharper disable once LocalizableElement
-                {
+                if (certificateManager.IsCertificateInstalled(certificate)){
                     console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 }
                 else {
