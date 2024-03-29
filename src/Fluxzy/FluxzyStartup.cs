@@ -20,7 +20,15 @@ namespace Fluxzy.Cli
             var currentEnvironmentProvider = environmentProvider ?? new SystemEnvironmentProvider();
 
             if (currentEnvironmentProvider.GetEnvironmentVariable("FLUXZY_STDOUT_ARGS") == "1") {
-                Console.WriteLine(string.Join(" ", args));
+
+                if (outputConsole == null)
+                {
+                    Console.WriteLine(string.Join(" ", args));
+                }
+                else
+                {
+                    outputConsole.WriteLine(string.Join(" ", args));
+                }
             }
 
             var rootCommand =
