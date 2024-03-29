@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fluxzy.Cli.Dockering;
+using Fluxzy.Core;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Container

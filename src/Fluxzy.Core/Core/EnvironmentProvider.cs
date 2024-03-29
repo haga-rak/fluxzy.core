@@ -2,10 +2,23 @@
 
 using System;
 
-namespace Fluxzy.Cli.Dockering
+namespace Fluxzy.Core
 {
-    internal abstract class EnvironmentProvider
+    public abstract class EnvironmentProvider
     {
+        public virtual string ExpandEnvironmentVariables(string original)
+        {
+            // Find with regex matching %variablename% and replace everything with GetEnvironmentVariable
+            // Warning, this implementation is meant for testing purposes only and may be invalid in some cases
+
+            var regex = new System.Text.RegularExpressions.Regex("%([^%]+)%");
+
+            return regex.Replace(original, match => {
+                var variableName = match.Groups[1].Value;
+                return GetEnvironmentVariable(variableName) ?? match.Value;
+            });
+        }
+
         public virtual bool EnvironmentVariableActive(string name)
         {
             var variableValue = GetEnvironmentVariable(name);

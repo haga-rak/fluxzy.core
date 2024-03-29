@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Certificates;
+using Fluxzy.Core;
 using Fluxzy.Misc.IpUtils;
 using Fluxzy.Tests._Files;
 using Fluxzy.Tests._Fixtures;
@@ -16,7 +17,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
         [Fact]
         public void IsCa()
         {
-            Assert.True(FluxzySecurity.BuiltinCertificate.IsCa());
+            Assert.True(FluxzySecurityParams.Current.BuiltinCertificate.IsCa());
         }
 
         [Fact]
@@ -95,6 +96,24 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             certificate.ExportToPem(fileName);
 
             Assert.True(File.Exists(fileName));
+        }
+
+        [Fact]
+        public void Validate_SetDefaultCertificateForUser()
+        {
+            if (File.Exists("Drop/Validate_SetDefaultCertificateForUser/path.pfx")) {
+                File.Delete("Drop/Validate_SetDefaultCertificateForUser/path.pfx");
+            }
+
+            var fakeBytes = new byte[5];
+
+            var environmentProvider = new DictionaryEnvironmentProvider(new() {
+                ["fake_dir"] = nameof(Validate_SetDefaultCertificateForUser)
+            });
+            
+            FluxzySecurity.SetDefaultCertificateForUser(fakeBytes, environmentProvider, "Drop/%fake_dir%/path.pfx");
+
+            Assert.True(File.Exists("Drop/Validate_SetDefaultCertificateForUser/path.pfx"));
         }
     }
 }
