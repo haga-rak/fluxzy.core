@@ -4,7 +4,7 @@ using System;
 
 namespace Fluxzy.Core
 {
-    internal abstract class EnvironmentProvider
+    public abstract class EnvironmentProvider
     {
         public virtual string ExpandEnvironmentVariables(string original)
         {

@@ -10,14 +10,12 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
-using Org.BouncyCastle.Ocsp;
-using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Cli.Commands
 {
     public class CertificateCommandBuilder
     {
-        public Command Build()
+        public Command Build(EnvironmentProvider environmentProvider)
         {
             var command = new Command("cert", "Manage root certificates used by the fluxzy");
 
@@ -29,7 +27,7 @@ namespace Fluxzy.Cli.Commands
             command.AddCommand(BuildRemoveCommand());
             command.AddCommand(BuildListCommand());
             command.AddCommand(BuildCreateCommand());
-            command.AddCommand(BuildDefaultCommand());
+            command.AddCommand(BuildDefaultCommand(environmentProvider));
 
             return command;
         }
@@ -311,7 +309,7 @@ namespace Fluxzy.Cli.Commands
         }
 
 
-        private static Command BuildDefaultCommand()
+        private static Command BuildDefaultCommand(EnvironmentProvider environmentProvider)
         {
             var setDefaultCommand = new Command("default",
                 "Get or set the default root CA for the current user. Environment variable FLUXZY_ROOT_CERTIFICATE overrides this setting.");
@@ -326,12 +324,14 @@ namespace Fluxzy.Cli.Commands
 
             setDefaultCommand.AddArgument(argumentFileInfo);
 
-            setDefaultCommand.SetHandler(async (defaultCertificatePath, _) => {
+            setDefaultCommand.SetHandler(async (defaultCertificatePath, console) => {
 
                 if (defaultCertificatePath == null) {
                     // Print default certificate 
-                    var certificate = FluxzySecurityParams.Current.BuiltinCertificate; 
-                    Console.WriteLine(certificate.ToString(true));
+                    var certificate = new FluxzySecurity(FluxzySecurity.DefaultCertificatePath, environmentProvider)
+                        .BuiltinCertificate;
+
+                    console.WriteLine(certificate.ToString(true));
                     return;
                 }
 
@@ -359,16 +359,16 @@ namespace Fluxzy.Cli.Commands
                         throw new InvalidOperationException("The provided file is not a valid PKCS#12 certificate");
                     }
                     else {
-                        Console.WriteLine(@"Warning: The provided certificate has been added but needs a passphrase. " +
+                        console.WriteLine(@"Warning: The provided certificate has been added but needs a passphrase. " +
                                           @"Consider passing passphrase through" +
                                           @" FLUXZY_ROOT_CERTIFICATE_PASSWORD environment variable.");
                     }
                 }
 
-                Console.WriteLine("The default certificate has been changed.");
+                console.WriteLine("The default certificate has been changed.");
                 
                 FluxzySecurity.SetDefaultCertificateForUser(
-                    certificateContent, new SystemEnvironmentProvider(),
+                    certificateContent, environmentProvider,
                     FluxzySecurity.DefaultCertificatePath);
 
             }, argumentFileInfo, new ConsoleBinder());
