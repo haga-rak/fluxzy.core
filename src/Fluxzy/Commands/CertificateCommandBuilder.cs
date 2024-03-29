@@ -127,7 +127,7 @@ namespace Fluxzy.Cli.Commands
                     console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 }
                 else {
-                    console.Error.WriteLine($"NOT trusted {certificate.SubjectName.Name}");
+                    throw new Exception($"NOT trusted {certificate.SubjectName.Name}");
                 }
             }, argumentFileInfo, new ConsoleBinder());
 

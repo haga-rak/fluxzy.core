@@ -51,5 +51,34 @@ namespace Fluxzy.Tests.Cli.Certificates
                 Assert.NotEqual(0, runResult.ExitCode);
             }
         }
+
+        [Fact]
+        public async Task List()
+        {
+            var runResult = await InternalRun("list");
+
+            Assert.Equal(0, runResult.ExitCode);
+        }
+
+        [Fact]
+        public async Task Export()
+        {
+            var runResult = await InternalRun("export", "defaultcert.pem");
+
+            Assert.Equal(0, runResult.ExitCode);
+        }
+
+        [Theory]
+        [InlineData("_Files/Certificates/client-cert.clear.pifix", 1)]
+        [InlineData("_Files/Certificates/client-cert.pifix", 1)]
+        [InlineData("_Files/Certificates/fluxzytest.txt", 1)]
+        [InlineData(null, 0)]
+        public async Task Check(string? filePath, int exitCode)
+        {
+            var runResult = filePath == null ?
+                await InternalRun("check") : await InternalRun("check", filePath);
+
+            Assert.Equal(exitCode, runResult.ExitCode);
+        }
     }
 }
