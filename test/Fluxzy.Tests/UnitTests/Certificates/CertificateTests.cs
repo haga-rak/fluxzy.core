@@ -17,7 +17,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
         [Fact]
         public void IsCa()
         {
-            Assert.True(FluxzySecurity.DefaultInstance.BuiltinCertificate.IsCa());
+            Assert.True(FluxzySecurityParams.Current.BuiltinCertificate.IsCa());
         }
 
         [Fact]
@@ -110,10 +110,8 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             var environmentProvider = new DictionaryEnvironmentProvider(new() {
                 ["fake_dir"] = nameof(Validate_SetDefaultCertificateForUser)
             });
-
-            var fluxzySecurity = new FluxzySecurity("Drop/%fake_dir%/path.pfx", environmentProvider);
-
-            fluxzySecurity.SetDefaultCertificateForUser(fakeBytes);
+            
+            FluxzySecurity.SetDefaultCertificateForUser(fakeBytes, environmentProvider, "Drop/%fake_dir%/path.pfx");
 
             Assert.True(File.Exists("Drop/Validate_SetDefaultCertificateForUser/path.pfx"));
         }
