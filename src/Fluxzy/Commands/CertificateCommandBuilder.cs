@@ -5,9 +5,12 @@ using System.CommandLine;
 using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
+using Fluxzy.Core;
+using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Cli.Commands
@@ -26,6 +29,7 @@ namespace Fluxzy.Cli.Commands
             command.AddCommand(BuildRemoveCommand());
             command.AddCommand(BuildListCommand());
             command.AddCommand(BuildCreateCommand());
+            command.AddCommand(BuildDefaultCommand());
 
             return command;
         }
@@ -117,7 +121,7 @@ namespace Fluxzy.Cli.Commands
             exportCommand.SetHandler(async (fileInfo, console) => {
                 var certificate = fileInfo != null ? 
                     new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName)) 
-                    : FluxzySecurity.DefaultInstance.BuiltinCertificate;
+                    : FluxzySecurityParams.Current.BuiltinCertificate;
 
                 var certificateManager = new DefaultCertificateAuthorityManager();
 
@@ -304,6 +308,72 @@ namespace Fluxzy.Cli.Commands
             });
 
             return createCommand;
+        }
+
+
+        private static Command BuildDefaultCommand()
+        {
+            var setDefaultCommand = new Command("default",
+                "Get or set the default root CA for the current user. Environment variable FLUXZY_ROOT_CERTIFICATE overrides this setting.");
+
+            var argumentFileInfo = new Argument<string?>(
+                "pkcs12-certificate",
+                description: "",
+                parse: argument => argument.Tokens.First().Value)
+            {
+                Arity = ArgumentArity.ZeroOrOne
+            };
+
+            setDefaultCommand.AddArgument(argumentFileInfo);
+
+            setDefaultCommand.SetHandler(async (defaultCertificatePath, _) => {
+
+                if (defaultCertificatePath == null) {
+                    // Print default certificate 
+                    var certificate = FluxzySecurityParams.Current.BuiltinCertificate; 
+                    Console.WriteLine(certificate.ToString(true));
+                    return;
+                }
+
+                var certificateFileInfo = new FileInfo(defaultCertificatePath);
+
+                if (!certificateFileInfo.Exists) {
+                    throw new FileNotFoundException($"The certificate file does not exist " +
+                                                    $"`{certificateFileInfo.FullName}`", certificateFileInfo.FullName);
+                }
+
+                var certificateContent = await File.ReadAllBytesAsync(certificateFileInfo.FullName);
+
+                try
+                {
+                    using var newCertificate = new X509Certificate2(certificateContent);
+                    var hasPk = newCertificate.HasPrivateKey;
+
+                    if (!hasPk) {
+                        throw new InvalidOperationException("The provided certificate must have a private key");
+                    }
+                }
+                catch (CryptographicException tex) {
+                    // We allow invalid password 
+                    if (tex.HResult != -2146233087) {
+                        throw new InvalidOperationException("The provided file is not a valid PKCS#12 certificate");
+                    }
+                    else {
+                        Console.WriteLine(@"Warning: The provided certificate has been added but needs a passphrase. " +
+                                          @"Consider passing passphrase through" +
+                                          @" FLUXZY_ROOT_CERTIFICATE_PASSWORD environment variable.");
+                    }
+                }
+
+                Console.WriteLine("The default certificate has been changed.");
+                
+                FluxzySecurity.SetDefaultCertificateForUser(
+                    certificateContent, new SystemEnvironmentProvider(),
+                    FluxzySecurity.DefaultCertificatePath);
+
+            }, argumentFileInfo, new ConsoleBinder());
+
+            return setDefaultCommand;
         }
     }
 }
