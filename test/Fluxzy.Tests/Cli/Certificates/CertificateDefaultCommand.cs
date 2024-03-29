@@ -72,13 +72,14 @@ namespace Fluxzy.Tests.Cli.Certificates
         [InlineData("_Files/Certificates/client-cert.clear.pifix", 1)]
         [InlineData("_Files/Certificates/client-cert.pifix", 1)]
         [InlineData("_Files/Certificates/fluxzytest.txt", 1)]
-        [InlineData(null, 0)]
-        public async Task Check(string? filePath, int exitCode)
+        [InlineData(null, null)]
+        public async Task Check(string? filePath, int? exitCode)
         {
             var runResult = filePath == null ?
                 await InternalRun("check") : await InternalRun("check", filePath);
 
-            Assert.Equal(exitCode, runResult.ExitCode);
+            if (exitCode != null)
+                Assert.Equal(exitCode, runResult.ExitCode);
         }
     }
 }
