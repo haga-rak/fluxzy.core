@@ -17,12 +17,10 @@ namespace Fluxzy.Certificates
     /// </summary>
     internal class FluxzySecurity
     {
-        private static readonly string DefaultCertificatePath = "%appdata%/.fluxzy/rootca.pfx";
+        public static readonly string DefaultCertificatePath = "%appdata%/.fluxzy/rootca.pfx";
         private readonly string _certificatePath;
         private readonly EnvironmentProvider _environmentProvider;
 
-        public static readonly FluxzySecurity DefaultInstance = new FluxzySecurity(DefaultCertificatePath, new SystemEnvironmentProvider());
-        
         public FluxzySecurity(string certificatePath, EnvironmentProvider environmentProvider)
         {
             _certificatePath = certificatePath;
@@ -70,9 +68,12 @@ namespace Fluxzy.Certificates
             return new X509Certificate2(FileStore.Fluxzy, "youshallnotpass");
         }
 
-        public void SetDefaultCertificateForUser(byte[] certificateContent)
+        public static void SetDefaultCertificateForUser(
+            byte[] certificateContent,
+            EnvironmentProvider environmentProvider, 
+            string certificatePath)
         {
-            var certificateFileInfo = new FileInfo(_environmentProvider.ExpandEnvironmentVariables(_certificatePath));
+            var certificateFileInfo = new FileInfo(environmentProvider.ExpandEnvironmentVariables(certificatePath));
             var certificateDirectory = certificateFileInfo.Directory;
 
             if (certificateDirectory != null) {
