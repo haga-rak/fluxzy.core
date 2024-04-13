@@ -68,5 +68,10 @@ namespace Fluxzy
         ///  The maximum buffer size for request processing, above this value the connection will be abandoned
         /// </summary>
         public static int MaxProcessingBuffer { get;  } = EnvironmentUtility.GetInt32("FLUXZY_MAX_PROCESSING_BUFFER", 1024 * 512);
+
+        /// <summary>
+        ///  Maximum length of an enhanced block in a pcapng file, default is 8KB
+        /// </summary>
+        public static int PcapEnhancedBlockMaxLength { get; } = EnvironmentUtility.GetInt32("FLUXZY_PCAP_ENHANCED_BLOCK_MAX_LENGTH", 8 * 1024);
     }
 }
