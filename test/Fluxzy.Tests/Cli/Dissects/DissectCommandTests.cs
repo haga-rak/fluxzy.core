@@ -11,7 +11,7 @@ using Fluxzy.Tests.Cli.Scaffolding;
 
 namespace Fluxzy.Tests.Cli.Dissects
 {
-    public record RunResult(int ExitCode, Stream StandardOutput, Stream StandardError);
+    public record RunResult(int ExitCode, Stream StandardOutput, Stream StandardError, string? StdOut = null, string? StdErr = null);
 
     public class DissectCommandTests : CommandBase
     {

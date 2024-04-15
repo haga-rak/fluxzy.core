@@ -8,15 +8,27 @@ using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Cli.Commands;
+using Fluxzy.Core;
 
 namespace Fluxzy.Cli
 {
     public static class FluxzyStartup
     {
-        public static async Task<int> Run(string[] args, OutputConsole? outputConsole, CancellationToken token)
+        public static async Task<int> Run(string[] args, OutputConsole? outputConsole, CancellationToken token, 
+            EnvironmentProvider? environmentProvider = null)
         {
-            if (Environment.GetEnvironmentVariable("FLUXZY_STDOUT_ARGS") == "1") {
-                Console.WriteLine(string.Join(" ", args));
+            var currentEnvironmentProvider = environmentProvider ?? new SystemEnvironmentProvider();
+
+            if (currentEnvironmentProvider.GetEnvironmentVariable("FLUXZY_STDOUT_ARGS") == "1") {
+
+                if (outputConsole == null)
+                {
+                    Console.WriteLine(string.Join(" ", args));
+                }
+                else
+                {
+                    outputConsole.WriteLine(string.Join(" ", args));
+                }
             }
 
             var rootCommand =
@@ -31,12 +43,12 @@ namespace Fluxzy.Cli
             var dissectCommandBuilder = new DissectCommandBuilder();
 
             rootCommand.Add(startCommandBuilder.Build(token));
-            rootCommand.Add(certificateCommandBuilder.Build());
+            rootCommand.Add(certificateCommandBuilder.Build(currentEnvironmentProvider));
             rootCommand.Add(packCommandBuilder.Build());
             rootCommand.Add(dissectCommandBuilder.Build());
 
             var final = new CommandLineBuilder(rootCommand)
-                        .UseVersionOption()
+                        .UseVersionOption("-v", "--version")
                         .UseHelp()
                         .UseEnvironmentVariableDirective()
                         .UseParseDirective()

@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Cli.Dockering;
+using Fluxzy.Core;
 
 namespace Fluxzy.Cli
 {

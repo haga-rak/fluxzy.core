@@ -42,6 +42,9 @@
     <None Update="_Files\Archives\with-request-payload.fxzy">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="_Files\Certificates\client-cert.clear.pifix">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Certificates\client-cert.pifix">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
