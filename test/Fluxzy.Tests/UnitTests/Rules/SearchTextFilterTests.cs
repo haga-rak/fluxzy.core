@@ -25,7 +25,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             "oIP=FR:IDF:Maisons-Laffitte:48.95:2.15:v4", false, true, false, false)]
         [InlineData(false,
             "oIP=FR:IDF:Maisons-Laffitte:48.95:2.15:v4", false, false, true, false)]
-        public async Task CheckPass_SearchTextFilter(
+        public void CheckPass_SearchTextFilter(
             bool expectedResult, string pattern,
             bool searchInRequestBody, bool searchInRequestHeader,
             bool searchInResponseBody, bool searchInResponseHeader)
