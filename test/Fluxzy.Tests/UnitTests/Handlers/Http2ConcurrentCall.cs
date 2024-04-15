@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Tests._Fixtures;
 using Xunit;
-using Header2 = fluxzy.sandbox.models.Header;
+using Header2 = Fluxzy.Tests.Sandbox.Models.Header;
 
 namespace Fluxzy.Tests.UnitTests.Handlers
 {

@@ -11,8 +11,8 @@ using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
-using fluxzy.sandbox.models;
 using Xunit;
+using Fluxzy.Tests.Sandbox.Models;
 
 namespace Fluxzy.Tests.UnitTests.Substitutions
 {
