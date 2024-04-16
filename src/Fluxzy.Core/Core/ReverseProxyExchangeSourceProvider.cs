@@ -76,9 +76,9 @@ namespace Fluxzy.Core
                 authorityName, destinationPort);
             
             var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
-                authority, formattedHeaders.AsMemory(), StreamUtils.EmptyStream,
+                authority, formattedHeaders.AsMemory(), Stream.Null,
                 ProxyConstants.AcceptTunnelResponseString.AsMemory(),
-                StreamUtils.EmptyStream, false, "HTTP/1.1", receivedFromProxy);
+                Stream.Null, false, "HTTP/1.1", receivedFromProxy);
 
             exchange.Metrics.CreateCertStart = certStart;
             exchange.Metrics.CreateCertEnd = certEnd;

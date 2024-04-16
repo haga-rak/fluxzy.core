@@ -35,13 +35,13 @@ namespace Fluxzy.Core
 
             Request = new Request(new RequestHeader(requestHeaderPlain, isSecure))
             {
-                Body = requestBody ?? StreamUtils.EmptyStream
+                Body = requestBody ?? Stream.Null
             };
 
             Response = new Response
             {
                 Header = new ResponseHeader(responseHeader, isSecure, false),
-                Body = responseBody ?? StreamUtils.EmptyStream
+                Body = responseBody ?? Stream.Null
             };
 
             // TODO : Fill metrics 
