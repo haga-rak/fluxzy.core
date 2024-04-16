@@ -103,9 +103,9 @@ namespace Fluxzy.Core
                         new (false, new ExchangeSourceInitResult(
                             authority, stream, stream,
                             Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
-                                authority, plainHeaderChars, StreamUtils.EmptyStream,
+                                authority, plainHeaderChars, Stream.Null,
                                 ProxyConstants.AcceptTunnelResponseString.AsMemory(),
-                                StreamUtils.EmptyStream, false,
+                                Stream.Null, false,
                                 "HTTP/1.1",
                                 receivedFromProxy), true));
                 }
@@ -117,9 +117,9 @@ namespace Fluxzy.Core
                     stream, authority.HostName, exchangeContext, token).ConfigureAwait(false);
 
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
-                    authority, plainHeaderChars, StreamUtils.EmptyStream,
+                    authority, plainHeaderChars, Stream.Null,
                     ProxyConstants.AcceptTunnelResponseString.AsMemory(),
-                    StreamUtils.EmptyStream, false, "HTTP/1.1", receivedFromProxy);
+                    Stream.Null, false, "HTTP/1.1", receivedFromProxy);
 
                 exchange.Metrics.CreateCertStart = certStart;
                 exchange.Metrics.CreateCertEnd = certEnd;
