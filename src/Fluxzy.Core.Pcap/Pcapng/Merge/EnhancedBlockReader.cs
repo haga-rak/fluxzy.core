@@ -8,7 +8,7 @@ namespace Fluxzy.Core.Pcap.Pcapng.Merge
     internal class EnhancedBlockReader : SleepyStreamBlockReader
     {
         private readonly PcapBlockWriter _blockWriter;
-        private readonly byte[] _defaultBuffer = new byte[1024 * 4];
+        private readonly byte[] _defaultBuffer = new byte[FluxzySharedSetting.PcapEnhancedBlockMaxLength];
 
         public EnhancedBlockReader(PcapBlockWriter blockWriter,
             StreamLimiter streamLimiter, IStreamSource streamFactory)

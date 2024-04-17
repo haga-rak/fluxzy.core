@@ -19,7 +19,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public virtual void DumpDefaultCertificate(Stream stream)
         {
-            FluxzySecurity.BuiltinCertificate.ExportToPem(stream);
+            FluxzySecurityParams.Current.BuiltinCertificate.ExportToPem(stream);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Fluxzy.Certificates
         /// <returns></returns>
         public virtual ValueTask<bool> InstallDefaultCertificate()
         {
-            return InstallCertificate(FluxzySecurity.BuiltinCertificate);
+            return InstallCertificate(FluxzySecurityParams.Current.BuiltinCertificate);
         }
 
         /// <summary>

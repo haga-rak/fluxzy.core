@@ -46,13 +46,13 @@ namespace Fluxzy.Tests.UnitTests.Rules
         {
             var action = GetInstance(filterName);
 
-            Assert.NotNull(action.ActionScope);
+            _ = action.ActionScope;
+            _ = action.NoEditableSetting;
+            _ = action.ScopeId;
+            _ = action.IsPremade();
+
             Assert.NotNull(action.DefaultDescription);
             Assert.NotNull(action.FriendlyName);
-            Assert.NotNull(action.NoEditableSetting);
-
-            Assert.NotNull(action.ScopeId);
-            Assert.NotNull(action.IsPremade());
         }
 
         [Theory]

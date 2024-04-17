@@ -132,7 +132,7 @@ namespace Fluxzy.Clients.H11
                 exchange.Metrics.ResponseBodyStart =
                     exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
-                exchange.Response.Body = StreamUtils.EmptyStream;
+                exchange.Response.Body = Stream.Null;
 
                 exchange.ExchangeCompletionSource.TrySetResult(true);
 

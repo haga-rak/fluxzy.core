@@ -100,7 +100,7 @@ namespace Fluxzy.Core
             {
                 bodyStream = plainHeader.ContentLength > 0
                     ? new ContentBoundStream(plainStream, plainHeader.ContentLength)
-                    : StreamUtils.EmptyStream;
+                    : Stream.Null;
             }
 
             return bodyStream;

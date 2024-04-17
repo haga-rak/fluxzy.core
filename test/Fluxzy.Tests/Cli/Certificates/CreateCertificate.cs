@@ -32,6 +32,7 @@ namespace Fluxzy.Tests.Cli.Certificates
         public async Task Check_With_Option()
         {
             var getTempPath = GetTempFile();
+
             await InternalRun("create", getTempPath.FullName, 
                 "TestCN", "-v", (365*5).ToString(), "-k", "1024"
                 , "--L", "PARIS", "--C", "FR", "--O", "Fluxzy_ORG", "--OU", "Fluxzy_OU",

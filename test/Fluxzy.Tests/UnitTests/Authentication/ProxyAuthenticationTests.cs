@@ -91,7 +91,7 @@ namespace Fluxzy.Tests.UnitTests.Authentication
                     await httpClient.GetAsync("https://example.com");
                 }
                 catch (HttpRequestException requestException) {
-                    Assert.Equal(requestException.HttpRequestError, HttpRequestError.ProxyTunnelError);
+                    Assert.Equal(HttpRequestError.ProxyTunnelError, requestException.HttpRequestError);
                     throw; 
                 }
             });
@@ -120,7 +120,7 @@ namespace Fluxzy.Tests.UnitTests.Authentication
                 }
                 catch (HttpRequestException requestException)
                 {
-                    Assert.Equal(requestException.HttpRequestError, HttpRequestError.ProxyTunnelError);
+                    Assert.Equal(HttpRequestError.ProxyTunnelError, requestException.HttpRequestError);
                     throw;
                 }
             });

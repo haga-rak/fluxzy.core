@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using Fluxzy.Core;
 
 namespace Fluxzy.Certificates
 {
@@ -14,17 +15,30 @@ namespace Fluxzy.Certificates
     ///
     ///  For the two first cases, if the PKCS12 file has a password, it must be specified in the environment variable FLUXZY_ROOT_CERTIFICATE_PASSWORD
     /// </summary>
-    internal static class FluxzySecurity
+    internal class FluxzySecurity
     {
-        static FluxzySecurity()
+        public static readonly string DefaultCertificatePath = "%appdata%/.fluxzy/rootca.pfx";
+        private readonly string _certificatePath;
+        private readonly EnvironmentProvider _environmentProvider;
+
+        public FluxzySecurity(string certificatePath, EnvironmentProvider environmentProvider)
         {
+            _certificatePath = certificatePath;
+            _environmentProvider = environmentProvider;
             BuiltinCertificate = GetDefaultCertificate();
+
+            if (!BuiltinCertificate.HasPrivateKey)
+            {
+                throw new ArgumentException("The built-in certificate must have a private key");
+            }
         }
-        
-        private static X509Certificate2 GetDefaultCertificate()
+
+        public X509Certificate2 BuiltinCertificate { get; }
+
+        private X509Certificate2 GetDefaultCertificate()
         {
-            var certificatePath = Environment.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE");
-            var certificatePassword = Environment.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE_PASSWORD");
+            var certificatePath = _environmentProvider.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE");
+            var certificatePassword = _environmentProvider.GetEnvironmentVariable("FLUXZY_ROOT_CERTIFICATE_PASSWORD");
 
             if (certificatePath != null) {
                 if (!File.Exists(certificatePath)) {
@@ -33,7 +47,7 @@ namespace Fluxzy.Certificates
             }
             else
             {
-                var defaultPath = Environment.ExpandEnvironmentVariables("%appdata%/.fluxzy/rootca.pfx");
+                var defaultPath = _environmentProvider.ExpandEnvironmentVariables(_certificatePath);
 
                 if (File.Exists(defaultPath))
                 {
@@ -54,8 +68,19 @@ namespace Fluxzy.Certificates
             return new X509Certificate2(FileStore.Fluxzy, "youshallnotpass");
         }
 
-        public static X509Certificate2 BuiltinCertificate { get; }
+        public static void SetDefaultCertificateForUser(
+            byte[] certificateContent,
+            EnvironmentProvider environmentProvider, 
+            string certificatePath)
+        {
+            var certificateFileInfo = new FileInfo(environmentProvider.ExpandEnvironmentVariables(certificatePath));
+            var certificateDirectory = certificateFileInfo.Directory;
 
-        public static string DefaultThumbPrint => BuiltinCertificate.Thumbprint!;
+            if (certificateDirectory != null) {
+                Directory.CreateDirectory(certificateDirectory.FullName);
+            }
+
+            File.WriteAllBytes(certificateFileInfo.FullName, certificateContent);
+        }
     }
 }

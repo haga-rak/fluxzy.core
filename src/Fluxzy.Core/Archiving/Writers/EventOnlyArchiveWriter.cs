@@ -40,22 +40,22 @@ namespace Fluxzy.Writers
 
         public override Stream CreateRequestBodyStream(int exchangeId)
         {
-            return EmptyWriteStream.Instance;
+            return Stream.Null;
         }
 
         public override Stream CreateResponseBodyStream(int exchangeId)
         {
-            return EmptyWriteStream.Instance;
+            return Stream.Null;
         }
 
         public override Stream CreateWebSocketRequestContent(int exchangeId, int messageId)
         {
-            return EmptyWriteStream.Instance;
+            return Stream.Null;
         }
 
         public override Stream CreateWebSocketResponseContent(int exchangeId, int messageId)
         {
-            return EmptyWriteStream.Instance;
+            return Stream.Null;
         }
 
         public override void ClearErrors()
