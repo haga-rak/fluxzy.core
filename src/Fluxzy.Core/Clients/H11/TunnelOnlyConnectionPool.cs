@@ -137,16 +137,25 @@ namespace Fluxzy.Clients.H11
 
             try {
                 await using var remoteStream = exchange.Connection.WriteStream;
+                using var haltTokenSource = new CancellationTokenSource();
+                var copyTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                    haltTokenSource.Token,
+                    cancellationToken);
 
-                var copyTask = Task.WhenAll(
+                var tasks = new Task[] {
                     localLink.ReadStream!.CopyDetailed(remoteStream!, buffer, copied =>
                             exchange.Metrics.TotalSent += copied
-                        , cancellationToken).AsTask(),
+                        , copyTokenSource.Token).AsTask(),
                     remoteStream!.CopyDetailed(localLink.WriteStream!, 1024 * 16, copied =>
                             exchange.Metrics.TotalReceived += copied
-                        , cancellationToken).AsTask());
+                        , copyTokenSource.Token).AsTask()
+                };
 
-                await copyTask.ConfigureAwait(false);
+                await Task.WhenAny(tasks).ConfigureAwait(false);
+
+                haltTokenSource.Cancel();
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
             catch (Exception ex) {
                 if (ex is IOException || ex is SocketException) {
