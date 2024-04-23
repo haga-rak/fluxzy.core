@@ -48,7 +48,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
         [Theory]
         [MemberData(nameof(Get_H11_IIS_Args))]
-        public async Task Get_H11_IIS(SslProvider sslProvider, int count)
+        public async Task Get_H11_IIS(SslProvider sslProvider, int _)
         {
             using var handler = new FluxzyDefaultHandler(sslProvider) {
                 Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 }

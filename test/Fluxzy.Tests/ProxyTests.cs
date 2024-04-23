@@ -19,7 +19,7 @@ using Fluxzy.Misc.Streams;
 using Fluxzy.Tests._Fixtures;
 using Fluxzy.Writers;
 using Xunit;
-using Header2 = fluxzy.sandbox.models.Header;
+using Header2 = Fluxzy.Tests.Sandbox.Models.Header;
 
 namespace Fluxzy.Tests
 {

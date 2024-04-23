@@ -100,7 +100,7 @@ namespace Fluxzy.Clients.H11
                 }
                 
                 throw new ClientErrorException(0, 
-                    $"The connection was close while trying to read the response header",
+                    $"The connection was closed while trying to read the response header",
                     ex.Message, innerException: ex) {};
             }
 
@@ -132,7 +132,7 @@ namespace Fluxzy.Clients.H11
                 exchange.Metrics.ResponseBodyStart =
                     exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
-                exchange.Response.Body = StreamUtils.EmptyStream;
+                exchange.Response.Body = Stream.Null;
 
                 exchange.ExchangeCompletionSource.TrySetResult(true);
 
