@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Fluxzy.Core;
@@ -37,18 +38,18 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             var mainCert = store.Aliases.First();
 
-            var certificateEntry = store.GetCertificate(mainCert);
+            var bclTlsCertificates = new List<BcTlsCertificate>();
 
-            var x509Certificate = certificateEntry.Certificate;
-            
-            var tlsCertificate = new BcTlsCertificate(fluxzyCrypto, x509Certificate.CertificateStructure);
+            foreach (var chain  in store.GetCertificateChain(mainCert)) {
+                
+                var tlsCertificate = new BcTlsCertificate(fluxzyCrypto, chain.Certificate.CertificateStructure);
 
-           var certificate = new Certificate(
+                bclTlsCertificates.Add(tlsCertificate);
+            }
+
+            var certificate = new Certificate(
                certificateRequest.GetCertificateRequestContext(),
-                new[] { new CertificateEntry(tlsCertificate, null) });
-
-            var context = certificate.GetCertificateRequestContext();
-
+               bclTlsCertificates.Select(s => new CertificateEntry(s, null)).ToArray());
 
              var keyEntry = store.GetKey(mainCert);
 
