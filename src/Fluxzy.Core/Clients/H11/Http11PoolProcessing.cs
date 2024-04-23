@@ -100,7 +100,7 @@ namespace Fluxzy.Clients.H11
                 }
                 
                 throw new ClientErrorException(0, 
-                    $"The connection was close while trying to read the response header",
+                    $"The connection was closed while trying to read the response header",
                     ex.Message, innerException: ex) {};
             }
 
