@@ -39,7 +39,6 @@ namespace Fluxzy.Tests
                     (file.Name.EndsWith(".yml")
                      || file.Name.EndsWith(".yaml")
                      || file.Name.EndsWith(".temp")
-
                      ))
                 {
                     file.Delete();
