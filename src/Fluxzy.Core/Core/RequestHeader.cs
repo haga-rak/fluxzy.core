@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Misc;
 
 namespace Fluxzy.Core
 {
@@ -95,13 +96,17 @@ namespace Fluxzy.Core
             return $"{Scheme}://{Authority}{stringPath}";
         }
 
-        protected override int WriteHeaderLine(Span<byte> buffer)
+        protected override int WriteHeaderLine(Span<byte> buffer, bool plainHttp)
         {
             var totalLength = 0;
 
             totalLength += Encoding.ASCII.GetBytes(Method.Span, buffer.Slice(totalLength));
             totalLength += Encoding.ASCII.GetBytes(" ", buffer.Slice(totalLength));
-            totalLength += Encoding.ASCII.GetBytes(Path.Span, buffer.Slice(totalLength));
+
+            var path = !plainHttp ? Path.Span : PathAndQueryUtility.Parse(Path.Span);
+
+            totalLength += Encoding.ASCII.GetBytes(path, buffer.Slice(totalLength));
+
             totalLength += Encoding.ASCII.GetBytes(" HTTP/1.1\r\n", buffer.Slice(totalLength));
             totalLength += Encoding.ASCII.GetBytes("Host: ", buffer.Slice(totalLength));
             totalLength += Encoding.ASCII.GetBytes(Authority.Span, buffer.Slice(totalLength));
@@ -110,13 +115,17 @@ namespace Fluxzy.Core
             return totalLength;
         }
 
-        protected override int GetHeaderLineLength()
+        protected override int GetHeaderLineLength(bool plainHttp)
         {
             var totalLength = 0;
 
             totalLength += Encoding.ASCII.GetByteCount(Method.Span);
             totalLength += Encoding.ASCII.GetByteCount(" ");
-            totalLength += Encoding.ASCII.GetByteCount(Path.Span);
+
+            var path = !plainHttp ? Path.Span : PathAndQueryUtility.Parse(Path.Span);
+
+            totalLength += Encoding.ASCII.GetByteCount(path);
+
             totalLength += Encoding.ASCII.GetByteCount(" HTTP/1.1\r\n");
             totalLength += Encoding.ASCII.GetByteCount("Host: ");
             totalLength += Encoding.ASCII.GetByteCount(Authority.Span);
