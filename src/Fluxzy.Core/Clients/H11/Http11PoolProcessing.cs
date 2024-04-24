@@ -43,7 +43,9 @@ namespace Fluxzy.Clients.H11
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
             _logger.Trace(exchange.Id, () => "Begin writing header");
-            var headerLength = exchange.Request.Header.WriteHttp11(buffer.Buffer, true, true, writeKeepAlive:true);
+            var headerLength = exchange.Request.Header.WriteHttp11(
+                !exchange.Authority.Secure,
+                buffer.Buffer, true, true, writeKeepAlive:true);
 
             // Sending request header 
             

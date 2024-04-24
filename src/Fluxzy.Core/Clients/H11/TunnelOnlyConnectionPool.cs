@@ -131,7 +131,7 @@ namespace Fluxzy.Clients.H11
             _archiveWriter?.Update(exchange.Connection, cancellationToken);
 
             if (exchange.Request.Header.IsWebSocketRequest) {
-                var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
+                var headerLength = exchange.Request.Header.WriteHttp11(false, buffer, false);
                 await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken).ConfigureAwait(false);
             }
 

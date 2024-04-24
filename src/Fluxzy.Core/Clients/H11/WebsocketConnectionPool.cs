@@ -127,7 +127,7 @@ namespace Fluxzy.Clients.H11
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
             // Writing 
-            var headerLength = exchange.Request.Header.WriteHttp11(buffer, false);
+            var headerLength = exchange.Request.Header.WriteHttp11(false, buffer, false);
             await exchange.Connection.WriteStream!.WriteAsync(buffer, 0, headerLength, cancellationToken).ConfigureAwait(false);
 
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();

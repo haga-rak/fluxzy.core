@@ -138,13 +138,13 @@ namespace Fluxzy.Core
             _rawHeaderFields.RemoveAll(r => r.Name.Span.Equals(headerName, StringComparison.OrdinalIgnoreCase));
         }
 
-        protected abstract int WriteHeaderLine(Span<byte> buffer);
+        protected abstract int WriteHeaderLine(Span<byte> buffer, bool plainHttp);
 
-        protected abstract int GetHeaderLineLength();
+        protected abstract int GetHeaderLineLength(bool plainHttp);
 
         public ReadOnlyMemory<char> GetHttp11Header()
         {
-            var estimatedHeaderLength = GetHttp11LengthOnly(true, false);
+            var estimatedHeaderLength = GetHttp11LengthOnly(true, false, false);
 
             byte[]? heapBuffer = null;
 
@@ -153,7 +153,7 @@ namespace Fluxzy.Core
                     ? stackalloc byte[estimatedHeaderLength]
                     : heapBuffer = ArrayPool<byte>.Shared.Rent(estimatedHeaderLength);
 
-                var totalReadByte = WriteHttp11(maxHeader, true, true);
+                var totalReadByte = WriteHttp11(false, maxHeader, true, true);
 
                 var res = Encoding.UTF8.GetString(maxHeader.Slice(0, totalReadByte));
 
@@ -171,12 +171,12 @@ namespace Fluxzy.Core
             return GetHttp11Header().ToString();
         }
 
-        public int GetHttp11LengthOnly(bool skipNonForwardableHeader, bool shouldClose)
+        public int GetHttp11LengthOnly(bool skipNonForwardableHeader, bool shouldClose, bool plainHttp)
         {
             var totalLength = 0;
 
             // Writing Method Path Http Protocol Version
-            totalLength += GetHeaderLineLength();
+            totalLength += GetHeaderLineLength(plainHttp);
 
             foreach (var header in _rawHeaderFields) {
                 if (header.Name.Span[0] == ':') // H2 control header 
@@ -204,11 +204,12 @@ namespace Fluxzy.Core
         }
 
         public int WriteHttp11(
+            bool plainHttp,
             RsBuffer buffer,
             bool skipNonForwardableHeader, bool writeExtraHeaderField = false, bool requestClose = true)
         {
             var totalLength = 0;
-            var http11Length = GetHttp11LengthOnly(skipNonForwardableHeader, requestClose);
+            var http11Length = GetHttp11LengthOnly(skipNonForwardableHeader, requestClose, plainHttp);
 
             while (buffer.Buffer.Length < http11Length) {
                 buffer.Extend(http11Length - buffer.Buffer.Length);
@@ -217,7 +218,7 @@ namespace Fluxzy.Core
             Span<byte> data = buffer.Buffer;
 
             // Writing Method Path Http Protocol Version
-            totalLength += WriteHeaderLine(data);
+            totalLength += WriteHeaderLine(data, plainHttp);
 
             foreach (var header in _rawHeaderFields) {
                 if (header.Name.Span[0] == ':') // H2 control header 
@@ -246,13 +247,14 @@ namespace Fluxzy.Core
         }
 
         public int WriteHttp11(
+            bool plainHttp,
             in Span<byte> data,
             bool skipNonForwardableHeader, bool writeExtraHeaderField = false, bool writeKeepAlive = false)
         {
             var totalLength = 0;
 
             // Writing Method Path Http Protocol Version
-            totalLength += WriteHeaderLine(data);
+            totalLength += WriteHeaderLine(data, plainHttp);
 
             foreach (var header in _rawHeaderFields) {
                 if (header.Name.Span[0] == ':') // H2 control header 

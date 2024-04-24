@@ -312,7 +312,7 @@ namespace Fluxzy.Core
                                 }
 
                                 
-                                var responseHeaderLength = exchange.Response.Header!.WriteHttp11(buffer, true, true, shouldClose);
+                                var responseHeaderLength = exchange.Response.Header!.WriteHttp11(false,buffer, true, true, shouldClose);
 
                                 if (_archiveWriter != null) {
                                     // Update the state of the exchange
