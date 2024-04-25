@@ -14,7 +14,7 @@ namespace Fluxzy.Tests.Cases
             return Encoding.UTF8.GetString(System.Convert.FromBase64String(rawValue));
         }
 
-        [Fact]
+        [Fact(Skip = "Server not available on remote")]
         public async Task Should_Get_Response_Event_If_Server_Sent_100_Without_Expected_Header()
         {
             var setting = FluxzySetting.CreateLocalRandomPort();

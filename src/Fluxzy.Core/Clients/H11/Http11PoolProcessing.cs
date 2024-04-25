@@ -97,19 +97,17 @@ namespace Fluxzy.Clients.H11
                         throwOnError: true,
                         cancellationToken,
                         dontThrowIfEarlyClosed: true).ConfigureAwait(false);
+                   
+                    var is100Continue = HttpHelper.Is100Continue(
+                        buffer.Buffer);
 
-                    if (headerBlockDetectResult.HeaderLength >= 12) {
-                        var is100Continue = HttpHelper.Is100Continue(
-                            buffer.Buffer);
+                    if (is100Continue) {
 
-                        if (is100Continue) {
+                        // Even if fluxzy is not sending expect 100-continue,
+                        // we still need to handle it as many apache based server
+                        // will send it anyway
 
-                            // Even if fluxzy is not sending expect 100-continue,
-                            // we still need to handle it as many apache based server
-                            // will send it anyway
-
-                            continue; 
-                        }
+                        continue; 
                     }
 
                     break; 

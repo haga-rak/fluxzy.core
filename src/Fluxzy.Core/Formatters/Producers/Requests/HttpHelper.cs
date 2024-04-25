@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Web;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Formatters.Producers.Responses;
@@ -107,6 +108,7 @@ namespace Fluxzy.Formatters.Producers.Requests
         /// </summary>
         /// <param name="httpLine"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Is100Continue(ReadOnlySpan<byte> httpLine)
         {
             if (httpLine.Length < 12)
