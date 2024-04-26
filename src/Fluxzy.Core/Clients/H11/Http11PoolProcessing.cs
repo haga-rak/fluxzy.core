@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Org.BouncyCastle.Tls;
@@ -43,7 +44,9 @@ namespace Fluxzy.Clients.H11
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
             _logger.Trace(exchange.Id, () => "Begin writing header");
-            var headerLength = exchange.Request.Header.WriteHttp11(buffer.Buffer, true, true, writeKeepAlive:true);
+            var headerLength = exchange.Request.Header.WriteHttp11(
+                !exchange.Authority.Secure,
+                buffer.Buffer, true, true, writeKeepAlive:true);
 
             // Sending request header 
             
@@ -85,12 +88,31 @@ namespace Fluxzy.Clients.H11
             HeaderBlockReadResult headerBlockDetectResult = default;
 
             try {
-                headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, buffer,
-                    () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
-                    () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
-                    throwOnError: true,
-                    cancellationToken,
-                    dontThrowIfEarlyClosed: true).ConfigureAwait(false);
+
+                while (true) {
+
+                    headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, buffer,
+                        () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
+                        () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
+                        throwOnError: true,
+                        cancellationToken,
+                        dontThrowIfEarlyClosed: true).ConfigureAwait(false);
+                   
+                    var is100Continue = HttpHelper.Is100Continue(
+                        buffer.Buffer);
+
+                    if (is100Continue) {
+
+                        // Even if fluxzy is not sending expect 100-continue,
+                        // we still need to handle it as many apache based server
+                        // will send it anyway
+
+                        continue; 
+                    }
+
+                    break; 
+                }
+
             }
             catch (Exception ex) {
 

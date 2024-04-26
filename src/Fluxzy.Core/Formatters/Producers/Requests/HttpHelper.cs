@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Web;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Formatters.Producers.Responses;
@@ -11,6 +12,8 @@ namespace Fluxzy.Formatters.Producers.Requests
 {
     internal static class HttpHelper
     {
+        private static readonly byte[] _100ContinueBytes = { 49, 48, 48 };
+
         public static IReadOnlyCollection<RequestCookie> ReadRequestCookies(ExchangeInfo exchangeInfo)
         {
             var headers = exchangeInfo.GetRequestHeaders()?.ToList();
@@ -98,6 +101,22 @@ namespace Fluxzy.Formatters.Producers.Requests
                            .ToList();
 
             return items;
+        }
+
+        /// <summary>
+        ///  Check if headerline is 100-continue
+        /// </summary>
+        /// <param name="httpLine"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Is100Continue(ReadOnlySpan<byte> httpLine)
+        {
+            if (httpLine.Length < 12)
+                return false;
+
+            var statusLine = httpLine.Slice(9, 3);
+
+            return statusLine.SequenceEqual(_100ContinueBytes);
         }
     }
 }

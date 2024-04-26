@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
+    [Collection("WithRuleOption [Run last]")]
     public class WithRuleOption : WithRuleOptionBase
     {
         [Theory]

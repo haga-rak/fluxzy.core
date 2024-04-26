@@ -123,7 +123,7 @@ namespace Fluxzy.Core
             return true; 
         }
 
-        protected override int WriteHeaderLine(Span<byte> buffer)
+        protected override int WriteHeaderLine(Span<byte> buffer, bool _)
         {
             var totalLength = 0;
 
@@ -141,7 +141,7 @@ namespace Fluxzy.Core
             return totalLength;
         }
 
-        protected override int GetHeaderLineLength()
+        protected override int GetHeaderLineLength(bool _)
         {
             var totalLength = 0;
 
