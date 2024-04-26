@@ -1,7 +1,10 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using Fluxzy.Core;
+using Fluxzy.Misc;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules.Filters
 {
@@ -20,6 +23,9 @@ namespace Fluxzy.Rules.Filters
         }
 
         public Tag? Tag { get; }
+
+        [YamlIgnore]
+        public override Guid Identifier => (Tag?.Identifier  + " " + Tag?.Value).GetMd5Guid();
 
         public override FilterScope FilterScope => FilterScope.OutOfScope;
 
