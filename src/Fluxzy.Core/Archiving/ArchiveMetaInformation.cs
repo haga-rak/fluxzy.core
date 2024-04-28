@@ -41,5 +41,11 @@ namespace Fluxzy
         /// Fluxzy version used to create this archive
         /// </summary>
         public string FluxzyVersion { get; set; } = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+
+        /// <summary>
+        ///  Can be used to store additional information about the archive.
+        /// </summary>
+
+        public Dictionary<string, string> Properties { get; set; } = new();
     }
 }
