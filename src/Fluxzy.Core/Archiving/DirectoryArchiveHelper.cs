@@ -53,6 +53,16 @@ namespace Fluxzy
             return Path.Combine(baseDirectory, "meta.json");
         }
 
+        internal static string GetContentDirectory(string baseDirectory)
+        {
+            return Path.Combine(baseDirectory, "contents");
+        }
+
+        internal static string GetCaptureDirectory(string baseDirectory)
+        {
+            return Path.Combine(baseDirectory, "captures");
+        }
+        
         internal static string GetContentRequestPath(string baseDirectory, int exchangeId)
         {
             return Path.Combine(baseDirectory, "contents", $"req-{exchangeId}.data");
