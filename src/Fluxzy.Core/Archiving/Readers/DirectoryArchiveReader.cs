@@ -299,6 +299,64 @@ namespace Fluxzy.Readers
             return fileInfo.Exists && fileInfo.Length > 0;
         }
 
+        public IEnumerable<ArchiveAsset> GetAssetsByExchange(int exchangeId)
+        {
+            var fileInfos = new List<FileInfo>();
+
+            var exchangePath = DirectoryArchiveHelper.GetExchangePath(BaseDirectory, exchangeId);
+
+            if (!File.Exists(exchangePath)) {
+                yield break; 
+            }
+
+            fileInfos.Add(new FileInfo(exchangePath));
+
+            var contentDirectory = DirectoryArchiveHelper.GetContentDirectory(BaseDirectory);
+
+            foreach (var fileInfo in new DirectoryInfo(contentDirectory)
+                         .EnumerateFiles($"*.data").Where(e =>
+                e.Name.StartsWith($"res-{exchangeId}.")
+                || e.Name.StartsWith($"res-{exchangeId}-")
+                || e.Name.StartsWith($"req-{exchangeId}.")
+                || e.Name.StartsWith($"req-{exchangeId}-")
+                || e.Name.StartsWith($"ex-{exchangeId}.")))
+            {
+                fileInfos.Add(fileInfo);
+            }
+
+            foreach (var fileInfo in fileInfos) {
+                yield return new ArchiveAsset(fileInfo.Name, 
+                    fileInfo.Length, fileInfo.FullName, () => fileInfo.OpenRead());
+            }
+        }
+
+        public IEnumerable<ArchiveAsset> GetAssetsByConnection(int connectionId)
+        {
+            var fileInfos = new List<FileInfo>();
+
+            var connectionPath = DirectoryArchiveHelper.GetConnectionPath(BaseDirectory, connectionId);
+
+            if (!File.Exists(connectionPath)) {
+                yield break;
+            }
+
+            fileInfos.Add(new FileInfo(connectionPath));
+
+            var connectionDirectory = DirectoryArchiveHelper.GetCaptureDirectory(BaseDirectory);
+
+            foreach (var fileInfo in new DirectoryInfo(connectionDirectory)
+                                     .EnumerateFiles().Where(e =>
+                                         e.Name.Equals($"{connectionId}.nsskeylog")
+                                         || e.Name.Equals($"{connectionId}.pcapng"))) {
+                fileInfos.Add(fileInfo);
+            }
+
+            foreach (var fileInfo in fileInfos) {
+                yield return new ArchiveAsset(fileInfo.Name, 
+                                       fileInfo.Length, fileInfo.FullName, () => fileInfo.OpenRead());
+            }
+        }
+
         public void Dispose()
         {
         }

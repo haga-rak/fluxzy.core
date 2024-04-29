@@ -142,5 +142,42 @@ namespace Fluxzy.Readers
         /// <param name="connectionId"></param>
         /// <returns></returns>
         bool HasCapture(int connectionId);
+
+        /// <summary>
+        ///  
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<ArchiveAsset> GetAssetsByExchange(int exchangeId);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionId"></param>
+        /// <returns></returns>
+        IEnumerable<ArchiveAsset> GetAssetsByConnection(int connectionId); 
+    }
+
+    public class ArchiveAsset
+    {
+        private readonly Func<Stream> _openFunc;
+
+        public ArchiveAsset(string name, long length, string? fullPath, Func<Stream> openFunc)
+        {
+            _openFunc = openFunc;
+            Name = name;
+            Length = length;
+            FullPath = fullPath;
+        }
+
+        public string Name { get; }
+
+        public long Length { get;  }
+
+        public Stream Open()
+        {
+            return _openFunc();
+        }
+
+        public string?  FullPath { get; }
     }
 }

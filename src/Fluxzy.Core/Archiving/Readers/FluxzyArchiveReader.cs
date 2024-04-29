@@ -281,6 +281,35 @@ namespace Fluxzy.Readers
             return entry != null;
         }
 
+        public IEnumerable<ArchiveAsset> GetAssetsByExchange(int exchangeId)
+        {
+            var matchingEntries = _zipFile.Entries.Where(e =>
+                e.Name.StartsWith($"res-{exchangeId}.")
+                || e.Name.StartsWith($"res-{exchangeId}-")
+                || e.Name.StartsWith($"req-{exchangeId}.")
+                || e.Name.StartsWith($"req-{exchangeId}-")
+                || e.Name.StartsWith($"ex-{exchangeId}.")
+            );
+
+            foreach (var entry in matchingEntries) {
+                yield return new ArchiveAsset(entry.FullName, entry.Length, null, () => entry.Open());
+            }
+        }
+
+        public IEnumerable<ArchiveAsset> GetAssetsByConnection(int connectionId)
+        {
+            var matchingEntries = _zipFile.Entries.Where(e =>
+                e.Name.StartsWith($"con-{connectionId}.")
+                || e.Name.StartsWith($"{connectionId}.pcap")
+                || e.Name.StartsWith($"{connectionId}.65.nsskeylog")
+            );
+
+            foreach (var entry in matchingEntries)
+            {
+                yield return new ArchiveAsset(entry.FullName, entry.Length, null, () => entry.Open());
+            }
+        }
+
         public void Dispose()
         {
             _zipFile?.Dispose();
