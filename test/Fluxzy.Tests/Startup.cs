@@ -49,7 +49,7 @@ namespace Fluxzy.Tests
 
             DirectoryName = EmptyDirectory("static_website_dir");
 
-            Directory.CreateDirectory("Drop");
+            EmptyDirectory("Drop");
 
             ExtractDirectory(StorageContext.static_ws, DirectoryName);
             ExtractDirectory(File.ReadAllBytes("_Files/Archives/pink-floyd.fxzy"), ".artefacts/tests/pink-floyd");

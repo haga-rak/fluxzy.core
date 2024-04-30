@@ -8,11 +8,14 @@ namespace Fluxzy.Tests._Fixtures
 {
     internal static class FileUtilities
     {
-        public static string DrainAndSha1(this Stream stream)
+        public static string DrainAndSha1(this Stream stream, bool dispose = false)
         {
             using var sha1 = SHA1.Create();
             var hash = sha1.ComputeHash(stream);
             var base64String = Convert.ToBase64String(hash);
+
+            if (dispose)
+                stream.Dispose();
 
             return base64String;
         }
