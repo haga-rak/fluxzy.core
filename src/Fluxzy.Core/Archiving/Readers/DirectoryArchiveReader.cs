@@ -378,7 +378,7 @@ namespace Fluxzy.Readers
     {
         public static string GetRelativePath(this FileInfo fileInfo, DirectoryInfo parentDirectory)
         {
-            if (!parentDirectory.FullName.StartsWith(fileInfo.FullName))
+            if (!fileInfo.FullName.StartsWith(parentDirectory.FullName))
             {
                 throw new System.ArgumentException("The parent directory must be a parent of the file.");
             }
