@@ -7,11 +7,12 @@ namespace Fluxzy.Clipboard
     /// </summary>
     public class CopyPolicy
     {
-        public CopyPolicy(CopyOptionType type, long? maxSize, List<string>? disallowedExtensions)
+        public CopyPolicy(CopyOptionType type, long? maxSize, List<string>? disallowedExtensions, bool tolerateAssetReadError)
         {
             Type = type;
             MaxSize = maxSize;
             DisallowedExtensions = disallowedExtensions;
+            TolerateAssetReadError = tolerateAssetReadError;
         }
 
         /// <summary>
@@ -28,5 +29,10 @@ namespace Fluxzy.Clipboard
         ///   Extensions that are not allowed to be copied. Extensions shall not contain the trailing dot.
         /// </summary>
         public List<string>? DisallowedExtensions { get; }
+        
+        /// <summary>
+        ///    Skip asset when read error occurs
+        /// </summary>
+        public bool TolerateAssetReadError { get; }
     }
 }

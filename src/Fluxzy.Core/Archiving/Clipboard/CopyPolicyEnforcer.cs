@@ -17,16 +17,26 @@ namespace Fluxzy.Clipboard
             _policy = policy;
         }
 
-        private static CopyArtefact? BuildArtefact(ArchiveAsset archiveAsset, CopyOptionType copyOptionType)
+        private static CopyArtefact? BuildArtefact(ArchiveAsset archiveAsset, CopyOptionType copyOptionType, bool tolerateReadError)
         {
-            using var stream = archiveAsset.Open();
 
             if (copyOptionType == CopyOptionType.Memory) {
-                return new CopyArtefact(
-                    archiveAsset.RelativeName,
-                    Path.GetExtension(archiveAsset.RelativeName),
-                    stream.ReadMaxLengthOrNull(int.MaxValue),
-                    null);
+                try
+                {
+                    using var stream = archiveAsset.Open();
+
+                    return new CopyArtefact(
+                        archiveAsset.RelativeName,
+                        Path.GetExtension(archiveAsset.RelativeName),
+                        stream.ReadMaxLengthOrNull(int.MaxValue),
+                        null);
+                }
+                catch (Exception) {
+                    if (tolerateReadError) {
+                        return null;
+                    }
+                    throw;
+                }
             }
 
             // Original archive cannot be copied by reference 
@@ -46,7 +56,7 @@ namespace Fluxzy.Clipboard
         {
             if (archiveAsset.RelativeName.EndsWith(".mpack", StringComparison.OrdinalIgnoreCase)) {
                 // always copy mpack files
-                return BuildArtefact(archiveAsset, CopyOptionType.Memory);
+                return BuildArtefact(archiveAsset, CopyOptionType.Memory, _policy.TolerateAssetReadError);
             }
 
             if (_policy.DisallowedExtensions != null && _policy.DisallowedExtensions.Any(e =>
@@ -59,11 +69,11 @@ namespace Fluxzy.Clipboard
                     return null; // too big
                 }
 
-                return BuildArtefact(archiveAsset, CopyOptionType.Memory);
+                return BuildArtefact(archiveAsset, CopyOptionType.Memory, _policy.TolerateAssetReadError);
             }
 
             if (_policy.Type == CopyOptionType.Reference) {
-                return BuildArtefact(archiveAsset, CopyOptionType.Reference);
+                return BuildArtefact(archiveAsset, CopyOptionType.Reference, _policy.TolerateAssetReadError);
             }
 
             throw new InvalidOperationException("Unknown copy option type");
