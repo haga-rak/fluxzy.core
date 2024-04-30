@@ -10,41 +10,6 @@ using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Clipboard
 {
-    public class ClipboardManagerDataFixture : IDisposable
-    {
-        private readonly string _sourceArchiveFullDirectory;
-
-        public ClipboardManagerDataFixture()
-        {
-             var sourceArchiveFullDirectory = "Drop/ClipboardManagerDataFixture/SourceArchive";
-
-             if (Directory.Exists(sourceArchiveFullDirectory))
-                Directory.Delete(sourceArchiveFullDirectory, true);
-
-             var stream = new FileStream(SourceArchiveFullPath, FileMode.Open);
-             ZipHelper.Decompress(stream, new DirectoryInfo(sourceArchiveFullDirectory));
-
-             _sourceArchiveFullDirectory = sourceArchiveFullDirectory;
-        }
-
-        public string SourceArchiveFullPath { get; } = "_Files/Archives/with-request-payload.fxzy";
-
-        public int CopyExchangeId { get; } = 101;
-
-        public string SessionId { get; } = Guid.NewGuid().ToString();
-
-        public IArchiveReader GetArchiveReader(bool packed)
-        {
-            return packed? 
-                new FluxzyArchiveReader(SourceArchiveFullPath):
-                new DirectoryArchiveReader(_sourceArchiveFullDirectory);
-        }
-
-        public void Dispose()
-        {
-        }
-    }
-
     public class ClipboardManagerTests : IClassFixture<ClipboardManagerDataFixture>
     {
         private readonly ClipboardManagerDataFixture _testDataFixture;
@@ -59,34 +24,47 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
         [CombinatorialData]
         public async Task AppendToAnEmptyFile(
             [CombinatorialValues(CopyOptionType.Memory, CopyOptionType.Reference)] CopyOptionType copyOptionType,
-            [CombinatorialValues(true, false)] bool compress)
+            [CombinatorialValues(true, false)] bool compress,
+            [CombinatorialValues(null,  8 * 1024L * 1024, 1L)] long ? maxSize
+            )
         {
+            // Arrange 
             using var originalArchiveReader = _testDataFixture.GetArchiveReader(compress);
+
             var outputDirectory = $"Drop/{nameof(ClipboardManagerTests)}/{Guid.NewGuid()}";
-            var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(copyOptionType, null, null));
+            var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(copyOptionType, maxSize, null));
 
             var expectedExchangeInfo = originalArchiveReader.ReadExchange(_testDataFixture.CopyExchangeId); 
 
             var directoryArchiveWriter = new DirectoryArchiveWriter(outputDirectory, null);
             directoryArchiveWriter.Init();
 
-            var copyData = await _clipboardManager.Copy(new[] { _testDataFixture.CopyExchangeId }, originalArchiveReader, copyEnforcer);
+            using var actualArchiveReader = new DirectoryArchiveReader(outputDirectory);
+
+            // Act
+            var copyData = await _clipboardManager.Copy(
+                new[] { _testDataFixture.CopyExchangeId }, 
+                originalArchiveReader, 
+                copyEnforcer);
+
             await _clipboardManager.Paste(copyData, directoryArchiveWriter);
 
-            using var finalDirectoryArchiveReader = new DirectoryArchiveReader(outputDirectory);
-
-            var allExchanges = finalDirectoryArchiveReader.ReadAllExchanges().ToList();
+            var allExchanges = actualArchiveReader.ReadAllExchanges().ToList();
             var exchange = allExchanges.FirstOrDefault();
+
+            // Assert
 
             Assert.Single(allExchanges);
             Assert.NotNull(exchange!);
 
             var shouldCheckExtraAssets =
-                copyOptionType == CopyOptionType.Memory || 
-                originalArchiveReader is not FluxzyArchiveReader;
+                (copyOptionType == CopyOptionType.Memory || 
+                originalArchiveReader is not FluxzyArchiveReader) && maxSize > 10;
 
-            MakeExchangeComparisonAssertion(expectedExchangeInfo, exchange, originalArchiveReader,
-                finalDirectoryArchiveReader, shouldCheckExtraAssets);
+            MakeExchangeComparisonAssertion(
+                expectedExchangeInfo, exchange, 
+                originalArchiveReader, actualArchiveReader, 
+                shouldCheckExtraAssets);
 
 #if DEBUG
             // Convenience for local debugging, not needed for CI
