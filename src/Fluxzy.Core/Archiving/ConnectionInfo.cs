@@ -68,7 +68,7 @@ namespace Fluxzy
         /// The connection id 
         /// </summary>
         [Key(0)]
-        public int Id { get; private set; }
+        public int Id { get; internal set; }
 
         /// <summary>
         /// The HTTP version used on this connection can be HTTP/1.1 or HTTP/2

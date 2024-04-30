@@ -63,6 +63,16 @@ namespace Fluxzy
             return Path.Combine(baseDirectory, "captures");
         }
         
+        internal static string GetConnectionDirectory(string baseDirectory)
+        {
+            return Path.Combine(baseDirectory, "connections");
+        }
+
+        internal static string GetExchangeDirectory(string baseDirectory)
+        {
+            return Path.Combine(baseDirectory, "exchanges");
+        }
+        
         internal static string GetContentRequestPath(string baseDirectory, int exchangeId)
         {
             return Path.Combine(baseDirectory, "contents", $"req-{exchangeId}.data");
@@ -121,6 +131,25 @@ namespace Fluxzy
         internal static string GetConnectionPath(string baseDirectory, ConnectionInfo connectionInfo)
         {
             return GetConnectionPath(baseDirectory, connectionInfo.Id);
+        }
+
+        internal static bool TryParseIds(string directoryName, out (int StartId, int EndId) boundIds)
+        {
+            boundIds = (0, 0);
+            
+            var tab = directoryName.Split('-');
+
+            if (tab.Length != 2)
+                return false;
+
+            if (!int.TryParse(tab[0], out var startId))
+                return false;
+
+            if (!int.TryParse(tab[1], out var endId))
+                return false;
+
+            boundIds = (startId, endId);
+            return true;
         }
     }
 }

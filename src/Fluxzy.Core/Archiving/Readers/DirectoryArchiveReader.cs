@@ -325,7 +325,7 @@ namespace Fluxzy.Readers
             }
 
             foreach (var fileInfo in fileInfos) {
-                yield return new ArchiveAsset(fileInfo.Name, 
+                yield return new ArchiveAsset(fileInfo.GetRelativePath(BaseDirectory), 
                     fileInfo.Length, fileInfo.FullName, () => fileInfo.OpenRead());
             }
         }
@@ -352,7 +352,7 @@ namespace Fluxzy.Readers
             }
 
             foreach (var fileInfo in fileInfos) {
-                yield return new ArchiveAsset(fileInfo.Name, 
+                yield return new ArchiveAsset(fileInfo.GetRelativePath(BaseDirectory), 
                                        fileInfo.Length, fileInfo.FullName, () => fileInfo.OpenRead());
             }
         }
@@ -370,6 +370,26 @@ namespace Fluxzy.Readers
             }
 
             return capturePath;
+        }
+    }
+
+
+    internal static class FileInfoExtensions
+    {
+        public static string GetRelativePath(this FileInfo fileInfo, DirectoryInfo parentDirectory)
+        {
+            if (!parentDirectory.FullName.StartsWith(fileInfo.FullName))
+            {
+                throw new System.ArgumentException("The parent directory must be a parent of the file.");
+            }
+
+            return fileInfo.FullName.Substring(parentDirectory.FullName.Length + 1)
+                           .Replace("\\", "/");
+        }
+
+        public static string GetRelativePath(this FileInfo fileInfo, string parentDirectory)
+        {
+            return GetRelativePath(fileInfo, new DirectoryInfo(parentDirectory));
         }
     }
 }

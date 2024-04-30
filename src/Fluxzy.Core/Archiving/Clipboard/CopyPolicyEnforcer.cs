@@ -24,8 +24,8 @@ namespace Fluxzy.Clipboard
             if (copyOptionType == CopyOptionType.Memory) {
                 
                 return new CopyArtefact(
-                    archiveAsset.Name, 
-                    Path.GetExtension(archiveAsset.Name),
+                    archiveAsset.RelativeName, 
+                    Path.GetExtension(archiveAsset.RelativeName),
                     stream.ReadMaxLengthOrNull(int.MaxValue),
                     null);
             }
@@ -36,21 +36,21 @@ namespace Fluxzy.Clipboard
                 return null; 
 
             return new CopyArtefact(
-                archiveAsset.Name,
-                Path.GetExtension(archiveAsset.Name),
+                archiveAsset.RelativeName,
+                Path.GetExtension(archiveAsset.RelativeName),
                 null,
                 archiveAsset.FullPath);
         }
 
         public CopyArtefact? Get(ArchiveAsset archiveAsset)
         {
-            if (archiveAsset.Name.EndsWith(".mpack", StringComparison.OrdinalIgnoreCase)) {
+            if (archiveAsset.RelativeName.EndsWith(".mpack", StringComparison.OrdinalIgnoreCase)) {
                 // always copy mpack files
                 return BuildArtefact(archiveAsset, CopyOptionType.Memory); 
             }
 
             if (_policy.DisallowedExtensions != null && _policy.DisallowedExtensions.Any(e =>
-                    archiveAsset.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase)))
+                    archiveAsset.RelativeName.EndsWith(e, StringComparison.OrdinalIgnoreCase)))
             {
                 return null; // disallowed extension
             }

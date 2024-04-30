@@ -109,14 +109,14 @@ namespace Fluxzy
         /// </summary>
         [JsonPropertyOrder(-10)]
         [Key(0)]
-        public int ConnectionId { get; private set;  }
+        public int ConnectionId { get; internal set;  }
 
         /// <summary>
         /// The exchange id
         /// </summary>
         [JsonPropertyOrder(-9)]
         [Key(1)]
-        public int Id { get; private set; }
+        public int Id { get; internal set; }
 
         /// <summary>
         ///  The request header

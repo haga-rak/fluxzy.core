@@ -161,15 +161,18 @@ namespace Fluxzy.Readers
     {
         private readonly Func<Stream> _openFunc;
 
-        public ArchiveAsset(string name, long length, string? fullPath, Func<Stream> openFunc)
+        public ArchiveAsset(string relativeName, long length, string? fullPath, Func<Stream> openFunc)
         {
             _openFunc = openFunc;
-            Name = name;
+            RelativeName = relativeName;
             Length = length;
             FullPath = fullPath;
         }
 
-        public string Name { get; }
+        /// <summary>
+        /// Name of the asset relative to the archive root
+        /// </summary>
+        public string RelativeName { get; }
 
         public long Length { get;  }
 

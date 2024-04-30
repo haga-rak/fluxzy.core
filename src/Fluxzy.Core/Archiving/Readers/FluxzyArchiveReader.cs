@@ -301,7 +301,7 @@ namespace Fluxzy.Readers
             var matchingEntries = _zipFile.Entries.Where(e =>
                 e.Name.StartsWith($"con-{connectionId}.")
                 || e.Name.StartsWith($"{connectionId}.pcap")
-                || e.Name.StartsWith($"{connectionId}.65.nsskeylog")
+                || e.Name.StartsWith($"{connectionId}.nsskeylog")
             );
 
             foreach (var entry in matchingEntries)

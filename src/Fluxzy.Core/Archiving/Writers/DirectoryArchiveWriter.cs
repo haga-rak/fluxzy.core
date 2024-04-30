@@ -41,6 +41,8 @@ namespace Fluxzy.Writers
         private readonly string _contentDirectory;
         private readonly Filter? _saveFilter;
         private readonly string _errorDirectory;
+        private readonly string _exchangeDirectory;
+        private readonly string _connectionDirectory;
 
         public DirectoryArchiveWriter(string baseDirectory, Filter? saveFilter)
         {
@@ -49,10 +51,12 @@ namespace Fluxzy.Writers
             _contentDirectory = Path.Combine(baseDirectory, "contents");
             _captureDirectory = Path.Combine(baseDirectory, "captures");
             _errorDirectory = Path.Combine(baseDirectory, "errors");
+            _exchangeDirectory = Path.Combine(baseDirectory, "exchanges");
+            _connectionDirectory = Path.Combine(baseDirectory, "connections");
 
             _archiveMetaInformationPath = DirectoryArchiveHelper.GetMetaPath(baseDirectory);
         }
-
+        
         public override void Init()
         {
             base.Init();
@@ -62,6 +66,8 @@ namespace Fluxzy.Writers
             Directory.CreateDirectory(_contentDirectory);
             Directory.CreateDirectory(_captureDirectory);
             Directory.CreateDirectory(_errorDirectory);
+            Directory.CreateDirectory(_exchangeDirectory);
+            Directory.CreateDirectory(_connectionDirectory);
 
             UpdateMeta(false);
         }
@@ -188,6 +194,45 @@ namespace Fluxzy.Writers
 
             if (File.Exists(errorPath))
                 File.Delete(errorPath);
+        }
+
+        public (int ExchangeId, int ConnectionId) GetNextIds()
+        {
+            var maxExchangeIds = 
+                new DirectoryInfo(DirectoryArchiveHelper.GetExchangeDirectory(_baseDirectory))
+                    .EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
+                    .Select(x => {
+                        var res = DirectoryArchiveHelper.TryParseIds(x.Name, out var ids);
+                        return res ? 0 : ids.EndId; 
+                    })
+                    .OrderByDescending(r => r)
+                    .DefaultIfEmpty(0)
+                    .First();
+
+            var maxConnectionIds =
+                new DirectoryInfo(DirectoryArchiveHelper.GetConnectionDirectory(_baseDirectory))
+                    .EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
+                    .Select(x => {
+                        var res = DirectoryArchiveHelper.TryParseIds(x.Name, out var ids);
+                        return res ? 0 : ids.EndId; 
+                    })
+                    .OrderByDescending(r => r)
+                    .DefaultIfEmpty(0)
+                    .First();
+
+            // Ids doesn't have to be contiguous, so we add a margin
+            return (maxExchangeIds + 1 , maxConnectionIds + 1);
+        }
+
+        public void WriteAsset(string relativePath, Stream stream)
+        {
+            var path = Path.Combine(_baseDirectory, relativePath);
+            var fullPath = new FileInfo(path); 
+
+            fullPath.Directory?.Create();
+
+            using var fileStream = File.Create(path);
+            stream.CopyTo(fileStream);
         }
     }
 }
