@@ -8,15 +8,16 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
 {
     public class ClipboardManagerDataFixture : IDisposable
     {
-        private readonly string _sourceArchiveFullDirectory;
         private readonly byte[] _inMemorySample;
+        private readonly string _sourceArchiveFullDirectory;
 
         public ClipboardManagerDataFixture()
         {
             var sourceArchiveFullDirectory = "Drop/ClipboardManagerDataFixture/SourceArchive";
 
-            if (Directory.Exists(sourceArchiveFullDirectory))
+            if (Directory.Exists(sourceArchiveFullDirectory)) {
                 Directory.Delete(sourceArchiveFullDirectory, true);
+            }
 
             var stream = new FileStream(SourceArchiveFullPath, FileMode.Open);
             ZipHelper.Decompress(stream, new DirectoryInfo(sourceArchiveFullDirectory));
@@ -24,6 +25,16 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             _sourceArchiveFullDirectory = sourceArchiveFullDirectory;
 
             _inMemorySample = File.ReadAllBytes("_Files/Archives/with-request-payload.fxzy");
+        }
+
+        public string SourceArchiveFullPath { get; } = "_Files/Archives/with-request-payload.fxzy";
+
+        public int CopyExchangeId { get; } = 101;
+
+        public string SessionId { get; } = Guid.NewGuid().ToString();
+
+        public void Dispose()
+        {
         }
 
         public string GetTempArchiveDirectoryWithExistingFiles()
@@ -34,21 +45,11 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             return destinationDirectory;
         }
 
-        public string SourceArchiveFullPath { get; } = "_Files/Archives/with-request-payload.fxzy";
-
-        public int CopyExchangeId { get; } = 101;
-
-        public string SessionId { get; } = Guid.NewGuid().ToString();
-
         public IArchiveReader GetArchiveReader(bool packed)
         {
-            return packed? 
-                new FluxzyArchiveReader(SourceArchiveFullPath):
-                new DirectoryArchiveReader(_sourceArchiveFullDirectory);
-        }
-
-        public void Dispose()
-        {
+            return packed
+                ? new FluxzyArchiveReader(SourceArchiveFullPath)
+                : new DirectoryArchiveReader(_sourceArchiveFullDirectory);
         }
     }
 }

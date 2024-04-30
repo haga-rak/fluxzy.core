@@ -1,3 +1,5 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,8 +15,8 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
 {
     public class ClipboardManagerTests : IClassFixture<ClipboardManagerDataFixture>
     {
-        private readonly ClipboardManagerDataFixture _testDataFixture;
         private readonly ClipboardManager _clipboardManager = new();
+        private readonly ClipboardManagerDataFixture _testDataFixture;
 
         public ClipboardManagerTests(ClipboardManagerDataFixture testDataFixture)
         {
@@ -25,34 +27,39 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
         [CombinatorialData]
         public async Task Copy_And_Paste(
             [CombinatorialValues(CopyOptionType.Memory, CopyOptionType.Reference)] CopyOptionType copyOptionType,
-            [CombinatorialValues(true, false)] bool compress,
-            [CombinatorialValues(null,  8 * 1024L * 1024, 1L)] long ? maxSize,
-            [CombinatorialValues(true, false)] bool skipPcap,
-            [CombinatorialValues(true, false)] bool newFile
-            )
+            [CombinatorialValues(true, false)]
+            bool compress,
+            [CombinatorialValues(null, 8 * 1024L * 1024, 1L)]
+            long? maxSize,
+            [CombinatorialValues(true, false)]
+            bool skipPcap,
+            [CombinatorialValues(true, false)]
+            bool newFile)
         {
             // Arrange 
             using var originalArchiveReader = _testDataFixture.GetArchiveReader(compress);
 
-            var outputDirectory = newFile ? $"Drop/{nameof(ClipboardManagerTests)}/{Guid.NewGuid()}" :
-                _testDataFixture.GetTempArchiveDirectoryWithExistingFiles();
+            var outputDirectory = newFile
+                ? $"Drop/{nameof(ClipboardManagerTests)}/{Guid.NewGuid()}"
+                : _testDataFixture.GetTempArchiveDirectoryWithExistingFiles();
 
             var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(copyOptionType, maxSize,
-                skipPcap ? new List<string>() { "pcapng" } : null));
+                skipPcap ? new List<string> { "pcapng" } : null));
 
-            var expectedExchangeInfo = originalArchiveReader.ReadExchange(_testDataFixture.CopyExchangeId); 
+            var expectedExchangeInfo = originalArchiveReader.ReadExchange(_testDataFixture.CopyExchangeId);
 
             var directoryArchiveWriter = new DirectoryArchiveWriter(outputDirectory, null);
 
-            if (newFile)
+            if (newFile) {
                 directoryArchiveWriter.Init();
+            }
 
             using var actualArchiveReader = new DirectoryArchiveReader(outputDirectory);
 
             // Act
             var copyData = await _clipboardManager.Copy(
-                new[] { _testDataFixture.CopyExchangeId }, 
-                originalArchiveReader, 
+                new[] { _testDataFixture.CopyExchangeId },
+                originalArchiveReader,
                 copyEnforcer);
 
             await _clipboardManager.Paste(copyData, directoryArchiveWriter);
@@ -61,32 +68,34 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             var exchange = allExchanges.LastOrDefault();
 
 #if DEBUG
+
             // Convenience for local debugging, not needed for CI
-            await using var zipStream = new FileStream($"Drop/{nameof(ClipboardManagerDataFixture)}/last-{newFile}.fxzy", FileMode.Create);
-            await ZipHelper.Compress(new DirectoryInfo(outputDirectory), zipStream, (_) => true);
+            await using var zipStream =
+                new FileStream($"Drop/{nameof(ClipboardManagerDataFixture)}/last-{newFile}.fxzy", FileMode.Create);
+
+            await ZipHelper.Compress(new DirectoryInfo(outputDirectory), zipStream, _ => true);
 #endif
 
             // Assert
 
-            if (newFile)
+            if (newFile) {
                 Assert.Single(allExchanges);
+            }
 
             Assert.NotNull(exchange!);
 
             var shouldCheckExtraAssets =
-                (copyOptionType == CopyOptionType.Memory || 
-                originalArchiveReader is not FluxzyArchiveReader) && maxSize > 10;
+                (copyOptionType == CopyOptionType.Memory ||
+                 originalArchiveReader is not FluxzyArchiveReader) && maxSize > 10;
 
             MakeExchangeComparisonAssertion(
-                expectedExchangeInfo, exchange, 
-                originalArchiveReader, actualArchiveReader, 
+                expectedExchangeInfo, exchange,
+                originalArchiveReader, actualArchiveReader,
                 shouldCheckExtraAssets, skipPcap);
-
-
         }
 
         private static void MakeExchangeComparisonAssertion(
-            ExchangeInfo? expectedExchangeInfo, ExchangeInfo exchange, 
+            ExchangeInfo? expectedExchangeInfo, ExchangeInfo exchange,
             IArchiveReader expectedArchiveReader,
             IArchiveReader actualArchiveReader,
             bool checkAssets, bool skipPcap)
@@ -98,8 +107,7 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             Assert.Equal(expectedExchangeInfo.Method, exchange.Method);
             Assert.Equal(expectedExchangeInfo.Metrics.RequestHeaderSent, exchange.Metrics.RequestHeaderSent);
 
-            if (checkAssets)
-            {
+            if (checkAssets) {
                 Assert.Equal(
                     expectedArchiveReader.GetRequestBody(expectedExchangeInfo.Id)?.DrainAndSha1(true),
                     actualArchiveReader.GetRequestBody(exchange.Id)?.DrainAndSha1(true));
@@ -116,7 +124,8 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
                 }
                 else {
                     Assert.Equal(
-                        expectedArchiveReader.GetRawCaptureStream(expectedExchangeInfo.ConnectionId)?.DrainAndSha1(true),
+                        expectedArchiveReader.GetRawCaptureStream(expectedExchangeInfo.ConnectionId)
+                                             ?.DrainAndSha1(true),
                         actualArchiveReader.GetRawCaptureStream(exchange.ConnectionId)?.DrainAndSha1(true));
                 }
 
