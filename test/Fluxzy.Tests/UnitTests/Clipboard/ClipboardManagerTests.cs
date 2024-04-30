@@ -44,7 +44,7 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
                 : _testDataFixture.GetTempArchiveDirectoryWithExistingFiles();
 
             var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(copyOptionType, maxSize,
-                skipPcap ? new List<string> { "pcapng" } : null));
+                skipPcap ? new List<string> { "pcapng" } : null, true));
 
             var expectedExchangeInfo = originalArchiveReader.ReadExchange(_testDataFixture.CopyExchangeId);
 
@@ -92,6 +92,89 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
                 expectedExchangeInfo, exchange,
                 originalArchiveReader, actualArchiveReader,
                 shouldCheckExtraAssets, skipPcap);
+        }
+
+        [Fact]
+        public async Task Copy_And_Paste_File_Lock_Tolerate_Error()
+        {
+            // Arrange 
+
+            var sourceDirectory = _testDataFixture.GetTempArchiveDirectoryWithExistingFiles();
+
+            using var originalArchiveReader = new DirectoryArchiveReader(sourceDirectory);
+
+            var outputDirectory = _testDataFixture.GetTempArchiveDirectoryWithExistingFiles();
+
+            var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(CopyOptionType.Memory, null, null, true));
+
+            var expectedExchangeInfo = originalArchiveReader.ReadExchange(_testDataFixture.CopyExchangeId);
+
+            var directoryArchiveWriter = new DirectoryArchiveWriter(outputDirectory, null);
+
+            using var actualArchiveReader = new DirectoryArchiveReader(outputDirectory);
+
+            var targetFile = new DirectoryInfo(sourceDirectory)
+                             .EnumerateFiles($"res-{_testDataFixture.CopyExchangeId}.data", SearchOption.AllDirectories)
+                             .First();
+
+            // Act
+
+            // lock targetFile 
+            using var _ = File.Open(targetFile.FullName, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+            var copyData = await _clipboardManager.Copy(
+                new[] { _testDataFixture.CopyExchangeId },
+                originalArchiveReader,
+                copyEnforcer);
+
+            await _clipboardManager.Paste(copyData, directoryArchiveWriter);
+
+            var allExchanges = actualArchiveReader.ReadAllExchanges().ToList();
+            var exchange = allExchanges.LastOrDefault();
+
+            // Assert
+
+            Assert.NotNull(exchange!);
+
+            MakeExchangeComparisonAssertion(
+                expectedExchangeInfo, exchange,
+                originalArchiveReader, actualArchiveReader,
+                false, false);
+        }
+
+        [Fact]
+        public async Task Copy_And_Paste_File_Lock_Tolerate_No_Error()
+        {
+            // Arrange 
+            var sourceDirectory = _testDataFixture.GetTempArchiveDirectoryWithExistingFiles();
+
+            var outputDirectory = _testDataFixture.GetTempArchiveDirectoryWithExistingFiles();
+
+            var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(CopyOptionType.Memory, null, null, false));
+
+            var directoryArchiveWriter = new DirectoryArchiveWriter(outputDirectory, null);
+
+            using var actualArchiveReader = new DirectoryArchiveReader(outputDirectory);
+
+            var targetFile = new DirectoryInfo(sourceDirectory)
+                             .EnumerateFiles($"res-{_testDataFixture.CopyExchangeId}.data", SearchOption.AllDirectories)
+                             .First();
+
+            // Act
+
+            // lock targetFile 
+            using var _ = File.Open(targetFile.FullName, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+            await Assert.ThrowsAsync<IOException>(async () => {
+                using var originalArchiveReader = new DirectoryArchiveReader(sourceDirectory);
+
+                var copyData = await _clipboardManager.Copy(
+                    new[] { _testDataFixture.CopyExchangeId },
+                    originalArchiveReader,
+                    copyEnforcer);
+
+                await _clipboardManager.Paste(copyData, directoryArchiveWriter);
+            });
         }
 
         private static void MakeExchangeComparisonAssertion(
