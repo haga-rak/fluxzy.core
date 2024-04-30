@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Clipboard;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Tests._Fixtures;
 using Fluxzy.Writers;
@@ -25,14 +27,16 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
         public async Task AppendToAnEmptyFile(
             [CombinatorialValues(CopyOptionType.Memory, CopyOptionType.Reference)] CopyOptionType copyOptionType,
             [CombinatorialValues(true, false)] bool compress,
-            [CombinatorialValues(null,  8 * 1024L * 1024, 1L)] long ? maxSize
+            [CombinatorialValues(null,  8 * 1024L * 1024, 1L)] long ? maxSize,
+            [CombinatorialValues(true, false)] bool skipPcap
             )
         {
             // Arrange 
             using var originalArchiveReader = _testDataFixture.GetArchiveReader(compress);
 
             var outputDirectory = $"Drop/{nameof(ClipboardManagerTests)}/{Guid.NewGuid()}";
-            var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(copyOptionType, maxSize, null));
+            var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(copyOptionType, maxSize,
+                skipPcap ? new List<string>() { "pcapng" } : null));
 
             var expectedExchangeInfo = originalArchiveReader.ReadExchange(_testDataFixture.CopyExchangeId); 
 
@@ -64,7 +68,7 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             MakeExchangeComparisonAssertion(
                 expectedExchangeInfo, exchange, 
                 originalArchiveReader, actualArchiveReader, 
-                shouldCheckExtraAssets);
+                shouldCheckExtraAssets, skipPcap);
 
 #if DEBUG
             // Convenience for local debugging, not needed for CI
@@ -78,7 +82,7 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             ExchangeInfo? expectedExchangeInfo, ExchangeInfo exchange, 
             IArchiveReader expectedArchiveReader,
             IArchiveReader actualArchiveReader,
-            bool checkAssets)
+            bool checkAssets, bool skipPcap)
         {
             Assert.NotEqual(expectedExchangeInfo!.Id, exchange.Id);
             Assert.NotEqual(expectedExchangeInfo.ConnectionId, exchange.ConnectionId);
@@ -97,9 +101,17 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
                     expectedArchiveReader.GetResponseBody(expectedExchangeInfo.Id)?.DrainAndSha1(),
                     actualArchiveReader.GetResponseBody(exchange.Id)?.DrainAndSha1());
 
-                Assert.Equal(
-                    expectedArchiveReader.GetRawCaptureStream(expectedExchangeInfo.ConnectionId)?.DrainAndSha1(),
-                    actualArchiveReader.GetRawCaptureStream(exchange.ConnectionId)?.DrainAndSha1());
+                if (skipPcap) {
+                    var pcapStream =
+                        actualArchiveReader.GetRawCaptureStream(exchange.ConnectionId);
+
+                    Assert.Null(pcapStream);
+                }
+                else {
+                    Assert.Equal(
+                        expectedArchiveReader.GetRawCaptureStream(expectedExchangeInfo.ConnectionId)?.DrainAndSha1(),
+                        actualArchiveReader.GetRawCaptureStream(exchange.ConnectionId)?.DrainAndSha1());
+                }
 
                 Assert.Equal(
                     expectedArchiveReader.GetRawCaptureKeyStream(expectedExchangeInfo.ConnectionId)?.DrainAndSha1(),
