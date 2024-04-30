@@ -71,6 +71,8 @@ namespace Fluxzy.Core.Pcap.Reading
             return true;
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryParseTcp(ref TcpPacketInfo packetInfo, ReadOnlySpan<byte> data)
         {
             if (data.Length < 20)
