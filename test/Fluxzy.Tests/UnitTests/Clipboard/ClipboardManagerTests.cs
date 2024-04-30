@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Clipboard;
-using Fluxzy.Misc.Streams;
 using Fluxzy.Readers;
 using Fluxzy.Tests._Fixtures;
 using Fluxzy.Writers;
@@ -24,24 +23,29 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
 
         [Theory]
         [CombinatorialData]
-        public async Task AppendToAnEmptyFile(
+        public async Task Copy_And_Paste(
             [CombinatorialValues(CopyOptionType.Memory, CopyOptionType.Reference)] CopyOptionType copyOptionType,
             [CombinatorialValues(true, false)] bool compress,
             [CombinatorialValues(null,  8 * 1024L * 1024, 1L)] long ? maxSize,
-            [CombinatorialValues(true, false)] bool skipPcap
+            [CombinatorialValues(true, false)] bool skipPcap,
+            [CombinatorialValues(true, false)] bool newFile
             )
         {
             // Arrange 
             using var originalArchiveReader = _testDataFixture.GetArchiveReader(compress);
 
-            var outputDirectory = $"Drop/{nameof(ClipboardManagerTests)}/{Guid.NewGuid()}";
+            var outputDirectory = newFile ? $"Drop/{nameof(ClipboardManagerTests)}/{Guid.NewGuid()}" :
+                _testDataFixture.GetTempArchiveDirectoryWithExistingFiles();
+
             var copyEnforcer = new CopyPolicyEnforcer(new CopyPolicy(copyOptionType, maxSize,
                 skipPcap ? new List<string>() { "pcapng" } : null));
 
             var expectedExchangeInfo = originalArchiveReader.ReadExchange(_testDataFixture.CopyExchangeId); 
 
             var directoryArchiveWriter = new DirectoryArchiveWriter(outputDirectory, null);
-            directoryArchiveWriter.Init();
+
+            if (newFile)
+                directoryArchiveWriter.Init();
 
             using var actualArchiveReader = new DirectoryArchiveReader(outputDirectory);
 
@@ -54,11 +58,19 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             await _clipboardManager.Paste(copyData, directoryArchiveWriter);
 
             var allExchanges = actualArchiveReader.ReadAllExchanges().ToList();
-            var exchange = allExchanges.FirstOrDefault();
+            var exchange = allExchanges.LastOrDefault();
+
+#if DEBUG
+            // Convenience for local debugging, not needed for CI
+            await using var zipStream = new FileStream($"Drop/{nameof(ClipboardManagerDataFixture)}/last-{newFile}.fxzy", FileMode.Create);
+            await ZipHelper.Compress(new DirectoryInfo(outputDirectory), zipStream, (_) => true);
+#endif
 
             // Assert
 
-            Assert.Single(allExchanges);
+            if (newFile)
+                Assert.Single(allExchanges);
+
             Assert.NotNull(exchange!);
 
             var shouldCheckExtraAssets =
@@ -70,11 +82,6 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
                 originalArchiveReader, actualArchiveReader, 
                 shouldCheckExtraAssets, skipPcap);
 
-#if DEBUG
-            // Convenience for local debugging, not needed for CI
-            await using var zipStream = new FileStream($"Drop/{nameof(ClipboardManagerTests)}/last.fxzy", FileMode.Create);
-            await ZipHelper.Compress(new DirectoryInfo(outputDirectory), zipStream, (_) => true);
-#endif
 
         }
 
@@ -94,12 +101,12 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             if (checkAssets)
             {
                 Assert.Equal(
-                    expectedArchiveReader.GetRequestBody(expectedExchangeInfo.Id)?.DrainAndSha1(),
-                    actualArchiveReader.GetRequestBody(exchange.Id)?.DrainAndSha1());
+                    expectedArchiveReader.GetRequestBody(expectedExchangeInfo.Id)?.DrainAndSha1(true),
+                    actualArchiveReader.GetRequestBody(exchange.Id)?.DrainAndSha1(true));
 
                 Assert.Equal(
-                    expectedArchiveReader.GetResponseBody(expectedExchangeInfo.Id)?.DrainAndSha1(),
-                    actualArchiveReader.GetResponseBody(exchange.Id)?.DrainAndSha1());
+                    expectedArchiveReader.GetResponseBody(expectedExchangeInfo.Id)?.DrainAndSha1(true),
+                    actualArchiveReader.GetResponseBody(exchange.Id)?.DrainAndSha1(true));
 
                 if (skipPcap) {
                     var pcapStream =
@@ -109,13 +116,13 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
                 }
                 else {
                     Assert.Equal(
-                        expectedArchiveReader.GetRawCaptureStream(expectedExchangeInfo.ConnectionId)?.DrainAndSha1(),
-                        actualArchiveReader.GetRawCaptureStream(exchange.ConnectionId)?.DrainAndSha1());
+                        expectedArchiveReader.GetRawCaptureStream(expectedExchangeInfo.ConnectionId)?.DrainAndSha1(true),
+                        actualArchiveReader.GetRawCaptureStream(exchange.ConnectionId)?.DrainAndSha1(true));
                 }
 
                 Assert.Equal(
-                    expectedArchiveReader.GetRawCaptureKeyStream(expectedExchangeInfo.ConnectionId)?.DrainAndSha1(),
-                    actualArchiveReader.GetRawCaptureKeyStream(exchange.ConnectionId)?.DrainAndSha1());
+                    expectedArchiveReader.GetRawCaptureKeyStream(expectedExchangeInfo.ConnectionId)?.DrainAndSha1(true),
+                    actualArchiveReader.GetRawCaptureKeyStream(exchange.ConnectionId)?.DrainAndSha1(true));
             }
         }
     }

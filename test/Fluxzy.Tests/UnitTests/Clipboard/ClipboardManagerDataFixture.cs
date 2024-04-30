@@ -9,6 +9,7 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
     public class ClipboardManagerDataFixture : IDisposable
     {
         private readonly string _sourceArchiveFullDirectory;
+        private readonly byte[] _inMemorySample;
 
         public ClipboardManagerDataFixture()
         {
@@ -21,6 +22,16 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
             ZipHelper.Decompress(stream, new DirectoryInfo(sourceArchiveFullDirectory));
 
             _sourceArchiveFullDirectory = sourceArchiveFullDirectory;
+
+            _inMemorySample = File.ReadAllBytes("_Files/Archives/with-request-payload.fxzy");
+        }
+
+        public string GetTempArchiveDirectoryWithExistingFiles()
+        {
+            var destinationDirectory = $"Drop/ClipboardManagerDataFixture/DestinationArchive/{Guid.NewGuid()}";
+            ZipHelper.Decompress(new MemoryStream(_inMemorySample), new DirectoryInfo(destinationDirectory));
+
+            return destinationDirectory;
         }
 
         public string SourceArchiveFullPath { get; } = "_Files/Archives/with-request-payload.fxzy";
