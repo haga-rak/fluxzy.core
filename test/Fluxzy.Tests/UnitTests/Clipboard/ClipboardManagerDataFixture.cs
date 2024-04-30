@@ -13,21 +13,18 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
 
         public ClipboardManagerDataFixture()
         {
+            _inMemorySample = File.ReadAllBytes("_Files/Archives/with-request-payload.fxzy");
+            
             var sourceArchiveFullDirectory = "Drop/ClipboardManagerDataFixture/SourceArchive";
 
             if (Directory.Exists(sourceArchiveFullDirectory)) {
                 Directory.Delete(sourceArchiveFullDirectory, true);
             }
 
-            var stream = new FileStream(SourceArchiveFullPath, FileMode.Open);
-            ZipHelper.Decompress(stream, new DirectoryInfo(sourceArchiveFullDirectory));
+            ZipHelper.Decompress(new MemoryStream(_inMemorySample), new DirectoryInfo(sourceArchiveFullDirectory));
 
             _sourceArchiveFullDirectory = sourceArchiveFullDirectory;
-
-            _inMemorySample = File.ReadAllBytes("_Files/Archives/with-request-payload.fxzy");
         }
-
-        public string SourceArchiveFullPath { get; } = "_Files/Archives/with-request-payload.fxzy";
 
         public int CopyExchangeId { get; } = 101;
 
@@ -48,7 +45,7 @@ namespace Fluxzy.Tests.UnitTests.Clipboard
         public IArchiveReader GetArchiveReader(bool packed)
         {
             return packed
-                ? new FluxzyArchiveReader(SourceArchiveFullPath)
+                ? new FluxzyArchiveReader(new MemoryStream(_inMemorySample))
                 : new DirectoryArchiveReader(_sourceArchiveFullDirectory);
         }
     }
