@@ -218,7 +218,7 @@ namespace Fluxzy.Misc
 
             // For other OS we use pkexec
 
-            var canElevated = await ProcessUtilX.CanElevated();
+            var canElevated = await ProcessUtilX.HasCaptureCapabilities() || await ProcessUtilX.CanElevated();
             var execCommandName = canElevated ? commandName : "pkexec";
             var execArgs = canElevated ? fullArgs : $"\"{commandName}\" {fullArgs}";
 

@@ -15,14 +15,7 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
         public async Task<bool> Start()
         {
             var currentPid = Process.GetCurrentProcess().Id;
-            var commandName = new FileInfo(typeof(Program).Assembly.Location).FullName;
-
-            if (commandName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) {
-                commandName = commandName.Substring(0, commandName.Length - 4);
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    commandName += ".exe"; // TODO : find a more elegant trick than this 
-            }
+            var commandName = FluxzyNetOutOfProcessHostHelper.GetExecutableCommandName();
 
             _process = await ProcessUtils.RunElevatedAsync(commandName, new[] { $"{currentPid}" }, true,
                 "Fluxzy needs to acquire privilege for capturing raw packet", redirectStandardError: FnpLog.LoggingEnabled);
@@ -76,6 +69,7 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
             // next line should be the 
         }
 
+
         /// <summary>
         ///     Shall be port number
         /// </summary>
@@ -110,15 +104,30 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
                 _process.Exited -= ProcessOnExited; // Detach process
 
                 if (FnpLog.LoggingEnabled) {
-
                     FnpLog.Log($"FluxzyNetOutOfProcessHost exited with exit code: {_process.ExitCode}");
-                    return;
                 }
             }
         }
 
         public void Dispose()
         {
+        }
+    }
+
+    internal static class FluxzyNetOutOfProcessHostHelper
+    {
+        public static string GetExecutableCommandName()
+        {
+            var commandName = new FileInfo(typeof(Program).Assembly.Location).FullName;
+
+            if (commandName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) {
+                commandName = commandName.Substring(0, commandName.Length - 4);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    commandName += ".exe"; // TODO : find a more elegant trick than this 
+            }
+
+            return commandName;
         }
     }
 }
