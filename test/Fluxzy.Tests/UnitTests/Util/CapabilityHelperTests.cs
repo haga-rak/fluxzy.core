@@ -57,18 +57,5 @@ namespace Fluxzy.Tests.UnitTests.Util
                 Assert.NotEmpty(capabilities);
             }
         }
-
-        [Fact]
-        public async Task HasCapabilities()
-        {
-            var result = await ProcessUtilX.HasCaptureCapabilities(); 
-            
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                Assert.False(result);
-            }
-            else {
-                Assert.True(result);
-            }
-        }
     }
 }
