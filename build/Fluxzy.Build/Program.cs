@@ -121,7 +121,7 @@ namespace Fluxzy.Build
                 DependsOn("restore-tests", "build-fluxzy-core"),
                 async () => {
                     await RunAsync("dotnet",
-                        "test test/Fluxzy.Tests --collect:\"XPlat Code Coverage\"");
+                        "test test/Fluxzy.Tests --collect:\"XPlat Code Coverage\" -v n --no-build");
                 });
         }
 
