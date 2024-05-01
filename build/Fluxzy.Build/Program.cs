@@ -107,9 +107,16 @@ namespace Fluxzy.Build
                     await RunAsync("dotnet",
                         "build src/Fluxzy.Core  --no-restore");
                 });
+            
+            Target("build-tests",
+                DependsOn("build-fluxzy-core"),
+                async () => {
+                    await RunAsync("dotnet",
+                        "build test/Fluxzy.Tests  --no-restore");
+                });
 
             Target("tests",
-                DependsOn("restore-tests", "build-fluxzy-core"),
+                DependsOn("restore-tests", "build-tests"),
                 async () => {
                     await RunAsync("dotnet",
                         "test test/Fluxzy.Tests --collect:\"XPlat Code Coverage\" -v n --no-build");
