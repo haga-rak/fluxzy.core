@@ -17,8 +17,8 @@ namespace Fluxzy.Utils.Curl
                     Arguments = args,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    RedirectStandardOutput = false,
-                    RedirectStandardError = false
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
                 }
             };
 
@@ -27,7 +27,12 @@ namespace Fluxzy.Utils.Curl
 
             process.Start();
 
+            var stdOutPromise = process.StandardOutput.BaseStream.CopyToAsync(Stream.Null);
+            var stdErrPromise = process.StandardError.BaseStream.CopyToAsync(Stream.Null);
+
             await process.WaitForExitAsync().ConfigureAwait(false);
+            
+            await Task.WhenAll(stdOutPromise, stdErrPromise);
 
             return process.ExitCode == 0
                    || process.ExitCode == 23; //curl exit 23 when  stdout close early even the command succeed
