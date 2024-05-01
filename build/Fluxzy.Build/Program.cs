@@ -87,24 +87,15 @@ namespace Fluxzy.Build
             }
         }
 
-        private static void AddBasicBuildTargets(string privateNugetToken)
+        private static void AddBasicBuildTargets()
         {
-            Target("add-nuget-source",
-                async () => {
-                    await RunAsync("dotnet",
-                        "nuget add source https://nuget.pkg.github.com/haga-rak/index.json " +
-                        $"-n nuget-fluxy -u haga-rak -p {privateNugetToken}", handleExitCode: _ => true, noEcho: true);
-                });
-
             Target("restore-tests",
-                DependsOn("add-nuget-source"),
                 async () => {
                     await RunAsync("dotnet",
                         "restore test/Fluxzy.Tests");
                 });
 
             Target("restore-fluxzy-core",
-                DependsOn("add-nuget-source"),
                 async () => {
                     await RunAsync("dotnet",
                         "restore src/Fluxzy.Core");
@@ -143,9 +134,6 @@ namespace Fluxzy.Build
             var (stdOut, _) = await ReadAsync("git", "branch --show-current");
             var currentBranch = stdOut.Trim();
 
-            var privateNugetToken = EnvironmentHelper.GetEvOrFail("TOKEN_FOR_NUGET");
-            var partnerNugetToken = EnvironmentHelper.GetEvOrFail("PARTNER_SECRET");
-
             // Why there's no better way to do it?
             var current = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OSPlatform.OSX :
                 RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OSPlatform.Linux : OSPlatform.Windows;
@@ -153,6 +141,13 @@ namespace Fluxzy.Build
             if (Directory.Exists("_npkgout")) {
                 Directory.Delete("_npkgout", true);
             }
+            
+            Target("validate-nuget-token", () => {
+                EnvironmentHelper.GetEvOrFail("TOKEN_FOR_NUGET");
+            });
+            Target("validate-partner-secret", () => {
+                EnvironmentHelper.GetEvOrFail("PARTNER_SECRET");
+            });
 
             Target("must-be-release",
                 () => {
@@ -162,7 +157,7 @@ namespace Fluxzy.Build
                     }
                 });
 
-            AddBasicBuildTargets(privateNugetToken);
+            AddBasicBuildTargets();
 
             Target("install-tools",
                 async () => {
@@ -201,19 +196,19 @@ namespace Fluxzy.Build
                 async () => { await SignHelper.SignPackages("_npkgout"); });
 
             Target("fluxzy-package-push-github",
-                DependsOn("fluxzy-package-sign"),
+                DependsOn("validate-nuget-token", "fluxzy-package-sign"),
                 async () => {
                     await RunAsync("dotnet",
-                        $"nuget push *.nupkg --skip-duplicate --api-key {privateNugetToken} " +
+                        $"nuget push *.nupkg --skip-duplicate --api-key { EnvironmentHelper.GetEvOrFail("TOKEN_FOR_NUGET")} " +
                         "--source https://nuget.pkg.github.com/haga-rak/index.json",
                         "_npkgout", true);
                 });
 
             Target("fluxzy-package-push-partner",
-                DependsOn("fluxzy-package-sign"),
+                DependsOn("validate-partner-secret", "fluxzy-package-sign"),
                 async () => {
                     await RunAsync("dotnet",
-                        $"nuget push *.nupkg --skip-duplicate --api-key {partnerNugetToken} " +
+                        $"nuget push *.nupkg --skip-duplicate --api-key {EnvironmentHelper.GetEvOrFail("PARTNER_SECRET")} " +
                         "--source https://nuget.2befficient.io/v3/index.json",
                         "_npkgout", true);
                 });
