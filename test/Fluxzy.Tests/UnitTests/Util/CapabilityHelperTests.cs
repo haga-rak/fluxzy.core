@@ -49,7 +49,7 @@ namespace Fluxzy.Tests.UnitTests.Util
             
             var capabilities = await CapabilityHelper.GetCapabilities(processId);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                 Assert.Null(capabilities);
             }
             else {
