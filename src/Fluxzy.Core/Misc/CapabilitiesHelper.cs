@@ -12,9 +12,9 @@ namespace Fluxzy.Misc
     {
         public static async Task<HashSet<string>?> GetCapabilities(int processId)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (!ProcessUtils.IsCommandAvailable("getpcaps"))
                 return null; 
-            
+           
             var runResult = await ProcessUtils.QuickRunAsync($"getpcaps {processId} --legacy");
             
             if (runResult.ExitCode != 0) {
