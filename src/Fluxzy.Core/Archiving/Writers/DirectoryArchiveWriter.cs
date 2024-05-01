@@ -203,7 +203,7 @@ namespace Fluxzy.Writers
                     .EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
                     .Select(x => {
                         var res = DirectoryArchiveHelper.TryParseIds(x.Name, out var ids);
-                        return res ? 0 : ids.EndId; 
+                        return res ? ids.EndId : 0; 
                     })
                     .OrderByDescending(r => r)
                     .DefaultIfEmpty(0)
@@ -214,7 +214,7 @@ namespace Fluxzy.Writers
                     .EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
                     .Select(x => {
                         var res = DirectoryArchiveHelper.TryParseIds(x.Name, out var ids);
-                        return res ? 0 : ids.EndId; 
+                        return res ? ids.EndId: 0; 
                     })
                     .OrderByDescending(r => r)
                     .DefaultIfEmpty(0)
