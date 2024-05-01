@@ -3,7 +3,8 @@ using System.Threading.Tasks;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
-{
+{    
+    [Collection("RUNS_RAW_CAPTURE")]
     public class CliWithCapOutOfProc : CliTestBase
     {
         public static IEnumerable<object[]> GetSingleRequestParametersNoDecrypt {
