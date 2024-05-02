@@ -32,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "__global", "__global", "{00
 		.github\workflows\pull-request.yaml = .github\workflows\pull-request.yaml
 		README.md = README.md
 		.github\workflows\release-cli.yml = .github\workflows\release-cli.yml
+		.github\workflows\release-nuget.pre.public.yml = .github\workflows\release-nuget.pre.public.yml
 		.github\workflows\release-nuget.public.yml = .github\workflows\release-nuget.public.yml
 		.github\release.yml = .github\release.yml
 		version.json = version.json
