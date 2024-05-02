@@ -167,9 +167,8 @@ namespace Fluxzy.Build
 
             Target(Targets.MustNotBeRelease,
                 () => {
-                    if (!currentBranch.StartsWith("release/") &&
-                        Environment.GetEnvironmentVariable("SKIP_MANDATORY_RELEASE_BRANCH") != "1") {
-                        throw new Exception($"Must be on release branch. Current branch is {currentBranch}");
+                    if (currentBranch.StartsWith("release/")){
+                        throw new Exception($"Must be on non-release branch. Current branch is {currentBranch}");
                     }
                 });
 
