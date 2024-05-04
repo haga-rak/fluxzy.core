@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Fluxzy.Misc.Streams;
 
@@ -7,6 +8,7 @@ namespace Fluxzy.Core.Pcap.Messages
 {
     internal static class SerializationUtils
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IPAddress ReadIpAddress(Stream stream)
         {
             Span<char> charBuffer = stackalloc char[64];
@@ -18,6 +20,7 @@ namespace Fluxzy.Core.Pcap.Messages
             return remoteAddress;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteString(this Stream stream, string str)
         {
             Span<byte> buffer = stackalloc byte[str.Length * 2 + 4];

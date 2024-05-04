@@ -16,8 +16,6 @@ namespace Fluxzy.Core.Pcap.Messages
 
         public static IncludeMessage FromReader(BinaryReader reader)
         {
-            Span<char> charBuffer = stackalloc char[512];
-
             var remoteAddress = SerializationUtils.ReadIpAddress(reader.BaseStream);
             var remotePort = reader.ReadInt32();
 
