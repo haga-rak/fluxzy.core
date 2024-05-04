@@ -1,7 +1,10 @@
+using System.Runtime.CompilerServices;
+
 namespace Fluxzy.Core.Pcap.Reading
 {
     internal static class NetUtility
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long MacToLong(ReadOnlySpan<byte> macAddress)
         {
             Span<byte> destination = stackalloc byte[8];

@@ -1,6 +1,7 @@
 // Copyright © 2022 Haga Rakotoharivelo
 
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace Fluxzy.Core.Pcap
 {
@@ -9,6 +10,7 @@ namespace Fluxzy.Core.Pcap
     /// </summary>
     public static class PacketKeyBuilder
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long GetConnectionKey(int localPort, int remotePort, IPAddress remoteAddress)
         {
             var portCombination = (remotePort << 16) | localPort;
@@ -17,6 +19,7 @@ namespace Fluxzy.Core.Pcap
             return ((long) portCombination << 32) | (uint) addressHash.GetHashCode();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long GetAuthorityKey(IPAddress address, int port)
         {
             var addressHash = address.GetHashCode(); // TODO : Upgrade to 64 bits hash to cover IPv6

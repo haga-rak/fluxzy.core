@@ -35,7 +35,6 @@ namespace Fluxzy.Core.Pcap.Reading
             if (packetInfo.Version != 4 && packetInfo.Version != 6)
                 return false;
 
-
             if (packetInfo.Version == 4) {
                 packetInfo.HeaderLength = (short) ((data[0] & 0xF) * 4);
 
@@ -71,6 +70,7 @@ namespace Fluxzy.Core.Pcap.Reading
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryParseTcp(ref TcpPacketInfo packetInfo, ReadOnlySpan<byte> data)
         {
             if (data.Length < 20)
