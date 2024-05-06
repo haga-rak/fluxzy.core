@@ -72,7 +72,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No005.BasicAlterati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No006.CaptureOsTraffic", "examples\Samples.No006.CaptureOsTraffic\Samples.No006.CaptureOsTraffic.csproj", "{B1CCF34D-0743-45CE-A8AD-73BBB92830F0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No007.UsingClientCertificate", "Examples\Samples.No007.UsingClientCertificate\Samples.No007.UsingClientCertificate.csproj", "{71700BE3-0335-4479-B5A3-D5CFDCF6F92E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No007.UsingClientCertificate", "examples\Samples.No007.UsingClientCertificate\Samples.No007.UsingClientCertificate.csproj", "{71700BE3-0335-4479-B5A3-D5CFDCF6F92E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No008.ForcingHttpVersion", "examples\Samples.No008.ForcingHttpVersion\Samples.No008.ForcingHttpVersion.csproj", "{6F6D6B43-A290-4CBB-A955-BB752CB1398E}"
 EndProject
