@@ -139,6 +139,10 @@ namespace Fluxzy.Tests.UnitTests.Rules.Extensions
             yield return 
                 new object[] { typeof(JsonRequestFilter).FullName!, 
                     new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenRequestHasJsonBody()) };
+            
+            yield return 
+                new object[] { typeof(FormRequestFilter).FullName!, 
+                    new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenRequestHasFormBody()) };
 
             yield return 
                 new object[] { typeof(RequestHeaderFilter).FullName!, 
