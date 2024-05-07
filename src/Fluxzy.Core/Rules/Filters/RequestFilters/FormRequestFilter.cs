@@ -27,7 +27,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         
         public override bool PreMadeFilter => true;
         
-        public override string Description => "Select request sending 'application/x-www-form-urlencoded' or 'multipart/form-data' body. Filtering is made by inspecting value of `Content-Type` header";
+        public override string Description => "Form requests (multipart and url encoded)";
     }
     
     
