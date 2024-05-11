@@ -80,8 +80,7 @@ namespace Fluxzy {
         ///            color: #6abeec;
         ///        }
         ///
-        ///        .danger-color {
-        ///   [le reste de la chaîne a été tronqué]&quot;;.
+        ///        [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         internal static string error {
             get {
@@ -95,6 +94,16 @@ namespace Fluxzy {
         internal static byte[] Fluxzy {
             get {
                 object obj = ResourceManager.GetObject("Fluxzy", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Byte[].
+        /// </summary>
+        internal static byte[] UserAgents {
+            get {
+                object obj = ResourceManager.GetObject("UserAgents", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -122,7 +131,7 @@ namespace Fluxzy {
         ///        a {
         ///            color: rgba(233, 236, 239, 0.92);
         ///            font-weight: bold;
-        ///            text-decor [le reste de la chaîne a été tronqué]&quot;;.
+        /// [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         internal static string welcome {
             get {

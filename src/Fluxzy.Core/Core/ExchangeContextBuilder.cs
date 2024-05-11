@@ -15,7 +15,8 @@ namespace Fluxzy.Core
         public ValueTask<ExchangeContext> Create(Authority authority, bool secure)
         {
             var result = new ExchangeContext(authority,
-                _runtimeSetting.VariableContext, _runtimeSetting.StartupSetting) {
+                _runtimeSetting.VariableContext, _runtimeSetting.StartupSetting, 
+                _runtimeSetting.ActionMapping) {
                 Secure = secure
             };
 

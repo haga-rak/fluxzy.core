@@ -205,6 +205,15 @@ namespace Fluxzy
         [JsonInclude]
         public ProxyAuthentication? ProxyAuthentication { get; internal set; }
 
+
+        /// <summary>
+        ///     Use a provided configuration file instead of default
+        ///     to determine user agent used in UserAgentAction
+        /// </summary>
+        [JsonInclude]
+        public string? UserAgentActionConfigurationFile { get; internal set; }
+        
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption)

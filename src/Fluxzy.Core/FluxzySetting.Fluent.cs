@@ -423,9 +423,25 @@ namespace Fluxzy
             return addFilter;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="proxyAuthentication"></param>
+        /// <returns></returns>
         public FluxzySetting SetProxyAuthentication(ProxyAuthentication proxyAuthentication)
         {
             ProxyAuthentication = proxyAuthentication;
+            return this;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="configurationFile"></param>
+        /// <returns></returns>
+        public FluxzySetting SetUserAgentActionConfigurationFile(string configurationFile)
+        {
+            UserAgentActionConfigurationFile = configurationFile;
             return this;
         }
     }

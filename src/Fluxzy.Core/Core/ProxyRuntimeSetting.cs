@@ -15,7 +15,6 @@ namespace Fluxzy.Core
 {
     internal class ProxyRuntimeSetting
     {
-
         private List<Rule>? _effectiveRules;
 
         private ProxyRuntimeSetting()
@@ -24,6 +23,7 @@ namespace Fluxzy.Core
             StartupSetting = new FluxzySetting();
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
+            ActionMapping = new UserAgentActionMapping(null);
         }
 
         public ProxyRuntimeSetting(
@@ -43,10 +43,10 @@ namespace Fluxzy.Core
             IdProvider = idProvider;
             UserAgentProvider = userAgentProvider;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
+            ActionMapping = new UserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
         }
-        
-        internal static ProxyRuntimeSetting CreateDefault => new()
-        {
+
+        internal static ProxyRuntimeSetting CreateDefault => new() {
             ArchiveWriter = new EventOnlyArchiveWriter()
         };
 
@@ -57,6 +57,8 @@ namespace Fluxzy.Core
         public ITcpConnectionProvider TcpConnectionProvider { get; set; } = ITcpConnectionProvider.Default;
 
         public RealtimeArchiveWriter ArchiveWriter { get; set; }
+
+        public UserAgentActionMapping ActionMapping { get; }
 
         /// <summary>
         ///     Process to validate the remote certificate
@@ -82,7 +84,7 @@ namespace Fluxzy.Core
         public void Init()
         {
             var activeRules = StartupSetting.FixedRules()
-                                            .Concat(StartupSetting.AlterationRules).ToList(); 
+                                            .Concat(StartupSetting.AlterationRules).ToList();
 
             var startupContext = new StartupContext(StartupSetting, VariableContext, ArchiveWriter);
 
@@ -98,22 +100,20 @@ namespace Fluxzy.Core
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
-            foreach (var rule in _effectiveRules!.Where(a => 
+            foreach (var rule in _effectiveRules!.Where(a =>
                          a.Action.ActionScope == filterScope
-                         || a.Action.ActionScope == FilterScope.OutOfScope 
-                         || (a.Action.ActionScope == FilterScope.CopySibling 
+                         || a.Action.ActionScope == FilterScope.OutOfScope
+                         || (a.Action.ActionScope == FilterScope.CopySibling
                              && a.Action is MultipleScopeAction multipleScopeAction
-                             && multipleScopeAction .RunScope == filterScope
+                             && multipleScopeAction.RunScope == filterScope
                          )
-                     ))
-            {
+                     )) {
                 await rule.Enforce(
                     context, exchange, connection, filterScope,
                     ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
             }
 
-            if (exchange?.RunInLiveEdit ?? false)
-            {
+            if (exchange?.RunInLiveEdit ?? false) {
                 var breakPointAction = new BreakPointAction();
                 var rule = new Rule(breakPointAction, AnyFilter.Default);
 
