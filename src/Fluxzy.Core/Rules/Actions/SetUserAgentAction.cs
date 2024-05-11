@@ -8,12 +8,12 @@ using Fluxzy.Core.Breakpoints;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class UserAgentAction : Action
+    [ActionMetadata("Change the User-Agent" +
+                    "This action is used to change the User-Agent header of the request from a list of built-in user-agent values." +
+                    "")]
+    public class SetUserAgentAction : Action
     {
-        [ActionMetadata("Change the User-Agent" +
-                        "This action is used to change the User-Agent header of the request from a list of built-in user-agent values." +
-                        "")]
-        public UserAgentAction(string name)
+        public SetUserAgentAction(string name)
         {
             Name = name;
         }
@@ -48,8 +48,8 @@ namespace Fluxzy.Rules.Actions
             var defaultMapping = UserAgentActionMapping.Default;
 
             foreach (var (name, userAgentValue) in defaultMapping.Map) {
-                yield return new ActionExample($"Change User-Agent to {name} ({userAgentValue})",
-                    new UserAgentAction(name));
+                yield return new ActionExample($"Change `User-Agent` to `{name}` (`{userAgentValue}`)",
+                    new SetUserAgentAction(name));
             }
         }
     }
