@@ -63,4 +63,5 @@ The following actions are related to this action:
  - [updateResponseHeaderAction](updateResponseHeaderAction)
  - [deleteRequestHeaderAction](deleteRequestHeaderAction)
  - [deleteResponseHeaderAction](deleteResponseHeaderAction)
+ - [setUserAgentAction](setUserAgentAction)
 
