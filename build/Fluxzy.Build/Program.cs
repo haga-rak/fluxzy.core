@@ -87,64 +87,60 @@ namespace Fluxzy.Build
             }
         }
 
-        private static void AddBasicBuildTargets(string privateNugetToken)
+        private static void AddBasicBuildTargets()
         {
-            Target("add-nuget-source",
-                async () => {
-                    await RunAsync("dotnet",
-                        "nuget add source https://nuget.pkg.github.com/haga-rak/index.json " +
-                        $"-n nuget-fluxy -u haga-rak -p {privateNugetToken}", handleExitCode: _ => true, noEcho: true);
-                });
-
-            Target("restore-tests",
-                DependsOn("add-nuget-source"),
+            Target(Targets.RestoreTests,
                 async () => {
                     await RunAsync("dotnet",
                         "restore test/Fluxzy.Tests");
                 });
 
-            Target("restore-fluxzy-core",
-                DependsOn("add-nuget-source"),
+            Target(Targets.RestoreFluxzyCore,
                 async () => {
                     await RunAsync("dotnet",
                         "restore src/Fluxzy.Core");
                 });
 
-            Target("build-fluxzy-core",
-                DependsOn("restore-fluxzy-core"),
+            Target(Targets.BuildFluxzyCore,
+                DependsOn(Targets.RestoreFluxzyCore),
                 async () => {
                     await RunAsync("dotnet",
                         "build src/Fluxzy.Core  --no-restore");
                 });
-
-            Target("tests",
-                DependsOn("restore-tests", "build-fluxzy-core"),
+            
+            Target(Targets.BuildTests,
+                DependsOn(Targets.BuildFluxzyCore),
                 async () => {
                     await RunAsync("dotnet",
-                        "test test/Fluxzy.Tests --collect:\"XPlat Code Coverage\"");
+                        "build test/Fluxzy.Tests  --no-restore");
+                });
+
+            Target("tests",
+                DependsOn(Targets.RestoreTests, Targets.BuildTests),
+                async () => {
+                    await RunAsync("dotnet",
+                        "test test/Fluxzy.Tests --collect:\"XPlat Code Coverage\" --no-build");
                 });
         }
 
         private static async Task CreateAndPushVersionedTag(string suffix)
         {
             var runningVersion = await GetRunningVersion() + suffix;
+            var tagName = $"v{runningVersion}";
 
             await RunAsync("git", "config --global user.email \"admin@fluxzy.io\"");
             await RunAsync("git", "config --global user.name \"fluxzy-ci\"");
 
-            await RunAsync("git", $"tag -a v{runningVersion} -m \"Release {runningVersion}\"",
+            await RunAsync("git", $"tag -a {tagName} -m \"Release {runningVersion}\"",
                 handleExitCode: i => true);
 
-            await RunAsync("git", $"push origin v{runningVersion}", handleExitCode: i => true);
+            await RunAsync("git", $"push origin {tagName}", handleExitCode: i => true);
         }
 
         private static async Task Main(string[] args)
         {
             var (stdOut, _) = await ReadAsync("git", "branch --show-current");
             var currentBranch = stdOut.Trim();
-
-            var privateNugetToken = EnvironmentHelper.GetEvOrFail("TOKEN_FOR_NUGET");
-            var partnerNugetToken = EnvironmentHelper.GetEvOrFail("PARTNER_SECRET");
 
             // Why there's no better way to do it?
             var current = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OSPlatform.OSX :
@@ -153,8 +149,15 @@ namespace Fluxzy.Build
             if (Directory.Exists("_npkgout")) {
                 Directory.Delete("_npkgout", true);
             }
+            
+            Target(Targets.ValidateNugetToken, () => {
+                EnvironmentHelper.GetEvOrFail("TOKEN_FOR_NUGET");
+            });
+            Target(Targets.ValidatePartnerSecret, () => {
+                EnvironmentHelper.GetEvOrFail("PARTNER_SECRET");
+            });
 
-            Target("must-be-release",
+            Target(Targets.MustBeRelease,
                 () => {
                     if (!currentBranch.StartsWith("release/") &&
                         Environment.GetEnvironmentVariable("SKIP_MANDATORY_RELEASE_BRANCH") != "1") {
@@ -162,9 +165,16 @@ namespace Fluxzy.Build
                     }
                 });
 
-            AddBasicBuildTargets(privateNugetToken);
+            Target(Targets.MustNotBeRelease,
+                () => {
+                    if (currentBranch.StartsWith("release/")){
+                        throw new Exception($"Must be on non-release branch. Current branch is {currentBranch}");
+                    }
+                });
 
-            Target("install-tools",
+            AddBasicBuildTargets();
+
+            Target(Targets.InstallTools,
                 async () => {
                     await RunAsync("dotnet",
                         "tool install --global dotnet-script", handleExitCode: _ => true);
@@ -176,8 +186,8 @@ namespace Fluxzy.Build
                         "tool install --global dotnet-project-licenses", handleExitCode: _ => true);
                 });
 
-            Target("fluxzy-core-create-package",
-                DependsOn("install-tools"),
+            Target(Targets.FluxzyCoreCreatePackage,
+                DependsOn(Targets.InstallTools),
                 async () => {
                     await RunAsync("dotnet",
                         "build -c Release src/Fluxzy.Core");
@@ -186,8 +196,8 @@ namespace Fluxzy.Build
                         "pack -c Release src/Fluxzy.Core -o _npkgout");
                 });
 
-            Target("fluxzy-core-pcap-create-package",
-                DependsOn("fluxzy-core-create-package"),
+            Target(Targets.FluxzyCorePcapCreatePackage,
+                DependsOn(Targets.FluxzyCoreCreatePackage),
                 async () => {
                     await RunAsync("dotnet",
                         "build -c Release src/Fluxzy.Core.Pcap");
@@ -196,30 +206,30 @@ namespace Fluxzy.Build
                         "pack -c Release src/Fluxzy.Core.Pcap -o _npkgout");
                 });
 
-            Target("fluxzy-package-sign",
-                DependsOn("fluxzy-core-pcap-create-package"),
+            Target(Targets.FluxzyPackageSign,
+                DependsOn(Targets.FluxzyCorePcapCreatePackage),
                 async () => { await SignHelper.SignPackages("_npkgout"); });
 
-            Target("fluxzy-package-push-github",
-                DependsOn("fluxzy-package-sign"),
+            Target(Targets.FluxzyPackagePushGithub,
+                DependsOn(Targets.ValidateNugetToken, Targets.FluxzyPackageSign),
                 async () => {
                     await RunAsync("dotnet",
-                        $"nuget push *.nupkg --skip-duplicate --api-key {privateNugetToken} " +
+                        $"nuget push *.nupkg --skip-duplicate --api-key { EnvironmentHelper.GetEvOrFail("TOKEN_FOR_NUGET")} " +
                         "--source https://nuget.pkg.github.com/haga-rak/index.json",
                         "_npkgout", true);
                 });
 
-            Target("fluxzy-package-push-partner",
-                DependsOn("fluxzy-package-sign"),
+            Target(Targets.FluxzyPackagePushPartner,
+                DependsOn(Targets.ValidatePartnerSecret, Targets.FluxzyPackageSign),
                 async () => {
                     await RunAsync("dotnet",
-                        $"nuget push *.nupkg --skip-duplicate --api-key {partnerNugetToken} " +
+                        $"nuget push *.nupkg --skip-duplicate --api-key {EnvironmentHelper.GetEvOrFail("PARTNER_SECRET")} " +
                         "--source https://nuget.2befficient.io/v3/index.json",
                         "_npkgout", true);
                 });
 
-            Target("fluxzy-package-push-public-internal",
-                DependsOn("fluxzy-package-sign"),
+            Target(Targets.FluxzyPackagePushPublicInternal,
+                DependsOn(Targets.FluxzyPackageSign),
                 async () => {
                     var nugetOrgApiKey = EnvironmentHelper.GetEvOrFail("NUGET_ORG_API_KEY");
 
@@ -229,8 +239,8 @@ namespace Fluxzy.Build
                         "_npkgout", true);
                 });
 
-            Target("fluxzy-cli-package-build",
-                DependsOn("install-tools", "build-fluxzy-core"),
+            Target(Targets.FluxzyCliPackageBuild,
+                DependsOn(Targets.InstallTools, Targets.BuildFluxzyCore),
                 async () => {
                     if (Directory.Exists(".artefacts")) {
                         Directory.Delete(".artefacts", true);
@@ -244,8 +254,8 @@ namespace Fluxzy.Build
                     }
                 });
 
-            Target("fluxzy-cli-package-zip",
-                DependsOn("fluxzy-cli-package-sign"),
+            Target(Targets.FluxzyCliPackageZip,
+                DependsOn(Targets.FluxzyCliPackageSign),
                 async () => {
                     var runningVersion = await GetRunningVersion();
                     Directory.CreateDirectory(".artefacts/final");
@@ -262,8 +272,8 @@ namespace Fluxzy.Build
                     }
                 });
 
-            Target("fluxzy-cli-publish-internal",
-                DependsOn("fluxzy-cli-package-zip"),
+            Target(Targets.FluxzyCliPublishInternal,
+                DependsOn(Targets.FluxzyCliPackageZip),
                 async () => {
                     var candidates = new DirectoryInfo(".artefacts/final/").EnumerateFiles("*.zip").ToList();
 
@@ -276,8 +286,8 @@ namespace Fluxzy.Build
                     await Task.WhenAll(uploadTasks);
                 });
 
-            Target("fluxzy-cli-package-sign",
-                DependsOn("fluxzy-cli-package-build"),
+            Target(Targets.FluxzyCliPackageSign,
+                DependsOn(Targets.FluxzyCliPackageBuild),
                 async () => {
                     if (current != OSPlatform.Windows) {
                         Console.WriteLine("Skipping signing for non-windows platform");
@@ -320,7 +330,7 @@ namespace Fluxzy.Build
                     await Task.WhenAll(signTasks);
                 });
 
-            Target("docs", async () => {
+            Target(Targets.Docs, async () => {
                 var docOutputPath = EnvironmentHelper.GetEvOrFail("DOCS_OUTPUT_PATH");
 
                 await RunAsync("dotnet",
@@ -329,26 +339,29 @@ namespace Fluxzy.Build
                     noEcho: false);
             });
 
-            Target("default", () => Console.WriteLine("DefaultTarget is doing nothing"));
+            Target(Targets.Default, () => Console.WriteLine("DefaultTarget is doing nothing"));
 
             // Validate current branch
-            Target("validate-main", DependsOn("tests"));
+            Target(Targets.ValidateMain, DependsOn("tests"));
 
             // Validate a pull request 
-            Target("on-pull-request", DependsOn("tests"));
+            Target(Targets.OnPullRequest, DependsOn("tests"));
 
             // Build local CLI packages signed 
-            Target("fluxzy-publish-nuget",
-                DependsOn("install-tools", "fluxzy-package-push-github", "fluxzy-package-push-partner"),
+            Target(Targets.FluxzyPublishNuget,
+                DependsOn(Targets.InstallTools, Targets.FluxzyPackagePushGithub, Targets.FluxzyPackagePushPartner),
                 async () => await CreateAndPushVersionedTag(""));
 
-            Target("fluxzy-publish-nuget-public",
-                DependsOn("install-tools", "must-be-release", "fluxzy-publish-nuget",
-                    "fluxzy-package-push-public-internal"),
+            Target(Targets.FluxzyPublishNugetPublic,
+                DependsOn(Targets.MustBeRelease, Targets.InstallTools, Targets.FluxzyPublishNuget, Targets.FluxzyPackagePushPublicInternal),
                 async () => await CreateAndPushVersionedTag(""));
 
-            Target("fluxzy-publish-nuget-public-with-note",
-                DependsOn("fluxzy-publish-nuget-public"),
+            Target(Targets.FluxzyPublishNugetPublicPreRelease,
+                DependsOn(Targets.MustNotBeRelease, Targets.InstallTools, Targets.FluxzyPublishNuget, Targets.FluxzyPackagePushPublicInternal),
+                async () => await CreateAndPushVersionedTag("-pre"));
+
+            Target(Targets.FluxzyPublishNugetPublicWithNote,
+                DependsOn(Targets.MustBeRelease, Targets.FluxzyPublishNugetPublic),
                 async () => {
                     var publishHelper = await
                         GhPublishHelper.Create(EnvironmentHelper.GetEvOrFail("GH_RELEASE_TOKEN"),
@@ -359,14 +372,14 @@ namespace Fluxzy.Build
                     await publishHelper.Publish(tag);
                 });
 
-            Target("fluxzy-cli-full-package", DependsOn("fluxzy-cli-package-zip"));
+            Target(Targets.FluxzyCliFullPackage, DependsOn(Targets.FluxzyCliPackageZip));
 
             // Build local CLI packages signed 
-            Target("fluxzy-cli-publish", DependsOn("install-tools", "fluxzy-cli-publish-internal"),
+            Target(Targets.FluxzyCliPublish, DependsOn(Targets.InstallTools, Targets.FluxzyCliPublishInternal),
                 async () => await CreateAndPushVersionedTag("-cli"));
 
             // Build local CLI packages signed 
-            Target("fluxzy-cli-publish-with-note", DependsOn("fluxzy-cli-publish"),
+            Target(Targets.FluxzyCliPublishWithNote, DependsOn(Targets.FluxzyCliPublish),
                 async () => {
                     var publishHelper = await
                         GhPublishHelper.Create(EnvironmentHelper.GetEvOrFail("GH_RELEASE_TOKEN"),
@@ -380,8 +393,8 @@ namespace Fluxzy.Build
                     await publishHelper.AddAssets(tag, assets);
                 });
 
-            Target("fluxzy-cli-publish-docker",
-                DependsOn("install-tools", "must-be-release"),
+            Target(Targets.FluxzyCliPublishDocker,
+                DependsOn(Targets.InstallTools, Targets.MustBeRelease),
                 async () => {
                     var shortVersion = await GetRunningVersionShort();
                     await DockerHelper.BuildDockerImage(".", shortVersion);
@@ -391,4 +404,5 @@ namespace Fluxzy.Build
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
         }
     }
+
 }

@@ -21,7 +21,7 @@ namespace Fluxzy.Tests
 
             var certificate = new X509Certificate2(
                 StorageContext.client_cert,
-                "Multipass85/"
+                DefaultPassword
             );
 
             ThumbPrint = certificate.Thumbprint;
@@ -38,6 +38,6 @@ namespace Fluxzy.Tests
 
         public static string ThumbPrint { get; private set; } = null!;
 
-        public static string DefaultPassword = "Multipass85/";
+        public static string DefaultPassword { get; } = "Multipass85/";
     }
 }

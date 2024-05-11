@@ -218,7 +218,11 @@ namespace Fluxzy.Misc
 
             // For other OS we use pkexec
 
-            var process = Process.Start(new ProcessStartInfo("pkexec", $"\"{commandName}\" {fullArgs}") {
+            var canElevated = await ProcessUtilX.HasCaptureCapabilities() || await ProcessUtilX.CanElevated();
+            var execCommandName = canElevated ? commandName : "pkexec";
+            var execArgs = canElevated ? fullArgs : $"\"{commandName}\" {fullArgs}";
+
+            var process = Process.Start(new ProcessStartInfo(execCommandName, execArgs) {
                 UseShellExecute = false,
                 Verb = "runas",
                 RedirectStandardOutput = redirectStdOut,

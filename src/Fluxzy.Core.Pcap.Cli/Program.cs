@@ -13,11 +13,10 @@ namespace Fluxzy.Core.Pcap.Cli
             }
 
             // await Task.Delay(-1);
-
             // STDIN has closed this means that parent request halted or request an explicit close 
 
             if (!source.IsCancellationRequested)
-                source.Cancel();
+                await source.CancelAsync();
         }
 
         private static async Task CancelTokenWhenParentProcessExit(CancellationTokenSource source, int processId)
@@ -27,7 +26,7 @@ namespace Fluxzy.Core.Pcap.Cli
             await process.WaitForExitAsync(source.Token);
 
             if (!source.IsCancellationRequested)
-                source.Cancel();
+                await source.CancelAsync();
         }
 
         /// <summary>

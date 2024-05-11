@@ -62,7 +62,7 @@ namespace Fluxzy.Clipboard
                     artefacts.Add(arteFact);
                 }
 
-                exchangeDatas.Add(new ExchangeData(exchangeId, artefacts));
+                exchangeDatas.Add(new ExchangeData(artefacts));
 
                 // copy exchange artefacts
             }
@@ -86,7 +86,7 @@ namespace Fluxzy.Clipboard
                     artefacts.Add(arteFact);
                 }
 
-                connectionDatas.Add(new ConnectionData(connectionId, artefacts));
+                connectionDatas.Add(new ConnectionData(artefacts));
 
                 // copy connection artefacts
             }

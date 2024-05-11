@@ -25,7 +25,7 @@ namespace Fluxzy.Misc
 
             // First we check if we can already sudo 
 
-            var canElevated = await CanElevated().ConfigureAwait(false);
+            var canElevated = await ProcessUtilX.CanElevated().ConfigureAwait(false);
 
             if (canElevated)
             {
@@ -101,19 +101,6 @@ namespace Fluxzy.Misc
             {
                 Array.Clear(buffer,0, buffer.Length); // Remove the password to minimize attack window 
             }
-        }
-
-        private static async Task<bool> CanElevated()
-        {
-            var checkStartInfo = new ProcessStartInfo("sudo", "-n -v")
-            {
-                UseShellExecute = false,
-            };
-
-            var checkStart = Process.Start(checkStartInfo)!;
-
-            await checkStart.WaitForExitAsync().ConfigureAwait(false);
-            return checkStart.ExitCode == 0;
         }
 
         internal enum PasswordElevationRequestResult

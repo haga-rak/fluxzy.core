@@ -5,7 +5,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Fluxzy.Certificates;
+using Fluxzy.Core.Pcap.Cli.Clients;
 using Fluxzy.Tests._Files;
 using Xunit;
 using Xunit.Abstractions;
@@ -55,6 +58,12 @@ namespace Fluxzy.Tests
             ExtractDirectory(File.ReadAllBytes("_Files/Archives/pink-floyd.fxzy"), ".artefacts/tests/pink-floyd");
 
             CertificateContext.InstallDefaultCertificate();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                _ = Task.Run(async () => 
+                            await Utility.AcquireCapabilities(new FileInfo("fluxzynetcap").FullName))
+                        .GetAwaiter().GetResult();
+            }
         }
 
         private static void ExtractDirectory(byte [] binary, string directoryName)

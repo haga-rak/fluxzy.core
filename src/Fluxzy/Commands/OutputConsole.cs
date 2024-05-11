@@ -31,5 +31,19 @@ namespace Fluxzy.Cli.Commands
         public MemoryStream BinaryStdout { get; } = new();
 
         public MemoryStream BinaryStderr { get; } = new();
+
+        public static OutputConsole CreateEmpty()
+        {
+            return new OutputConsole(EmptyWriter, EmptyWriter, null);
+        }
+
+        private static IStandardStreamWriter EmptyWriter { get; } = new NullStreamWriter();
+        
+        class NullStreamWriter : IStandardStreamWriter
+        {
+            public void Write(string? value)
+            {
+            }
+        }
     }
 }
