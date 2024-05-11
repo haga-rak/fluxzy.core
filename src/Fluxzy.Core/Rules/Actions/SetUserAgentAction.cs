@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Core;
@@ -47,7 +48,7 @@ namespace Fluxzy.Rules.Actions
         {
             var defaultMapping = UserAgentActionMapping.Default;
 
-            foreach (var (name, userAgentValue) in defaultMapping.Map) {
+            foreach (var (name, userAgentValue) in defaultMapping.Map.OrderBy(r => r.Key)) {
                 yield return new ActionExample($"Change `User-Agent` to `{name}` (`{userAgentValue}`)",
                     new SetUserAgentAction(name));
             }

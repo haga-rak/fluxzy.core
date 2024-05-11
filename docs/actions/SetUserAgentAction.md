@@ -32,42 +32,6 @@ The following table describes the customizable properties available for this act
 
 The following examples apply this action to any exchanges
 
-Change `User-Agent` to `Windows_Chrome` (`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36`).
-
-```yaml
-rules:
-- filter:
-    typeKind: AnyFilter
-  actions:
-  - typeKind: SetUserAgentAction
-    name: Windows_Chrome
-```
-
-
-Change `User-Agent` to `Windows_Firefox` (`Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0`).
-
-```yaml
-rules:
-- filter:
-    typeKind: AnyFilter
-  actions:
-  - typeKind: SetUserAgentAction
-    name: Windows_Firefox
-```
-
-
-Change `User-Agent` to `Windows_Edge` (`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.11.3`).
-
-```yaml
-rules:
-- filter:
-    typeKind: AnyFilter
-  actions:
-  - typeKind: SetUserAgentAction
-    name: Windows_Edge
-```
-
-
 Change `User-Agent` to `macOS_Chrome` (`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36`).
 
 ```yaml
@@ -77,6 +41,18 @@ rules:
   actions:
   - typeKind: SetUserAgentAction
     name: macOS_Chrome
+```
+
+
+Change `User-Agent` to `macOS_Edge` (`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.11.3`).
+
+```yaml
+rules:
+- filter:
+    typeKind: AnyFilter
+  actions:
+  - typeKind: SetUserAgentAction
+    name: macOS_Edge
 ```
 
 
@@ -104,18 +80,6 @@ rules:
 ```
 
 
-Change `User-Agent` to `macOS_Edge` (`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.11.3`).
-
-```yaml
-rules:
-- filter:
-    typeKind: AnyFilter
-  actions:
-  - typeKind: SetUserAgentAction
-    name: macOS_Edge
-```
-
-
 Change `User-Agent` to `Ubuntu_Chrome` (`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`).
 
 ```yaml
@@ -125,6 +89,18 @@ rules:
   actions:
   - typeKind: SetUserAgentAction
     name: Ubuntu_Chrome
+```
+
+
+Change `User-Agent` to `Ubuntu_Edge` (`Mozilla/5.0 (Wayland; Linux x86_64; System76 Galago Pro (galp2)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Ubuntu/24.04 Edg/122.0.2365.92`).
+
+```yaml
+rules:
+- filter:
+    typeKind: AnyFilter
+  actions:
+  - typeKind: SetUserAgentAction
+    name: Ubuntu_Edge
 ```
 
 
@@ -140,7 +116,7 @@ rules:
 ```
 
 
-Change `User-Agent` to `Ubuntu_Edge` (`Mozilla/5.0 (Wayland; Linux x86_64; System76 Galago Pro (galp2)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Ubuntu/24.04 Edg/122.0.2365.92`).
+Change `User-Agent` to `Windows_Chrome` (`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36`).
 
 ```yaml
 rules:
@@ -148,7 +124,31 @@ rules:
     typeKind: AnyFilter
   actions:
   - typeKind: SetUserAgentAction
-    name: Ubuntu_Edge
+    name: Windows_Chrome
+```
+
+
+Change `User-Agent` to `Windows_Edge` (`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.11.3`).
+
+```yaml
+rules:
+- filter:
+    typeKind: AnyFilter
+  actions:
+  - typeKind: SetUserAgentAction
+    name: Windows_Edge
+```
+
+
+Change `User-Agent` to `Windows_Firefox` (`Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0`).
+
+```yaml
+rules:
+- filter:
+    typeKind: AnyFilter
+  actions:
+  - typeKind: SetUserAgentAction
+    name: Windows_Firefox
 ```
 
 
