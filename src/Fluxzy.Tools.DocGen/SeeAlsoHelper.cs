@@ -78,7 +78,8 @@ namespace Fluxzy.Tools.DocGen
                 new() {
                     typeof(AddRequestHeaderAction), typeof(AddResponseHeaderAction),
                     typeof(UpdateRequestHeaderAction), typeof(UpdateResponseHeaderAction),
-                    typeof(DeleteRequestHeaderAction), typeof(DeleteResponseHeaderAction)
+                    typeof(DeleteRequestHeaderAction), typeof(DeleteResponseHeaderAction),
+                    typeof(SetUserAgentAction)
                 });
 
             ActionCategories.Add(

@@ -33,11 +33,13 @@ namespace Fluxzy.Core
 
         public ExchangeContext(
             IAuthority authority,
-            VariableContext variableContext, FluxzySetting? fluxzySetting)
+            VariableContext variableContext, FluxzySetting? fluxzySetting, 
+            SetUserAgentActionMapping setUserAgentActionMapping)
         {
             Authority = authority;
             VariableContext = variableContext;
             FluxzySetting = fluxzySetting;
+            SetUserAgentActionMapping = setUserAgentActionMapping;
         }
 
         /// <summary>
@@ -147,6 +149,8 @@ namespace Fluxzy.Core
         ///  The proxy setting
         /// </summary>
         public FluxzySetting? FluxzySetting { get; }
+
+        public SetUserAgentActionMapping SetUserAgentActionMapping { get; }
 
         /// <summary>
         /// Gets or sets the down stream local IP address of the struct.

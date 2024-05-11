@@ -4,6 +4,7 @@ using System;
 
 namespace Fluxzy.Rules
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class ActionMetadataAttribute : Attribute
     {
         public ActionMetadataAttribute(string longDescription)
