@@ -31,7 +31,7 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             if (string.IsNullOrWhiteSpace(Name)) {
-                throw new RuleExecutionFailureException($"{nameof(Name)} must be not null or empty");
+                return default;
             }
 
             if (!context.UserAgentActionMapping.Map.TryGetValue(Name, out var userAgentValue)) {
