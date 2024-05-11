@@ -7,6 +7,8 @@ on:
       - 'docs/**'
       - 'design/**'
       - 'README.md'
+      - 'version.json'
+      - 'LICENSE.md'
 
 jobs:
   build-and-test-backend:
