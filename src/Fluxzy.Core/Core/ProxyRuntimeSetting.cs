@@ -23,7 +23,7 @@ namespace Fluxzy.Core
             StartupSetting = new FluxzySetting();
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
-            ActionMapping = new UserAgentActionMapping(null);
+            ActionMapping = new SetUserAgentActionMapping(null);
         }
 
         public ProxyRuntimeSetting(
@@ -43,7 +43,7 @@ namespace Fluxzy.Core
             IdProvider = idProvider;
             UserAgentProvider = userAgentProvider;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
-            ActionMapping = new UserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
+            ActionMapping = new SetUserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
         }
 
         internal static ProxyRuntimeSetting CreateDefault => new() {
@@ -58,7 +58,7 @@ namespace Fluxzy.Core
 
         public RealtimeArchiveWriter ArchiveWriter { get; set; }
 
-        public UserAgentActionMapping ActionMapping { get; }
+        public SetUserAgentActionMapping ActionMapping { get; }
 
         /// <summary>
         ///     Process to validate the remote certificate

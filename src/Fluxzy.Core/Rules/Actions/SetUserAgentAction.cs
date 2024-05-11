@@ -35,7 +35,7 @@ namespace Fluxzy.Rules.Actions
                 return default;
             }
 
-            if (!context.UserAgentActionMapping.Map.TryGetValue(Name, out var userAgentValue)) {
+            if (!context.SetUserAgentActionMapping.Map.TryGetValue(Name, out var userAgentValue)) {
                 return default; // Not found in map 
             }
 
@@ -46,7 +46,7 @@ namespace Fluxzy.Rules.Actions
 
         public override IEnumerable<ActionExample> GetExamples()
         {
-            var defaultMapping = UserAgentActionMapping.Default;
+            var defaultMapping = SetUserAgentActionMapping.Default;
 
             foreach (var (name, userAgentValue) in defaultMapping.Map.OrderBy(r => r.Key)) {
                 yield return new ActionExample($"Change `User-Agent` to `{name}` (`{userAgentValue}`)",

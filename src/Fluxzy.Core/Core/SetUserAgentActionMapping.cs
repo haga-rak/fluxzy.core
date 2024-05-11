@@ -7,11 +7,11 @@ using System.Text.Json;
 
 namespace Fluxzy.Core
 {
-    public class UserAgentActionMapping
+    public class SetUserAgentActionMapping
     {
-        public static UserAgentActionMapping Default { get; } = new UserAgentActionMapping(null);
+        public static SetUserAgentActionMapping Default { get; } = new SetUserAgentActionMapping(null);
 
-        public UserAgentActionMapping(string ? configurationFile)
+        public SetUserAgentActionMapping(string ? configurationFile)
         {
             Map = string.IsNullOrWhiteSpace(configurationFile)
                 ? new Dictionary<string, string>(
@@ -22,6 +22,6 @@ namespace Fluxzy.Core
                     StringComparer.OrdinalIgnoreCase);
         }
         
-        public Dictionary<string, string> Map { get; set; } = new();
+        public Dictionary<string, string> Map { get; } 
     }
 }

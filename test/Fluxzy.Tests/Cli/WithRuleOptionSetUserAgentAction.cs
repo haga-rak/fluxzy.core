@@ -58,7 +58,7 @@ namespace Fluxzy.Tests.Cli
         {
             List<object?[]> result = new List<object?[]>();
             
-            foreach (var (name, userAgent) in UserAgentActionMapping.Default.Map) {
+            foreach (var (name, userAgent) in SetUserAgentActionMapping.Default.Map) {
 
                 result.Add(new object[] { name, userAgent });
             }

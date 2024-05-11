@@ -102,7 +102,7 @@ namespace Fluxzy.Core
             string? httpVersion, DateTime receivedFromProxy)
         {
             Id = idProvider.NextExchangeId();
-            Context = new ExchangeContext(authority, new VariableContext(), null, UserAgentActionMapping.Default);
+            Context = new ExchangeContext(authority, new VariableContext(), null, SetUserAgentActionMapping.Default);
             Authority = authority;
             HttpVersion = httpVersion ?? "HTTP/1.1";
             Request = new Request(new RequestHeader(requestHeaderPlain, authority.Secure));
