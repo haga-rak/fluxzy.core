@@ -10,6 +10,8 @@ on:
       - '.github/workflows/release*'
       - '.github/workflows/pull-request*'
       - '.github/release.yml'
+      - 'version.json'
+      - 'LICENSE.md'
 
 jobs:
   build-and-test-backend:
