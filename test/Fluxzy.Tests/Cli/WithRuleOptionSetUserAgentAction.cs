@@ -25,7 +25,7 @@ namespace Fluxzy.Tests.Cli
                               - filter:
                                   typeKind: anyFilter
                                 actions :
-                                  - typeKind: userAgentAction
+                                  - typeKind: setUserAgentAction
                                     name: {name}
                               """;
 
