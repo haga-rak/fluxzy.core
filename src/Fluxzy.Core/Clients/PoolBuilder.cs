@@ -121,9 +121,14 @@ namespace Fluxzy.Clients
                 if (!semaphorePerAuthority.Wait(0))
                     await semaphorePerAuthority.WaitAsync(cancellationToken).ConfigureAwait(false);
 
+                var forceNewConnection = exchange.Context.ForceNewConnection;
+
+                if (exchange.Request.Header.IsWebSocketRequest || exchange.Context.BlindMode)
+                    forceNewConnection = true;
+
                 // Looking for existing HttpPool
 
-                if (!exchange.Context.ForceNewConnection) {
+                if (!forceNewConnection) {
                     lock (_connectionPools) {
                         while (_connectionPools.TryGetValue(exchange.Authority, out var pool)) {
                             if (pool.Complete) {
