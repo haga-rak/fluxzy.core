@@ -5,6 +5,8 @@ namespace Fluxzy.Utils
 {
     public static class AuthorityUtility
     {
+        private static readonly char[] Separators = { ':', '/' };
+
         /// <summary>
         /// Parse an authority, accepted separator are ':' and '/'.
         /// </summary>
@@ -17,18 +19,16 @@ namespace Fluxzy.Utils
             host = null; 
             port = 0;
 
-            var separators = new[] { ":", "/"};
-
-            foreach (var separator in separators) {
-                var lastColumn = rawValue.LastIndexOf(separator, StringComparison.Ordinal);
+            foreach (var separator in Separators) {
+                var lastColumn = rawValue.AsSpan().LastIndexOf(separator);
 
                 if (lastColumn == -1)
                     continue;
 
-                var hostName = rawValue.Substring(0, lastColumn).TrimStart();
-                var rawPort = rawValue.Substring(lastColumn + 1).TrimEnd();
+                var hostName = rawValue.AsSpan()[..lastColumn].TrimStart();
+                var rawPort = rawValue.AsSpan()[(lastColumn + 1)..].TrimEnd();
 
-                if (hostName == string.Empty) {
+                if (hostName.IsEmpty) {
                     continue; 
                 }
 
@@ -40,7 +40,7 @@ namespace Fluxzy.Utils
                     return false; 
                 }
 
-                host = hostName;
+                host = hostName.ToString();
 
                 return true;
             }
