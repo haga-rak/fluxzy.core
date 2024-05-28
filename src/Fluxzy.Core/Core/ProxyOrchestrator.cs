@@ -103,10 +103,9 @@ namespace Fluxzy.Core
                     var shouldClose = false;
 
                     do {
-                        if (
-                            !exchange.Request.Header.Method.Span.Equals("connect", StringComparison.OrdinalIgnoreCase)
-                            || exchangeSourceInitResult.TunnelOnly
-                        ) {
+                        var processMessage = !exchange.Unprocessed;
+
+                        if (processMessage) {
                             // Check whether the local browser ask for a connection close 
 
                             if (D.EnableTracing) {

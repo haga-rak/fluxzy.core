@@ -117,6 +117,11 @@ namespace Fluxzy.Core
         internal Task<bool> Complete => ExchangeCompletionSource.Task;
 
         /// <summary>
+        ///  
+        /// </summary>
+        internal bool Unprocessed { get; set; }
+
+        /// <summary>
         ///     The remote authority
         /// </summary>
         public Authority Authority { get; set; }
@@ -200,7 +205,9 @@ namespace Fluxzy.Core
         {
             return new Exchange(idProvider, context, authority,
                 requestHeaderPlain, requestBody, responseHeader, responseBody, isSecure, httpVersion,
-                receivedFromProxy);
+                receivedFromProxy) {
+                Unprocessed = true
+            };
         }
 
         /// <summary>

@@ -92,22 +92,24 @@ namespace Fluxzy.Core
 
                     return new(true, null); 
                 }
-                
-
 
                 await stream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
                 var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
 
                 if (exchangeContext.BlindMode) {
+
+                    var provisionalExchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
+                        authority, plainHeaderChars, Stream.Null,
+                        ProxyConstants.AcceptTunnelResponseString.AsMemory(),
+                        Stream.Null, false,
+                        "HTTP/1.1",
+                        receivedFromProxy);
+
+                    provisionalExchange.Unprocessed = false;
+
                     return
                         new (false, new ExchangeSourceInitResult(
-                            authority, stream, stream,
-                            Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
-                                authority, plainHeaderChars, Stream.Null,
-                                ProxyConstants.AcceptTunnelResponseString.AsMemory(),
-                                Stream.Null, false,
-                                "HTTP/1.1",
-                                receivedFromProxy), true));
+                            authority, stream, stream, provisionalExchange, true));
                 }
 
                 var certStart = ITimingProvider.Default.Instant();
