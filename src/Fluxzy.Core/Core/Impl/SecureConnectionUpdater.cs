@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -23,18 +24,16 @@ namespace Fluxzy.Core
             _certificateProvider = certificateProvider;
         }
 
-        private static bool StartWithKeyWord(ReadOnlySpan<byte> buffer)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool DetectTlsClientHello(ReadOnlySpan<byte> data)
         {
-            Span<char> bufferChar = stackalloc char[4];
-            Encoding.ASCII.GetChars(buffer, bufferChar);
-
-            return ((ReadOnlySpan<char>) bufferChar).Equals("GET ", StringComparison.OrdinalIgnoreCase);
+            return data[0] == 0x16;
         }
 
         public async Task<SecureConnectionUpdateResult> AuthenticateAsServer(
             Stream stream, string host, ExchangeContext context, CancellationToken token)
         {
-            var buffer = new byte[4];
+            var buffer = new byte[1];
             var originalStream = stream;
 
             if (stream is NetworkStream networkStream && networkStream.DataAvailable) {
@@ -44,9 +43,9 @@ namespace Fluxzy.Core
                 await stream.ReadExactAsync(buffer, token).ConfigureAwait(false);
             }
 
-            if (StartWithKeyWord(buffer)) {
-                // This is websocket request 
-
+            if (!DetectTlsClientHello(buffer)) {
+                // This is a regular CONNECT request without SSL
+                
                 return new SecureConnectionUpdateResult(false, true,
                     new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
                     stream);
