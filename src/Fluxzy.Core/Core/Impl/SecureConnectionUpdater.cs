@@ -7,7 +7,6 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
@@ -46,8 +45,7 @@ namespace Fluxzy.Core
             if (!DetectTlsClientHello(buffer)) {
                 // This is a regular CONNECT request without SSL
                 
-                return new SecureConnectionUpdateResult(false, true,
-                    new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
+                return new SecureConnectionUpdateResult(false, new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
                     stream);
             }
 
@@ -80,22 +78,15 @@ namespace Fluxzy.Core
                     };
             }
 
-            return new SecureConnectionUpdateResult(false, true,
-                secureStream,
-                secureStream);
+            return new SecureConnectionUpdateResult(true, secureStream, secureStream);
         }
     }
 
-    public record SecureConnectionUpdateResult(
-        bool IsSsl, bool IsWebSocket,
-        Stream InStream, Stream OutStream)
+    internal record SecureConnectionUpdateResult(
+        bool IsSsl, Stream InStream, Stream OutStream)
     {
         public bool IsSsl { get; } = IsSsl;
-
-        public bool IsWebSocket { get; } = IsWebSocket;
-
-        public bool IsOnError => !IsSsl && !IsWebSocket;
-
+        
         public Stream InStream { get; } = InStream;
 
         public Stream OutStream { get; } = OutStream;
