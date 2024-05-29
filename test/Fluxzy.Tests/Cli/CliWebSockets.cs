@@ -84,7 +84,7 @@ namespace Fluxzy.Tests.Cli
                 Directory.Delete(directoryName, true);
         }
 
-        [Theory(Skip = "Websocket test server is not stable on sandbox.smartizy.com")]
+        [Theory()]
         [MemberData(nameof(GetCliWebSocketTestRepetitionArgs))]
         public async Task Run_Cli_For_Web_Socket_Req_Res(int length, int _)
         {
