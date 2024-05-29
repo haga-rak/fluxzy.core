@@ -10,6 +10,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Core
 {
@@ -77,7 +78,8 @@ namespace Fluxzy.Core
 
             // Classic TLS Request 
 
-            if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase))
+            if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase) 
+                 && !UrlHelper.IsAbsoluteHttpUrl(plainHeader.Path.Span))
             {
                 // GET Authority 
                 var authorityArray =
@@ -92,22 +94,24 @@ namespace Fluxzy.Core
 
                     return new(true, null); 
                 }
-                
-
 
                 await stream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
                 var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
 
                 if (exchangeContext.BlindMode) {
+
+                    var provisionalExchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
+                        authority, plainHeaderChars, Stream.Null,
+                        ProxyConstants.AcceptTunnelResponseString.AsMemory(),
+                        Stream.Null, false,
+                        "HTTP/1.1",
+                        receivedFromProxy);
+
+                    provisionalExchange.Unprocessed = false;
+
                     return
                         new (false, new ExchangeSourceInitResult(
-                            authority, stream, stream,
-                            Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
-                                authority, plainHeaderChars, Stream.Null,
-                                ProxyConstants.AcceptTunnelResponseString.AsMemory(),
-                                Stream.Null, false,
-                                "HTTP/1.1",
-                                receivedFromProxy), true));
+                            authority, stream, stream, provisionalExchange, true));
                 }
 
                 var certStart = ITimingProvider.Default.Instant();
@@ -116,10 +120,12 @@ namespace Fluxzy.Core
                 var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
                     stream, authority.HostName, exchangeContext, token).ConfigureAwait(false);
 
+                authority = new Authority(authority.HostName, authority.Port, authenticateResult.IsSsl);
+
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, Stream.Null,
                     ProxyConstants.AcceptTunnelResponseString.AsMemory(),
-                    Stream.Null, false, "HTTP/1.1", receivedFromProxy);
+                    Stream.Null, authenticateResult.IsSsl, "HTTP/1.1", receivedFromProxy);
 
                 exchange.Metrics.CreateCertStart = certStart;
                 exchange.Metrics.CreateCertEnd = certEnd;
@@ -131,7 +137,6 @@ namespace Fluxzy.Core
                         authenticateResult.InStream,
                         authenticateResult.OutStream, exchange, false));
             }
-
 
             var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
 

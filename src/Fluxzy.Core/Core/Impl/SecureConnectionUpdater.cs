@@ -4,9 +4,9 @@ using System;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
@@ -23,18 +23,16 @@ namespace Fluxzy.Core
             _certificateProvider = certificateProvider;
         }
 
-        private static bool StartWithKeyWord(ReadOnlySpan<byte> buffer)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool DetectTlsClientHello(ReadOnlySpan<byte> data)
         {
-            Span<char> bufferChar = stackalloc char[4];
-            Encoding.ASCII.GetChars(buffer, bufferChar);
-
-            return ((ReadOnlySpan<char>) bufferChar).Equals("GET ", StringComparison.OrdinalIgnoreCase);
+            return data[0] == 0x16;
         }
 
         public async Task<SecureConnectionUpdateResult> AuthenticateAsServer(
             Stream stream, string host, ExchangeContext context, CancellationToken token)
         {
-            var buffer = new byte[4];
+            var buffer = new byte[1];
             var originalStream = stream;
 
             if (stream is NetworkStream networkStream && networkStream.DataAvailable) {
@@ -44,11 +42,10 @@ namespace Fluxzy.Core
                 await stream.ReadExactAsync(buffer, token).ConfigureAwait(false);
             }
 
-            if (StartWithKeyWord(buffer)) {
-                // This is websocket request 
-
-                return new SecureConnectionUpdateResult(false, true,
-                    new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
+            if (!DetectTlsClientHello(buffer)) {
+                // This is a regular CONNECT request without SSL
+                
+                return new SecureConnectionUpdateResult(false, new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
                     stream);
             }
 
@@ -81,22 +78,15 @@ namespace Fluxzy.Core
                     };
             }
 
-            return new SecureConnectionUpdateResult(false, true,
-                secureStream,
-                secureStream);
+            return new SecureConnectionUpdateResult(true, secureStream, secureStream);
         }
     }
 
-    public record SecureConnectionUpdateResult(
-        bool IsSsl, bool IsWebSocket,
-        Stream InStream, Stream OutStream)
+    internal record SecureConnectionUpdateResult(
+        bool IsSsl, Stream InStream, Stream OutStream)
     {
         public bool IsSsl { get; } = IsSsl;
-
-        public bool IsWebSocket { get; } = IsWebSocket;
-
-        public bool IsOnError => !IsSsl && !IsWebSocket;
-
+        
         public Stream InStream { get; } = InStream;
 
         public Stream OutStream { get; } = OutStream;
