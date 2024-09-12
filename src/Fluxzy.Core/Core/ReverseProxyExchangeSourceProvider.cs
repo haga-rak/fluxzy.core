@@ -50,7 +50,7 @@ namespace Fluxzy.Core
                 CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                 EncryptionPolicy = EncryptionPolicy.RequireEncryption,
                 ServerCertificateSelectionCallback = (sender, name) => {
-                    var certificate = _certificateProvider.GetCertificate(name ?? "fluxzy.io");
+                    var certificate = _certificateProvider.GetCertificate(string.IsNullOrWhiteSpace(name) ? "fluxzy.io" : name);
                     authorityName = name;
                     return certificate;
                 }

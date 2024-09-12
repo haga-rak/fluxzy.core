@@ -95,7 +95,7 @@ namespace Fluxzy
                     newEntry.CompressionMethod = CompressionMethod.Stored;
                 }
 
-                zipStream.PutNextEntry(newEntry);
+                await zipStream.PutNextEntryAsync(newEntry);
                 await fsInput.CopyToAsync(zipStream);
                 zipStream.CloseEntry();
             }
@@ -131,7 +131,7 @@ namespace Fluxzy
                         newEntry.CompressionMethod = CompressionMethod.Stored;
                     }
 
-                    zipStream.PutNextEntry(newEntry);
+                    await zipStream.PutNextEntryAsync(newEntry);
                     await fsInput.CopyToAsync(zipStream);
                     zipStream.CloseEntry();
                 }
