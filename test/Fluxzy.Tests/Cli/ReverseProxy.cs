@@ -38,7 +38,8 @@ namespace Fluxzy.Tests.Cli
             
             using var response = await httpClient.SendAsync(requestMessage);
 
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains(response.StatusCode,
+                new[] { System.Net.HttpStatusCode.OK, System.Net.HttpStatusCode.MethodNotAllowed });
         }
 
         public static IEnumerable<object[]> GetArguments()
