@@ -276,5 +276,14 @@ namespace Fluxzy
         /// </summary>
         [Key(16)]
         public List<ClientError> ClientErrors { get; private set; }
+        
+        /// <summary>
+        /// The string representation of this exchange
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"#{Id} {Method} {FullUrl}";
+        }
     }
 }
