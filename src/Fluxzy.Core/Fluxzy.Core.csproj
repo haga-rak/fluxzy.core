@@ -71,7 +71,7 @@
 
   <ItemGroup>
     <PackageReference Include="Fluxzy.BouncyCastle.Crypto.Async" Version="2.5.2" />
-    <PackageReference Include="MessagePack" Version="2.5.172" />
+    <PackageReference Include="MessagePack" Version="2.5.187" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
