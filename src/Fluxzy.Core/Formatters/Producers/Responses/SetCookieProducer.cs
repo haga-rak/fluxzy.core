@@ -77,13 +77,13 @@ namespace Fluxzy.Formatters.Producers.Responses
             if (!mainList.Any())
                 return false;
 
-            var nameValueTab = mainList.First().Split(new[] { "=" }, StringSplitOptions.None);
+            var nameValueTab = mainList.First().Split(new[] { "=" }, 2, StringSplitOptions.None);
 
             if (nameValueTab.Length < 2)
                 return false;
 
             var name = HttpUtility.UrlDecode(nameValueTab[0]);
-            var value = HttpUtility.UrlDecode(string.Join("=", nameValueTab.Skip(1)));
+            var value = nameValueTab[1];
 
             result = new SetCookieItem(name, value);
 
