@@ -38,13 +38,13 @@ namespace Fluxzy.Formatters.Producers.Requests
                                              .Select(s => s.Trim());
 
                 foreach (var cookieLine in cookieLines) {
-                    var cookieNameValueTab = cookieLine.Split('=');
+                    var cookieNameValueTab = cookieLine.Split('=', 2);
 
                     if (cookieNameValueTab.Length < 2)
                         continue;
 
                     var cookieName = HttpUtility.UrlDecode(cookieNameValueTab[0]);
-                    var cookieValue = HttpUtility.UrlDecode(string.Join("=", cookieNameValueTab.Skip(1)));
+                    var cookieValue = cookieNameValueTab[1];
 
                     requestCookies.Add(new RequestCookie(cookieName, cookieValue));
                 }
