@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,9 +28,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             var client = new FluxzyTlsClient(
                 builderOptions.TargetHost!,
-                builderOptions.ClientCertificate != null ? 
-                    SslProtocols.Tls12 :
-                    builderOptions.EnabledSslProtocols,
+                builderOptions.EnabledSslProtocols,
                 builderOptions.ApplicationProtocols!.ToArray(), tlsAuthentication, crypto);
 
             var memoryStream = new MemoryStream();

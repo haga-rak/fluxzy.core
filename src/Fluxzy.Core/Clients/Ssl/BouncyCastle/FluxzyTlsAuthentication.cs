@@ -1,5 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
+using System.Linq;
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
@@ -27,12 +29,15 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public TlsCredentials? GetClientCredentials(CertificateRequest certificateRequest)
         {
             if (_clientCertificateInfo != null) {
-                var context = certificateRequest.GetCertificateRequestContext();
+                var signatureAndHashAlgorithm = TlsUtilities
+                    .ChooseSignatureAndHashAlgorithm(_tlsCrypto.Context,
+                        certificateRequest.SupportedSignatureAlgorithms,
+                        certificateRequest.SupportedSignatureAlgorithms
+                                          .First()
+                                          .Hash
+                    );
 
-                var signatureAndHashAlgorithm = TlsUtilities.ChooseSignatureAndHashAlgorithm(_tlsCrypto.Context,
-                    certificateRequest.SupportedSignatureAlgorithms, SignatureAlgorithm.rsa);
-
-                var config = BouncyCastleClientCertificateConfiguration.CreateFrom(certificateRequest, _tlsCrypto,
+               var config = BouncyCastleClientCertificateConfiguration.CreateFrom(certificateRequest, _tlsCrypto,
                     _clientCertificateInfo);
 
                 var cryptoParameters = new TlsCryptoParameters(_tlsCrypto.Context); 
