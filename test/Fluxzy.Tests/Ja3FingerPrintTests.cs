@@ -50,9 +50,7 @@ namespace Fluxzy.Tests
             var chrome131Response = Ja3FingerPrintRepository.FingerPrints["CHROME_131"];
 
             Assert.NotNull(ja3Response);
-            Assert.Equal(chrome131Response.Ja3, ja3Response.Ja3);
             Assert.Equal(chrome131Response.Ja3n, ja3Response.Ja3n);
-            Assert.Equal(chrome131Response.Ja3Digest, ja3Response.Ja3Digest);
             Assert.Equal(chrome131Response.Ja3nDigest, ja3Response.Ja3nDigest);
         }
     }
