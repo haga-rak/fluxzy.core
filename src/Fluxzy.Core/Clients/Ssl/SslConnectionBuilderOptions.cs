@@ -6,6 +6,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Certificates;
 using Fluxzy.Clients.Ssl.BouncyCastle;
+using Certificate = Fluxzy.Certificates.Certificate;
 
 namespace Fluxzy.Clients.Ssl
 {
@@ -15,13 +16,15 @@ namespace Fluxzy.Clients.Ssl
 
         public SslConnectionBuilderOptions(string targetHost, 
             SslProtocols enabledSslProtocols, List<SslApplicationProtocol> applicationProtocols,
-            RemoteCertificateValidationCallback? remoteCertificateValidationCallback, Certificate? clientCertificate)
+            RemoteCertificateValidationCallback? remoteCertificateValidationCallback,
+            Certificate? clientCertificate, SslConnectionBuilderOptionsCipherConfiguration? cipherConfiguration)
         {
             TargetHost = targetHost;
             EnabledSslProtocols = enabledSslProtocols;
             ApplicationProtocols = applicationProtocols;
             RemoteCertificateValidationCallback = remoteCertificateValidationCallback;
             ClientCertificate = clientCertificate;
+            CipherConfiguration = cipherConfiguration;
         }
 
         public string TargetHost { get; }
@@ -30,9 +33,11 @@ namespace Fluxzy.Clients.Ssl
 
         public List<SslApplicationProtocol> ApplicationProtocols { get; }
 
-        public RemoteCertificateValidationCallback? RemoteCertificateValidationCallback { get; } = null; 
+        public RemoteCertificateValidationCallback? RemoteCertificateValidationCallback { get; } 
 
         public Certificate ? ClientCertificate { get; set; }
+
+        public SslConnectionBuilderOptionsCipherConfiguration? CipherConfiguration { get; }
 
         public SslClientAuthenticationOptions GetSslClientAuthenticationOptions()
         {

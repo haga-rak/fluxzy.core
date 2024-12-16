@@ -13,6 +13,7 @@ using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
@@ -101,6 +102,11 @@ namespace Fluxzy.Core
         ///     Available TLS protocols, leave null to use default
         /// </summary>
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
+
+        /// <summary>
+        ///   Available CIPHER configurations
+        /// </summary>
+        public SslConnectionBuilderOptionsCipherConfiguration? CipherConfiguration { get; set; } = null;
 
         /// <summary>
         ///     Don't validate the remote certificate

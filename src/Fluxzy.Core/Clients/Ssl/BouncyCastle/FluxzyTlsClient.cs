@@ -12,23 +12,25 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     internal class FluxzyTlsClient : DefaultTlsClient
     {
-        private readonly SslApplicationProtocol[] _applicationProtocols;
+        private readonly IReadOnlyCollection<SslApplicationProtocol>_applicationProtocols;
         private readonly FluxzyCrypto _crypto;
         private readonly SslProtocols _sslProtocols;
         private readonly string _targetHost;
         private readonly TlsAuthentication _tlsAuthentication;
+        private readonly int[]?  _cipherSuites;
 
         public FluxzyTlsClient(
-            string targetHost, SslProtocols sslProtocols,
-            SslApplicationProtocol[] applicationProtocols, TlsAuthentication tlsAuthentication,
+            SslConnectionBuilderOptions builderOptions,
+            TlsAuthentication tlsAuthentication,
             FluxzyCrypto crypto)
             : base(crypto)
         {
-            _targetHost = targetHost;
-            _sslProtocols = sslProtocols;
-            _applicationProtocols = applicationProtocols;
+            _targetHost = builderOptions.TargetHost;
+            _sslProtocols = builderOptions.EnabledSslProtocols;
+            _applicationProtocols = builderOptions.ApplicationProtocols;
             _tlsAuthentication = tlsAuthentication;
             _crypto = crypto;
+            _cipherSuites = builderOptions.CipherConfiguration?.BouncyCastleCiphers;
         }
 
         public override void Init(TlsClientContext context)
@@ -42,6 +44,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             var extensions = base.GetClientExtensions();
 
             extensions.Add(0, ServerNameUtilities.CreateFromHost(_targetHost));
+            extensions.Add(ExtensionType.renegotiation_info, new byte[1]);
 
             return extensions;
         }
@@ -49,6 +52,16 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public override TlsAuthentication GetAuthentication()
         {
             return _tlsAuthentication;
+        }
+
+        public override int[] GetCipherSuites()
+        {
+            if (_cipherSuites != null)
+            {
+                return _cipherSuites;
+            }
+
+            return base.GetCipherSuites();
         }
 
         protected override IList<ProtocolName> GetProtocolNames()
