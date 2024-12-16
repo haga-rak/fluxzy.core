@@ -160,6 +160,13 @@ namespace Fluxzy.Core
         /// </value>
         public IPAddress DownStreamLocalAddressStruct { get; set; } = null!;
 
+
+        /// <summary>
+        /// Gets or sets the dns over https name or url.
+        /// </summary>
+        public string? DnsOverHttpsNameOrUrl { get; set; } = null; 
+
+
         /// <summary>
         ///  Information about the proxy port that has been used to retrieve the ongoing exchange
         /// </summary>

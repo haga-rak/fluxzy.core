@@ -33,10 +33,10 @@ namespace Fluxzy.Clients
                 ProxyRuntimeSetting? runtimeSetting)
         {
             var dnsSolveStart = timingProvider.Instant();
-            var connectHostName = exchange.Context.ProxyConfiguration?.Host ?? exchange.Authority.HostName; 
-
+            var connectHostName = exchange.Context.ProxyConfiguration?.Host ?? exchange.Authority.HostName;
+            
             var ipAddress = exchange.Context.RemoteHostIp ??
-                            await dnsSolver.SolveDns(connectHostName).ConfigureAwait(false);
+                            await dnsSolver.SolveDns(connectHostName, null).ConfigureAwait(false);
 
             var dnsSolveEnd = timingProvider.Instant();
 
@@ -66,7 +66,7 @@ namespace Fluxzy.Clients
             ComputeDns(Authority authority, ITimingProvider timingProvider, IDnsSolver dnsSolver)
         {
             var dnsSolveStart = timingProvider.Instant();
-            var ipAddress = await dnsSolver.SolveDns(authority.HostName).ConfigureAwait(false);
+            var ipAddress = await dnsSolver.SolveDns(authority.HostName, null).ConfigureAwait(false);
             var dnsSolveEnd = timingProvider.Instant();
             var remotePort = authority.Port;
             var remoteEndPoint = new IPEndPoint(ipAddress, remotePort);

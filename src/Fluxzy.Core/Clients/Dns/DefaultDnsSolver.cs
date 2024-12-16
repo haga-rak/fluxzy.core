@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 
@@ -14,34 +15,59 @@ namespace Fluxzy.Clients.Dns
     {
         private readonly ConcurrentDictionary<string, IPAddress> _cache = new();
 
-        public async Task<IPAddress> SolveDns(string hostName)
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreRepository =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        public async Task<IPAddress> SolveDns(string hostName, ProxyConfiguration? proxyConfiguration)
         {
-            if (_cache.TryGetValue(hostName, out var cached))
-                return cached;
+            var lockKey = _semaphoreRepository.GetOrAdd(hostName, new SemaphoreSlim(1));
 
             try {
-                var entry = await System.Net.Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
+                await lockKey.WaitAsync().ConfigureAwait(false);
 
-                return _cache[hostName] = entry.OrderBy(a => a.AddressFamily == AddressFamily.InterNetworkV6)
-                                               .First();
+                if (_cache.TryGetValue(hostName, out var cached))
+                    return cached;
+
+                try {
+                    var result = await InternalSolveDns(hostName, proxyConfiguration);
+
+                    return _cache[hostName] = result;
+                }
+                catch (Exception ex) {
+                    var errorCode = -1;
+
+                    if (ex is SocketException sex)
+                        errorCode = sex.ErrorCode;
+
+                    var clientErrorException = new ClientErrorException(
+                        errorCode, $"Failed to solve DNS for {hostName}", ex.Message);
+
+                    throw clientErrorException;
+                }
             }
-            catch (Exception ex) {
-                var errorCode = -1;
+            finally {
+                lockKey.Release();
 
-                if (ex is SocketException sex)
-                    errorCode = sex.ErrorCode;
-
-                var clientErrorException = new ClientErrorException(
-                    errorCode, $"Failed to solve DNS for {hostName}", ex.Message);
-
-                throw clientErrorException;
+                if (_semaphoreRepository.TryGetValue(hostName, out var sem) && sem.CurrentCount == 0)
+                    _semaphoreRepository.TryRemove(hostName, out _);
             }
+
         }
 
-        public async Task<IPAddress?> SolveDnsQuietly(string hostName)
+        protected virtual async Task<IPAddress> InternalSolveDns(string hostName, ProxyConfiguration? proxyConfiguration)
+        {
+            var entry = await System.Net.Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
+
+            var result = entry.OrderBy(a => a.AddressFamily == AddressFamily.InterNetworkV6)
+                              .First();
+
+            return result;
+        }
+
+        public async Task<IPAddress?> SolveDnsQuietly(string hostName, ProxyConfiguration? proxyConfiguration)
         {
             try {
-                return await SolveDns(hostName).ConfigureAwait(false);
+                return await SolveDns(hostName, proxyConfiguration).ConfigureAwait(false);
             }
             catch {
                 // it's quiet solving 
